@@ -47,7 +47,7 @@ pub trait ContainerClientExt {
     ///     bot.chat("no chest found");
     ///     return;
     /// };
-    /// let container = bot.open_container_at(target_pos).await;
+    /// let container = bot.open_container_at(target_pos, None).await;
     /// # }
     /// ```
     fn open_container_at(
@@ -134,10 +134,10 @@ impl ContainerClientExt for Client {
             }
 
             elapsed_ticks += 1;
-            if let Some(timeout_ticks) = timeout_ticks {
-                if elapsed_ticks >= timeout_ticks {
-                    return None;
-                }
+            if let Some(timeout_ticks) = timeout_ticks
+                && elapsed_ticks >= timeout_ticks
+            {
+                return None;
             }
         }
 
