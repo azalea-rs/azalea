@@ -363,7 +363,7 @@ pub fn update_old_position(mut query: Query<(&mut Physics, &Position)>) {
     }
 }
 
-fn get_block_pos_below_that_affects_movement(position: Position) -> BlockPos {
+pub fn get_block_pos_below_that_affects_movement(position: Position) -> BlockPos {
     BlockPos::new(
         position.x.floor() as i32,
         // TODO: this uses bounding_box.min_y instead of position.y

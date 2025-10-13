@@ -32,6 +32,7 @@ use std::{
 };
 
 use astar::{Edge, PathfinderTimeout};
+use azalea_block::{BlockState, BlockTrait};
 use azalea_client::{
     StartSprintEvent, StartWalkEvent,
     inventory::{Inventory, InventorySystems},
@@ -44,7 +45,7 @@ use azalea_core::{
     tick::GameTick,
 };
 use azalea_entity::{LocalEntity, Physics, Position, metadata::Player};
-use azalea_physics::PhysicsSystems;
+use azalea_physics::{PhysicsSystems, get_block_pos_below_that_affects_movement};
 use azalea_world::{InstanceContainer, InstanceName};
 use bevy_app::{PreUpdate, Update};
 use bevy_ecs::prelude::*;
@@ -733,11 +734,19 @@ pub fn check_node_reached(
         &mut ExecutingPath,
         &Position,
         &Physics,
+        &InstanceName,
     )>,
     mut walk_events: MessageWriter<StartWalkEvent>,
     mut commands: Commands,
+    instance_container: Res<InstanceContainer>,
 ) {
-    for (entity, mut pathfinder, mut executing_path, position, physics) in &mut query {
+    for (entity, mut pathfinder, mut executing_path, position, physics, instance_name) in &mut query
+    {
+        let Some(instance) = instance_container.get(instance_name) else {
+            warn!("entity is pathfinding but not in a valid world");
+            continue;
+        };
+
         'skip: loop {
             // we check if the goal was reached *before* actually executing the movement so
             // we don't unnecessarily execute a movement when it wasn't necessary
@@ -758,20 +767,45 @@ pub fn check_node_reached(
                     position: **position,
                     physics,
                 };
-                let extra_strict_if_last = if i == executing_path.path.len() - 1 {
+                let extra_check = if i == executing_path.path.len() - 1 {
+                    // be extra strict about the velocity and centering if we're on the last node so
+                    // we don't fall off
+
                     let x_difference_from_center = position.x - (movement.target.x as f64 + 0.5);
                     let z_difference_from_center = position.z - (movement.target.z as f64 + 0.5);
+
+                    let block_pos_below = get_block_pos_below_that_affects_movement(*position);
+
+                    let block_state_below = {
+                        let instance = instance.read();
+                        instance
+                            .chunks
+                            .get_block_state(block_pos_below)
+                            .unwrap_or(BlockState::AIR)
+                    };
+                    let block_below: Box<dyn BlockTrait> = block_state_below.into();
+                    // friction for normal blocks is 0.6, for ice it's 0.98
+                    let block_friction = block_below.behavior().friction as f64;
+
+                    // if the block has the default friction, this will multiply by 1
+                    // for blocks like ice, it'll multiply by a higher number
+                    let scaled_velocity = physics.velocity * (0.4 / (1. - block_friction));
+
+                    let x_predicted_offset = (x_difference_from_center + scaled_velocity.x).abs();
+                    let z_predicted_offset = (z_difference_from_center + scaled_velocity.z).abs();
+
                     // this is to make sure we don't fall off immediately after finishing the path
                     physics.on_ground()
-                    && player_pos_to_block_pos(**position) == movement.target
-                    // adding the delta like this isn't a perfect solution but it helps to make
-                    // sure we don't keep going if our delta is high
-                    && (x_difference_from_center + physics.velocity.x).abs() < 0.2
-                    && (z_difference_from_center + physics.velocity.z).abs() < 0.2
+                        && player_pos_to_block_pos(**position) == movement.target
+                        // adding the delta like this isn't a perfect solution but it helps to make
+                        // sure we don't keep going if our delta is high
+                        && x_predicted_offset < 0.2
+                        && z_predicted_offset < 0.2
                 } else {
                     true
                 };
-                if (movement.data.is_reached)(is_reached_ctx) && extra_strict_if_last {
+
+                if (movement.data.is_reached)(is_reached_ctx) && extra_check {
                     executing_path.path = executing_path.path.split_off(i + 1);
                     executing_path.last_reached_node = movement.target;
                     executing_path.last_node_reached_at = Instant::now();
