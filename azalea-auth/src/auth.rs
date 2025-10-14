@@ -414,7 +414,7 @@ pub async fn interactive_get_ms_auth_token(
     let verification_uri = &res.verification_uri;
     let user_code = &res.user_code;
     println!(
-        "Go to \x1b[1m{verification_uri}?otc={user_code}\x1b[m and enter the code \x1b[1m{user_code}\x1b[m for \x1b[1m{cache_key}\x1b[m",
+        "Go to \x1b[1m{verification_uri}?otc={user_code}\x1b[m and log in for \x1b[1m{cache_key}\x1b[m",
     );
 
     get_ms_auth_token(client, res, client_id).await
