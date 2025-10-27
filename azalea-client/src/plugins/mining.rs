@@ -1,6 +1,8 @@
 use azalea_block::{BlockState, BlockTrait, fluid_state::FluidState};
 use azalea_core::{direction::Direction, game_type::GameMode, position::BlockPos, tick::GameTick};
-use azalea_entity::{FluidOnEyes, Physics, PlayerAbilities, Position, mining::get_mine_progress};
+use azalea_entity::{
+    ActiveEffects, FluidOnEyes, Physics, PlayerAbilities, Position, mining::get_mine_progress,
+};
 use azalea_inventory::ItemStack;
 use azalea_physics::{PhysicsSystems, collision::BlockWithShape};
 use azalea_protocol::packets::game::s_player_action::{self, ServerboundPlayerAction};
@@ -107,6 +109,7 @@ fn handle_auto_mine(
             &Inventory,
             &MineBlockPos,
             &MineItem,
+            Option<&ActiveEffects>,
         ),
         With<LeftClickMine>,
     >,
@@ -120,6 +123,7 @@ fn handle_auto_mine(
         inventory,
         current_mining_pos,
         current_mining_item,
+        _active_effects,
     ) in &mut query.iter_mut()
     {
         let block_pos = hit_result_component
@@ -243,6 +247,7 @@ pub fn handle_mining_queued(
         &InstanceHolder,
         &LocalGameMode,
         &Inventory,
+        Option<&ActiveEffects>,
         &FluidOnEyes,
         &Physics,
         Option<&mut Mining>,
@@ -260,6 +265,7 @@ pub fn handle_mining_queued(
         instance_holder,
         game_mode,
         inventory,
+        active_effects,
         fluid_on_eyes,
         physics,
         mut mining,
@@ -359,6 +365,7 @@ pub fn handle_mining_queued(
                     &inventory.inventory_menu,
                     fluid_on_eyes,
                     physics,
+                    active_effects,
                 ) >= 1.
             {
                 // block was broken instantly (instamined)
@@ -593,6 +600,7 @@ pub fn continue_mining_block(
         &Inventory,
         &MineBlockPos,
         &MineItem,
+        Option<&ActiveEffects>,
         &FluidOnEyes,
         &Physics,
         &Mining,
@@ -612,6 +620,7 @@ pub fn continue_mining_block(
         inventory,
         current_mining_pos,
         current_mining_item,
+        active_effects,
         fluid_on_eyes,
         physics,
         mining,
@@ -669,6 +678,7 @@ pub fn continue_mining_block(
                 &inventory.inventory_menu,
                 fluid_on_eyes,
                 physics,
+                active_effects,
             );
 
             if **mine_ticks % 4. == 0. {
