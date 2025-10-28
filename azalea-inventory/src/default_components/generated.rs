@@ -3504,7 +3504,7 @@ impl DefaultableComponent for Enchantable {
             Item::WoodenSword => 15,
             _ => return None,
         };
-        Some(Enchantable { value: value })
+        Some(Enchantable { value })
     }
 }
 impl DefaultableComponent for ProvidesBannerPatterns {
@@ -5380,7 +5380,7 @@ impl DefaultableComponent for PotionDurationScale {
             Item::TippedArrow => 0.125,
             _ => return None,
         };
-        Some(PotionDurationScale { value: value })
+        Some(PotionDurationScale { value })
     }
 }
 impl DefaultableComponent for JukeboxPlayable {
