@@ -1108,11 +1108,13 @@ impl GamePacketHandler<'_> {
         debug!("Got update mob effect packet {p:?}");
 
         let mob_effect = p.mob_effect;
-        let effect_data = MobEffectData {
-            amplifier: p.effect_amplifier,
-            duration_ticks: p.effect_duration_ticks,
-            flags: p.flags,
-        };
+        let effect_data = MobEffectData::new(
+            p.effect_amplifier,
+            p.effect_duration_ticks,
+            p.flags.ambient,
+            p.flags.show_particles,
+            p.flags.show_icon,
+        );
 
         as_system::<(Commands, Query<(&EntityIdIndex, &InstanceHolder)>)>(
             self.ecs,
@@ -1128,6 +1130,7 @@ impl GamePacketHandler<'_> {
                 };
 
                 let partial_instance = instance_holder.partial_instance.clone();
+                let mob_effect = mob_effect;
                 let effect_data = effect_data.clone();
                 commands.entity(entity).queue(RelativeEntityUpdate::new(
                     partial_instance,

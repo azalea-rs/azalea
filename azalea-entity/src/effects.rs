@@ -8,17 +8,35 @@ use bevy_ecs::component::Component;
 pub struct MobEffectData {
     pub amplifier: u32,
     pub duration_ticks: u32,
-    pub flags: u8,
+    pub ambient: bool,
+    pub show_particles: bool,
+    pub show_icon: bool,
 }
 impl MobEffectData {
+    pub fn new(
+        amplifier: u32,
+        duration_ticks: u32,
+        ambient: bool,
+        show_particles: bool,
+        show_icon: bool,
+    ) -> Self {
+        Self {
+            amplifier,
+            duration_ticks,
+            ambient,
+            show_particles,
+            show_icon,
+        }
+    }
+
     pub fn is_ambient(&self) -> bool {
-        self.flags & 0x01 != 0
+        self.ambient
     }
     pub fn should_show_particles(&self) -> bool {
-        self.flags & 0x02 != 0
+        self.show_particles
     }
     pub fn should_show_icon(&self) -> bool {
-        self.flags & 0x04 != 0
+        self.show_icon
     }
 }
 
