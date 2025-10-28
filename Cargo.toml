@@ -17,7 +17,7 @@ members = [
     "azalea-registry",
     "azalea-world",
 ]
-resolver = "2"
+resolver = "3"
 
 # --- Workspace Settings ---
 
