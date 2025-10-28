@@ -45,12 +45,12 @@ impl ActiveEffects {
 
 /// Returns the level (amplifier) of the given effect, or `None` if the effect
 /// is not active. The lowest level is 0.
-pub fn get_effect(active_effects: Option<&ActiveEffects>, effect: MobEffect) -> Option<u32> {
-    active_effects.and_then(|effects| effects.get_level(effect))
+pub fn get_effect(active_effects: &ActiveEffects, effect: MobEffect) -> Option<u32> {
+    active_effects.get_level(effect)
 }
 
 /// Returns the amplifier for dig speed (haste / conduit power), if present.
-pub fn get_dig_speed_amplifier(active_effects: Option<&ActiveEffects>) -> Option<u32> {
+pub fn get_dig_speed_amplifier(active_effects: &ActiveEffects) -> Option<u32> {
     let effect_plus_one = u32::max(
         get_effect(active_effects, MobEffect::Haste)
             .map(|level| level + 1)

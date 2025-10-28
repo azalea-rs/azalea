@@ -109,7 +109,6 @@ fn handle_auto_mine(
             &Inventory,
             &MineBlockPos,
             &MineItem,
-            Option<&ActiveEffects>,
         ),
         With<LeftClickMine>,
     >,
@@ -123,7 +122,6 @@ fn handle_auto_mine(
         inventory,
         current_mining_pos,
         current_mining_item,
-        _active_effects,
     ) in &mut query.iter_mut()
     {
         let block_pos = hit_result_component
@@ -247,7 +245,7 @@ pub fn handle_mining_queued(
         &InstanceHolder,
         &LocalGameMode,
         &Inventory,
-        Option<&ActiveEffects>,
+        &ActiveEffects,
         &FluidOnEyes,
         &Physics,
         Option<&mut Mining>,
@@ -600,7 +598,7 @@ pub fn continue_mining_block(
         &Inventory,
         &MineBlockPos,
         &MineItem,
-        Option<&ActiveEffects>,
+        &ActiveEffects,
         &FluidOnEyes,
         &Physics,
         &Mining,

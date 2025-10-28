@@ -19,7 +19,7 @@ pub trait AutoToolClientExt {
 
 impl AutoToolClientExt for Client {
     fn best_tool_in_hotbar_for_block(&self, block: BlockState) -> BestToolResult {
-        self.query_self::<(&Inventory, &Physics, &FluidOnEyes, Option<&ActiveEffects>), _>(
+        self.query_self::<(&Inventory, &Physics, &FluidOnEyes, &ActiveEffects), _>(
             |(inventory, physics, fluid_on_eyes, active_effects)| {
                 let menu = &inventory.inventory_menu;
                 accurate_best_tool_in_hotbar_for_block(
@@ -54,12 +54,13 @@ pub fn best_tool_in_hotbar_for_block(block: BlockState, menu: &Menu) -> BestTool
     let mut physics = Physics::default();
     physics.set_on_ground(true);
 
+    let inactive_effects = ActiveEffects::default();
     accurate_best_tool_in_hotbar_for_block(
         block,
         menu,
         &physics,
         &FluidOnEyes::new(FluidKind::Empty),
-        None,
+        &inactive_effects,
     )
 }
 
@@ -68,7 +69,7 @@ pub fn accurate_best_tool_in_hotbar_for_block(
     menu: &Menu,
     physics: &Physics,
     fluid_on_eyes: &FluidOnEyes,
-    active_effects: Option<&ActiveEffects>,
+    active_effects: &ActiveEffects,
 ) -> BestToolResult {
     let hotbar_slots = &menu.slots()[menu.hotbar_slots_range()];
 

@@ -20,7 +20,7 @@ pub fn get_mine_progress(
     player_inventory: &azalea_inventory::Menu,
     fluid_on_eyes: &FluidOnEyes,
     physics: &Physics,
-    active_effects: Option<&ActiveEffects>,
+    active_effects: &ActiveEffects,
 ) -> f32 {
     let block_behavior: BlockBehavior = block.behavior();
 
@@ -84,7 +84,7 @@ fn destroy_speed(
     _player_inventory: &azalea_inventory::Menu,
     _fluid_on_eyes: &FluidOnEyes,
     physics: &Physics,
-    active_effects: Option<&ActiveEffects>,
+    active_effects: &ActiveEffects,
 ) -> f32 {
     let mut base_destroy_speed = base_destroy_speed(block, tool);
 

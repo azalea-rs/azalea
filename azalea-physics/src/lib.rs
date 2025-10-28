@@ -70,7 +70,7 @@ pub fn ai_step(
             &Position,
             &LookDirection,
             &Sprinting,
-            Option<&ActiveEffects>,
+            &ActiveEffects,
             &InstanceName,
             &EntityKindComponent,
         ),
@@ -341,7 +341,7 @@ pub fn jump_from_ground(
     sprinting: Sprinting,
     instance_name: &InstanceName,
     instance_container: &InstanceContainer,
-    active_effects: Option<&ActiveEffects>,
+    active_effects: &ActiveEffects,
 ) {
     let world_lock = instance_container
         .get(instance_name)
@@ -515,9 +515,9 @@ fn jump_power(world: &Instance, position: Position) -> f32 {
     0.42 * block_jump_factor(world, position)
 }
 
-fn jump_boost_power(active_effects: Option<&ActiveEffects>) -> f64 {
+fn jump_boost_power(active_effects: &ActiveEffects) -> f64 {
     active_effects
-        .and_then(|effects| effects.get_level(MobEffect::JumpBoost))
+        .get_level(MobEffect::JumpBoost)
         .map(|level| 0.1 * (level + 1) as f64)
         .unwrap_or(0.)
 }
