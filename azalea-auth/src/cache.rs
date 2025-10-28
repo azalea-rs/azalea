@@ -28,6 +28,7 @@ pub enum CacheError {
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct CachedAccount {
+    #[serde(alias = "email")]
     pub cache_key: String,
     /// Microsoft auth
     pub msa: ExpiringValue<crate::auth::AccessTokenResponse>,
