@@ -348,11 +348,12 @@ pub fn jump_from_ground(
         .expect("All entities should be in a valid world");
     let world = world_lock.read();
 
-    let jump_power: f64 = jump_power(&world, position) as f64 + jump_boost_power(active_effects);
+    let base_jump = jump_power(&world, position);
+    let jump_power = base_jump + jump_boost_power(active_effects);
     let old_delta_movement = physics.velocity;
     physics.velocity = Vec3 {
         x: old_delta_movement.x,
-        y: jump_power,
+        y: f64::from(jump_power),
         z: old_delta_movement.z,
     };
     if *sprinting {
@@ -515,9 +516,9 @@ fn jump_power(world: &Instance, position: Position) -> f32 {
     0.42 * block_jump_factor(world, position)
 }
 
-fn jump_boost_power(active_effects: &ActiveEffects) -> f64 {
+fn jump_boost_power(active_effects: &ActiveEffects) -> f32 {
     active_effects
         .get_level(MobEffect::JumpBoost)
-        .map(|level| 0.1 * (level + 1) as f64)
+        .map(|level| 0.1 * (level + 1) as f32)
         .unwrap_or(0.)
 }
