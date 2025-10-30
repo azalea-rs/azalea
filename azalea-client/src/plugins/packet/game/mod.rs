@@ -8,7 +8,7 @@ use azalea_core::{
 };
 use azalea_entity::{
     ActiveEffects, Dead, EntityBundle, EntityKindComponent, HasClientLoaded, LoadedBy, LocalEntity,
-    LookDirection, MobEffectData, Physics, PlayerAbilities, Position, RelativeEntityUpdate,
+    LookDirection, Physics, PlayerAbilities, Position, RelativeEntityUpdate,
     indexing::{EntityIdIndex, EntityUuidIndex},
     metadata::{Health, apply_metadata},
 };
@@ -1108,13 +1108,7 @@ impl GamePacketHandler<'_> {
         debug!("Got update mob effect packet {p:?}");
 
         let mob_effect = p.mob_effect;
-        let effect_data = MobEffectData::new(
-            p.effect_amplifier,
-            p.effect_duration_ticks,
-            p.flags.ambient,
-            p.flags.show_particles,
-            p.flags.show_icon,
-        );
+        let effect_data = &p.data;
 
         as_system::<(Commands, Query<(&EntityIdIndex, &InstanceHolder)>)>(
             self.ecs,

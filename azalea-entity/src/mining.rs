@@ -1,8 +1,8 @@
 use azalea_block::{BlockBehavior, BlockTrait};
 use azalea_core::tier::get_item_tier;
-use azalea_registry as registry;
+use azalea_registry::{self as registry, MobEffect};
 
-use crate::{ActiveEffects, FluidOnEyes, Physics, effects};
+use crate::{ActiveEffects, FluidOnEyes, Physics};
 
 /// How much progress is made towards mining the block per tick, as a
 /// percentage.
@@ -98,13 +98,11 @@ fn destroy_speed(
     // efficiency_level + 1) as f32;     }
     // }
 
-    if let Some(dig_speed_amplifier) = effects::get_dig_speed_amplifier(active_effects) {
+    if let Some(dig_speed_amplifier) = active_effects.get_dig_speed_amplifier() {
         base_destroy_speed *= 1. + (dig_speed_amplifier + 1) as f32 * 0.2;
     }
 
-    if let Some(dig_slowdown) =
-        effects::get_effect(active_effects, registry::MobEffect::MiningFatigue)
-    {
+    if let Some(dig_slowdown) = active_effects.get_level(MobEffect::MiningFatigue) {
         let multiplier = match dig_slowdown {
             0 => 0.3,
             1 => 0.09,

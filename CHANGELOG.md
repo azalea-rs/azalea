@@ -21,6 +21,7 @@ is breaking anyways, semantic versioning is not followed.
 - Rename `SendPacketEvent` to `SendGamePacketEvent` and `PingEvent` to `GamePingEvent`.
 - Swap the order of the type parameters in entity filtering functions so query is first, then filter.
 - Add optional `timeout_ticks` field to `Client::open_container_at`.
+- Implement initial support for mob effects, including jump boost, haste, conduit power, and mining fatigue. (@ShayBox)
 
 ### Fixed
 

@@ -1,46 +1,69 @@
-use std::collections::HashMap;
+use std::{
+    collections::HashMap,
+    io::{self, Cursor, Write},
+};
 
+use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
+use azalea_core::bitset::FixedBitSet;
 use azalea_registry::MobEffect;
 use bevy_ecs::component::Component;
 
-/// Data about an active mob effect that the client knows about.
-#[derive(Clone, Debug, Default)]
+/// Data about an active mob effect.
+#[derive(Clone, Debug, Default, PartialEq, AzBuf)]
 pub struct MobEffectData {
+    /// The effect's amplifier level, starting at 0 if present.
+    #[var]
     pub amplifier: u32,
+    #[var]
     pub duration_ticks: u32,
+
+    pub flags: MobEffectFlags,
+}
+
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct MobEffectFlags {
     pub ambient: bool,
     pub show_particles: bool,
     pub show_icon: bool,
+    pub blend: bool,
 }
-impl MobEffectData {
-    pub fn new(
-        amplifier: u32,
-        duration_ticks: u32,
-        ambient: bool,
-        show_particles: bool,
-        show_icon: bool,
-    ) -> Self {
-        Self {
-            amplifier,
-            duration_ticks,
+
+impl AzaleaRead for MobEffectFlags {
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let bitset = FixedBitSet::<8>::azalea_read(buf)?;
+        let ambient = bitset.index(0);
+        let show_particles = bitset.index(1);
+        let show_icon = bitset.index(2);
+        let blend = bitset.index(3);
+        Ok(Self {
             ambient,
             show_particles,
             show_icon,
-        }
-    }
-
-    pub fn is_ambient(&self) -> bool {
-        self.ambient
-    }
-    pub fn should_show_particles(&self) -> bool {
-        self.show_particles
-    }
-    pub fn should_show_icon(&self) -> bool {
-        self.show_icon
+            blend,
+        })
     }
 }
 
-/// Component storing the active mob effects on an entity.
+impl AzaleaWrite for MobEffectFlags {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+        let mut bitset = FixedBitSet::<8>::new();
+        if self.ambient {
+            bitset.set(0);
+        }
+        if self.show_particles {
+            bitset.set(1);
+        }
+        if self.show_icon {
+            bitset.set(2);
+        }
+        if self.blend {
+            bitset.set(3);
+        }
+        bitset.azalea_write(buf)
+    }
+}
+
+/// An ECS component that stores the active mob effects on an entity.
 #[derive(Component, Clone, Debug, Default)]
 pub struct ActiveEffects(pub HashMap<MobEffect, MobEffectData>);
 impl ActiveEffects {
@@ -52,6 +75,7 @@ impl ActiveEffects {
         self.0.remove(&effect)
     }
 
+    /// Get the amplifier level for the effect, starting at 0.
     pub fn get_level(&self, effect: MobEffect) -> Option<u32> {
         self.0.get(&effect).map(|data| data.amplifier)
     }
@@ -59,27 +83,23 @@ impl ActiveEffects {
     pub fn get(&self, effect: MobEffect) -> Option<&MobEffectData> {
         self.0.get(&effect)
     }
-}
 
-/// Returns the level (amplifier) of the given effect, or `None` if the effect
-/// is not active. The lowest level is 0.
-pub fn get_effect(active_effects: &ActiveEffects, effect: MobEffect) -> Option<u32> {
-    active_effects.get_level(effect)
-}
+    /// Returns the amplifier for dig speed (haste / conduit power), if present.
+    pub fn get_dig_speed_amplifier(&self) -> Option<u32> {
+        let haste_level = self
+            .get_level(MobEffect::Haste)
+            .map(|level| level + 1)
+            .unwrap_or_default();
+        let conduit_power_level = self
+            .get_level(MobEffect::ConduitPower)
+            .map(|level| level + 1)
+            .unwrap_or_default();
 
-/// Returns the amplifier for dig speed (haste / conduit power), if present.
-pub fn get_dig_speed_amplifier(active_effects: &ActiveEffects) -> Option<u32> {
-    let effect_plus_one = u32::max(
-        get_effect(active_effects, MobEffect::Haste)
-            .map(|level| level + 1)
-            .unwrap_or_default(),
-        get_effect(active_effects, MobEffect::ConduitPower)
-            .map(|level| level + 1)
-            .unwrap_or_default(),
-    );
-    if effect_plus_one > 0 {
-        Some(effect_plus_one - 1)
-    } else {
-        None
+        let effect_plus_one = u32::max(haste_level, conduit_power_level);
+        if effect_plus_one > 0 {
+            Some(effect_plus_one - 1)
+        } else {
+            None
+        }
     }
 }

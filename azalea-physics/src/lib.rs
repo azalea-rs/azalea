@@ -350,10 +350,14 @@ pub fn jump_from_ground(
 
     let base_jump = jump_power(&world, position);
     let jump_power = base_jump + jump_boost_power(active_effects);
+    if jump_power <= 1.0E-5 {
+        return;
+    }
+
     let old_delta_movement = physics.velocity;
     physics.velocity = Vec3 {
         x: old_delta_movement.x,
-        y: f64::from(jump_power),
+        y: f64::max(jump_power as f64, old_delta_movement.y),
         z: old_delta_movement.z,
     };
     if *sprinting {
