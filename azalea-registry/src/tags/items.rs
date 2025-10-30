@@ -255,6 +255,8 @@ pub static BUTTONS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
 });
 pub static CAMEL_FOOD: LazyLock<HashSet<Item>> =
     LazyLock::new(|| HashSet::from_iter(vec![Item::Cactus]));
+pub static CAMEL_HUSK_FOOD: LazyLock<HashSet<Item>> =
+    LazyLock::new(|| HashSet::from_iter(vec![Item::RabbitFoot]));
 pub static CANDLES: LazyLock<HashSet<Item>> = LazyLock::new(|| {
     HashSet::from_iter(vec![
         Item::Candle,
@@ -766,6 +768,13 @@ pub static ENCHANTABLE_DURABILITY: LazyLock<HashSet<Item>> = LazyLock::new(|| {
         Item::WoodenHoe,
         Item::IronHoe,
         Item::CopperHoe,
+        Item::DiamondSpear,
+        Item::StoneSpear,
+        Item::GoldenSpear,
+        Item::NetheriteSpear,
+        Item::WoodenSpear,
+        Item::IronSpear,
+        Item::CopperSpear,
     ])
 });
 pub static ENCHANTABLE_EQUIPPABLE: LazyLock<HashSet<Item>> = LazyLock::new(|| {
@@ -820,6 +829,13 @@ pub static ENCHANTABLE_FIRE_ASPECT: LazyLock<HashSet<Item>> = LazyLock::new(|| {
         Item::WoodenSword,
         Item::IronSword,
         Item::CopperSword,
+        Item::DiamondSpear,
+        Item::StoneSpear,
+        Item::GoldenSpear,
+        Item::NetheriteSpear,
+        Item::WoodenSpear,
+        Item::IronSpear,
+        Item::CopperSpear,
     ])
 });
 pub static ENCHANTABLE_FISHING: LazyLock<HashSet<Item>> =
@@ -858,8 +874,37 @@ pub static ENCHANTABLE_LEG_ARMOR: LazyLock<HashSet<Item>> = LazyLock::new(|| {
         Item::NetheriteLeggings,
     ])
 });
+pub static ENCHANTABLE_LUNGE: LazyLock<HashSet<Item>> = LazyLock::new(|| {
+    HashSet::from_iter(vec![
+        Item::DiamondSpear,
+        Item::StoneSpear,
+        Item::GoldenSpear,
+        Item::NetheriteSpear,
+        Item::WoodenSpear,
+        Item::IronSpear,
+        Item::CopperSpear,
+    ])
+});
 pub static ENCHANTABLE_MACE: LazyLock<HashSet<Item>> =
     LazyLock::new(|| HashSet::from_iter(vec![Item::Mace]));
+pub static ENCHANTABLE_MELEE_WEAPON: LazyLock<HashSet<Item>> = LazyLock::new(|| {
+    HashSet::from_iter(vec![
+        Item::DiamondSword,
+        Item::StoneSword,
+        Item::GoldenSword,
+        Item::NetheriteSword,
+        Item::WoodenSword,
+        Item::IronSword,
+        Item::CopperSword,
+        Item::DiamondSpear,
+        Item::StoneSpear,
+        Item::GoldenSpear,
+        Item::NetheriteSpear,
+        Item::WoodenSpear,
+        Item::IronSpear,
+        Item::CopperSpear,
+    ])
+});
 pub static ENCHANTABLE_MINING: LazyLock<HashSet<Item>> = LazyLock::new(|| {
     HashSet::from_iter(vec![
         Item::Shears,
@@ -927,13 +972,6 @@ pub static ENCHANTABLE_MINING_LOOT: LazyLock<HashSet<Item>> = LazyLock::new(|| {
 });
 pub static ENCHANTABLE_SHARP_WEAPON: LazyLock<HashSet<Item>> = LazyLock::new(|| {
     HashSet::from_iter(vec![
-        Item::DiamondSword,
-        Item::StoneSword,
-        Item::GoldenSword,
-        Item::NetheriteSword,
-        Item::WoodenSword,
-        Item::IronSword,
-        Item::CopperSword,
         Item::DiamondAxe,
         Item::StoneAxe,
         Item::GoldenAxe,
@@ -941,9 +979,23 @@ pub static ENCHANTABLE_SHARP_WEAPON: LazyLock<HashSet<Item>> = LazyLock::new(|| 
         Item::WoodenAxe,
         Item::IronAxe,
         Item::CopperAxe,
+        Item::DiamondSword,
+        Item::StoneSword,
+        Item::GoldenSword,
+        Item::NetheriteSword,
+        Item::WoodenSword,
+        Item::IronSword,
+        Item::CopperSword,
+        Item::DiamondSpear,
+        Item::StoneSpear,
+        Item::GoldenSpear,
+        Item::NetheriteSpear,
+        Item::WoodenSpear,
+        Item::IronSpear,
+        Item::CopperSpear,
     ])
 });
-pub static ENCHANTABLE_SWORD: LazyLock<HashSet<Item>> = LazyLock::new(|| {
+pub static ENCHANTABLE_SWEEPING: LazyLock<HashSet<Item>> = LazyLock::new(|| {
     HashSet::from_iter(vec![
         Item::DiamondSword,
         Item::StoneSword,
@@ -1043,18 +1095,18 @@ pub static ENCHANTABLE_VANISHING: LazyLock<HashSet<Item>> = LazyLock::new(|| {
         Item::WoodenHoe,
         Item::IronHoe,
         Item::CopperHoe,
+        Item::DiamondSpear,
+        Item::StoneSpear,
+        Item::GoldenSpear,
+        Item::NetheriteSpear,
+        Item::WoodenSpear,
+        Item::IronSpear,
+        Item::CopperSpear,
     ])
 });
 pub static ENCHANTABLE_WEAPON: LazyLock<HashSet<Item>> = LazyLock::new(|| {
     HashSet::from_iter(vec![
         Item::Mace,
-        Item::DiamondSword,
-        Item::StoneSword,
-        Item::GoldenSword,
-        Item::NetheriteSword,
-        Item::WoodenSword,
-        Item::IronSword,
-        Item::CopperSword,
         Item::DiamondAxe,
         Item::StoneAxe,
         Item::GoldenAxe,
@@ -1062,6 +1114,20 @@ pub static ENCHANTABLE_WEAPON: LazyLock<HashSet<Item>> = LazyLock::new(|| {
         Item::WoodenAxe,
         Item::IronAxe,
         Item::CopperAxe,
+        Item::DiamondSword,
+        Item::StoneSword,
+        Item::GoldenSword,
+        Item::NetheriteSword,
+        Item::WoodenSword,
+        Item::IronSword,
+        Item::CopperSword,
+        Item::DiamondSpear,
+        Item::StoneSpear,
+        Item::GoldenSpear,
+        Item::NetheriteSpear,
+        Item::WoodenSpear,
+        Item::IronSpear,
+        Item::CopperSpear,
     ])
 });
 pub static FENCE_GATES: LazyLock<HashSet<Item>> = LazyLock::new(|| {
@@ -1470,6 +1536,30 @@ pub static MEAT: LazyLock<HashSet<Item>> = LazyLock::new(|| {
         Item::RottenFlesh,
     ])
 });
+pub static NAUTILUS_BUCKET_FOOD: LazyLock<HashSet<Item>> = LazyLock::new(|| {
+    HashSet::from_iter(vec![
+        Item::PufferfishBucket,
+        Item::CodBucket,
+        Item::SalmonBucket,
+        Item::TropicalFishBucket,
+    ])
+});
+pub static NAUTILUS_FOOD: LazyLock<HashSet<Item>> = LazyLock::new(|| {
+    HashSet::from_iter(vec![
+        Item::Cod,
+        Item::CookedCod,
+        Item::Salmon,
+        Item::CookedSalmon,
+        Item::Pufferfish,
+        Item::TropicalFish,
+        Item::PufferfishBucket,
+        Item::CodBucket,
+        Item::SalmonBucket,
+        Item::TropicalFishBucket,
+    ])
+});
+pub static NAUTILUS_TAMING_ITEMS: LazyLock<HashSet<Item>> =
+    LazyLock::new(|| HashSet::from_iter(vec![Item::PufferfishBucket, Item::Pufferfish]));
 pub static NETHERITE_TOOL_MATERIALS: LazyLock<HashSet<Item>> =
     LazyLock::new(|| HashSet::from_iter(vec![Item::NetheriteIngot]));
 pub static NON_FLAMMABLE_WOOD: LazyLock<HashSet<Item>> = LazyLock::new(|| {
@@ -1585,7 +1675,9 @@ pub static PIGLIN_LOVED: LazyLock<HashSet<Item>> = LazyLock::new(|| {
         Item::GoldenLeggings,
         Item::GoldenBoots,
         Item::GoldenHorseArmor,
+        Item::GoldenNautilusArmor,
         Item::GoldenSword,
+        Item::GoldenSpear,
         Item::GoldenPickaxe,
         Item::GoldenShovel,
         Item::GoldenAxe,
@@ -1832,6 +1924,17 @@ pub static SNIFFER_FOOD: LazyLock<HashSet<Item>> =
     LazyLock::new(|| HashSet::from_iter(vec![Item::TorchflowerSeeds]));
 pub static SOUL_FIRE_BASE_BLOCKS: LazyLock<HashSet<Item>> =
     LazyLock::new(|| HashSet::from_iter(vec![Item::SoulSand, Item::SoulSoil]));
+pub static SPEARS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
+    HashSet::from_iter(vec![
+        Item::DiamondSpear,
+        Item::StoneSpear,
+        Item::GoldenSpear,
+        Item::NetheriteSpear,
+        Item::WoodenSpear,
+        Item::IronSpear,
+        Item::CopperSpear,
+    ])
+});
 pub static SPRUCE_LOGS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
     HashSet::from_iter(vec![
         Item::SpruceLog,
@@ -2308,3 +2411,5 @@ pub static WOOL_CARPETS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
         Item::BlackCarpet,
     ])
 });
+pub static ZOMBIE_HORSE_FOOD: LazyLock<HashSet<Item>> =
+    LazyLock::new(|| HashSet::from_iter(vec![Item::RedMushroom]));

@@ -465,6 +465,17 @@ pub static CAMELS_SPAWNABLE_ON: LazyLock<HashSet<Block>> =
     LazyLock::new(|| HashSet::from_iter(vec![Block::Sand, Block::RedSand, Block::SuspiciousSand]));
 pub static CAMPFIRES: LazyLock<HashSet<Block>> =
     LazyLock::new(|| HashSet::from_iter(vec![Block::Campfire, Block::SoulCampfire]));
+pub static CAN_GLIDE_THROUGH: LazyLock<HashSet<Block>> = LazyLock::new(|| {
+    HashSet::from_iter(vec![
+        Block::Vine,
+        Block::TwistingVines,
+        Block::TwistingVinesPlant,
+        Block::WeepingVines,
+        Block::WeepingVinesPlant,
+        Block::CaveVinesPlant,
+        Block::CaveVines,
+    ])
+});
 pub static CANDLE_CAKES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     HashSet::from_iter(vec![
         Block::CandleCake,
