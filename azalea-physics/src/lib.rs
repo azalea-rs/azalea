@@ -408,7 +408,7 @@ fn handle_relative_friction_and_calculate_movement(ctx: &mut MoveCtx, block_fric
         ctx.pose,
     );
 
-    move_colliding(ctx, ctx.physics.velocity).expect("Entity should exist");
+    move_colliding(ctx, ctx.physics.velocity);
     // let delta_movement = entity.delta;
     // ladders
     //   if ((entity.horizontalCollision || entity.jumping) && (entity.onClimbable()

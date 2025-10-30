@@ -385,7 +385,7 @@ impl<'de> Deserialize<'de> for FormattedText {
             }
 
             let style = Style::deserialize(&json);
-            component.get_base_mut().style = Box::new(style);
+            *component.get_base_mut().style = style;
 
             return Ok(component);
         }
@@ -601,7 +601,7 @@ impl FormattedText {
 
         let base_style = Style::from_compound(compound).ok()?;
         let new_style = &mut component.get_base_mut().style;
-        *new_style = Box::new(new_style.merged_with(&base_style));
+        **new_style = new_style.merged_with(&base_style);
 
         Some(component)
     }

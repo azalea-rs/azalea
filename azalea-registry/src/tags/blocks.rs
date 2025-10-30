@@ -5,7 +5,7 @@ use std::{collections::HashSet, sync::LazyLock};
 use crate::Block;
 
 pub static ACACIA_LOGS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::AcaciaLog,
         Block::AcaciaWood,
         Block::StrippedAcaciaLog,
@@ -13,9 +13,9 @@ pub static ACACIA_LOGS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static AIR: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::Air, Block::VoidAir, Block::CaveAir]));
+    LazyLock::new(|| HashSet::from_iter([Block::Air, Block::VoidAir, Block::CaveAir]));
 pub static ALL_HANGING_SIGNS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::OakHangingSign,
         Block::SpruceHangingSign,
         Block::BirchHangingSign,
@@ -43,7 +43,7 @@ pub static ALL_HANGING_SIGNS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static ALL_SIGNS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::OakSign,
         Block::SpruceSign,
         Block::BirchSign,
@@ -95,7 +95,7 @@ pub static ALL_SIGNS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static ANCIENT_CITY_REPLACEABLE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Deepslate,
         Block::DeepslateBricks,
         Block::DeepslateTiles,
@@ -111,12 +111,11 @@ pub static ANCIENT_CITY_REPLACEABLE: LazyLock<HashSet<Block>> = LazyLock::new(||
     ])
 });
 pub static ANIMALS_SPAWNABLE_ON: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::GrassBlock]));
-pub static ANVIL: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![Block::Anvil, Block::ChippedAnvil, Block::DamagedAnvil])
-});
+    LazyLock::new(|| HashSet::from_iter([Block::GrassBlock]));
+pub static ANVIL: LazyLock<HashSet<Block>> =
+    LazyLock::new(|| HashSet::from_iter([Block::Anvil, Block::ChippedAnvil, Block::DamagedAnvil]));
 pub static ARMADILLO_SPAWNABLE_ON: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::RedSand,
         Block::CoarseDirt,
         Block::GrassBlock,
@@ -130,9 +129,9 @@ pub static ARMADILLO_SPAWNABLE_ON: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static AXOLOTLS_SPAWNABLE_ON: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::Clay]));
+    LazyLock::new(|| HashSet::from_iter([Block::Clay]));
 pub static AZALEA_GROWS_ON: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::SnowBlock,
         Block::PowderSnow,
         Block::Dirt,
@@ -168,7 +167,7 @@ pub static AZALEA_GROWS_ON: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static AZALEA_ROOT_REPLACEABLE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::RedSand,
         Block::Clay,
         Block::Gravel,
@@ -211,7 +210,7 @@ pub static AZALEA_ROOT_REPLACEABLE: LazyLock<HashSet<Block>> = LazyLock::new(|| 
     ])
 });
 pub static BADLANDS_TERRACOTTA: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Terracotta,
         Block::WhiteTerracotta,
         Block::YellowTerracotta,
@@ -222,9 +221,9 @@ pub static BADLANDS_TERRACOTTA: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static BAMBOO_BLOCKS: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::BambooBlock, Block::StrippedBambooBlock]));
+    LazyLock::new(|| HashSet::from_iter([Block::BambooBlock, Block::StrippedBambooBlock]));
 pub static BAMBOO_PLANTABLE_ON: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Bamboo,
         Block::BambooSapling,
         Block::Gravel,
@@ -245,7 +244,7 @@ pub static BAMBOO_PLANTABLE_ON: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static BANNERS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::WhiteBanner,
         Block::OrangeBanner,
         Block::MagentaBanner,
@@ -281,7 +280,7 @@ pub static BANNERS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static BARS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::IronBars,
         Block::CopperBars,
         Block::WaxedCopperBars,
@@ -294,9 +293,9 @@ pub static BARS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static BASE_STONE_NETHER: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::Netherrack, Block::Basalt, Block::Blackstone]));
+    LazyLock::new(|| HashSet::from_iter([Block::Netherrack, Block::Basalt, Block::Blackstone]));
 pub static BASE_STONE_OVERWORLD: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Stone,
         Block::Granite,
         Block::Diorite,
@@ -306,7 +305,7 @@ pub static BASE_STONE_OVERWORLD: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static BATS_SPAWNABLE_ON: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Stone,
         Block::Granite,
         Block::Diorite,
@@ -316,7 +315,7 @@ pub static BATS_SPAWNABLE_ON: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static BEACON_BASE_BLOCKS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::NetheriteBlock,
         Block::EmeraldBlock,
         Block::DiamondBlock,
@@ -325,7 +324,7 @@ pub static BEACON_BASE_BLOCKS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static BEDS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::RedBed,
         Block::BlackBed,
         Block::BlueBed,
@@ -345,7 +344,7 @@ pub static BEDS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static BEE_ATTRACTIVE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Dandelion,
         Block::OpenEyeblossom,
         Block::Poppy,
@@ -378,7 +377,7 @@ pub static BEE_ATTRACTIVE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static BEE_GROWABLES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::SweetBerryBush,
         Block::CaveVines,
         Block::CaveVinesPlant,
@@ -393,9 +392,9 @@ pub static BEE_GROWABLES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static BEEHIVES: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::BeeNest, Block::Beehive]));
+    LazyLock::new(|| HashSet::from_iter([Block::BeeNest, Block::Beehive]));
 pub static BIG_DRIPLEAF_PLACEABLE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Dirt,
         Block::GrassBlock,
         Block::Podzol,
@@ -411,7 +410,7 @@ pub static BIG_DRIPLEAF_PLACEABLE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static BIRCH_LOGS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::BirchLog,
         Block::BirchWood,
         Block::StrippedBirchLog,
@@ -419,9 +418,9 @@ pub static BIRCH_LOGS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static BLOCKS_WIND_CHARGE_EXPLOSIONS: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::Barrier, Block::Bedrock]));
+    LazyLock::new(|| HashSet::from_iter([Block::Barrier, Block::Bedrock]));
 pub static BUTTONS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::OakButton,
         Block::SpruceButton,
         Block::BirchButton,
@@ -439,7 +438,7 @@ pub static BUTTONS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static CAMEL_SAND_STEP_SOUND_BLOCKS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Sand,
         Block::RedSand,
         Block::SuspiciousSand,
@@ -462,11 +461,11 @@ pub static CAMEL_SAND_STEP_SOUND_BLOCKS: LazyLock<HashSet<Block>> = LazyLock::ne
     ])
 });
 pub static CAMELS_SPAWNABLE_ON: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::Sand, Block::RedSand, Block::SuspiciousSand]));
+    LazyLock::new(|| HashSet::from_iter([Block::Sand, Block::RedSand, Block::SuspiciousSand]));
 pub static CAMPFIRES: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::Campfire, Block::SoulCampfire]));
+    LazyLock::new(|| HashSet::from_iter([Block::Campfire, Block::SoulCampfire]));
 pub static CANDLE_CAKES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::CandleCake,
         Block::WhiteCandleCake,
         Block::OrangeCandleCake,
@@ -487,7 +486,7 @@ pub static CANDLE_CAKES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static CANDLES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Candle,
         Block::WhiteCandle,
         Block::OrangeCandle,
@@ -508,7 +507,7 @@ pub static CANDLES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static CAULDRONS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Cauldron,
         Block::WaterCauldron,
         Block::LavaCauldron,
@@ -516,9 +515,9 @@ pub static CAULDRONS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static CAVE_VINES: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::CaveVinesPlant, Block::CaveVines]));
+    LazyLock::new(|| HashSet::from_iter([Block::CaveVinesPlant, Block::CaveVines]));
 pub static CEILING_HANGING_SIGNS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::OakHangingSign,
         Block::SpruceHangingSign,
         Block::BirchHangingSign,
@@ -534,7 +533,7 @@ pub static CEILING_HANGING_SIGNS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static CHAINS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::IronChain,
         Block::CopperChain,
         Block::WaxedCopperChain,
@@ -547,7 +546,7 @@ pub static CHAINS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static CHERRY_LOGS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::CherryLog,
         Block::CherryWood,
         Block::StrippedCherryLog,
@@ -555,7 +554,7 @@ pub static CHERRY_LOGS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static CLIMBABLE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Ladder,
         Block::Vine,
         Block::Scaffolding,
@@ -568,9 +567,9 @@ pub static CLIMBABLE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static COAL_ORES: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::CoalOre, Block::DeepslateCoalOre]));
+    LazyLock::new(|| HashSet::from_iter([Block::CoalOre, Block::DeepslateCoalOre]));
 pub static COMBINATION_STEP_SOUND_BLOCKS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::MossCarpet,
         Block::PaleMossCarpet,
         Block::Snow,
@@ -597,7 +596,7 @@ pub static COMBINATION_STEP_SOUND_BLOCKS: LazyLock<HashSet<Block>> = LazyLock::n
     ])
 });
 pub static COMPLETES_FIND_TREE_TUTORIAL: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::JungleLeaves,
         Block::OakLeaves,
         Block::SpruceLeaves,
@@ -658,7 +657,7 @@ pub static COMPLETES_FIND_TREE_TUTORIAL: LazyLock<HashSet<Block>> = LazyLock::ne
     ])
 });
 pub static CONCRETE_POWDER: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::WhiteConcretePowder,
         Block::OrangeConcretePowder,
         Block::MagentaConcretePowder,
@@ -678,9 +677,9 @@ pub static CONCRETE_POWDER: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static CONVERTABLE_TO_MUD: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::Dirt, Block::CoarseDirt, Block::RootedDirt]));
+    LazyLock::new(|| HashSet::from_iter([Block::Dirt, Block::CoarseDirt, Block::RootedDirt]));
 pub static COPPER: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::CopperBlock,
         Block::ExposedCopper,
         Block::WeatheredCopper,
@@ -692,7 +691,7 @@ pub static COPPER: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static COPPER_CHESTS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::CopperChest,
         Block::ExposedCopperChest,
         Block::WeatheredCopperChest,
@@ -704,7 +703,7 @@ pub static COPPER_CHESTS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static COPPER_GOLEM_STATUES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::CopperGolemStatue,
         Block::ExposedCopperGolemStatue,
         Block::WeatheredCopperGolemStatue,
@@ -716,9 +715,9 @@ pub static COPPER_GOLEM_STATUES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static COPPER_ORES: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::CopperOre, Block::DeepslateCopperOre]));
+    LazyLock::new(|| HashSet::from_iter([Block::CopperOre, Block::DeepslateCopperOre]));
 pub static CORAL_BLOCKS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::TubeCoralBlock,
         Block::BrainCoralBlock,
         Block::BubbleCoralBlock,
@@ -727,7 +726,7 @@ pub static CORAL_BLOCKS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static CORAL_PLANTS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::TubeCoral,
         Block::BrainCoral,
         Block::BubbleCoral,
@@ -736,7 +735,7 @@ pub static CORAL_PLANTS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static CORALS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::TubeCoralFan,
         Block::BrainCoralFan,
         Block::BubbleCoralFan,
@@ -750,7 +749,7 @@ pub static CORALS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static CRIMSON_STEMS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::CrimsonStem,
         Block::StrippedCrimsonStem,
         Block::CrimsonHyphae,
@@ -758,7 +757,7 @@ pub static CRIMSON_STEMS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static CROPS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Beetroots,
         Block::Carrots,
         Block::Potatoes,
@@ -770,9 +769,9 @@ pub static CROPS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static CRYSTAL_SOUND_BLOCKS: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::AmethystBlock, Block::BuddingAmethyst]));
+    LazyLock::new(|| HashSet::from_iter([Block::AmethystBlock, Block::BuddingAmethyst]));
 pub static DAMPENS_VIBRATIONS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::WhiteWool,
         Block::OrangeWool,
         Block::MagentaWool,
@@ -808,7 +807,7 @@ pub static DAMPENS_VIBRATIONS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static DARK_OAK_LOGS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::DarkOakLog,
         Block::DarkOakWood,
         Block::StrippedDarkOakLog,
@@ -816,11 +815,11 @@ pub static DARK_OAK_LOGS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static DEEPSLATE_ORE_REPLACEABLES: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::Deepslate, Block::Tuff]));
+    LazyLock::new(|| HashSet::from_iter([Block::Deepslate, Block::Tuff]));
 pub static DIAMOND_ORES: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::DiamondOre, Block::DeepslateDiamondOre]));
+    LazyLock::new(|| HashSet::from_iter([Block::DiamondOre, Block::DeepslateDiamondOre]));
 pub static DIRT: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Dirt,
         Block::GrassBlock,
         Block::Podzol,
@@ -834,9 +833,9 @@ pub static DIRT: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static DOES_NOT_BLOCK_HOPPERS: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::BeeNest, Block::Beehive]));
+    LazyLock::new(|| HashSet::from_iter([Block::BeeNest, Block::Beehive]));
 pub static DOORS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::CopperDoor,
         Block::ExposedCopperDoor,
         Block::WeatheredCopperDoor,
@@ -861,7 +860,7 @@ pub static DOORS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static DRAGON_IMMUNE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Barrier,
         Block::Bedrock,
         Block::EndPortal,
@@ -884,9 +883,9 @@ pub static DRAGON_IMMUNE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static DRAGON_TRANSPARENT: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::Light, Block::Fire, Block::SoulFire]));
+    LazyLock::new(|| HashSet::from_iter([Block::Light, Block::Fire, Block::SoulFire]));
 pub static DRIPSTONE_REPLACEABLE_BLOCKS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Stone,
         Block::Granite,
         Block::Diorite,
@@ -896,7 +895,7 @@ pub static DRIPSTONE_REPLACEABLE_BLOCKS: LazyLock<HashSet<Block>> = LazyLock::ne
     ])
 });
 pub static DRY_VEGETATION_MAY_PLACE_ON: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Farmland,
         Block::Sand,
         Block::RedSand,
@@ -931,7 +930,7 @@ pub static DRY_VEGETATION_MAY_PLACE_ON: LazyLock<HashSet<Block>> = LazyLock::new
     ])
 });
 pub static EDIBLE_FOR_SHEEP: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::ShortGrass,
         Block::ShortDryGrass,
         Block::TallDryGrass,
@@ -939,11 +938,11 @@ pub static EDIBLE_FOR_SHEEP: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static EMERALD_ORES: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::EmeraldOre, Block::DeepslateEmeraldOre]));
+    LazyLock::new(|| HashSet::from_iter([Block::EmeraldOre, Block::DeepslateEmeraldOre]));
 pub static ENCHANTMENT_POWER_PROVIDER: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::Bookshelf]));
+    LazyLock::new(|| HashSet::from_iter([Block::Bookshelf]));
 pub static ENCHANTMENT_POWER_TRANSMITTER: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Air,
         Block::Water,
         Block::Lava,
@@ -976,7 +975,7 @@ pub static ENCHANTMENT_POWER_TRANSMITTER: LazyLock<HashSet<Block>> = LazyLock::n
     ])
 });
 pub static ENDERMAN_HOLDABLE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Sand,
         Block::RedSand,
         Block::Gravel,
@@ -1024,7 +1023,7 @@ pub static ENDERMAN_HOLDABLE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static FALL_DAMAGE_RESETTING: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::SweetBerryBush,
         Block::Cobweb,
         Block::Ladder,
@@ -1039,7 +1038,7 @@ pub static FALL_DAMAGE_RESETTING: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static FEATURES_CANNOT_REPLACE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Bedrock,
         Block::Spawner,
         Block::Chest,
@@ -1050,7 +1049,7 @@ pub static FEATURES_CANNOT_REPLACE: LazyLock<HashSet<Block>> = LazyLock::new(|| 
     ])
 });
 pub static FENCE_GATES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::AcaciaFenceGate,
         Block::BirchFenceGate,
         Block::DarkOakFenceGate,
@@ -1066,7 +1065,7 @@ pub static FENCE_GATES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static FENCES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::NetherBrickFence,
         Block::OakFence,
         Block::AcaciaFence,
@@ -1083,9 +1082,9 @@ pub static FENCES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static FIRE: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::Fire, Block::SoulFire]));
+    LazyLock::new(|| HashSet::from_iter([Block::Fire, Block::SoulFire]));
 pub static FLOWER_POTS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::FlowerPot,
         Block::PottedOpenEyeblossom,
         Block::PottedClosedEyeblossom,
@@ -1127,7 +1126,7 @@ pub static FLOWER_POTS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static FLOWERS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Sunflower,
         Block::Lilac,
         Block::Peony,
@@ -1161,7 +1160,7 @@ pub static FLOWERS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static FOXES_SPAWNABLE_ON: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::GrassBlock,
         Block::Snow,
         Block::SnowBlock,
@@ -1170,9 +1169,9 @@ pub static FOXES_SPAWNABLE_ON: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static FROG_PREFER_JUMP_TO: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::LilyPad, Block::BigDripleaf]));
+    LazyLock::new(|| HashSet::from_iter([Block::LilyPad, Block::BigDripleaf]));
 pub static FROGS_SPAWNABLE_ON: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::GrassBlock,
         Block::Mud,
         Block::MangroveRoots,
@@ -1180,7 +1179,7 @@ pub static FROGS_SPAWNABLE_ON: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static GEODE_INVALID_BLOCKS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Bedrock,
         Block::Water,
         Block::Lava,
@@ -1190,7 +1189,7 @@ pub static GEODE_INVALID_BLOCKS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static GOATS_SPAWNABLE_ON: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Stone,
         Block::Snow,
         Block::SnowBlock,
@@ -1200,14 +1199,14 @@ pub static GOATS_SPAWNABLE_ON: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static GOLD_ORES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::GoldOre,
         Block::NetherGoldOre,
         Block::DeepslateGoldOre,
     ])
 });
 pub static GUARDED_BY_PIGLINS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::GoldBlock,
         Block::Barrel,
         Block::Chest,
@@ -1246,7 +1245,7 @@ pub static GUARDED_BY_PIGLINS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static HAPPY_GHAST_AVOIDS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::SweetBerryBush,
         Block::Cactus,
         Block::WitherRose,
@@ -1256,7 +1255,7 @@ pub static HAPPY_GHAST_AVOIDS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static HOGLIN_REPELLENTS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::WarpedFungus,
         Block::PottedWarpedFungus,
         Block::NetherPortal,
@@ -1264,7 +1263,7 @@ pub static HOGLIN_REPELLENTS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static ICE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Ice,
         Block::PackedIce,
         Block::BlueIce,
@@ -1272,7 +1271,7 @@ pub static ICE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static IMPERMEABLE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Glass,
         Block::WhiteStainedGlass,
         Block::OrangeStainedGlass,
@@ -1295,7 +1294,7 @@ pub static IMPERMEABLE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static INCORRECT_FOR_COPPER_TOOL: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Obsidian,
         Block::CryingObsidian,
         Block::NetheriteBlock,
@@ -1316,9 +1315,9 @@ pub static INCORRECT_FOR_COPPER_TOOL: LazyLock<HashSet<Block>> = LazyLock::new(|
     ])
 });
 pub static INCORRECT_FOR_DIAMOND_TOOL: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![]));
+    LazyLock::new(|| HashSet::from_iter([]));
 pub static INCORRECT_FOR_GOLD_TOOL: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Obsidian,
         Block::CryingObsidian,
         Block::NetheriteBlock,
@@ -1430,7 +1429,7 @@ pub static INCORRECT_FOR_GOLD_TOOL: LazyLock<HashSet<Block>> = LazyLock::new(|| 
     ])
 });
 pub static INCORRECT_FOR_IRON_TOOL: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Obsidian,
         Block::CryingObsidian,
         Block::NetheriteBlock,
@@ -1439,9 +1438,9 @@ pub static INCORRECT_FOR_IRON_TOOL: LazyLock<HashSet<Block>> = LazyLock::new(|| 
     ])
 });
 pub static INCORRECT_FOR_NETHERITE_TOOL: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![]));
+    LazyLock::new(|| HashSet::from_iter([]));
 pub static INCORRECT_FOR_STONE_TOOL: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Obsidian,
         Block::CryingObsidian,
         Block::NetheriteBlock,
@@ -1462,7 +1461,7 @@ pub static INCORRECT_FOR_STONE_TOOL: LazyLock<HashSet<Block>> = LazyLock::new(||
     ])
 });
 pub static INCORRECT_FOR_WOODEN_TOOL: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Obsidian,
         Block::CryingObsidian,
         Block::NetheriteBlock,
@@ -1573,15 +1572,14 @@ pub static INCORRECT_FOR_WOODEN_TOOL: LazyLock<HashSet<Block>> = LazyLock::new(|
         Block::WaxedOxidizedLightningRod,
     ])
 });
-pub static INFINIBURN_END: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![Block::Bedrock, Block::Netherrack, Block::MagmaBlock])
-});
+pub static INFINIBURN_END: LazyLock<HashSet<Block>> =
+    LazyLock::new(|| HashSet::from_iter([Block::Bedrock, Block::Netherrack, Block::MagmaBlock]));
 pub static INFINIBURN_NETHER: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::Netherrack, Block::MagmaBlock]));
+    LazyLock::new(|| HashSet::from_iter([Block::Netherrack, Block::MagmaBlock]));
 pub static INFINIBURN_OVERWORLD: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::Netherrack, Block::MagmaBlock]));
+    LazyLock::new(|| HashSet::from_iter([Block::Netherrack, Block::MagmaBlock]));
 pub static INSIDE_STEP_SOUND_BLOCKS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::PowderSnow,
         Block::SculkVein,
         Block::GlowLichen,
@@ -1593,11 +1591,11 @@ pub static INSIDE_STEP_SOUND_BLOCKS: LazyLock<HashSet<Block>> = LazyLock::new(||
     ])
 });
 pub static INVALID_SPAWN_INSIDE: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::EndPortal, Block::EndGateway]));
+    LazyLock::new(|| HashSet::from_iter([Block::EndPortal, Block::EndGateway]));
 pub static IRON_ORES: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::IronOre, Block::DeepslateIronOre]));
+    LazyLock::new(|| HashSet::from_iter([Block::IronOre, Block::DeepslateIronOre]));
 pub static JUNGLE_LOGS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::JungleLog,
         Block::JungleWood,
         Block::StrippedJungleLog,
@@ -1605,7 +1603,7 @@ pub static JUNGLE_LOGS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static LANTERNS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Lantern,
         Block::SoulLantern,
         Block::CopperLantern,
@@ -1619,9 +1617,9 @@ pub static LANTERNS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static LAPIS_ORES: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::LapisOre, Block::DeepslateLapisOre]));
+    LazyLock::new(|| HashSet::from_iter([Block::LapisOre, Block::DeepslateLapisOre]));
 pub static LAVA_POOL_STONE_CANNOT_REPLACE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Bedrock,
         Block::Spawner,
         Block::Chest,
@@ -1687,7 +1685,7 @@ pub static LAVA_POOL_STONE_CANNOT_REPLACE: LazyLock<HashSet<Block>> = LazyLock::
     ])
 });
 pub static LEAVES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::JungleLeaves,
         Block::OakLeaves,
         Block::SpruceLeaves,
@@ -1702,7 +1700,7 @@ pub static LEAVES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static LIGHTNING_RODS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::LightningRod,
         Block::ExposedLightningRod,
         Block::WeatheredLightningRod,
@@ -1714,7 +1712,7 @@ pub static LIGHTNING_RODS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static LOGS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::CrimsonStem,
         Block::StrippedCrimsonStem,
         Block::CrimsonHyphae,
@@ -1762,7 +1760,7 @@ pub static LOGS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static LOGS_THAT_BURN: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::DarkOakLog,
         Block::DarkOakWood,
         Block::StrippedDarkOakLog,
@@ -1802,7 +1800,7 @@ pub static LOGS_THAT_BURN: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static LUSH_GROUND_REPLACEABLE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Clay,
         Block::Gravel,
         Block::Sand,
@@ -1827,7 +1825,7 @@ pub static LUSH_GROUND_REPLACEABLE: LazyLock<HashSet<Block>> = LazyLock::new(|| 
     ])
 });
 pub static MAINTAINS_FARMLAND: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::PumpkinStem,
         Block::AttachedPumpkinStem,
         Block::MelonStem,
@@ -1842,7 +1840,7 @@ pub static MAINTAINS_FARMLAND: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static MANGROVE_LOGS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::MangroveLog,
         Block::MangroveWood,
         Block::StrippedMangroveLog,
@@ -1850,7 +1848,7 @@ pub static MANGROVE_LOGS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static MANGROVE_LOGS_CAN_GROW_THROUGH: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Mud,
         Block::MuddyMangroveRoots,
         Block::MangroveRoots,
@@ -1862,7 +1860,7 @@ pub static MANGROVE_LOGS_CAN_GROW_THROUGH: LazyLock<HashSet<Block>> = LazyLock::
     ])
 });
 pub static MANGROVE_ROOTS_CAN_GROW_THROUGH: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Mud,
         Block::MuddyMangroveRoots,
         Block::MangroveRoots,
@@ -1873,7 +1871,7 @@ pub static MANGROVE_ROOTS_CAN_GROW_THROUGH: LazyLock<HashSet<Block>> = LazyLock:
     ])
 });
 pub static MINEABLE_AXE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::NoteBlock,
         Block::Bamboo,
         Block::Barrel,
@@ -2163,7 +2161,7 @@ pub static MINEABLE_AXE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static MINEABLE_HOE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::NetherWartBlock,
         Block::WarpedWartBlock,
         Block::HayBlock,
@@ -2196,7 +2194,7 @@ pub static MINEABLE_HOE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static MINEABLE_PICKAXE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Stone,
         Block::Granite,
         Block::PolishedGranite,
@@ -2686,7 +2684,7 @@ pub static MINEABLE_PICKAXE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static MINEABLE_SHOVEL: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Clay,
         Block::Dirt,
         Block::CoarseDirt,
@@ -2726,7 +2724,7 @@ pub static MINEABLE_SHOVEL: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static MOB_INTERACTABLE_DOORS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::CopperDoor,
         Block::ExposedCopperDoor,
         Block::WeatheredCopperDoor,
@@ -2750,9 +2748,9 @@ pub static MOB_INTERACTABLE_DOORS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static MOOSHROOMS_SPAWNABLE_ON: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::Mycelium]));
+    LazyLock::new(|| HashSet::from_iter([Block::Mycelium]));
 pub static MOSS_REPLACEABLE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Stone,
         Block::Granite,
         Block::Diorite,
@@ -2774,7 +2772,7 @@ pub static MOSS_REPLACEABLE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static MUSHROOM_GROW_BLOCK: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Mycelium,
         Block::Podzol,
         Block::CrimsonNylium,
@@ -2782,7 +2780,7 @@ pub static MUSHROOM_GROW_BLOCK: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static NEEDS_DIAMOND_TOOL: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Obsidian,
         Block::CryingObsidian,
         Block::NetheriteBlock,
@@ -2791,7 +2789,7 @@ pub static NEEDS_DIAMOND_TOOL: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static NEEDS_IRON_TOOL: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::DiamondBlock,
         Block::DiamondOre,
         Block::DeepslateDiamondOre,
@@ -2807,7 +2805,7 @@ pub static NEEDS_IRON_TOOL: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static NEEDS_STONE_TOOL: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::IronBlock,
         Block::RawIronBlock,
         Block::IronOre,
@@ -2902,7 +2900,7 @@ pub static NEEDS_STONE_TOOL: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static NETHER_CARVER_REPLACEABLES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::SoulSand,
         Block::SoulSoil,
         Block::Stone,
@@ -2931,9 +2929,9 @@ pub static NETHER_CARVER_REPLACEABLES: LazyLock<HashSet<Block>> = LazyLock::new(
     ])
 });
 pub static NYLIUM: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::CrimsonNylium, Block::WarpedNylium]));
+    LazyLock::new(|| HashSet::from_iter([Block::CrimsonNylium, Block::WarpedNylium]));
 pub static OAK_LOGS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::OakLog,
         Block::OakWood,
         Block::StrippedOakLog,
@@ -2941,7 +2939,7 @@ pub static OAK_LOGS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static OCCLUDES_VIBRATION_SIGNALS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::WhiteWool,
         Block::OrangeWool,
         Block::MagentaWool,
@@ -2961,7 +2959,7 @@ pub static OCCLUDES_VIBRATION_SIGNALS: LazyLock<HashSet<Block>> = LazyLock::new(
     ])
 });
 pub static OVERWORLD_CARVER_REPLACEABLES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Water,
         Block::Gravel,
         Block::SuspiciousGravel,
@@ -3017,7 +3015,7 @@ pub static OVERWORLD_CARVER_REPLACEABLES: LazyLock<HashSet<Block>> = LazyLock::n
     ])
 });
 pub static OVERWORLD_NATURAL_LOGS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::AcaciaLog,
         Block::BirchLog,
         Block::OakLog,
@@ -3030,7 +3028,7 @@ pub static OVERWORLD_NATURAL_LOGS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static PALE_OAK_LOGS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::PaleOakLog,
         Block::PaleOakWood,
         Block::StrippedPaleOakLog,
@@ -3038,7 +3036,7 @@ pub static PALE_OAK_LOGS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static PARROTS_SPAWNABLE_ON: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::GrassBlock,
         Block::Air,
         Block::JungleLeaves,
@@ -3099,7 +3097,7 @@ pub static PARROTS_SPAWNABLE_ON: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static PIGLIN_REPELLENTS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::SoulFire,
         Block::SoulTorch,
         Block::SoulLantern,
@@ -3108,7 +3106,7 @@ pub static PIGLIN_REPELLENTS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static PLANKS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::OakPlanks,
         Block::SprucePlanks,
         Block::BirchPlanks,
@@ -3124,16 +3122,12 @@ pub static PLANKS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static POLAR_BEARS_SPAWNABLE_ON_ALTERNATE: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::Ice]));
+    LazyLock::new(|| HashSet::from_iter([Block::Ice]));
 pub static PORTALS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
-        Block::NetherPortal,
-        Block::EndPortal,
-        Block::EndGateway,
-    ])
+    HashSet::from_iter([Block::NetherPortal, Block::EndPortal, Block::EndGateway])
 });
 pub static PRESSURE_PLATES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::LightWeightedPressurePlate,
         Block::HeavyWeightedPressurePlate,
         Block::OakPressurePlate,
@@ -3153,7 +3147,7 @@ pub static PRESSURE_PLATES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static PREVENT_MOB_SPAWNING_INSIDE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Rail,
         Block::PoweredRail,
         Block::DetectorRail,
@@ -3161,7 +3155,7 @@ pub static PREVENT_MOB_SPAWNING_INSIDE: LazyLock<HashSet<Block>> = LazyLock::new
     ])
 });
 pub static RABBITS_SPAWNABLE_ON: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::GrassBlock,
         Block::Snow,
         Block::SnowBlock,
@@ -3169,7 +3163,7 @@ pub static RABBITS_SPAWNABLE_ON: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static RAILS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Rail,
         Block::PoweredRail,
         Block::DetectorRail,
@@ -3177,9 +3171,9 @@ pub static RAILS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static REDSTONE_ORES: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::RedstoneOre, Block::DeepslateRedstoneOre]));
+    LazyLock::new(|| HashSet::from_iter([Block::RedstoneOre, Block::DeepslateRedstoneOre]));
 pub static REPLACEABLE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Air,
         Block::Water,
         Block::Lava,
@@ -3212,7 +3206,7 @@ pub static REPLACEABLE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static REPLACEABLE_BY_MUSHROOMS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::PaleMossCarpet,
         Block::ShortGrass,
         Block::Fern,
@@ -3272,7 +3266,7 @@ pub static REPLACEABLE_BY_MUSHROOMS: LazyLock<HashSet<Block>> = LazyLock::new(||
     ])
 });
 pub static REPLACEABLE_BY_TREES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::PaleMossCarpet,
         Block::ShortGrass,
         Block::Fern,
@@ -3328,9 +3322,9 @@ pub static REPLACEABLE_BY_TREES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static SAND: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::Sand, Block::RedSand, Block::SuspiciousSand]));
+    LazyLock::new(|| HashSet::from_iter([Block::Sand, Block::RedSand, Block::SuspiciousSand]));
 pub static SAPLINGS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::OakSapling,
         Block::SpruceSapling,
         Block::BirchSapling,
@@ -3345,7 +3339,7 @@ pub static SAPLINGS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static SCULK_REPLACEABLE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Sand,
         Block::RedSand,
         Block::Gravel,
@@ -3399,7 +3393,7 @@ pub static SCULK_REPLACEABLE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static SCULK_REPLACEABLE_WORLD_GEN: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::DeepslateBricks,
         Block::DeepslateTiles,
         Block::CobbledDeepslate,
@@ -3459,7 +3453,7 @@ pub static SCULK_REPLACEABLE_WORLD_GEN: LazyLock<HashSet<Block>> = LazyLock::new
     ])
 });
 pub static SHULKER_BOXES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::ShulkerBox,
         Block::BlackShulkerBox,
         Block::BlueShulkerBox,
@@ -3480,7 +3474,7 @@ pub static SHULKER_BOXES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static SIGNS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::OakSign,
         Block::SpruceSign,
         Block::BirchSign,
@@ -3508,7 +3502,7 @@ pub static SIGNS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static SLABS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::BambooMosaicSlab,
         Block::StoneSlab,
         Block::SmoothStoneSlab,
@@ -3574,9 +3568,9 @@ pub static SLABS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static SMALL_DRIPLEAF_PLACEABLE: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::Clay, Block::MossBlock]));
+    LazyLock::new(|| HashSet::from_iter([Block::Clay, Block::MossBlock]));
 pub static SMALL_FLOWERS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Dandelion,
         Block::OpenEyeblossom,
         Block::Poppy,
@@ -3596,9 +3590,9 @@ pub static SMALL_FLOWERS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static SMELTS_TO_GLASS: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::Sand, Block::RedSand]));
+    LazyLock::new(|| HashSet::from_iter([Block::Sand, Block::RedSand]));
 pub static SNAPS_GOAT_HORN: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Stone,
         Block::PackedIce,
         Block::IronOre,
@@ -3617,7 +3611,7 @@ pub static SNAPS_GOAT_HORN: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static SNIFFER_DIGGABLE_BLOCK: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Dirt,
         Block::GrassBlock,
         Block::Podzol,
@@ -3630,19 +3624,19 @@ pub static SNIFFER_DIGGABLE_BLOCK: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static SNIFFER_EGG_HATCH_BOOST: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::MossBlock]));
+    LazyLock::new(|| HashSet::from_iter([Block::MossBlock]));
 pub static SNOW: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::Snow, Block::SnowBlock, Block::PowderSnow]));
+    LazyLock::new(|| HashSet::from_iter([Block::Snow, Block::SnowBlock, Block::PowderSnow]));
 pub static SNOW_LAYER_CAN_SURVIVE_ON: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::HoneyBlock, Block::SoulSand, Block::Mud]));
+    LazyLock::new(|| HashSet::from_iter([Block::HoneyBlock, Block::SoulSand, Block::Mud]));
 pub static SNOW_LAYER_CANNOT_SURVIVE_ON: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::Ice, Block::PackedIce, Block::Barrier]));
+    LazyLock::new(|| HashSet::from_iter([Block::Ice, Block::PackedIce, Block::Barrier]));
 pub static SOUL_FIRE_BASE_BLOCKS: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::SoulSand, Block::SoulSoil]));
+    LazyLock::new(|| HashSet::from_iter([Block::SoulSand, Block::SoulSoil]));
 pub static SOUL_SPEED_BLOCKS: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::SoulSand, Block::SoulSoil]));
+    LazyLock::new(|| HashSet::from_iter([Block::SoulSand, Block::SoulSoil]));
 pub static SPRUCE_LOGS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::SpruceLog,
         Block::SpruceWood,
         Block::StrippedSpruceLog,
@@ -3650,7 +3644,7 @@ pub static SPRUCE_LOGS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static STAIRS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::BambooMosaicStairs,
         Block::CobblestoneStairs,
         Block::SandstoneStairs,
@@ -3712,7 +3706,7 @@ pub static STAIRS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static STANDING_SIGNS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::OakSign,
         Block::SpruceSign,
         Block::BirchSign,
@@ -3728,7 +3722,7 @@ pub static STANDING_SIGNS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static STONE_BRICKS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::StoneBricks,
         Block::MossyStoneBricks,
         Block::CrackedStoneBricks,
@@ -3736,9 +3730,9 @@ pub static STONE_BRICKS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static STONE_BUTTONS: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::StoneButton, Block::PolishedBlackstoneButton]));
+    LazyLock::new(|| HashSet::from_iter([Block::StoneButton, Block::PolishedBlackstoneButton]));
 pub static STONE_ORE_REPLACEABLES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Stone,
         Block::Granite,
         Block::Diorite,
@@ -3746,15 +3740,15 @@ pub static STONE_ORE_REPLACEABLES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static STONE_PRESSURE_PLATES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::StonePressurePlate,
         Block::PolishedBlackstonePressurePlate,
     ])
 });
 pub static STRIDER_WARM_BLOCKS: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::Lava]));
+    LazyLock::new(|| HashSet::from_iter([Block::Lava]));
 pub static SWORD_EFFICIENT: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Vine,
         Block::GlowLichen,
         Block::Pumpkin,
@@ -3780,9 +3774,9 @@ pub static SWORD_EFFICIENT: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static SWORD_INSTANTLY_MINES: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::Bamboo, Block::BambooSapling]));
+    LazyLock::new(|| HashSet::from_iter([Block::Bamboo, Block::BambooSapling]));
 pub static TERRACOTTA: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Terracotta,
         Block::WhiteTerracotta,
         Block::OrangeTerracotta,
@@ -3803,9 +3797,9 @@ pub static TERRACOTTA: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static TRAIL_RUINS_REPLACEABLE: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::Gravel]));
+    LazyLock::new(|| HashSet::from_iter([Block::Gravel]));
 pub static TRAPDOORS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::IronTrapdoor,
         Block::CopperTrapdoor,
         Block::ExposedCopperTrapdoor,
@@ -3831,7 +3825,7 @@ pub static TRAPDOORS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
 });
 pub static TRIGGERS_AMBIENT_DESERT_DRY_VEGETATION_BLOCK_SOUNDS: LazyLock<HashSet<Block>> =
     LazyLock::new(|| {
-        HashSet::from_iter(vec![
+        HashSet::from_iter([
             Block::Sand,
             Block::RedSand,
             Block::Terracotta,
@@ -3854,11 +3848,11 @@ pub static TRIGGERS_AMBIENT_DESERT_DRY_VEGETATION_BLOCK_SOUNDS: LazyLock<HashSet
         ])
     });
 pub static TRIGGERS_AMBIENT_DESERT_SAND_BLOCK_SOUNDS: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::Sand, Block::RedSand]));
+    LazyLock::new(|| HashSet::from_iter([Block::Sand, Block::RedSand]));
 pub static TRIGGERS_AMBIENT_DRIED_GHAST_BLOCK_SOUNDS: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::SoulSand, Block::SoulSoil]));
+    LazyLock::new(|| HashSet::from_iter([Block::SoulSand, Block::SoulSoil]));
 pub static UNDERWATER_BONEMEALS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Seagrass,
         Block::TubeCoralFan,
         Block::BrainCoralFan,
@@ -3878,7 +3872,7 @@ pub static UNDERWATER_BONEMEALS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static UNSTABLE_BOTTOM_CENTER: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::AcaciaFenceGate,
         Block::BirchFenceGate,
         Block::DarkOakFenceGate,
@@ -3894,11 +3888,11 @@ pub static UNSTABLE_BOTTOM_CENTER: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static VALID_SPAWN: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::GrassBlock, Block::Podzol]));
+    LazyLock::new(|| HashSet::from_iter([Block::GrassBlock, Block::Podzol]));
 pub static VIBRATION_RESONATORS: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::AmethystBlock]));
+    LazyLock::new(|| HashSet::from_iter([Block::AmethystBlock]));
 pub static WALL_CORALS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::TubeCoralWallFan,
         Block::BrainCoralWallFan,
         Block::BubbleCoralWallFan,
@@ -3907,7 +3901,7 @@ pub static WALL_CORALS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static WALL_HANGING_SIGNS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::OakWallHangingSign,
         Block::SpruceWallHangingSign,
         Block::BirchWallHangingSign,
@@ -3923,7 +3917,7 @@ pub static WALL_HANGING_SIGNS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static WALL_POST_OVERRIDE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Torch,
         Block::SoulTorch,
         Block::RedstoneTorch,
@@ -4005,7 +3999,7 @@ pub static WALL_POST_OVERRIDE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static WALL_SIGNS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::OakWallSign,
         Block::SpruceWallSign,
         Block::BirchWallSign,
@@ -4021,7 +4015,7 @@ pub static WALL_SIGNS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static WALLS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::CobblestoneWall,
         Block::MossyCobblestoneWall,
         Block::BrickWall,
@@ -4051,7 +4045,7 @@ pub static WALLS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static WARPED_STEMS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::WarpedStem,
         Block::StrippedWarpedStem,
         Block::WarpedHyphae,
@@ -4059,9 +4053,9 @@ pub static WARPED_STEMS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static WART_BLOCKS: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::NetherWartBlock, Block::WarpedWartBlock]));
+    LazyLock::new(|| HashSet::from_iter([Block::NetherWartBlock, Block::WarpedWartBlock]));
 pub static WITHER_IMMUNE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::Barrier,
         Block::Bedrock,
         Block::EndPortal,
@@ -4080,9 +4074,9 @@ pub static WITHER_IMMUNE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static WITHER_SUMMON_BASE_BLOCKS: LazyLock<HashSet<Block>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Block::SoulSand, Block::SoulSoil]));
+    LazyLock::new(|| HashSet::from_iter([Block::SoulSand, Block::SoulSoil]));
 pub static WOLVES_SPAWNABLE_ON: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::GrassBlock,
         Block::Snow,
         Block::SnowBlock,
@@ -4091,7 +4085,7 @@ pub static WOLVES_SPAWNABLE_ON: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static WOODEN_BUTTONS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::OakButton,
         Block::SpruceButton,
         Block::BirchButton,
@@ -4107,7 +4101,7 @@ pub static WOODEN_BUTTONS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static WOODEN_DOORS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::OakDoor,
         Block::SpruceDoor,
         Block::BirchDoor,
@@ -4123,7 +4117,7 @@ pub static WOODEN_DOORS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static WOODEN_FENCES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::OakFence,
         Block::AcaciaFence,
         Block::DarkOakFence,
@@ -4139,7 +4133,7 @@ pub static WOODEN_FENCES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static WOODEN_PRESSURE_PLATES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::OakPressurePlate,
         Block::SprucePressurePlate,
         Block::BirchPressurePlate,
@@ -4155,7 +4149,7 @@ pub static WOODEN_PRESSURE_PLATES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static WOODEN_SHELVES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::AcaciaShelf,
         Block::BambooShelf,
         Block::BirchShelf,
@@ -4171,7 +4165,7 @@ pub static WOODEN_SHELVES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static WOODEN_SLABS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::OakSlab,
         Block::SpruceSlab,
         Block::BirchSlab,
@@ -4187,7 +4181,7 @@ pub static WOODEN_SLABS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static WOODEN_STAIRS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::OakStairs,
         Block::SpruceStairs,
         Block::BirchStairs,
@@ -4203,7 +4197,7 @@ pub static WOODEN_STAIRS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static WOODEN_TRAPDOORS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::AcaciaTrapdoor,
         Block::BirchTrapdoor,
         Block::DarkOakTrapdoor,
@@ -4219,7 +4213,7 @@ pub static WOODEN_TRAPDOORS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static WOOL: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::WhiteWool,
         Block::OrangeWool,
         Block::MagentaWool,
@@ -4239,7 +4233,7 @@ pub static WOOL: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     ])
 });
 pub static WOOL_CARPETS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         Block::WhiteCarpet,
         Block::OrangeCarpet,
         Block::MagentaCarpet,
