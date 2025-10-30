@@ -1,8 +1,10 @@
 use azalea_buf::AzBuf;
-use azalea_entity::LookDirection;
 use azalea_protocol_macros::ClientboundGamePacket;
 
 #[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundPlayerRotation {
-    pub look_direction: LookDirection,
+    pub y_rot: f32,
+    pub relative_y: bool,
+    pub x_rot: f32,
+    pub relative_x: bool,
 }

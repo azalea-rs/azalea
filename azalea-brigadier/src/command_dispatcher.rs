@@ -173,8 +173,10 @@ impl<S> CommandDispatcher<S> {
         })
     }
 
-    /// Parse and execute the command using the given input and context. The
-    /// number returned depends on the command, and may not be of significance.
+    /// Parse and execute the command using the given input and context.
+    ///
+    /// The number returned depends on the command, and may not be of
+    /// significance.
     ///
     /// This is a shortcut for `Self::parse` and `Self::execute_parsed`.
     pub fn execute(

@@ -12,7 +12,7 @@ use tracing::{debug, error};
 use super::InLoginState;
 use crate::{Account, connection::RawConnection};
 
-#[derive(Event, Debug, Clone)]
+#[derive(Message, Debug, Clone)]
 pub struct ReceiveLoginPacketEvent {
     /// The client entity that received the packet.
     pub entity: Entity,
@@ -20,13 +20,14 @@ pub struct ReceiveLoginPacketEvent {
     pub packet: Arc<ClientboundLoginPacket>,
 }
 
-#[derive(Event, Debug, Clone)]
+#[derive(EntityEvent, Debug, Clone)]
 pub struct ReceiveHelloEvent {
+    pub entity: Entity,
     pub account: Account,
     pub packet: ClientboundHello,
 }
 
-#[derive(Event, Debug, Clone)]
+#[derive(Message, Debug, Clone)]
 pub struct ReceiveCustomQueryEvent {
     /// The client entity that received the packet.
     pub entity: Entity,
@@ -40,8 +41,9 @@ pub struct ReceiveCustomQueryEvent {
 }
 
 /// Event for sending a login packet to the server.
-#[derive(Event, Debug, Clone)]
+#[derive(EntityEvent, Debug, Clone)]
 pub struct SendLoginPacketEvent {
+    #[event_target]
     pub sent_by: Entity,
     pub packet: ServerboundLoginPacket,
 }
@@ -56,7 +58,7 @@ impl SendLoginPacketEvent {
 }
 
 pub fn handle_outgoing_packets_observer(
-    trigger: Trigger<SendLoginPacketEvent>,
+    trigger: On<SendLoginPacketEvent>,
     mut query: Query<(&mut RawConnection, Option<&InLoginState>)>,
 ) {
     let event = trigger.event();
@@ -72,15 +74,5 @@ pub fn handle_outgoing_packets_observer(
         if let Err(e) = raw_conn.write(event.packet.clone()) {
             error!("Failed to send packet: {e}");
         }
-    }
-}
-/// A system that converts [`SendLoginPacketEvent`] events into triggers so
-/// they get received by [`handle_outgoing_packets_observer`].
-pub fn handle_outgoing_packets(
-    mut commands: Commands,
-    mut events: EventReader<SendLoginPacketEvent>,
-) {
-    for event in events.read() {
-        commands.trigger(event.clone());
     }
 }

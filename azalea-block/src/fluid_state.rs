@@ -112,9 +112,10 @@ impl From<BlockState> for FluidState {
     }
 }
 
-/// Sometimes Minecraft represents fluids with 0 being empty and 8 being full,
-/// and sometimes it's the opposite. You can use this function to convert
-/// in between those two representations.
+/// Convert between Minecraft's two fluid level representations.
+///
+/// This exists because sometimes Minecraft represents fluids with 0 being empty
+/// and 8 being full, and sometimes it's the opposite.
 ///
 /// You usually don't need to call this yourself, see [`FluidState`].
 pub fn to_or_from_legacy_fluid_level(level: u8) -> u8 {

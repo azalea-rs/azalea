@@ -1,4 +1,8 @@
-use azalea::{Bot, ClientBuilder, LookAtEvent, nearest_entity::EntityFinder};
+use azalea::{
+    ClientBuilder,
+    bot::{Bot, LookAtEvent},
+    nearest_entity::EntityFinder,
+};
 use azalea_client::Account;
 use azalea_core::tick::GameTick;
 use azalea_entity::{
@@ -8,7 +12,7 @@ use azalea_entity::{
 };
 use bevy_app::Plugin;
 use bevy_ecs::{
-    prelude::{Entity, EventWriter},
+    prelude::{Entity, MessageWriter},
     query::With,
     system::Query,
 };
@@ -35,7 +39,7 @@ fn look_at_everything(
     bots: Query<Entity, (With<LocalEntity>, With<Player>)>,
     entities: EntityFinder,
     entity_positions: Query<(&Position, Option<&EntityDimensions>)>,
-    mut look_at_event: EventWriter<LookAtEvent>,
+    mut look_at_event: MessageWriter<LookAtEvent>,
 ) {
     for bot_id in bots.iter() {
         let Some(entity) = entities.nearest_to_entity(bot_id, 16.0) else {

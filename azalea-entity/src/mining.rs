@@ -5,7 +5,9 @@ use azalea_registry as registry;
 use crate::{Attributes, FluidOnEyes, Physics, effects};
 
 /// How much progress is made towards mining the block per tick, as a
-/// percentage. If this is 1 then the block gets broken instantly.
+/// percentage.
+///
+/// If this is 1, then the block gets broken instantly.
 ///
 /// You can divide 1 by this and then round up to get the number of ticks it
 /// takes to mine the block.
@@ -71,8 +73,9 @@ fn has_correct_tool_for_drops(block: &dyn BlockTrait, tool: registry::Item) -> b
 }
 
 /// Returns the destroy speed of the given block with the given tool, taking
-/// into account enchantments and effects. If the player is not holding anything
-/// then `tool` should be `Item::Air`.
+/// enchantments and effects into account.
+///
+/// If the player is not holding anything, then `tool` should be `Item::Air`.
 fn destroy_speed(
     block: registry::Block,
     tool: registry::Item,

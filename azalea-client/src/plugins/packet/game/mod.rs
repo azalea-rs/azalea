@@ -28,13 +28,14 @@ use crate::{
     chat::{ChatPacket, ChatReceivedEvent},
     chunks,
     connection::RawConnection,
-    declare_packet_handlers,
     disconnect::DisconnectEvent,
     interact::BlockStatePredictionHandler,
-    inventory::{ClientSideCloseContainerEvent, MenuOpenedEvent, SetContainerContentEvent},
+    inventory::{
+        ClientsideCloseContainerEvent, Inventory, MenuOpenedEvent, SetContainerContentEvent,
+    },
     local_player::{Hunger, InstanceHolder, LocalGameMode, TabList},
     movement::{KnockbackEvent, KnockbackType},
-    packet::as_system,
+    packet::{as_system, declare_packet_handlers},
     player::{GameProfileComponent, PlayerInfo},
     tick_counter::TicksConnected,
 };
@@ -182,6 +183,11 @@ pub fn process_packet(ecs: &mut World, player: Entity, packet: &ClientboundGameP
             waypoint,
             clear_dialog,
             show_dialog,
+            debug_block_value,
+            debug_chunk_value,
+            debug_entity_value,
+            debug_event,
+            game_test_highlight_pos,
         ]
     );
 }
@@ -207,7 +213,7 @@ impl GamePacketHandler<'_> {
                 ),
                 With<LocalEntity>,
             >,
-            EventWriter<InstanceLoadedEvent>,
+            MessageWriter<InstanceLoadedEvent>,
             ResMut<InstanceContainer>,
             ResMut<EntityUuidIndex>,
             Query<&mut LoadedBy, Without<LocalEntity>>,
@@ -336,7 +342,7 @@ impl GamePacketHandler<'_> {
         // ends
         debug!("Got chunk batch start");
 
-        as_system::<EventWriter<_>>(self.ecs, |mut events| {
+        as_system::<MessageWriter<_>>(self.ecs, |mut events| {
             events.write(chunks::ChunkBatchStartEvent {
                 entity: self.player,
             });
@@ -346,7 +352,7 @@ impl GamePacketHandler<'_> {
     pub fn chunk_batch_finished(&mut self, p: &ClientboundChunkBatchFinished) {
         debug!("Got chunk batch finished {p:?}");
 
-        as_system::<EventWriter<_>>(self.ecs, |mut events| {
+        as_system::<MessageWriter<_>>(self.ecs, |mut events| {
             events.write(chunks::ChunkBatchFinishedEvent {
                 entity: self.player,
                 batch_size: p.batch_size,
@@ -387,7 +393,7 @@ impl GamePacketHandler<'_> {
     pub fn disconnect(&mut self, p: &ClientboundDisconnect) {
         warn!("Got disconnect packet {p:?}");
 
-        as_system::<EventWriter<_>>(self.ecs, |mut events| {
+        as_system::<MessageWriter<_>>(self.ecs, |mut events| {
             events.write(DisconnectEvent {
                 entity: self.player,
                 reason: Some(p.reason.clone()),
@@ -420,11 +426,11 @@ impl GamePacketHandler<'_> {
             physics.set_old_pos(*position);
 
             // send the relevant packets
-            commands.trigger(SendPacketEvent::new(
+            commands.trigger(SendGamePacketEvent::new(
                 self.player,
                 ServerboundAcceptTeleportation { id: p.id },
             ));
-            commands.trigger(SendPacketEvent::new(
+            commands.trigger(SendGamePacketEvent::new(
                 self.player,
                 ServerboundMovePlayerPosRot {
                     pos: **position,
@@ -440,8 +446,8 @@ impl GamePacketHandler<'_> {
 
         as_system::<(
             Query<&mut TabList>,
-            EventWriter<AddPlayerEvent>,
-            EventWriter<UpdatePlayerEvent>,
+            MessageWriter<AddPlayerEvent>,
+            MessageWriter<UpdatePlayerEvent>,
             ResMut<TabList>,
         )>(
             self.ecs,
@@ -500,7 +506,7 @@ impl GamePacketHandler<'_> {
 
         as_system::<(
             Query<&mut TabList>,
-            EventWriter<RemovePlayerEvent>,
+            MessageWriter<RemovePlayerEvent>,
             ResMut<TabList>,
         )>(
             self.ecs,
@@ -542,7 +548,7 @@ impl GamePacketHandler<'_> {
     pub fn level_chunk_with_light(&mut self, p: &ClientboundLevelChunkWithLight) {
         debug!("Got chunk with light packet {} {}", p.x, p.z);
 
-        as_system::<EventWriter<_>>(self.ecs, |mut events| {
+        as_system::<MessageWriter<_>>(self.ecs, |mut events| {
             events.write(chunks::ReceiveChunkEvent {
                 entity: self.player,
                 packet: p.clone(),
@@ -730,17 +736,13 @@ impl GamePacketHandler<'_> {
                 // this is to make sure the same entity velocity update doesn't get sent
                 // multiple times when in swarms
 
-                let knockback = KnockbackType::Set(Vec3 {
-                    x: p.delta.xa as f64 / 8000.,
-                    y: p.delta.ya as f64 / 8000.,
-                    z: p.delta.za as f64 / 8000.,
-                });
+                let knockback = KnockbackType::Set(p.delta.to_vec3());
 
                 commands.entity(entity).queue(RelativeEntityUpdate::new(
                     instance_holder.partial_instance.clone(),
                     move |entity_mut| {
                         entity_mut.world_scope(|world| {
-                            world.send_event(KnockbackEvent { entity, knockback })
+                            world.write_message(KnockbackEvent { entity, knockback })
                         });
                     },
                 ));
@@ -957,14 +959,14 @@ impl GamePacketHandler<'_> {
     pub fn keep_alive(&mut self, p: &ClientboundKeepAlive) {
         debug!("Got keep alive packet {p:?} for {:?}", self.player);
 
-        as_system::<(EventWriter<KeepAliveEvent>, Commands)>(
+        as_system::<(MessageWriter<KeepAliveEvent>, Commands)>(
             self.ecs,
             |(mut keepalive_events, mut commands)| {
                 keepalive_events.write(KeepAliveEvent {
                     entity: self.player,
                     id: p.id,
                 });
-                commands.trigger(SendPacketEvent::new(
+                commands.trigger(SendGamePacketEvent::new(
                     self.player,
                     ServerboundKeepAlive { id: p.id },
                 ));
@@ -1011,7 +1013,7 @@ impl GamePacketHandler<'_> {
     pub fn player_chat(&mut self, p: &ClientboundPlayerChat) {
         debug!("Got player chat packet {p:?}");
 
-        as_system::<EventWriter<_>>(self.ecs, |mut events| {
+        as_system::<MessageWriter<_>>(self.ecs, |mut events| {
             events.write(ChatReceivedEvent {
                 entity: self.player,
                 packet: ChatPacket::Player(Arc::new(p.clone())),
@@ -1022,7 +1024,7 @@ impl GamePacketHandler<'_> {
     pub fn system_chat(&mut self, p: &ClientboundSystemChat) {
         debug!("Got system chat packet {p:?}");
 
-        as_system::<EventWriter<_>>(self.ecs, |mut events| {
+        as_system::<MessageWriter<_>>(self.ecs, |mut events| {
             events.write(ChatReceivedEvent {
                 entity: self.player,
                 packet: ChatPacket::System(Arc::new(p.clone())),
@@ -1033,7 +1035,7 @@ impl GamePacketHandler<'_> {
     pub fn disguised_chat(&mut self, p: &ClientboundDisguisedChat) {
         debug!("Got disguised chat packet {p:?}");
 
-        as_system::<EventWriter<_>>(self.ecs, |mut events| {
+        as_system::<MessageWriter<_>>(self.ecs, |mut events| {
             events.write(ChatReceivedEvent {
                 entity: self.player,
                 packet: ChatPacket::Disguised(Arc::new(p.clone())),
@@ -1135,28 +1137,25 @@ impl GamePacketHandler<'_> {
     pub fn container_set_content(&mut self, p: &ClientboundContainerSetContent) {
         debug!("Got container set content packet {p:?}");
 
-        as_system::<(Query<&mut Inventory>, EventWriter<_>)>(
-            self.ecs,
-            |(mut query, mut events)| {
-                let mut inventory = query.get_mut(self.player).unwrap();
+        as_system::<(Commands, Query<&mut Inventory>)>(self.ecs, |(mut commands, mut query)| {
+            let mut inventory = query.get_mut(self.player).unwrap();
 
-                // container id 0 is always the player's inventory
-                if p.container_id == 0 {
-                    // this is just so it has the same type as the `else` block
-                    for (i, slot) in p.items.iter().enumerate() {
-                        if let Some(slot_mut) = inventory.inventory_menu.slot_mut(i) {
-                            *slot_mut = slot.clone();
-                        }
+            // container id 0 is always the player's inventory
+            if p.container_id == 0 {
+                // this is just so it has the same type as the `else` block
+                for (i, slot) in p.items.iter().enumerate() {
+                    if let Some(slot_mut) = inventory.inventory_menu.slot_mut(i) {
+                        *slot_mut = slot.clone();
                     }
-                } else {
-                    events.write(SetContainerContentEvent {
-                        entity: self.player,
-                        slots: p.items.clone(),
-                        container_id: p.container_id,
-                    });
                 }
-            },
-        );
+            } else {
+                commands.trigger(SetContainerContentEvent {
+                    entity: self.player,
+                    slots: p.items.clone(),
+                    container_id: p.container_id,
+                });
+            }
+        });
     }
 
     pub fn container_set_data(&mut self, p: &ClientboundContainerSetData) {
@@ -1214,8 +1213,8 @@ impl GamePacketHandler<'_> {
 
         debug!("Got container close packet {p:?}");
 
-        as_system::<EventWriter<_>>(self.ecs, |mut events| {
-            events.write(ClientSideCloseContainerEvent {
+        as_system::<Commands>(self.ecs, |mut commands| {
+            commands.trigger(ClientsideCloseContainerEvent {
                 entity: self.player,
             });
         });
@@ -1230,8 +1229,8 @@ impl GamePacketHandler<'_> {
     pub fn explode(&mut self, p: &ClientboundExplode) {
         trace!("Got explode packet {p:?}");
 
-        as_system::<EventWriter<_>>(self.ecs, |mut knockback_events| {
-            if let Some(knockback) = p.knockback {
+        as_system::<MessageWriter<_>>(self.ecs, |mut knockback_events| {
+            if let Some(knockback) = p.player_knockback {
                 knockback_events.write(KnockbackEvent {
                     entity: self.player,
                     knockback: KnockbackType::Set(knockback),
@@ -1265,8 +1264,8 @@ impl GamePacketHandler<'_> {
     pub fn open_screen(&mut self, p: &ClientboundOpenScreen) {
         debug!("Got open screen packet {p:?}");
 
-        as_system::<EventWriter<_>>(self.ecs, |mut events| {
-            events.write(MenuOpenedEvent {
+        as_system::<Commands>(self.ecs, |mut commands| {
+            commands.trigger(MenuOpenedEvent {
                 entity: self.player,
                 window_id: p.container_id,
                 menu_type: p.menu_type,
@@ -1281,7 +1280,10 @@ impl GamePacketHandler<'_> {
         debug!("Got ping packet {p:?}");
 
         as_system::<Commands>(self.ecs, |mut commands| {
-            commands.trigger_targets(PingEvent(p.clone()), self.player);
+            commands.trigger(GamePingEvent {
+                entity: self.player,
+                packet: p.clone(),
+            });
         });
     }
 
@@ -1297,7 +1299,7 @@ impl GamePacketHandler<'_> {
         as_system::<(
             Commands,
             Query<(&MinecraftEntityId, Option<&Dead>)>,
-            EventWriter<_>,
+            MessageWriter<_>,
         )>(self.ecs, |(mut commands, mut query, mut events)| {
             let (entity_id, dead) = query.get_mut(self.player).unwrap();
 
@@ -1318,7 +1320,7 @@ impl GamePacketHandler<'_> {
     pub fn resource_pack_push(&mut self, p: &ClientboundResourcePackPush) {
         debug!("Got resource pack packet {p:?}");
 
-        as_system::<EventWriter<_>>(self.ecs, |mut events| {
+        as_system::<MessageWriter<_>>(self.ecs, |mut events| {
             events.write(ResourcePackEvent {
                 entity: self.player,
                 id: p.id,
@@ -1346,7 +1348,7 @@ impl GamePacketHandler<'_> {
                 ),
                 With<LocalEntity>,
             >,
-            EventWriter<_>,
+            MessageWriter<_>,
             ResMut<InstanceContainer>,
             Query<&mut LoadedBy, Without<LocalEntity>>,
         )>(
@@ -1443,7 +1445,7 @@ impl GamePacketHandler<'_> {
                 };
                 raw_conn.state = ConnectionProtocol::Configuration;
 
-                commands.trigger(SendPacketEvent::new(
+                commands.trigger(SendGamePacketEvent::new(
                     self.player,
                     ServerboundConfigurationAcknowledged,
                 ));
@@ -1563,5 +1565,22 @@ impl GamePacketHandler<'_> {
     }
     pub fn show_dialog(&mut self, p: &ClientboundShowDialog) {
         debug!("Got show dialog packet {p:?}");
+    }
+
+    pub fn debug_block_value(&mut self, p: &ClientboundDebugBlockValue) {
+        debug!("Got debug block value packet {p:?}");
+    }
+    pub fn debug_chunk_value(&mut self, p: &ClientboundDebugChunkValue) {
+        debug!("Got debug chunk value packet {p:?}");
+    }
+    pub fn debug_entity_value(&mut self, p: &ClientboundDebugEntityValue) {
+        debug!("Got debug entity value packet {p:?}");
+    }
+
+    pub fn debug_event(&mut self, p: &ClientboundDebugEvent) {
+        debug!("Got debug event packet {p:?}");
+    }
+    pub fn game_test_highlight_pos(&mut self, p: &ClientboundGameTestHighlightPos) {
+        debug!("Got game test highlight pos packet {p:?}");
     }
 }

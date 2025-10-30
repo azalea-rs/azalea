@@ -19,9 +19,9 @@ use crate::client::Client;
 pub struct ChatPlugin;
 impl Plugin for ChatPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<SendChatEvent>()
-            .add_event::<SendChatKindEvent>()
-            .add_event::<ChatReceivedEvent>()
+        app.add_message::<SendChatEvent>()
+            .add_message::<SendChatKindEvent>()
+            .add_message::<ChatReceivedEvent>()
             .add_systems(
                 Update,
                 (handle_send_chat_event, handle_send_chat_kind_event).chain(),
@@ -131,9 +131,11 @@ impl ChatPacket {
         self.split_sender_and_content().0
     }
 
-    /// Get the UUID of the sender of the message. If it's not a
-    /// player-sent chat message, this will be None (this is sometimes the case
-    /// when a server uses a plugin to modify chat messages).
+    /// Get the UUID of the sender of the message.
+    ///
+    /// If it's not a player-sent chat message, this will be None (this is
+    /// sometimes the case when a server uses a plugin to modify chat
+    /// messages).
     pub fn sender_uuid(&self) -> Option<Uuid> {
         match self {
             ChatPacket::System(_) => None,
@@ -142,14 +144,16 @@ impl ChatPacket {
         }
     }
 
-    /// Get the content part of the message as a string. This does not preserve
-    /// formatting codes. If it's not a player-sent chat message or the sender
-    /// couldn't be determined, this will contain the entire message.
+    /// Get the content part of the message as a string.
+    ///
+    /// This does not preserve formatting codes. If it's not a player-sent chat
+    /// message or the sender couldn't be determined, this will contain the
+    /// entire message.
     pub fn content(&self) -> String {
         self.split_sender_and_content().1
     }
 
-    /// Create a new Chat from a string. This is meant to be used as a
+    /// Create a new `ChatPacket` from a string. This is meant to be used as a
     /// convenience function for testing.
     pub fn new(message: &str) -> Self {
         ChatPacket::System(Arc::new(ClientboundSystemChat {
@@ -159,8 +163,9 @@ impl ChatPacket {
     }
 
     /// Whether this message is an incoming whisper message (i.e. someone else
-    /// dm'd the bot with /msg). It works by checking the translation key, so it
-    /// won't work on servers that use their own whisper system.
+    /// messaged the bot with /msg).
+    ///
+    /// This is not guaranteed to work correctly on custom servers.
     pub fn is_whisper(&self) -> bool {
         match self {
             ChatPacket::System(p) => {
@@ -183,13 +188,15 @@ impl ChatPacket {
 }
 
 impl Client {
-    /// Send a chat message to the server. This only sends the chat packet and
-    /// not the command packet, which means on some servers you can use this to
-    /// send chat messages that start with a `/`. The [`Client::chat`] function
-    /// handles checking whether the message is a command and using the
-    /// proper packet for you, so you should use that instead.
+    /// Send a chat message to the server.
+    ///
+    /// This only sends the chat packet and not the command packet, which means
+    /// on some servers you can use this to send chat messages that start
+    /// with a `/`. The [`Client::chat`] function handles checking whether
+    /// the message is a command and using the proper packet for you, so you
+    /// should use that instead.
     pub fn write_chat_packet(&self, message: &str) {
-        self.ecs.lock().send_event(SendChatKindEvent {
+        self.ecs.lock().write_message(SendChatKindEvent {
             entity: self.entity,
             content: message.to_string(),
             kind: ChatKind::Message,
@@ -202,7 +209,7 @@ impl Client {
     /// You can also just use [`Client::chat`] and start your message with a `/`
     /// to send a command.
     pub fn write_command_packet(&self, command: &str) {
-        self.ecs.lock().send_event(SendChatKindEvent {
+        self.ecs.lock().write_message(SendChatKindEvent {
             entity: self.entity,
             content: command.to_string(),
             kind: ChatKind::Command,
@@ -219,7 +226,7 @@ impl Client {
     /// # }
     /// ```
     pub fn chat(&self, content: impl Into<String>) {
-        self.ecs.lock().send_event(SendChatEvent {
+        self.ecs.lock().write_message(SendChatEvent {
             entity: self.entity,
             content: content.into(),
         });
@@ -227,22 +234,22 @@ impl Client {
 }
 
 /// A client received a chat message packet.
-#[derive(Event, Debug, Clone)]
+#[derive(Message, Debug, Clone)]
 pub struct ChatReceivedEvent {
     pub entity: Entity,
     pub packet: ChatPacket,
 }
 
 /// Send a chat message (or command, if it starts with a slash) to the server.
-#[derive(Event)]
+#[derive(Message)]
 pub struct SendChatEvent {
     pub entity: Entity,
     pub content: String,
 }
 
 pub fn handle_send_chat_event(
-    mut events: EventReader<SendChatEvent>,
-    mut send_chat_kind_events: EventWriter<SendChatKindEvent>,
+    mut events: MessageReader<SendChatEvent>,
+    mut send_chat_kind_events: MessageWriter<SendChatKindEvent>,
 ) {
     for event in events.read() {
         if event.content.starts_with('/') {

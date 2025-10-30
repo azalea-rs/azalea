@@ -312,9 +312,10 @@ impl PartialOrd for WeightedNode {
 /// [`PathfinderOpts::max_timeout`]: super::goto_event::PathfinderOpts::max_timeout
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum PathfinderTimeout {
-    /// Time out after a certain duration has passed. This is a good default so
-    /// you don't waste too much time calculating a path if you're on a slow
-    /// computer.
+    /// Time out after a certain duration has passed.
+    ///
+    /// This is a good default so you don't waste too much time calculating a
+    /// path if you're on a slow computer.
     Time(Duration),
     /// Time out after this many nodes have been considered.
     ///

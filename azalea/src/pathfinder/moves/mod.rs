@@ -14,8 +14,9 @@ use azalea_client::{
 use azalea_core::position::{BlockPos, Vec3};
 use azalea_inventory::Menu;
 use azalea_world::Instance;
-use bevy_ecs::{entity::Entity, event::EventWriter};
+use bevy_ecs::{entity::Entity, message::MessageWriter, system::Commands};
 use parking_lot::RwLock;
+use tracing::debug;
 
 use super::{
     astar,
@@ -24,7 +25,11 @@ use super::{
     rel_block_pos::RelBlockPos,
     world::{CachedWorld, is_block_state_passable},
 };
-use crate::{JumpEvent, LookAtEvent, auto_tool::best_tool_in_hotbar_for_block};
+use crate::{
+    auto_tool::best_tool_in_hotbar_for_block,
+    bot::{JumpEvent, LookAtEvent},
+    pathfinder::player_pos_to_block_pos,
+};
 
 type Edge = astar::Edge<RelBlockPos, MoveData>;
 
@@ -51,7 +56,7 @@ impl Debug for MoveData {
     }
 }
 
-pub struct ExecuteCtx<'w1, 'w2, 'w3, 'w4, 'w5, 'w6, 'a> {
+pub struct ExecuteCtx<'s, 'w1, 'w2, 'w3, 'w4, 'w5, 'w6, 'a> {
     pub entity: Entity,
     /// The node that we're trying to reach.
     pub target: BlockPos,
@@ -63,15 +68,15 @@ pub struct ExecuteCtx<'w1, 'w2, 'w3, 'w4, 'w5, 'w6, 'a> {
     pub instance: Arc<RwLock<Instance>>,
     pub menu: Menu,
 
-    pub look_at_events: &'a mut EventWriter<'w1, LookAtEvent>,
-    pub sprint_events: &'a mut EventWriter<'w2, StartSprintEvent>,
-    pub walk_events: &'a mut EventWriter<'w3, StartWalkEvent>,
-    pub jump_events: &'a mut EventWriter<'w4, JumpEvent>,
-    pub start_mining_events: &'a mut EventWriter<'w5, StartMiningBlockEvent>,
-    pub set_selected_hotbar_slot_events: &'a mut EventWriter<'w6, SetSelectedHotbarSlotEvent>,
+    pub commands: &'a mut Commands<'w1, 's>,
+    pub look_at_events: &'a mut MessageWriter<'w2, LookAtEvent>,
+    pub sprint_events: &'a mut MessageWriter<'w3, StartSprintEvent>,
+    pub walk_events: &'a mut MessageWriter<'w4, StartWalkEvent>,
+    pub jump_events: &'a mut MessageWriter<'w5, JumpEvent>,
+    pub start_mining_events: &'a mut MessageWriter<'w6, StartMiningBlockEvent>,
 }
 
-impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_> {
+impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_, '_> {
     pub fn look_at(&mut self, position: Vec3) {
         self.look_at_events.write(LookAtEvent {
             entity: self.entity,
@@ -132,8 +137,9 @@ impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_> {
         true
     }
 
-    /// Mine the block at the given position. Returns whether the block is being
-    /// mined.
+    /// Mine the block at the given position.
+    ///
+    /// Returns whether the block is being mined.
     pub fn mine(&mut self, block: BlockPos) -> bool {
         let block_state = self
             .instance
@@ -146,12 +152,12 @@ impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_> {
         }
 
         let best_tool_result = best_tool_in_hotbar_for_block(block_state, &self.menu);
+        debug!("best tool for {block_state:?}: {best_tool_result:?}");
 
-        self.set_selected_hotbar_slot_events
-            .write(SetSelectedHotbarSlotEvent {
-                entity: self.entity,
-                slot: best_tool_result.index as u8,
-            });
+        self.commands.trigger(SetSelectedHotbarSlotEvent {
+            entity: self.entity,
+            slot: best_tool_result.index as u8,
+        });
 
         self.is_currently_mining = true;
 
@@ -160,6 +166,7 @@ impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_> {
         self.start_mining_events.write(StartMiningBlockEvent {
             entity: self.entity,
             position: block,
+            force: true,
         });
 
         true
@@ -171,8 +178,8 @@ impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_> {
         let horizontal_distance_from_start = (self.start.center() - self.position)
             .horizontal_distance_squared()
             .sqrt();
-        let at_start_position =
-            BlockPos::from(self.position) == self.start && horizontal_distance_from_start < 0.25;
+        let at_start_position = player_pos_to_block_pos(self.position) == self.start
+            && horizontal_distance_from_start < 0.25;
 
         if self.should_mine(block) {
             if at_start_position {
@@ -210,19 +217,10 @@ pub struct IsReachedCtx<'a> {
 #[must_use]
 pub fn default_is_reached(
     IsReachedCtx {
-        position,
-        target,
-        physics,
-        ..
+        position, target, ..
     }: IsReachedCtx,
 ) -> bool {
-    if BlockPos::from(position) == target {
-        return true;
-    }
-
-    // this is to make it handle things like slabs correctly, if we're on the block
-    // below the target but on_ground
-    BlockPos::from(position).up(1) == target && physics.on_ground()
+    player_pos_to_block_pos(position) == target
 }
 
 pub struct PathfinderCtx<'a> {

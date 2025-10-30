@@ -4,7 +4,7 @@ import lib.extract
 import lib.utils
 
 
-DATA_COMPONENTS_DIR = "azalea-inventory/src/components.rs"
+DATA_COMPONENTS_DIR = "azalea-inventory/src/components/mod.rs"
 DEFAULT_DATA_COMPONENTS_DIR = "azalea-inventory/src/default_components/generated.rs"
 
 
@@ -315,6 +315,31 @@ use crate::{
                     list(python_value.values())[0], target_rust_type
                 )
             return str(python_value)
+        elif target_rust_type == "EntityKind":
+            # Special handling for EntityKind - can be from NBT compound id field or direct string
+            entity_id = None
+            if isinstance(python_value, dict) and "id" in python_value:
+                entity_id = python_value["id"]
+            elif isinstance(python_value, str):
+                entity_id = python_value
+
+            if entity_id and entity_id.startswith("minecraft:"):
+                entity_name = entity_id[10:]  # Remove "minecraft:" prefix
+                entity_name_camel = lib.utils.to_camel_case(entity_name)
+                return f"EntityKind::{entity_name_camel}"
+            raise ValueError(f"Unknown or missing EntityKind: {python_value}")
+        elif target_rust_type == "NbtCompound":
+            # NbtCompound::from_values([
+            #     ("id".into(), "minecraft:allay".into()),
+            # ]),
+            t = "NbtCompound::from_values(vec!["
+            for k, v in python_value.items():
+                if isinstance(v, str):
+                    t += f'("{k}".into(), "{v}".into()),'
+                else:
+                    t += f'("{k}".into(), {python_to_rust_value(v, "FIXME_UNKNOWN_NBT")}),'
+            t = t.rstrip(",") + "])"
+            return t
 
         if isinstance(python_value, dict):
             if target_rust_type == "ResourceLocation" and len(python_value) == 1:
@@ -483,6 +508,14 @@ use crate::{
             rust_value = f"{rust_value}.into()"
             field_type = "&str"
 
+        elif component_resource_id == "entity_data":
+            # Special handling for EntityData to use EntityData structure
+            # Keep rust_value as "value" so it gets processed correctly
+            field_type = "EntityKind"
+
+            def transform_value_fn(rust_value: str):
+                return f"{component_struct_name} {{ kind: {rust_value}, data: NbtCompound::new() }}"
+
         item_defaults_original = item_defaults
         item_defaults = {}
         for k, v in item_defaults_original.items():
@@ -590,7 +623,7 @@ use crate::{
 def get_enum_and_struct_fields():
     """
     Returns a map like map like `{ "MaxStackSize": { "count": i32 }, "Rarity": [ "common", ... ], ... }`
-    with an entry for each struct in components.rs.
+    with an entry for each struct in components/mod.rs.
     """
 
     with open(DATA_COMPONENTS_DIR, "r") as f:

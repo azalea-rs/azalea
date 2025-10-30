@@ -68,7 +68,7 @@ async fn steal(bot: Client, state: State) -> anyhow::Result<()> {
 
         bot.goto(RadiusGoal::new(chest_block.center(), 3.)).await;
 
-        let Some(chest) = bot.open_container_at(chest_block).await else {
+        let Some(chest) = bot.open_container_at(chest_block, None).await else {
             println!("Couldn't open chest at {chest_block:?}");
             continue;
         };

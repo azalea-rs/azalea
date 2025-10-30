@@ -29,6 +29,12 @@ pub trait AzaleaWriteVar {
     fn azalea_write_var(&self, buf: &mut impl Write) -> io::Result<()>;
 }
 
+impl AzaleaWrite for () {
+    fn azalea_write(&self, _buf: &mut impl Write) -> io::Result<()> {
+        Ok(())
+    }
+}
+
 impl AzaleaWrite for i32 {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         WriteBytesExt::write_i32::<BigEndian>(buf, *self)

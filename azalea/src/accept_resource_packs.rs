@@ -2,11 +2,11 @@ use azalea_client::{
     InConfigState,
     chunks::handle_chunk_batch_finished_event,
     client_information::send_client_information,
-    inventory::InventorySet,
+    inventory::InventorySystems,
     packet::{
         config::SendConfigPacketEvent,
         death_event_on_0_health,
-        game::{ResourcePackEvent, SendPacketEvent},
+        game::{ResourcePackEvent, SendGamePacketEvent},
     },
     respawn::perform_respawn,
 };
@@ -30,14 +30,14 @@ impl Plugin for AcceptResourcePacksPlugin {
                 .before(perform_respawn)
                 .after(death_event_on_0_health)
                 .after(handle_chunk_batch_finished_event)
-                .after(InventorySet)
+                .after(InventorySystems)
                 .after(send_client_information),
         );
     }
 }
 
 fn accept_resource_pack(
-    mut events: EventReader<ResourcePackEvent>,
+    mut events: MessageReader<ResourcePackEvent>,
     mut commands: Commands,
     query_in_config_state: Query<Option<&InConfigState>>,
 ) {
@@ -62,14 +62,14 @@ fn accept_resource_pack(
                 },
             ));
         } else {
-            commands.trigger(SendPacketEvent::new(
+            commands.trigger(SendGamePacketEvent::new(
                 event.entity,
                 ServerboundResourcePack {
                     id: event.id,
                     action: s_resource_pack::Action::Accepted,
                 },
             ));
-            commands.trigger(SendPacketEvent::new(
+            commands.trigger(SendGamePacketEvent::new(
                 event.entity,
                 ServerboundResourcePack {
                     id: event.id,

@@ -1,12 +1,42 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to Azalea will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
-Due to the complexity of Azalea and the fact that almost every Minecraft version
+Due to the large scope of Azalea and the fact that almost every Minecraft version
 is breaking anyways, semantic versioning is not followed.
 
 ## [Unreleased]
+
+### Added
+
+- Add `Client::query_entity` and `try_query_entity` to complement `query_self`.
+- Add `Client::entity_interact` and `EntityInteractEvent` to interact with entities without checking that they're in the crosshair.
+
+### Changed
+
+- Update to Minecraft 1.21.10. (help from @eihqnh)
+- Update to Bevy 0.17.
+- `Client::query`, `map_component`, and `map_get_component` were replaced by `Client::query_self`.
+- Rename `SendPacketEvent` to `SendGamePacketEvent` and `PingEvent` to `GamePingEvent`.
+- Swap the order of the type parameters in entity filtering functions so query is first, then filter.
+- Add optional `timeout_ticks` field to `Client::open_container_at`.
+- Moved `azalea_client::inventory::Inventory` to `azalea_entity::inventory::Inventory`.
+
+### Fixed
+
+- The wrong path was temporarily executed if we received a `GotoEvent` while the path that's being executed was more than 50 nodes long.
+- The pathfinder can now jump from dirt path and farmland blocks correctly.
+- Don't panic when receiving an unexpected `PathFoundEvent`. (@Hiradpi)
+- The pathfinder sometimes got stuck when going up stairs that are facing the wrong direction.
+- ReachBlockPosGoal had the wrong cost when the destination is surrounded in blocks.
+- Some parkour movements had the wrong costs.
+- The pathfinder no longer spins when descending more than one block.
+- The pathfinder now avoids slipping off when the last block of the path is on ice.
+- The 'with' field in formatted text didn't correctly support mixed types. (@Tert0)
+- The WritableBookContent and ResolvableProfile data components had the wrong protocol implementations.
+
+## [0.14.0+mc1.21.8] - 2025-09-28
 
 ### Added
 
@@ -17,8 +47,11 @@ is breaking anyways, semantic versioning is not followed.
 - There is now a `azalea_inventory::default_components::get_default_component` function to get the default value of a component for a registry item.
 - `ItemStack` now has a `get_component` function that supports default components.
 - `Client::nearest_entity_by`.
+- Blocks now have functions for getting property keys and values as strings. (@urisinger)
 - `BitSet::len`, `BitSet::get`, `BitSet::iter_ones`.
 - All packets are now `PartialEq`.
+- The `fallback` field was implemented for chat messages. (@Tert0)
+- Interactive auth now appends `?otc={code}` to the login URL to skip having to manually paste the auth code.
 
 ### Changed
 
@@ -34,23 +67,32 @@ is breaking anyways, semantic versioning is not followed.
 - Rename `send_chat_packet` / `send_command_packet` to `write_chat_packet` / `write_command_packet` (for consistency with `write_packet`).
 - Split `ClientInformation` handling out of `BrandPlugin` to `ClientInformationPlugin`.
 - `ClientBuilder::start` and `SwarmBuilder::start` now return a `Result<AppExit>` instead of `Result<!>`.
-- Moved `azalea_client::inventory::Inventory` to `azalea_entity::inventory::Inventory`.
+- `ClientsideCloseContainerEvent`, `MenuOpenedEvent`, and `CloseContainerEvent` are now triggers instead of events.
+- `Client::chat` now takes anything with `impl Into<String>`.
+- Some types related Azalea's bot plugin were moved to `azalea::bot::*`.
+- `AABB` was renamed to `Aabb` to follow Rust naming guidelines.
 
 ### Fixed
 
-- Fix packet order for loading (`PlayerLoaded`/`MovePlayerPos`) and sprinting (`PlayerInput`/`PlayerCommand`).
+- Fix packet order for loading (`PlayerLoaded`/`MovePlayerPos`), sprinting (`PlayerInput`/`PlayerCommand`), and `CarriedItem`.
 - Clients no longer send invalid look directions if the server teleports us with one.
 - Look directions are now rounded based on the default Minecraft sensitivity, which may help avoid flagging anticheats.
 - Movement code was updated with the changes from 1.21.5, so it no longer flags Grim.
 - Clients can no longer sprint if their food level is too low.
 - `azalea-chat` now handles arrays of integers in the `with` field. (@qwqawawow)
 - `azalea-chat` no longer incorrectly persists styles of components in the "extra" field.
+- `dark_red` was way too dark red.
 - Inventories now use the correct max stack sizes.
 - Clients now send the correct data component checksums when interacting with items.
 - Fix parsing some metadata fields of Display entities.
-- Mining blocks in creative mode now works. (@qwqawawow)
+- Mining blocks in creative mode now works. (@eihqnh)
 - Improved matchers on the `ChatPacket` functions to work on more servers. (@ShayBox)
 - Bevy's `AppExit` Event is now handled by Azalea's ECS runner.
+- Pathfinding now works over farmland blocks.
+- There is no longer a panic when the account token is automatically refreshed.
+- Fix `is_valid_id` on registries incorrectly returning true for values equal to the length.
+- Fix outdated implementation for the `ClientboundMerchantOffers` packet.
+- Fix compilation with new dependency versions. (@ShayBox)
 
 ## [0.13.0+mc1.21.5] - 2025-06-15
 

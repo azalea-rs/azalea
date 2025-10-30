@@ -1,4 +1,4 @@
-use azalea_core::{aabb::AABB, position::Vec3};
+use azalea_core::{aabb::Aabb, position::Vec3};
 use azalea_registry::EntityKind;
 use bevy_ecs::component::Component;
 
@@ -40,10 +40,10 @@ impl EntityDimensions {
         Self { eye_height, ..self }
     }
 
-    pub fn make_bounding_box(&self, pos: Vec3) -> AABB {
+    pub fn make_bounding_box(&self, pos: Vec3) -> Aabb {
         let radius = (self.width / 2.0) as f64;
         let height = self.height as f64;
-        AABB {
+        Aabb {
             min: Vec3::new(pos.x - radius, pos.y, pos.z - radius),
             max: Vec3::new(pos.x + radius, pos.y + height, pos.z + radius),
         }
@@ -87,6 +87,7 @@ impl From<EntityKind> for EntityDimensions {
             EntityKind::Chicken => EntityDimensions::new(0.4, 0.7).eye_height(0.644),
             EntityKind::Cod => EntityDimensions::new(0.5, 0.3).eye_height(0.195),
             EntityKind::CommandBlockMinecart => EntityDimensions::new(0.98, 0.7),
+            EntityKind::CopperGolem => EntityDimensions::new(0.49, 0.98).eye_height(0.8125),
             EntityKind::Cow => EntityDimensions::new(0.9, 1.4).eye_height(1.3),
             EntityKind::Creaking => EntityDimensions::new(0.9, 2.7).eye_height(2.3),
             EntityKind::Creeper => EntityDimensions::new(0.6, 1.7),
@@ -144,6 +145,7 @@ impl From<EntityKind> for EntityDimensions {
             EntityKind::MangroveChestBoat => {
                 EntityDimensions::new(1.375, 0.5625).eye_height(0.5625)
             }
+            EntityKind::Mannequin => EntityDimensions::new(0.6, 1.8).eye_height(1.62),
             EntityKind::Marker => EntityDimensions::new(0.0, 0.0),
             EntityKind::Minecart => EntityDimensions::new(0.98, 0.7),
             EntityKind::Mooshroom => EntityDimensions::new(0.9, 1.4).eye_height(1.3),

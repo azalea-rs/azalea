@@ -1,8 +1,9 @@
 use azalea_core::position::Vec2;
 use bevy_ecs::component::Component;
 
-/// Component for entities that can move and sprint. Usually only in
-/// [`LocalEntity`]s.
+/// Component for entities that can move and sprint.
+///
+/// Usually only present for [`LocalEntity`]s.
 ///
 /// [`LocalEntity`]: azalea_entity::LocalEntity
 #[derive(Default, Component, Clone)]

@@ -25,14 +25,14 @@ pub type BlockStateIntegerRepr = u16;
 /// [`BlockStateIntegerRepr`].
 #[derive(Copy, Clone, PartialEq, Eq, Default, Hash)]
 pub struct BlockState {
-    /// The protocol ID for the block state. IDs may change every
-    /// version, so you shouldn't hard-code them or store them in databases.
     id: BlockStateIntegerRepr,
 }
 
 impl BlockState {
     /// A shortcut for getting the air block state, since it always has an ID of
     /// 0.
+    ///
+    /// This does not include the other types of air like cave air.
     pub const AIR: BlockState = BlockState { id: 0 };
 
     /// Create a new BlockState and panic if the block is not a valid state.
@@ -53,15 +53,18 @@ impl BlockState {
         state_id <= Self::MAX_STATE
     }
 
-    /// Returns true if the block is air. This only checks for normal air, not
-    /// other types like cave air.
+    /// Returns true if the block is air.
+    ///
+    /// This only checks for normal air, not other types like cave air.
     #[inline]
     pub fn is_air(&self) -> bool {
         self == &Self::AIR
     }
 
-    /// Returns the protocol ID for the block state. IDs may change every
-    /// version, so you shouldn't hard-code them or store them in databases.
+    /// Returns the protocol ID for the block state.
+    ///
+    /// These IDs may change across Minecraft versions, so you shouldn't
+    /// hard-code them or store them in databases.
     #[inline]
     pub const fn id(&self) -> BlockStateIntegerRepr {
         self.id
@@ -71,7 +74,7 @@ impl BlockState {
 impl TryFrom<u32> for BlockState {
     type Error = ();
 
-    /// Safely converts a u32 state id to a block state.
+    /// Safely converts a u32 state ID to a block state.
     fn try_from(state_id: u32) -> Result<Self, Self::Error> {
         let state_id = state_id as BlockStateIntegerRepr;
         if Self::is_valid_state(state_id) {
@@ -84,7 +87,7 @@ impl TryFrom<u32> for BlockState {
 impl TryFrom<u16> for BlockState {
     type Error = ();
 
-    /// Safely converts a u16 state id to a block state.
+    /// Safely converts a u16 state ID to a block state.
     fn try_from(state_id: u16) -> Result<Self, Self::Error> {
         let state_id = state_id as BlockStateIntegerRepr;
         if Self::is_valid_state(state_id) {

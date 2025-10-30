@@ -174,14 +174,18 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
                 })
             }
 
-            /// Get the range of slot indexes that contain the player's inventory. This may be different for each menu.
+            /// Get the range of slot indexes that contain the player's inventory.
+            ///
+            /// This may be different for each menu.
             pub fn player_slots_range(&self) -> RangeInclusive<usize> {
                 match self {
                     #player_slots_range_match_variants
                 }
             }
 
-            /// Get the range of slot indexes that contain the player's hotbar. This may be different for each menu.
+            /// Get the range of slot indexes that contain the player's hotbar.
+            ///
+            /// This may be different for each menu.
             ///
             /// ```
             /// # let inventory = azalea_inventory::Menu::Player(azalea_inventory::Player::default());
@@ -192,7 +196,9 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
                 ((*self.player_slots_range().end() - 8)..=*self.player_slots_range().end())
             }
 
-            /// Get the range of slot indexes that contain the player's inventory, not including the hotbar. This may be different for each menu.
+            /// Get the range of slot indexes that contain the player's inventory, not including the hotbar.
+            ///
+            /// This may be different for each menu.
             pub fn player_slots_without_hotbar_range(&self) -> RangeInclusive<usize> {
                 (*self.player_slots_range().start()..=*self.player_slots_range().end() - 9)
             }

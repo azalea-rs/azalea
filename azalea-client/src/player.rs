@@ -4,7 +4,7 @@ use azalea_core::game_type::GameMode;
 use azalea_entity::indexing::EntityUuidIndex;
 use bevy_ecs::{
     component::Component,
-    event::EventReader,
+    message::MessageReader,
     system::{Commands, Res},
 };
 use derive_more::{Deref, DerefMut};
@@ -22,12 +22,14 @@ pub struct PlayerInfo {
     pub uuid: Uuid,
     /// The current gamemode of the player, like survival or creative.
     pub gamemode: GameMode,
-    /// The player's latency in milliseconds. The bars in the tab screen depend
-    /// on this.
+    /// The player's latency in milliseconds.
+    ///
+    /// The bars in the tab screen depend on this.
     pub latency: i32,
     /// The player's display name in the tab list, but only if it's different
-    /// from the player's normal username. Use `player_info.profile.name` to get
-    /// the player's actual username.
+    /// from the player's normal username.
+    ///
+    /// Use [`GameProfile::name`] to get the player's actual username.
     pub display_name: Option<Box<FormattedText>>,
 }
 
@@ -44,7 +46,7 @@ pub struct GameProfileComponent(pub GameProfile);
 /// `ClientboundGamePacket::AddPlayer` handler though.
 pub fn retroactively_add_game_profile_component(
     mut commands: Commands,
-    mut events: EventReader<AddPlayerEvent>,
+    mut events: MessageReader<AddPlayerEvent>,
     entity_uuid_index: Res<EntityUuidIndex>,
 ) {
     for event in events.read() {

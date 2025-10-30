@@ -32,8 +32,8 @@ impl CommandSource {
     pub fn entity(&mut self) -> Option<Entity> {
         let username = self.chat.sender()?;
         self.bot
-            .any_entity_by::<With<Player>, &GameProfileComponent>(
-                |profile: &&GameProfileComponent| profile.name == username,
+            .any_entity_by::<&GameProfileComponent, With<Player>>(
+                |profile: &GameProfileComponent| profile.name == username,
             )
     }
 }

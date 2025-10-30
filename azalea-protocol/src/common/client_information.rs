@@ -5,8 +5,9 @@ use azalea_core::bitset::FixedBitSet;
 use bevy_ecs::component::Component;
 
 /// A component that contains some of the "settings" for this client that are
-/// sent to the server, such as render distance. This is only present on local
-/// players.
+/// sent to the server, such as render distance.
+///
+/// This is only present on local players.
 #[derive(Clone, Debug, AzBuf, PartialEq, Eq, Component)]
 pub struct ClientInformation {
     /// The locale of the client.
@@ -14,11 +15,13 @@ pub struct ClientInformation {
     /// The view distance of the client in chunks, same as the render distance
     /// in-game.
     pub view_distance: u8,
-    /// The types of chat messages the client wants to receive. Note that many
-    /// servers ignore this.
+    /// The types of chat messages the client wants to receive.
+    ///
+    /// Note that this is enforced by the server, and many servers ignore this.
     pub chat_visibility: ChatVisibility,
-    /// Whether the messages sent from the server should have colors. Note that
-    /// many servers ignore this and always send colored messages.
+    /// Whether the messages sent from the server should have colors.
+    ///
+    /// Note that many servers ignore this and always send colored messages.
     pub chat_colors: bool,
     pub model_customization: ModelCustomization,
     pub main_hand: HumanoidArm,

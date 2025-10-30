@@ -77,8 +77,9 @@ impl Iterator for BlockIterator {
     }
 }
 
-/// A spiral iterator, useful for iterating over chunks in a world. Use
-/// `ChunkIterator` to sort by x+y+z (Manhattan) distance.
+/// A spiral iterator, useful for iterating over chunks in a world.
+///
+/// You can use [`ChunkIterator`] instead to sort by x+y+z (Manhattan) distance.
 ///
 /// ```
 /// # use azalea_core::position::ChunkPos;

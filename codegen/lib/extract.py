@@ -3,6 +3,8 @@
 import shutil
 from lib.download import (
     get_latest_fabric_api_version,
+    get_latest_fabric_kotlin_version,
+    get_latest_fabric_loom_version,
     get_mappings_for_version,
     get_pumpkin_extractor,
     get_server_jar,
@@ -151,6 +153,8 @@ def get_pumpkin_data(version_id: str, category: str):
 
     fabric_data = get_fabric_data(version_id)[0]
     fabric_api_version = get_latest_fabric_api_version()
+    fabric_kotlin_version = get_latest_fabric_kotlin_version()
+    fabric_loom_version = get_latest_fabric_loom_version()
 
     gradle_properties = f"""# Done to increase the memory available to gradle.
 org.gradle.jvmargs=-Xmx1G
@@ -160,7 +164,7 @@ org.gradle.parallel=true
 minecraft_version={version_id}
 yarn_mappings={fabric_data["mappings"]["version"]}
 loader_version={fabric_data["loader"]["version"]}
-kotlin_loader_version=1.13.2+kotlin.2.1.20
+kotlin_loader_version={fabric_kotlin_version}
 # Mod Properties
 mod_version=1.0-SNAPSHOT
 maven_group=de.snowii
@@ -179,10 +183,24 @@ fabric_version={fabric_api_version}
             '"minecraft": "${minecraft_version}"', '"minecraft": "*"'
         )
         f.write(fabric_mod_json)
+    with open(f"{pumpkin_dir}/build.gradle.kts", "r") as f:
+        build_gradle_kts = f.read()
+    with open(f"{pumpkin_dir}/build.gradle.kts", "w") as f:
+        build_gradle_kts = re.sub(
+            r'(id\("fabric-loom"\) version )"[^"]+"',
+            rf'\1"{fabric_loom_version}"',
+            build_gradle_kts,
+        )
+        # kotlin complains about nullable types if we don't add this
+        build_gradle_kts = re.sub(
+            r'(to project.property\("\w+"\))([\n,])', r"\1!!\2", build_gradle_kts
+        )
+        f.write(build_gradle_kts)
 
     # run ./gradlew runServer until it logs "(pumpkin_extractor) Done"
     p = subprocess.Popen(
-        f"cd {pumpkin_dir} && ./gradlew clean && ./gradlew runServer",
+        # the gradle wrapper (./gradlew) is sometimes on the wrong version so just prefer the system's gradle installation
+        f"cd {pumpkin_dir} && gradle clean && gradle runServer",
         stderr=subprocess.PIPE,
         stdout=subprocess.PIPE,
         shell=True,

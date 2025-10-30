@@ -92,6 +92,11 @@ pub fn sign_as_int(num: f64) -> i32 {
     if num == 0. { 0 } else { num.signum() as i32 }
 }
 
+pub fn ceil_long(x: f64) -> i64 {
+    let x_i64 = x as i64;
+    if x > x_i64 as f64 { x_i64 + 1 } else { x_i64 }
+}
+
 pub fn equal(a: f64, b: f64) -> bool {
     (b - a).abs() < 1.0e-5
 }

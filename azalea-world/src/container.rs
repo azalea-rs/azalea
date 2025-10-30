@@ -13,8 +13,10 @@ use tracing::{debug, error};
 
 use crate::{ChunkStorage, Instance};
 
-/// A container of [`Instance`]s (aka worlds). Instances are stored as a Weak
-/// pointer here, so if no clients are using an instance it will be forgotten.
+/// A container of [`Instance`]s (aka worlds).
+///
+/// Instances are stored as a Weak pointer here, so if no clients are using an
+/// instance it will be forgotten.
 #[derive(Default, Resource)]
 pub struct InstanceContainer {
     // We just refer to the chunks here and don't include entities because there's not that many
@@ -85,8 +87,9 @@ impl InstanceContainer {
     }
 }
 
-/// The name of the [`Instance`](crate::Instance) (world) the entity is
-/// in. If two entities share the same instance name, we assume they're in the
+/// The name of the [`Instance`] (aka world/dimension) that the entity is in.
+///
+/// If two entities share the same instance name, we assume they're in the
 /// same instance.
 #[derive(Component, Clone, Debug, PartialEq, Deref, DerefMut)]
 #[doc(alias("worldname", "world name"))]

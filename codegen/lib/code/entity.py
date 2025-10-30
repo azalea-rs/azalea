@@ -113,7 +113,7 @@ use azalea_core::{
     direction::Direction,
     position::{BlockPos, Vec3f32},
 };
-use azalea_inventory::ItemStack;
+use azalea_inventory::{ItemStack, components};
 use azalea_registry::DataRegistry;
 use bevy_ecs::{bundle::Bundle, component::Component};
 use derive_more::{Deref, DerefMut};
@@ -121,8 +121,8 @@ use thiserror::Error;
 use uuid::Uuid;
 
 use super::{
-    ArmadilloStateKind, EntityDataItem, EntityDataValue, OptionalUnsignedInt, Pose, Quaternion,
-    Rotations, SnifferStateKind, VillagerData,
+    ArmadilloStateKind, CopperGolemStateKind, EntityDataItem, EntityDataValue, OptionalUnsignedInt,
+    Pose, Quaternion, Rotations, SnifferStateKind, VillagerData, WeatheringCopperStateKind,
 };
 use crate::particle::Particle;
 

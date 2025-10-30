@@ -21,7 +21,7 @@ pub use attributes::Attributes;
 use azalea_block::{BlockState, fluid_state::FluidKind};
 use azalea_buf::AzBuf;
 use azalea_core::{
-    aabb::AABB,
+    aabb::Aabb,
     math,
     position::{BlockPos, ChunkPos, Vec3},
     resource_location::ResourceLocation,
@@ -125,8 +125,10 @@ pub fn on_pos(offset: f32, chunk_storage: &ChunkStorage, pos: Position) -> Block
     pos
 }
 
-/// The Minecraft UUID of the entity. For players, this is their actual player
-/// UUID, and for other entities it's just random.
+/// The Minecraft UUID of the entity.
+///
+/// For players, this is their actual player UUID, and for other entities it's
+/// just random.
 #[derive(Component, Deref, DerefMut, Clone, Copy, Default, PartialEq)]
 pub struct EntityUuid(Uuid);
 impl EntityUuid {
@@ -181,7 +183,9 @@ impl From<&Position> for BlockPos {
 }
 
 /// The second most recent position of the entity that was sent over the
-/// network. This is currently only updated for our own local player entities.
+/// network.
+///
+/// This is currently only updated for our own local player entities.
 #[derive(Component, Clone, Copy, Debug, Default, PartialEq, Deref, DerefMut)]
 pub struct LastSentPosition(Vec3);
 impl From<&LastSentPosition> for Vec3 {
@@ -248,9 +252,10 @@ impl LookDirection {
         self.x_rot
     }
 
-    /// Update this look direction to the new value, while handling relative
-    /// rotations correctly and with the default Minecraft sensitivity to avoid
-    /// triggering anticheats.
+    /// Update this look direction to the new value.
+    ///
+    /// This handles relative rotations correctly and with the default Minecraft
+    /// sensitivity to avoid triggering anticheats.
     pub fn update(&mut self, new: LookDirection) {
         self.update_with_sensitivity(new, 1.);
     }
@@ -353,9 +358,10 @@ pub struct Physics {
     /// and sets to 0 if we're not trying to jump.
     pub no_jump_delay: u32,
 
-    /// The bounding box of the entity. This is more than just width and height,
-    /// unlike dimensions.
-    pub bounding_box: AABB,
+    /// The bounding box of the entity.
+    ///
+    /// This is more than just width and height, unlike dimensions.
+    pub bounding_box: Aabb,
 
     pub has_impulse: bool,
 
@@ -460,8 +466,9 @@ pub struct Dead;
 #[derive(Component, Clone, Copy, Debug, PartialEq, Deref)]
 pub struct EntityKindComponent(pub azalea_registry::EntityKind);
 
-/// A bundle of components that every entity has. This doesn't contain metadata,
-/// that has to be added separately.
+/// A bundle of components that every entity has.
+///
+/// This doesn't contain metadata; that has to be added separately.
 #[derive(Bundle)]
 pub struct EntityBundle {
     pub kind: EntityKindComponent,
@@ -562,7 +569,9 @@ pub struct OnClimbable(bool);
 pub struct Crouching(bool);
 
 /// A component that contains the abilities the player has, like flying
-/// or instantly breaking blocks. This is only present on local players.
+/// or instantly breaking blocks.
+///
+/// This is only present on local players.
 #[derive(Clone, Debug, Component, Default)]
 pub struct PlayerAbilities {
     pub invulnerable: bool,

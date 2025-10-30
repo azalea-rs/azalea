@@ -33,7 +33,7 @@ fn setup_blockposgoal_simulation(
     //     ..Default::default()
     // });
 
-    simulation.app.world_mut().send_event(GotoEvent {
+    simulation.app.world_mut().write_message(GotoEvent {
         entity: simulation.entity,
         goal: Arc::new(BlockPosGoal(end_pos)),
         opts: PathfinderOpts {
@@ -299,7 +299,7 @@ fn test_mine_through_non_colliding_block() {
         ],
     );
 
-    simulation.app.world_mut().send_event(GotoEvent {
+    simulation.app.world_mut().write_message(GotoEvent {
         entity: simulation.entity,
         goal: Arc::new(BlockPosGoal(BlockPos::new(0, 69, 0))),
         opts: PathfinderOpts::new()

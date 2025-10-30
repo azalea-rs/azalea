@@ -45,8 +45,9 @@ pub fn send_client_information(
 
 impl Client {
     /// Tell the server we changed our game options (i.e. render distance, main
-    /// hand). If this is not set before the login packet, the default will
-    /// be sent.
+    /// hand).
+    ///
+    /// If this is not set before the login packet, the default will be sent.
     ///
     /// ```rust,no_run
     /// # use azalea_client::{Client, ClientInformation};
@@ -54,17 +55,14 @@ impl Client {
     /// bot.set_client_information(ClientInformation {
     ///     view_distance: 2,
     ///     ..Default::default()
-    /// })
-    /// .await;
+    /// });
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn set_client_information(&self, client_information: ClientInformation) {
-        {
-            let mut ecs = self.ecs.lock();
-            let mut client_information_mut = self.query::<&mut ClientInformation>(&mut ecs);
-            *client_information_mut = client_information.clone();
-        }
+    pub fn set_client_information(&self, client_information: ClientInformation) {
+        self.query_self::<&mut ClientInformation, _>(|mut ci| {
+            *ci = client_information.clone();
+        });
 
         if self.logged_in() {
             debug!(

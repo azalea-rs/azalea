@@ -1,4 +1,7 @@
-use std::io::{self, Cursor, Write};
+use std::{
+    fmt::Debug,
+    io::{self, Cursor, Write},
+};
 
 use azalea_buf::{AzaleaRead, AzaleaReadLimited, AzaleaReadVar, AzaleaWrite};
 use serde::Serialize;
@@ -54,5 +57,13 @@ impl<T: Clone> Clone for Filterable<T> {
 impl<T: PartialEq> PartialEq for Filterable<T> {
     fn eq(&self, other: &Self) -> bool {
         self.raw == other.raw && self.filtered == other.filtered
+    }
+}
+impl<T: Debug> Debug for Filterable<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Filterable")
+            .field("raw", &self.raw)
+            .field("filtered", &self.filtered)
+            .finish()
     }
 }

@@ -8,7 +8,7 @@ use azalea_core::{
     direction::Direction,
     position::{BlockPos, GlobalPos, Vec3f32},
 };
-use azalea_inventory::ItemStack;
+use azalea_inventory::{ItemStack, components};
 use bevy_ecs::component::Component;
 use derive_more::Deref;
 use enum_as_inner::EnumAsInner;
@@ -74,7 +74,6 @@ pub enum EntityDataValue {
     BlockState(azalea_block::BlockState),
     /// If this is air, that means it's absent,
     OptionalBlockState(azalea_block::BlockState),
-    CompoundTag(simdnbt::owned::NbtCompound),
     Particle(Particle),
     Particles(Vec<Particle>),
     VillagerData(VillagerData),
@@ -92,8 +91,11 @@ pub enum EntityDataValue {
     PaintingVariant(azalea_registry::PaintingVariant),
     SnifferState(SnifferStateKind),
     ArmadilloState(ArmadilloStateKind),
+    CopperGolemState(CopperGolemStateKind),
+    WeatheringCopperState(WeatheringCopperStateKind),
     Vector3(Vec3f32),
     Quaternion(Quaternion),
+    ResolvableProfile(components::Profile),
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -185,4 +187,22 @@ pub enum SnifferStateKind {
     Searching,
     Digging,
     Rising,
+}
+
+#[derive(Debug, Copy, Clone, AzBuf, Default, PartialEq)]
+pub enum CopperGolemStateKind {
+    #[default]
+    Idle,
+    GettingItem,
+    GettingNoItem,
+    DroppingItem,
+    DroppingNoItem,
+}
+#[derive(Debug, Copy, Clone, AzBuf, Default, PartialEq)]
+pub enum WeatheringCopperStateKind {
+    #[default]
+    Unaffected,
+    Exposed,
+    Weathered,
+    Oxidized,
 }

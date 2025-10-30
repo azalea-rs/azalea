@@ -24,9 +24,10 @@ pub struct BlockHit {
     pub block_pos: BlockPos,
     /// The face of the block that was clicked.
     pub direction: Direction,
-    /// The exact coordinates of the world where the block was clicked. In the
-    /// network, this is transmitted as the difference between the location and
-    /// block position.
+    /// The exact coordinates of the world where the block was clicked.
+    ///
+    /// In the network, this is transmitted as the difference between the
+    /// location and block position.
     pub location: Vec3,
     /// Whether the player's head is inside a block.
     pub inside: bool,

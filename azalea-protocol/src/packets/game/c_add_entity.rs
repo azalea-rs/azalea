@@ -1,5 +1,5 @@
 use azalea_buf::AzBuf;
-use azalea_core::{delta::PositionDelta8, position::Vec3, resource_location::ResourceLocation};
+use azalea_core::{delta::LpVec3, position::Vec3, resource_location::ResourceLocation};
 use azalea_entity::{EntityBundle, metadata::apply_default_metadata};
 use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_world::MinecraftEntityId;
@@ -13,6 +13,7 @@ pub struct ClientboundAddEntity {
     pub uuid: Uuid,
     pub entity_type: azalea_registry::EntityKind,
     pub position: Vec3,
+    pub movement: LpVec3,
     pub x_rot: i8,
     pub y_rot: i8,
     pub y_head_rot: i8,
@@ -26,12 +27,12 @@ pub struct ClientboundAddEntity {
     /// for more information about this field.
     #[var]
     pub data: u32,
-    pub velocity: PositionDelta8,
 }
 
 impl ClientboundAddEntity {
-    /// Make the entity into a bundle that can be inserted into the ECS. You
-    /// must apply the metadata after inserting the bundle with
+    /// Make the entity into a bundle that can be inserted into the ECS.
+    ///
+    /// You must apply the metadata after inserting the bundle with
     /// [`Self::apply_metadata`].
     pub fn as_entity_bundle(&self, world_name: ResourceLocation) -> EntityBundle {
         EntityBundle::new(self.uuid, self.position, self.entity_type, world_name)

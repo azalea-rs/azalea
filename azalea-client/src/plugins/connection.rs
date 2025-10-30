@@ -124,7 +124,7 @@ pub fn read_packets(ecs: &mut World) {
         }
     }
 
-    queued_packet_events.send_events(ecs);
+    queued_packet_events.write_messages(ecs);
 }
 
 fn poll_all_writer_tasks(mut conn_query: Query<&mut RawConnection>) {
@@ -149,10 +149,10 @@ pub struct QueuedPacketEvents {
     game: Vec<ReceiveGamePacketEvent>,
 }
 impl QueuedPacketEvents {
-    fn send_events(&mut self, ecs: &mut World) {
-        ecs.send_event_batch(self.login.drain(..));
-        ecs.send_event_batch(self.config.drain(..));
-        ecs.send_event_batch(self.game.drain(..));
+    fn write_messages(&mut self, ecs: &mut World) {
+        ecs.write_message_batch(self.login.drain(..));
+        ecs.write_message_batch(self.config.drain(..));
+        ecs.write_message_batch(self.game.drain(..));
     }
 }
 
@@ -171,7 +171,7 @@ pub struct RawConnection {
     /// handlers or at all times during tests.
     ///
     /// You shouldn't rely on this. Instead, use the events for sending packets
-    /// like [`SendPacketEvent`](crate::packet::game::SendPacketEvent) /
+    /// like [`SendGamePacketEvent`](crate::packet::game::SendGamePacketEvent) /
     /// [`SendConfigPacketEvent`](crate::packet::config::SendConfigPacketEvent)
     /// / [`SendLoginPacketEvent`](crate::packet::login::SendLoginPacketEvent).
     ///
@@ -182,9 +182,10 @@ pub struct RawConnection {
     pub(crate) is_alive: bool,
 
     /// This exists for internal testing purposes and probably shouldn't be used
-    /// for normal bots. It's basically a way to make our client think it
-    /// received a packet from the server without needing to interact with the
-    /// network.
+    /// for normal bots.
+    ///
+    /// It's basically a way to make our client think it received a packet from
+    /// the server without needing to interact with the network.
     pub injected_clientbound_packets: Vec<Box<[u8]>>,
 }
 impl RawConnection {
@@ -227,10 +228,10 @@ impl RawConnection {
 
     /// Write a packet to the server without emitting any events.
     ///
-    /// This is called by the handlers for [`SendPacketEvent`],
+    /// This is called by the handlers for [`SendGamePacketEvent`],
     /// [`SendConfigPacketEvent`], and [`SendLoginPacketEvent`].
     ///
-    /// [`SendPacketEvent`]: crate::packet::game::SendPacketEvent
+    /// [`SendGamePacketEvent`]: crate::packet::game::SendGamePacketEvent
     /// [`SendConfigPacketEvent`]: crate::packet::config::SendConfigPacketEvent
     /// [`SendLoginPacketEvent`]: crate::packet::login::SendLoginPacketEvent
     pub fn write<P: ProtocolPacket + Debug>(
@@ -305,9 +306,10 @@ pub struct NetworkConnection {
     pub enc_cipher: Option<Aes128CfbEnc>,
 
     pub writer_task: bevy_tasks::Task<()>,
-    /// A queue of raw TCP packets to send. These will not be modified further,
-    /// they should already be serialized and encrypted and everything before
-    /// being added here.
+    /// A queue of raw TCP packets to send.
+    ///
+    /// These will not be modified further, they should already be serialized
+    /// and compressed and encrypted before being added here.
     network_packet_writer_tx: mpsc::UnboundedSender<Box<[u8]>>,
 }
 impl NetworkConnection {
@@ -344,8 +346,9 @@ impl NetworkConnection {
         trace!("Set compression threshold to {threshold:?}");
         self.reader.compression_threshold = threshold;
     }
-    /// Set the encryption key that is used to encrypt and decrypt packets. It's
-    /// the same for both reading and writing.
+    /// Set the encryption key that is used to encrypt and decrypt packets.
+    ///
+    /// The same key is used for both reading and writing.
     pub fn set_encryption_key(&mut self, key: [u8; 16]) {
         trace!("Enabled protocol encryption");
         let (enc_cipher, dec_cipher) = azalea_crypto::create_cipher(&key);

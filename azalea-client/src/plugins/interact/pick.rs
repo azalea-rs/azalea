@@ -1,5 +1,5 @@
 use azalea_core::{
-    aabb::AABB,
+    aabb::Aabb,
     direction::Direction,
     hit_result::{BlockHitResult, EntityHitResult, HitResult},
     position::Vec3,
@@ -15,7 +15,7 @@ use azalea_entity::{
 };
 use azalea_physics::{
     clip::{BlockShapeType, ClipContext, FluidPickType},
-    collision::entity_collisions::{PhysicsQuery, get_entities},
+    collision::entity_collisions::{AabbQuery, get_entities},
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName};
 use bevy_ecs::prelude::*;
@@ -44,7 +44,7 @@ pub fn update_hit_result_component(
         With<LocalEntity>,
     >,
     instance_container: Res<InstanceContainer>,
-    physics_query: PhysicsQuery,
+    aabb_query: AabbQuery,
     pickable_query: MaybePickableEntityQuery,
 ) {
     for (
@@ -76,7 +76,7 @@ pub fn update_hit_result_component(
             world: &world,
             entity_pick_range,
             block_pick_range,
-            physics_query: &physics_query,
+            aabb_query: &aabb_query,
             pickable_query: &pickable_query,
         });
         if let Some(mut hit_result_ref) = hit_result_ref {
@@ -109,7 +109,6 @@ pub type MaybePickableEntityQuery<'world, 'state, 'a> = Query<
             (With<AbstractLiving>, Without<Dead>),
             With<AbstractArrow>,
         )>,
-        Without<LocalEntity>,
     ),
 >;
 
@@ -117,11 +116,11 @@ pub struct PickOpts<'world, 'state, 'a, 'b, 'c> {
     source_entity: Entity,
     look_direction: LookDirection,
     eye_position: Vec3,
-    aabb: &'a AABB,
+    aabb: &'a Aabb,
     world: &'a Instance,
     entity_pick_range: f64,
     block_pick_range: f64,
-    physics_query: &'a PhysicsQuery<'world, 'state, 'b>,
+    aabb_query: &'a AabbQuery<'world, 'state, 'b>,
     pickable_query: &'a MaybePickableEntityQuery<'world, 'state, 'c>,
 }
 
@@ -163,16 +162,15 @@ pub fn pick(opts: PickOpts<'_, '_, '_, '_, '_>) -> HitResult {
         .inflate_all(inflate_by);
 
     let is_pickable = |entity: Entity| {
+        if entity == opts.source_entity {
+            return false;
+        }
+
         // TODO: ender dragon has extra logic here. also, we shouldn't be able to pick
         // spectators.
         if let Ok((armor_stand_marker, arrow_in_ground)) = opts.pickable_query.get(entity) {
-            if armor_stand_marker == Some(&ArmorStandMarker(true))
-                || arrow_in_ground == Some(&InGround(true))
-            {
-                false
-            } else {
-                true
-            }
+            !(armor_stand_marker == Some(&ArmorStandMarker(true))
+                || arrow_in_ground == Some(&InGround(true)))
         } else {
             false
         }
@@ -185,7 +183,7 @@ pub fn pick(opts: PickOpts<'_, '_, '_, '_, '_>) -> HitResult {
         pick_range_squared: max_range_squared,
         predicate: &is_pickable,
         aabb: &pick_aabb,
-        physics_query: opts.physics_query,
+        aabb_query: opts.aabb_query,
     });
 
     if let Some(entity_hit_result) = entity_hit_result
@@ -251,8 +249,8 @@ struct PickEntityOpts<'world, 'state, 'a, 'b> {
     world: &'a azalea_world::Instance,
     pick_range_squared: f64,
     predicate: &'a dyn Fn(Entity) -> bool,
-    aabb: &'a AABB,
-    physics_query: &'a PhysicsQuery<'world, 'state, 'b>,
+    aabb: &'a Aabb,
+    aabb_query: &'a AabbQuery<'world, 'state, 'b>,
 }
 
 // port of getEntityHitResult
@@ -265,7 +263,7 @@ fn pick_entity(opts: PickEntityOpts) -> Option<EntityHitResult> {
         Some(opts.source_entity),
         opts.aabb,
         opts.predicate,
-        opts.physics_query,
+        opts.aabb_query,
     ) {
         // TODO: if the entity is "REDIRECTABLE_PROJECTILE" then this should be 1.0.
         // azalea needs support for entity tags first for this to be possible. see

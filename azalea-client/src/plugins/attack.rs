@@ -3,35 +3,35 @@ use azalea_entity::{
     Attributes, Crouching, Physics, indexing::EntityIdIndex, metadata::Sprinting,
     update_bounding_box,
 };
-use azalea_physics::PhysicsSet;
+use azalea_physics::PhysicsSystems;
 use azalea_protocol::packets::game::s_interact::{self, ServerboundInteract};
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
 use tracing::warn;
 
-use super::packet::game::SendPacketEvent;
+use super::packet::game::SendGamePacketEvent;
 use crate::{
-    Client, interact::SwingArmEvent, local_player::LocalGameMode, movement::MoveEventsSet,
+    Client, interact::SwingArmEvent, local_player::LocalGameMode, movement::MoveEventsSystems,
     respawn::perform_respawn,
 };
 
 pub struct AttackPlugin;
 impl Plugin for AttackPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<AttackEvent>()
+        app.add_message::<AttackEvent>()
             .add_systems(
                 Update,
                 handle_attack_event
                     .before(update_bounding_box)
-                    .before(MoveEventsSet)
+                    .before(MoveEventsSystems)
                     .after(perform_respawn),
             )
             .add_systems(
                 GameTick,
                 (
                     increment_ticks_since_last_attack,
-                    update_attack_strength_scale.after(PhysicsSet),
+                    update_attack_strength_scale.after(PhysicsSystems),
                     handle_attack_queued
                         .before(super::tick_end::game_tick_packet)
                         .after(super::movement::send_sprinting_if_needed)
@@ -43,9 +43,12 @@ impl Plugin for AttackPlugin {
 }
 
 impl Client {
-    /// Attack the entity with the given id.
+    /// Attack an entity in the world.
+    ///
+    /// This doesn't automatically look at the entity or perform any
+    /// range/visibility checks, so it might trigger anticheats.
     pub fn attack(&self, entity: Entity) {
-        self.ecs.lock().send_event(AttackEvent {
+        self.ecs.lock().write_message(AttackEvent {
             entity: self.entity,
             target: entity,
         });
@@ -121,7 +124,7 @@ pub fn handle_attack_queued(
 
         commands.entity(client_entity).remove::<AttackQueued>();
 
-        commands.trigger(SendPacketEvent::new(
+        commands.trigger(SendGamePacketEvent::new(
             client_entity,
             ServerboundInteract {
                 entity_id: target_entity_id,
@@ -148,14 +151,14 @@ pub fn handle_attack_queued(
 
 /// Queues up an attack packet for next tick by inserting the [`AttackQueued`]
 /// component to our client.
-#[derive(Event)]
+#[derive(Message)]
 pub struct AttackEvent {
     /// Our client entity that will send the packets to attack.
     pub entity: Entity,
     /// The entity that will be attacked.
     pub target: Entity,
 }
-pub fn handle_attack_event(mut events: EventReader<AttackEvent>, mut commands: Commands) {
+pub fn handle_attack_event(mut events: MessageReader<AttackEvent>, mut commands: Commands) {
     for event in events.read() {
         commands.entity(event.entity).insert(AttackQueued {
             target: event.target,

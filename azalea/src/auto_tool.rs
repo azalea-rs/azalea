@@ -5,7 +5,7 @@ use azalea_entity::{Attributes, FluidOnEyes, Physics, inventory::Inventory};
 use azalea_inventory::{ItemStack, Menu, components};
 use azalea_registry::EntityKind;
 
-use crate::BotClientExt;
+use crate::bot::BotClientExt;
 
 #[derive(Debug)]
 pub struct BestToolResult {
@@ -20,17 +20,11 @@ pub trait AutoToolClientExt {
 
 impl AutoToolClientExt for Client {
     fn best_tool_in_hotbar_for_block(&self, block: BlockState) -> BestToolResult {
-        let mut ecs = self.ecs.lock();
-        let (inventory, physics, fluid_on_eyes) =
-            self.query::<(&Inventory, &Physics, &FluidOnEyes)>(&mut ecs);
-        let menu = &inventory.inventory_menu;
-
-        accurate_best_tool_in_hotbar_for_block(
-            block,
-            menu,
-            physics,
-            fluid_on_eyes,
-            &self.attributes(),
+        self.query_self::<(&Inventory, &Physics, &FluidOnEyes), _>(
+            |(inventory, physics, fluid_on_eyes)| {
+                let menu = &inventory.inventory_menu;
+                accurate_best_tool_in_hotbar_for_block(block, menu, physics, fluid_on_eyes)
+            },
         )
     }
 

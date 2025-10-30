@@ -12,7 +12,7 @@ use azalea_entity::{
     Jumping, LocalEntity, LookDirection, Position, clamp_look_direction,
     dimensions::EntityDimensions, metadata::Player, update_dimensions,
 };
-use azalea_physics::PhysicsSet;
+use azalea_physics::PhysicsSystems;
 use bevy_app::Update;
 use bevy_ecs::prelude::*;
 use futures_lite::Future;
@@ -26,7 +26,6 @@ use crate::{
     ecs::{
         component::Component,
         entity::Entity,
-        event::EventReader,
         query::{With, Without},
         system::{Commands, Query},
     },
@@ -37,8 +36,8 @@ use crate::{
 pub struct BotPlugin;
 impl Plugin for BotPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<LookAtEvent>()
-            .add_event::<JumpEvent>()
+        app.add_message::<LookAtEvent>()
+            .add_message::<JumpEvent>()
             .add_systems(
                 Update,
                 (
@@ -52,14 +51,16 @@ impl Plugin for BotPlugin {
             .add_systems(
                 GameTick,
                 stop_jumping
-                    .after(PhysicsSet)
+                    .after(PhysicsSystems)
                     .after(azalea_client::movement::send_player_input_packet),
             );
     }
 }
 
-/// A component that clients with [`BotPlugin`] will have. If you just want to
-/// check if an entity is one of our bots, you should use [`LocalEntity`].
+/// A component that clients with [`BotPlugin`] will have.
+///
+/// If you just want to check if an entity is one of our bots, you should use
+/// [`LocalEntity`].
 #[derive(Default, Component)]
 pub struct Bot {
     jumping_once: bool,
@@ -98,8 +99,10 @@ pub trait BotClientExt {
     fn wait_ticks(&self, n: usize) -> impl Future<Output = ()> + Send;
     /// Wait for the specified number of ECS `Update`s.
     fn wait_updates(&self, n: usize) -> impl Future<Output = ()> + Send;
-    /// Mine a block. This won't turn the bot's head towards the block, so if
-    /// that's necessary you'll have to do that yourself with [`look_at`].
+    /// Mine a block.
+    ///
+    /// This won't turn the bot's head towards the block, so if that's necessary
+    /// you'll have to do that yourself with [`look_at`].
     ///
     /// [`look_at`]: crate::prelude::BotClientExt::look_at
     fn mine(&self, position: BlockPos) -> impl Future<Output = ()> + Send;
@@ -108,14 +111,14 @@ pub trait BotClientExt {
 impl BotClientExt for azalea_client::Client {
     fn jump(&self) {
         let mut ecs = self.ecs.lock();
-        ecs.send_event(JumpEvent {
+        ecs.write_message(JumpEvent {
             entity: self.entity,
         });
     }
 
     fn look_at(&self, position: Vec3) {
         let mut ecs = self.ecs.lock();
-        ecs.send_event(LookAtEvent {
+        ecs.write_message(LookAtEvent {
             entity: self.entity,
             position,
         });
@@ -200,14 +203,14 @@ impl BotClientExt for azalea_client::Client {
 }
 
 /// Event to jump once.
-#[derive(Event)]
+#[derive(Message)]
 pub struct JumpEvent {
     pub entity: Entity,
 }
 
 pub fn jump_listener(
     mut query: Query<(&mut Jumping, &mut Bot)>,
-    mut events: EventReader<JumpEvent>,
+    mut events: MessageReader<JumpEvent>,
 ) {
     for event in events.read() {
         if let Ok((mut jumping, mut bot)) = query.get_mut(event.entity) {
@@ -218,14 +221,14 @@ pub fn jump_listener(
 }
 
 /// Make an entity look towards a certain position in the world.
-#[derive(Event)]
+#[derive(Message)]
 pub struct LookAtEvent {
     pub entity: Entity,
     /// The position we want the entity to be looking at.
     pub position: Vec3,
 }
 fn look_at_listener(
-    mut events: EventReader<LookAtEvent>,
+    mut events: MessageReader<LookAtEvent>,
     mut query: Query<(&Position, &EntityDimensions, &mut LookDirection)>,
 ) {
     for event in events.read() {

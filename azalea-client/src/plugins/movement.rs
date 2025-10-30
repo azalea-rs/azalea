@@ -13,8 +13,8 @@ use azalea_entity::{
     update_bounding_box,
 };
 use azalea_physics::{
-    PhysicsSet, ai_step,
-    collision::entity_collisions::{CollidableEntityQuery, PhysicsQuery},
+    PhysicsSystems, ai_step,
+    collision::entity_collisions::{AabbQuery, CollidableEntityQuery, update_last_bounding_box},
     local_player::{PhysicsState, SprintDirection, WalkDirection},
     travel::{no_collision, travel},
 };
@@ -40,7 +40,7 @@ use thiserror::Error;
 use crate::{
     client::Client,
     local_player::{Hunger, InstanceHolder, LocalGameMode},
-    packet::game::SendPacketEvent,
+    packet::game::SendGamePacketEvent,
 };
 
 #[derive(Error, Debug)]
@@ -65,29 +65,30 @@ pub struct MovementPlugin;
 
 impl Plugin for MovementPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<StartWalkEvent>()
-            .add_event::<StartSprintEvent>()
-            .add_event::<KnockbackEvent>()
+        app.add_message::<StartWalkEvent>()
+            .add_message::<StartSprintEvent>()
+            .add_message::<KnockbackEvent>()
             .add_systems(
                 Update,
                 (handle_sprint, handle_walk, handle_knockback)
                     .chain()
-                    .in_set(MoveEventsSet)
-                    .after(update_bounding_box),
+                    .in_set(MoveEventsSystems)
+                    .after(update_bounding_box)
+                    .after(update_last_bounding_box),
             )
             .add_systems(
                 GameTick,
                 (
                     (tick_controls, local_player_ai_step, update_pose)
                         .chain()
-                        .in_set(PhysicsSet)
+                        .in_set(PhysicsSystems)
                         .before(ai_step)
                         .before(azalea_physics::fluids::update_in_water_state_and_do_fluid_pushing),
                     send_player_input_packet,
                     send_sprinting_if_needed
                         .after(azalea_entity::update_in_loaded_chunk)
                         .after(travel),
-                    send_position.after(PhysicsSet),
+                    send_position.after(PhysicsSystems),
                 )
                     .chain(),
             );
@@ -95,18 +96,18 @@ impl Plugin for MovementPlugin {
 }
 
 #[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
-pub struct MoveEventsSet;
+pub struct MoveEventsSystems;
 
 impl Client {
     /// Set whether we're jumping. This acts as if you held space in
-    /// vanilla. If you want to jump once, use the `jump` function.
+    /// vanilla.
+    ///
+    /// If you want to jump once, use the `jump` function in `azalea`.
     ///
     /// If you're making a realistic client, calling this function every tick is
     /// recommended.
     pub fn set_jumping(&self, jumping: bool) {
-        let mut ecs = self.ecs.lock();
-        let mut jumping_mut = self.query::<&mut Jumping>(&mut ecs);
-        **jumping_mut = jumping;
+        self.query_self::<&mut Jumping, _>(|mut j| **j = jumping);
     }
 
     /// Returns whether the player will try to jump next tick.
@@ -115,34 +116,31 @@ impl Client {
     }
 
     pub fn set_crouching(&self, crouching: bool) {
-        let mut ecs = self.ecs.lock();
-        let mut physics_state = self.query::<&mut PhysicsState>(&mut ecs);
-        physics_state.trying_to_crouch = crouching;
+        self.query_self::<&mut PhysicsState, _>(|mut p| p.trying_to_crouch = crouching);
     }
 
     /// Whether the client is currently trying to sneak.
     ///
     /// You may want to check the [`Pose`] instead.
     pub fn crouching(&self) -> bool {
-        let mut ecs = self.ecs.lock();
-        let physics_state = self.query::<&PhysicsState>(&mut ecs);
-        physics_state.trying_to_crouch
+        self.query_self::<&PhysicsState, _>(|p| p.trying_to_crouch)
     }
 
-    /// Sets the direction the client is looking. `y_rot` is yaw (looking to the
-    /// side), `x_rot` is pitch (looking up and down). You can get these
-    /// numbers from the vanilla f3 screen.
-    /// `y_rot` goes from -180 to 180, and `x_rot` goes from -90 to 90.
+    /// Sets the direction the client is looking.
+    ///
+    /// `y_rot` is yaw (looking to the side, between -180 to 180), and `x_rot`
+    /// is pitch (looking up and down, between -90 to 90).
+    ///
+    /// You can get these numbers from the vanilla f3 screen.
     pub fn set_direction(&self, y_rot: f32, x_rot: f32) {
-        let mut ecs = self.ecs.lock();
-        let mut look_direction = self.query::<&mut LookDirection>(&mut ecs);
-
-        look_direction.update(LookDirection::new(y_rot, x_rot));
+        self.query_self::<&mut LookDirection, _>(|mut ld| {
+            ld.update(LookDirection::new(y_rot, x_rot));
+        });
     }
 
-    /// Returns the direction the client is looking. The first value is the y
-    /// rotation (ie. yaw, looking to the side) and the second value is the x
-    /// rotation (ie. pitch, looking up and down).
+    /// Returns the direction the client is looking.
+    ///
+    /// See [`Self::set_direction`] for more details.
     pub fn direction(&self) -> (f32, f32) {
         let look_direction: LookDirection = self.component::<LookDirection>();
         (look_direction.y_rot(), look_direction.x_rot())
@@ -257,7 +255,7 @@ pub fn send_position(
         };
 
         if let Some(packet) = packet {
-            commands.trigger(SendPacketEvent {
+            commands.trigger(SendGamePacketEvent {
                 sent_by: entity,
                 packet,
             });
@@ -289,7 +287,7 @@ pub fn send_player_input_packet(
         let last_sent_input = last_sent_input.cloned().unwrap_or_default();
 
         if input != last_sent_input.0 {
-            commands.trigger(SendPacketEvent {
+            commands.trigger(SendGamePacketEvent {
                 sent_by: entity,
                 packet: input.clone().into_variant(),
             });
@@ -310,7 +308,7 @@ pub fn send_sprinting_if_needed(
             } else {
                 azalea_protocol::packets::game::s_player_command::Action::StopSprinting
             };
-            commands.trigger(SendPacketEvent::new(
+            commands.trigger(SendGamePacketEvent::new(
                 entity,
                 ServerboundPlayerCommand {
                     id: *minecraft_entity_id,
@@ -356,8 +354,9 @@ pub(crate) fn tick_controls(mut query: Query<&mut PhysicsState>) {
     }
 }
 
-/// Makes the bot do one physics tick. Note that this is already handled
-/// automatically by the client.
+/// Makes the bot do one physics tick.
+///
+/// This is handled automatically by the client.
 #[allow(clippy::type_complexity)]
 pub fn local_player_ai_step(
     mut query: Query<
@@ -378,7 +377,7 @@ pub fn local_player_ai_step(
         ),
         (With<HasClientLoaded>, With<LocalEntity>),
     >,
-    physics_query: PhysicsQuery,
+    aabb_query: AabbQuery,
     collidable_entity_query: CollidableEntityQuery,
 ) {
     for (
@@ -409,7 +408,7 @@ pub fn local_player_ai_step(
             world: &world,
             entity,
             position: *position,
-            physics_query: &physics_query,
+            aabb_query: &aabb_query,
             collidable_entity_query: &collidable_entity_query,
             physics: &physics,
         };
@@ -538,17 +537,18 @@ fn distance_to_unit_square(v: Vec2) -> f32 {
 }
 
 impl Client {
-    /// Start walking in the given direction. To sprint, use
-    /// [`Client::sprint`]. To stop walking, call walk with
-    /// `WalkDirection::None`.
+    /// Start walking in the given direction.
     ///
-    /// # Examples
+    /// To sprint, use [`Client::sprint`]. To stop walking, call walk with
+    /// [`WalkDirection::None`].
     ///
-    /// Walk for 1 second
+    /// # Example
+    ///
     /// ```rust,no_run
     /// # use azalea_client::{Client, WalkDirection};
     /// # use std::time::Duration;
     /// # async fn example(mut bot: Client) {
+    /// // walk for one second
     /// bot.walk(WalkDirection::Forward);
     /// tokio::time::sleep(Duration::from_secs(1)).await;
     /// bot.walk(WalkDirection::None);
@@ -556,22 +556,23 @@ impl Client {
     /// ```
     pub fn walk(&self, direction: WalkDirection) {
         let mut ecs = self.ecs.lock();
-        ecs.send_event(StartWalkEvent {
+        ecs.write_message(StartWalkEvent {
             entity: self.entity,
             direction,
         });
     }
 
-    /// Start sprinting in the given direction. To stop moving, call
-    /// [`bot.walk(WalkDirection::None)`](Self::walk)
+    /// Start sprinting in the given direction.
     ///
-    /// # Examples
+    /// o stop moving, call [`bot.walk(WalkDirection::None)`](Self::walk)
     ///
-    /// Sprint for 1 second
+    /// # Example
+    ///
     /// ```rust,no_run
     /// # use azalea_client::{Client, WalkDirection, SprintDirection};
     /// # use std::time::Duration;
     /// # async fn example(mut bot: Client) {
+    /// // sprint for one second
     /// bot.sprint(SprintDirection::Forward);
     /// tokio::time::sleep(Duration::from_secs(1)).await;
     /// bot.walk(WalkDirection::None);
@@ -579,18 +580,19 @@ impl Client {
     /// ```
     pub fn sprint(&self, direction: SprintDirection) {
         let mut ecs = self.ecs.lock();
-        ecs.send_event(StartSprintEvent {
+        ecs.write_message(StartSprintEvent {
             entity: self.entity,
             direction,
         });
     }
 }
 
-/// An event sent when the client starts walking. This does not get sent for
-/// non-local entities.
+/// An event sent when the client starts walking.
+///
+/// This does not get sent for non-local entities.
 ///
 /// To stop walking or sprinting, send this event with `WalkDirection::None`.
-#[derive(Event, Debug)]
+#[derive(Message, Debug)]
 pub struct StartWalkEvent {
     pub entity: Entity,
     pub direction: WalkDirection,
@@ -599,7 +601,7 @@ pub struct StartWalkEvent {
 /// The system that makes the player start walking when they receive a
 /// [`StartWalkEvent`].
 pub fn handle_walk(
-    mut events: EventReader<StartWalkEvent>,
+    mut events: MessageReader<StartWalkEvent>,
     mut query: Query<(&mut PhysicsState, &mut Sprinting, &mut Attributes)>,
 ) {
     for event in events.read() {
@@ -612,9 +614,10 @@ pub fn handle_walk(
     }
 }
 
-/// An event sent when the client starts sprinting. This does not get sent for
-/// non-local entities.
-#[derive(Event)]
+/// An event sent when the client starts sprinting.
+///
+/// This does not get sent for non-local entities.
+#[derive(Message)]
 pub struct StartSprintEvent {
     pub entity: Entity,
     pub direction: SprintDirection,
@@ -623,7 +626,7 @@ pub struct StartSprintEvent {
 /// [`StartSprintEvent`].
 pub fn handle_sprint(
     mut query: Query<&mut PhysicsState>,
-    mut events: EventReader<StartSprintEvent>,
+    mut events: MessageReader<StartSprintEvent>,
 ) {
     for event in events.read() {
         if let Ok(mut physics_state) = query.get_mut(event.entity) {
@@ -668,11 +671,12 @@ fn has_enough_impulse_to_start_sprinting(physics_state: &PhysicsState) -> bool {
     // }
 }
 
-/// An event sent by the server that sets or adds to our velocity. Usually
-/// `KnockbackKind::Set` is used for normal knockback and `KnockbackKind::Add`
-/// is used for explosions, but some servers (notably Hypixel) use explosions
-/// for knockback.
-#[derive(Event)]
+/// An event sent by the server that sets or adds to our velocity.
+///
+/// Usually `KnockbackKind::Set` is used for normal knockback and
+/// `KnockbackKind::Add` is used for explosions, but some servers (notably
+/// Hypixel) use explosions for knockback.
+#[derive(Message)]
 pub struct KnockbackEvent {
     pub entity: Entity,
     pub knockback: KnockbackType,
@@ -683,7 +687,7 @@ pub enum KnockbackType {
     Add(Vec3),
 }
 
-pub fn handle_knockback(mut query: Query<&mut Physics>, mut events: EventReader<KnockbackEvent>) {
+pub fn handle_knockback(mut query: Query<&mut Physics>, mut events: MessageReader<KnockbackEvent>) {
     for event in events.read() {
         if let Ok(mut physics) = query.get_mut(event.entity) {
             match event.knockback {
@@ -708,7 +712,7 @@ pub fn update_pose(
         &InstanceHolder,
         &Position,
     )>,
-    physics_query: PhysicsQuery,
+    aabb_query: AabbQuery,
     collidable_entity_query: CollidableEntityQuery,
 ) {
     for (entity, mut pose, physics, physics_state, game_mode, instance_holder, position) in
@@ -720,7 +724,7 @@ pub fn update_pose(
             world,
             entity,
             position: *position,
-            physics_query: &physics_query,
+            aabb_query: &aabb_query,
             collidable_entity_query: &collidable_entity_query,
             physics,
         };
@@ -763,7 +767,7 @@ struct CanPlayerFitCtx<'world, 'state, 'a, 'b> {
     world: &'a Instance,
     entity: Entity,
     position: Position,
-    physics_query: &'a PhysicsQuery<'world, 'state, 'b>,
+    aabb_query: &'a AabbQuery<'world, 'state, 'b>,
     collidable_entity_query: &'a CollidableEntityQuery<'world, 'state>,
     physics: &'a Physics,
 }
@@ -773,7 +777,7 @@ fn can_player_fit_within_blocks_and_entities_when(ctx: &CanPlayerFitCtx, pose: P
     no_collision(
         ctx.world,
         Some(ctx.entity),
-        ctx.physics_query,
+        ctx.aabb_query,
         ctx.collidable_entity_query,
         ctx.physics,
         &calculate_dimensions(EntityKind::Player, pose).make_bounding_box(*ctx.position),

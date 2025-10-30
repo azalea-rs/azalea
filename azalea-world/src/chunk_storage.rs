@@ -28,7 +28,9 @@ use crate::{
 const SECTION_HEIGHT: u32 = 16;
 
 /// An efficient storage of chunks for a client that has a limited render
-/// distance. This has support for using a shared [`ChunkStorage`].
+/// distance.
+///
+/// This has support for using a shared [`ChunkStorage`].
 pub struct PartialChunkStorage {
     /// The center of the view, i.e. the chunk the player is currently in.
     view_center: ChunkPos,
@@ -39,8 +41,9 @@ pub struct PartialChunkStorage {
 }
 
 /// A storage for chunks where they're only stored weakly, so if they're not
-/// actively being used somewhere else they'll be forgotten. This is used for
-/// shared worlds.
+/// actively being used somewhere else they'll be forgotten.
+///
+/// This is used for shared worlds.
 ///
 /// This is relatively cheap to clone since it's just an `IntMap` with `Weak`
 /// pointers.
@@ -51,10 +54,11 @@ pub struct ChunkStorage {
     pub map: IntMap<ChunkPos, Weak<RwLock<Chunk>>>,
 }
 
-/// A single chunk in a world (16*?*16 blocks). This only contains the blocks
-/// and biomes. You can derive the height of the chunk from the number of
-/// sections, but you need a [`ChunkStorage`] to get the minimum Y
-/// coordinate.
+/// A single chunk in a world (16*?*16 blocks).
+///
+/// This only contains blocks and biomes. You can derive the height of the chunk
+/// from the number of sections, but you need a [`ChunkStorage`] to get the
+/// minimum Y coordinate.
 #[derive(Debug)]
 pub struct Chunk {
     pub sections: Box<[Section]>,
@@ -72,8 +76,9 @@ pub struct Section {
     pub biomes: PalettedContainer<Biome>,
 }
 
-/// Get the actual stored view distance for the selected view distance. For some
-/// reason Minecraft actually stores an extra 3 chunks.
+/// Get the actual stored view distance for the selected view distance.
+///
+/// For some reason, Minecraft stores an extra 3 chunks.
 pub fn calculate_chunk_storage_range(view_distance: u32) -> u32 {
     u32::max(view_distance, 2) + 3
 }
@@ -98,8 +103,10 @@ impl PartialChunkStorage {
         }
     }
 
-    /// Update the chunk to center the view on. This should be called when the
-    /// client receives a `SetChunkCacheCenter` packet.
+    /// Update the chunk to center the view on.
+    ///
+    /// This should be called when the client receives a `SetChunkCacheCenter`
+    /// packet.
     pub fn update_view_center(&mut self, view_center: ChunkPos) {
         // this code block makes it force unload the chunks that are out of range after
         // updating the view center. it's usually fine without it but the commented code
@@ -211,8 +218,9 @@ impl PartialChunkStorage {
         self.chunks[index].as_ref()
     }
     /// Get a mutable reference to a [`Chunk`] within render distance, or
-    /// `None` if it's not loaded. Use [`ChunkStorage::get`] to get
-    /// a chunk from the shared storage.
+    /// `None` if it's not loaded.
+    ///
+    /// Use [`ChunkStorage::get`] to get a chunk from the shared storage.
     pub fn limited_get_mut(&mut self, pos: &ChunkPos) -> Option<&mut Option<Arc<RwLock<Chunk>>>> {
         if !self.in_range(pos) {
             return None;
@@ -224,8 +232,9 @@ impl PartialChunkStorage {
     }
 
     /// Set a chunk in the shared storage and reference it from the limited
-    /// storage. Use [`Self::limited_set`] if you already have an
-    /// `Arc<RwLock<Chunk>>`.
+    /// storage.
+    ///
+    /// Use [`Self::limited_set`] if you already have an `Arc<RwLock<Chunk>>`.
     ///
     /// # Panics
     /// If the chunk is not in the render distance.
@@ -404,6 +413,7 @@ impl Chunk {
         }
     }
 
+    /// Get the biome at the given position, or `None` if it's out of bounds.
     pub fn get_biome(&self, pos: ChunkBiomePos, min_y: i32) -> Option<Biome> {
         if pos.y < min_y {
             // y position is out of bounds

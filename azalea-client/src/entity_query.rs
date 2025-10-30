@@ -6,7 +6,7 @@ use azalea_world::InstanceName;
 use bevy_ecs::{
     component::Component,
     entity::Entity,
-    query::{QueryData, QueryFilter, ROQueryItem},
+    query::{QueryData, QueryEntityError, QueryFilter, QueryItem, ROQueryItem},
     world::World,
 };
 use parking_lot::Mutex;
@@ -14,26 +14,68 @@ use parking_lot::Mutex;
 use crate::Client;
 
 impl Client {
-    /// A convenience function for getting components of our player's entity.
+    /// A convenience function for getting components from our client's entity.
+    ///
+    /// To query another entity, you can use [`Self::query_entity`].
     ///
     /// # Examples
     /// ```
     /// # use azalea_world::InstanceName;
     /// # fn example(mut client: azalea_client::Client) {
-    /// let is_logged_in = client
-    ///     .query::<Option<&InstanceName>>(&mut client.ecs.lock())
-    ///     .is_some();
+    /// let is_logged_in = client.query_self::<Option<&InstanceName>, _>(|ins| ins.is_some());
     /// # }
     /// ```
-    pub fn query<'w, D: QueryData>(&self, ecs: &'w mut World) -> D::Item<'w> {
-        ecs.query::<D>()
-            .get_mut(ecs, self.entity)
-            .unwrap_or_else(|_| {
-                panic!(
-                    "Our client is missing a required component {:?}",
-                    any::type_name::<D>()
-                )
-            })
+    ///
+    /// # Panics
+    ///
+    /// This will panic if the component doesn't exist on the client.
+    pub fn query_self<D: QueryData, R>(&self, f: impl FnOnce(QueryItem<D>) -> R) -> R {
+        let mut ecs = self.ecs.lock();
+        let mut qs = ecs.query::<D>();
+        let res = qs.get_mut(&mut ecs, self.entity).unwrap_or_else(|_| {
+            panic!(
+                "Our client is missing a required component {:?}",
+                any::type_name::<D>()
+            )
+        });
+        f(res)
+    }
+
+    /// A convenience function for getting components from any entity.
+    ///
+    /// If you're querying the client, you should use [`Self::query_self`].
+    ///
+    /// # Panics
+    ///
+    /// This will panic if the entity doesn't exist or if the query isn't valid
+    /// for the entity. For a non-panicking version, you may use
+    /// [`Self::try_query_entity`].
+    pub fn query_entity<D: QueryData, R>(
+        &self,
+        entity: Entity,
+        f: impl FnOnce(QueryItem<D>) -> R,
+    ) -> R {
+        self.try_query_entity(entity, f).unwrap_or_else(|_| {
+            panic!(
+                "Entity is missing a required component {:?}",
+                any::type_name::<D>()
+            )
+        })
+    }
+
+    /// A convenience function for getting components from any entity, or None
+    /// if the query fails.
+    ///
+    /// If you're sure that the entity exists and that the query will succeed,
+    /// you can use [`Self::query_entity`].
+    pub fn try_query_entity<D: QueryData, R>(
+        &self,
+        entity: Entity,
+        f: impl FnOnce(QueryItem<D>) -> R,
+    ) -> Result<R, QueryEntityError> {
+        let mut ecs = self.ecs.lock();
+        let mut qs = ecs.query::<D>();
+        qs.get_mut(&mut ecs, entity).map(f)
     }
 
     /// Quickly returns a lightweight [`Entity`] for an arbitrary entity that
@@ -54,8 +96,8 @@ impl Client {
     /// use bevy_ecs::query::With;
     ///
     /// # fn example(mut bot: Client, sender_name: String) {
-    /// let entity = bot.any_entity_by::<With<Player>, (&GameProfileComponent,)>(
-    ///     |(profile,): &(&GameProfileComponent,)| profile.name == sender_name,
+    /// let entity = bot.any_entity_by::<&GameProfileComponent, With<Player>>(
+    ///     |profile: &GameProfileComponent| profile.name == sender_name,
     /// );
     /// if let Some(entity) = entity {
     ///     let position = bot.entity_component::<Position>(entity);
@@ -66,7 +108,7 @@ impl Client {
     ///
     /// [`Entity`]: bevy_ecs::entity::Entity
     /// [`Instance`]: azalea_world::Instance
-    pub fn any_entity_by<F: QueryFilter, Q: QueryData>(
+    pub fn any_entity_by<Q: QueryData, F: QueryFilter>(
         &self,
         predicate: impl EntityPredicate<Q, F>,
     ) -> Option<Entity> {
@@ -91,7 +133,7 @@ impl Client {
     /// # fn example(mut bot: azalea_client::Client, sender_name: String) {
     /// // get the position of the nearest player
     /// if let Some(nearest_player) =
-    ///     bot.nearest_entity_by::<(With<Player>, Without<LocalEntity>), ()>(|_: &()| true)
+    ///     bot.nearest_entity_by::<(), (With<Player>, Without<LocalEntity>)>(|_: ()| true)
     /// {
     ///     let nearest_player_pos = *bot.entity_component::<Position>(nearest_player);
     ///     bot.chat(format!("You are at {nearest_player_pos}"));
@@ -100,7 +142,7 @@ impl Client {
     /// ```
     ///
     /// [`Entity`]: bevy_ecs::entity::Entity
-    pub fn nearest_entity_by<F: QueryFilter, Q: QueryData>(
+    pub fn nearest_entity_by<Q: QueryData, F: QueryFilter>(
         &self,
         predicate: impl EntityPredicate<Q, F>,
     ) -> Option<Entity> {
@@ -117,10 +159,10 @@ impl Client {
     /// # use bevy_ecs::query::{With, Without};
     /// # fn example(mut bot: azalea_client::Client, sender_name: String) {
     /// let nearby_players =
-    ///     bot.nearest_entities_by::<(With<Player>, Without<LocalEntity>), ()>(|_: &()| true);
+    ///     bot.nearest_entities_by::<(), (With<Player>, Without<LocalEntity>)>(|_: ()| true);
     /// # }
     /// ```
-    pub fn nearest_entities_by<F: QueryFilter, Q: QueryData>(
+    pub fn nearest_entities_by<Q: QueryData, F: QueryFilter>(
         &self,
         predicate: impl EntityPredicate<Q, F>,
     ) -> Vec<Entity> {
@@ -133,8 +175,10 @@ impl Client {
         predicate.find_all_sorted(self.ecs.clone(), &instance_name, (&position).into())
     }
 
-    /// Get a component from an entity. Note that this will return an owned type
-    /// (i.e. not a reference) so it may be expensive for larger types.
+    /// Get a component from an entity.
+    ///
+    /// Note that this will return an owned type (i.e. not a reference) so it
+    /// may be expensive for larger types.
     ///
     /// If you're trying to get a component for this client, use
     /// [`Self::component`].
@@ -150,9 +194,10 @@ impl Client {
         components.clone()
     }
 
-    /// Get a component from an entity, if it exists. This is similar to
-    /// [`Self::entity_component`] but returns an `Option` instead of panicking
-    /// if the component isn't present.
+    /// Get a component from an entity, if it exists.
+    ///
+    /// This is similar to [`Self::entity_component`] but returns an `Option`
+    /// instead of panicking if the component isn't present.
     pub fn get_entity_component<Q: Component + Clone>(&self, entity: Entity) -> Option<Q> {
         let mut ecs = self.ecs.lock();
         let mut q = ecs.query::<&Q>();
@@ -173,7 +218,8 @@ pub trait EntityPredicate<Q: QueryData, Filter: QueryFilter> {
 }
 impl<F, Q: QueryData, Filter: QueryFilter> EntityPredicate<Q, Filter> for F
 where
-    F: Fn(&ROQueryItem<Q>) -> bool,
+    F: Fn(ROQueryItem<Q>) -> bool,
+    for<'w, 's> <<Q as QueryData>::ReadOnly as QueryData>::Item<'w, 's>: Copy,
 {
     fn find_any(
         &self,
@@ -184,7 +230,7 @@ where
         let mut query = ecs.query_filtered::<(Entity, &InstanceName, Q), Filter>();
         query
             .iter(&ecs)
-            .find(|(_, e_instance_name, q)| *e_instance_name == instance_name && (self)(q))
+            .find(|(_, e_instance_name, q)| *e_instance_name == instance_name && (self)(*q))
             .map(|(e, _, _)| e)
     }
 
@@ -198,7 +244,7 @@ where
         let mut query = ecs.query_filtered::<(Entity, &InstanceName, &Position, Q), Filter>();
         let mut entities = query
             .iter(&ecs)
-            .filter(|(_, e_instance_name, _, q)| *e_instance_name == instance_name && (self)(q))
+            .filter(|(_, e_instance_name, _, q)| *e_instance_name == instance_name && (self)(*q))
             .map(|(e, _, position, _)| (e, Vec3::from(position)))
             .collect::<Vec<(Entity, Vec3)>>();
 

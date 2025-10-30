@@ -69,8 +69,8 @@ fn test_coords_from_index() {
         for y in 0..15 {
             for z in 0..15 {
                 assert_eq!(
-                    palette_container.coords_from_index(
-                        palette_container.index_from_coords(ChunkSectionBlockPos::new(x, y, z))
+                    palette_container.pos_from_index(
+                        palette_container.index_from_pos(ChunkSectionBlockPos::new(x, y, z))
                     ),
                     ChunkSectionBlockPos::new(x, y, z)
                 );

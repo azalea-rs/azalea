@@ -24,7 +24,7 @@ impl GameMode {
         }
     }
 
-    /// Get the id of the game type, but return -1 if the game type is invalid.
+    /// Get the ID of the game mode, but return -1 if the game type is invalid.
     pub fn to_optional_id<T: Into<Option<GameMode>>>(game_type: T) -> i8 {
         match game_type.into() {
             Some(game_type) => game_type.to_id() as i8,

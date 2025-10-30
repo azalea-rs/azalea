@@ -37,8 +37,9 @@ use uuid::Uuid;
 pub struct Account {
     /// The Minecraft username of the account.
     pub username: String,
-    /// The access token for authentication. You can obtain one of these
-    /// manually from azalea-auth.
+    /// The access token for authentication.
+    ///
+    /// You can obtain one of these manually from azalea-auth.
     ///
     /// This is an `Arc<Mutex>` so it can be modified by [`Self::refresh`].
     pub access_token: Option<Arc<Mutex<String>>>,
@@ -46,8 +47,10 @@ pub struct Account {
     pub uuid: Option<Uuid>,
 
     /// The parameters (i.e. email) that were passed for creating this
-    /// [`Account`]. This is used for automatic reauthentication when we get
-    /// "Invalid Session" errors. If you don't need that feature (like in
+    /// [`Account`].
+    ///
+    /// This is used for automatic reauthentication when we get "Invalid
+    /// Session" errors. If you don't need that feature (like in
     /// offline mode), then you can set this to `AuthOpts::default()`.
     pub account_opts: AccountOpts,
 
@@ -74,8 +77,9 @@ pub enum AccountOpts {
 
 impl Account {
     /// An offline account does not authenticate with Microsoft's servers, and
-    /// as such can only join offline mode servers. This is useful for testing
-    /// in LAN worlds.
+    /// as such can only join offline mode servers.
+    ///
+    /// This is useful for testing in LAN worlds.
     pub fn offline(username: &str) -> Self {
         Self {
             username: username.to_string(),
@@ -89,19 +93,20 @@ impl Account {
     }
 
     /// This will create an online-mode account by authenticating with
-    /// Microsoft's servers. Note that the email given is actually only used as
-    /// a key for the cache, but it's recommended to use the real email to
-    /// avoid confusion.
-    pub async fn microsoft(email: &str) -> Result<Self, azalea_auth::AuthError> {
-        Self::microsoft_with_custom_client_id_and_scope(email, None, None).await
+    /// Microsoft's servers.
+    ///
+    /// The cache key is used for avoiding having to log in every time. This is
+    /// typically set to the account email, but it can be any string.
+    pub async fn microsoft(cache_key: &str) -> Result<Self, azalea_auth::AuthError> {
+        Self::microsoft_with_custom_client_id_and_scope(cache_key, None, None).await
     }
 
-    /// Similar to [`Account::microsoft`] but you can use your
-    /// own `client_id` and `scope`.
+    /// Similar to [`Account::microsoft`] but you can use your own `client_id`
+    /// and `scope`.
     ///
     /// Pass `None` if you want to use default ones.
     pub async fn microsoft_with_custom_client_id_and_scope(
-        email: &str,
+        cache_key: &str,
         client_id: Option<&str>,
         scope: Option<&str>,
     ) -> Result<Self, azalea_auth::AuthError> {
@@ -112,7 +117,7 @@ impl Account {
             )
         });
         let auth_result = azalea_auth::auth(
-            email,
+            cache_key,
             azalea_auth::AuthOpts {
                 cache_file: Some(minecraft_dir.join("azalea-auth.json")),
                 client_id,
@@ -126,7 +131,7 @@ impl Account {
             access_token: Some(Arc::new(Mutex::new(auth_result.access_token))),
             uuid: Some(auth_result.profile.id),
             account_opts: AccountOpts::Microsoft {
-                email: email.to_string(),
+                email: cache_key.to_string(),
             },
             // we don't do chat signing by default unless the user asks for it
             certs: Arc::new(Mutex::new(None)),
@@ -235,8 +240,10 @@ impl Account {
         }
     }
 
-    /// Get the UUID of this account. This will generate an offline-mode UUID
-    /// by making a hash with the username if the `uuid` field is None.
+    /// Get the UUID of this account.
+    ///
+    /// If the `uuid` field is None, the UUID will be determined by using
+    /// Minecraft's offline-mode UUIDv3 algorithm.
     pub fn uuid_or_offline(&self) -> Uuid {
         self.uuid
             .unwrap_or_else(|| azalea_auth::offline::generate_uuid(&self.username))

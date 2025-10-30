@@ -14,14 +14,17 @@ use super::{
 };
 use crate::Account;
 
-/// The default delay that Azalea will use for reconnecting our clients. See
-/// [`AutoReconnectPlugin`] for more information.
+/// The default delay that Azalea will use for reconnecting our clients.
+///
+/// See [`AutoReconnectPlugin`] for more information.
 pub const DEFAULT_RECONNECT_DELAY: Duration = Duration::from_secs(5);
 
 /// A default plugin that makes clients automatically rejoin the server when
-/// they're disconnected. The reconnect delay is configurable globally or
-/// per-client with the [`AutoReconnectDelay`] resource/component. Auto
-/// reconnecting can be disabled by removing the resource from the ECS.
+/// they're disconnected.
+///
+/// The reconnect delay is configurable globally or per-client with the
+/// [`AutoReconnectDelay`] resource/component. Auto reconnecting can be disabled
+/// by removing the resource from the ECS.
 ///
 /// The delay defaults to [`DEFAULT_RECONNECT_DELAY`].
 pub struct AutoReconnectPlugin;
@@ -39,8 +42,8 @@ impl Plugin for AutoReconnectPlugin {
 
 pub fn start_rejoin_on_disconnect(
     mut commands: Commands,
-    mut disconnect_events: EventReader<DisconnectEvent>,
-    mut connection_failed_events: EventReader<ConnectionFailedEvent>,
+    mut disconnect_events: MessageReader<DisconnectEvent>,
+    mut connection_failed_events: MessageReader<ConnectionFailedEvent>,
     auto_reconnect_delay_res: Option<Res<AutoReconnectDelay>>,
     auto_reconnect_delay_query: Query<&AutoReconnectDelay>,
 ) {
@@ -85,7 +88,7 @@ fn get_delay(
 
 pub fn rejoin_after_delay(
     mut commands: Commands,
-    mut join_events: EventWriter<StartJoinServerEvent>,
+    mut join_events: MessageWriter<StartJoinServerEvent>,
     query: Query<(
         Entity,
         &InternalReconnectAfter,

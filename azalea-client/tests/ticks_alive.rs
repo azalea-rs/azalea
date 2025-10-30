@@ -1,43 +1,15 @@
 use azalea_client::{test_utils::prelude::*, tick_counter::TicksConnected};
-use azalea_core::resource_location::ResourceLocation;
-use azalea_protocol::packets::{
-    ConnectionProtocol,
-    config::{ClientboundFinishConfiguration, ClientboundRegistryData},
-};
-use azalea_registry::{DataRegistry, DimensionType};
-use simdnbt::owned::{NbtCompound, NbtTag};
+use azalea_protocol::packets::ConnectionProtocol;
 
 #[test]
 fn counter_increments_and_resets_on_disconnect() {
     init_tracing();
 
-    let mut simulation = Simulation::new(ConnectionProtocol::Configuration);
-
-    simulation.receive_packet(ClientboundRegistryData {
-        registry_id: ResourceLocation::new("minecraft:dimension_type"),
-        entries: vec![(
-            ResourceLocation::new("minecraft:overworld"),
-            Some(NbtCompound::from_values(vec![
-                ("height".into(), NbtTag::Int(384)),
-                ("min_y".into(), NbtTag::Int(-64)),
-            ])),
-        )]
-        .into_iter()
-        .collect(),
-    });
-
-    simulation.receive_packet(ClientboundFinishConfiguration);
-
-    simulation.tick();
-    // we need a second tick to handle the state switch properly
+    let mut simulation = Simulation::new(ConnectionProtocol::Game);
     simulation.tick();
 
     assert!(!simulation.has_component::<TicksConnected>());
-
-    simulation.receive_packet(make_basic_login_packet(
-        DimensionType::new_raw(0), // overworld
-        ResourceLocation::new("minecraft:overworld"),
-    ));
+    simulation.receive_packet(default_login_packet());
     simulation.tick();
 
     assert!(simulation.has_component::<TicksConnected>());

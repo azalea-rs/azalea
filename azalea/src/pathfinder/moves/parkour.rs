@@ -3,7 +3,7 @@ use azalea_core::{direction::CardinalDirection, position::BlockPos};
 use tracing::trace;
 
 use super::{Edge, ExecuteCtx, IsReachedCtx, MoveData, PathfinderCtx};
-use crate::pathfinder::{astar, costs::*, rel_block_pos::RelBlockPos};
+use crate::pathfinder::{astar, costs::*, player_pos_to_block_pos, rel_block_pos::RelBlockPos};
 
 pub fn parkour_move(ctx: &mut PathfinderCtx, node: RelBlockPos) {
     if !ctx.world.is_block_solid(node.down(1)) {
@@ -81,10 +81,16 @@ fn parkour_forward_2_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
             continue;
         }
 
+        let mut cost = JUMP_PENALTY + WALK_ONE_BLOCK_COST * 3. + CENTER_AFTER_FALL_COST;
+
         let ascend: i32 = if ctx.world.is_standable(pos + offset.up(1)) {
             1
         } else if ctx.world.is_standable(pos + offset) {
+            cost += FALL_N_BLOCKS_COST[1];
             0
+        } else if ctx.world.is_standable(pos + offset.down(1)) {
+            cost += FALL_N_BLOCKS_COST[2];
+            -1
         } else {
             continue;
         };
@@ -106,8 +112,6 @@ fn parkour_forward_2_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
         if !ctx.world.is_block_passable((pos + offset).up(2)) {
             continue;
         }
-
-        let cost = JUMP_PENALTY + WALK_ONE_BLOCK_COST * 3. + CENTER_AFTER_FALL_COST;
 
         ctx.edges.push(Edge {
             movement: astar::Movement {
@@ -201,8 +205,8 @@ fn execute_parkour_move(mut ctx: ExecuteCtx) {
     let dir = BlockPos::new(x_dir, 0, z_dir);
     let jump_at_pos = start + dir;
 
-    let is_at_start_block = BlockPos::from(position) == start;
-    let is_at_jump_block = BlockPos::from(position) == jump_at_pos;
+    let is_at_start_block = player_pos_to_block_pos(position) == start;
+    let is_at_jump_block = player_pos_to_block_pos(position) == jump_at_pos;
 
     let required_distance_from_center = if jump_distance <= 2 {
         // 1 block gap
@@ -244,11 +248,10 @@ pub fn parkour_is_reached(
     }: IsReachedCtx,
 ) -> bool {
     // 0.094 and not 0 for lilypads
-    if BlockPos::from(position) == target && (position.y - target.y as f64) < 0.094 {
+    if player_pos_to_block_pos(position) == target && (position.y - target.y as f64) < 0.094 {
         return true;
     }
 
-    // this is to make it handle things like slabs correctly, if we're on the block
-    // below the target but on_ground
-    BlockPos::from(position).up(1) == target && physics.on_ground()
+    // this is to make it handle things like slabs correctly
+    player_pos_to_block_pos(position) == target && physics.on_ground()
 }

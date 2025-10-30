@@ -1,5 +1,8 @@
 //! A pathfinding plugin to make bots able to traverse the world.
 //!
+//! For the new functions on `Client` that the pathfinder adds, see
+//! [`PathfinderClientExt`].
+//!
 //! Much of this code is based on [Baritone](https://github.com/cabaletta/baritone).
 
 pub mod astar;
@@ -29,16 +32,20 @@ use std::{
 };
 
 use astar::{Edge, PathfinderTimeout};
+use azalea_block::{BlockState, BlockTrait};
 use azalea_client::{
     StartSprintEvent, StartWalkEvent,
-    inventory::{InventorySet, SetSelectedHotbarSlotEvent},
+    inventory::{Inventory, InventorySystems},
     local_player::InstanceHolder,
-    mining::{Mining, MiningSet, StartMiningBlockEvent},
-    movement::MoveEventsSet,
+    mining::{Mining, MiningSystems, StartMiningBlockEvent},
+    movement::MoveEventsSystems,
 };
-use azalea_core::{position::BlockPos, tick::GameTick};
-use azalea_entity::{LocalEntity, Physics, Position, inventory::Inventory, metadata::Player};
-use azalea_physics::PhysicsSet;
+use azalea_core::{
+    position::{BlockPos, Vec3},
+    tick::GameTick,
+};
+use azalea_entity::{LocalEntity, Physics, Position, metadata::Player};
+use azalea_physics::{PhysicsSystems, get_block_pos_below_that_affects_movement};
 use azalea_world::{InstanceContainer, InstanceName};
 use bevy_app::{PreUpdate, Update};
 use bevy_ecs::prelude::*;
@@ -59,13 +66,12 @@ use self::{
     moves::{ExecuteCtx, IsReachedCtx, SuccessorsFn},
 };
 use crate::{
-    BotClientExt, WalkDirection,
+    WalkDirection,
     app::{App, Plugin},
-    bot::{JumpEvent, LookAtEvent},
+    bot::{BotClientExt, JumpEvent, LookAtEvent},
     ecs::{
         component::Component,
         entity::Entity,
-        event::{EventReader, EventWriter},
         query::{With, Without},
         system::{Commands, Query, Res},
     },
@@ -76,9 +82,9 @@ use crate::{
 pub struct PathfinderPlugin;
 impl Plugin for PathfinderPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<GotoEvent>()
-            .add_event::<PathFoundEvent>()
-            .add_event::<StopPathfindingEvent>()
+        app.add_message::<GotoEvent>()
+            .add_message::<PathFoundEvent>()
+            .add_message::<StopPathfindingEvent>()
             .add_systems(
                 // putting systems in the GameTick schedule makes them run every Minecraft tick
                 // (every 50 milliseconds).
@@ -93,9 +99,9 @@ impl Plugin for PathfinderPlugin {
                     recalculate_if_has_goal_but_no_path,
                 )
                     .chain()
-                    .after(PhysicsSet)
+                    .after(PhysicsSystems)
                     .after(azalea_client::movement::send_position)
-                    .after(MiningSet),
+                    .after(MiningSystems),
             )
             .add_systems(PreUpdate, add_default_pathfinder)
             .add_systems(
@@ -108,8 +114,8 @@ impl Plugin for PathfinderPlugin {
                     handle_stop_pathfinding_event,
                 )
                     .chain()
-                    .before(MoveEventsSet)
-                    .before(InventorySet),
+                    .before(MoveEventsSystems)
+                    .before(InventorySystems),
             );
     }
 }
@@ -135,7 +141,7 @@ pub struct ExecutingPath {
     pub is_path_partial: bool,
 }
 
-#[derive(Event, Clone, Debug)]
+#[derive(Message, Clone, Debug)]
 #[non_exhaustive]
 pub struct PathFoundEvent {
     pub entity: Entity,
@@ -237,16 +243,16 @@ impl PathfinderClientExt for azalea_client::Client {
     fn start_goto_with_opts(&self, goal: impl Goal + 'static, opts: PathfinderOpts) {
         self.ecs
             .lock()
-            .send_event(GotoEvent::new(self.entity, goal, opts));
+            .write_message(GotoEvent::new(self.entity, goal, opts));
     }
     fn stop_pathfinding(&self) {
-        self.ecs.lock().send_event(StopPathfindingEvent {
+        self.ecs.lock().write_message(StopPathfindingEvent {
             entity: self.entity,
             force: false,
         });
     }
     fn force_stop_pathfinding(&self) {
-        self.ecs.lock().send_event(StopPathfindingEvent {
+        self.ecs.lock().write_message(StopPathfindingEvent {
             entity: self.entity,
             force: true,
         });
@@ -267,8 +273,10 @@ impl PathfinderClientExt for azalea_client::Client {
         }
     }
     fn is_goto_target_reached(&self) -> bool {
-        self.map_get_component::<Pathfinder, _>(|p| p.goal.is_none() && !p.is_calculating)
-            .unwrap_or(true)
+        self.query_self::<Option<&Pathfinder>, _>(|p| {
+            p.map(|p| p.goal.is_none() && !p.is_calculating)
+                .unwrap_or(true)
+        })
     }
 }
 
@@ -278,10 +286,10 @@ pub struct ComputePath(Task<Option<PathFoundEvent>>);
 #[allow(clippy::type_complexity)]
 pub fn goto_listener(
     mut commands: Commands,
-    mut events: EventReader<GotoEvent>,
+    mut events: MessageReader<GotoEvent>,
     mut query: Query<(
         &mut Pathfinder,
-        Option<&ExecutingPath>,
+        Option<&mut ExecutingPath>,
         &Position,
         &InstanceName,
         &Inventory,
@@ -299,7 +307,9 @@ pub fn goto_listener(
             continue;
         };
 
-        if event.goal.success(BlockPos::from(position)) {
+        let cur_pos = player_pos_to_block_pos(**position);
+
+        if event.goal.success(cur_pos) {
             // we're already at the goal, nothing to do
             pathfinder.goal = None;
             pathfinder.opts = None;
@@ -313,27 +323,31 @@ pub fn goto_listener(
         pathfinder.opts = Some(event.opts.clone());
         pathfinder.is_calculating = true;
 
-        let start = if let Some(executing_path) = executing_path
-            && let Some(final_node) = executing_path.path.back()
+        let start = if let Some(mut executing_path) = executing_path
+            && { !executing_path.path.is_empty() }
         {
             // if we're currently pathfinding and got a goto event, start a little ahead
+
+            let executing_path_limit = 50;
+            // truncate the executing path so we can cleanly combine the two paths later
+            executing_path.path.truncate(executing_path_limit);
+
             executing_path
                 .path
-                .get(50)
-                .unwrap_or(final_node)
+                .back()
+                .expect("path was just checked to not be empty")
                 .movement
                 .target
         } else {
-            BlockPos::from(position)
+            cur_pos
         };
 
-        if start == BlockPos::from(position) {
+        if start == cur_pos {
             info!("got goto {:?}, starting from {start:?}", event.goal);
         } else {
             info!(
-                "got goto {:?}, starting from {start:?} (currently at {:?})",
+                "got goto {:?}, starting from {start:?} (currently at {cur_pos:?})",
                 event.goal,
-                BlockPos::from(position)
             );
         }
 
@@ -370,6 +384,17 @@ pub fn goto_listener(
 
         commands.entity(event.entity).insert(ComputePath(task));
     }
+}
+
+/// Convert a player position to a block position, used internally in the
+/// pathfinder.
+///
+/// This is almost the same as `BlockPos::from(position)`, except that non-full
+/// blocks are handled correctly.
+#[inline]
+pub fn player_pos_to_block_pos(position: Vec3) -> BlockPos {
+    // 0.5 to account for non-full blocks
+    BlockPos::from(position.up(0.5))
 }
 
 pub struct CalculatePathCtx {
@@ -496,7 +521,7 @@ pub fn calculate_path(ctx: CalculatePathCtx) -> Option<PathFoundEvent> {
 pub fn handle_tasks(
     mut commands: Commands,
     mut transform_tasks: Query<(Entity, &mut ComputePath)>,
-    mut path_found_events: EventWriter<PathFoundEvent>,
+    mut path_found_events: MessageWriter<PathFoundEvent>,
 ) {
     for (entity, mut task) in &mut transform_tasks {
         if let Some(optional_path_found_event) = future::block_on(future::poll_once(&mut task.0)) {
@@ -513,7 +538,7 @@ pub fn handle_tasks(
 // set the path for the target entity when we get the PathFoundEvent
 #[allow(clippy::type_complexity)]
 pub fn path_found_listener(
-    mut events: EventReader<PathFoundEvent>,
+    mut events: MessageReader<PathFoundEvent>,
     mut query: Query<(
         &mut Pathfinder,
         Option<&mut ExecutingPath>,
@@ -525,9 +550,12 @@ pub fn path_found_listener(
     mut commands: Commands,
 ) {
     for event in events.read() {
-        let (mut pathfinder, executing_path, instance_name, inventory, custom_state) = query
-            .get_mut(event.entity)
-            .expect("Path found for an entity that doesn't have a pathfinder");
+        let Ok((mut pathfinder, executing_path, instance_name, inventory, custom_state)) =
+            query.get_mut(event.entity)
+        else {
+            debug!("got path found event for an entity that can't pathfind");
+            continue;
+        };
         if let Some(path) = &event.path {
             if let Some(mut executing_path) = executing_path {
                 let mut new_path = VecDeque::new();
@@ -665,7 +693,8 @@ pub fn timeout_movement(
         {
             warn!("pathfinder timeout, trying to patch path");
             executing_path.queued_path = None;
-            executing_path.last_reached_node = BlockPos::from(position);
+            let cur_pos = player_pos_to_block_pos(**position);
+            executing_path.last_reached_node = cur_pos;
 
             let world_lock = instance_container
                 .get(instance_name)
@@ -705,11 +734,19 @@ pub fn check_node_reached(
         &mut ExecutingPath,
         &Position,
         &Physics,
+        &InstanceName,
     )>,
-    mut walk_events: EventWriter<StartWalkEvent>,
+    mut walk_events: MessageWriter<StartWalkEvent>,
     mut commands: Commands,
+    instance_container: Res<InstanceContainer>,
 ) {
-    for (entity, mut pathfinder, mut executing_path, position, physics) in &mut query {
+    for (entity, mut pathfinder, mut executing_path, position, physics, instance_name) in &mut query
+    {
+        let Some(instance) = instance_container.get(instance_name) else {
+            warn!("entity is pathfinding but not in a valid world");
+            continue;
+        };
+
         'skip: loop {
             // we check if the goal was reached *before* actually executing the movement so
             // we don't unnecessarily execute a movement when it wasn't necessary
@@ -730,21 +767,45 @@ pub fn check_node_reached(
                     position: **position,
                     physics,
                 };
-                let extra_strict_if_last = if i == executing_path.path.len() - 1 {
+                let extra_check = if i == executing_path.path.len() - 1 {
+                    // be extra strict about the velocity and centering if we're on the last node so
+                    // we don't fall off
+
                     let x_difference_from_center = position.x - (movement.target.x as f64 + 0.5);
                     let z_difference_from_center = position.z - (movement.target.z as f64 + 0.5);
+
+                    let block_pos_below = get_block_pos_below_that_affects_movement(*position);
+
+                    let block_state_below = {
+                        let instance = instance.read();
+                        instance
+                            .chunks
+                            .get_block_state(block_pos_below)
+                            .unwrap_or(BlockState::AIR)
+                    };
+                    let block_below: Box<dyn BlockTrait> = block_state_below.into();
+                    // friction for normal blocks is 0.6, for ice it's 0.98
+                    let block_friction = block_below.behavior().friction as f64;
+
+                    // if the block has the default friction, this will multiply by 1
+                    // for blocks like ice, it'll multiply by a higher number
+                    let scaled_velocity = physics.velocity * (0.4 / (1. - block_friction));
+
+                    let x_predicted_offset = (x_difference_from_center + scaled_velocity.x).abs();
+                    let z_predicted_offset = (z_difference_from_center + scaled_velocity.z).abs();
+
                     // this is to make sure we don't fall off immediately after finishing the path
                     physics.on_ground()
-                    // 0.5 to handle non-full blocks
-                    && BlockPos::from(position.up(0.5)) == movement.target
-                    // adding the delta like this isn't a perfect solution but it helps to make
-                    // sure we don't keep going if our delta is high
-                    && (x_difference_from_center + physics.velocity.x).abs() < 0.2
-                    && (z_difference_from_center + physics.velocity.z).abs() < 0.2
+                        && player_pos_to_block_pos(**position) == movement.target
+                        // adding the delta like this isn't a perfect solution but it helps to make
+                        // sure we don't keep going if our delta is high
+                        && x_predicted_offset < 0.2
+                        && z_predicted_offset < 0.2
                 } else {
                     true
                 };
-                if (movement.data.is_reached)(is_reached_ctx) && extra_strict_if_last {
+
+                if (movement.data.is_reached)(is_reached_ctx) && extra_check {
                     executing_path.path = executing_path.path.split_off(i + 1);
                     executing_path.last_reached_node = movement.target;
                     executing_path.last_node_reached_at = Instant::now();
@@ -890,7 +951,7 @@ pub fn check_for_path_obstruction(
     }
 }
 
-/// update the given [`ExecutingPath`] to recalculate the path of the nodes in
+/// Update the given [`ExecutingPath`] to recalculate the path of the nodes in
 /// the given index range.
 ///
 /// You should avoid making the range too large, since the timeout for the A*
@@ -988,8 +1049,8 @@ fn patch_path(
 
 pub fn recalculate_near_end_of_path(
     mut query: Query<(Entity, &mut Pathfinder, &mut ExecutingPath)>,
-    mut walk_events: EventWriter<StartWalkEvent>,
-    mut goto_events: EventWriter<GotoEvent>,
+    mut walk_events: MessageWriter<StartWalkEvent>,
+    mut goto_events: MessageWriter<GotoEvent>,
     mut commands: Commands,
 ) {
     for (entity, mut pathfinder, mut executing_path) in &mut query {
@@ -1060,6 +1121,7 @@ pub fn recalculate_near_end_of_path(
 
 #[allow(clippy::type_complexity)]
 pub fn tick_execute_path(
+    mut commands: Commands,
     mut query: Query<(
         Entity,
         &mut ExecutingPath,
@@ -1069,12 +1131,11 @@ pub fn tick_execute_path(
         &InstanceHolder,
         &Inventory,
     )>,
-    mut look_at_events: EventWriter<LookAtEvent>,
-    mut sprint_events: EventWriter<StartSprintEvent>,
-    mut walk_events: EventWriter<StartWalkEvent>,
-    mut jump_events: EventWriter<JumpEvent>,
-    mut start_mining_events: EventWriter<StartMiningBlockEvent>,
-    mut set_selected_hotbar_slot_events: EventWriter<SetSelectedHotbarSlotEvent>,
+    mut look_at_events: MessageWriter<LookAtEvent>,
+    mut sprint_events: MessageWriter<StartSprintEvent>,
+    mut walk_events: MessageWriter<StartWalkEvent>,
+    mut jump_events: MessageWriter<JumpEvent>,
+    mut start_mining_events: MessageWriter<StartMiningBlockEvent>,
 ) {
     for (entity, executing_path, position, physics, mining, instance_holder, inventory_component) in
         &mut query
@@ -1090,12 +1151,12 @@ pub fn tick_execute_path(
                 instance: instance_holder.instance.clone(),
                 menu: inventory_component.inventory_menu.clone(),
 
+                commands: &mut commands,
                 look_at_events: &mut look_at_events,
                 sprint_events: &mut sprint_events,
                 walk_events: &mut walk_events,
                 jump_events: &mut jump_events,
                 start_mining_events: &mut start_mining_events,
-                set_selected_hotbar_slot_events: &mut set_selected_hotbar_slot_events,
             };
             trace!(
                 "executing move, position: {}, last_reached_node: {}",
@@ -1108,7 +1169,7 @@ pub fn tick_execute_path(
 
 pub fn recalculate_if_has_goal_but_no_path(
     mut query: Query<(Entity, &mut Pathfinder), Without<ExecutingPath>>,
-    mut goto_events: EventWriter<GotoEvent>,
+    mut goto_events: MessageWriter<GotoEvent>,
 ) {
     for (entity, mut pathfinder) in &mut query {
         if pathfinder.goal.is_some()
@@ -1123,19 +1184,21 @@ pub fn recalculate_if_has_goal_but_no_path(
     }
 }
 
-#[derive(Event)]
+#[derive(Message)]
 pub struct StopPathfindingEvent {
     pub entity: Entity,
-    /// If false, then let the current movement finish before stopping. If true,
-    /// then stop moving immediately. This might cause the bot to fall if it was
-    /// in the middle of parkouring.
+    /// Whether we should stop moving immediately without waiting for the
+    /// current movement to finish.
+    ///
+    /// This is usually set to false, since it might cause the bot to fall if it
+    /// was in the middle of parkouring.
     pub force: bool,
 }
 
 pub fn handle_stop_pathfinding_event(
-    mut events: EventReader<StopPathfindingEvent>,
+    mut events: MessageReader<StopPathfindingEvent>,
     mut query: Query<(&mut Pathfinder, &mut ExecutingPath)>,
-    mut walk_events: EventWriter<StartWalkEvent>,
+    mut walk_events: MessageWriter<StartWalkEvent>,
     mut commands: Commands,
 ) {
     for event in events.read() {
@@ -1168,7 +1231,7 @@ pub fn handle_stop_pathfinding_event(
 
 pub fn stop_pathfinding_on_instance_change(
     mut query: Query<(Entity, &mut ExecutingPath), Changed<InstanceName>>,
-    mut stop_pathfinding_events: EventWriter<StopPathfindingEvent>,
+    mut stop_pathfinding_events: MessageWriter<StopPathfindingEvent>,
 ) {
     for (entity, mut executing_path) in &mut query {
         if !executing_path.path.is_empty() {
@@ -1183,7 +1246,9 @@ pub fn stop_pathfinding_on_instance_change(
 }
 
 /// Checks whether the path has been obstructed, and returns Some(index) if it
-/// has been. The index is of the first obstructed node.
+/// has been.
+///
+/// The index is of the first obstructed node.
 pub fn check_path_obstructed<SuccessorsFn>(
     origin: BlockPos,
     mut current_position: RelBlockPos,
@@ -1213,7 +1278,7 @@ where
             // if the node that we're currently executing was obstructed then it's often too
             // late to change the path, so it's usually better to just ignore this case :/
             if i == 0 {
-                warn!("path obstructed at index 0, ignoring");
+                warn!("path obstructed at index 0 ({edge:?}), ignoring");
                 continue;
             }
 

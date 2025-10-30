@@ -5,9 +5,11 @@ use crate::{
     position::{BlockPos, Vec3},
 };
 
-/// A rectangular prism with a starting and ending point.
+/// An axis-aligned bounding box.
+///
+/// In other words, a rectangular prism with a starting and ending point.
 #[derive(Copy, Clone, Debug, PartialEq, Default)]
-pub struct AABB {
+pub struct Aabb {
     pub min: Vec3,
     pub max: Vec3,
 }
@@ -27,8 +29,8 @@ pub struct ClipPointOpts<'a> {
     pub start: Vec3,
 }
 
-impl AABB {
-    pub fn contract(&self, amount: Vec3) -> AABB {
+impl Aabb {
+    pub fn contract(&self, amount: Vec3) -> Aabb {
         let mut min = self.min;
         let mut max = self.max;
 
@@ -50,10 +52,10 @@ impl AABB {
             max.z -= amount.z;
         }
 
-        AABB { min, max }
+        Aabb { min, max }
     }
 
-    pub fn expand_towards(&self, other: Vec3) -> AABB {
+    pub fn expand_towards(&self, other: Vec3) -> Aabb {
         let mut min = self.min;
         let mut max = self.max;
 
@@ -75,39 +77,39 @@ impl AABB {
             max.z += other.z;
         }
 
-        AABB { min, max }
+        Aabb { min, max }
     }
 
-    pub fn inflate(&self, amount: Vec3) -> AABB {
+    pub fn inflate(&self, amount: Vec3) -> Aabb {
         let min = self.min - amount;
         let max = self.max + amount;
 
-        AABB { min, max }
+        Aabb { min, max }
     }
-    pub fn inflate_all(&self, amount: f64) -> AABB {
+    pub fn inflate_all(&self, amount: f64) -> Aabb {
         self.inflate(Vec3::new(amount, amount, amount))
     }
 
-    pub fn intersect(&self, other: &AABB) -> AABB {
+    pub fn intersect(&self, other: &Aabb) -> Aabb {
         let min = self.min.max(other.min);
         let max = self.max.min(other.max);
-        AABB { min, max }
+        Aabb { min, max }
     }
 
-    pub fn minmax(&self, other: &AABB) -> AABB {
+    pub fn minmax(&self, other: &Aabb) -> Aabb {
         let min = self.min.min(other.min);
         let max = self.max.max(other.max);
-        AABB { min, max }
+        Aabb { min, max }
     }
 
-    pub fn move_relative(&self, delta: Vec3) -> AABB {
-        AABB {
+    pub fn move_relative(&self, delta: Vec3) -> Aabb {
+        Aabb {
             min: self.min + delta,
             max: self.max + delta,
         }
     }
 
-    pub fn intersects_aabb(&self, other: &AABB) -> bool {
+    pub fn intersects_aabb(&self, other: &Aabb) -> bool {
         self.min.x < other.max.x
             && self.max.x > other.min.x
             && self.min.y < other.max.y
@@ -118,7 +120,7 @@ impl AABB {
     pub fn intersects_vec3(&self, corner1: Vec3, corner2: Vec3) -> bool {
         let min = corner1.min(corner2);
         let max = corner1.max(corner2);
-        self.intersects_aabb(&AABB { min, max })
+        self.intersects_aabb(&Aabb { min, max })
     }
 
     pub fn contains(&self, point: Vec3) -> bool {
@@ -146,10 +148,10 @@ impl AABB {
         )
     }
 
-    pub fn deflate(&self, amount: Vec3) -> AABB {
+    pub fn deflate(&self, amount: Vec3) -> Aabb {
         self.inflate(Vec3::new(-amount.x, -amount.y, -amount.z))
     }
-    pub fn deflate_all(&self, amount: f64) -> AABB {
+    pub fn deflate_all(&self, amount: f64) -> Aabb {
         self.deflate(Vec3::new(amount, amount, amount))
     }
 
@@ -168,7 +170,7 @@ impl AABB {
     }
 
     pub fn clip_iterable(
-        boxes: &[AABB],
+        boxes: &[Aabb],
         from: Vec3,
         to: Vec3,
         pos: BlockPos,
@@ -204,7 +206,7 @@ impl AABB {
         dir: Option<Direction>,
         delta: Vec3,
     ) -> Option<Direction> {
-        AABB::get_direction(self.min, self.max, from, t, dir, delta)
+        Aabb::get_direction(self.min, self.max, from, t, dir, delta)
     }
 
     fn get_direction(
@@ -373,8 +375,8 @@ impl AABB {
         )
     }
 
-    pub fn of_size(center: Vec3, dx: f64, dy: f64, dz: f64) -> AABB {
-        AABB {
+    pub fn of_size(center: Vec3, dx: f64, dy: f64, dz: f64) -> Aabb {
+        Aabb {
             min: Vec3::new(
                 center.x - dx / 2.0,
                 center.y - dy / 2.0,
@@ -395,7 +397,7 @@ impl AABB {
         axis.choose(self.min.x, self.min.y, self.min.z)
     }
 
-    pub fn collided_along_vector(&self, vector: Vec3, boxes: &[AABB]) -> bool {
+    pub fn collided_along_vector(&self, vector: Vec3, boxes: &[Aabb]) -> bool {
         let center = self.get_center();
         let new_center = center + vector;
 
@@ -419,7 +421,7 @@ impl AABB {
 }
 
 impl BlockPos {
-    pub fn between_closed_aabb(aabb: &AABB) -> Vec<BlockPos> {
+    pub fn between_closed_aabb(aabb: &Aabb) -> Vec<BlockPos> {
         BlockPos::between_closed(BlockPos::from(aabb.min), BlockPos::from(aabb.max))
     }
 
@@ -457,8 +459,8 @@ mod tests {
     #[test]
     fn test_aabb_clip_iterable() {
         assert_ne!(
-            AABB::clip_iterable(
-                &[AABB {
+            Aabb::clip_iterable(
+                &[Aabb {
                     min: Vec3::new(0., 0., 0.),
                     max: Vec3::new(1., 1., 1.),
                 }],

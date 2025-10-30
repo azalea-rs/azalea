@@ -22,16 +22,16 @@ use azalea_entity::{
 };
 use azalea_registry::{Block, EntityKind};
 use azalea_world::{Instance, InstanceContainer, InstanceName};
-use bevy_app::{App, Plugin};
+use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 use clip::box_traverse_blocks;
 use collision::{BLOCK_SHAPE, BlockWithShape, VoxelShape, move_colliding};
 
-use crate::collision::MoveCtx;
+use crate::collision::{MoveCtx, entity_collisions::update_last_bounding_box};
 
 /// A Bevy [`SystemSet`] for running physics that makes entities do things.
 #[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
-pub struct PhysicsSet;
+pub struct PhysicsSystems;
 
 pub struct PhysicsPlugin;
 impl Plugin for PhysicsPlugin {
@@ -47,8 +47,13 @@ impl Plugin for PhysicsPlugin {
                 apply_effects_from_blocks,
             )
                 .chain()
-                .in_set(PhysicsSet)
+                .in_set(PhysicsSystems)
                 .after(azalea_entity::update_in_loaded_chunk),
+        )
+        // we want this to happen after packets are handled but before physics
+        .add_systems(
+            Update,
+            update_last_bounding_box.after(azalea_entity::update_bounding_box),
         );
     }
 }
@@ -358,7 +363,7 @@ pub fn update_old_position(mut query: Query<(&mut Physics, &Position)>) {
     }
 }
 
-fn get_block_pos_below_that_affects_movement(position: Position) -> BlockPos {
+pub fn get_block_pos_below_that_affects_movement(position: Position) -> BlockPos {
     BlockPos::new(
         position.x.floor() as i32,
         // TODO: this uses bounding_box.min_y instead of position.y

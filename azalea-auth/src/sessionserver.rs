@@ -53,8 +53,9 @@ pub struct ForbiddenError {
 static REQWEST_CLIENT: LazyLock<reqwest::Client> = LazyLock::new(reqwest::Client::new);
 
 /// Tell Mojang's servers that you are going to join a multiplayer server,
-/// which is required to join online-mode servers. The server ID is an empty
-/// string.
+/// which is required to join online-mode servers.
+///
+/// The server ID should typically be an empty string.
 pub async fn join(
     access_token: &str,
     public_key: &[u8],

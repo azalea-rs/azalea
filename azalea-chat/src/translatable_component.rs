@@ -1,84 +1,63 @@
 use std::fmt::{self, Display};
 
-use serde::{__private::ser::FlatMapSerializer, Serialize, Serializer, ser::SerializeMap};
+use serde::{Deserialize, Serialize};
 #[cfg(feature = "simdnbt")]
-use simdnbt::Serialize as _;
+use simdnbt::{
+    ToNbtTag,
+    owned::{NbtList, NbtTag},
+};
 
 use crate::{FormattedText, base_component::BaseComponent, text_component::TextComponent};
 
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
-pub enum StringOrComponent {
+pub enum PrimitiveOrComponent {
+    Boolean(bool),
+    Short(i16),
+    Integer(i32),
+    Long(i64),
+    Float(f32),
+    Double(f64),
     String(String),
     FormattedText(FormattedText),
 }
 
 #[cfg(feature = "simdnbt")]
-impl simdnbt::ToNbtTag for StringOrComponent {
+impl simdnbt::ToNbtTag for PrimitiveOrComponent {
     fn to_nbt_tag(self) -> simdnbt::owned::NbtTag {
         match self {
-            StringOrComponent::String(s) => s.to_nbt_tag(),
-            StringOrComponent::FormattedText(c) => c.to_nbt_tag(),
+            PrimitiveOrComponent::Boolean(value) => value.to_nbt_tag(),
+            PrimitiveOrComponent::Short(value) => value.to_nbt_tag(),
+            PrimitiveOrComponent::Integer(value) => value.to_nbt_tag(),
+            PrimitiveOrComponent::Long(value) => value.to_nbt_tag(),
+            PrimitiveOrComponent::Float(value) => value.to_nbt_tag(),
+            PrimitiveOrComponent::Double(value) => value.to_nbt_tag(),
+            PrimitiveOrComponent::String(value) => value.to_nbt_tag(),
+            PrimitiveOrComponent::FormattedText(value) => value.to_nbt_tag(),
         }
     }
 }
 
 /// A message whose content depends on the client's language.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct TranslatableComponent {
+    #[serde(flatten)]
     pub base: BaseComponent,
+    #[serde(rename = "translate")]
     pub key: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub fallback: Option<String>,
-    pub args: Vec<StringOrComponent>,
-}
-
-impl Serialize for TranslatableComponent {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut state = serializer.serialize_map(None)?;
-        state.serialize_entry("translate", &self.key)?;
-        Serialize::serialize(&self.base, FlatMapSerializer(&mut state))?;
-        state.serialize_entry("with", &self.args)?;
-        state.end()
-    }
+    #[serde(rename = "with")]
+    pub args: Vec<PrimitiveOrComponent>,
 }
 
 #[cfg(feature = "simdnbt")]
-fn serialize_args_as_nbt(args: &[StringOrComponent]) -> simdnbt::owned::NbtList {
-    // if it's all strings then make it a string list
-    // if it's all components then make it a compound list
-    // if it's a mix then return an error
-
-    use tracing::debug;
-
-    let mut string_list = Vec::new();
-    let mut compound_list = Vec::new();
-
-    for arg in args {
-        match arg {
-            StringOrComponent::String(s) => {
-                string_list.push(s.clone());
-            }
-            StringOrComponent::FormattedText(c) => {
-                compound_list.push(c.clone().to_compound());
-            }
-        }
-    }
-
-    if !string_list.is_empty() && !compound_list.is_empty() {
-        // i'm actually not sure what vanilla does here, so i just made it return the
-        // string list
-        debug!("Tried to serialize a TranslatableComponent with a mix of strings and components.");
-        return string_list.into();
-    }
-
-    if !string_list.is_empty() {
-        return string_list.into();
-    }
-
-    compound_list.into()
+fn serialize_args_as_nbt(args: Vec<PrimitiveOrComponent>) -> NbtList {
+    let tags = args
+        .into_iter()
+        .map(|arg| arg.to_nbt_tag())
+        .collect::<Vec<NbtTag>>();
+    NbtList::from(tags)
 }
 
 #[cfg(feature = "simdnbt")]
@@ -88,13 +67,13 @@ impl simdnbt::Serialize for TranslatableComponent {
         compound.insert("translate", self.key);
         compound.extend(self.base.style.to_compound());
 
-        compound.insert("with", serialize_args_as_nbt(&self.args));
+        compound.insert("with", serialize_args_as_nbt(self.args));
         compound
     }
 }
 
 impl TranslatableComponent {
-    pub fn new(key: String, args: Vec<StringOrComponent>) -> Self {
+    pub fn new(key: String, args: Vec<PrimitiveOrComponent>) -> Self {
         Self {
             base: BaseComponent::new(),
             key,
@@ -106,7 +85,7 @@ impl TranslatableComponent {
     pub fn with_fallback(
         key: String,
         fallback: Option<String>,
-        args: Vec<StringOrComponent>,
+        args: Vec<PrimitiveOrComponent>,
     ) -> Self {
         Self {
             base: BaseComponent::new(),
@@ -151,7 +130,7 @@ impl TranslatableComponent {
                             .args
                             .get(matched)
                             .cloned()
-                            .unwrap_or_else(|| StringOrComponent::String("".to_string()));
+                            .unwrap_or_else(|| PrimitiveOrComponent::String("".to_string()));
 
                         components.push(TextComponent::new(built_text.clone()));
                         built_text.clear();
@@ -169,7 +148,9 @@ impl TranslatableComponent {
                                         &self
                                             .args
                                             .get((d - 1) as usize)
-                                            .unwrap_or(&StringOrComponent::String("".to_string()))
+                                            .unwrap_or(&PrimitiveOrComponent::String(
+                                                "".to_string(),
+                                            ))
                                             .to_string(),
                                     );
                                 } else {
@@ -226,20 +207,32 @@ impl Display for TranslatableComponent {
     }
 }
 
-impl Display for StringOrComponent {
+impl Display for PrimitiveOrComponent {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
         match self {
-            StringOrComponent::String(s) => write!(f, "{s}"),
-            StringOrComponent::FormattedText(c) => write!(f, "{c}"),
+            PrimitiveOrComponent::Boolean(value) => write!(f, "{value}"),
+            PrimitiveOrComponent::Short(value) => write!(f, "{value}"),
+            PrimitiveOrComponent::Integer(value) => write!(f, "{value}"),
+            PrimitiveOrComponent::Long(value) => write!(f, "{value}"),
+            PrimitiveOrComponent::Float(value) => write!(f, "{value}"),
+            PrimitiveOrComponent::Double(value) => write!(f, "{value}"),
+            PrimitiveOrComponent::String(value) => write!(f, "{value}"),
+            PrimitiveOrComponent::FormattedText(value) => write!(f, "{value}"),
         }
     }
 }
 
-impl From<StringOrComponent> for TextComponent {
-    fn from(soc: StringOrComponent) -> Self {
+impl From<PrimitiveOrComponent> for TextComponent {
+    fn from(soc: PrimitiveOrComponent) -> Self {
         match soc {
-            StringOrComponent::String(s) => TextComponent::new(s),
-            StringOrComponent::FormattedText(c) => TextComponent::new(c.to_string()),
+            PrimitiveOrComponent::String(value) => TextComponent::new(value),
+            PrimitiveOrComponent::Boolean(value) => TextComponent::new(value.to_string()),
+            PrimitiveOrComponent::Short(value) => TextComponent::new(value.to_string()),
+            PrimitiveOrComponent::Integer(value) => TextComponent::new(value.to_string()),
+            PrimitiveOrComponent::Long(value) => TextComponent::new(value.to_string()),
+            PrimitiveOrComponent::Float(value) => TextComponent::new(value.to_string()),
+            PrimitiveOrComponent::Double(value) => TextComponent::new(value.to_string()),
+            PrimitiveOrComponent::FormattedText(value) => TextComponent::new(value.to_string()),
         }
     }
 }
@@ -263,10 +256,10 @@ mod tests {
         let c = TranslatableComponent::new(
             "translation.test.complex".to_string(),
             vec![
-                StringOrComponent::String("a".to_string()),
-                StringOrComponent::String("b".to_string()),
-                StringOrComponent::String("c".to_string()),
-                StringOrComponent::String("d".to_string()),
+                PrimitiveOrComponent::String("a".to_string()),
+                PrimitiveOrComponent::String("b".to_string()),
+                PrimitiveOrComponent::String("c".to_string()),
+                PrimitiveOrComponent::String("d".to_string()),
             ],
         );
         // so true mojang
@@ -280,10 +273,10 @@ mod tests {
         let c = TranslatableComponent::new(
             "translation.test.escape".to_string(),
             vec![
-                StringOrComponent::String("a".to_string()),
-                StringOrComponent::String("b".to_string()),
-                StringOrComponent::String("c".to_string()),
-                StringOrComponent::String("d".to_string()),
+                PrimitiveOrComponent::String("a".to_string()),
+                PrimitiveOrComponent::String("b".to_string()),
+                PrimitiveOrComponent::String("c".to_string()),
+                PrimitiveOrComponent::String("d".to_string()),
             ],
         );
         assert_eq!(c.read().unwrap().to_string(), "%s %a %%s %%b".to_string());
@@ -293,10 +286,10 @@ mod tests {
         let c = TranslatableComponent::new(
             "translation.test.invalid".to_string(),
             vec![
-                StringOrComponent::String("a".to_string()),
-                StringOrComponent::String("b".to_string()),
-                StringOrComponent::String("c".to_string()),
-                StringOrComponent::String("d".to_string()),
+                PrimitiveOrComponent::String("a".to_string()),
+                PrimitiveOrComponent::String("b".to_string()),
+                PrimitiveOrComponent::String("c".to_string()),
+                PrimitiveOrComponent::String("d".to_string()),
             ],
         );
         assert_eq!(c.read().unwrap().to_string(), "hi %".to_string());
@@ -306,10 +299,10 @@ mod tests {
         let c = TranslatableComponent::new(
             "translation.test.invalid2".to_string(),
             vec![
-                StringOrComponent::String("a".to_string()),
-                StringOrComponent::String("b".to_string()),
-                StringOrComponent::String("c".to_string()),
-                StringOrComponent::String("d".to_string()),
+                PrimitiveOrComponent::String("a".to_string()),
+                PrimitiveOrComponent::String("b".to_string()),
+                PrimitiveOrComponent::String("c".to_string()),
+                PrimitiveOrComponent::String("d".to_string()),
             ],
         );
         assert_eq!(c.read().unwrap().to_string(), "hi %  s".to_string());
@@ -319,7 +312,7 @@ mod tests {
     fn test_undefined() {
         let c = TranslatableComponent::new(
             "translation.test.undefined".to_string(),
-            vec![StringOrComponent::String("a".to_string())],
+            vec![PrimitiveOrComponent::String("a".to_string())],
         );
         assert_eq!(
             c.read().unwrap().to_string(),
@@ -332,7 +325,7 @@ mod tests {
         let c = TranslatableComponent::with_fallback(
             "translation.test.undefined".to_string(),
             Some("translation fallback: %s".to_string()),
-            vec![StringOrComponent::String("a".to_string())],
+            vec![PrimitiveOrComponent::String("a".to_string())],
         );
         assert_eq!(
             c.read().unwrap().to_string(),

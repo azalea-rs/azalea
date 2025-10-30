@@ -25,7 +25,7 @@ use crate::{
 
 /// A Bevy [`SystemSet`] for various types of entity updates.
 #[derive(SystemSet, Debug, Hash, Eq, PartialEq, Clone)]
-pub enum EntityUpdateSet {
+pub enum EntityUpdateSystems {
     /// Create search indexes for entities.
     Index,
     /// Remove despawned entities from search indexes.
@@ -42,7 +42,7 @@ impl Plugin for EntityPlugin {
         // despawned post-update (done by this plugin)
         app.add_systems(
             PostUpdate,
-            indexing::remove_despawned_entities_from_indexes.in_set(EntityUpdateSet::Deindex),
+            indexing::remove_despawned_entities_from_indexes.in_set(EntityUpdateSystems::Deindex),
         )
         .add_systems(
             Update,
@@ -52,7 +52,7 @@ impl Plugin for EntityPlugin {
                     indexing::insert_entity_chunk_position,
                 )
                     .chain()
-                    .in_set(EntityUpdateSet::Index),
+                    .in_set(EntityUpdateSystems::Index),
                 (
                     relative_updates::debug_detect_updates_received_on_local_entities,
                     debug_new_entity,
@@ -80,8 +80,9 @@ fn debug_new_entity(query: Query<(Entity, Option<&LocalEntity>), Added<Minecraft
 }
 
 /// System that adds the [`Dead`] marker component if an entity's health is set
-/// to 0 (or less than 0). This will be present if an entity is doing the death
-/// animation.
+/// to 0 (or less than 0).
+///
+/// This will be present if an entity is doing the death animation.
 ///
 /// Entities that are dead cannot be revived.
 pub fn add_dead(mut commands: Commands, query: Query<(Entity, &Health), Changed<Health>>) {
@@ -188,7 +189,9 @@ fn is_trapdoor_useable_as_ladder(
 }
 
 /// A component that lists all the local player entities that have this entity
-/// loaded. If this is empty, the entity will be removed from the ECS.
+/// loaded.
+///
+/// If this is empty, the entity will be removed from the ECS.
 #[derive(Component, Clone, Deref, DerefMut)]
 pub struct LoadedBy(pub HashSet<Entity>);
 
@@ -203,10 +206,13 @@ pub fn apply_clamp_look_direction(mut look_direction: LookDirection) -> LookDire
     look_direction
 }
 
-/// Sets the position of the entity. This doesn't update the cache in
-/// azalea-world, and should only be used within azalea-world!
+/// Sets the position of the entity.
+///
+/// This doesn't update the cache in azalea-world, and should only be used
+/// within azalea-world.
 ///
 /// # Safety
+///
 /// Cached position in the world must be updated.
 #[allow(clippy::type_complexity)]
 pub fn update_bounding_box(

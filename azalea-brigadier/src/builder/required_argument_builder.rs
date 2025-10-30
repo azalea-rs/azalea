@@ -13,8 +13,9 @@ use crate::{
     suggestion::{SuggestionProvider, Suggestions, SuggestionsBuilder},
 };
 
-/// An argument node type. The `T` type parameter is the type of the argument,
-/// which can be anything.
+/// An argument node type.
+///
+/// The `T` type parameter is the type of the argument, which can be anything.
 pub struct Argument<S> {
     pub name: String,
     parser: Arc<dyn ArgumentType + Send + Sync>,

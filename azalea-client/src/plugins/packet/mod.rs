@@ -16,7 +16,7 @@ pub struct PacketPlugin;
 
 pub fn death_event_on_0_health(
     query: Query<(Entity, &Health), Changed<Health>>,
-    mut death_events: EventWriter<DeathEvent>,
+    mut death_events: MessageWriter<DeathEvent>,
 ) {
     for (entity, health) in query.iter() {
         if **health == 0. {
@@ -33,40 +33,25 @@ impl Plugin for PacketPlugin {
         app.add_observer(game::handle_outgoing_packets_observer)
             .add_observer(config::handle_outgoing_packets_observer)
             .add_observer(login::handle_outgoing_packets_observer)
-            .add_systems(
-                Update,
-                (
-                    (
-                        config::handle_outgoing_packets,
-                        game::handle_outgoing_packets,
-                        login::handle_outgoing_packets,
-                    )
-                        .chain(),
-                    death_event_on_0_health.before(death_listener),
-                ),
-            )
-            .add_event::<game::ReceiveGamePacketEvent>()
-            .add_event::<config::ReceiveConfigPacketEvent>()
-            .add_event::<login::ReceiveLoginPacketEvent>()
+            .add_systems(Update, death_event_on_0_health.before(death_listener))
+            .add_message::<game::ReceiveGamePacketEvent>()
+            .add_message::<config::ReceiveConfigPacketEvent>()
+            .add_message::<login::ReceiveLoginPacketEvent>()
             //
-            .add_event::<game::SendPacketEvent>()
-            .add_event::<config::SendConfigPacketEvent>()
-            .add_event::<login::SendLoginPacketEvent>()
-            //
-            .add_event::<game::AddPlayerEvent>()
-            .add_event::<game::RemovePlayerEvent>()
-            .add_event::<game::UpdatePlayerEvent>()
-            .add_event::<ChatReceivedEvent>()
-            .add_event::<game::DeathEvent>()
-            .add_event::<game::KeepAliveEvent>()
-            .add_event::<game::ResourcePackEvent>()
-            .add_event::<game::InstanceLoadedEvent>()
-            .add_event::<login::ReceiveCustomQueryEvent>();
+            .add_message::<game::AddPlayerEvent>()
+            .add_message::<game::RemovePlayerEvent>()
+            .add_message::<game::UpdatePlayerEvent>()
+            .add_message::<ChatReceivedEvent>()
+            .add_message::<game::DeathEvent>()
+            .add_message::<game::KeepAliveEvent>()
+            .add_message::<game::ResourcePackEvent>()
+            .add_message::<game::InstanceLoadedEvent>()
+            .add_message::<login::ReceiveCustomQueryEvent>();
     }
 }
 
-#[macro_export]
-macro_rules! declare_packet_handlers {
+#[doc(hidden)]
+macro_rules! __declare_packet_handlers {
     (
         $packetenum:ident,
         $packetvar:expr,
@@ -82,6 +67,8 @@ macro_rules! declare_packet_handlers {
         }
     };
 }
+
+pub(crate) use __declare_packet_handlers as declare_packet_handlers;
 
 pub(crate) fn as_system<T>(ecs: &mut World, f: impl FnOnce(T::Item<'_, '_>))
 where

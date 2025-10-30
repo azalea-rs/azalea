@@ -367,7 +367,7 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
                 }
             }
 
-            /// Read a packet by its id, ConnectionProtocol, and flow.
+            /// Read a packet by its ID, `ConnectionProtocol`, and flow.
             fn read(
                 id: u32,
                 buf: &mut std::io::Cursor<&[u8]>,
@@ -411,7 +411,7 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
                 }
             }
 
-            /// Read a packet by its id, ConnectionProtocol, and flow.
+            /// Read a packet by its ID, `ConnectionProtocol`, and flow.
             fn read(
                 id: u32,
                 buf: &mut std::io::Cursor<&[u8]>,

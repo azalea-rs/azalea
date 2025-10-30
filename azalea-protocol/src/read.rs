@@ -83,7 +83,7 @@ pub enum FrameSplitterError {
 }
 
 /// Read a length, then read that amount of bytes from the `Cursor<Vec<u8>>`. If
-/// there's not enough data, return None
+/// there's not enough data, `None` is returned.
 fn parse_frame(buffer: &mut Cursor<Vec<u8>>) -> Result<Box<[u8]>, FrameSplitterError> {
     // copy the buffer first and read from the copy, then once we make sure
     // the packet is all good we read it fully
@@ -183,8 +183,10 @@ pub enum DecompressionError {
     AboveCompressionThreshold { size: u32, maximum: u32 },
 }
 
-/// Get the decompressed bytes from a packet. It must have been decrypted
-/// first.
+/// Get the decompressed bytes from a packet.
+///
+/// The stream must have already been decrypted before passing it to this
+/// function.
 pub fn compression_decoder(
     stream: &mut Cursor<&[u8]>,
     compression_threshold: u32,

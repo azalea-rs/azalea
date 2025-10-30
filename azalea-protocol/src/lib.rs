@@ -71,9 +71,11 @@ impl TryFrom<String> for ServerAddress {
 }
 
 impl From<SocketAddr> for ServerAddress {
-    /// Convert an existing `SocketAddr` into a `ServerAddress`. This just
-    /// converts the ip to a string and passes along the port. The resolver
-    /// will realize it's already an IP address and not do any DNS requests.
+    /// Convert an existing `SocketAddr` into a `ServerAddress`.
+    ///
+    /// This just converts the IP to a string and passes along the port. The
+    /// resolver will realize it's already an IP address and not do any DNS
+    /// requests.
     fn from(addr: SocketAddr) -> Self {
         ServerAddress {
             host: addr.ip().to_string(),
@@ -88,8 +90,9 @@ impl Display for ServerAddress {
     }
 }
 
-/// Serde deserialization for ServerAddress. This is useful for config file
-/// usage.
+/// Serde deserialization for ServerAddress.
+///
+/// This is useful if you're storing the server address in a config file.
 impl<'de> serde::Deserialize<'de> for ServerAddress {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -100,8 +103,9 @@ impl<'de> serde::Deserialize<'de> for ServerAddress {
     }
 }
 
-/// Serde serialization for ServerAddress. This uses the Display impl, so it
-/// will serialize to a string.
+/// Serde serialization for ServerAddress.
+///
+/// This uses the Display impl, so it will serialize to a string.
 impl serde::Serialize for ServerAddress {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where

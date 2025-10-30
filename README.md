@@ -10,21 +10,21 @@ A collection of Rust crates for making Minecraft bots, clients, and tools.
 
 <!-- The line below is automatically read and updated by the migrate script, so don't change it manually. -->
 
-_Currently supported Minecraft version: `1.21.8`._
+_Currently supported Minecraft version: `1.21.10`._
 
 > [!WARNING]
-> Azalea is still unfinished, though most crates are in a useable state.
+> Many parts of Azalea are still unfinished and will receive breaking changes in the future. Most breaking changes will be listed in the [changelog](CHANGELOG.md).
 
 ## Features
 
--   [Accurate physics](https://github.com/azalea-rs/azalea/blob/main/azalea-physics/src/lib.rs) (but some features like entity pushing and elytras aren't implemented yet)
--   [Pathfinder](https://azalea.matdoes.dev/azalea/pathfinder/index.html)
--   [Swarms](https://azalea.matdoes.dev/azalea/swarm/index.html)
--   [Breaking blocks](https://azalea.matdoes.dev/azalea/struct.Client.html#method.mine)
--   [Block interactions & building](https://azalea.matdoes.dev/azalea/struct.Client.html#method.block_interact) (this doesn't predict the block interactions/placement on the client yet, but it's usually fine)
--   [Inventories](https://azalea.matdoes.dev/azalea/struct.Client.html#impl-ContainerClientExt-for-Client)
--   [Attacking entities](https://azalea.matdoes.dev/azalea/struct.Client.html#method.attack)
--   [Plugins](#plugins)
+- [Accurate physics](https://github.com/azalea-rs/azalea/blob/main/azalea-physics/src/lib.rs) (but some features like entity pushing and elytras aren't implemented yet)
+- [Pathfinder](https://azalea.matdoes.dev/azalea/pathfinder/index.html)
+- [Swarms](https://azalea.matdoes.dev/azalea/swarm/index.html)
+- [Breaking blocks](https://azalea.matdoes.dev/azalea/struct.Client.html#method.mine)
+- [Block interactions & building](https://azalea.matdoes.dev/azalea/struct.Client.html#method.block_interact) (this doesn't predict the block interactions/placement on the client yet, but it's usually fine)
+- [Inventories](https://azalea.matdoes.dev/azalea/struct.Client.html#impl-ContainerClientExt-for-Client)
+- [Attacking entities](https://azalea.matdoes.dev/azalea/struct.Client.html#method.attack)
+- [Plugins](#plugins)
 
 ## Docs
 
@@ -36,28 +36,28 @@ If you'd like to chat about Azalea, you can join the Matrix space at [#azalea:ma
 
 ## Goals
 
--   Do everything a vanilla client can do.
--   Be intuitive and easy to use.
--   Make it easy to have many bots working at the same time.
--   Don't trigger anticheats.
--   Support the latest Minecraft version.
--   Be fast and memory efficient.
+- Do everything a vanilla client can do.
+- Be intuitive and easy to use.
+- Make it easy to have many bots working at the same time.
+- Don't trigger anticheats.
+- Support the latest Minecraft version.
+- Be fast and memory efficient.
 
 ## Non-goals
 
--   Supporting several versions of Minecraft on the same branch[\*](https://github.com/azalea-rs/azalea-viaversion).
--   Bedrock edition.
--   Graphics.
+- Supporting several versions of Minecraft on the same branch[\*](https://github.com/azalea-rs/azalea-viaversion).
+- Bedrock edition.
+- Graphics.
 
 ## Real-world bots using Azalea
 
 Here's an incomplete list of bots built using Azalea, primarily intended as a reference in addition to the existing documentation and examples:
 
--   [ShayBox/ShaysBot](https://github.com/ShayBox/ShaysBot) - Pearl stasis bot featuring a Discord bot, an HTTP API, and more.
--   [EnderKill98/statis-bot](https://github.com/EnderKill98/stasis-bot) - This bot can automatically detect thrown pearls and later walk there and pull them for you.
--   [as1100k/aether](https://github.com/as1100k/aether) - Collection of Minecraft bots and plugins.
--   [mat-1/potato-bot-2](https://github.com/mat-1/potato-bot-2) - Hardened Discord chat bridge created for the LiveOverflow SMP.
--   [ErrorNoInternet/ErrorNoWatcher](https://github.com/ErrorNoInternet/ErrorNoWatcher) - A Minecraft bot with Lua scripting support.
+- [ShayBox/ShaysBot](https://github.com/ShayBox/ShaysBot) - Pearl stasis bot featuring a Discord bot, an HTTP API, and more.
+- [EnderKill98/statis-bot](https://github.com/EnderKill98/stasis-bot) - This bot can automatically detect thrown pearls and later walk there and pull them for you.
+- [as1100k/aether](https://github.com/as1100k/aether) - Collection of Minecraft bots and plugins.
+- [mat-1/potato-bot-2](https://github.com/mat-1/potato-bot-2) - Hardened Discord chat bridge created for the LiveOverflow SMP.
+- [ErrorNoInternet/ErrorNoWatcher](https://github.com/ErrorNoInternet/ErrorNoWatcher) - A Minecraft bot with Lua scripting support.
 
 You can see more projects built with Azalea in the [GitHub dependency graph](https://github.com/azalea-rs/azalea/network/dependents).
 
@@ -65,15 +65,15 @@ You can see more projects built with Azalea in the [GitHub dependency graph](htt
 
 Azalea has support for Bevy plugins, which can significantly alter its functionality. Here are some plugins that you may find useful:
 
--   [azalea-rs/azalea-viaversion](https://github.com/azalea-rs/azalea-viaversion) - Multi-version compatibility for your Azalea bots using ViaProxy.
--   [azalea-rs/azalea-hax](https://github.com/azalea-rs/azalea-hax) - Anti-knockback.
+- [azalea-rs/azalea-viaversion](https://github.com/azalea-rs/azalea-viaversion) - Multi-version compatibility for your Azalea bots using ViaProxy.
+- [azalea-rs/azalea-hax](https://github.com/azalea-rs/azalea-hax) - Anti-knockback.
 
 If you've created your own plugin for Azalea, please create a PR to add it to this list :).
 
 ## FAQ
 
--   There's too many console messages, how do I disable them?
+- There's too many console messages, how do I disable them?
 
-    You can disable all console messages by setting the `RUST_LOG` environment variable to `off`, or you can filter log messages by setting specific log levels. For example, to disable only pathfinding logs, you can set `RUST_LOG=azalea::pathfinder=off`.
-    
-    See the [`env_logger`](https://docs.rs/env_logger/latest/env_logger/) crate documentation for more information.
+  You can disable all console messages by setting the `RUST_LOG` environment variable to `off`, or you can filter log messages by setting specific log levels. For example, to disable only pathfinding logs, you can set `RUST_LOG=azalea::pathfinder=off`.
+
+  See the [`env_logger`](https://docs.rs/env_logger/latest/env_logger/) crate documentation for more information.

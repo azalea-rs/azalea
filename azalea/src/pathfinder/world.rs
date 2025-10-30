@@ -9,6 +9,7 @@ use azalea_core::{
     position::{BlockPos, ChunkPos, ChunkSectionBlockPos, ChunkSectionPos},
 };
 use azalea_physics::collision::BlockWithShape;
+use azalea_registry::{Block, tags};
 use azalea_world::{Instance, palette::PalettedContainer};
 use parking_lot::RwLock;
 
@@ -16,8 +17,9 @@ use super::{mining::MiningCache, rel_block_pos::RelBlockPos};
 
 /// An efficient representation of the world used for the pathfinder.
 pub struct CachedWorld {
-    /// The origin that the [`RelBlockPos`] types will be relative to. This is
-    /// for an optimization that reduces the size of the block positions
+    /// The origin that the [`RelBlockPos`] types will be relative to.
+    ///
+    /// This is for an optimization that reduces the size of the block positions
     /// that are used by the pathfinder.
     origin: BlockPos,
 
@@ -246,8 +248,9 @@ impl CachedWorld {
         passable
     }
 
-    /// Get the block state at the given position. This is relatively slow, so
-    /// you should avoid it whenever possible.
+    /// Get the block state at the given position.
+    ///
+    /// This is relatively slow, so you should avoid it whenever possible.
     pub fn get_block_state(&self, pos: RelBlockPos) -> BlockState {
         self.get_block_state_at_pos(pos.apply(self.origin))
     }
@@ -303,8 +306,9 @@ impl CachedWorld {
         solid
     }
 
-    /// Returns how much it costs to break this block. Returns 0 if the block is
-    /// already passable.
+    /// Returns how much it costs to break this block.
+    ///
+    /// Returns 0 if the block is already passable.
     pub fn cost_for_breaking_block(&self, pos: RelBlockPos, mining_cache: &MiningCache) -> f32 {
         // SAFETY: pathfinding is single-threaded
         let cached_mining_costs = unsafe { &mut *self.cached_mining_costs.get() };
@@ -477,8 +481,10 @@ impl CachedWorld {
             + self.cost_for_breaking_block(pos.up(1), mining_cache)
     }
 
-    /// Whether we can stand in this position. Checks if the block below is
-    /// solid, and that the two blocks above that are passable.
+    /// Whether we can stand in this position.
+    ///
+    /// Checks if the block below is solid, and that the two blocks above that
+    /// are passable.
     pub fn is_standable(&self, pos: RelBlockPos) -> bool {
         self.is_standable_at_block_pos(pos.apply(self.origin))
     }
@@ -513,50 +519,48 @@ impl CachedWorld {
     }
 }
 
-/// whether this block is passable
-pub fn is_block_state_passable(block: BlockState) -> bool {
+/// Whether our client could pass through this block.
+pub fn is_block_state_passable(block_state: BlockState) -> bool {
     // i already tried optimizing this by having it cache in an IntMap/FxHashMap but
     // it wasn't measurably faster
 
-    if block.is_air() {
+    if block_state.is_air() {
         // fast path
         return true;
     }
-    if !block.is_collision_shape_empty() {
+    if !block_state.is_collision_shape_empty() {
         return false;
     }
-    let registry_block = azalea_registry::Block::from(block);
-    if registry_block == azalea_registry::Block::Water {
+    let registry_block = Block::from(block_state);
+    if registry_block == Block::Water {
         return false;
     }
-    if block
+    if block_state
         .property::<azalea_block::properties::Waterlogged>()
         .unwrap_or_default()
     {
         return false;
     }
-    if registry_block == azalea_registry::Block::Lava {
+    if registry_block == Block::Lava {
         return false;
     }
     // block.waterlogged currently doesn't account for seagrass and some other water
     // blocks
-    if block == azalea_registry::Block::Seagrass.into() {
+    if block_state == Block::Seagrass.into() {
         return false;
     }
 
     // don't walk into fire
-    if registry_block == azalea_registry::Block::Fire
-        || registry_block == azalea_registry::Block::SoulFire
-    {
+    if registry_block == Block::Fire || registry_block == Block::SoulFire {
         return false;
     }
 
-    if registry_block == azalea_registry::Block::PowderSnow {
+    if registry_block == Block::PowderSnow {
         // we can't jump out of powder snow
         return false;
     }
 
-    if registry_block == azalea_registry::Block::SweetBerryBush {
+    if registry_block == Block::SweetBerryBush {
         // these hurt us
         return false;
     }
@@ -564,45 +568,44 @@ pub fn is_block_state_passable(block: BlockState) -> bool {
     true
 }
 
-/// whether this block has a solid hitbox at the top (i.e. we can stand on it
-/// and do parkour from it)
-pub fn is_block_state_solid(block: BlockState) -> bool {
-    if block.is_air() {
+/// Whether this block has a solid hitbox at the top (i.e. we can stand on it
+/// and do parkour from it).
+#[inline]
+pub fn is_block_state_solid(block_state: BlockState) -> bool {
+    if block_state.is_air() {
         // fast path
         return false;
     }
-    if block.is_collision_shape_full() {
+    if block_state.is_collision_shape_full() {
         return true;
     }
 
     if matches!(
-        block.property::<properties::Type>(),
+        block_state.property::<properties::Type>(),
         Some(properties::Type::Top | properties::Type::Double)
     ) {
         // top slabs
         return true;
     }
 
+    let block = Block::from(block_state);
+    // solid enough
+    if matches!(block, Block::DirtPath | Block::Farmland) {
+        return true;
+    }
+
     false
 }
 
-pub fn is_block_state_standable(block: BlockState) -> bool {
-    if block.is_air() {
-        // fast path
-        return false;
-    }
-    if block.is_collision_shape_full() {
+/// Whether we can stand on this block (but not necessarily do parkour jumps
+/// from it).
+pub fn is_block_state_standable(block_state: BlockState) -> bool {
+    if is_block_state_solid(block_state) {
         return true;
     }
 
-    let registry_block = azalea_registry::Block::from(block);
-    if azalea_registry::tags::blocks::SLABS.contains(&registry_block)
-        || azalea_registry::tags::blocks::STAIRS.contains(&registry_block)
-    {
-        return true;
-    }
-
-    if registry_block == azalea_registry::Block::DirtPath {
+    let block = Block::from(block_state);
+    if tags::blocks::SLABS.contains(&block) || tags::blocks::STAIRS.contains(&block) {
         return true;
     }
 
@@ -611,7 +614,6 @@ pub fn is_block_state_standable(block: BlockState) -> bool {
 
 #[cfg(test)]
 mod tests {
-
     use azalea_world::{Chunk, ChunkStorage, PartialInstance};
 
     use super::*;
@@ -624,11 +626,9 @@ mod tests {
         partial_world
             .chunks
             .set(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()), &mut world);
-        partial_world.chunks.set_block_state(
-            BlockPos::new(0, 0, 0),
-            azalea_registry::Block::Stone.into(),
-            &world,
-        );
+        partial_world
+            .chunks
+            .set_block_state(BlockPos::new(0, 0, 0), Block::Stone.into(), &world);
         partial_world
             .chunks
             .set_block_state(BlockPos::new(0, 1, 0), BlockState::AIR, &world);
@@ -645,11 +645,9 @@ mod tests {
         partial_world
             .chunks
             .set(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()), &mut world);
-        partial_world.chunks.set_block_state(
-            BlockPos::new(0, 0, 0),
-            azalea_registry::Block::Stone.into(),
-            &world,
-        );
+        partial_world
+            .chunks
+            .set_block_state(BlockPos::new(0, 0, 0), Block::Stone.into(), &world);
         partial_world
             .chunks
             .set_block_state(BlockPos::new(0, 1, 0), BlockState::AIR, &world);
@@ -666,11 +664,9 @@ mod tests {
         partial_world
             .chunks
             .set(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()), &mut world);
-        partial_world.chunks.set_block_state(
-            BlockPos::new(0, 0, 0),
-            azalea_registry::Block::Stone.into(),
-            &world,
-        );
+        partial_world
+            .chunks
+            .set_block_state(BlockPos::new(0, 0, 0), Block::Stone.into(), &world);
         partial_world
             .chunks
             .set_block_state(BlockPos::new(0, 1, 0), BlockState::AIR, &world);

@@ -151,14 +151,14 @@ impl<S: PalletedContainerKind> PalettedContainer<S> {
         })
     }
 
-    /// Calculates the index of the given coordinates.
-    pub fn index_from_coords(&self, pos: S::SectionPos) -> usize {
+    /// Calculates the index of the given position.
+    pub fn index_from_pos(&self, pos: S::SectionPos) -> usize {
         let size_bits = S::size_bits();
         let (x, y, z) = pos.coords();
         (((y << size_bits) | z) << size_bits) | x
     }
 
-    pub fn coords_from_index(&self, index: usize) -> S::SectionPos {
+    pub fn pos_from_index(&self, index: usize) -> S::SectionPos {
         let size_bits = S::size_bits();
         let mask = (1 << size_bits) - 1;
         S::SectionPos::new(
@@ -173,8 +173,8 @@ impl<S: PalletedContainerKind> PalettedContainer<S> {
     /// # Panics
     ///
     /// This function panics if the index is greater than or equal to the number
-    /// of things in the storage. (So for block states, it must be less than
-    /// 4096).
+    /// of things in the storage. For example, for block states, it must be less
+    /// than 4096.
     pub fn get_at_index(&self, index: usize) -> S {
         // first get the palette id
         let paletted_value = self.storage.get(index);
@@ -182,32 +182,30 @@ impl<S: PalletedContainerKind> PalettedContainer<S> {
         self.palette.value_for(paletted_value as usize)
     }
 
-    /// Returns the value at the given coordinates.
+    /// Returns the value at the given position.
     pub fn get(&self, pos: S::SectionPos) -> S {
-        // let paletted_value = self.storage.get(self.get_index(x, y, z));
-        // self.palette.value_for(paletted_value as usize)
-        self.get_at_index(self.index_from_coords(pos))
+        self.get_at_index(self.index_from_pos(pos))
     }
 
-    /// Sets the id at the given coordinates and return the previous id
+    /// Sets the ID at the given position and return the previous ID.
     pub fn get_and_set(&mut self, pos: S::SectionPos, value: S) -> S {
         let paletted_value = self.id_for(value);
         let old_paletted_value = self
             .storage
-            .get_and_set(self.index_from_coords(pos), paletted_value as u64);
+            .get_and_set(self.index_from_pos(pos), paletted_value as u64);
         self.palette.value_for(old_paletted_value as usize)
     }
 
-    /// Sets the id at the given index and return the previous id. You probably
+    /// Sets the ID at the given index and return the previous ID. You probably
     /// want `.set` instead.
     pub fn set_at_index(&mut self, index: usize, value: S) {
         let paletted_value = self.id_for(value);
         self.storage.set(index, paletted_value as u64);
     }
 
-    /// Sets the id at the given coordinates and return the previous id
+    /// Sets the ID at the given position and return the previous ID.
     pub fn set(&mut self, pos: S::SectionPos, value: S) {
-        self.set_at_index(self.index_from_coords(pos), value);
+        self.set_at_index(self.index_from_pos(pos), value);
     }
 
     fn create_or_reuse_data(&self, bits_per_entry: u8) -> PalettedContainer<S> {

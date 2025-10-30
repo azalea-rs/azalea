@@ -1,3 +1,5 @@
+mod profile;
+
 use core::f64;
 use std::{
     any::Any,
@@ -21,10 +23,10 @@ use azalea_registry::{
     self as registry, Attribute, Block, DamageKind, DataComponentKind, Enchantment, EntityKind,
     Holder, HolderSet, Item, MobEffect, Potion, SoundEvent, TrimMaterial, TrimPattern,
 };
+pub use profile::*;
 use serde::{Serialize, ser::SerializeMap};
 use simdnbt::owned::{Nbt, NbtCompound};
 use tracing::trace;
-use uuid::Uuid;
 
 use crate::{ItemStack, item::consume_effect::ConsumeEffect};
 
@@ -701,7 +703,7 @@ pub struct SuspiciousStewEffects {
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct WritableBookContent {
-    pub pages: Vec<String>,
+    pub pages: Vec<Filterable<String>>,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Serialize)]
@@ -731,9 +733,11 @@ pub struct DebugStickState {
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
-#[serde(transparent)]
 pub struct EntityData {
-    pub entity: NbtCompound,
+    #[serde(rename = "id")]
+    pub kind: EntityKind,
+    #[serde(flatten)]
+    pub data: NbtCompound,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -743,9 +747,11 @@ pub struct BucketEntityData {
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
-#[serde(transparent)]
 pub struct BlockEntityData {
-    pub entity: NbtCompound,
+    #[serde(rename = "id")]
+    pub kind: EntityKind,
+    #[serde(flatten)]
+    pub data: NbtCompound,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -828,25 +834,6 @@ impl Default for Fireworks {
     fn default() -> Self {
         Self::new()
     }
-}
-
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
-pub struct GameProfileProperty {
-    pub name: String,
-    pub value: String,
-    #[serde(skip_serializing_if = "is_default")]
-    pub signature: Option<String>,
-}
-
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
-pub struct Profile {
-    #[serde(skip_serializing_if = "is_default")]
-    pub name: Option<String>,
-    #[serde(skip_serializing_if = "is_default")]
-    #[serde(serialize_with = "azalea_core::codec_utils::uuid")]
-    pub id: Option<Uuid>,
-    #[serde(skip_serializing_if = "is_default")]
-    pub properties: Vec<GameProfileProperty>,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]

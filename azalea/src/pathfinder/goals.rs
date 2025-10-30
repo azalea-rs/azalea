@@ -223,9 +223,17 @@ impl Goal for ReachBlockPosGoal {
         BlockPosGoal(self.pos).heuristic(n)
     }
     fn success(&self, n: BlockPos) -> bool {
-        if n.up(1) == self.pos {
-            // our head is in the block, assume it's always reachable (to reduce the amount
-            // of impossible goals)
+        let head = n.up(1);
+        // the player's head is in the block or adjacent to it, so assume that it's
+        // always reachable (we do this to account for mining)
+        if head == self.pos
+            || head.north(1) == self.pos
+            || head.south(1) == self.pos
+            || head.east(1) == self.pos
+            || head.west(1) == self.pos
+            || head.up(1) == self.pos
+            || head.down(1) == self.pos
+        {
             return true;
         }
 
@@ -236,7 +244,7 @@ impl Goal for ReachBlockPosGoal {
         }
 
         let eye_position = n.center_bottom().up(1.62);
-        let look_direction = crate::direction_looking_at(eye_position, self.pos.center());
+        let look_direction = crate::bot::direction_looking_at(eye_position, self.pos.center());
         let block_hit_result = azalea_client::interact::pick::pick_block(
             look_direction,
             eye_position,

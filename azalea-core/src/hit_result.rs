@@ -43,12 +43,21 @@ impl HitResult {
         matches!(self, HitResult::Block(r) if !r.miss)
     }
 
-    /// Returns the [`BlockHitResult`], if we were looking at a block and it
-    /// wasn't a miss.
+    /// Returns the [`BlockHitResult`], if we were looking at a block.
     pub fn as_block_hit_result_if_not_miss(&self) -> Option<&BlockHitResult> {
         if let HitResult::Block(r) = self
             && !r.miss
         {
+            Some(r)
+        } else {
+            None
+        }
+    }
+
+    /// Returns the [`EntityHitResult`], if we were looking at an entity and it
+    /// wasn't a miss.
+    pub fn as_entity_hit_result(&self) -> Option<&EntityHitResult> {
+        if let HitResult::Entity(r) = self {
             Some(r)
         } else {
             None

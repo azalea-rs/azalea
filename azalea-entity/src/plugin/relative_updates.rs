@@ -54,6 +54,7 @@ impl RelativeEntityUpdate {
 }
 
 /// A component that counts the number of times this entity has been modified.
+///
 /// This is used for making sure two clients don't do the same relative update
 /// on an entity.
 ///
@@ -102,15 +103,12 @@ impl EntityCommand for RelativeEntityUpdate {
     }
 }
 
-/// The [`UpdatesReceived`] component should never be on [`LocalEntity`]
-/// entities. This warns if an entity has both components.
+/// A system that logs a warning if an entity has both [`UpdatesReceived`]
+/// and [`LocalEntity`].
 pub fn debug_detect_updates_received_on_local_entities(
     query: Query<Entity, (With<LocalEntity>, With<UpdatesReceived>)>,
 ) {
     for entity in &query {
-        warn!(
-            "Entity {:?} has both LocalEntity and UpdatesReceived",
-            entity
-        );
+        warn!("Entity {entity:?} has both LocalEntity and UpdatesReceived");
     }
 }
