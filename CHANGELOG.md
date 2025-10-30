@@ -28,6 +28,7 @@ is breaking anyways, semantic versioning is not followed.
 - The wrong path was temporarily executed if we received a `GotoEvent` while the path that's being executed was more than 50 nodes long.
 - The pathfinder can now jump from dirt path and farmland blocks correctly.
 - Don't panic when receiving an unexpected `PathFoundEvent`. (@Hiradpi)
+- Don't panic when the `LocalPlayerEvents` component is missing. (@suprohub)
 - The pathfinder sometimes got stuck when going up stairs that are facing the wrong direction.
 - ReachBlockPosGoal had the wrong cost when the destination is surrounded in blocks.
 - Some parkour movements had the wrong costs.
@@ -93,7 +94,6 @@ is breaking anyways, semantic versioning is not followed.
 - Fix `is_valid_id` on registries incorrectly returning true for values equal to the length.
 - Fix outdated implementation for the `ClientboundMerchantOffers` packet.
 - Fix compilation with new dependency versions. (@ShayBox)
-- Don't panic when the `LocalPlayerEvents` component is missing. (@suprohub)
 
 ## [0.13.0+mc1.21.5] - 2025-06-15
 
