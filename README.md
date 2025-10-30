@@ -70,6 +70,10 @@ Azalea has support for Bevy plugins, which can significantly alter its functiona
 
 If you've created your own plugin for Azalea, please create a PR to add it to this list :).
 
+## Funding
+
+Azalea is currently maintained primarily by one person (mat) as a hobby project. If you appreciate Azalea, consider [donating on Ko-fi](https://ko-fi.com/matdoesdev).
+
 ## FAQ
 
 - There's too many console messages, how do I disable them?
