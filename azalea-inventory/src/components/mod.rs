@@ -285,6 +285,12 @@ define_data_components!(
     CatCollar,
     SheepColor,
     ShulkerColor,
+    UseEffects,
+    MinimumAttackCharge,
+    DamageType,
+    PiercingWeapon,
+    KineticWeapon,
+    SwingAnimation,
 );
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -1464,4 +1470,34 @@ pub enum ChickenVariant {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct ChickenVariantData {
     pub registry: azalea_registry::ChickenVariant,
+}
+
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+pub struct UseEffects {
+    pub todo: todo!(), // see DataComponents.java
+}
+
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+pub struct MinimumAttackCharge {
+    pub todo: todo!(), // see DataComponents.java
+}
+
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+pub struct DamageType {
+    pub todo: todo!(), // see DataComponents.java
+}
+
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+pub struct PiercingWeapon {
+    pub todo: todo!(), // see DataComponents.java
+}
+
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+pub struct KineticWeapon {
+    pub todo: todo!(), // see DataComponents.java
+}
+
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+pub struct SwingAnimation {
+    pub todo: todo!(), // see DataComponents.java
 }
