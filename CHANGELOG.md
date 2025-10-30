@@ -12,6 +12,7 @@ is breaking anyways, semantic versioning is not followed.
 
 - Add `Client::query_entity` and `try_query_entity` to complement `query_self`.
 - Add `Client::entity_interact` and `EntityInteractEvent` to interact with entities without checking that they're in the crosshair.
+- Implement initial support for mob effects, including jump boost, haste, conduit power, and mining fatigue. (@ShayBox)
 
 ### Changed
 
@@ -21,7 +22,6 @@ is breaking anyways, semantic versioning is not followed.
 - Rename `SendPacketEvent` to `SendGamePacketEvent` and `PingEvent` to `GamePingEvent`.
 - Swap the order of the type parameters in entity filtering functions so query is first, then filter.
 - Add optional `timeout_ticks` field to `Client::open_container_at`.
-- Implement initial support for mob effects, including jump boost, haste, conduit power, and mining fatigue. (@ShayBox)
 
 ### Fixed
 
@@ -93,6 +93,7 @@ is breaking anyways, semantic versioning is not followed.
 - Fix `is_valid_id` on registries incorrectly returning true for values equal to the length.
 - Fix outdated implementation for the `ClientboundMerchantOffers` packet.
 - Fix compilation with new dependency versions. (@ShayBox)
+- Don't panic when the `LocalPlayerEvents` component is missing. (@suprohub)
 
 ## [0.13.0+mc1.21.5] - 2025-06-15
 
