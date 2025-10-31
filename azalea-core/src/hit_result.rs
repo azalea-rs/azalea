@@ -15,20 +15,23 @@ pub enum HitResult {
 
 #[cfg(feature = "bevy_ecs")]
 impl HitResult {
-    pub fn miss(&self) -> bool {
+    #[must_use]
+    pub const fn miss(&self) -> bool {
         match self {
             HitResult::Block(r) => r.miss,
             _ => false,
         }
     }
-    pub fn location(&self) -> Vec3 {
+    #[must_use]
+    pub const fn location(&self) -> Vec3 {
         match self {
             HitResult::Block(r) => r.location,
             HitResult::Entity(r) => r.location,
         }
     }
 
-    pub fn new_miss(location: Vec3, direction: Direction, block_pos: BlockPos) -> Self {
+    #[must_use]
+    pub const fn new_miss(location: Vec3, direction: Direction, block_pos: BlockPos) -> Self {
         HitResult::Block(BlockHitResult {
             location,
             miss: true,
@@ -39,12 +42,14 @@ impl HitResult {
         })
     }
 
-    pub fn is_block_hit_and_not_miss(&self) -> bool {
+    #[must_use]
+    pub const fn is_block_hit_and_not_miss(&self) -> bool {
         matches!(self, HitResult::Block(r) if !r.miss)
     }
 
     /// Returns the [`BlockHitResult`], if we were looking at a block.
-    pub fn as_block_hit_result_if_not_miss(&self) -> Option<&BlockHitResult> {
+    #[must_use]
+    pub const fn as_block_hit_result_if_not_miss(&self) -> Option<&BlockHitResult> {
         if let HitResult::Block(r) = self
             && !r.miss
         {
@@ -56,7 +61,8 @@ impl HitResult {
 
     /// Returns the [`EntityHitResult`], if we were looking at an entity and it
     /// wasn't a miss.
-    pub fn as_entity_hit_result(&self) -> Option<&EntityHitResult> {
+    #[must_use]
+    pub const fn as_entity_hit_result(&self) -> Option<&EntityHitResult> {
         if let HitResult::Entity(r) = self {
             Some(r)
         } else {
@@ -76,7 +82,8 @@ pub struct BlockHitResult {
     pub world_border: bool,
 }
 impl BlockHitResult {
-    pub fn miss(location: Vec3, direction: Direction, block_pos: BlockPos) -> Self {
+    #[must_use]
+    pub const fn miss(location: Vec3, direction: Direction, block_pos: BlockPos) -> Self {
         Self {
             location,
             miss: true,
@@ -88,10 +95,12 @@ impl BlockHitResult {
         }
     }
 
-    pub fn with_direction(&self, direction: Direction) -> Self {
+    #[must_use]
+    pub const fn with_direction(&self, direction: Direction) -> Self {
         Self { direction, ..*self }
     }
-    pub fn with_position(&self, block_pos: BlockPos) -> Self {
+    #[must_use]
+    pub const fn with_position(&self, block_pos: BlockPos) -> Self {
         Self { block_pos, ..*self }
     }
 }

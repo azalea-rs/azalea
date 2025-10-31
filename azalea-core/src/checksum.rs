@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, fmt, hash::Hasher};
+use std::{cmp::Ordering, fmt, hash::Hasher as _};
 
 use azalea_buf::AzBuf;
 use crc32c::Crc32cHasher;
@@ -15,7 +15,7 @@ pub struct ChecksumSerializer<'a, 'r> {
     hasher: &'a mut Crc32cHasher,
     registries: &'r RegistryHolder,
 }
-impl<'a, 'r> ChecksumSerializer<'a, 'r> {
+impl ChecksumSerializer<'_, '_> {
     pub fn checksum(&mut self) -> Checksum {
         Checksum(self.hasher.finish() as u32)
     }
@@ -208,10 +208,7 @@ impl<'a, 'r> ser::Serializer for ChecksumSerializer<'a, 'r> {
             return Ok(());
         }
 
-        value.serialize(ChecksumSerializer {
-            hasher: self.hasher,
-            registries: self.registries,
-        })
+        value.serialize(self)
     }
 
     fn serialize_seq(self, len: Option<usize>) -> Result<Self::SerializeSeq> {
@@ -295,7 +292,7 @@ pub struct ChecksumListSerializer<'a, 'r> {
     /// before creating the list serializer.
     list_kind: ListKind,
 }
-impl<'a, 'r> ser::SerializeSeq for ChecksumListSerializer<'a, 'r> {
+impl ser::SerializeSeq for ChecksumListSerializer<'_, '_> {
     type Ok = ();
     type Error = ChecksumError;
 
@@ -344,7 +341,7 @@ enum ListKind {
     Long,
 }
 
-impl<'a, 'r> ser::SerializeTuple for ChecksumListSerializer<'a, 'r> {
+impl ser::SerializeTuple for ChecksumListSerializer<'_, '_> {
     type Ok = ();
     type Error = ChecksumError;
 
@@ -359,7 +356,7 @@ impl<'a, 'r> ser::SerializeTuple for ChecksumListSerializer<'a, 'r> {
         ser::SerializeSeq::end(self)
     }
 }
-impl<'a, 'r> ser::SerializeTupleStruct for ChecksumListSerializer<'a, 'r> {
+impl ser::SerializeTupleStruct for ChecksumListSerializer<'_, '_> {
     type Ok = ();
     type Error = ChecksumError;
 
@@ -382,7 +379,7 @@ pub struct ChecksumMapSerializer<'a, 'r> {
     // we have to keep track of the elements like this because they're sorted at the end
     entries: Vec<(Checksum, Checksum)>,
 }
-impl<'a, 'r> ser::SerializeMap for ChecksumMapSerializer<'a, 'r> {
+impl ser::SerializeMap for ChecksumMapSerializer<'_, '_> {
     type Ok = ();
     type Error = ChecksumError;
 
@@ -417,7 +414,7 @@ impl<'a, 'r> ser::SerializeMap for ChecksumMapSerializer<'a, 'r> {
         Ok(())
     }
 }
-impl<'a, 'r> ser::SerializeTupleVariant for ChecksumMapSerializer<'a, 'r> {
+impl ser::SerializeTupleVariant for ChecksumMapSerializer<'_, '_> {
     type Ok = ();
     type Error = ChecksumError;
 
@@ -435,7 +432,7 @@ impl<'a, 'r> ser::SerializeTupleVariant for ChecksumMapSerializer<'a, 'r> {
         Ok(())
     }
 }
-impl<'a, 'r> ser::SerializeStruct for ChecksumMapSerializer<'a, 'r> {
+impl ser::SerializeStruct for ChecksumMapSerializer<'_, '_> {
     type Ok = ();
     type Error = ChecksumError;
 
@@ -456,7 +453,7 @@ impl<'a, 'r> ser::SerializeStruct for ChecksumMapSerializer<'a, 'r> {
         Ok(())
     }
 }
-impl<'a, 'r> ser::SerializeStructVariant for ChecksumMapSerializer<'a, 'r> {
+impl ser::SerializeStructVariant for ChecksumMapSerializer<'_, '_> {
     type Ok = ();
     type Error = ChecksumError;
 

@@ -1,8 +1,8 @@
 //! Some functions that are useful to have when implementing
 //! `Serialize`/`Deserialize`, which Azalea uses to imitate Minecraft codecs.
 
-use azalea_buf::SerializableUuid;
-use serde::{Serialize, Serializer, ser::SerializeTupleStruct};
+use azalea_buf::SerializableUuid as _;
+use serde::{Serialize, Serializer, ser::SerializeTupleStruct as _};
 use uuid::Uuid;
 
 /// Intended to be used for skipping serialization if the value is the default.
@@ -19,7 +19,8 @@ pub fn is_default<T: Default + PartialEq>(t: &T) -> bool {
 /// ```no_run
 /// #[serde(skip_serializing_if = "is_true")]
 /// ```
-pub fn is_true(t: &bool) -> bool {
+#[must_use]
+pub const fn is_true(t: &bool) -> bool {
     *t
 }
 
@@ -36,7 +37,7 @@ pub fn flatten_array<S: Serializer, T: Serialize>(x: &Vec<T>, s: S) -> Result<S:
     }
 }
 
-/// Minecraft writes UUIDs as an IntArray<4>
+/// Minecraft writes UUIDs as an `IntArray`<4>
 pub fn uuid<'a, S: Serializer>(
     uuid: impl Into<&'a Option<Uuid>>,
     serializer: S,

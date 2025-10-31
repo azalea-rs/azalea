@@ -787,7 +787,7 @@ pub struct Recipes {
     pub recipes: Vec<ResourceLocation>,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(Clone, PartialEq, Eq, AzBuf, Debug, Serialize)]
 pub struct LodestoneTracker {
     #[serde(skip_serializing_if = "is_default")]
     pub target: Option<GlobalPos>,

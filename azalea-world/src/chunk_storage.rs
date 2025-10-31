@@ -148,7 +148,7 @@ impl PartialChunkStorage {
     }
 
     #[must_use]
-    pub fn chunk_pos_from_index(&self, index: usize) -> ChunkPos {
+    pub const fn chunk_pos_from_index(&self, index: usize) -> ChunkPos {
         let view_range = self.view_range as i32;
 
         // find the base from the view center

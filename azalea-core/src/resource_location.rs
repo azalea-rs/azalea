@@ -20,6 +20,7 @@ static DEFAULT_NAMESPACE: &str = "minecraft";
 // static REALMS_NAMESPACE: &str = "realms";
 
 impl ResourceLocation {
+    #[must_use]
     pub fn new(resource_string: &str) -> ResourceLocation {
         let sep_byte_position_option = resource_string.chars().position(|c| c == ':');
         let (namespace, path) = if let Some(sep_byte_position) = sep_byte_position_option {
@@ -35,8 +36,8 @@ impl ResourceLocation {
             (DEFAULT_NAMESPACE, resource_string)
         };
         ResourceLocation {
-            namespace: namespace.to_string(),
-            path: path.to_string(),
+            namespace: namespace.to_owned(),
+            path: path.to_owned(),
         }
     }
 }
@@ -104,7 +105,8 @@ impl<'de> Deserialize<'de> for ResourceLocation {
 
 impl FromNbtTag for ResourceLocation {
     fn from_nbt_tag(tag: simdnbt::borrow::NbtTag) -> Option<Self> {
-        tag.string().and_then(|s| s.to_str().parse().ok())
+        let s = tag.string()?;
+        s.to_str().parse().ok()
     }
 }
 

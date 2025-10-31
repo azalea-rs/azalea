@@ -24,20 +24,19 @@ impl Direction {
     ];
     pub const VERTICAL: [Direction; 2] = [Direction::Down, Direction::Up];
 
+    #[must_use]
     pub fn nearest(vec: Vec3) -> Direction {
         let mut best_direction = Direction::North;
         let mut best_direction_amount = 0.0;
 
-        for dir in [
+        for dir in &[
             Direction::Down,
             Direction::Up,
             Direction::North,
             Direction::South,
             Direction::West,
             Direction::East,
-        ]
-        .iter()
-        {
+        ] {
             let amount = dir.normal_vec3().dot(vec);
             if amount > best_direction_amount {
                 best_direction = *dir;
@@ -49,7 +48,8 @@ impl Direction {
     }
 
     #[inline]
-    pub fn normal(self) -> BlockPos {
+    #[must_use]
+    pub const fn normal(self) -> BlockPos {
         match self {
             Direction::Down => BlockPos::new(0, -1, 0),
             Direction::Up => BlockPos::new(0, 1, 0),
@@ -61,11 +61,13 @@ impl Direction {
     }
 
     #[inline]
-    pub fn normal_vec3(self) -> Vec3 {
+    #[must_use]
+    pub const fn normal_vec3(self) -> Vec3 {
         self.normal().to_vec3_floored()
     }
 
-    pub fn opposite(self) -> Direction {
+    #[must_use]
+    pub const fn opposite(self) -> Direction {
         match self {
             Direction::Down => Direction::Up,
             Direction::Up => Direction::Down,
@@ -76,20 +78,23 @@ impl Direction {
         }
     }
 
-    pub fn x(self) -> i32 {
+    #[must_use]
+    pub const fn x(self) -> i32 {
         self.normal().x
     }
-    pub fn y(self) -> i32 {
+    #[must_use]
+    pub const fn y(self) -> i32 {
         self.normal().y
     }
-    pub fn z(self) -> i32 {
+    #[must_use]
+    pub const fn z(self) -> i32 {
         self.normal().z
     }
 }
 
 /// The four cardinal directions.
 ///
-/// Note that azalea_block has a similar enum named `FacingCardinal` that is
+/// Note that `azalea_block` has a similar enum named `FacingCardinal` that is
 /// used for block states.
 #[derive(Clone, Copy, Debug, AzBuf, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
 pub enum CardinalDirection {
@@ -116,7 +121,8 @@ pub enum AxisCycle {
 
 impl CardinalDirection {
     #[inline]
-    pub fn x(self) -> i16 {
+    #[must_use]
+    pub const fn x(self) -> i16 {
         match self {
             CardinalDirection::East => 1,
             CardinalDirection::West => -1,
@@ -124,7 +130,8 @@ impl CardinalDirection {
         }
     }
     #[inline]
-    pub fn z(self) -> i16 {
+    #[must_use]
+    pub const fn z(self) -> i16 {
         match self {
             CardinalDirection::South => 1,
             CardinalDirection::North => -1,
@@ -144,7 +151,8 @@ impl CardinalDirection {
     }
 
     #[inline]
-    pub fn right(self) -> CardinalDirection {
+    #[must_use]
+    pub const fn right(self) -> CardinalDirection {
         match self {
             CardinalDirection::North => CardinalDirection::East,
             CardinalDirection::South => CardinalDirection::West,
@@ -153,7 +161,8 @@ impl CardinalDirection {
         }
     }
     #[inline]
-    pub fn left(self) -> CardinalDirection {
+    #[must_use]
+    pub const fn left(self) -> CardinalDirection {
         match self {
             CardinalDirection::North => CardinalDirection::West,
             CardinalDirection::South => CardinalDirection::East,
@@ -184,6 +193,7 @@ impl Axis {
         }
     }
 
+    #[must_use]
     pub fn from_ordinal(ordinal: u32) -> Self {
         match ordinal {
             0 => Axis::X,
@@ -195,6 +205,7 @@ impl Axis {
 }
 
 impl AxisCycle {
+    #[must_use]
     pub fn from_ordinal(ordinal: u32) -> Self {
         match ordinal {
             0 => Self::None,
@@ -203,16 +214,19 @@ impl AxisCycle {
             _ => panic!("invalid ordinal"),
         }
     }
+    #[must_use]
     pub fn between(axis0: Axis, axis1: Axis) -> Self {
         Self::from_ordinal(i32::rem_euclid(axis1 as i32 - axis0 as i32, 3) as u32)
     }
-    pub fn inverse(self) -> Self {
+    #[must_use]
+    pub const fn inverse(self) -> Self {
         match self {
             Self::None => Self::None,
             Self::Forward => Self::Backward,
             Self::Backward => Self::Forward,
         }
     }
+    #[must_use]
     pub fn cycle(self, axis: Axis) -> Axis {
         match self {
             Self::None => axis,
@@ -220,6 +234,7 @@ impl AxisCycle {
             Self::Backward => Axis::from_ordinal(i32::rem_euclid(axis as i32 - 1, 3) as u32),
         }
     }
+    #[must_use]
     pub fn cycle_xyz(self, x: i32, y: i32, z: i32, axis: Axis) -> i32 {
         match self {
             Self::None => axis.choose(x, y, z),

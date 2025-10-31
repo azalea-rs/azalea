@@ -13,7 +13,8 @@ pub struct Cursor3d {
 }
 
 impl Cursor3d {
-    pub fn origin(&self) -> BlockPos {
+    #[must_use]
+    pub const fn origin(&self) -> BlockPos {
         self.origin
     }
 }
@@ -68,6 +69,7 @@ pub struct CursorIteration {
 }
 
 impl Cursor3d {
+    #[must_use]
     pub fn new(origin: BlockPos, end: BlockPos) -> Self {
         let width = (end.x - origin.x + 1)
             .try_into()

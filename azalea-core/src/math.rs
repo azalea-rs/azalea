@@ -10,6 +10,7 @@ pub static SIN: LazyLock<[f32; 65536]> =
     LazyLock::new(|| std::array::from_fn(|i| f64::sin((i as f64) * PI * 2. / 65536.) as f32));
 
 /// A sine function that uses a lookup table.
+#[must_use]
 pub fn sin(x: f32) -> f32 {
     let x = x * 10430.378;
     let x = x as i32 as usize & 0xFFFF;
@@ -17,8 +18,9 @@ pub fn sin(x: f32) -> f32 {
 }
 
 /// A cosine function that uses a lookup table.
+#[must_use]
 pub fn cos(x: f32) -> f32 {
-    let x = x * 10430.378 + 16384.;
+    let x = x.mul_add(10430.378, 16384.);
     let x = x as i32 as usize & 0xFFFF;
     SIN[x]
 }
@@ -45,11 +47,13 @@ pub fn binary_search<
     min
 }
 
-pub fn lcm(a: u32, b: u32) -> u64 {
+#[must_use]
+pub const fn lcm(a: u32, b: u32) -> u64 {
     let gcd = gcd(a, b);
     (a as u64) * (b / gcd) as u64
 }
-pub fn gcd(mut a: u32, mut b: u32) -> u32 {
+#[must_use]
+pub const fn gcd(mut a: u32, mut b: u32) -> u32 {
     while b != 0 {
         let t = b;
         b = a % b;
@@ -62,10 +66,12 @@ pub fn lerp<T: num_traits::Float>(amount: T, a: T, b: T) -> T {
     a + amount * (b - a)
 }
 
-pub fn ceil_log2(x: u32) -> u32 {
+#[must_use]
+pub const fn ceil_log2(x: u32) -> u32 {
     u32::BITS - x.saturating_sub(1).leading_zeros()
 }
 
+#[must_use]
 pub fn fract(x: f64) -> f64 {
     let x_int = x as i64 as f64;
     let floor = if x < x_int { x_int - 1. } else { x_int };
@@ -74,9 +80,11 @@ pub fn fract(x: f64) -> f64 {
 
 // these are copied from the java standard library, we don't calculate the
 // consts ourself to make sure it's the same as java
+#[must_use]
 pub fn to_radians(degrees: f64) -> f64 {
     degrees * 0.017453292519943295
 }
+#[must_use]
 pub fn to_degrees(radians: f64) -> f64 {
     radians * 57.29577951308232
 }
@@ -84,19 +92,23 @@ pub fn to_degrees(radians: f64) -> f64 {
 /// Returns either -1, 0, or 1, depending on whether the number is negative,
 /// zero, or positive.
 ///
-/// This function exists because f64::signum doesn't check for 0.
+/// This function exists because `f64::signum` doesn't check for 0.
+#[must_use]
 pub fn sign(num: f64) -> f64 {
     if num == 0. { 0. } else { num.signum() }
 }
+#[must_use]
 pub fn sign_as_int(num: f64) -> i32 {
     if num == 0. { 0 } else { num.signum() as i32 }
 }
 
+#[must_use]
 pub fn ceil_long(x: f64) -> i64 {
     let x_i64 = x as i64;
     if x > x_i64 as f64 { x_i64 + 1 } else { x_i64 }
 }
 
+#[must_use]
 pub fn equal(a: f64, b: f64) -> bool {
     (b - a).abs() < 1.0e-5
 }

@@ -13,6 +13,7 @@ use std::{
 };
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
+use num_traits::MulAdd as _;
 use serde::{Serialize, Serializer};
 use simdnbt::Deserialize;
 
@@ -22,6 +23,7 @@ use crate::{
 
 macro_rules! vec3_impl {
     ($name:ident, $type:ty) => {
+        #[expect(clippy::missing_const_for_fn)] // bruh clippy bug
         impl $name {
             #[inline]
             pub const fn new(x: $type, y: $type, z: $type) -> Self {
@@ -32,7 +34,8 @@ macro_rules! vec3_impl {
             /// z^2`.
             #[inline]
             pub fn length_squared(&self) -> $type {
-                self.x * self.x + self.y * self.y + self.z * self.z
+                self.z
+                    .mul_add(self.z, self.x.mul_add(self.x, self.y * self.y))
             }
 
             /// Get the squared distance from this position to another position.
@@ -44,7 +47,7 @@ macro_rules! vec3_impl {
 
             #[inline]
             pub fn horizontal_distance_squared(&self) -> $type {
-                self.x * self.x + self.z * self.z
+                self.x.mul_add(self.x, self.z * self.z)
             }
 
             #[inline]
@@ -55,7 +58,7 @@ macro_rules! vec3_impl {
             /// Return a new instance of this position with the y coordinate
             /// decreased by the given number.
             #[inline]
-            pub fn down(&self, y: $type) -> Self {
+            pub const fn down(&self, y: $type) -> Self {
                 Self {
                     x: self.x,
                     y: self.y - y,
@@ -65,7 +68,7 @@ macro_rules! vec3_impl {
             /// Return a new instance of this position with the y coordinate
             /// increased by the given number.
             #[inline]
-            pub fn up(&self, y: $type) -> Self {
+            pub const fn up(&self, y: $type) -> Self {
                 Self {
                     x: self.x,
                     y: self.y + y,
@@ -76,7 +79,7 @@ macro_rules! vec3_impl {
             /// Return a new instance of this position with the z coordinate subtracted
             /// by the given number.
             #[inline]
-            pub fn north(&self, z: $type) -> Self {
+            pub const fn north(&self, z: $type) -> Self {
                 Self {
                     x: self.x,
                     y: self.y,
@@ -86,7 +89,7 @@ macro_rules! vec3_impl {
             /// Return a new instance of this position with the x coordinate increased
             /// by the given number.
             #[inline]
-            pub fn east(&self, x: $type) -> Self {
+            pub const fn east(&self, x: $type) -> Self {
                 Self {
                     x: self.x + x,
                     y: self.y,
@@ -96,7 +99,7 @@ macro_rules! vec3_impl {
             /// Return a new instance of this position with the z coordinate increased
             /// by the given number.
             #[inline]
-            pub fn south(&self, z: $type) -> Self {
+            pub const fn south(&self, z: $type) -> Self {
                 Self {
                     x: self.x,
                     y: self.y,
@@ -106,7 +109,7 @@ macro_rules! vec3_impl {
             /// Return a new instance of this position with the x coordinate subtracted
             /// by the given number.
             #[inline]
-            pub fn west(&self, x: $type) -> Self {
+            pub const fn west(&self, x: $type) -> Self {
                 Self {
                     x: self.x - x,
                     y: self.y,
@@ -116,7 +119,8 @@ macro_rules! vec3_impl {
 
             #[inline]
             pub fn dot(&self, other: Self) -> $type {
-                self.x * other.x + self.y * other.y + self.z * other.z
+                self.z
+                    .mul_add(other.z, self.x.mul_add(other.x, self.y * other.y))
             }
 
             /// Make a new position with the lower coordinates for each axis.
@@ -146,13 +150,13 @@ macro_rules! vec3_impl {
                 }
             }
 
-            pub fn with_x(&self, x: $type) -> Self {
+            pub const fn with_x(&self, x: $type) -> Self {
                 Self { x, ..*self }
             }
-            pub fn with_y(&self, y: $type) -> Self {
+            pub const fn with_y(&self, y: $type) -> Self {
                 Self { y, ..*self }
             }
-            pub fn with_z(&self, z: $type) -> Self {
+            pub const fn with_z(&self, z: $type) -> Self {
                 Self { z, ..*self }
             }
         }
@@ -312,41 +316,50 @@ impl Vec3 {
 
     /// Get the distance of this vector to the origin by doing
     /// `sqrt(x^2 + y^2 + z^2)`.
+    #[must_use]
     pub fn length(&self) -> f64 {
-        f64::sqrt(self.x * self.x + self.y * self.y + self.z * self.z)
+        f64::sqrt(
+            self.z
+                .mul_add(self.z, self.x.mul_add(self.x, self.y * self.y)),
+        )
     }
 
     /// Get the distance from this position to another position.
     /// Equivalent to `(self - other).length()`.
+    #[must_use]
     pub fn distance_to(self, other: Self) -> f64 {
         (self - other).length()
     }
 
+    #[must_use]
     pub fn x_rot(self, radians: f32) -> Vec3 {
         let x_delta = math::cos(radians);
         let y_delta = math::sin(radians);
         let x = self.x;
-        let y = self.y * (x_delta as f64) + self.z * (y_delta as f64);
-        let z = self.z * (x_delta as f64) - self.y * (y_delta as f64);
+        let y = self.y.mul_add(x_delta as f64, self.z * (y_delta as f64));
+        let z = self.z.mul_add(x_delta as f64, -(self.y * (y_delta as f64)));
         Vec3 { x, y, z }
     }
+    #[must_use]
     pub fn y_rot(self, radians: f32) -> Vec3 {
         let x_delta = math::cos(radians);
         let y_delta = math::sin(radians);
-        let x = self.x * (x_delta as f64) + self.z * (y_delta as f64);
+        let x = self.x.mul_add(x_delta as f64, self.z * (y_delta as f64));
         let y = self.y;
-        let z = self.z * (x_delta as f64) - self.x * (y_delta as f64);
+        let z = self.z.mul_add(x_delta as f64, -(self.x * (y_delta as f64)));
         Vec3 { x, y, z }
     }
 
-    pub fn to_block_pos_floor(&self) -> BlockPos {
+    #[must_use]
+    pub const fn to_block_pos_floor(&self) -> BlockPos {
         BlockPos {
             x: self.x.floor() as i32,
             y: self.y.floor() as i32,
             z: self.z.floor() as i32,
         }
     }
-    pub fn to_block_pos_ceil(&self) -> BlockPos {
+    #[must_use]
+    pub const fn to_block_pos_ceil(&self) -> BlockPos {
         BlockPos {
             x: self.x.ceil() as i32,
             y: self.y.ceil() as i32,
@@ -356,6 +369,7 @@ impl Vec3 {
 
     /// Whether the distance between this point and `other` is less than
     /// `range`.
+    #[must_use]
     pub fn closer_than(&self, other: Vec3, range: f64) -> bool {
         self.distance_squared_to(other) < range.powi(2)
     }
@@ -401,6 +415,7 @@ vec3_impl!(BlockPos, i32);
 impl BlockPos {
     /// Get the absolute center of a block position by adding 0.5 to each
     /// coordinate.
+    #[must_use]
     pub fn center(&self) -> Vec3 {
         Vec3 {
             x: self.x as f64 + 0.5,
@@ -411,6 +426,7 @@ impl BlockPos {
 
     /// Get the center of the bottom of a block position by adding 0.5 to the x
     /// and z coordinates.
+    #[must_use]
     pub fn center_bottom(&self) -> Vec3 {
         Vec3 {
             x: self.x as f64 + 0.5,
@@ -420,7 +436,8 @@ impl BlockPos {
     }
 
     /// Convert the block position into a Vec3 without centering it.
-    pub fn to_vec3_floored(&self) -> Vec3 {
+    #[must_use]
+    pub const fn to_vec3_floored(&self) -> Vec3 {
         Vec3 {
             x: self.x as f64,
             y: self.y as f64,
@@ -429,16 +446,19 @@ impl BlockPos {
     }
 
     /// Get the distance of this vector from the origin by doing `x + y + z`.
-    pub fn length_manhattan(&self) -> u32 {
+    #[must_use]
+    pub const fn length_manhattan(&self) -> u32 {
         (self.x.abs() + self.y.abs() + self.z.abs()) as u32
     }
 
+    #[must_use]
     pub fn offset_with_direction(self, direction: Direction) -> Self {
         self + direction.normal()
     }
 
-    /// Get the distance (as an f64) of this BlockPos to the origin by
+    /// Get the distance (as an f64) of this `BlockPos` to the origin by
     /// doing `sqrt(x^2 + y^2 + z^2)`.
+    #[must_use]
     pub fn length(&self) -> f64 {
         f64::sqrt((self.x * self.x + self.y * self.y + self.z * self.z) as f64)
     }
@@ -449,6 +469,7 @@ impl BlockPos {
     /// Note that if you're using this in a hot path, it may be more performant
     /// to use [`BlockPos::distance_squared_to`] instead (by squaring the other
     /// side in the comparison).
+    #[must_use]
     pub fn distance_to(self, other: Self) -> f64 {
         (self - other).length()
     }
@@ -493,7 +514,8 @@ pub struct ChunkPos {
     pub z: i32,
 }
 impl ChunkPos {
-    pub fn new(x: i32, z: i32) -> Self {
+    #[must_use]
+    pub const fn new(x: i32, z: i32) -> Self {
         ChunkPos { x, z }
     }
 }
@@ -557,8 +579,8 @@ impl Hash for ChunkPos {
         u64::from(*self).hash(state);
     }
 }
-/// `nohash_hasher` lets us have IntMap<ChunkPos, _> which is significantly
-/// faster than a normal HashMap
+/// `nohash_hasher` lets us have `IntMap`<`ChunkPos`, _> which is significantly
+/// faster than a normal `HashMap`
 impl nohash_hasher::IsEnabled for ChunkPos {}
 
 /// The coordinates of a chunk section in the world.
@@ -571,7 +593,8 @@ pub struct ChunkSectionPos {
 vec3_impl!(ChunkSectionPos, i32);
 
 impl ChunkSectionPos {
-    pub fn block_to_section_coord(block: i32) -> i32 {
+    #[must_use]
+    pub const fn block_to_section_coord(block: i32) -> i32 {
         block >> 4
     }
 }
@@ -585,7 +608,8 @@ pub struct ChunkBlockPos {
 }
 
 impl ChunkBlockPos {
-    pub fn new(x: u8, y: i32, z: u8) -> Self {
+    #[must_use]
+    pub const fn new(x: u8, y: i32, z: u8) -> Self {
         ChunkBlockPos { x, y, z }
     }
 }
@@ -712,7 +736,7 @@ impl From<ChunkSectionBlockPos> for u16 {
 impl nohash_hasher::IsEnabled for ChunkSectionBlockPos {}
 
 /// A block pos with an attached world
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct GlobalPos {
     // this is actually a ResourceKey in Minecraft, but i don't think it matters?
     pub dimension: ResourceLocation,
@@ -879,10 +903,12 @@ impl Vec2 {
     const ZERO: Vec2 = Vec2 { x: 0.0, y: 0.0 };
 
     #[inline]
-    pub fn new(x: f32, y: f32) -> Self {
+    #[must_use]
+    pub const fn new(x: f32, y: f32) -> Self {
         Vec2 { x, y }
     }
     #[inline]
+    #[must_use]
     pub fn scale(&self, amount: f32) -> Self {
         Vec2 {
             x: self.x * amount,
@@ -890,12 +916,14 @@ impl Vec2 {
         }
     }
     #[inline]
+    #[must_use]
     pub fn dot(&self, other: Vec2) -> f32 {
-        self.x * other.x + self.y * other.y
+        self.x.mul_add(other.x, self.y * other.y)
     }
     #[inline]
+    #[must_use]
     pub fn normalized(&self) -> Self {
-        let length = (self.x * self.x + self.y * self.y).sqrt();
+        let length = self.x.hypot(self.y);
         if length < 1e-4 {
             return Vec2::ZERO;
         }
@@ -905,10 +933,12 @@ impl Vec2 {
         }
     }
     #[inline]
+    #[must_use]
     pub fn length_squared(&self) -> f32 {
-        self.x * self.x + self.y * self.y
+        self.x.mul_add(self.x, self.y * self.y)
     }
     #[inline]
+    #[must_use]
     pub fn length(&self) -> f32 {
         self.length_squared().sqrt()
     }
@@ -1013,7 +1043,7 @@ where
     Ok([x, y, z])
 }
 
-/// Parses a string in the format "X Y Z" into a BlockPos.
+/// Parses a string in the format "X Y Z" into a `BlockPos`.
 ///
 /// The input string should contain three integer values separated by spaces,
 /// representing the x, y, and z components of the vector respectively.
