@@ -16,3 +16,6 @@ syn.workspace = true
 
 [features]
 serde = []
+
+[lints]
+workspace = true
