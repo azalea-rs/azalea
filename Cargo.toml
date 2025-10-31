@@ -112,7 +112,7 @@ azalea-world = { path = "azalea-world", version = "0.14.0" }
 # Remove some commented lints in new ver
 # Or remove some lints at all
 [workspace.lints.rust]
-unsafe_code = "deny"
+unsafe_code = "warn"
 
 # Commented for bevy compat
 # elided_lifetimes_in_paths = "warn"
@@ -336,6 +336,9 @@ trivial_regex = "warn"
 type_repetition_in_bounds = "warn"
 volatile_composites = "warn"
 while_float = "warn"
+
+# Very good but experimental lint, anyway this lint really help
+cognitive_complexity = "warn"
 
 # --- Profile Settings ---
 
