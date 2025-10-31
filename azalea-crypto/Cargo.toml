@@ -6,9 +6,6 @@ edition.workspace = true
 license.workspace = true
 repository.workspace = true
 
-[dev-dependencies]
-criterion.workspace = true
-
 [dependencies]
 aes.workspace = true
 azalea-buf.workspace = true
@@ -20,6 +17,9 @@ rsa_public_encrypt_pkcs1.workspace = true
 sha1.workspace = true
 sha2.workspace = true
 uuid.workspace = true
+
+[dev-dependencies]
+criterion.workspace = true
 
 [lints]
 workspace = true

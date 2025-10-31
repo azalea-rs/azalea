@@ -6,17 +6,17 @@ edition.workspace = true
 license.workspace = true
 repository.workspace = true
 
-[dev-dependencies]
-bevy_app.workspace = true
-bevy_ecs.workspace = true
+[features]
+azalea-buf = ["dep:azalea-buf", "dep:azalea-chat", "azalea-chat/azalea-buf"]
 
 [dependencies]
 azalea-buf = { workspace = true, optional = true }
 azalea-chat = { workspace = true, optional = true }
 parking_lot.workspace = true
 
-[features]
-azalea-buf = ["dep:azalea-buf", "dep:azalea-chat", "azalea-chat/azalea-buf"]
+[dev-dependencies]
+bevy_app.workspace = true
+bevy_ecs.workspace = true
 
 [lints]
 workspace = true

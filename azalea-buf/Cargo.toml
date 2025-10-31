@@ -6,6 +6,9 @@ edition.workspace = true
 license.workspace = true
 repository.workspace = true
 
+[features]
+serde_json = ["dep:serde_json"]
+
 [dependencies]
 azalea-buf-macros.workspace = true
 byteorder.workspace = true
@@ -15,9 +18,6 @@ simdnbt.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
 uuid.workspace = true
-
-[features]
-serde_json = ["dep:serde_json"]
 
 [lints]
 workspace = true

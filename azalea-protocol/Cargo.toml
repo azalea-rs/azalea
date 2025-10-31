@@ -6,10 +6,10 @@ edition.workspace = true
 license.workspace = true
 repository.workspace = true
 
-[dev-dependencies]
-anyhow.workspace = true
-tracing.workspace = true
-tracing-subscriber.workspace = true
+[features]
+connecting = []
+default = ["packets"]
+packets = ["connecting", "dep:azalea-core"]
 
 [dependencies]
 async-recursion.workspace = true
@@ -30,6 +30,8 @@ bevy_ecs.workspace = true
 flate2.workspace = true
 futures.workspace = true
 futures-lite.workspace = true
+hickory-resolver = { workspace = true, features = ["tokio", "system-config"] }
+indexmap.workspace = true
 # futures-util.workspace = true
 serde = { workspace = true, features = ["serde_derive"] }
 serde_json.workspace = true
@@ -39,14 +41,12 @@ thiserror.workspace = true
 tokio = { workspace = true, features = ["io-util", "net", "macros"] }
 tokio-util = { workspace = true, features = ["codec"] }
 tracing.workspace = true
-hickory-resolver = { workspace = true, features = ["tokio", "system-config"] }
 uuid.workspace = true
-indexmap.workspace = true
 
-[features]
-connecting = []
-default = ["packets"]
-packets = ["connecting", "dep:azalea-core"]
+[dev-dependencies]
+anyhow.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
 
 [lints]
 workspace = true

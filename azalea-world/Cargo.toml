@@ -6,9 +6,8 @@ edition.workspace = true
 license.workspace = true
 repository.workspace = true
 
-[dev-dependencies]
-azalea-client.path = "../azalea-client"
-criterion.workspace = true
+[features]
+serde = ["dep:serde"]
 
 [dependencies]
 azalea-block.workspace = true
@@ -24,8 +23,9 @@ serde = { workspace = true, optional = true }
 thiserror.workspace = true
 tracing.workspace = true
 
-[features]
-serde = ["dep:serde"]
+[dev-dependencies]
+azalea-client.path = "../azalea-client"
+criterion.workspace = true
 
 [lints]
 workspace = true

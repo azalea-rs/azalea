@@ -11,6 +11,13 @@ pre-release-replacements = [
     { file = "README.md", search = "`azalea = \"[a-z0-9\\.-]+\"`", replace = "`azalea = \"{{version}}\"`" },
 ]
 
+[features]
+default = ["log", "serde", "packet-event"]
+# enables bevy_log::LogPlugin by default
+log = ["azalea-client/log"]
+serde = ["dep:serde", "azalea-registry/serde", "azalea-world/serde"]
+packet-event = ["azalea-client/packet-event"]
+
 [dependencies]
 azalea-auth.workspace = true
 azalea-block.workspace = true
@@ -44,18 +51,11 @@ tracing.workspace = true
 uuid.workspace = true
 
 [dev-dependencies]
+anyhow.workspace = true
+bevy_log.workspace = true
 criterion.workspace = true
 parking_lot = { workspace = true, features = ["deadlock_detection"] }
 rand.workspace = true
-anyhow.workspace = true
-bevy_log.workspace = true
-
-[features]
-default = ["log", "serde", "packet-event"]
-# enables bevy_log::LogPlugin by default
-log = ["azalea-client/log"]
-serde = ["dep:serde", "azalea-registry/serde", "azalea-world/serde"]
-packet-event = ["azalea-client/packet-event"]
 
 [lints]
 workspace = true
