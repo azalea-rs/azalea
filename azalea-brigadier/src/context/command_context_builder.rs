@@ -77,7 +77,7 @@ impl<'a, S> CommandContextBuilder<'a, S> {
         self
     }
     pub fn with_argument(&mut self, name: &str, argument: ParsedArgument) -> &Self {
-        self.arguments.insert(name.to_string(), argument);
+        self.arguments.insert(name.to_owned(), argument);
         self
     }
     pub fn with_node(&mut self, node: Arc<RwLock<CommandNode<S>>>, range: StringRange) -> &Self {
@@ -91,6 +91,7 @@ impl<'a, S> CommandContextBuilder<'a, S> {
         self
     }
 
+    #[must_use]
     pub fn build(&self, input: &str) -> CommandContext<S> {
         CommandContext {
             arguments: self.arguments.clone(),
@@ -102,14 +103,16 @@ impl<'a, S> CommandContextBuilder<'a, S> {
             range: self.range,
             forks: self.forks,
             modifier: self.modifier.clone(),
-            input: input.to_string(),
+            input: input.to_owned(),
         }
     }
 
+    #[must_use]
     pub fn find_suggestion_context(&self, cursor: usize) -> SuggestionContext<S> {
-        if self.range.start() > cursor {
-            panic!("Can't find node before cursor");
-        }
+        assert!(
+            self.range.start() <= cursor,
+            "Can't find node before cursor"
+        );
 
         if self.range.end() < cursor {
             match &self.child {

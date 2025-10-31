@@ -19,7 +19,7 @@ use azalea_inventory::{
         Glider, JukeboxPlayable, LodestoneTracker, Lore, MapColor, PotDecorations, Rarity,
     },
 };
-use azalea_registry::{Attribute, Block, DataRegistry, Enchantment, Item};
+use azalea_registry::{Attribute, Block, DataRegistry as _, Enchantment, Item};
 use simdnbt::owned::{BaseNbt, Nbt, NbtCompound, NbtList, NbtTag};
 
 #[test]

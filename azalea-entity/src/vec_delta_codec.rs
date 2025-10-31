@@ -6,10 +6,12 @@ pub struct VecDeltaCodec {
 }
 
 impl VecDeltaCodec {
-    pub fn new(base: Vec3) -> Self {
+    #[must_use]
+    pub const fn new(base: Vec3) -> Self {
         Self { base }
     }
 
+    #[must_use]
     pub fn decode(&self, delta: &PositionDelta8) -> Vec3 {
         let x = delta.xa as i64;
         let y = delta.ya as i64;
@@ -38,20 +40,24 @@ impl VecDeltaCodec {
         Vec3::new(new_x, new_y, new_z)
     }
 
+    #[must_use]
     pub fn encode_x(&self, pos: Vec3) -> i64 {
         encode(pos.x) - encode(self.base.x)
     }
+    #[must_use]
     pub fn encode_y(&self, pos: Vec3) -> i64 {
         encode(pos.y) - encode(self.base.y)
     }
+    #[must_use]
     pub fn encode_z(&self, pos: Vec3) -> i64 {
         encode(pos.z) - encode(self.base.z)
     }
 
-    pub fn set_base(&mut self, pos: Vec3) {
+    pub const fn set_base(&mut self, pos: Vec3) {
         self.base = pos;
     }
-    pub fn base(&self) -> Vec3 {
+    #[must_use]
+    pub const fn base(&self) -> Vec3 {
         self.base
     }
 }

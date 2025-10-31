@@ -6,7 +6,7 @@ use azalea_protocol_macros::ClientboundGamePacket;
 
 use super::c_sound::SoundSource;
 
-#[derive(Clone, Debug, PartialEq, ClientboundGamePacket)]
+#[derive(Clone, Debug, PartialEq, Eq, ClientboundGamePacket)]
 pub struct ClientboundStopSound {
     pub source: Option<SoundSource>,
     pub name: Option<ResourceLocation>,

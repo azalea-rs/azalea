@@ -1,6 +1,6 @@
-use base64::Engine;
+use base64::Engine as _;
 use chrono::{DateTime, Utc};
-use rsa::{RsaPrivateKey, pkcs8::DecodePrivateKey};
+use rsa::{RsaPrivateKey, pkcs8::DecodePrivateKey as _};
 use serde::Deserialize;
 use thiserror::Error;
 use tracing::trace;

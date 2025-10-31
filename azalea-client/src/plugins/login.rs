@@ -43,7 +43,7 @@ pub fn poll_auth_task(
     mut commands: Commands,
     mut query: Query<(Entity, &mut AuthTask, &mut RawConnection)>,
 ) {
-    for (entity, mut auth_task, mut raw_conn) in query.iter_mut() {
+    for (entity, mut auth_task, mut raw_conn) in &mut query {
         if let Some(poll_res) = future::block_on(future::poll_once(&mut auth_task.0)) {
             debug!("Finished auth");
             commands

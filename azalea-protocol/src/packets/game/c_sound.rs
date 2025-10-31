@@ -16,7 +16,7 @@ pub struct ClientboundSound {
     pub seed: u64,
 }
 
-#[derive(AzBuf, Clone, Copy, Debug, PartialEq)]
+#[derive(AzBuf, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SoundSource {
     Master = 0,
     Music = 1,
@@ -34,7 +34,7 @@ pub enum SoundSource {
 mod tests {
     use std::io::Cursor;
 
-    use azalea_buf::AzaleaRead;
+    use azalea_buf::AzaleaRead as _;
 
     use crate::packets::game::ClientboundSound;
 

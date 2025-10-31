@@ -9,7 +9,7 @@ use azalea_entity::LookDirection;
 use azalea_protocol::{
     common::movements::{PositionMoveRotation, RelativeMovements},
     packets::{
-        ConnectionProtocol, Packet,
+        ConnectionProtocol, Packet as _,
         game::{
             ClientboundBlockUpdate, ClientboundPlayerPosition, ServerboundPlayerAction,
             ServerboundSetCarriedItem, ServerboundSwing, s_interact::InteractionHand,

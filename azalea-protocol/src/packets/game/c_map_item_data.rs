@@ -25,7 +25,7 @@ pub struct MapDecoration {
     pub name: Option<FormattedText>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct OptionalMapPatch(pub Option<MapPatch>);
 
 impl AzaleaRead for OptionalMapPatch {
@@ -49,7 +49,7 @@ impl AzaleaWrite for OptionalMapPatch {
     }
 }
 
-#[derive(Debug, Clone, AzBuf, PartialEq)]
+#[derive(Debug, Clone, AzBuf, PartialEq, Eq)]
 pub struct MapPatch {
     pub width: u8,
     pub height: u8,
@@ -58,7 +58,7 @@ pub struct MapPatch {
     pub map_colors: Vec<u8>,
 }
 
-#[derive(Clone, Copy, Debug, AzBuf, PartialEq)]
+#[derive(Clone, Copy, Debug, AzBuf, PartialEq, Eq)]
 pub enum DecorationType {
     Player,
     Frame,

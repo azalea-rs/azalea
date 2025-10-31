@@ -25,7 +25,7 @@ use azalea_world::{Instance, InstanceContainer, InstanceName};
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 use clip::box_traverse_blocks;
-use collision::{BLOCK_SHAPE, BlockWithShape, VoxelShape, move_colliding};
+use collision::{BLOCK_SHAPE, BlockWithShape as _, VoxelShape, move_colliding};
 
 use crate::collision::{MoveCtx, entity_collisions::update_last_bounding_box};
 
@@ -61,7 +61,7 @@ impl Plugin for PhysicsPlugin {
 /// Applies air resistance and handles jumping.
 ///
 /// Happens before [`travel::travel`].
-#[allow(clippy::type_complexity)]
+#[expect(clippy::type_complexity)]
 pub fn ai_step(
     mut query: Query<
         (
@@ -173,7 +173,7 @@ fn jump_in_liquid(physics: &mut Physics) {
 }
 
 // in minecraft, this is done as part of aiStep immediately after travel
-#[allow(clippy::type_complexity)]
+#[expect(clippy::type_complexity)]
 pub fn apply_effects_from_blocks(
     mut query: Query<
         (&mut Physics, &Position, &EntityDimensions, &InstanceName),
@@ -297,7 +297,7 @@ fn handle_entity_inside_block(
     physics: &mut Physics,
 ) {
     let registry_block = azalea_registry::Block::from(block);
-    #[allow(clippy::single_match)]
+    #[expect(clippy::single_match)]
     match registry_block {
         azalea_registry::Block::BubbleColumn => {
             let block_above = world.get_block_state(block_pos.up(1)).unwrap_or_default();
@@ -379,6 +379,7 @@ pub fn update_old_position(mut query: Query<(&mut Physics, &Position)>) {
     }
 }
 
+#[must_use]
 pub fn get_block_pos_below_that_affects_movement(position: Position) -> BlockPos {
     BlockPos::new(
         position.x.floor() as i32,

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use azalea_buf::AzBuf;
 use azalea_protocol_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, Eq, ClientboundGamePacket)]
 pub struct ClientboundAwardStats {
     #[var]
     pub stats: HashMap<Stat, i32>,

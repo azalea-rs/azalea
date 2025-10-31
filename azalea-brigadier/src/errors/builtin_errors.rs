@@ -141,11 +141,13 @@ impl fmt::Debug for BuiltInError {
 }
 
 impl BuiltInError {
+    #[must_use]
     pub fn create(self) -> CommandSyntaxError {
         let message = format!("{self:?}");
         CommandSyntaxError::create(self, message)
     }
 
+    #[must_use]
     pub fn create_with_context(self, reader: &StringReader) -> CommandSyntaxError {
         let message = format!("{self:?}");
         CommandSyntaxError::new(self, message, reader.string(), reader.cursor())

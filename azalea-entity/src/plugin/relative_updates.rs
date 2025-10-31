@@ -71,7 +71,7 @@ impl EntityCommand for RelativeEntityUpdate {
             // if the entity owns this partial world, it's always allowed to update itself
             (self.update)(&mut entity);
             return;
-        };
+        }
 
         let entity_id = *entity.get::<MinecraftEntityId>().unwrap();
         if entity.contains::<LocalEntity>() {

@@ -5,7 +5,7 @@ use azalea::{
     pathfinder::{
         astar::{self, PathfinderTimeout, WeightedNode, a_star},
         custom_state::CustomPathfinderStateRef,
-        goals::{BlockPosGoal, Goal},
+        goals::{BlockPosGoal, Goal as _},
         mining::MiningCache,
         rel_block_pos::RelBlockPos,
         world::CachedWorld,
@@ -16,9 +16,9 @@ use azalea_inventory::Menu;
 use azalea_world::{Chunk, ChunkStorage, PartialChunkStorage};
 use criterion::{Bencher, Criterion, criterion_group, criterion_main};
 use parking_lot::RwLock;
-use rand::{Rng, SeedableRng, rngs::StdRng};
+use rand::{Rng as _, SeedableRng as _, rngs::StdRng};
 
-#[allow(dead_code)]
+#[expect(dead_code)]
 fn generate_bedrock_world(
     partial_chunks: &mut PartialChunkStorage,
     size: u32,
@@ -159,7 +159,7 @@ fn run_pathfinder_benchmark(
         assert!(!partial);
 
         black_box((movements, partial));
-    })
+    });
 }
 
 fn bench_pathfinder(c: &mut Criterion) {

@@ -2,7 +2,7 @@ use azalea_buf::AzBuf;
 use azalea_protocol_macros::ServerboundConfigPacket;
 use uuid::Uuid;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ServerboundConfigPacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, Eq, ServerboundConfigPacket)]
 pub struct ServerboundResourcePack {
     pub id: Uuid,
     pub action: Action,

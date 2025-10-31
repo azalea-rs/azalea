@@ -4,7 +4,20 @@ use std::io::Cursor;
 
 use azalea_entity::LocalEntity;
 use azalea_protocol::{
-    packets::{ConnectionProtocol, config::*},
+    packets::{
+        ConnectionProtocol,
+        config::{
+            ClientboundClearDialog, ClientboundCodeOfConduct, ClientboundConfigPacket,
+            ClientboundCookieRequest, ClientboundCustomPayload, ClientboundCustomReportDetails,
+            ClientboundDisconnect, ClientboundFinishConfiguration, ClientboundKeepAlive,
+            ClientboundPing, ClientboundRegistryData, ClientboundResetChat,
+            ClientboundResourcePackPop, ClientboundResourcePackPush, ClientboundSelectKnownPacks,
+            ClientboundServerLinks, ClientboundShowDialog, ClientboundStoreCookie,
+            ClientboundTransfer, ClientboundUpdateEnabledFeatures, ClientboundUpdateTags,
+            ServerboundCookieResponse, ServerboundFinishConfiguration, ServerboundKeepAlive,
+            ServerboundSelectKnownPacks,
+        },
+    },
     read::{ReadPacketError, deserialize_packet},
 };
 use bevy_ecs::prelude::*;
@@ -31,7 +44,7 @@ pub fn process_raw_packet(
 }
 
 pub fn process_packet(ecs: &mut World, player: Entity, packet: &ClientboundConfigPacket) {
-    let mut handler = ConfigPacketHandler { player, ecs };
+    let mut handler = ConfigPacketHandler { ecs, player };
 
     declare_packet_handlers!(
         ClientboundConfigPacket,
@@ -157,10 +170,10 @@ impl ConfigPacketHandler<'_> {
             events.write(ResourcePackEvent {
                 entity: self.player,
                 id: p.id,
-                url: p.url.to_owned(),
-                hash: p.hash.to_owned(),
+                url: p.url.clone(),
+                hash: p.hash.clone(),
                 required: p.required,
-                prompt: p.prompt.to_owned(),
+                prompt: p.prompt.clone(),
             });
         });
     }

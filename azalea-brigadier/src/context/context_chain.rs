@@ -10,10 +10,12 @@ pub struct ContextChain<S> {
 }
 
 impl<S> ContextChain<S> {
+    #[must_use]
     pub fn new(modifiers: Vec<Rc<CommandContext<S>>>, executable: Rc<CommandContext<S>>) -> Self {
-        if executable.command.is_none() {
-            panic!("Last command in chain must be executable");
-        }
+        assert!(
+            executable.command.is_some(),
+            "Last command in chain must be executable"
+        );
         Self {
             modifiers,
             executable,
@@ -21,6 +23,7 @@ impl<S> ContextChain<S> {
         }
     }
 
+    #[must_use]
     pub fn try_flatten(root_context: Rc<CommandContext<S>>) -> Option<Self> {
         let mut modifiers = Vec::new();
         let mut current = root_context;
@@ -129,7 +132,8 @@ impl<S> ContextChain<S> {
         Ok(result)
     }
 
-    pub fn stage(&self) -> Stage {
+    #[must_use]
+    pub const fn stage(&self) -> Stage {
         if self.modifiers.is_empty() {
             Stage::Execute
         } else {
@@ -137,6 +141,7 @@ impl<S> ContextChain<S> {
         }
     }
 
+    #[must_use]
     pub fn top_context(&self) -> Rc<CommandContext<S>> {
         self.modifiers
             .first()

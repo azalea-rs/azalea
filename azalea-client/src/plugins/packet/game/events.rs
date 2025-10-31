@@ -112,7 +112,7 @@ pub struct DeathEvent {
     pub packet: Option<ClientboundPlayerCombatKill>,
 }
 
-/// A KeepAlive packet is sent from the server to verify that the client is
+/// A `KeepAlive` packet is sent from the server to verify that the client is
 /// still connected.
 #[derive(Message, Debug, Clone)]
 pub struct KeepAliveEvent {

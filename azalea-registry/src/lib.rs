@@ -14,7 +14,7 @@ use std::{
     io::{self, Cursor, Write},
 };
 
-use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
+use azalea_buf::{AzaleaRead, AzaleaReadVar as _, AzaleaWrite, AzaleaWriteVar as _, BufReadError};
 use azalea_registry_macros::registry;
 pub use data::*;
 pub use extra::*;
@@ -87,7 +87,7 @@ impl<D: Registry, C: AzaleaRead + AzaleaWrite> AzaleaWrite for CustomRegistry<D,
     }
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Eq)]
 pub enum HolderSet<D: Registry, ResourceLocation: AzaleaRead + AzaleaWrite> {
     Direct {
         contents: Vec<D>,
@@ -188,7 +188,7 @@ impl<D: Registry, ResourceLocation: AzaleaRead + AzaleaWrite> Default
 }
 
 /// A reference to either a registry or a custom value (usually something with a
-/// ResourceLocation).
+/// `ResourceLocation`).
 pub enum Holder<R: Registry, Direct: AzaleaRead + AzaleaWrite> {
     Reference(R),
     Direct(Direct),

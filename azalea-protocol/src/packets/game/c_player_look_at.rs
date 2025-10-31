@@ -9,13 +9,13 @@ pub struct ClientboundPlayerLookAt {
     pub entity: Option<AtEntity>,
 }
 
-#[derive(AzBuf, Clone, Copy, Debug, PartialEq)]
+#[derive(AzBuf, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Anchor {
     Feet = 0,
     Eyes = 1,
 }
 
-#[derive(AzBuf, Clone, Debug, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Eq)]
 pub struct AtEntity {
     #[var]
     pub entity: u32,

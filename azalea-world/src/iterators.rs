@@ -24,7 +24,8 @@ pub struct BlockIterator {
     right: i32,
 }
 impl BlockIterator {
-    pub fn new(start: BlockPos, max_distance: u32) -> Self {
+    #[must_use]
+    pub const fn new(start: BlockPos, max_distance: u32) -> Self {
         Self {
             start,
             max_distance,
@@ -102,6 +103,7 @@ pub struct SquareChunkIterator {
     current_iter: u32,
 }
 impl SquareChunkIterator {
+    #[must_use]
     pub fn new(start: ChunkPos, max_distance: u32) -> Self {
         Self {
             start,
@@ -131,7 +133,7 @@ impl SquareChunkIterator {
     ///     println!("{:?}", chunk_pos);
     /// }
     /// ```
-    pub fn set_max_distance(&mut self, max_distance: u32) {
+    pub const fn set_max_distance(&mut self, max_distance: u32) {
         self.number_of_points = u32::pow(max_distance * 2 - 1, 2);
     }
 }
@@ -186,7 +188,8 @@ pub struct ChunkIterator {
     pub leg: i32,
 }
 impl ChunkIterator {
-    pub fn new(start: ChunkPos, max_distance: u32) -> Self {
+    #[must_use]
+    pub const fn new(start: ChunkPos, max_distance: u32) -> Self {
         Self {
             max_distance,
             start,

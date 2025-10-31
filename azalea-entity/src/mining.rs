@@ -99,7 +99,7 @@ fn destroy_speed(
     // }
 
     if let Some(dig_speed_amplifier) = active_effects.get_dig_speed_amplifier() {
-        base_destroy_speed *= 1. + (dig_speed_amplifier + 1) as f32 * 0.2;
+        base_destroy_speed *= ((dig_speed_amplifier + 1) as f32).mul_add(0.2, 1.);
     }
 
     if let Some(dig_slowdown) = active_effects.get_level(MobEffect::MiningFatigue) {

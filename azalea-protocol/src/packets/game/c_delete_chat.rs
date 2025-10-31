@@ -3,7 +3,7 @@ use azalea_protocol_macros::ClientboundGamePacket;
 
 use super::c_player_chat::PackedMessageSignature;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, Eq, ClientboundGamePacket)]
 pub struct ClientboundDeleteChat {
     pub signature: PackedMessageSignature,
 }

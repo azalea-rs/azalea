@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::str::FromStr as _;
 
 use crate::errors::{BuiltInError, CommandSyntaxError};
 
@@ -20,50 +20,60 @@ impl From<String> for StringReader {
 impl From<&str> for StringReader {
     fn from(string: &str) -> Self {
         Self {
-            string: string.to_string(),
+            string: string.to_owned(),
             cursor: 0,
         }
     }
 }
 
 impl StringReader {
+    #[must_use]
     pub fn string(&self) -> &str {
         &self.string
     }
 
-    pub fn remaining_length(&self) -> usize {
+    #[must_use]
+    pub const fn remaining_length(&self) -> usize {
         self.string.len() - self.cursor
     }
 
-    pub fn total_length(&self) -> usize {
+    #[must_use]
+    pub const fn total_length(&self) -> usize {
         self.string.len()
     }
 
+    #[must_use]
     pub fn get_read(&self) -> &str {
         &self.string[..self.cursor]
     }
 
+    #[must_use]
     pub fn remaining(&self) -> &str {
         &self.string[self.cursor..]
     }
 
-    pub fn can_read_length(&self, length: usize) -> bool {
+    #[must_use]
+    pub const fn can_read_length(&self, length: usize) -> bool {
         self.cursor + length <= self.string.len()
     }
 
-    pub fn can_read(&self) -> bool {
+    #[must_use]
+    pub const fn can_read(&self) -> bool {
         self.can_read_length(1)
     }
 
+    #[must_use]
     pub fn peek(&self) -> char {
         self.string.chars().nth(self.cursor).unwrap()
     }
 
+    #[must_use]
     pub fn peek_offset(&self, offset: usize) -> char {
         self.string.chars().nth(self.cursor + offset).unwrap()
     }
 
-    pub fn cursor(&self) -> usize {
+    #[must_use]
+    pub const fn cursor(&self) -> usize {
         self.cursor
     }
 
@@ -73,15 +83,17 @@ impl StringReader {
         c
     }
 
-    pub fn skip(&mut self) {
+    pub const fn skip(&mut self) {
         self.cursor += 1;
     }
 
-    pub fn is_allowed_number(c: char) -> bool {
+    #[must_use]
+    pub const fn is_allowed_number(c: char) -> bool {
         c.is_ascii_digit() || c == '.' || c == '-'
     }
 
-    pub fn is_quoted_string_start(c: char) -> bool {
+    #[must_use]
+    pub const fn is_quoted_string_start(c: char) -> bool {
         c == SYNTAX_DOUBLE_QUOTE || c == SYNTAX_SINGLE_QUOTE
     }
 
@@ -104,7 +116,7 @@ impl StringReader {
         if result.is_err() {
             self.cursor = start;
             return Err(BuiltInError::ReaderInvalidInt {
-                value: number.to_string(),
+                value: number.to_owned(),
             }
             .create_with_context(self));
         }
@@ -125,7 +137,7 @@ impl StringReader {
         if result.is_err() {
             self.cursor = start;
             return Err(BuiltInError::ReaderInvalidLong {
-                value: number.to_string(),
+                value: number.to_owned(),
             }
             .create_with_context(self));
         }
@@ -146,7 +158,7 @@ impl StringReader {
         if result.is_err() {
             self.cursor = start;
             return Err(BuiltInError::ReaderInvalidDouble {
-                value: number.to_string(),
+                value: number.to_owned(),
             }
             .create_with_context(self));
         }
@@ -167,7 +179,7 @@ impl StringReader {
         if result.is_err() {
             self.cursor = start;
             return Err(BuiltInError::ReaderInvalidFloat {
-                value: number.to_string(),
+                value: number.to_owned(),
             }
             .create_with_context(self));
         }
@@ -175,7 +187,8 @@ impl StringReader {
         Ok(result.unwrap())
     }
 
-    pub fn is_allowed_in_unquoted_string(c: char) -> bool {
+    #[must_use]
+    pub const fn is_allowed_in_unquoted_string(c: char) -> bool {
         c.is_ascii_digit()
             || c.is_ascii_uppercase()
             || c.is_ascii_lowercase()
@@ -240,7 +253,7 @@ impl StringReader {
             self.skip();
             return self.read_string_until(next);
         }
-        Ok(self.read_unquoted_string().to_string())
+        Ok(self.read_unquoted_string().to_owned())
     }
 
     pub fn read_boolean(&mut self) -> Result<bool, CommandSyntaxError> {

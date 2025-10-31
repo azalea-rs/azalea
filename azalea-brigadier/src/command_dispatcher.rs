@@ -35,6 +35,7 @@ where
 }
 
 impl<S> CommandDispatcher<S> {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             root: Arc::new(RwLock::new(CommandNode::default())),
@@ -69,7 +70,7 @@ impl<S> CommandDispatcher<S> {
         context_so_far: CommandContextBuilder<'a, S>,
     ) -> Result<ParseResults<'a, S>, CommandSyntaxError> {
         let source = context_so_far.source.clone();
-        #[allow(clippy::mutable_key_type)] // this is fine because we don't mutate the key
+        #[expect(clippy::mutable_key_type)] // this is fine because we don't mutate the key
         let mut errors = HashMap::<Rc<CommandNode<S>>, CommandSyntaxError>::new();
         let mut potentials: Vec<ParseResults<S>> = vec![];
         let cursor = original_reader.cursor();
@@ -110,30 +111,23 @@ impl<S> CommandDispatcher<S> {
                 1
             }) {
                 reader.skip();
-                match &child.read().redirect {
-                    Some(redirect) => {
-                        let child_context = CommandContextBuilder::new(
-                            self,
-                            source,
-                            redirect.clone(),
-                            reader.cursor,
-                        );
-                        let parse = self
-                            .parse_nodes(redirect, &reader, child_context)
-                            .expect("Parsing nodes failed");
-                        context.with_child(Rc::new(parse.context));
-                        return Ok(ParseResults {
-                            context,
-                            reader: parse.reader,
-                            exceptions: parse.exceptions,
-                        });
-                    }
-                    _ => {
-                        let parse = self
-                            .parse_nodes(&child, &reader, context)
-                            .expect("Parsing nodes failed");
-                        potentials.push(parse);
-                    }
+                if let Some(redirect) = &child.read().redirect {
+                    let child_context =
+                        CommandContextBuilder::new(self, source, redirect.clone(), reader.cursor);
+                    let parse = self
+                        .parse_nodes(redirect, &reader, child_context)
+                        .expect("Parsing nodes failed");
+                    context.with_child(Rc::new(parse.context));
+                    return Ok(ParseResults {
+                        context,
+                        reader: parse.reader,
+                        exceptions: parse.exceptions,
+                    });
+                } else {
+                    let parse = self
+                        .parse_nodes(&child, &reader, context)
+                        .expect("Parsing nodes failed");
+                    potentials.push(parse);
                 }
             } else {
                 potentials.push(ParseResults {
@@ -149,16 +143,16 @@ impl<S> CommandDispatcher<S> {
                 potentials.sort_by(|a, b| {
                     if !a.reader.can_read() && b.reader.can_read() {
                         return Ordering::Less;
-                    };
+                    }
                     if a.reader.can_read() && !b.reader.can_read() {
                         return Ordering::Greater;
-                    };
+                    }
                     if a.exceptions.is_empty() && !b.exceptions.is_empty() {
                         return Ordering::Less;
-                    };
+                    }
                     if !a.exceptions.is_empty() && b.exceptions.is_empty() {
                         return Ordering::Greater;
-                    };
+                    }
                     Ordering::Equal
                 });
             }
@@ -204,6 +198,7 @@ impl<S> CommandDispatcher<S> {
         }
     }
 
+    #[must_use]
     pub fn get_path(&self, target: CommandNode<S>) -> Vec<String> {
         let rc_target = Arc::new(RwLock::new(target));
         let mut nodes: Vec<Vec<Arc<RwLock<CommandNode<S>>>>> = Vec::new();
@@ -214,7 +209,7 @@ impl<S> CommandDispatcher<S> {
                 let mut result: Vec<String> = Vec::with_capacity(list.len());
                 for node in list {
                     if !Arc::ptr_eq(&node, &self.root) {
-                        result.push(node.read().name().to_string());
+                        result.push(node.read().name().to_owned());
                     }
                 }
                 return result;
@@ -223,6 +218,7 @@ impl<S> CommandDispatcher<S> {
         vec![]
     }
 
+    #[must_use]
     pub fn find_node(&self, path: &[&str]) -> Option<Arc<RwLock<CommandNode<S>>>> {
         let mut node = self.root.clone();
         for name in path {
@@ -233,7 +229,7 @@ impl<S> CommandDispatcher<S> {
                 _ => {
                     return None;
                 }
-            };
+            }
         }
         Some(node)
     }
@@ -289,7 +285,7 @@ impl<S> CommandDispatcher<S> {
         match &node.redirect {
             Some(redirect) => {
                 let redirect = if ptr::eq(redirect.data_ptr(), self.root.data_ptr()) {
-                    "...".to_string()
+                    "...".to_owned()
                 } else {
                     format!("-> {}", redirect.read().usage_text())
                 };
@@ -367,7 +363,7 @@ impl<S> CommandDispatcher<S> {
 
         if let Some(redirect) = &node.redirect {
             let redirect = if ptr::eq(redirect.data_ptr(), self.root.data_ptr()) {
-                "...".to_string()
+                "...".to_owned()
             } else {
                 format!("-> {}", redirect.read().usage_text())
             };
@@ -435,11 +431,13 @@ impl<S> CommandDispatcher<S> {
         Some(this)
     }
 
+    #[must_use]
     pub fn get_completion_suggestions(parse: ParseResults<S>) -> Suggestions {
         let cursor = parse.reader.total_length();
         Self::get_completion_suggestions_with_cursor(parse, cursor)
     }
 
+    #[must_use]
     pub fn get_completion_suggestions_with_cursor(
         parse: ParseResults<S>,
         cursor: usize,

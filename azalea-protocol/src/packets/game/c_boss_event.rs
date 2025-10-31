@@ -3,7 +3,7 @@ use std::{
     io::{Cursor, Write},
 };
 
-use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
+use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar as _, AzaleaWrite, AzaleaWriteVar as _, BufReadError};
 use azalea_chat::FormattedText;
 use azalea_core::bitset::FixedBitSet;
 use azalea_protocol_macros::ClientboundGamePacket;
@@ -83,13 +83,13 @@ pub struct AddOperation {
     pub properties: Properties,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(Clone, Debug, AzBuf, PartialEq, Eq)]
 pub struct Style {
     pub color: BossBarColor,
     pub overlay: BossBarOverlay,
 }
 
-#[derive(AzBuf, Clone, Copy, Debug, PartialEq)]
+#[derive(AzBuf, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum BossBarColor {
     Pink = 0,
     Blue = 1,
@@ -100,7 +100,7 @@ pub enum BossBarColor {
     White = 6,
 }
 
-#[derive(AzBuf, Clone, Copy, Debug, PartialEq)]
+#[derive(AzBuf, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum BossBarOverlay {
     Progress = 0,
     Notched6 = 1,
@@ -109,7 +109,7 @@ pub enum BossBarOverlay {
     Notched20 = 4,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Properties {
     pub darken_screen: bool,
     pub play_music: bool,

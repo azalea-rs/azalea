@@ -8,7 +8,7 @@
 
 use std::sync::LazyLock;
 
-use azalea_block::*;
+use azalea_block::{BlockState, BlockTrait as _};
 
 use super::VoxelShape;
 use crate::collision::{self, Shapes};

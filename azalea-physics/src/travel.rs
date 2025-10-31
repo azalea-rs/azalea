@@ -23,7 +23,7 @@ use crate::{
 
 /// Move the entity with the given acceleration while handling friction,
 /// gravity, collisions, and some other stuff.
-#[allow(clippy::type_complexity)]
+#[expect(clippy::type_complexity)]
 pub fn travel(
     mut query: Query<
         (
@@ -273,6 +273,7 @@ fn is_free(
     ) && !contains_any_liquid(world, bounding_box)
 }
 
+#[must_use]
 pub fn no_collision(
     world: &Instance,
     source_entity: Option<Entity>,
@@ -317,7 +318,7 @@ pub fn no_collision(
     }
 }
 
-fn border_collision(_entity_physics: &Physics, _aabb: &Aabb) -> Option<Aabb> {
+const fn border_collision(_entity_physics: &Physics, _aabb: &Aabb) -> Option<Aabb> {
     // TODO: implement world border, see CollisionGetter.borderCollision
 
     None
@@ -344,12 +345,13 @@ fn contains_any_liquid(world: &Instance, bounding_box: Aabb) -> bool {
     false
 }
 
-fn get_effective_gravity() -> f64 {
+const fn get_effective_gravity() -> f64 {
     // TODO: slow falling effect
     0.08
 }
 
-pub fn fluid_jump_threshold() -> f64 {
+#[must_use]
+pub const fn fluid_jump_threshold() -> f64 {
     // this is 0.0 for entities with an eye height lower than 0.4, but that's not
     // implemented since it's usually not relevant for players (unless the player
     // was shrunk)

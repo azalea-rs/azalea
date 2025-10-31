@@ -53,7 +53,7 @@ fn xz_heuristic(dx: f32, dz: f32) -> f32 {
         diagonal = z;
     }
 
-    (diagonal * SQRT_2 + straight) * COST_HEURISTIC
+    diagonal.mul_add(SQRT_2, straight) * COST_HEURISTIC
 }
 
 /// Move to the given block position, ignoring the y-axis.
@@ -106,7 +106,8 @@ pub struct RadiusGoal {
     pub radius: f32,
 }
 impl RadiusGoal {
-    pub fn new(pos: Vec3, radius: f32) -> Self {
+    #[must_use]
+    pub const fn new(pos: Vec3, radius: f32) -> Self {
         Self { pos, radius }
     }
 }
@@ -116,14 +117,14 @@ impl Goal for RadiusGoal {
         let dx = (self.pos.x - n.x) as f32;
         let dy = (self.pos.y - n.y) as f32;
         let dz = (self.pos.z - n.z) as f32;
-        dx.powi(2) + dy.powi(2) + dz.powi(2)
+        dz.mul_add(dz, dy.mul_add(dy, dx.powi(2)))
     }
     fn success(&self, n: BlockPos) -> bool {
         let n = n.center();
         let dx = (self.pos.x - n.x) as f32;
         let dy = (self.pos.y - n.y) as f32;
         let dz = (self.pos.z - n.z) as f32;
-        dx.powi(2) + dy.powi(2) + dz.powi(2) <= self.radius.powi(2)
+        dz.mul_add(dz, dy.mul_add(dy, dx.powi(2))) <= self.radius.powi(2)
     }
 }
 
@@ -205,10 +206,12 @@ pub struct ReachBlockPosGoal {
     max_check_distance: i32,
 }
 impl ReachBlockPosGoal {
+    #[must_use]
     pub fn new(pos: BlockPos, chunk_storage: ChunkStorage) -> Self {
         Self::new_with_distance(pos, 4.5, chunk_storage)
     }
 
+    #[must_use]
     pub fn new_with_distance(pos: BlockPos, distance: f64, chunk_storage: ChunkStorage) -> Self {
         Self {
             pos,

@@ -8,7 +8,7 @@ use azalea_core::{
     bitset::FastFixedBitSet,
     position::{BlockPos, ChunkPos, ChunkSectionBlockPos, ChunkSectionPos},
 };
-use azalea_physics::collision::BlockWithShape;
+use azalea_physics::collision::BlockWithShape as _;
 use azalea_registry::{Block, tags};
 use azalea_world::{Instance, palette::PalettedContainer};
 use parking_lot::RwLock;
@@ -149,7 +149,7 @@ impl CachedWorld {
             if section_index >= sections.len() {
                 // y position is out of bounds
                 return None;
-            };
+            }
             let section = &sections[section_index];
             return Some(f(section));
         }
@@ -170,7 +170,7 @@ impl CachedWorld {
             if section_index >= sections.len() {
                 // y position is out of bounds
                 return None;
-            };
+            }
             *self.last_chunk_cache_index.borrow_mut() = Some(chunk_index);
             let section = &sections[section_index];
             return Some(f(section));
@@ -189,7 +189,7 @@ impl CachedWorld {
         if section_index >= sections.len() {
             // y position is out of bounds
             return None;
-        };
+        }
 
         let section = &sections[section_index];
         let r = f(section);
@@ -514,12 +514,13 @@ impl CachedWorld {
         distance
     }
 
-    pub fn origin(&self) -> BlockPos {
+    pub const fn origin(&self) -> BlockPos {
         self.origin
     }
 }
 
 /// Whether our client could pass through this block.
+#[must_use]
 pub fn is_block_state_passable(block_state: BlockState) -> bool {
     // i already tried optimizing this by having it cache in an IntMap/FxHashMap but
     // it wasn't measurably faster
@@ -571,6 +572,7 @@ pub fn is_block_state_passable(block_state: BlockState) -> bool {
 /// Whether this block has a solid hitbox at the top (i.e. we can stand on it
 /// and do parkour from it).
 #[inline]
+#[must_use]
 pub fn is_block_state_solid(block_state: BlockState) -> bool {
     if block_state.is_air() {
         // fast path

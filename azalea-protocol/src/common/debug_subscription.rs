@@ -18,7 +18,7 @@ macro_rules! debug_subscription_enum {
         }
 
         impl DebugSubscriptionEvent {
-            pub fn matches_registry_variant(&self, kind: DebugSubscription) -> bool {
+            pub const fn matches_registry_variant(&self, kind: DebugSubscription) -> bool {
                 // this mostly exists to cause a compile error whenever the
                 // DebugSubscription registry is updated, since we need to
                 // update the debug_subscription_enum block manually
@@ -30,7 +30,7 @@ macro_rules! debug_subscription_enum {
             }
         }
         impl DebugSubscriptionUpdate {
-            pub fn matches_registry_variant(&self, kind: DebugSubscription) -> bool {
+            pub const fn matches_registry_variant(&self, kind: DebugSubscription) -> bool {
                 match kind {
                     $(
                         DebugSubscription::$variant => matches!(self, Self::$variant(_)),
@@ -62,7 +62,7 @@ debug_subscription_enum! {
     GameEvents(DebugGameEventInfo),
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(Clone, Debug, AzBuf, PartialEq, Eq)]
 pub struct DebugBeeInfo {
     pub hive_pos: Option<BlockPos>,
     pub flower_pos: Option<BlockPos>,
@@ -88,14 +88,14 @@ pub struct DebugBrainDump {
     pub potential_pois: Vec<BlockPos>,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(Clone, Debug, AzBuf, PartialEq, Eq)]
 pub struct DebugBreezeInfo {
     #[var]
     pub attack_target: Option<i32>,
     pub jump_target: Option<BlockPos>,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(Clone, Debug, AzBuf, PartialEq, Eq)]
 pub struct DebugGoalInfo {
     #[var]
     pub priority: i32,
@@ -110,14 +110,14 @@ pub struct DebugPathInfo {
     pub max_node_distance: f32,
 }
 
-#[derive(Clone, Copy, Debug, AzBuf, PartialEq)]
+#[derive(Clone, Copy, Debug, AzBuf, PartialEq, Eq)]
 pub enum DebugEntityBlockIntersection {
     InBlock,
     InFluid,
     InAir,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(Clone, Debug, AzBuf, PartialEq, Eq)]
 pub struct DebugHiveInfo {
     pub kind: Block,
     #[var]
@@ -127,7 +127,7 @@ pub struct DebugHiveInfo {
     pub sedated: bool,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(Clone, Debug, AzBuf, PartialEq, Eq)]
 pub struct DebugPoiInfo {
     pub pos: BlockPos,
     pub poi_kind: PointOfInterestKind,
@@ -135,19 +135,19 @@ pub struct DebugPoiInfo {
     pub free_ticket_count: i32,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(Clone, Debug, AzBuf, PartialEq, Eq)]
 pub struct DebugRedstoneOrientation {
     #[var]
     pub id: u32,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(Clone, Debug, AzBuf, PartialEq, Eq)]
 pub struct DebugStructureInfo {
     pub bounding_box: StructureBoundingBox,
     pub pieces: Vec<StructurePiece>,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(Clone, Debug, AzBuf, PartialEq, Eq)]
 pub struct DebugGameEventListenerInfo {
     #[var]
     pub listener_radius: i32,
@@ -159,13 +159,13 @@ pub struct DebugGameEventInfo {
     pub pos: Vec3,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(Clone, Debug, AzBuf, PartialEq, Eq)]
 pub struct StructureBoundingBox {
     pub min: BlockPos,
     pub max: BlockPos,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(Clone, Debug, AzBuf, PartialEq, Eq)]
 pub struct StructurePiece {
     pub bounding_box: StructureBoundingBox,
     pub is_start: bool,
@@ -198,7 +198,7 @@ pub struct MinecraftPathNodeContents {
 }
 
 // PathType.java
-#[derive(Clone, Copy, Debug, AzBuf, PartialEq)]
+#[derive(Clone, Copy, Debug, AzBuf, PartialEq, Eq)]
 pub enum MinecraftPathNodeKind {
     Blocked,
     Open,

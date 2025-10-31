@@ -57,6 +57,7 @@ impl Client {
     /// Whether the player has an attack cooldown.
     ///
     /// Also see [`Client::attack_cooldown_remaining_ticks`].
+    #[must_use]
     pub fn has_attack_cooldown(&self) -> bool {
         let Some(attack_strength_scale) = self.get_component::<AttackStrengthScale>() else {
             // they don't even have an AttackStrengthScale so they probably can't even
@@ -69,6 +70,7 @@ impl Client {
     /// Returns the number of ticks until we can attack at full strength again.
     ///
     /// Also see [`Client::has_attack_cooldown`].
+    #[must_use]
     pub fn attack_cooldown_remaining_ticks(&self) -> usize {
         let mut ecs = self.ecs.lock();
         let Ok((attributes, ticks_since_last_attack)) = ecs
@@ -91,7 +93,7 @@ impl Client {
 pub struct AttackQueued {
     pub target: Entity,
 }
-#[allow(clippy::type_complexity)]
+#[expect(clippy::type_complexity)]
 pub fn handle_attack_queued(
     mut commands: Commands,
     mut query: Query<(
@@ -140,7 +142,7 @@ pub fn handle_attack_queued(
         // packet
         if game_mode.current == GameMode::Spectator {
             continue;
-        };
+        }
 
         ticks_since_last_attack.0 = 0;
 
@@ -175,7 +177,7 @@ pub struct AttackBundle {
 #[derive(Default, Component, Clone, Deref, DerefMut)]
 pub struct TicksSinceLastAttack(pub u32);
 pub fn increment_ticks_since_last_attack(mut query: Query<&mut TicksSinceLastAttack>) {
-    for mut ticks_since_last_attack in query.iter_mut() {
+    for mut ticks_since_last_attack in &mut query {
         **ticks_since_last_attack += 1;
     }
 }
@@ -185,7 +187,7 @@ pub struct AttackStrengthScale(pub f32);
 pub fn update_attack_strength_scale(
     mut query: Query<(&TicksSinceLastAttack, &Attributes, &mut AttackStrengthScale)>,
 ) {
-    for (ticks_since_last_attack, attributes, mut attack_strength_scale) in query.iter_mut() {
+    for (ticks_since_last_attack, attributes, mut attack_strength_scale) in &mut query {
         // look 0.5 ticks into the future because that's what vanilla does
         **attack_strength_scale =
             get_attack_strength_scale(ticks_since_last_attack.0, attributes, 0.5);
@@ -193,10 +195,12 @@ pub fn update_attack_strength_scale(
 }
 
 /// Returns how long it takes for the attack cooldown to reset (in ticks).
+#[must_use]
 pub fn get_attack_strength_delay(attributes: &Attributes) -> f32 {
     ((1. / attributes.attack_speed.calculate()) * 20.) as f32
 }
 
+#[must_use]
 pub fn get_attack_strength_scale(
     ticks_since_last_attack: u32,
     attributes: &Attributes,

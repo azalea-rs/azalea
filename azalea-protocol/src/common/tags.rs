@@ -3,14 +3,14 @@ use std::{
     ops::Deref,
 };
 
-use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
+use azalea_buf::{AzaleaRead, AzaleaReadVar as _, AzaleaWrite, AzaleaWriteVar as _, BufReadError};
 use azalea_core::resource_location::ResourceLocation;
 use indexmap::IndexMap;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct TagMap(pub IndexMap<ResourceLocation, Vec<Tags>>);
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Tags {
     pub name: ResourceLocation,
     pub elements: Vec<i32>,

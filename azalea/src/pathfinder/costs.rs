@@ -1,6 +1,6 @@
 use std::sync::LazyLock;
 
-use num_traits::Float;
+use num_traits::Float as _;
 
 // based on https://github.com/cabaletta/baritone/blob/1.20.1/src/api/java/baritone/api/pathing/movement/ActionCosts.java
 pub const WALK_ONE_BLOCK_COST: f32 = 20. / 4.317; // 4.633

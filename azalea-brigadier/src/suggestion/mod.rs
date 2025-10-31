@@ -38,22 +38,25 @@ pub enum SuggestionValue {
 }
 
 impl Suggestion {
+    #[must_use]
     pub fn new(range: StringRange, text: &str) -> Suggestion {
         Suggestion {
             range,
-            value: SuggestionValue::Text(text.to_string()),
+            value: SuggestionValue::Text(text.to_owned()),
             tooltip: None,
         }
     }
 
+    #[must_use]
     pub fn new_with_tooltip(range: StringRange, text: &str, tooltip: String) -> Self {
         Self {
             range,
-            value: SuggestionValue::Text(text.to_string()),
+            value: SuggestionValue::Text(text.to_owned()),
             tooltip: Some(tooltip),
         }
     }
 
+    #[must_use]
     pub fn apply(&self, input: &str) -> String {
         let text = self.value.to_string();
         if self.range.start() == 0 && self.range.end() == input.len() {
@@ -71,6 +74,7 @@ impl Suggestion {
         result
     }
 
+    #[must_use]
     pub fn expand(&self, command: &str, range: StringRange) -> Suggestion {
         if range == self.range {
             return self.clone();
@@ -90,12 +94,14 @@ impl Suggestion {
         }
     }
 
+    #[must_use]
     pub fn text(&self) -> String {
         self.value.to_string()
     }
 }
 
 impl SuggestionValue {
+    #[must_use]
     pub fn cmp_ignore_case(&self, other: &Self) -> Ordering {
         match (self, other) {
             (SuggestionValue::Text(a), SuggestionValue::Text(b)) => {

@@ -32,7 +32,7 @@ pub struct DefaultPlugins;
 
 impl PluginGroup for DefaultPlugins {
     fn build(self) -> PluginGroupBuilder {
-        #[allow(unused_mut)]
+        #[expect(unused_mut)]
         let mut group = PluginGroupBuilder::start::<Self>()
             .add(crate::client::AmbiguityLoggerPlugin)
             .add(bevy_time::TimePlugin)

@@ -1,9 +1,9 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use azalea_buf::{AzBuf, AzaleaWrite};
+use azalea_buf::{AzBuf, AzaleaWrite as _};
 use rsa::{
     RsaPrivateKey,
-    signature::{RandomizedSigner, SignatureEncoding},
+    signature::{RandomizedSigner as _, SignatureEncoding as _},
 };
 use sha2::Sha256;
 use uuid::Uuid;
@@ -14,18 +14,19 @@ pub struct SaltSignaturePair {
     pub signature: Vec<u8>,
 }
 
-#[derive(Clone, Debug, PartialEq, AzBuf)]
+#[derive(Clone, Debug, PartialEq, Eq, AzBuf)]
 pub struct MessageSignature {
     pub bytes: [u8; 256],
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(Clone, Debug, AzBuf, PartialEq, Eq)]
 pub struct SignedMessageHeader {
     pub previous_signature: Option<MessageSignature>,
     pub sender: Uuid,
 }
 
 /// Generates a random u64 to use as a salt
+#[must_use]
 pub fn make_salt() -> u64 {
     rand::random()
 }
@@ -48,6 +49,7 @@ pub struct SignChatMessageOptions {
     pub private_key: RsaPrivateKey,
 }
 
+#[must_use]
 pub fn sign_chat_message(opts: &SignChatMessageOptions) -> MessageSignature {
     let mut data_to_sign = Vec::new();
     // always 1 for some reason

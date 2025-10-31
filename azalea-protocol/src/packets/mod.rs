@@ -7,7 +7,7 @@ pub mod status;
 
 use std::io::{self, Cursor, Write};
 
-use azalea_buf::{AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
+use azalea_buf::{AzaleaReadVar as _, AzaleaWrite, AzaleaWriteVar as _, BufReadError};
 
 use crate::read::ReadPacketError;
 
@@ -25,7 +25,7 @@ pub enum ConnectionProtocol {
 
 impl ConnectionProtocol {
     #[must_use]
-    pub fn from_i32(i: i32) -> Option<Self> {
+    pub const fn from_i32(i: i32) -> Option<Self> {
         match i {
             -1 => Some(ConnectionProtocol::Handshake),
             0 => Some(ConnectionProtocol::Game),

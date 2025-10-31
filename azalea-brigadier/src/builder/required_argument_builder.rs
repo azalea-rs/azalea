@@ -28,7 +28,7 @@ impl<S> Argument<S> {
         custom_suggestions: Option<Arc<dyn SuggestionProvider<S> + Send + Sync>>,
     ) -> Self {
         Self {
-            name: name.to_string(),
+            name: name.to_owned(),
             parser,
             custom_suggestions,
         }
@@ -38,6 +38,7 @@ impl<S> Argument<S> {
         self.parser.parse(reader)
     }
 
+    #[must_use]
     pub fn list_suggestions(
         &self,
         context: CommandContext<S>,
@@ -50,6 +51,7 @@ impl<S> Argument<S> {
         }
     }
 
+    #[must_use]
     pub fn examples(&self) -> Vec<String> {
         self.parser.examples()
     }

@@ -22,7 +22,7 @@ use crate::{
 };
 
 pub fn process_packet(ecs: &mut World, player: Entity, packet: &ClientboundLoginPacket) {
-    let mut handler = LoginPacketHandler { player, ecs };
+    let mut handler = LoginPacketHandler { ecs, player };
 
     declare_packet_handlers!(
         ClientboundLoginPacket,
@@ -113,7 +113,7 @@ impl LoginPacketHandler<'_> {
             if let Some(net_conn) = &mut conn.net_conn() {
                 net_conn.set_compression_threshold(Some(p.compression_threshold as u32));
             }
-        })
+        });
     }
     pub fn custom_query(&mut self, p: &ClientboundCustomQuery) {
         debug!("Got custom query {p:?}");

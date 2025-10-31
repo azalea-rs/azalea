@@ -125,6 +125,7 @@ impl ChunkBatchInfo {
         self.old_samples_weight = u32::min(49, self.old_samples_weight + 1);
     }
 
+    #[must_use]
     pub fn desired_chunks_per_tick(&self) -> f32 {
         (7000000. / self.aggregated_duration_per_chunk.as_nanos() as f64) as f32
     }
@@ -169,6 +170,7 @@ pub struct ChunkReceiveSpeedAccumulator {
     filled_size: usize,
 }
 impl ChunkReceiveSpeedAccumulator {
+    #[must_use]
     pub fn new(capacity: usize) -> Self {
         Self {
             batch_sizes: vec![0; capacity],
@@ -188,6 +190,7 @@ impl ChunkReceiveSpeedAccumulator {
         }
     }
 
+    #[must_use]
     pub fn get_millis_per_chunk(&self) -> f64 {
         let mut total_batch_size = 0;
         let mut total_batch_duration = 0;

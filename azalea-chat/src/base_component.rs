@@ -1,4 +1,4 @@
-use serde::{Serialize, ser::SerializeMap};
+use serde::{Serialize, ser::SerializeMap as _};
 
 use crate::{FormattedText, style::Style};
 
@@ -33,12 +33,14 @@ impl Serialize for BaseComponent {
 }
 
 impl BaseComponent {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             siblings: Vec::new(),
             style: Default::default(),
         }
     }
+    #[must_use]
     pub fn with_style(self, style: Style) -> Self {
         Self {
             style: Box::new(style),

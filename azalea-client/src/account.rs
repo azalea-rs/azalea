@@ -80,13 +80,14 @@ impl Account {
     /// as such can only join offline mode servers.
     ///
     /// This is useful for testing in LAN worlds.
+    #[must_use]
     pub fn offline(username: &str) -> Self {
         Self {
-            username: username.to_string(),
+            username: username.to_owned(),
             access_token: None,
             uuid: None,
             account_opts: AccountOpts::Offline {
-                username: username.to_string(),
+                username: username.to_owned(),
             },
             certs: Arc::new(Mutex::new(None)),
         }
@@ -131,7 +132,7 @@ impl Account {
             access_token: Some(Arc::new(Mutex::new(auth_result.access_token))),
             uuid: Some(auth_result.profile.id),
             account_opts: AccountOpts::Microsoft {
-                email: cache_key.to_string(),
+                email: cache_key.to_owned(),
             },
             // we don't do chat signing by default unless the user asks for it
             certs: Arc::new(Mutex::new(None)),
@@ -204,7 +205,7 @@ impl Account {
             certs: Arc::new(Mutex::new(None)),
         })
     }
-    /// Refresh the access_token for this account to be valid again.
+    /// Refresh the `access_token` for this account to be valid again.
     ///
     /// This requires the `auth_opts` field to be set correctly (which is done
     /// by default if you used the constructor functions). Note that if the
@@ -243,7 +244,8 @@ impl Account {
     /// Get the UUID of this account.
     ///
     /// If the `uuid` field is None, the UUID will be determined by using
-    /// Minecraft's offline-mode UUIDv3 algorithm.
+    /// Minecraft's offline-mode `UUIDv3` algorithm.
+    #[must_use]
     pub fn uuid_or_offline(&self) -> Uuid {
         self.uuid
             .unwrap_or_else(|| azalea_auth::offline::generate_uuid(&self.username))

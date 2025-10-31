@@ -67,7 +67,7 @@ pub struct Bot {
 }
 
 /// Insert the [`Bot`] component for any local players that don't have it.
-#[allow(clippy::type_complexity)]
+#[expect(clippy::type_complexity)]
 fn insert_bot(
     mut commands: Commands,
     mut query: Query<Entity, (Without<Bot>, With<LocalEntity>, With<Player>)>,
@@ -244,11 +244,12 @@ fn look_at_listener(
 
 /// Return the look direction that would make a client at `current` be
 /// looking at `target`.
+#[must_use]
 pub fn direction_looking_at(current: Vec3, target: Vec3) -> LookDirection {
     // borrowed from mineflayer's Bot.lookAt because i didn't want to do math
     let delta = target - current;
     let y_rot = (PI - f64::atan2(-delta.x, -delta.z)) * (180.0 / PI);
-    let ground_distance = f64::sqrt(delta.x * delta.x + delta.z * delta.z);
+    let ground_distance = f64::sqrt(delta.x.mul_add(delta.x, delta.z * delta.z));
     let x_rot = f64::atan2(delta.y, ground_distance) * -(180.0 / PI);
 
     LookDirection::new(y_rot as f32, x_rot as f32)

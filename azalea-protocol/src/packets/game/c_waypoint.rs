@@ -11,7 +11,7 @@ pub struct ClientboundWaypoint {
     pub waypoint: TrackedWaypoint,
 }
 
-#[derive(AzBuf, Copy, Clone, Debug, PartialEq)]
+#[derive(AzBuf, Copy, Clone, Debug, PartialEq, Eq)]
 pub enum WaypointOperation {
     Track,
     Untrack,
@@ -25,13 +25,13 @@ pub struct TrackedWaypoint {
     pub data: WaypointData,
 }
 
-#[derive(AzBuf, Clone, Debug, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Eq)]
 pub enum WaypointIdentifier {
     String(String),
     Uuid(Uuid),
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct WaypointIcon {
     pub style: ResourceLocation,
     pub color: Option<RgbColor>,

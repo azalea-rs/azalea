@@ -1,6 +1,6 @@
 use azalea_buf::AzBuf;
 use azalea_core::{
-    data_registry::ResolvableDataRegistry,
+    data_registry::ResolvableDataRegistry as _,
     game_type::{GameMode, OptionalGameType},
     position::GlobalPos,
     registry_holder::{DimensionTypeElement, RegistryHolder},

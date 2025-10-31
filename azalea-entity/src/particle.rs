@@ -265,7 +265,7 @@ impl Default for Particle {
     }
 }
 
-#[derive(Debug, Clone, AzBuf, Default, PartialEq)]
+#[derive(Debug, Clone, AzBuf, Default, PartialEq, Eq)]
 pub struct BlockParticle {
     pub block_state: BlockState,
 }
@@ -284,7 +284,7 @@ pub struct DustColorTransitionParticle {
     pub scale: f32,
 }
 
-#[derive(Debug, Clone, AzBuf, Default, PartialEq)]
+#[derive(Debug, Clone, AzBuf, Default, PartialEq, Eq)]
 pub struct ColorParticle {
     pub color: RgbColor,
 }
@@ -322,7 +322,7 @@ pub struct SculkChargeParticle {
     pub roll: f32,
 }
 
-#[derive(Debug, Clone, AzBuf, Default, PartialEq)]
+#[derive(Debug, Clone, AzBuf, Default, PartialEq, Eq)]
 pub struct ShriekParticle {
     #[var]
     pub delay: i32, // The time in ticks before the particle is displayed

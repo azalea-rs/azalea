@@ -2,7 +2,7 @@ use azalea_buf::AzBuf;
 use azalea_core::{direction::Direction, position::BlockPos};
 use azalea_protocol_macros::ServerboundGamePacket;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ServerboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, Eq, ServerboundGamePacket)]
 pub struct ServerboundPlayerAction {
     pub action: Action,
     pub pos: BlockPos,

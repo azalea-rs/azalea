@@ -21,6 +21,7 @@ pub struct EntityDimensions {
 }
 
 impl EntityDimensions {
+    #[must_use]
     pub const fn new(width: f32, height: f32) -> Self {
         Self {
             width,
@@ -29,6 +30,7 @@ impl EntityDimensions {
             fixed: false,
         }
     }
+    #[must_use]
     pub const fn fixed(self) -> Self {
         Self {
             fixed: true,
@@ -36,10 +38,12 @@ impl EntityDimensions {
         }
     }
 
+    #[must_use]
     pub const fn eye_height(self, eye_height: f32) -> Self {
         Self { eye_height, ..self }
     }
 
+    #[must_use]
     pub fn make_bounding_box(&self, pos: Vec3) -> Aabb {
         let radius = (self.width / 2.0) as f64;
         let height = self.height as f64;
@@ -220,6 +224,7 @@ impl From<EntityKind> for EntityDimensions {
 
 /// Calculate the dimensions that an entity with the given kind and pose would
 /// have.i
+#[must_use]
 pub fn calculate_dimensions(kind: EntityKind, pose: Pose) -> EntityDimensions {
     match (kind, pose) {
         (_, Pose::Sleeping) => EntityDimensions::new(0.2, 0.2).fixed().eye_height(0.2),

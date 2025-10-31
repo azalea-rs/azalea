@@ -9,7 +9,7 @@ pub trait SerializableUuid {
     fn from_int_array(array: [u32; 4]) -> Self;
 }
 
-fn least_most_to_int_array(most: u64, least: u64) -> [u32; 4] {
+const fn least_most_to_int_array(most: u64, least: u64) -> [u32; 4] {
     [
         (most >> 32) as u32,
         most as u32,

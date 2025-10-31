@@ -89,9 +89,9 @@ pub fn debug_render_path_with_particles(
             for i in 0..step_count {
                 let percent = i as f64 / step_count as f64;
                 let pos = Vec3 {
-                    x: start_vec3.x + (end_vec3.x - start_vec3.x) * percent,
-                    y: start_vec3.y + (end_vec3.y - start_vec3.y) * percent,
-                    z: start_vec3.z + (end_vec3.z - start_vec3.z) * percent,
+                    x: (end_vec3.x - start_vec3.x).mul_add(percent, start_vec3.x),
+                    y: (end_vec3.y - start_vec3.y).mul_add(percent, start_vec3.y),
+                    z: (end_vec3.z - start_vec3.z).mul_add(percent, start_vec3.z),
                 };
                 let particle_command = format!(
                     "/particle dust{{color:[{r},{g},{b}],scale:{size}}} {start_x} {start_y} {start_z} {delta_x} {delta_y} {delta_z} 0 {count}",

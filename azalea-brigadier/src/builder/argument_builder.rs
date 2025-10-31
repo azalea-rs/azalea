@@ -43,6 +43,7 @@ pub struct ArgumentBuilder<S> {
 
 /// A node that isn't yet built.
 impl<S> ArgumentBuilder<S> {
+    #[must_use]
     pub fn new(value: ArgumentBuilderType<S>) -> Self {
         Self {
             arguments: CommandNode {
@@ -65,6 +66,7 @@ impl<S> ArgumentBuilder<S> {
     /// literal("foo").then(literal("bar").executes(|ctx: &CommandContext<()>| 42))
     /// # ;
     /// ```
+    #[must_use]
     pub fn then(self, argument: ArgumentBuilder<S>) -> Self {
         self.then_built(argument.build())
     }
@@ -72,6 +74,7 @@ impl<S> ArgumentBuilder<S> {
     /// Add an already built child node to this node.
     ///
     /// You should usually use [`Self::then`] instead.
+    #[must_use]
     pub fn then_built(mut self, argument: CommandNode<S>) -> Self {
         self.arguments.add_child(&Arc::new(RwLock::new(argument)));
         self
@@ -149,21 +152,24 @@ impl<S> ArgumentBuilder<S> {
         modifier: Option<Arc<RedirectModifier<S>>>,
         fork: bool,
     ) -> Self {
-        if !self.arguments.children.is_empty() {
-            panic!("Cannot forward a node with children");
-        }
+        assert!(
+            self.arguments.children.is_empty(),
+            "Cannot forward a node with children"
+        );
         self.target = Some(target);
         self.modifier = modifier;
         self.forks = fork;
         self
     }
 
-    pub fn arguments(&self) -> &CommandNode<S> {
+    #[must_use]
+    pub const fn arguments(&self) -> &CommandNode<S> {
         &self.arguments
     }
 
     /// Manually build this node into a [`CommandNode`]. You probably don't need
     /// to do this yourself.
+    #[must_use]
     pub fn build(self) -> CommandNode<S> {
         let mut result = CommandNode {
             value: self.arguments.value,

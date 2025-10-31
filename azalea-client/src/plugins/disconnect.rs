@@ -91,7 +91,7 @@ pub fn remove_components_from_disconnected_players(
             if let Some(reason) = reason {
                 format!(": {reason}")
             } else {
-                "".to_string()
+                String::new()
             }
         );
         commands
@@ -122,7 +122,7 @@ fn update_read_packets_task_running_component(
     }
 }
 
-#[allow(clippy::type_complexity)]
+#[expect(clippy::type_complexity)]
 fn disconnect_on_connection_dead(
     query: Query<(Entity, &IsConnectionAlive), (Changed<IsConnectionAlive>, With<LocalEntity>)>,
     mut disconnect_events: MessageWriter<DisconnectEvent>,

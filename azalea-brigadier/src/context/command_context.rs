@@ -83,10 +83,12 @@ impl<S> CommandContext<S> {
         }
     }
 
+    #[must_use]
     pub fn child(&self) -> Option<&CommandContext<S>> {
         self.child.as_ref().map(|c| c.as_ref())
     }
 
+    #[must_use]
     pub fn last_child(&self) -> &CommandContext<S> {
         let mut result = self;
         while let Some(child) = result.child() {
@@ -95,40 +97,49 @@ impl<S> CommandContext<S> {
         result
     }
 
+    #[must_use]
     pub fn command(&self) -> &Command<S> {
         &self.command
     }
 
+    #[must_use]
     pub fn argument(&self, name: &str) -> Option<&dyn Any> {
         let argument = self.arguments.get(name);
         argument.map(|a| a.result.as_ref())
     }
 
+    #[must_use]
     pub fn redirect_modifier(&self) -> Option<&RedirectModifier<S>> {
         self.modifier.as_ref().map(|m| m.as_ref())
     }
 
-    pub fn range(&self) -> &StringRange {
+    #[must_use]
+    pub const fn range(&self) -> &StringRange {
         &self.range
     }
 
+    #[must_use]
     pub fn input(&self) -> &str {
         &self.input
     }
 
-    pub fn root_node(&self) -> &Arc<RwLock<CommandNode<S>>> {
+    #[must_use]
+    pub const fn root_node(&self) -> &Arc<RwLock<CommandNode<S>>> {
         &self.root_node
     }
 
+    #[must_use]
     pub fn nodes(&self) -> &[ParsedCommandNode<S>] {
         &self.nodes
     }
 
-    pub fn has_nodes(&self) -> bool {
+    #[must_use]
+    pub const fn has_nodes(&self) -> bool {
         !self.nodes.is_empty()
     }
 
-    pub fn is_forked(&self) -> bool {
+    #[must_use]
+    pub const fn is_forked(&self) -> bool {
         self.forks
     }
 }

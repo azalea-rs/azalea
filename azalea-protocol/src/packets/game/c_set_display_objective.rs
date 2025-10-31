@@ -1,13 +1,13 @@
 use azalea_buf::AzBuf;
 use azalea_protocol_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, Eq, ClientboundGamePacket)]
 pub struct ClientboundSetDisplayObjective {
     pub slot: DisplaySlot,
     pub objective_name: String,
 }
 
-#[derive(Clone, Debug, Copy, AzBuf, PartialEq)]
+#[derive(Clone, Debug, Copy, AzBuf, PartialEq, Eq)]
 pub enum DisplaySlot {
     List = 0,
     Sidebar,

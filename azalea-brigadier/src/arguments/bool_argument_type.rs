@@ -27,17 +27,19 @@ impl ArgumentType for Boolean {
     }
 
     fn examples(&self) -> Vec<String> {
-        vec!["true".to_string(), "false".to_string()]
+        vec!["true".to_owned(), "false".to_owned()]
     }
 }
 
+#[must_use]
 pub fn bool() -> impl ArgumentType {
     Boolean
 }
+#[must_use]
 pub fn get_bool<S>(context: &CommandContext<S>, name: &str) -> Option<bool> {
     context
         .argument(name)
         .expect("argument with name not found")
         .downcast_ref::<bool>()
-        .cloned()
+        .copied()
 }

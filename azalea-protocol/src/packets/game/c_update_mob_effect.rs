@@ -4,7 +4,7 @@ use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_registry::MobEffect;
 use azalea_world::MinecraftEntityId;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, Eq, ClientboundGamePacket)]
 pub struct ClientboundUpdateMobEffect {
     #[var]
     pub entity_id: MinecraftEntityId,

@@ -337,7 +337,7 @@ fn get_path() {
 
     assert_eq!(
         subject.get_path(bar),
-        vec!["foo".to_string(), "bar".to_string()]
+        vec!["foo".to_owned(), "bar".to_owned()]
     );
 }
 
@@ -345,5 +345,5 @@ fn get_path() {
 fn find_node_doesnt_exist() {
     let subject = CommandDispatcher::<()>::new();
 
-    assert!(subject.find_node(&["foo", "bar"]).is_none())
+    assert!(subject.find_node(&["foo", "bar"]).is_none());
 }

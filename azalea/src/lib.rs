@@ -79,9 +79,9 @@ where
     R: Send + 'static,
     Self: Send,
 {
-    /// Internally, ClientBuilder is just a wrapper over SwarmBuilder since it's
-    /// technically just a subset of it so we can avoid duplicating code this
-    /// way.
+    /// Internally, `ClientBuilder` is just a wrapper over `SwarmBuilder` since
+    /// it's technically just a subset of it so we can avoid duplicating
+    /// code this way.
     swarm: SwarmBuilder<S, swarm::NoSwarmState, R, ()>,
 }
 impl ClientBuilder<NoState, ()> {
@@ -272,6 +272,7 @@ pub struct JoinOpts {
 }
 
 impl JoinOpts {
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -303,7 +304,7 @@ impl JoinOpts {
     /// Set the custom resolved address that this bot will use to connect to the
     /// server.
     #[must_use]
-    pub fn custom_resolved_address(mut self, custom_resolved_address: SocketAddr) -> Self {
+    pub const fn custom_resolved_address(mut self, custom_resolved_address: SocketAddr) -> Self {
         self.custom_resolved_address = Some(custom_resolved_address);
         self
     }

@@ -16,24 +16,28 @@ pub enum DiscreteVoxelShape {
 
 impl DiscreteVoxelShape {
     #[inline]
+    #[must_use]
     pub fn size(&self, axis: Axis) -> u32 {
         match self {
             DiscreteVoxelShape::BitSet(shape) => shape.size(axis),
         }
     }
 
+    #[must_use]
     pub fn first_full(&self, axis: Axis) -> i32 {
         match self {
             DiscreteVoxelShape::BitSet(shape) => shape.first_full(axis),
         }
     }
 
+    #[must_use]
     pub fn last_full(&self, axis: Axis) -> i32 {
         match self {
             DiscreteVoxelShape::BitSet(shape) => shape.last_full(axis),
         }
     }
 
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         if self.first_full(Axis::X) >= self.last_full(Axis::X) {
             return true;
@@ -47,6 +51,7 @@ impl DiscreteVoxelShape {
         false
     }
 
+    #[must_use]
     pub fn is_full_wide(&self, x: i32, y: i32, z: i32) -> bool {
         if x < 0 || y < 0 || z < 0 {
             return false;
@@ -57,6 +62,7 @@ impl DiscreteVoxelShape {
             && (self.is_full(x, y, z))
     }
 
+    #[must_use]
     pub fn is_full_wide_axis_cycle(&self, axis_cycle: AxisCycle, x: i32, y: i32, z: i32) -> bool {
         self.is_full_wide(
             axis_cycle.cycle_xyz(x, y, z, Axis::X),
@@ -65,6 +71,7 @@ impl DiscreteVoxelShape {
         )
     }
 
+    #[must_use]
     pub fn is_full(&self, x: u32, y: u32, z: u32) -> bool {
         match self {
             DiscreteVoxelShape::BitSet(shape) => shape.is_full(x, y, z),
@@ -92,6 +99,7 @@ pub struct BitSetDiscreteVoxelShape {
 }
 
 impl BitSetDiscreteVoxelShape {
+    #[must_use]
     pub fn new(x_min: u32, y_min: u32, z_min: u32) -> Self {
         BitSetDiscreteVoxelShape {
             x_size: x_min,
@@ -109,7 +117,8 @@ impl BitSetDiscreteVoxelShape {
     }
 
     // yeah don't really feel like fixing this one
-    #[allow(clippy::too_many_arguments)]
+    #[expect(clippy::too_many_arguments)]
+    #[must_use]
     pub fn with_filled_bounds(
         x_size: u32,
         y_size: u32,
@@ -161,10 +170,10 @@ impl BitSetDiscreteVoxelShape {
         self.fill_update_bounds(x, y, z, true);
     }
 
-    fn get_index_from_size(x: u32, y: u32, z: u32, y_size: u32, z_size: u32) -> usize {
+    const fn get_index_from_size(x: u32, y: u32, z: u32, y_size: u32, z_size: u32) -> usize {
         ((x * y_size + y) * z_size + z) as usize
     }
-    fn get_index(&self, x: u32, y: u32, z: u32) -> usize {
+    const fn get_index(&self, x: u32, y: u32, z: u32) -> usize {
         Self::get_index_from_size(x, y, z, self.y_size, self.z_size)
     }
 
@@ -330,7 +339,7 @@ impl From<&DiscreteVoxelShape> for BitSetDiscreteVoxelShape {
         let z_size = shape.size(Axis::Z);
         let mut storage;
         // more things could be added to DiscreteVoxelShape in the future
-        #[allow(irrefutable_let_patterns)]
+        #[expect(irrefutable_let_patterns)]
         if let DiscreteVoxelShape::BitSet(shape) = shape {
             storage = shape.storage.clone();
         } else {

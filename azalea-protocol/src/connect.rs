@@ -14,7 +14,7 @@ use azalea_auth::{
 use azalea_crypto::{Aes128CfbDec, Aes128CfbEnc};
 use thiserror::Error;
 use tokio::{
-    io::{AsyncWriteExt, BufStream},
+    io::{AsyncWriteExt as _, BufStream},
     net::{
         TcpStream,
         tcp::{OwnedReadHalf, OwnedWriteHalf, ReuniteError},
@@ -281,7 +281,8 @@ pub struct Proxy {
 }
 
 impl Proxy {
-    pub fn new(addr: SocketAddr, auth: Option<UserKey>) -> Self {
+    #[must_use]
+    pub const fn new(addr: SocketAddr, auth: Option<UserKey>) -> Self {
         Self { addr, auth }
     }
 }
@@ -374,7 +375,7 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     ///
     /// Setting it to 0 means every packet will be compressed. If you set it to
     /// less than 0 then compression is disabled.
-    pub fn set_compression_threshold(&mut self, threshold: i32) {
+    pub const fn set_compression_threshold(&mut self, threshold: i32) {
         // if you pass a threshold of less than 0, compression is disabled
         if threshold >= 0 {
             self.reader.raw.compression_threshold = Some(threshold as u32);
@@ -495,7 +496,7 @@ impl Connection<ServerboundLoginPacket, ClientboundLoginPacket> {
     /// allowed to be without getting compressed.
     ///
     /// If you set it to less than 0 then compression gets disabled.
-    pub fn set_compression_threshold(&mut self, threshold: i32) {
+    pub const fn set_compression_threshold(&mut self, threshold: i32) {
         // if you pass a threshold of less than 0, compression is disabled
         if threshold >= 0 {
             self.reader.raw.compression_threshold = Some(threshold as u32);

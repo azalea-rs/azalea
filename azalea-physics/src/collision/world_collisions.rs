@@ -12,7 +12,7 @@ use bevy_ecs::entity::Entity;
 use parking_lot::RwLock;
 
 use super::{BLOCK_SHAPE, Shapes};
-use crate::collision::{Aabb, BlockWithShape, VoxelShape};
+use crate::collision::{Aabb, BlockWithShape as _, VoxelShape};
 
 pub fn get_block_collisions(world: &Instance, aabb: &Aabb) -> Vec<VoxelShape> {
     let mut state = BlockCollisionsState::new(world, aabb, EntityCollisionContext::of(None));
@@ -126,6 +126,7 @@ impl<'a> BlockCollisionsState<'a> {
         block_collisions.push(block_shape);
     }
 
+    #[must_use]
     pub fn new(world: &'a Instance, aabb: &'a Aabb, context: EntityCollisionContext) -> Self {
         let origin = BlockPos {
             x: (aabb.min.x - EPSILON).floor() as i32 - 1,
@@ -237,7 +238,8 @@ pub struct EntityCollisionContext {
 }
 
 impl EntityCollisionContext {
-    pub fn of(entity: Option<Entity>) -> Self {
+    #[must_use]
+    pub const fn of(entity: Option<Entity>) -> Self {
         Self {
             descending: false,
             entity_bottom: 0.0,
@@ -246,7 +248,8 @@ impl EntityCollisionContext {
             entity,
         }
     }
-    pub fn with_include_liquids(mut self, include_liquids: bool) -> Self {
+    #[must_use]
+    pub const fn with_include_liquids(mut self, include_liquids: bool) -> Self {
         self.can_stand_on_fluid_predicate = if include_liquids {
             CanStandOnFluidPredicate::AlwaysTrue
         } else {
@@ -255,6 +258,7 @@ impl EntityCollisionContext {
         self
     }
 
+    #[must_use]
     pub fn can_stand_on_fluid(&self, above: &FluidState, target: &FluidState) -> bool {
         self.can_stand_on_fluid_predicate.matches(target) && !above.is_same_kind(target)
     }
@@ -265,7 +269,7 @@ enum CanStandOnFluidPredicate {
     AlwaysTrue,
 }
 impl CanStandOnFluidPredicate {
-    pub fn matches(&self, _state: &FluidState) -> bool {
+    pub const fn matches(&self, _state: &FluidState) -> bool {
         match self {
             Self::AlwaysTrue => true,
             // minecraft sometimes returns true for striders here, false for every other entity

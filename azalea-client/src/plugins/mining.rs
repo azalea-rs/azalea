@@ -4,7 +4,7 @@ use azalea_entity::{
     ActiveEffects, FluidOnEyes, Physics, PlayerAbilities, Position, mining::get_mine_progress,
 };
 use azalea_inventory::ItemStack;
-use azalea_physics::{PhysicsSystems, collision::BlockWithShape};
+use azalea_physics::{PhysicsSystems, collision::BlockWithShape as _};
 use azalea_protocol::packets::game::s_player_action::{self, ServerboundPlayerAction};
 use azalea_world::{InstanceContainer, InstanceName};
 use bevy_app::{App, Plugin, Update};
@@ -99,7 +99,7 @@ impl Client {
 #[derive(Component)]
 pub struct LeftClickMine;
 
-#[allow(clippy::type_complexity)]
+#[expect(clippy::type_complexity)]
 fn handle_auto_mine(
     mut query: Query<
         (
@@ -221,7 +221,7 @@ fn handle_start_mining_block_event(
                     "Got StartMiningBlockEvent with force=false but we're not looking at the block ({hit_result:?}.block_pos != {:?}). You should've looked at the block before trying to mine with force=false.",
                     event.position
                 );
-            };
+            }
         }
     }
 }
@@ -234,7 +234,7 @@ pub struct MiningQueued {
     /// Whether we should mine the block regardless of whether it's reachable.
     pub force: bool,
 }
-#[allow(clippy::too_many_arguments, clippy::type_complexity)]
+#[expect(clippy::too_many_arguments, clippy::type_complexity)]
 pub fn handle_mining_queued(
     mut commands: Commands,
     mut attack_block_events: MessageWriter<AttackBlockEvent>,
@@ -454,6 +454,7 @@ pub struct MineDelay(pub u32);
 pub struct MineProgress(pub f32);
 
 impl MineProgress {
+    #[must_use]
     pub fn destroy_stage(&self) -> Option<u32> {
         if self.0 > 0. {
             Some((self.0 * 10.) as u32)
@@ -589,7 +590,7 @@ pub fn handle_stop_mining_block_event(
     }
 }
 
-#[allow(clippy::too_many_arguments, clippy::type_complexity)]
+#[expect(clippy::too_many_arguments, clippy::type_complexity)]
 pub fn continue_mining_block(
     mut query: Query<(
         Entity,
@@ -626,7 +627,7 @@ pub fn continue_mining_block(
         mut mine_progress,
         mut mine_ticks,
         mut prediction_handler,
-    ) in query.iter_mut()
+    ) in &mut query
     {
         if **mine_delay > 0 {
             **mine_delay -= 1;

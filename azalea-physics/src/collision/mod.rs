@@ -5,7 +5,7 @@ mod mergers;
 mod shape;
 pub mod world_collisions;
 
-use std::{ops::Add, sync::LazyLock};
+use std::{ops::Add as _, sync::LazyLock};
 
 use azalea_block::{BlockState, fluid_state::FluidState};
 use azalea_core::{
@@ -129,7 +129,7 @@ pub struct MoveCtx<'world, 'state, 'a, 'b> {
 /// Move an entity by a given delta, checking for collisions.
 ///
 /// In Mojmap, this is `Entity.move`.
-#[allow(clippy::too_many_arguments)]
+#[expect(clippy::too_many_arguments)]
 pub fn move_colliding(ctx: &mut MoveCtx, mut movement: Vec3) {
     // TODO: do all these
 
@@ -296,7 +296,7 @@ fn maybe_back_off_from_edge(move_ctx: &mut MoveCtx, mut movement: Vec3) -> Vec3 
             break;
         }
 
-        movement.x -= min_movement_x
+        movement.x -= min_movement_x;
     }
     while movement.z != 0. && can_fall_at_least(&fall_ctx, 0., movement.z, max_up_step as f64) {
         if movement.z.abs() <= min_movement {
@@ -304,7 +304,7 @@ fn maybe_back_off_from_edge(move_ctx: &mut MoveCtx, mut movement: Vec3) -> Vec3 
             break;
         }
 
-        movement.z -= min_movement_z
+        movement.z -= min_movement_z;
     }
     while movement.x != 0.0
         && movement.z != 0.0
@@ -478,6 +478,7 @@ fn calculate_shape_for_fluid(amount: u8) -> VoxelShape {
 /// Whether the block is treated as "motion blocking".
 ///
 /// This is marked as deprecated in Minecraft.
+#[must_use]
 pub fn legacy_blocks_motion(block: BlockState) -> bool {
     if block == BlockState::AIR {
         // fast path
@@ -490,6 +491,7 @@ pub fn legacy_blocks_motion(block: BlockState) -> bool {
         && registry_block != azalea_registry::Block::BambooSapling
 }
 
+#[must_use]
 pub fn legacy_calculate_solid(block: BlockState) -> bool {
     // force_solid has to be checked before anything else
     let block_trait = Box::<dyn azalea_block::BlockTrait>::from(block);

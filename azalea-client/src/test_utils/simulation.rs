@@ -2,7 +2,7 @@ use std::{collections::VecDeque, fmt::Debug, sync::Arc};
 
 use azalea_auth::game_profile::GameProfile;
 use azalea_block::BlockState;
-use azalea_buf::AzaleaWrite;
+use azalea_buf::AzaleaWrite as _;
 use azalea_core::{
     delta::LpVec3,
     game_type::{GameMode, OptionalGameType},
@@ -25,7 +25,7 @@ use azalea_protocol::{
         },
     },
 };
-use azalea_registry::{Biome, DataRegistry, DimensionType, EntityKind};
+use azalea_registry::{Biome, DataRegistry as _, DimensionType, EntityKind};
 use azalea_world::{Chunk, Instance, MinecraftEntityId, Section, palette::PalettedContainer};
 use bevy_app::App;
 use bevy_ecs::{component::Mutable, prelude::*, schedule::ExecutorKind};
@@ -48,6 +48,7 @@ pub struct Simulation {
 }
 
 impl Simulation {
+    #[must_use]
     pub fn new(initial_connection_protocol: ConnectionProtocol) -> Self {
         let mut app = create_simulation_app();
         let mut entity = app.world_mut().spawn_empty();
@@ -62,16 +63,13 @@ impl Simulation {
         // start in the config state
         app.world_mut().entity_mut(entity).insert((
             InConfigState,
-            GameProfileComponent(GameProfile::new(
-                Uuid::from_u128(1234),
-                "azalea".to_string(),
-            )),
+            GameProfileComponent(GameProfile::new(Uuid::from_u128(1234), "azalea".to_owned())),
         ));
         tick_app(&mut app);
 
         let mut simulation = Self { app, entity, rt };
 
-        #[allow(clippy::single_match)]
+        #[expect(clippy::single_match)]
         match initial_connection_protocol {
             ConnectionProtocol::Configuration => {}
             ConnectionProtocol::Game => {
@@ -196,7 +194,7 @@ impl SentPackets {
                     sent_packets_clone
                         .list
                         .lock()
-                        .push_back(send_game_packet.packet.clone())
+                        .push_back(send_game_packet.packet.clone());
                 }
             });
 
@@ -220,9 +218,10 @@ impl SentPackets {
     }
     pub fn expect_empty(&self) {
         let sent_packet = self.next();
-        if sent_packet.is_some() {
-            panic!("Expected no packet, got {sent_packet:?}");
-        }
+        assert!(
+            sent_packet.is_none(),
+            "Expected no packet, got {sent_packet:?}"
+        );
     }
     pub fn expect(
         &self,
@@ -231,9 +230,10 @@ impl SentPackets {
     ) {
         let sent_packet = self.next();
         if let Some(sent_packet) = sent_packet {
-            if !check(&sent_packet) {
-                panic!("Expected {expected_formatted}, got {sent_packet:?}");
-            }
+            assert!(
+                check(&sent_packet),
+                "Expected {expected_formatted}, got {sent_packet:?}"
+            );
         } else {
             panic!("Expected {expected_formatted}, got nothing");
         }
@@ -248,15 +248,17 @@ impl SentPackets {
         }
     }
 
+    #[must_use]
     pub fn next(&self) -> Option<ServerboundGamePacket> {
         self.list.lock().pop_front()
     }
+    #[must_use]
     pub fn peek(&self) -> Option<ServerboundGamePacket> {
         self.list.lock().front().cloned()
     }
 }
 
-#[allow(clippy::type_complexity)]
+#[expect(clippy::type_complexity)]
 fn create_local_player_bundle(
     entity: Entity,
     connection_protocol: ConnectionProtocol,
@@ -299,6 +301,7 @@ fn tick_app(app: &mut App) {
     app.world_mut().run_schedule(GameTick);
 }
 
+#[must_use]
 pub fn default_login_packet() -> ClientboundLogin {
     make_basic_login_packet(
         DimensionType::new_raw(0), // overworld
@@ -306,7 +309,8 @@ pub fn default_login_packet() -> ClientboundLogin {
     )
 }
 
-pub fn make_basic_login_packet(
+#[must_use]
+pub const fn make_basic_login_packet(
     dimension_type: DimensionType,
     dimension: ResourceLocation,
 ) -> ClientboundLogin {
@@ -336,7 +340,8 @@ pub fn make_basic_login_packet(
     }
 }
 
-pub fn make_basic_respawn_packet(
+#[must_use]
+pub const fn make_basic_respawn_packet(
     dimension_type: DimensionType,
     dimension: ResourceLocation,
 ) -> ClientboundRespawn {
@@ -357,6 +362,7 @@ pub fn make_basic_respawn_packet(
     }
 }
 
+#[must_use]
 pub fn make_basic_empty_chunk(
     pos: ChunkPos,
     section_count: usize,

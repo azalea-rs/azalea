@@ -14,7 +14,62 @@ use azalea_entity::{
 };
 use azalea_protocol::{
     common::movements::MoveFlags,
-    packets::{ConnectionProtocol, game::*},
+    packets::{
+        ConnectionProtocol,
+        game::{
+            ClientboundAddEntity, ClientboundAnimate, ClientboundAwardStats,
+            ClientboundBlockChangedAck, ClientboundBlockDestruction, ClientboundBlockEntityData,
+            ClientboundBlockEvent, ClientboundBlockUpdate, ClientboundBossEvent,
+            ClientboundBundleDelimiter, ClientboundChangeDifficulty, ClientboundChunkBatchFinished,
+            ClientboundChunkBatchStart, ClientboundChunksBiomes, ClientboundClearDialog,
+            ClientboundClearTitles, ClientboundCommandSuggestions, ClientboundCommands,
+            ClientboundContainerClose, ClientboundContainerSetContent, ClientboundContainerSetData,
+            ClientboundContainerSetSlot, ClientboundCookieRequest, ClientboundCooldown,
+            ClientboundCustomChatCompletions, ClientboundCustomPayload,
+            ClientboundCustomReportDetails, ClientboundDamageEvent, ClientboundDebugBlockValue,
+            ClientboundDebugChunkValue, ClientboundDebugEntityValue, ClientboundDebugEvent,
+            ClientboundDebugSample, ClientboundDeleteChat, ClientboundDisconnect,
+            ClientboundDisguisedChat, ClientboundEntityEvent, ClientboundEntityPositionSync,
+            ClientboundExplode, ClientboundForgetLevelChunk, ClientboundGameEvent,
+            ClientboundGamePacket, ClientboundGameTestHighlightPos, ClientboundHorseScreenOpen,
+            ClientboundHurtAnimation, ClientboundInitializeBorder, ClientboundKeepAlive,
+            ClientboundLevelChunkWithLight, ClientboundLevelEvent, ClientboundLevelParticles,
+            ClientboundLightUpdate, ClientboundLogin, ClientboundMapItemData,
+            ClientboundMerchantOffers, ClientboundMoveEntityPos, ClientboundMoveEntityPosRot,
+            ClientboundMoveEntityRot, ClientboundMoveMinecartAlongTrack, ClientboundMoveVehicle,
+            ClientboundOpenBook, ClientboundOpenScreen, ClientboundOpenSignEditor, ClientboundPing,
+            ClientboundPlaceGhostRecipe, ClientboundPlayerAbilities, ClientboundPlayerChat,
+            ClientboundPlayerCombatEnd, ClientboundPlayerCombatEnter, ClientboundPlayerCombatKill,
+            ClientboundPlayerInfoRemove, ClientboundPlayerInfoUpdate, ClientboundPlayerLookAt,
+            ClientboundPlayerPosition, ClientboundPlayerRotation, ClientboundPongResponse,
+            ClientboundProjectilePower, ClientboundRecipeBookAdd, ClientboundRecipeBookRemove,
+            ClientboundRecipeBookSettings, ClientboundRemoveEntities, ClientboundRemoveMobEffect,
+            ClientboundResetScore, ClientboundResourcePackPop, ClientboundResourcePackPush,
+            ClientboundRespawn, ClientboundRotateHead, ClientboundSectionBlocksUpdate,
+            ClientboundSelectAdvancementsTab, ClientboundServerData, ClientboundServerLinks,
+            ClientboundSetActionBarText, ClientboundSetBorderCenter, ClientboundSetBorderLerpSize,
+            ClientboundSetBorderSize, ClientboundSetBorderWarningDelay,
+            ClientboundSetBorderWarningDistance, ClientboundSetCamera,
+            ClientboundSetChunkCacheCenter, ClientboundSetChunkCacheRadius,
+            ClientboundSetCursorItem, ClientboundSetDefaultSpawnPosition,
+            ClientboundSetDisplayObjective, ClientboundSetEntityData, ClientboundSetEntityLink,
+            ClientboundSetEntityMotion, ClientboundSetEquipment, ClientboundSetExperience,
+            ClientboundSetHealth, ClientboundSetHeldSlot, ClientboundSetObjective,
+            ClientboundSetPassengers, ClientboundSetPlayerInventory, ClientboundSetPlayerTeam,
+            ClientboundSetScore, ClientboundSetSimulationDistance, ClientboundSetSubtitleText,
+            ClientboundSetTime, ClientboundSetTitleText, ClientboundSetTitlesAnimation,
+            ClientboundShowDialog, ClientboundSound, ClientboundSoundEntity,
+            ClientboundStartConfiguration, ClientboundStopSound, ClientboundStoreCookie,
+            ClientboundSystemChat, ClientboundTabList, ClientboundTagQuery,
+            ClientboundTakeItemEntity, ClientboundTeleportEntity,
+            ClientboundTestInstanceBlockStatus, ClientboundTickingState, ClientboundTickingStep,
+            ClientboundTransfer, ClientboundUpdateAdvancements, ClientboundUpdateAttributes,
+            ClientboundUpdateMobEffect, ClientboundUpdateRecipes, ClientboundUpdateTags,
+            ClientboundWaypoint, ServerboundAcceptTeleportation,
+            ServerboundConfigurationAcknowledged, ServerboundKeepAlive,
+            ServerboundMovePlayerPosRot,
+        },
+    },
 };
 use azalea_world::{InstanceContainer, InstanceName, MinecraftEntityId, PartialInstance};
 use bevy_ecs::{prelude::*, system::SystemState};
@@ -40,7 +95,7 @@ use crate::{
 };
 
 pub fn process_packet(ecs: &mut World, player: Entity, packet: &ClientboundGamePacket) {
-    let mut handler = GamePacketHandler { player, ecs };
+    let mut handler = GamePacketHandler { ecs, player };
 
     // the order of these doesn't matter, that's decided by the protocol library
     declare_packet_handlers!(
@@ -404,7 +459,7 @@ impl GamePacketHandler<'_> {
         debug!("Got update recipes packet");
     }
 
-    pub fn entity_event(&mut self, _p: &ClientboundEntityEvent) {
+    pub const fn entity_event(&mut self, _p: &ClientboundEntityEvent) {
         // debug!("Got entity event packet {p:?}");
     }
 
@@ -538,9 +593,9 @@ impl GamePacketHandler<'_> {
         });
     }
 
-    pub fn chunks_biomes(&mut self, _p: &ClientboundChunksBiomes) {}
+    pub const fn chunks_biomes(&mut self, _p: &ClientboundChunksBiomes) {}
 
-    pub fn light_update(&mut self, _p: &ClientboundLightUpdate) {
+    pub const fn light_update(&mut self, _p: &ClientboundLightUpdate) {
         // debug!("Got light update packet {p:?}");
     }
 
@@ -613,7 +668,7 @@ impl GamePacketHandler<'_> {
 
                     debug!("added to LoadedBy of entity {ecs_entity:?} with id {entity_id:?}");
                     return;
-                };
+                }
 
                 // entity doesn't exist in the global index!
 
@@ -708,7 +763,7 @@ impl GamePacketHandler<'_> {
         });
     }
 
-    pub fn update_attributes(&mut self, _p: &ClientboundUpdateAttributes) {
+    pub const fn update_attributes(&mut self, _p: &ClientboundUpdateAttributes) {
         // debug!("Got update attributes packet {p:?}");
     }
 
@@ -757,7 +812,7 @@ impl GamePacketHandler<'_> {
         debug!("Got initialize border packet {p:?}");
     }
 
-    pub fn set_time(&mut self, _p: &ClientboundSetTime) {
+    pub const fn set_time(&mut self, _p: &ClientboundSetTime) {
         // debug!("Got set time packet {p:?}");
     }
 
@@ -829,7 +884,7 @@ impl GamePacketHandler<'_> {
         debug!("Got update advancements packet {p:?}");
     }
 
-    pub fn rotate_head(&mut self, _p: &ClientboundRotateHead) {}
+    pub const fn rotate_head(&mut self, _p: &ClientboundRotateHead) {}
 
     pub fn move_entity_pos(&mut self, p: &ClientboundMoveEntityPos) {
         as_system::<(Commands, Query<(&EntityIdIndex, &InstanceHolder)>)>(
@@ -1042,7 +1097,7 @@ impl GamePacketHandler<'_> {
         });
     }
 
-    pub fn sound(&mut self, _p: &ClientboundSound) {}
+    pub const fn sound(&mut self, _p: &ClientboundSound) {}
 
     pub fn level_event(&mut self, p: &ClientboundLevelEvent) {
         debug!("Got level event packet {p:?}");
@@ -1078,7 +1133,7 @@ impl GamePacketHandler<'_> {
 
         debug!("Got game event packet {p:?}");
 
-        #[allow(clippy::single_match)]
+        #[expect(clippy::single_match)]
         match p.event {
             EventType::ChangeGameMode => {
                 as_system::<Query<&mut LocalGameMode>>(self.ecs, |mut query| {
@@ -1130,10 +1185,10 @@ impl GamePacketHandler<'_> {
                     partial_instance,
                     move |entity| {
                         if let Some(mut active_effects) = entity.get_mut::<ActiveEffects>() {
-                            active_effects.insert(mob_effect, effect_data.clone());
+                            active_effects.insert(mob_effect, effect_data);
                         } else {
                             let mut active_effects = ActiveEffects::default();
-                            active_effects.insert(mob_effect, effect_data.clone());
+                            active_effects.insert(mob_effect, effect_data);
                             entity.insert(active_effects);
                         }
                     },
@@ -1142,7 +1197,7 @@ impl GamePacketHandler<'_> {
         );
     }
 
-    pub fn award_stats(&mut self, _p: &ClientboundAwardStats) {}
+    pub const fn award_stats(&mut self, _p: &ClientboundAwardStats) {}
 
     pub fn block_changed_ack(&mut self, p: &ClientboundBlockChangedAck) {
         as_system::<Query<(&InstanceHolder, &mut BlockStatePredictionHandler)>>(
@@ -1155,17 +1210,17 @@ impl GamePacketHandler<'_> {
         );
     }
 
-    pub fn block_destruction(&mut self, _p: &ClientboundBlockDestruction) {}
+    pub const fn block_destruction(&mut self, _p: &ClientboundBlockDestruction) {}
 
-    pub fn block_entity_data(&mut self, _p: &ClientboundBlockEntityData) {}
+    pub const fn block_entity_data(&mut self, _p: &ClientboundBlockEntityData) {}
 
     pub fn block_event(&mut self, p: &ClientboundBlockEvent) {
         debug!("Got block event packet {p:?}");
     }
 
-    pub fn boss_event(&mut self, _p: &ClientboundBossEvent) {}
+    pub const fn boss_event(&mut self, _p: &ClientboundBossEvent) {}
 
-    pub fn command_suggestions(&mut self, _p: &ClientboundCommandSuggestions) {}
+    pub const fn command_suggestions(&mut self, _p: &ClientboundCommandSuggestions) {}
 
     pub fn container_set_content(&mut self, p: &ClientboundContainerSetContent) {
         debug!("Got container set content packet {p:?}");
@@ -1253,11 +1308,11 @@ impl GamePacketHandler<'_> {
         });
     }
 
-    pub fn cooldown(&mut self, _p: &ClientboundCooldown) {}
+    pub const fn cooldown(&mut self, _p: &ClientboundCooldown) {}
 
-    pub fn custom_chat_completions(&mut self, _p: &ClientboundCustomChatCompletions) {}
+    pub const fn custom_chat_completions(&mut self, _p: &ClientboundCustomChatCompletions) {}
 
-    pub fn delete_chat(&mut self, _p: &ClientboundDeleteChat) {}
+    pub const fn delete_chat(&mut self, _p: &ClientboundDeleteChat) {}
 
     pub fn explode(&mut self, p: &ClientboundExplode) {
         trace!("Got explode packet {p:?}");
@@ -1284,15 +1339,15 @@ impl GamePacketHandler<'_> {
         });
     }
 
-    pub fn horse_screen_open(&mut self, _p: &ClientboundHorseScreenOpen) {}
+    pub const fn horse_screen_open(&mut self, _p: &ClientboundHorseScreenOpen) {}
 
-    pub fn map_item_data(&mut self, _p: &ClientboundMapItemData) {}
+    pub const fn map_item_data(&mut self, _p: &ClientboundMapItemData) {}
 
-    pub fn merchant_offers(&mut self, _p: &ClientboundMerchantOffers) {}
+    pub const fn merchant_offers(&mut self, _p: &ClientboundMerchantOffers) {}
 
-    pub fn move_vehicle(&mut self, _p: &ClientboundMoveVehicle) {}
+    pub const fn move_vehicle(&mut self, _p: &ClientboundMoveVehicle) {}
 
-    pub fn open_book(&mut self, _p: &ClientboundOpenBook) {}
+    pub const fn open_book(&mut self, _p: &ClientboundOpenBook) {}
 
     pub fn open_screen(&mut self, p: &ClientboundOpenScreen) {
         debug!("Got open screen packet {p:?}");
@@ -1302,12 +1357,12 @@ impl GamePacketHandler<'_> {
                 entity: self.player,
                 window_id: p.container_id,
                 menu_type: p.menu_type,
-                title: p.title.to_owned(),
+                title: p.title.clone(),
             });
         });
     }
 
-    pub fn open_sign_editor(&mut self, _p: &ClientboundOpenSignEditor) {}
+    pub const fn open_sign_editor(&mut self, _p: &ClientboundOpenSignEditor) {}
 
     pub fn ping(&mut self, p: &ClientboundPing) {
         debug!("Got ping packet {p:?}");
@@ -1320,11 +1375,11 @@ impl GamePacketHandler<'_> {
         });
     }
 
-    pub fn place_ghost_recipe(&mut self, _p: &ClientboundPlaceGhostRecipe) {}
+    pub const fn place_ghost_recipe(&mut self, _p: &ClientboundPlaceGhostRecipe) {}
 
-    pub fn player_combat_end(&mut self, _p: &ClientboundPlayerCombatEnd) {}
+    pub const fn player_combat_end(&mut self, _p: &ClientboundPlayerCombatEnd) {}
 
-    pub fn player_combat_enter(&mut self, _p: &ClientboundPlayerCombatEnter) {}
+    pub const fn player_combat_enter(&mut self, _p: &ClientboundPlayerCombatEnter) {}
 
     pub fn player_combat_kill(&mut self, p: &ClientboundPlayerCombatKill) {
         debug!("Got player kill packet {p:?}");
@@ -1346,7 +1401,7 @@ impl GamePacketHandler<'_> {
         });
     }
 
-    pub fn player_look_at(&mut self, _p: &ClientboundPlayerLookAt) {}
+    pub const fn player_look_at(&mut self, _p: &ClientboundPlayerLookAt) {}
 
     pub fn remove_mob_effect(&mut self, p: &ClientboundRemoveMobEffect) {
         debug!("Got remove mob effect packet {p:?}");
@@ -1386,15 +1441,15 @@ impl GamePacketHandler<'_> {
             events.write(ResourcePackEvent {
                 entity: self.player,
                 id: p.id,
-                url: p.url.to_owned(),
-                hash: p.hash.to_owned(),
+                url: p.url.clone(),
+                hash: p.hash.clone(),
                 required: p.required,
-                prompt: p.prompt.to_owned(),
+                prompt: p.prompt.clone(),
             });
         });
     }
 
-    pub fn resource_pack_pop(&mut self, _p: &ClientboundResourcePackPop) {}
+    pub const fn resource_pack_pop(&mut self, _p: &ClientboundResourcePackPop) {}
 
     pub fn respawn(&mut self, p: &ClientboundRespawn) {
         debug!("Got respawn packet {p:?}");
@@ -1491,7 +1546,7 @@ impl GamePacketHandler<'_> {
                     .entity(self.player)
                     .remove::<(Dead, HasClientLoaded)>();
             },
-        )
+        );
     }
 
     pub fn start_configuration(&mut self, _p: &ClientboundStartConfiguration) {
@@ -1564,43 +1619,43 @@ impl GamePacketHandler<'_> {
         );
     }
 
-    pub fn select_advancements_tab(&mut self, _p: &ClientboundSelectAdvancementsTab) {}
-    pub fn set_action_bar_text(&mut self, _p: &ClientboundSetActionBarText) {}
-    pub fn set_border_center(&mut self, _p: &ClientboundSetBorderCenter) {}
-    pub fn set_border_lerp_size(&mut self, _p: &ClientboundSetBorderLerpSize) {}
-    pub fn set_border_size(&mut self, _p: &ClientboundSetBorderSize) {}
-    pub fn set_border_warning_delay(&mut self, _p: &ClientboundSetBorderWarningDelay) {}
-    pub fn set_border_warning_distance(&mut self, _p: &ClientboundSetBorderWarningDistance) {}
-    pub fn set_camera(&mut self, _p: &ClientboundSetCamera) {}
-    pub fn set_display_objective(&mut self, _p: &ClientboundSetDisplayObjective) {}
-    pub fn set_objective(&mut self, _p: &ClientboundSetObjective) {}
-    pub fn set_passengers(&mut self, _p: &ClientboundSetPassengers) {}
+    pub const fn select_advancements_tab(&mut self, _p: &ClientboundSelectAdvancementsTab) {}
+    pub const fn set_action_bar_text(&mut self, _p: &ClientboundSetActionBarText) {}
+    pub const fn set_border_center(&mut self, _p: &ClientboundSetBorderCenter) {}
+    pub const fn set_border_lerp_size(&mut self, _p: &ClientboundSetBorderLerpSize) {}
+    pub const fn set_border_size(&mut self, _p: &ClientboundSetBorderSize) {}
+    pub const fn set_border_warning_delay(&mut self, _p: &ClientboundSetBorderWarningDelay) {}
+    pub const fn set_border_warning_distance(&mut self, _p: &ClientboundSetBorderWarningDistance) {}
+    pub const fn set_camera(&mut self, _p: &ClientboundSetCamera) {}
+    pub const fn set_display_objective(&mut self, _p: &ClientboundSetDisplayObjective) {}
+    pub const fn set_objective(&mut self, _p: &ClientboundSetObjective) {}
+    pub const fn set_passengers(&mut self, _p: &ClientboundSetPassengers) {}
     pub fn set_player_team(&mut self, p: &ClientboundSetPlayerTeam) {
         debug!("Got set player team packet {p:?}");
     }
-    pub fn set_score(&mut self, _p: &ClientboundSetScore) {}
-    pub fn set_simulation_distance(&mut self, _p: &ClientboundSetSimulationDistance) {}
-    pub fn set_subtitle_text(&mut self, _p: &ClientboundSetSubtitleText) {}
-    pub fn set_title_text(&mut self, _p: &ClientboundSetTitleText) {}
-    pub fn set_titles_animation(&mut self, _p: &ClientboundSetTitlesAnimation) {}
-    pub fn clear_titles(&mut self, _p: &ClientboundClearTitles) {}
-    pub fn sound_entity(&mut self, _p: &ClientboundSoundEntity) {}
-    pub fn stop_sound(&mut self, _p: &ClientboundStopSound) {}
-    pub fn tab_list(&mut self, _p: &ClientboundTabList) {}
-    pub fn tag_query(&mut self, _p: &ClientboundTagQuery) {}
-    pub fn take_item_entity(&mut self, _p: &ClientboundTakeItemEntity) {}
-    pub fn bundle_delimiter(&mut self, _p: &ClientboundBundleDelimiter) {}
-    pub fn damage_event(&mut self, _p: &ClientboundDamageEvent) {}
-    pub fn hurt_animation(&mut self, _p: &ClientboundHurtAnimation) {}
-    pub fn ticking_state(&mut self, _p: &ClientboundTickingState) {}
-    pub fn ticking_step(&mut self, _p: &ClientboundTickingStep) {}
-    pub fn reset_score(&mut self, _p: &ClientboundResetScore) {}
-    pub fn cookie_request(&mut self, _p: &ClientboundCookieRequest) {}
-    pub fn debug_sample(&mut self, _p: &ClientboundDebugSample) {}
-    pub fn pong_response(&mut self, _p: &ClientboundPongResponse) {}
-    pub fn store_cookie(&mut self, _p: &ClientboundStoreCookie) {}
-    pub fn transfer(&mut self, _p: &ClientboundTransfer) {}
-    pub fn move_minecart_along_track(&mut self, _p: &ClientboundMoveMinecartAlongTrack) {}
+    pub const fn set_score(&mut self, _p: &ClientboundSetScore) {}
+    pub const fn set_simulation_distance(&mut self, _p: &ClientboundSetSimulationDistance) {}
+    pub const fn set_subtitle_text(&mut self, _p: &ClientboundSetSubtitleText) {}
+    pub const fn set_title_text(&mut self, _p: &ClientboundSetTitleText) {}
+    pub const fn set_titles_animation(&mut self, _p: &ClientboundSetTitlesAnimation) {}
+    pub const fn clear_titles(&mut self, _p: &ClientboundClearTitles) {}
+    pub const fn sound_entity(&mut self, _p: &ClientboundSoundEntity) {}
+    pub const fn stop_sound(&mut self, _p: &ClientboundStopSound) {}
+    pub const fn tab_list(&mut self, _p: &ClientboundTabList) {}
+    pub const fn tag_query(&mut self, _p: &ClientboundTagQuery) {}
+    pub const fn take_item_entity(&mut self, _p: &ClientboundTakeItemEntity) {}
+    pub const fn bundle_delimiter(&mut self, _p: &ClientboundBundleDelimiter) {}
+    pub const fn damage_event(&mut self, _p: &ClientboundDamageEvent) {}
+    pub const fn hurt_animation(&mut self, _p: &ClientboundHurtAnimation) {}
+    pub const fn ticking_state(&mut self, _p: &ClientboundTickingState) {}
+    pub const fn ticking_step(&mut self, _p: &ClientboundTickingStep) {}
+    pub const fn reset_score(&mut self, _p: &ClientboundResetScore) {}
+    pub const fn cookie_request(&mut self, _p: &ClientboundCookieRequest) {}
+    pub const fn debug_sample(&mut self, _p: &ClientboundDebugSample) {}
+    pub const fn pong_response(&mut self, _p: &ClientboundPongResponse) {}
+    pub const fn store_cookie(&mut self, _p: &ClientboundStoreCookie) {}
+    pub const fn transfer(&mut self, _p: &ClientboundTransfer) {}
+    pub const fn move_minecart_along_track(&mut self, _p: &ClientboundMoveMinecartAlongTrack) {}
     pub fn set_held_slot(&mut self, p: &ClientboundSetHeldSlot) {
         debug!("Got set held slot packet {p:?}");
 
@@ -1611,16 +1666,16 @@ impl GamePacketHandler<'_> {
             }
         });
     }
-    pub fn set_player_inventory(&mut self, _p: &ClientboundSetPlayerInventory) {}
-    pub fn projectile_power(&mut self, _p: &ClientboundProjectilePower) {}
-    pub fn custom_report_details(&mut self, _p: &ClientboundCustomReportDetails) {}
-    pub fn server_links(&mut self, _p: &ClientboundServerLinks) {}
-    pub fn player_rotation(&mut self, _p: &ClientboundPlayerRotation) {}
-    pub fn recipe_book_add(&mut self, _p: &ClientboundRecipeBookAdd) {}
-    pub fn recipe_book_remove(&mut self, _p: &ClientboundRecipeBookRemove) {}
-    pub fn recipe_book_settings(&mut self, _p: &ClientboundRecipeBookSettings) {}
-    pub fn test_instance_block_status(&mut self, _p: &ClientboundTestInstanceBlockStatus) {}
-    pub fn waypoint(&mut self, _p: &ClientboundWaypoint) {}
+    pub const fn set_player_inventory(&mut self, _p: &ClientboundSetPlayerInventory) {}
+    pub const fn projectile_power(&mut self, _p: &ClientboundProjectilePower) {}
+    pub const fn custom_report_details(&mut self, _p: &ClientboundCustomReportDetails) {}
+    pub const fn server_links(&mut self, _p: &ClientboundServerLinks) {}
+    pub const fn player_rotation(&mut self, _p: &ClientboundPlayerRotation) {}
+    pub const fn recipe_book_add(&mut self, _p: &ClientboundRecipeBookAdd) {}
+    pub const fn recipe_book_remove(&mut self, _p: &ClientboundRecipeBookRemove) {}
+    pub const fn recipe_book_settings(&mut self, _p: &ClientboundRecipeBookSettings) {}
+    pub const fn test_instance_block_status(&mut self, _p: &ClientboundTestInstanceBlockStatus) {}
+    pub const fn waypoint(&mut self, _p: &ClientboundWaypoint) {}
 
     pub fn clear_dialog(&mut self, p: &ClientboundClearDialog) {
         debug!("Got clear dialog packet {p:?}");

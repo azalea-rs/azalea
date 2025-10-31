@@ -2,7 +2,7 @@ use std::{mem, ops::Deref, sync::Arc};
 
 use azalea_brigadier::prelude::*;
 use bevy_app::App;
-use bevy_ecs::{prelude::*, system::RunSystemOnce};
+use bevy_ecs::{prelude::*, system::RunSystemOnce as _};
 use parking_lot::Mutex;
 
 #[test]

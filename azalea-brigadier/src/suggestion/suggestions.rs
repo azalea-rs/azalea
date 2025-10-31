@@ -3,7 +3,9 @@ use std::io::{self, Cursor, Write};
 use std::{collections::HashSet, hash::Hash};
 
 #[cfg(feature = "azalea-buf")]
-use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
+use azalea_buf::{
+    AzBuf, AzaleaRead, AzaleaReadVar as _, AzaleaWrite, AzaleaWriteVar as _, BufReadError,
+};
 #[cfg(feature = "azalea-buf")]
 use azalea_chat::FormattedText;
 
@@ -19,16 +21,18 @@ pub struct Suggestions {
 }
 
 impl Suggestions {
-    pub fn new(range: StringRange, suggestions: Vec<Suggestion>) -> Self {
+    #[must_use]
+    pub const fn new(range: StringRange, suggestions: Vec<Suggestion>) -> Self {
         Self { range, suggestions }
     }
 
+    #[must_use]
     pub fn merge(command: &str, input: &[Suggestions]) -> Self {
         if input.is_empty() {
             return Suggestions::default();
         } else if input.len() == 1 {
             return input[0].clone();
-        };
+        }
 
         let mut texts = HashSet::new();
         for suggestions in input {
@@ -38,10 +42,11 @@ impl Suggestions {
         Suggestions::create(command, &texts)
     }
 
+    #[must_use]
     pub fn create(command: &str, suggestions: &HashSet<Suggestion>) -> Self {
         if suggestions.is_empty() {
             return Suggestions::default();
-        };
+        }
         let mut start = usize::MAX;
         let mut end = usize::MIN;
         for suggestion in suggestions {
@@ -63,15 +68,18 @@ impl Suggestions {
         }
     }
 
-    pub fn is_empty(&self) -> bool {
+    #[must_use]
+    pub const fn is_empty(&self) -> bool {
         self.suggestions.is_empty()
     }
 
+    #[must_use]
     pub fn list(&self) -> &[Suggestion] {
         &self.suggestions
     }
 
-    pub fn range(&self) -> StringRange {
+    #[must_use]
+    pub const fn range(&self) -> StringRange {
         self.range
     }
 }

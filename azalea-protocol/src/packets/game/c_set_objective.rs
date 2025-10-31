@@ -11,7 +11,7 @@ pub struct ClientboundSetObjective {
     pub method: Method,
 }
 
-#[derive(Clone, Copy, Debug, AzBuf, PartialEq)]
+#[derive(Clone, Copy, Debug, AzBuf, PartialEq, Eq)]
 pub enum MethodKind {
     Add,
     Remove,

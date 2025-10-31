@@ -4,7 +4,8 @@ use azalea_core::position::BlockPos;
 
 /// An offset from a block position.
 ///
-/// This fits in 64 bits, so it's more efficient than a BlockPos in some cases.
+/// This fits in 64 bits, so it's more efficient than a `BlockPos` in some
+/// cases.
 ///
 /// The X and Z are limited to ±32k.
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
@@ -17,23 +18,27 @@ pub struct RelBlockPos {
 }
 
 impl RelBlockPos {
-    pub fn get_origin(origin: BlockPos) -> Self {
+    #[must_use]
+    pub const fn get_origin(origin: BlockPos) -> Self {
         Self::new(0, origin.y, 0)
     }
 
     #[inline]
-    pub fn new(x: i16, y: i32, z: i16) -> Self {
-        Self { x, y, z }
+    #[must_use]
+    pub const fn new(x: i16, y: i32, z: i16) -> Self {
+        Self { x, z, y }
     }
 
     #[inline]
-    pub fn apply(self, origin: BlockPos) -> BlockPos {
+    #[must_use]
+    pub const fn apply(self, origin: BlockPos) -> BlockPos {
         BlockPos::new(origin.x + self.x as i32, self.y, origin.z + self.z as i32)
     }
 
     /// Create a new [`RelBlockPos`] from a given origin and new position.
     #[inline]
-    pub fn from_origin(origin: BlockPos, new: BlockPos) -> Self {
+    #[must_use]
+    pub const fn from_origin(origin: BlockPos, new: BlockPos) -> Self {
         Self {
             x: (new.x - origin.x) as i16,
             y: new.y,
@@ -42,7 +47,8 @@ impl RelBlockPos {
     }
 
     #[inline]
-    pub fn up(&self, y: i32) -> Self {
+    #[must_use]
+    pub const fn up(&self, y: i32) -> Self {
         Self {
             x: self.x,
             y: self.y + y,
@@ -50,7 +56,8 @@ impl RelBlockPos {
         }
     }
     #[inline]
-    pub fn down(&self, y: i32) -> Self {
+    #[must_use]
+    pub const fn down(&self, y: i32) -> Self {
         Self {
             x: self.x,
             y: self.y - y,
@@ -58,7 +65,8 @@ impl RelBlockPos {
         }
     }
     #[inline]
-    pub fn north(&self, z: i16) -> Self {
+    #[must_use]
+    pub const fn north(&self, z: i16) -> Self {
         Self {
             x: self.x,
             y: self.y,
@@ -66,7 +74,8 @@ impl RelBlockPos {
         }
     }
     #[inline]
-    pub fn south(&self, z: i16) -> Self {
+    #[must_use]
+    pub const fn south(&self, z: i16) -> Self {
         Self {
             x: self.x,
             y: self.y,
@@ -74,7 +83,8 @@ impl RelBlockPos {
         }
     }
     #[inline]
-    pub fn east(&self, x: i16) -> Self {
+    #[must_use]
+    pub const fn east(&self, x: i16) -> Self {
         Self {
             x: self.x + x,
             y: self.y,
@@ -82,7 +92,8 @@ impl RelBlockPos {
         }
     }
     #[inline]
-    pub fn west(&self, x: i16) -> Self {
+    #[must_use]
+    pub const fn west(&self, x: i16) -> Self {
         Self {
             x: self.x - x,
             y: self.y,

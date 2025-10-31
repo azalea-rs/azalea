@@ -4,10 +4,10 @@ mod signing;
 
 use aes::{
     Aes128,
-    cipher::{BlockDecryptMut, BlockEncryptMut, KeyIvInit, inout::InOutBuf},
+    cipher::{BlockDecryptMut as _, BlockEncryptMut as _, KeyIvInit as _, inout::InOutBuf},
 };
-use rand::{TryRngCore, rngs::OsRng};
-use sha1::{Digest, Sha1};
+use rand::{TryRngCore as _, rngs::OsRng};
+use sha1::{Digest as _, Sha1};
 pub use signing::*;
 
 fn generate_secret_key() -> [u8; 16] {
@@ -16,6 +16,7 @@ fn generate_secret_key() -> [u8; 16] {
     key
 }
 
+#[must_use]
 pub fn digest_data(server_id: &[u8], public_key: &[u8], private_key: &[u8]) -> Vec<u8> {
     let mut digest = Sha1::new();
     digest.update(server_id);
@@ -24,6 +25,7 @@ pub fn digest_data(server_id: &[u8], public_key: &[u8], private_key: &[u8]) -> V
     digest.finalize().to_vec()
 }
 
+#[must_use]
 pub fn hex_digest(digest: &[u8]) -> String {
     // Note that the Sha1.hexdigest() method used by minecraft is non standard.
     // It doesn't match the digest method found in most programming languages
@@ -64,6 +66,7 @@ pub fn encrypt(public_key: &[u8], challenge: &[u8]) -> Result<EncryptResult, Str
 pub type Aes128CfbEnc = cfb8::Encryptor<Aes128>;
 pub type Aes128CfbDec = cfb8::Decryptor<Aes128>;
 
+#[must_use]
 pub fn create_cipher(key: &[u8]) -> (Aes128CfbEnc, Aes128CfbDec) {
     (
         Aes128CfbEnc::new_from_slices(key, key).unwrap(),

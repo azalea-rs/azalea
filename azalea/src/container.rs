@@ -10,14 +10,14 @@ use azalea_inventory::{
     ItemStack, Menu,
     operations::{ClickOperation, PickupClick, QuickMoveClick},
 };
-use azalea_physics::collision::BlockWithShape;
+use azalea_physics::collision::BlockWithShape as _;
 use azalea_protocol::packets::game::ClientboundGamePacket;
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::{component::Component, prelude::MessageReader, system::Commands};
 use derive_more::Deref;
 use futures_lite::Future;
 
-use crate::bot::BotClientExt;
+use crate::bot::BotClientExt as _;
 
 pub struct ContainerPlugin;
 impl Plugin for ContainerPlugin {
@@ -185,7 +185,8 @@ impl Debug for ContainerHandleRef {
     }
 }
 impl ContainerHandleRef {
-    pub fn new(id: i32, client: Client) -> Self {
+    #[must_use]
+    pub const fn new(id: i32, client: Client) -> Self {
         Self { id, client }
     }
 
@@ -201,7 +202,8 @@ impl ContainerHandleRef {
     /// If this is 0, that means it's the player's inventory. Otherwise, the
     /// number isn't really meaningful since only one container can be open
     /// at a time.
-    pub fn id(&self) -> i32 {
+    #[must_use]
+    pub const fn id(&self) -> i32 {
         self.id
     }
 
@@ -212,6 +214,7 @@ impl ContainerHandleRef {
     /// Note that any modifications you make to the `Menu` you're given will not
     /// actually cause any packets to be sent. If you're trying to modify your
     /// inventory, use [`Self::click`] instead
+    #[must_use]
     pub fn menu(&self) -> Option<Menu> {
         let ecs = self.client.ecs.lock();
         let inventory = ecs
@@ -234,6 +237,7 @@ impl ContainerHandleRef {
     /// inventory.
     ///
     /// If the container is closed, this will return `None`.
+    #[must_use]
     pub fn contents(&self) -> Option<Vec<ItemStack>> {
         self.menu().map(|menu| menu.contents())
     }
@@ -241,6 +245,7 @@ impl ContainerHandleRef {
     /// Return the contents of the menu, including the player's inventory.
     ///
     /// If the container is closed, this will return `None`.
+    #[must_use]
     pub fn slots(&self) -> Option<Vec<ItemStack>> {
         self.menu().map(|menu| menu.slots())
     }
@@ -295,7 +300,7 @@ impl Debug for ContainerHandle {
     }
 }
 impl ContainerHandle {
-    fn new(id: i32, client: Client) -> Self {
+    const fn new(id: i32, client: Client) -> Self {
         Self(ContainerHandleRef { id, client })
     }
 

@@ -2,7 +2,7 @@ use azalea_buf::AzBuf;
 use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_world::MinecraftEntityId;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, Eq, ClientboundGamePacket)]
 pub struct ClientboundMoveEntityRot {
     #[var]
     pub entity_id: MinecraftEntityId,

@@ -28,7 +28,8 @@ pub enum FluidKind {
     Lava,
 }
 impl FluidState {
-    pub fn new_source_block(kind: FluidKind, falling: bool) -> Self {
+    #[must_use]
+    pub const fn new_source_block(kind: FluidKind, falling: bool) -> Self {
         Self {
             kind,
             amount: 8,
@@ -38,17 +39,21 @@ impl FluidState {
 
     /// A floating point number in between 0 and 1 representing the height (as a
     /// percentage of a full block) of the fluid.
+    #[must_use]
     pub fn height(&self) -> f32 {
         self.amount as f32 / 9.
     }
-    pub fn is_empty(&self) -> bool {
+    #[must_use]
+    pub const fn is_empty(&self) -> bool {
         self.amount == 0
     }
 
+    #[must_use]
     pub fn affects_flow(&self, other: &FluidState) -> bool {
         other.amount == 0 || self.is_same_kind(other)
     }
 
+    #[must_use]
     pub fn is_same_kind(&self, other: &FluidState) -> bool {
         (other.kind == self.kind) || (self.amount == 0 && other.amount == 0)
     }
@@ -118,7 +123,8 @@ impl From<BlockState> for FluidState {
 /// and 8 being full, and sometimes it's the opposite.
 ///
 /// You usually don't need to call this yourself, see [`FluidState`].
-pub fn to_or_from_legacy_fluid_level(level: u8) -> u8 {
+#[must_use]
+pub const fn to_or_from_legacy_fluid_level(level: u8) -> u8 {
     // see FlowingFluid.getLegacyLevel
     8_u8.saturating_sub(level)
 }

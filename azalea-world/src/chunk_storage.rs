@@ -79,6 +79,7 @@ pub struct Section {
 /// Get the actual stored view distance for the selected view distance.
 ///
 /// For some reason, Minecraft stores an extra 3 chunks.
+#[must_use]
 pub fn calculate_chunk_storage_range(view_distance: u32) -> u32 {
     u32::max(view_distance, 2) + 3
 }
@@ -93,6 +94,7 @@ impl Default for Chunk {
 }
 
 impl PartialChunkStorage {
+    #[must_use]
     pub fn new(chunk_radius: u32) -> Self {
         let view_range = chunk_radius * 2 + 1;
         PartialChunkStorage {
@@ -107,7 +109,7 @@ impl PartialChunkStorage {
     ///
     /// This should be called when the client receives a `SetChunkCacheCenter`
     /// packet.
-    pub fn update_view_center(&mut self, view_center: ChunkPos) {
+    pub const fn update_view_center(&mut self, view_center: ChunkPos) {
         // this code block makes it force unload the chunks that are out of range after
         // updating the view center. it's usually fine without it but the commented code
         // is there in case you want to temporarily uncomment to test something
@@ -126,15 +128,18 @@ impl PartialChunkStorage {
 
     /// Get the center of the view. This is usually the chunk that the player is
     /// in.
-    pub fn view_center(&self) -> ChunkPos {
+    #[must_use]
+    pub const fn view_center(&self) -> ChunkPos {
         self.view_center
     }
 
-    pub fn view_range(&self) -> u32 {
+    #[must_use]
+    pub const fn view_range(&self) -> u32 {
         self.view_range
     }
 
-    pub fn index_from_chunk_pos(&self, chunk_pos: &ChunkPos) -> usize {
+    #[must_use]
+    pub const fn index_from_chunk_pos(&self, chunk_pos: &ChunkPos) -> usize {
         let view_range = self.view_range as i32;
 
         let x = i32::rem_euclid(chunk_pos.x, view_range) * view_range;
@@ -142,6 +147,7 @@ impl PartialChunkStorage {
         (x + z) as usize
     }
 
+    #[must_use]
     pub fn chunk_pos_from_index(&self, index: usize) -> ChunkPos {
         let view_range = self.view_range as i32;
 
@@ -156,10 +162,12 @@ impl PartialChunkStorage {
         ChunkPos::new(base_x + offset_x, base_z + offset_z)
     }
 
-    pub fn in_range(&self, chunk_pos: &ChunkPos) -> bool {
+    #[must_use]
+    pub const fn in_range(&self, chunk_pos: &ChunkPos) -> bool {
         in_range_for_view_center_and_radius(chunk_pos, self.view_center, self.chunk_radius)
     }
 
+    #[must_use]
     pub fn set_block_state(
         &self,
         pos: BlockPos,
@@ -290,6 +298,7 @@ impl PartialChunkStorage {
     }
 }
 impl ChunkStorage {
+    #[must_use]
     pub fn new(height: u32, min_y: i32) -> Self {
         ChunkStorage {
             height,
@@ -298,10 +307,13 @@ impl ChunkStorage {
         }
     }
 
+    #[must_use]
     pub fn get(&self, pos: &ChunkPos) -> Option<Arc<RwLock<Chunk>>> {
-        self.map.get(pos).and_then(|chunk| chunk.upgrade())
+        let chunk = self.map.get(pos)?;
+        chunk.upgrade()
     }
 
+    #[must_use]
     pub fn get_block_state(&self, pos: BlockPos) -> Option<BlockState> {
         let chunk_pos = ChunkPos::from(pos);
         let chunk = self.get(&chunk_pos)?;
@@ -309,11 +321,13 @@ impl ChunkStorage {
         chunk.get_block_state(&ChunkBlockPos::from(pos), self.min_y)
     }
 
+    #[must_use]
     pub fn get_fluid_state(&self, pos: BlockPos) -> Option<FluidState> {
         let block_state = self.get_block_state(pos)?;
         Some(FluidState::from(block_state))
     }
 
+    #[must_use]
     pub fn get_biome(&self, pos: BlockPos) -> Option<Biome> {
         let chunk_pos = ChunkPos::from(pos);
         let chunk = self.get(&chunk_pos)?;
@@ -321,6 +335,7 @@ impl ChunkStorage {
         chunk.get_biome(ChunkBiomePos::from(pos), self.min_y)
     }
 
+    #[must_use]
     pub fn set_block_state(&self, pos: BlockPos, state: BlockState) -> Option<BlockState> {
         if pos.y < self.min_y || pos.y >= (self.min_y + self.height as i32) {
             return None;
@@ -332,7 +347,8 @@ impl ChunkStorage {
     }
 }
 
-pub fn in_range_for_view_center_and_radius(
+#[must_use]
+pub const fn in_range_for_view_center_and_radius(
     chunk_pos: &ChunkPos,
     view_center: ChunkPos,
     chunk_radius: u32,
@@ -369,6 +385,7 @@ impl Chunk {
         })
     }
 
+    #[must_use]
     pub fn get_block_state(&self, pos: &ChunkBlockPos, min_y: i32) -> Option<BlockState> {
         get_block_state_from_sections(&self.sections, pos, min_y)
     }
@@ -432,6 +449,7 @@ impl Chunk {
 /// Get the block state at the given position from a list of sections. Returns
 /// `None` if the position is out of bounds.
 #[inline]
+#[must_use]
 pub fn get_block_state_from_sections(
     sections: &[Section],
     pos: &ChunkBlockPos,
@@ -445,7 +463,7 @@ pub fn get_block_state_from_sections(
     if section_index >= sections.len() {
         // y position is out of bounds
         return None;
-    };
+    }
     let section = &sections[section_index];
     let chunk_section_pos = ChunkSectionBlockPos::from(pos);
     Some(section.get_block_state(chunk_section_pos))
@@ -513,6 +531,7 @@ impl AzaleaWrite for Section {
 }
 
 impl Section {
+    #[must_use]
     pub fn get_block_state(&self, pos: ChunkSectionBlockPos) -> BlockState {
         self.states.get(pos)
     }
@@ -527,6 +546,7 @@ impl Section {
         self.states.set(pos, state);
     }
 
+    #[must_use]
     pub fn get_biome(&self, pos: ChunkSectionBiomePos) -> Biome {
         self.biomes.get(pos)
     }
@@ -558,7 +578,7 @@ pub fn section_index(y: i32, min_y: i32) -> u32 {
         warn!("y ({y}) must be at least {min_y}");
         #[cfg(not(debug_assertions))]
         trace!("y ({y}) must be at least {min_y}")
-    };
+    }
     let min_section_index = min_y >> 4;
     ((y >> 4) - min_section_index) as u32
 }

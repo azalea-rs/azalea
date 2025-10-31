@@ -3,7 +3,7 @@ use std::{
     io::{self, Cursor, Write},
 };
 
-use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
+use azalea_buf::{AzaleaRead, AzaleaReadVar as _, AzaleaWrite, AzaleaWriteVar as _, BufReadError};
 
 use crate::BlockTrait;
 
@@ -35,7 +35,7 @@ impl BlockState {
     /// This does not include the other types of air like cave air.
     pub const AIR: BlockState = BlockState { id: 0 };
 
-    /// Create a new BlockState and panic if the block is not a valid state.
+    /// Create a new `BlockState` and panic if the block is not a valid state.
     ///
     /// You should probably use [`BlockState::try_from`] instead.
     #[inline]
@@ -49,6 +49,7 @@ impl BlockState {
     /// It's equivalent to checking that the state ID is not greater than
     /// [`Self::MAX_STATE`].
     #[inline]
+    #[must_use]
     pub const fn is_valid_state(state_id: BlockStateIntegerRepr) -> bool {
         state_id <= Self::MAX_STATE
     }
@@ -57,6 +58,7 @@ impl BlockState {
     ///
     /// This only checks for normal air, not other types like cave air.
     #[inline]
+    #[must_use]
     pub fn is_air(&self) -> bool {
         self == &Self::AIR
     }
@@ -66,6 +68,7 @@ impl BlockState {
     /// These IDs may change across Minecraft versions, so you shouldn't
     /// hard-code them or store them in databases.
     #[inline]
+    #[must_use]
     pub const fn id(&self) -> BlockStateIntegerRepr {
         self.id
     }

@@ -1,6 +1,6 @@
 use std::io::{self, Cursor, Write};
 
-use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar};
+use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar as _, AzaleaWrite, AzaleaWriteVar as _};
 use azalea_core::position::Vec3;
 use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_world::MinecraftEntityId;
@@ -16,7 +16,7 @@ pub struct ClientboundDamageEvent {
     pub source_position: Option<Vec3>,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct OptionalEntityId(pub Option<u32>);
 impl AzaleaRead for OptionalEntityId {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {

@@ -13,7 +13,7 @@ pub enum ServerLinkKind {
     Known(KnownLinkKind),
 }
 
-#[derive(Clone, Copy, Debug, AzBuf, PartialEq)]
+#[derive(Clone, Copy, Debug, AzBuf, PartialEq, Eq)]
 pub enum KnownLinkKind {
     BugReport,
     CommunityGuidelines,

@@ -2,7 +2,7 @@ use std::{collections::HashMap, fmt, sync::LazyLock};
 
 #[cfg(feature = "azalea-buf")]
 use azalea_buf::AzBuf;
-use serde::{Serialize, Serializer, ser::SerializeMap};
+use serde::{Serialize, Serializer, ser::SerializeMap as _};
 use serde_json::Value;
 #[cfg(feature = "simdnbt")]
 use simdnbt::owned::{NbtCompound, NbtTag};
@@ -48,7 +48,7 @@ impl TextColor {
         None
     }
 
-    fn from_rgb(value: u32) -> TextColor {
+    const fn from_rgb(value: u32) -> TextColor {
         TextColor { value, name: None }
     }
 }
@@ -62,7 +62,7 @@ static LEGACY_FORMAT_TO_COLOR: LazyLock<HashMap<&'static ChatFormatting, TextCol
                     formatter,
                     TextColor {
                         value: formatter.color().unwrap(),
-                        name: Some(formatter.name().to_string()),
+                        name: Some(formatter.name().to_owned()),
                     },
                 );
             }
@@ -87,6 +87,7 @@ impl Ansi {
     pub const OBFUSCATED: &'static str = "\u{1b}[8m";
     pub const RESET: &'static str = "\u{1b}[m";
 
+    #[must_use]
     pub fn rgb(value: u32) -> String {
         format!(
             "\u{1b}[38;2;{};{};{}m",
@@ -150,7 +151,8 @@ impl ChatFormatting {
         ChatFormatting::Reset,
     ];
 
-    pub fn name(&self) -> &'static str {
+    #[must_use]
+    pub const fn name(&self) -> &'static str {
         match self {
             ChatFormatting::Black => "black",
             ChatFormatting::DarkBlue => "dark_blue",
@@ -177,7 +179,8 @@ impl ChatFormatting {
         }
     }
 
-    pub fn code(&self) -> char {
+    #[must_use]
+    pub const fn code(&self) -> char {
         match self {
             ChatFormatting::Black => '0',
             ChatFormatting::DarkBlue => '1',
@@ -204,7 +207,8 @@ impl ChatFormatting {
         }
     }
 
-    pub fn from_code(code: char) -> Option<ChatFormatting> {
+    #[must_use]
+    pub const fn from_code(code: char) -> Option<ChatFormatting> {
         match code {
             '0' => Some(ChatFormatting::Black),
             '1' => Some(ChatFormatting::DarkBlue),
@@ -232,7 +236,8 @@ impl ChatFormatting {
         }
     }
 
-    pub fn is_format(&self) -> bool {
+    #[must_use]
+    pub const fn is_format(&self) -> bool {
         matches!(
             self,
             ChatFormatting::Obfuscated
@@ -244,7 +249,8 @@ impl ChatFormatting {
         )
     }
 
-    pub fn color(&self) -> Option<u32> {
+    #[must_use]
+    pub const fn color(&self) -> Option<u32> {
         match self {
             ChatFormatting::Black => Some(0),
             ChatFormatting::DarkBlue => Some(170),
@@ -268,7 +274,7 @@ impl ChatFormatting {
 }
 
 impl TextColor {
-    fn new(value: u32, name: Option<String>) -> Self {
+    const fn new(value: u32, name: Option<String>) -> Self {
         Self { value, name }
     }
 
@@ -280,6 +286,7 @@ impl TextColor {
         }
     }
 
+    #[must_use]
     pub fn format_value(&self) -> String {
         format!("#{:06X}", self.value)
     }
@@ -300,7 +307,7 @@ impl TryFrom<ChatFormatting> for TextColor {
             return Err(format!("{} is not a color", formatter.name()));
         }
         let color = formatter.color().unwrap_or(0);
-        Ok(Self::new(color, Some(formatter.name().to_string())))
+        Ok(Self::new(color, Some(formatter.name().to_owned())))
     }
 }
 
@@ -379,10 +386,12 @@ define_style_struct! {
 }
 
 impl Style {
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
+    #[must_use]
     pub fn empty() -> Self {
         Self::default()
     }
@@ -412,16 +421,14 @@ impl Style {
             insertion: j
                 .get("insertion")
                 .and_then(|v| v.as_str())
-                .map(|s| s.to_string()),
-            font: j
-                .get("font")
-                .and_then(|v| v.as_str())
-                .map(|s| s.to_string()),
+                .map(|s| s.to_owned()),
+            font: j.get("font").and_then(|v| v.as_str()).map(|s| s.to_owned()),
         }
     }
 
     /// Check if a style has no attributes set
-    pub fn is_empty(&self) -> bool {
+    #[must_use]
+    pub const fn is_empty(&self) -> bool {
         self.color.is_none()
             && self.bold.is_none()
             && self.italic.is_none()
@@ -431,6 +438,7 @@ impl Style {
     }
 
     /// find the necessary ansi code to get from this style to another
+    #[must_use]
     pub fn compare_ansi(&self, after: &Style) -> String {
         let should_reset =
             // if it used to be bold and now it's not, reset
@@ -499,6 +507,7 @@ impl Style {
     /// Returns a new style that is a merge of self and other.
     /// For any field that `other` does not specify (is None), self's value is
     /// used.
+    #[must_use]
     pub fn merged_with(&self, other: &Style) -> Style {
         Style {
             color: other.color.clone().or(self.color.clone()),
@@ -515,7 +524,7 @@ impl Style {
         }
     }
 
-    /// Apply a ChatFormatting to this style
+    /// Apply a `ChatFormatting` to this style
     pub fn apply_formatting(&mut self, formatting: &ChatFormatting) {
         match *formatting {
             ChatFormatting::Bold => self.bold = Some(true),
@@ -540,6 +549,7 @@ impl Style {
         }
     }
 
+    #[must_use]
     pub fn get_html_style(&self) -> String {
         let mut style = String::new();
         if let Some(color) = &self.color {
@@ -641,7 +651,7 @@ mod tests {
                 reset = Ansi::RESET,
                 italic = Ansi::ITALIC
             )
-        )
+        );
     }
     #[test]
     fn ansi_difference_shouldnt_reset() {
@@ -655,7 +665,7 @@ mod tests {
             ..Style::default()
         };
         let ansi_difference = style_a.compare_ansi(&style_b);
-        assert_eq!(ansi_difference, Ansi::ITALIC)
+        assert_eq!(ansi_difference, Ansi::ITALIC);
     }
 
     #[test]

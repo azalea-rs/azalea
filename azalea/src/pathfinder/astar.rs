@@ -7,7 +7,7 @@ use std::{
 };
 
 use indexmap::IndexMap;
-use num_format::ToFormattedString;
+use num_format::ToFormattedString as _;
 use rustc_hash::FxHasher;
 use tracing::{debug, trace, warn};
 
@@ -278,7 +278,7 @@ impl<P: Hash + Copy + Clone, M: Clone> Clone for Movement<P, M> {
 #[derive(PartialEq)]
 #[repr(C)]
 pub struct WeightedNode {
-    /// Sum of the g_score and heuristic
+    /// Sum of the `g_score` and heuristic
     pub f_score: f32,
     /// The actual cost to get to this node
     pub g_score: f32,
@@ -310,7 +310,7 @@ impl PartialOrd for WeightedNode {
 ///
 /// [`PathfinderOpts::min_timeout`]: super::goto_event::PathfinderOpts::min_timeout
 /// [`PathfinderOpts::max_timeout`]: super::goto_event::PathfinderOpts::max_timeout
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PathfinderTimeout {
     /// Time out after a certain duration has passed.
     ///

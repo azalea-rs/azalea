@@ -38,6 +38,7 @@ impl CustomPathfinderStateRef {
         self.map.insert(TypeId::of::<T>(), Box::new(t));
     }
 
+    #[must_use]
     pub fn get<T: 'static + Send + Sync>(&self) -> Option<&T> {
         self.map
             .get(&TypeId::of::<T>())

@@ -4,7 +4,7 @@ use azalea_core::position::BlockPos;
 use azalea_entity::{ActiveEffects, FluidOnEyes, Physics};
 use azalea_inventory::{ItemStack, Menu, components};
 
-use crate::bot::BotClientExt;
+use crate::bot::BotClientExt as _;
 
 #[derive(Debug)]
 pub struct BestToolResult {
@@ -50,6 +50,7 @@ impl AutoToolClientExt for Client {
 /// Note that this doesn't take into account whether the player is on the ground
 /// or in water, use [`accurate_best_tool_in_hotbar_for_block`] instead if you
 /// care about those things.
+#[must_use]
 pub fn best_tool_in_hotbar_for_block(block: BlockState, menu: &Menu) -> BestToolResult {
     let mut physics = Physics::default();
     physics.set_on_ground(true);
@@ -64,6 +65,7 @@ pub fn best_tool_in_hotbar_for_block(block: BlockState, menu: &Menu) -> BestTool
     )
 }
 
+#[must_use]
 pub fn accurate_best_tool_in_hotbar_for_block(
     block: BlockState,
     menu: &Menu,

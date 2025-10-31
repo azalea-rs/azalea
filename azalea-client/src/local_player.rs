@@ -104,7 +104,8 @@ impl Hunger {
     /// Returns true if we have enough food level to sprint.
     ///
     /// Note that this doesn't consider our gamemode or passenger status.
-    pub fn is_enough_to_sprint(&self) -> bool {
+    #[must_use]
+    pub const fn is_enough_to_sprint(&self) -> bool {
         // hasEnoughFoodToSprint
         self.food >= 6
     }
@@ -115,7 +116,7 @@ impl InstanceHolder {
     ///
     /// The partial instance will be created for you. The render distance will
     /// be set to a default value, which you can change by creating a new
-    /// partial_instance.
+    /// `partial_instance`.
     pub fn new(entity: Entity, instance: Arc<RwLock<Instance>>) -> Self {
         let client_information = ClientInformation::default();
 

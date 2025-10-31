@@ -4,11 +4,11 @@ use azalea_client::{
 use azalea_core::{position::ChunkPos, resource_location::ResourceLocation};
 use azalea_entity::LocalEntity;
 use azalea_protocol::packets::{
-    ConnectionProtocol, Packet,
+    ConnectionProtocol, Packet as _,
     config::{ClientboundFinishConfiguration, ClientboundRegistryData},
     game::ClientboundStartConfiguration,
 };
-use azalea_registry::{DataRegistry, DimensionType};
+use azalea_registry::{DataRegistry as _, DimensionType};
 use azalea_world::InstanceName;
 use simdnbt::owned::{NbtCompound, NbtTag};
 

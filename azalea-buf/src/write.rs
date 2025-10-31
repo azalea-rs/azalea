@@ -10,13 +10,12 @@ use indexmap::IndexMap;
 use super::{MAX_STRING_LENGTH, UnsizedByteArray};
 
 fn write_utf_with_len(buf: &mut impl Write, string: &str, len: usize) -> io::Result<()> {
-    if string.len() > len {
-        panic!(
-            "String too big (was {} bytes encoded, max {})",
-            string.len(),
-            len
-        );
-    }
+    assert!(
+        string.len() <= len,
+        "String too big (was {} bytes encoded, max {})",
+        string.len(),
+        len
+    );
     string.as_bytes().to_vec().azalea_write(buf)?;
     Ok(())
 }
@@ -261,7 +260,7 @@ impl<T: AzaleaWrite> AzaleaWrite for Option<T> {
             s.azalea_write(buf)?;
         } else {
             false.azalea_write(buf)?;
-        };
+        }
         Ok(())
     }
 }
@@ -273,7 +272,7 @@ impl<T: AzaleaWriteVar> AzaleaWriteVar for Option<T> {
             s.azalea_write_var(buf)?;
         } else {
             false.azalea_write(buf)?;
-        };
+        }
         Ok(())
     }
 }

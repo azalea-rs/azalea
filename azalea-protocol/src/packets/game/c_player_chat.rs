@@ -1,6 +1,6 @@
 use std::io::{self, Cursor, Write};
 
-use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
+use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar as _, AzaleaWrite, AzaleaWriteVar as _, BufReadError};
 use azalea_chat::{
     FormattedText,
     translatable_component::{PrimitiveOrComponent, TranslatableComponent},
@@ -26,7 +26,7 @@ pub struct ClientboundPlayerChat {
     pub chat_type: ChatTypeBound,
 }
 
-#[derive(Clone, Debug, PartialEq, AzBuf)]
+#[derive(Clone, Debug, PartialEq, Eq, AzBuf)]
 pub struct PackedSignedMessageBody {
     // the error is here, for some reason it skipped a byte earlier and here
     // it's reading `0` when it should be `11`
@@ -36,19 +36,19 @@ pub struct PackedSignedMessageBody {
     pub last_seen: PackedLastSeenMessages,
 }
 
-#[derive(Clone, Debug, PartialEq, AzBuf)]
+#[derive(Clone, Debug, PartialEq, Eq, AzBuf)]
 pub struct PackedLastSeenMessages {
     pub entries: Vec<PackedMessageSignature>,
 }
 
 /// Messages can be deleted by either their signature or message ID.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum PackedMessageSignature {
     Signature(Box<MessageSignature>),
     Id(u32),
 }
 
-#[derive(Clone, Debug, PartialEq, AzBuf)]
+#[derive(Clone, Debug, PartialEq, Eq, AzBuf)]
 pub enum FilterMask {
     PassThrough,
     FullyFiltered,
@@ -74,7 +74,7 @@ pub struct ChatTypeDecoration {
     pub style: NbtCompound,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, AzBuf)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, AzBuf)]
 pub enum ChatTypeDecorationParameter {
     Sender = 0,
     Target = 1,
@@ -82,7 +82,7 @@ pub enum ChatTypeDecorationParameter {
 }
 
 // must be in Client
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct MessageSignatureCache {
     pub entries: Vec<Option<MessageSignature>>,
 }
@@ -115,14 +115,15 @@ impl ClientboundPlayerChat {
         }
 
         let translation_key = self.chat_type.translation_key();
-        let component = TranslatableComponent::new(translation_key.to_string(), args);
+        let component = TranslatableComponent::new(translation_key.to_owned(), args);
 
         FormattedText::Translatable(component)
     }
 }
 
 impl ChatTypeBound {
-    pub fn translation_key(&self) -> &str {
+    #[must_use] 
+    pub const fn translation_key(&self) -> &str {
         match &self.chat_type {
             Holder::Reference(r) => r.chat_translation_key(),
             Holder::Direct(d) => d.chat.translation_key.as_str(),

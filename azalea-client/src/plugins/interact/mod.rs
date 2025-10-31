@@ -145,14 +145,14 @@ struct ServerVerifiedState {
     block_state: BlockState,
     /// Used for teleporting the player back if we're colliding with the block
     /// that got placed back.
-    #[allow(unused)]
+    #[expect(unused)]
     player_pos: Vec3,
 }
 
 impl BlockStatePredictionHandler {
     /// Get the next sequence number that we're going to use and increment the
     /// value.
-    pub fn start_predicting(&mut self) -> u32 {
+    pub const fn start_predicting(&mut self) -> u32 {
         self.seq += 1;
         self.seq
     }
@@ -264,7 +264,7 @@ pub struct StartUseItemQueued {
     /// it, but should be avoided to stay compatible with anticheats.
     pub force_block: Option<BlockPos>,
 }
-#[allow(clippy::type_complexity)]
+#[expect(clippy::type_complexity)]
 pub fn handle_start_use_item_queued(
     mut commands: Commands,
     query: Query<(
@@ -437,6 +437,7 @@ pub fn handle_entity_interact(
 ///
 /// Passing the inventory, block position, and instance is necessary for the
 /// adventure mode check.
+#[must_use]
 pub fn check_is_interaction_restricted(
     instance: &Instance,
     block_pos: BlockPos,
@@ -467,6 +468,7 @@ pub fn check_is_interaction_restricted(
 }
 
 /// Check if the item has the `CanDestroy` tag for the block.
+#[must_use]
 pub fn check_block_can_be_broken_by_item_in_adventure_mode(
     item: &ItemStackData,
     _block: &BlockState,
@@ -477,7 +479,7 @@ pub fn check_block_can_be_broken_by_item_in_adventure_mode(
     if item.get_component::<components::CanBreak>().is_none() {
         // no CanDestroy tag
         return false;
-    };
+    }
 
     false
 
@@ -489,6 +491,7 @@ pub fn check_block_can_be_broken_by_item_in_adventure_mode(
     // true
 }
 
+#[must_use]
 pub fn can_use_game_master_blocks(
     abilities: &PlayerAbilities,
     permission_level: &PermissionLevel,
@@ -513,7 +516,7 @@ pub fn handle_swing_arm_trigger(swing_arm: On<SwingArmEvent>, mut commands: Comm
     ));
 }
 
-#[allow(clippy::type_complexity)]
+#[expect(clippy::type_complexity)]
 fn update_attributes_for_held_item(
     mut query: Query<(&mut Attributes, &Inventory), (With<LocalEntity>, Changed<Inventory>)>,
 ) {
@@ -569,7 +572,7 @@ fn update_attributes_for_held_item(
     }
 }
 
-#[allow(clippy::type_complexity)]
+#[expect(clippy::type_complexity)]
 fn update_attributes_for_gamemode(
     query: Query<(&mut Attributes, &LocalGameMode), (With<LocalEntity>, Changed<LocalGameMode>)>,
 ) {

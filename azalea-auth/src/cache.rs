@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use tokio::{
     fs::{self, File},
-    io::{AsyncReadExt, AsyncWriteExt},
+    io::{AsyncReadExt as _, AsyncWriteExt as _},
 };
 use tracing::{debug, trace};
 

@@ -27,7 +27,7 @@ pub type CollidableEntityQuery<'world, 'state> = Query<'world, 'state, (), Colli
 /// this.
 pub type CollidableEntityFilter = Or<(With<AbstractBoat>, With<Shulker>)>;
 
-/// A component that mirrors the Physics::bounding_box of every entity, but is
+/// A component that mirrors the `Physics::bounding_box` of every entity, but is
 /// updated before client-side physics is done.
 #[derive(Component)]
 pub struct LastBoundingBox(pub Aabb);
@@ -50,6 +50,7 @@ pub fn update_last_bounding_box(
     }
 }
 
+#[must_use]
 pub fn get_entity_collisions(
     world: &Instance,
     aabb: &Aabb,

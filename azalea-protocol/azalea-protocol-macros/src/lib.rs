@@ -175,8 +175,8 @@ impl Parse for DeclareStatePackets {
 
         Ok(DeclareStatePackets {
             name,
-            serverbound,
             clientbound,
+            serverbound,
         })
     }
 }

@@ -19,7 +19,7 @@ use azalea_physics::{
 use azalea_protocol::{
     common::movements::MoveFlags,
     packets::{
-        Packet,
+        Packet as _,
         game::{
             ServerboundPlayerCommand, ServerboundPlayerInput,
             s_move_player_pos::ServerboundMovePlayerPos,
@@ -90,6 +90,7 @@ impl Client {
     }
 
     /// Returns whether the player will try to jump next tick.
+    #[must_use]
     pub fn jumping(&self) -> bool {
         *self.component::<Jumping>()
     }
@@ -101,6 +102,7 @@ impl Client {
     /// Whether the client is currently trying to sneak.
     ///
     /// You may want to check the [`Pose`] instead.
+    #[must_use]
     pub fn crouching(&self) -> bool {
         self.query_self::<&PhysicsState, _>(|p| p.trying_to_crouch)
     }
@@ -120,6 +122,7 @@ impl Client {
     /// Returns the direction the client is looking.
     ///
     /// See [`Self::set_direction`] for more details.
+    #[must_use]
     pub fn direction(&self) -> (f32, f32) {
         let look_direction: LookDirection = self.component::<LookDirection>();
         (look_direction.y_rot(), look_direction.x_rot())
@@ -134,7 +137,7 @@ pub struct LastSentLookDirection {
     pub y_rot: f32,
 }
 
-#[allow(clippy::type_complexity)]
+#[expect(clippy::type_complexity)]
 pub fn send_position(
     mut query: Query<
         (
@@ -158,7 +161,7 @@ pub fn send_position(
         mut last_sent_position,
         mut physics,
         mut last_direction,
-    ) in query.iter_mut()
+    ) in &mut query
     {
         let packet = {
             // TODO: the camera being able to be controlled by other entities isn't
@@ -174,8 +177,9 @@ pub fn send_position(
 
             // boolean sendingPosition = Mth.lengthSquared(xDelta, yDelta, zDelta) >
             // Mth.square(2.0E-4D) || this.positionReminder >= 20;
-            let is_delta_large_enough =
-                (x_delta.powi(2) + y_delta.powi(2) + z_delta.powi(2)) > 2.0e-4f64.powi(2);
+            let is_delta_large_enough = z_delta
+                .mul_add(z_delta, y_delta.mul_add(y_delta, x_delta.powi(2)))
+                > 2.0e-4f64.powi(2);
             let sending_position = is_delta_large_enough || physics_state.position_remainder >= 20;
             let sending_direction = y_rot_delta != 0.0 || x_rot_delta != 0.0;
 
@@ -245,10 +249,10 @@ pub fn send_position(
 #[derive(Debug, Default, Component, Clone, PartialEq, Eq)]
 pub struct LastSentInput(pub ServerboundPlayerInput);
 pub fn send_player_input_packet(
-    mut query: Query<(Entity, &PhysicsState, &Jumping, Option<&LastSentInput>)>,
+    query: Query<(Entity, &PhysicsState, &Jumping, Option<&LastSentInput>)>,
     mut commands: Commands,
 ) {
-    for (entity, physics_state, jumping, last_sent_input) in query.iter_mut() {
+    for (entity, physics_state, jumping, last_sent_input) in query {
         let dir = physics_state.move_direction;
         type D = WalkDirection;
         let input = ServerboundPlayerInput {
@@ -279,7 +283,7 @@ pub fn send_sprinting_if_needed(
     mut query: Query<(Entity, &MinecraftEntityId, &Sprinting, &mut PhysicsState)>,
     mut commands: Commands,
 ) {
-    for (entity, minecraft_entity_id, sprinting, mut physics_state) in query.iter_mut() {
+    for (entity, minecraft_entity_id, sprinting, mut physics_state) in &mut query {
         let was_sprinting = physics_state.was_sprinting;
         if **sprinting != was_sprinting {
             let sprinting_action = if **sprinting {
@@ -303,7 +307,7 @@ pub fn send_sprinting_if_needed(
 /// Updates the [`PhysicsState::move_vector`] based on the
 /// [`PhysicsState::move_direction`].
 pub(crate) fn tick_controls(mut query: Query<&mut PhysicsState>) {
-    for mut physics_state in query.iter_mut() {
+    for mut physics_state in &mut query {
         let mut forward_impulse: f32 = 0.;
         let mut left_impulse: f32 = 0.;
         let move_direction = physics_state.move_direction;
@@ -317,7 +321,7 @@ pub(crate) fn tick_controls(mut query: Query<&mut PhysicsState>) {
                 forward_impulse -= 1.;
             }
             _ => {}
-        };
+        }
         match move_direction {
             WalkDirection::Right | WalkDirection::ForwardRight | WalkDirection::BackwardRight => {
                 left_impulse += 1.;
@@ -326,7 +330,7 @@ pub(crate) fn tick_controls(mut query: Query<&mut PhysicsState>) {
                 left_impulse -= 1.;
             }
             _ => {}
-        };
+        }
 
         let move_vector = Vec2::new(left_impulse, forward_impulse).normalized();
         physics_state.move_vector = move_vector;
@@ -336,7 +340,7 @@ pub(crate) fn tick_controls(mut query: Query<&mut PhysicsState>) {
 /// Makes the bot do one physics tick.
 ///
 /// This is handled automatically by the client.
-#[allow(clippy::type_complexity)]
+#[expect(clippy::type_complexity)]
 pub fn local_player_ai_step(
     mut query: Query<
         (
@@ -373,7 +377,7 @@ pub fn local_player_ai_step(
         mut sprinting,
         mut crouching,
         mut attributes,
-    ) in query.iter_mut()
+    ) in &mut query
     {
         // server ai step
 
@@ -512,7 +516,7 @@ fn distance_to_unit_square(v: Vec2) -> f32 {
     let x = v.x.abs();
     let y = v.y.abs();
     let ratio = if y > x { x / y } else { y / x };
-    (1. + ratio * ratio).sqrt()
+    ratio.mul_add(ratio, 1.).sqrt()
 }
 
 impl Client {
@@ -695,7 +699,7 @@ pub fn update_pose(
     collidable_entity_query: CollidableEntityQuery,
 ) {
     for (entity, mut pose, physics, physics_state, game_mode, instance_holder, position) in
-        query.iter_mut()
+        &mut query
     {
         let world = instance_holder.instance.read();
         let world = &*world;

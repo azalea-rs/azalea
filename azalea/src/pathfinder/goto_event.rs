@@ -62,6 +62,7 @@ pub struct PathfinderOpts {
 }
 
 impl PathfinderOpts {
+    #[must_use]
     pub const fn new() -> Self {
         Self {
             successors_fn: moves::default_move,
@@ -81,7 +82,8 @@ impl PathfinderOpts {
     /// Set whether the bot is allowed to break blocks while pathfinding.
     ///
     /// Defaults to `true`.
-    pub fn allow_mining(mut self, allow_mining: bool) -> Self {
+    #[must_use]
+    pub const fn allow_mining(mut self, allow_mining: bool) -> Self {
         self.allow_mining = allow_mining;
         self
     }
@@ -89,7 +91,8 @@ impl PathfinderOpts {
     /// there's no partial path to try.
     ///
     /// Defaults to `true`.
-    pub fn retry_on_no_path(mut self, retry_on_no_path: bool) -> Self {
+    #[must_use]
+    pub const fn retry_on_no_path(mut self, retry_on_no_path: bool) -> Self {
         self.retry_on_no_path = retry_on_no_path;
         self
     }
@@ -101,7 +104,8 @@ impl PathfinderOpts {
     /// Defaults to `PathfinderTimeout::Time(Duration::from_secs(1))`.
     ///
     /// Also see [`PathfinderTimeout::Nodes`]
-    pub fn min_timeout(mut self, min_timeout: PathfinderTimeout) -> Self {
+    #[must_use]
+    pub const fn min_timeout(mut self, min_timeout: PathfinderTimeout) -> Self {
         self.min_timeout = min_timeout;
         self
     }
@@ -112,7 +116,8 @@ impl PathfinderOpts {
     /// impossible).
     ///
     /// Defaults to `PathfinderTimeout::Time(Duration::from_secs(5))`.
-    pub fn max_timeout(mut self, max_timeout: PathfinderTimeout) -> Self {
+    #[must_use]
+    pub const fn max_timeout(mut self, max_timeout: PathfinderTimeout) -> Self {
         self.max_timeout = max_timeout;
         self
     }

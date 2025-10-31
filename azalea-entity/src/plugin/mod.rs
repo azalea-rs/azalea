@@ -102,7 +102,7 @@ pub fn update_fluid_on_eyes(
     )>,
     instance_container: Res<InstanceContainer>,
 ) {
-    for (mut fluid_on_eyes, position, dimensions, instance_name) in query.iter_mut() {
+    for (mut fluid_on_eyes, position, dimensions, instance_name) in &mut query {
         let Some(instance) = instance_container.get(instance_name) else {
             continue;
         };
@@ -126,7 +126,7 @@ pub fn update_on_climbable(
     mut query: Query<(&mut OnClimbable, &Position, &InstanceName), With<LocalEntity>>,
     instance_container: Res<InstanceContainer>,
 ) {
-    for (mut on_climbable, position, instance_name) in query.iter_mut() {
+    for (mut on_climbable, position, instance_name) in &mut query {
         // TODO: there's currently no gamemode component that can be accessed from here,
         // maybe LocalGameMode should be replaced with two components, maybe called
         // EntityGameMode and PreviousGameMode?
@@ -200,7 +200,8 @@ pub fn clamp_look_direction(mut query: Query<&mut LookDirection>) {
         *look_direction = apply_clamp_look_direction(*look_direction);
     }
 }
-pub fn apply_clamp_look_direction(mut look_direction: LookDirection) -> LookDirection {
+#[must_use]
+pub const fn apply_clamp_look_direction(mut look_direction: LookDirection) -> LookDirection {
     look_direction.x_rot = look_direction.x_rot.clamp(-90., 90.);
 
     look_direction
@@ -214,27 +215,27 @@ pub fn apply_clamp_look_direction(mut look_direction: LookDirection) -> LookDire
 /// # Safety
 ///
 /// Cached position in the world must be updated.
-#[allow(clippy::type_complexity)]
+#[expect(clippy::type_complexity)]
 pub fn update_bounding_box(
     mut query: Query<
         (&mut Physics, &Position, &EntityDimensions),
         Or<(Changed<Position>, Changed<EntityDimensions>)>,
     >,
 ) {
-    for (mut physics, position, dimensions) in query.iter_mut() {
+    for (mut physics, position, dimensions) in &mut query {
         let bounding_box = dimensions.make_bounding_box(**position);
         physics.bounding_box = bounding_box;
     }
 }
 
-#[allow(clippy::type_complexity)]
+#[expect(clippy::type_complexity)]
 pub fn update_dimensions(
     mut query: Query<
         (&mut EntityDimensions, &EntityKindComponent, &Pose),
         Or<(Changed<EntityKindComponent>, Changed<Pose>)>,
     >,
 ) {
-    for (mut dimensions, kind, pose) in query.iter_mut() {
+    for (mut dimensions, kind, pose) in &mut query {
         *dimensions = calculate_dimensions(**kind, *pose);
     }
 }

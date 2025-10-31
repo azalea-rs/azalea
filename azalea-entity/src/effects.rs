@@ -9,7 +9,7 @@ use azalea_registry::MobEffect;
 use bevy_ecs::component::Component;
 
 /// Data about an active mob effect.
-#[derive(Clone, Debug, Default, PartialEq, AzBuf)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, AzBuf)]
 pub struct MobEffectData {
     /// The effect's amplifier level, starting at 0 if present.
     #[var]
@@ -20,7 +20,7 @@ pub struct MobEffectData {
     pub flags: MobEffectFlags,
 }
 
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct MobEffectFlags {
     pub ambient: bool,
     pub show_particles: bool,
@@ -76,15 +76,18 @@ impl ActiveEffects {
     }
 
     /// Get the amplifier level for the effect, starting at 0.
+    #[must_use]
     pub fn get_level(&self, effect: MobEffect) -> Option<u32> {
         self.0.get(&effect).map(|data| data.amplifier)
     }
 
+    #[must_use]
     pub fn get(&self, effect: MobEffect) -> Option<&MobEffectData> {
         self.0.get(&effect)
     }
 
     /// Returns the amplifier for dig speed (haste / conduit power), if present.
+    #[must_use]
     pub fn get_dig_speed_amplifier(&self) -> Option<u32> {
         let haste_level = self
             .get_level(MobEffect::Haste)

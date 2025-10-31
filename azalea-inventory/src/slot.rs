@@ -5,11 +5,11 @@ use std::{
     io::{self, Cursor, Write},
 };
 
-use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
+use azalea_buf::{AzaleaRead, AzaleaReadVar as _, AzaleaWrite, AzaleaWriteVar as _, BufReadError};
 use azalea_core::codec_utils::is_default;
 use azalea_registry::{DataComponentKind, Item};
 use indexmap::IndexMap;
-use serde::{Serialize, ser::SerializeMap};
+use serde::{Serialize, ser::SerializeMap as _};
 
 use crate::{
     components::{self, DataComponentUnion},
@@ -29,6 +29,7 @@ impl ItemStack {
     ///
     /// If item is air or the count isn't positive, then it'll be set to an
     /// empty `ItemStack`.
+    #[must_use]
     pub fn new(item: Item, count: i32) -> Self {
         let mut i = ItemStack::Present(ItemStackData::new(item, count));
         // set it to Empty if the item is air or if the count isn't positive
@@ -36,20 +37,22 @@ impl ItemStack {
         i
     }
 
-    /// Check if the slot is ItemStack::Empty, if the count is <= 0, or if the
+    /// Check if the slot is `ItemStack::Empty`, if the count is <= 0, or if the
     /// item is air.
     ///
     /// This is the opposite of [`ItemStack::is_present`].
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         match self {
             ItemStack::Empty => true,
             ItemStack::Present(item) => item.is_empty(),
         }
     }
-    /// Check if the slot is not ItemStack::Empty, if the count is > 0, and if
+    /// Check if the slot is not `ItemStack::Empty`, if the count is > 0, and if
     /// the item is not air.
     ///
     /// This is the opposite of [`ItemStack::is_empty`].
+    #[must_use]
     pub fn is_present(&self) -> bool {
         !self.is_empty()
     }
@@ -58,7 +61,8 @@ impl ItemStack {
     ///
     /// Note that it's possible for the count to be zero or negative when the
     /// slot is present.
-    pub fn count(&self) -> i32 {
+    #[must_use]
+    pub const fn count(&self) -> i32 {
         match self {
             ItemStack::Empty => 0,
             ItemStack::Present(i) => i.count,
@@ -81,7 +85,8 @@ impl ItemStack {
 
     /// Get the `kind` of the item in this slot, or
     /// [`azalea_registry::Item::Air`]
-    pub fn kind(&self) -> azalea_registry::Item {
+    #[must_use]
+    pub const fn kind(&self) -> azalea_registry::Item {
         match self {
             ItemStack::Empty => azalea_registry::Item::Air,
             ItemStack::Present(i) => i.kind,
@@ -98,14 +103,15 @@ impl ItemStack {
     }
 
     /// Convert this slot into an [`ItemStackData`], if it's present.
-    pub fn as_present(&self) -> Option<&ItemStackData> {
+    #[must_use]
+    pub const fn as_present(&self) -> Option<&ItemStackData> {
         match self {
             ItemStack::Empty => None,
             ItemStack::Present(i) => Some(i),
         }
     }
 
-    pub fn as_present_mut(&mut self) -> Option<&mut ItemStackData> {
+    pub const fn as_present_mut(&mut self) -> Option<&mut ItemStackData> {
         match self {
             ItemStack::Empty => None,
             ItemStack::Present(i) => Some(i),
@@ -116,8 +122,10 @@ impl ItemStack {
     ///
     /// This is used for things like getting the damage of an item, or seeing
     /// how much food it replenishes.
-    pub fn get_component<'a, T: components::DataComponentTrait>(&'a self) -> Option<Cow<'a, T>> {
-        self.as_present().and_then(|i| i.get_component::<T>())
+    #[must_use]
+    pub fn get_component<T: components::DataComponentTrait>(&self) -> Option<Cow<'_, T>> {
+        let i = self.as_present()?;
+        i.get_component::<T>()
     }
 
     pub fn with_component<
@@ -165,6 +173,7 @@ pub struct ItemStackData {
 
 impl ItemStackData {
     /// Create a new [`ItemStackData`] with the given number of [`Item`]s.
+    #[must_use]
     pub fn new(item: Item, count: i32) -> Self {
         ItemStackData {
             count,
@@ -183,6 +192,7 @@ impl ItemStackData {
     }
 
     /// Check if the count of the item is <= 0 or if the item is air.
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.count <= 0 || self.kind == azalea_registry::Item::Air
     }
@@ -199,6 +209,7 @@ impl ItemStackData {
     /// b.kind = Item::Dirt;
     /// assert!(!a.is_same_item_and_components(&b));
     /// ```
+    #[must_use]
     pub fn is_same_item_and_components(&self, other: &ItemStackData) -> bool {
         self.kind == other.kind && self.component_patch == other.component_patch
     }
@@ -207,7 +218,8 @@ impl ItemStackData {
     ///
     /// This is used for things like getting the damage of an item, or seeing
     /// how much food it replenishes.
-    pub fn get_component<'a, T: components::DataComponentTrait>(&'a self) -> Option<Cow<'a, T>> {
+    #[must_use]
+    pub fn get_component<T: components::DataComponentTrait>(&self) -> Option<Cow<'_, T>> {
         if let Some(c) = self.component_patch.get::<T>() {
             Some(Cow::Borrowed(c))
         } else {
@@ -225,8 +237,8 @@ impl AzaleaRead for ItemStack {
             let kind = azalea_registry::Item::azalea_read(buf)?;
             let component_patch = DataComponentPatch::azalea_read(buf)?;
             Ok(ItemStack::Present(ItemStackData {
-                count,
                 kind,
+                count,
                 component_patch,
             }))
         }
@@ -242,7 +254,7 @@ impl AzaleaWrite for ItemStack {
                 i.kind.azalea_write(buf)?;
                 i.component_patch.azalea_write(buf)?;
             }
-        };
+        }
         Ok(())
     }
 }
@@ -298,22 +310,23 @@ impl DataComponentPatch {
     /// # Some(())
     /// # }
     /// ```
+    #[must_use]
     pub fn get<T: components::DataComponentTrait>(&self) -> Option<&T> {
         let component = self.get_kind(T::KIND)?;
         let component_any = component as &dyn Any;
         component_any.downcast_ref::<T>()
     }
 
+    #[must_use]
     pub fn get_kind(
         &self,
         kind: DataComponentKind,
     ) -> Option<&dyn components::EncodableDataComponent> {
-        self.components.get(&kind).and_then(|c| {
-            c.as_ref().map(|c| {
-                // SAFETY: we just got the component from the map, so it must be the correct
-                // kind
-                unsafe { c.as_kind(kind) }
-            })
+        let c = self.components.get(&kind)?;
+        c.as_ref().map(|c| {
+            // SAFETY: we just got the component from the map, so it must be the correct
+            // kind
+            unsafe { c.as_kind(kind) }
         })
     }
 
@@ -327,22 +340,24 @@ impl DataComponentPatch {
     /// let is_edible = item.component_patch.has::<components::Food>();
     /// # assert!(!is_edible);
     /// ```
+    #[must_use]
     pub fn has<T: components::DataComponentTrait>(&self) -> bool {
         self.has_kind(T::KIND)
     }
 
+    #[must_use]
     pub fn has_kind(&self, kind: DataComponentKind) -> bool {
         self.get_kind(kind).is_some()
     }
 
-    pub fn iter<'a>(
-        &'a self,
+    pub fn iter(
+        &self,
     ) -> impl Iterator<
         Item = (
             DataComponentKind,
-            Option<&'a dyn components::EncodableDataComponent>,
+            Option<&dyn components::EncodableDataComponent>,
         ),
-    > + 'a {
+    > + '_ {
         self.components.iter().map(|(&kind, component)| {
             component.as_ref().map_or_else(
                 || (kind, None),

@@ -182,6 +182,7 @@ impl Client {
     ///
     /// If you're trying to get a component for this client, use
     /// [`Self::component`].
+    #[must_use]
     pub fn entity_component<Q: Component + Clone>(&self, entity: Entity) -> Q {
         let mut ecs = self.ecs.lock();
         let mut q = ecs.query::<&Q>();
@@ -198,6 +199,7 @@ impl Client {
     ///
     /// This is similar to [`Self::entity_component`] but returns an `Option`
     /// instead of panicking if the component isn't present.
+    #[must_use]
     pub fn get_entity_component<Q: Component + Clone>(&self, entity: Entity) -> Option<Q> {
         let mut ecs = self.ecs.lock();
         let mut q = ecs.query::<&Q>();

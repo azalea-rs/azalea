@@ -33,7 +33,7 @@ impl AzaleaRead for EquipmentSlots {
             slots.push((equipment_slot, item));
             if equipment_byte & 128 == 0 {
                 break;
-            };
+            }
         }
 
         Ok(EquipmentSlots { slots })
@@ -55,7 +55,7 @@ impl AzaleaWrite for EquipmentSlots {
     }
 }
 
-#[derive(Clone, Debug, Copy, AzBuf, PartialEq)]
+#[derive(Clone, Debug, Copy, AzBuf, PartialEq, Eq)]
 pub enum EquipmentSlot {
     MainHand = 0,
     OffHand = 1,
@@ -67,7 +67,7 @@ pub enum EquipmentSlot {
 
 impl EquipmentSlot {
     #[must_use]
-    pub fn from_byte(byte: u8) -> Option<Self> {
+    pub const fn from_byte(byte: u8) -> Option<Self> {
         match byte {
             0 => Some(EquipmentSlot::MainHand),
             1 => Some(EquipmentSlot::OffHand),

@@ -100,7 +100,7 @@ impl azalea_buf::AzaleaRead for DisplayInfo {
     }
 }
 
-#[derive(Clone, Debug, Copy, AzBuf, PartialEq)]
+#[derive(Clone, Debug, Copy, AzBuf, PartialEq, Eq)]
 pub enum FrameType {
     Task = 0,
     Challenge = 1,
@@ -109,7 +109,7 @@ pub enum FrameType {
 
 pub type AdvancementProgress = HashMap<String, CriterionProgress>;
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(Clone, Debug, AzBuf, PartialEq, Eq)]
 pub struct CriterionProgress {
     pub date: Option<u64>,
 }
@@ -122,7 +122,7 @@ pub struct AdvancementHolder {
 
 #[cfg(test)]
 mod tests {
-    use azalea_buf::{AzaleaRead, AzaleaWrite};
+    use azalea_buf::{AzaleaRead as _, AzaleaWrite as _};
 
     use super::*;
 
@@ -135,8 +135,8 @@ mod tests {
                 value: Advancement {
                     parent_id: None,
                     display: Some(DisplayInfo {
-                        title: FormattedText::from("title".to_string()),
-                        description: FormattedText::from("description".to_string()),
+                        title: FormattedText::from("title".to_owned()),
+                        description: FormattedText::from("description".to_owned()),
                         icon: ItemStack::Empty,
                         frame: FrameType::Task,
                         show_toast: true,
@@ -155,7 +155,7 @@ mod tests {
             progress: [(
                 ResourceLocation::new("minecraft:test3"),
                 [(
-                    "minecraft:test4".to_string(),
+                    "minecraft:test4".to_owned(),
                     CriterionProgress {
                         date: Some(123456789),
                     },
@@ -187,7 +187,7 @@ mod tests {
                 }
             })
             .unwrap()
-            .clone();
+            ;
         let read_advancement = read_packet
             .added
             .into_iter()
@@ -199,7 +199,7 @@ mod tests {
                 }
             })
             .unwrap()
-            .clone();
+            ;
         assert_eq!(advancement.parent_id, read_advancement.parent_id);
 
         let display = advancement.display.unwrap();

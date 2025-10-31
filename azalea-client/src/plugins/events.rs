@@ -189,7 +189,7 @@ pub fn login_listener(
 /// when we receive a login packet.
 #[derive(Component)]
 pub struct SentSpawnEvent;
-#[allow(clippy::type_complexity)]
+#[expect(clippy::type_complexity)]
 pub fn spawn_listener(
     query: Query<(Entity, &LocalPlayerEvents), (Added<InLoadedChunk>, Without<SentSpawnEvent>)>,
     mut commands: Commands,

@@ -383,7 +383,7 @@ where
     /// field, however, the bots will wait for the previous one to have
     /// connected and *then* they'll wait the given duration.
     #[must_use]
-    pub fn join_delay(mut self, delay: Duration) -> Self {
+    pub const fn join_delay(mut self, delay: Duration) -> Self {
         self.join_delay = Some(delay);
         self
     }
@@ -553,7 +553,7 @@ where
                 if bots_rx.len() > 1_000 {
                     static WARNED: AtomicBool = AtomicBool::new(false);
                     if !WARNED.swap(true, atomic::Ordering::Relaxed) {
-                        warn!("the Client Event channel has more than 1000 items!")
+                        warn!("the Client Event channel has more than 1000 items!");
                     }
                 }
 
@@ -774,8 +774,8 @@ impl Swarm {
         Ok(client)
     }
 
-    /// Copy the events from a client's receiver into bots_tx, until the bot is
-    /// removed from the ECS.
+    /// Copy the events from a client's receiver into `bots_tx`, until the bot
+    /// is removed from the ECS.
     async fn event_copying_task(
         mut rx: mpsc::UnboundedReceiver<Event>,
         swarm_tx: mpsc::UnboundedSender<SwarmEvent>,
@@ -789,19 +789,19 @@ impl Swarm {
                 if !WARNED_1_000.swap(true, atomic::Ordering::Relaxed) {
                     warn!(
                         "the client's Event channel has more than 1,000 items! this is probably fine but if you're concerned about it, maybe consider disabling the packet-event feature in azalea to reduce the number of events?"
-                    )
+                    );
                 }
 
                 if rx.len() > 10_000 {
                     static WARNED_10_000: AtomicBool = AtomicBool::new(false);
                     if !WARNED_10_000.swap(true, atomic::Ordering::Relaxed) {
-                        warn!("the client's Event channel has more than 10,000 items!!")
+                        warn!("the client's Event channel has more than 10,000 items!!");
                     }
 
                     if rx.len() > 100_000 {
                         static WARNED_100_000: AtomicBool = AtomicBool::new(false);
                         if !WARNED_100_000.swap(true, atomic::Ordering::Relaxed) {
-                            warn!("the client's Event channel has more than 100,000 items!!!")
+                            warn!("the client's Event channel has more than 100,000 items!!!");
                         }
 
                         if rx.len() > 1_000_000 {
@@ -809,7 +809,7 @@ impl Swarm {
                             if !WARNED_1_000_000.swap(true, atomic::Ordering::Relaxed) {
                                 warn!(
                                     "the client's Event channel has more than 1,000,000 items!!!! your code is almost certainly leaking memory"
-                                )
+                                );
                             }
                         }
                     }
@@ -857,7 +857,7 @@ impl Swarm {
         account: &Account,
         state: S,
     ) -> Client {
-        #[allow(deprecated)]
+        #[expect(deprecated)]
         self.add_and_retry_forever_with_opts(account, state, &JoinOpts::default())
             .await
     }
@@ -896,6 +896,7 @@ impl Swarm {
     /// from the ECS.
     ///
     /// [`LocalEntity`]: azalea_entity::LocalEntity
+    #[must_use]
     pub fn client_entities(&self) -> Box<[Entity]> {
         let mut ecs = self.ecs_lock.lock();
         let mut query = ecs.query_filtered::<Entity, With<LocalEntity>>();
@@ -943,7 +944,7 @@ impl PluginGroup for DefaultSwarmPlugins {
     }
 }
 
-/// A marker that can be used in place of a SwarmState in [`SwarmBuilder`].
+/// A marker that can be used in place of a `SwarmState` in [`SwarmBuilder`].
 ///
 /// You probably don't need to use this manually since the compiler will infer
 /// it for you.

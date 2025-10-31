@@ -22,7 +22,7 @@ pub struct SelectableRecipe {
     pub option_display: SlotDisplayData,
 }
 
-#[derive(Clone, Debug, PartialEq, AzBuf)]
+#[derive(Clone, Debug, PartialEq, Eq, AzBuf)]
 pub struct RecipePropertySet {
     pub items: Vec<azalea_registry::Item>,
 }

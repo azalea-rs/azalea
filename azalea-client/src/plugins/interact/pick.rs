@@ -27,7 +27,7 @@ use derive_more::{Deref, DerefMut};
 #[derive(Component, Clone, Debug, Deref, DerefMut)]
 pub struct HitResultComponent(HitResult);
 
-#[allow(clippy::type_complexity)]
+#[expect(clippy::type_complexity)]
 pub fn update_hit_result_component(
     mut commands: Commands,
     mut query: Query<
@@ -131,6 +131,7 @@ pub struct PickOpts<'world, 'state, 'a, 'b, 'c> {
 /// [`HitResultComponent`].
 ///
 /// Also see [`pick_block`].
+#[must_use]
 pub fn pick(opts: PickOpts<'_, '_, '_, '_, '_>) -> HitResult {
     // vanilla does extra math here to calculate the pick result in between ticks by
     // interpolating, but since clients can still only interact on exact ticks, that
@@ -222,6 +223,7 @@ fn filter_hit_result(hit_result: HitResult, eye_position: Vec3, range: f64) -> H
 /// This does not consider entities.
 ///
 /// Also see [`pick`].
+#[must_use]
 pub fn pick_block(
     look_direction: LookDirection,
     eye_position: Vec3,

@@ -10,7 +10,22 @@ use azalea_registry::{Attribute, Block, EntityKind, HolderSet, Item, MobEffect, 
 use simdnbt::owned::NbtCompound;
 
 use crate::{
-    ItemStack, components::*, default_components::DefaultableComponent,
+    ItemStack,
+    components::{
+        AttributeModifier, AttributeModifierDisplay, AttributeModifierOperation,
+        AttributeModifiers, AttributeModifiersEntry, BannerPatterns, Bees, BlockState,
+        BlocksAttacks, BreakSound, BucketEntityData, BundleContents, ChargedProjectiles,
+        ChickenVariant, Consumable, Container, Damage, DamageResistant, DeathProtection,
+        DebugStickState, Enchantable, EnchantmentGlintOverride, Enchantments,
+        EncodableDataComponent as _, EntityData, EquipmentSlot, EquipmentSlotGroup, Equippable,
+        Fireworks, Food, Glider, Instrument, ItemDamageFunction, ItemModel, ItemName,
+        ItemUseAnimation, JukeboxPlayable, Lore, MapColor, MapDecorations, MaxDamage, MaxStackSize,
+        MobEffectDetails, MobEffectInstance, OminousBottleAmplifier, PotDecorations,
+        PotionContents, PotionDurationScale, ProvidesBannerPatterns, ProvidesTrimMaterial, Rarity,
+        Recipes, RepairCost, Repairable, StoredEnchantments, SuspiciousStewEffects, Tool, ToolRule,
+        TooltipDisplay, UseCooldown, UseRemainder, Weapon, WritableBookContent,
+    },
+    default_components::DefaultableComponent,
     item::consume_effect::ConsumeEffect,
 };
 
@@ -2566,33 +2581,33 @@ impl DefaultableComponent for Bees {
 impl DefaultableComponent for BlockState {
     fn default_for_item(item: Item) -> Option<Self> {
         let value = match item {
-            Item::BeeNest => HashMap::from_iter([("honey_level".to_string(), "0".to_string())]),
-            Item::Beehive => HashMap::from_iter([("honey_level".to_string(), "0".to_string())]),
+            Item::BeeNest => HashMap::from_iter([("honey_level".to_owned(), "0".to_owned())]),
+            Item::Beehive => HashMap::from_iter([("honey_level".to_owned(), "0".to_owned())]),
             Item::CopperGolemStatue => {
-                HashMap::from_iter([("copper_golem_pose".to_string(), "standing".to_string())])
+                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
             }
             Item::ExposedCopperGolemStatue => {
-                HashMap::from_iter([("copper_golem_pose".to_string(), "standing".to_string())])
+                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
             }
-            Item::Light => HashMap::from_iter([("level".to_string(), "15".to_string())]),
+            Item::Light => HashMap::from_iter([("level".to_owned(), "15".to_owned())]),
             Item::OxidizedCopperGolemStatue => {
-                HashMap::from_iter([("copper_golem_pose".to_string(), "standing".to_string())])
+                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
             }
-            Item::TestBlock => HashMap::from_iter([("mode".to_string(), "start".to_string())]),
+            Item::TestBlock => HashMap::from_iter([("mode".to_owned(), "start".to_owned())]),
             Item::WaxedCopperGolemStatue => {
-                HashMap::from_iter([("copper_golem_pose".to_string(), "standing".to_string())])
+                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
             }
             Item::WaxedExposedCopperGolemStatue => {
-                HashMap::from_iter([("copper_golem_pose".to_string(), "standing".to_string())])
+                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
             }
             Item::WaxedOxidizedCopperGolemStatue => {
-                HashMap::from_iter([("copper_golem_pose".to_string(), "standing".to_string())])
+                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
             }
             Item::WaxedWeatheredCopperGolemStatue => {
-                HashMap::from_iter([("copper_golem_pose".to_string(), "standing".to_string())])
+                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
             }
             Item::WeatheredCopperGolemStatue => {
-                HashMap::from_iter([("copper_golem_pose".to_string(), "standing".to_string())])
+                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
             }
             _ => return None,
         };

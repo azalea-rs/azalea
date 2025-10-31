@@ -37,7 +37,8 @@ impl<const N: usize> Default for SlotList<N> {
     }
 }
 impl<const N: usize> SlotList<N> {
-    pub fn new(items: [ItemStack; N]) -> Self {
+    #[must_use]
+    pub const fn new(items: [ItemStack; N]) -> Self {
         SlotList(items)
     }
 }
@@ -48,6 +49,7 @@ impl Menu {
     /// # Panics
     ///
     /// Will panic if the menu isn't `Menu::Player`.
+    #[must_use]
     pub fn as_player(&self) -> &Player {
         if let Menu::Player(player) = &self {
             player

@@ -2,14 +2,14 @@
 
 use std::{
     fmt::Debug,
-    io::{self, Read},
+    io::{self, Read as _},
 };
 
-use azalea_buf::AzaleaWriteVar;
+use azalea_buf::AzaleaWriteVar as _;
 use azalea_crypto::Aes128CfbEnc;
 use flate2::{Compression, bufread::ZlibEncoder};
 use thiserror::Error;
-use tokio::io::{AsyncWrite, AsyncWriteExt};
+use tokio::io::{AsyncWrite, AsyncWriteExt as _};
 use tracing::trace;
 
 use crate::{packets::ProtocolPacket, read::MAXIMUM_UNCOMPRESSED_LENGTH};
