@@ -18,7 +18,7 @@ use azalea_entity::{
     Attributes, Jumping, LookDirection, OnClimbable, Physics, PlayerAbilities, Pose, Position,
     metadata::Sprinting,
 };
-use azalea_world::{ChunkStorage, Instance, MoveEntityError};
+use azalea_world::{ChunkStorage, Instance};
 use bevy_ecs::{entity::Entity, world::Mut};
 pub use blocks::BlockWithShape;
 pub use discrete_voxel_shape::*;
@@ -130,7 +130,7 @@ pub struct MoveCtx<'world, 'state, 'a, 'b> {
 ///
 /// In Mojmap, this is `Entity.move`.
 #[allow(clippy::too_many_arguments)]
-pub fn move_colliding(ctx: &mut MoveCtx, mut movement: Vec3) -> Result<(), MoveEntityError> {
+pub fn move_colliding(ctx: &mut MoveCtx, mut movement: Vec3) {
     // TODO: do all these
 
     // if self.no_physics {
@@ -225,8 +225,8 @@ pub fn move_colliding(ctx: &mut MoveCtx, mut movement: Vec3) -> Result<(), MoveE
     // this.tryCheckInsideBlocks();
 
     // float var25 = this.getBlockSpeedFactor();
-    // this.setDeltaMovement(this.getDeltaMovement().multiply((double)var25, 1.0D,
-    // (double)var25)); if (this.level.getBlockStatesIfLoaded(this.
+    // this.setDeltaMovement(this.getDeltaMovement().multiply((double)var25,
+    // 1.0D, (double)var25)); if (this.level.getBlockStatesIfLoaded(this.
     // getBoundingBox().deflate(1.0E-6D)).noneMatch((var0) -> {
     //    return var0.is(BlockTags.FIRE) || var0.is(Blocks.LAVA);
     // })) {
@@ -239,11 +239,9 @@ pub fn move_colliding(ctx: &mut MoveCtx, mut movement: Vec3) -> Result<(), MoveE
     // playEntityOnFireExtinguishedSound();    }
     // }
 
-    // if (this.isOnFire() && (this.isInPowderSnow || this.isInWaterRainOrBubble()))
-    // {    this.setRemainingFireTicks(-this.getFireImmuneTicks());
-    // }
-
-    Ok(())
+    // if (this.isOnFire() && (this.isInPowderSnow ||
+    // this.isInWaterRainOrBubble())) {    this.setRemainingFireTicks(-this.
+    // getFireImmuneTicks()); }
 }
 
 fn check_fall_damage(

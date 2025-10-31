@@ -235,10 +235,9 @@ pub fn add_player_listener(
     mut events: MessageReader<AddPlayerEvent>,
 ) {
     for event in events.read() {
-        let local_player_events = query
-            .get(event.entity)
-            .expect("Non-local entities shouldn't be able to receive add player events");
-        let _ = local_player_events.send(Event::AddPlayer(event.info.clone()));
+        if let Ok(local_player_events) = query.get(event.entity) {
+            let _ = local_player_events.send(Event::AddPlayer(event.info.clone()));
+        }
     }
 }
 
@@ -247,10 +246,9 @@ pub fn update_player_listener(
     mut events: MessageReader<UpdatePlayerEvent>,
 ) {
     for event in events.read() {
-        let local_player_events = query
-            .get(event.entity)
-            .expect("Non-local entities shouldn't be able to receive update player events");
-        let _ = local_player_events.send(Event::UpdatePlayer(event.info.clone()));
+        if let Ok(local_player_events) = query.get(event.entity) {
+            let _ = local_player_events.send(Event::UpdatePlayer(event.info.clone()));
+        }
     }
 }
 
@@ -259,10 +257,9 @@ pub fn remove_player_listener(
     mut events: MessageReader<RemovePlayerEvent>,
 ) {
     for event in events.read() {
-        let local_player_events = query
-            .get(event.entity)
-            .expect("Non-local entities shouldn't be able to receive remove player events");
-        let _ = local_player_events.send(Event::RemovePlayer(event.info.clone()));
+        if let Ok(local_player_events) = query.get(event.entity) {
+            let _ = local_player_events.send(Event::RemovePlayer(event.info.clone()));
+        }
     }
 }
 
@@ -288,10 +285,9 @@ pub fn keepalive_listener(
     mut events: MessageReader<KeepAliveEvent>,
 ) {
     for event in events.read() {
-        let local_player_events = query
-            .get(event.entity)
-            .expect("Non-local entities shouldn't be able to receive keepalive events");
-        let _ = local_player_events.send(Event::KeepAlive(event.id));
+        if let Ok(local_player_events) = query.get(event.entity) {
+            let _ = local_player_events.send(Event::KeepAlive(event.id));
+        }
     }
 }
 

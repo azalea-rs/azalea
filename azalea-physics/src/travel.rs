@@ -173,7 +173,7 @@ fn travel_in_fluid(ctx: &mut MoveCtx) {
         // }
 
         move_relative(ctx.physics, ctx.direction, speed, acceleration);
-        move_colliding(ctx, ctx.physics.velocity).expect("Entity should exist");
+        move_colliding(ctx, ctx.physics.velocity);
 
         let mut new_velocity = ctx.physics.velocity;
         if ctx.physics.horizontal_collision && *ctx.on_climbable {
@@ -187,7 +187,7 @@ fn travel_in_fluid(ctx: &mut MoveCtx) {
             get_fluid_falling_adjusted_movement(gravity, moving_down, new_velocity, ctx.sprinting);
     } else {
         move_relative(ctx.physics, ctx.direction, 0.02, acceleration);
-        move_colliding(ctx, ctx.physics.velocity).expect("Entity should exist");
+        move_colliding(ctx, ctx.physics.velocity);
 
         if ctx.physics.lava_fluid_height <= fluid_jump_threshold() {
             ctx.physics.velocity.x *= 0.5;

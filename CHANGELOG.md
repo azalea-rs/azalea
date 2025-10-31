@@ -12,6 +12,7 @@ is breaking anyways, semantic versioning is not followed.
 
 - Add `Client::query_entity` and `try_query_entity` to complement `query_self`.
 - Add `Client::entity_interact` and `EntityInteractEvent` to interact with entities without checking that they're in the crosshair.
+- Implement initial support for mob effects, including jump boost, haste, conduit power, and mining fatigue. (@ShayBox)
 
 ### Changed
 
@@ -27,6 +28,7 @@ is breaking anyways, semantic versioning is not followed.
 - The wrong path was temporarily executed if we received a `GotoEvent` while the path that's being executed was more than 50 nodes long.
 - The pathfinder can now jump from dirt path and farmland blocks correctly.
 - Don't panic when receiving an unexpected `PathFoundEvent`. (@Hiradpi)
+- Don't panic when the `LocalPlayerEvents` component is missing. (@suprohub)
 - The pathfinder sometimes got stuck when going up stairs that are facing the wrong direction.
 - ReachBlockPosGoal had the wrong cost when the destination is surrounded in blocks.
 - Some parkour movements had the wrong costs.
