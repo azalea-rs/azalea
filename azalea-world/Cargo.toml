@@ -27,6 +27,9 @@ tracing.workspace = true
 [features]
 serde = ["dep:serde"]
 
+[lints]
+workspace = true
+
 [[bench]]
 name = "chunks"
 harness = false

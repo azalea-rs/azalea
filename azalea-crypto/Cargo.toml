@@ -21,6 +21,9 @@ sha1.workspace = true
 sha2.workspace = true
 uuid.workspace = true
 
+[lints]
+workspace = true
+
 [[bench]]
 harness = false
 name = "my_benchmark"

@@ -29,3 +29,6 @@ uuid = { workspace = true, features = ["serde", "v3"] }
 [dev-dependencies]
 env_logger.workspace = true
 tokio = { workspace = true, features = ["full"] }
+
+[lints]
+workspace = true

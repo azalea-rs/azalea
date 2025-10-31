@@ -20,3 +20,6 @@ serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 simdnbt = { workspace = true, optional = true }
 tracing.workspace = true
+
+[lints]
+workspace = true

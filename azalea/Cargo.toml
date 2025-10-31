@@ -57,6 +57,9 @@ log = ["azalea-client/log"]
 serde = ["dep:serde", "azalea-registry/serde", "azalea-world/serde"]
 packet-event = ["azalea-client/packet-event"]
 
+[lints]
+workspace = true
+
 [[bench]]
 name = "pathfinder"
 harness = false
