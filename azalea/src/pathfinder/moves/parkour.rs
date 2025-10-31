@@ -3,7 +3,15 @@ use azalea_core::{direction::CardinalDirection, position::BlockPos};
 use tracing::trace;
 
 use super::{Edge, ExecuteCtx, IsReachedCtx, MoveData, PathfinderCtx};
-use crate::pathfinder::{astar, costs::*, player_pos_to_block_pos, rel_block_pos::RelBlockPos};
+use crate::pathfinder::{
+    astar,
+    costs::{
+        CENTER_AFTER_FALL_COST, FALL_N_BLOCKS_COST, JUMP_PENALTY, SPRINT_ONE_BLOCK_COST,
+        WALK_ONE_BLOCK_COST,
+    },
+    player_pos_to_block_pos,
+    rel_block_pos::RelBlockPos,
+};
 
 pub fn parkour_move(ctx: &mut PathfinderCtx, node: RelBlockPos) {
     if !ctx.world.is_block_solid(node.down(1)) {
@@ -53,7 +61,7 @@ fn parkour_forward_1_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
             continue;
         }
 
-        let cost = JUMP_PENALTY + WALK_ONE_BLOCK_COST * 2. + CENTER_AFTER_FALL_COST;
+        let cost = WALK_ONE_BLOCK_COST.mul_add(2., JUMP_PENALTY) + CENTER_AFTER_FALL_COST;
 
         ctx.edges.push(Edge {
             movement: astar::Movement {
@@ -64,7 +72,7 @@ fn parkour_forward_1_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
                 },
             },
             cost,
-        })
+        });
     }
 }
 
@@ -81,7 +89,7 @@ fn parkour_forward_2_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
             continue;
         }
 
-        let mut cost = JUMP_PENALTY + WALK_ONE_BLOCK_COST * 3. + CENTER_AFTER_FALL_COST;
+        let mut cost = WALK_ONE_BLOCK_COST.mul_add(3., JUMP_PENALTY) + CENTER_AFTER_FALL_COST;
 
         let ascend: i32 = if ctx.world.is_standable(pos + offset.up(1)) {
             1
@@ -122,7 +130,7 @@ fn parkour_forward_2_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
                 },
             },
             cost,
-        })
+        });
     }
 }
 
@@ -143,7 +151,7 @@ fn parkour_forward_3_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
 
         if !ctx.world.is_standable(pos + offset) {
             continue;
-        };
+        }
 
         // make sure we have space to jump
         for offset in [gap_1_offset, gap_2_offset, gap_3_offset] {
@@ -163,7 +171,7 @@ fn parkour_forward_3_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
             continue;
         }
 
-        let cost = JUMP_PENALTY + SPRINT_ONE_BLOCK_COST * 4. + CENTER_AFTER_FALL_COST;
+        let cost = SPRINT_ONE_BLOCK_COST.mul_add(4., JUMP_PENALTY) + CENTER_AFTER_FALL_COST;
 
         ctx.edges.push(Edge {
             movement: astar::Movement {
@@ -174,7 +182,7 @@ fn parkour_forward_3_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
                 },
             },
             cost,
-        })
+        });
     }
 }
 

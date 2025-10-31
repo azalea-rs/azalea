@@ -35,7 +35,7 @@ pub struct AuthOpts<'a> {
     ///
     /// For more information about this, see <https://minecraft.wiki/w/Microsoft_authentication#Microsoft_OAuth2_flow>.
     pub client_id: Option<&'a str>,
-    /// An override for the OAuth2 scope to authenticate with.
+    /// An override for the `OAuth2` scope to authenticate with.
     pub scope: Option<&'a str>,
 }
 
@@ -142,7 +142,7 @@ pub async fn auth(cache_key: &str, opts: AuthOpts<'_>) -> Result<AuthResult, Aut
                 &cache_file,
                 cache_key,
                 CachedAccount {
-                    cache_key: cache_key.to_string(),
+                    cache_key: cache_key.to_owned(),
                     mca: res.mca,
                     msa,
                     xbl: res.xbl,
@@ -193,7 +193,7 @@ pub async fn get_minecraft_token(
         .get()
         .expect("Minecraft auth shouldn't have expired yet")
         .access_token
-        .to_string();
+        .clone();
 
     Ok(MinecraftTokenResponse {
         mca,
@@ -224,7 +224,7 @@ pub struct DeviceCodeResponse {
     pub interval: u64,
 }
 
-#[allow(unused)]
+#[expect(unused)]
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct AccessTokenResponse {
     pub token_type: String,
@@ -235,7 +235,7 @@ pub struct AccessTokenResponse {
     pub user_id: String,
 }
 
-#[allow(unused)]
+#[expect(unused)]
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct XboxLiveAuthResponse {
@@ -252,7 +252,7 @@ pub struct XboxLiveAuth {
     pub user_hash: String,
 }
 
-#[allow(unused)]
+#[expect(unused)]
 #[derive(Debug, Deserialize, Serialize)]
 pub struct MinecraftAuthResponse {
     pub username: String,
@@ -270,7 +270,7 @@ pub struct GameOwnershipResponse {
     pub key_id: String,
 }
 
-#[allow(unused)]
+#[expect(unused)]
 #[derive(Debug, Deserialize)]
 pub struct GameOwnershipItem {
     pub name: String,
@@ -531,7 +531,7 @@ async fn obtain_xsts_for_minecraft(
         .json(&json!({
             "Properties": {
                 "SandboxId": "RETAIL",
-                "UserTokens": [xbl_auth_token.to_string()]
+                "UserTokens": [xbl_auth_token.to_owned()]
             },
             "RelyingParty": "rp://api.minecraftservices.com/",
             "TokenType": "JWT"

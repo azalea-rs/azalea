@@ -3,7 +3,7 @@ use std::io::{self, Cursor, Write};
 use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
 use azalea_chat::FormattedText;
 use azalea_protocol_macros::ClientboundLoginPacket;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize as _, Serialize as _};
 use tracing::trace;
 
 #[derive(Clone, Debug, PartialEq, ClientboundLoginPacket)]

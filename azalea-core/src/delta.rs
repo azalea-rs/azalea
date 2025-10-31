@@ -1,7 +1,7 @@
 use std::io::{self, Cursor, Write};
 
 pub use azalea_buf::AzBuf;
-use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
+use azalea_buf::{AzaleaRead, AzaleaReadVar as _, AzaleaWrite, AzaleaWriteVar as _, BufReadError};
 
 use crate::{math, position::Vec3};
 
@@ -12,7 +12,7 @@ pub trait PositionDeltaTrait {
 }
 
 /// Only works for up to 8 blocks
-#[derive(Clone, Debug, AzBuf, Default, PartialEq)]
+#[derive(Clone, Debug, AzBuf, Default, PartialEq, Eq)]
 pub struct PositionDelta8 {
     pub xa: i16,
     pub ya: i16,
@@ -21,6 +21,7 @@ pub struct PositionDelta8 {
 
 impl PositionDelta8 {
     #[deprecated = "Use Self::x, y, z instead"]
+    #[must_use]
     pub fn float(&self) -> (f64, f64, f64) {
         (
             (self.xa as f64) / 4096.0,
@@ -57,8 +58,12 @@ impl Vec3 {
         }
     }
 
+    #[must_use]
     pub fn normalize(&self) -> Vec3 {
-        let length = f64::sqrt(self.x * self.x + self.y * self.y + self.z * self.z);
+        let length = f64::sqrt(
+            self.z
+                .mul_add(self.z, self.x.mul_add(self.x, self.y * self.y)),
+        );
         if length < 1e-5 {
             return Vec3::ZERO;
         }
@@ -69,6 +74,7 @@ impl Vec3 {
         }
     }
 
+    #[must_use]
     pub fn multiply(&self, x: f64, y: f64, z: f64) -> Vec3 {
         Vec3 {
             x: self.x * x,
@@ -76,6 +82,7 @@ impl Vec3 {
             z: self.z * z,
         }
     }
+    #[must_use]
     pub fn scale(&self, amount: f64) -> Vec3 {
         self.multiply(amount, amount, amount)
     }
@@ -140,6 +147,7 @@ impl AzaleaWrite for LpVec3 {
     }
 }
 impl LpVec3 {
+    #[must_use]
     pub fn from_vec3(vec3: Vec3) -> Self {
         let x = Self::sanitize(vec3.x);
         let y = Self::sanitize(vec3.y);
@@ -173,11 +181,12 @@ impl LpVec3 {
         }
     }
 
+    #[must_use]
     pub fn to_vec3(self) -> Vec3 {
         match self {
             LpVec3::Zero => Vec3::ZERO,
             LpVec3::Normal { a, b, c } => {
-                let packed: u64 = (c as u64) << 16 | (b as u64) << 8 | (a as u64);
+                let packed: u64 = ((c as u64) << 16) | ((b as u64) << 8) | (a as u64);
                 let multiplier = (a & 3) as u64 as f64;
 
                 Vec3 {
@@ -187,7 +196,7 @@ impl LpVec3 {
                 }
             }
             LpVec3::Extended { a, b, c, d } => {
-                let packed: u64 = (c as u64) << 16 | (b as u64) << 8 | (a as u64);
+                let packed: u64 = ((c as u64) << 16) | ((b as u64) << 8) | (a as u64);
                 let multiplier = (a & 3) as u64;
                 let multiplier = multiplier | ((d as u64) << 2);
                 let multiplier = multiplier as f64;
@@ -206,10 +215,10 @@ impl LpVec3 {
     }
 
     fn pack(value: f64) -> u64 {
-        f64::round((value * 0.5 + 0.5) * 32766.) as u64
+        f64::round(value.mul_add(0.5, 0.5) * 32766.) as u64
     }
 
-    fn sanitize(value: f64) -> f64 {
+    const fn sanitize(value: f64) -> f64 {
         if value.is_nan() {
             0.
         } else {

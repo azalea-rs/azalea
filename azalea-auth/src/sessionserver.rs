@@ -125,6 +125,7 @@ pub async fn join_with_server_id_hash(
 }
 
 /// Ask Mojang's servers if the player joining is authenticated.
+///
 /// Included in the reply is the player's skin and cape.
 /// The IP field is optional and equivalent to enabling
 /// 'prevent-proxy-connections' in server.properties
@@ -134,11 +135,7 @@ pub async fn serverside_auth(
     private_key: &[u8; 16],
     ip: Option<&str>,
 ) -> Result<GameProfile, ServerSessionServerError> {
-    let hash = azalea_crypto::hex_digest(&azalea_crypto::digest_data(
-        "".as_bytes(),
-        public_key,
-        private_key,
-    ));
+    let hash = azalea_crypto::hex_digest(&azalea_crypto::digest_data(b"", public_key, private_key));
 
     let url = reqwest::Url::parse_with_params(
         "https://sessionserver.mojang.com/session/minecraft/hasJoined",
@@ -171,7 +168,7 @@ pub async fn serverside_auth(
                 body,
             });
         }
-    };
+    }
 
     Ok(res.json::<SerializableGameProfile>().await?.into())
 }

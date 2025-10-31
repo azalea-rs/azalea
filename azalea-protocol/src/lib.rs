@@ -15,7 +15,7 @@
 use std::{
     fmt::{self, Display},
     net::SocketAddr,
-    str::FromStr,
+    str::FromStr as _,
 };
 
 pub mod common;
@@ -31,7 +31,7 @@ pub mod write;
 ///
 /// # Examples
 ///
-/// `ServerAddress` implements TryFrom<&str>, so you can use it like this:
+/// `ServerAddress` implements `TryFrom`<&str>, so you can use it like this:
 /// ```
 /// use azalea_protocol::ServerAddress;
 ///
@@ -52,10 +52,10 @@ impl TryFrom<&str> for ServerAddress {
     /// a `ServerAddress`
     fn try_from(string: &str) -> Result<Self, Self::Error> {
         if string.is_empty() {
-            return Err("Empty string".to_string());
+            return Err("Empty string".to_owned());
         }
         let mut parts = string.split(':');
-        let host = parts.next().ok_or("No host specified")?.to_string();
+        let host = parts.next().ok_or("No host specified")?.to_owned();
         // default the port to 25565
         let port = parts.next().unwrap_or("25565");
         let port = u16::from_str(port).map_err(|_| "Invalid port specified")?;
@@ -90,7 +90,7 @@ impl Display for ServerAddress {
     }
 }
 
-/// Serde deserialization for ServerAddress.
+/// Serde deserialization for `ServerAddress`.
 ///
 /// This is useful if you're storing the server address in a config file.
 impl<'de> serde::Deserialize<'de> for ServerAddress {
@@ -103,7 +103,7 @@ impl<'de> serde::Deserialize<'de> for ServerAddress {
     }
 }
 
-/// Serde serialization for ServerAddress.
+/// Serde serialization for `ServerAddress`.
 ///
 /// This uses the Display impl, so it will serialize to a string.
 impl serde::Serialize for ServerAddress {
@@ -123,7 +123,7 @@ mod tests {
 
     use crate::{
         packets::{
-            Packet,
+            Packet as _,
             game::s_chat::{LastSeenMessagesUpdate, ServerboundChat},
             login::{ServerboundLoginPacket, s_hello::ServerboundHello},
         },
@@ -134,7 +134,7 @@ mod tests {
     #[tokio::test]
     async fn test_hello_packet() {
         let packet = ServerboundHello {
-            name: "test".to_string(),
+            name: "test".to_owned(),
             profile_id: Uuid::nil(),
         };
         let mut stream = Vec::new();
@@ -164,7 +164,7 @@ mod tests {
     #[tokio::test]
     async fn test_double_hello_packet() {
         let packet = ServerboundHello {
-            name: "test".to_string(),
+            name: "test".to_owned(),
             profile_id: Uuid::nil(),
         }
         .into_variant();

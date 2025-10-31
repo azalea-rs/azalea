@@ -13,7 +13,7 @@ use azalea_core::{
 };
 use azalea_world::ChunkStorage;
 
-use crate::collision::{BlockWithShape, EMPTY_SHAPE, VoxelShape};
+use crate::collision::{BlockWithShape as _, EMPTY_SHAPE, VoxelShape};
 
 #[derive(Debug, Clone)]
 pub struct ClipContext {
@@ -45,6 +45,7 @@ impl ClipContext {
         }
     }
 
+    #[must_use]
     pub fn fluid_shape(
         &self,
         fluid_state: FluidState,
@@ -80,6 +81,7 @@ pub enum FluidPickType {
     Water,
 }
 impl FluidPickType {
+    #[must_use]
     pub fn can_pick(&self, fluid_state: &FluidState) -> bool {
         match self {
             Self::None => false,
@@ -90,6 +92,7 @@ impl FluidPickType {
     }
 }
 
+#[must_use]
 pub fn clip(chunk_storage: &ChunkStorage, context: ClipContext) -> BlockHitResult {
     traverse_blocks(
         context.from,
@@ -255,6 +258,7 @@ pub fn traverse_blocks<C, T>(
     }
 }
 
+#[must_use]
 pub fn box_traverse_blocks(from: Vec3, to: Vec3, aabb: &Aabb) -> HashSet<BlockPos> {
     let delta = to - from;
     let traversed_blocks = BlockPos::between_closed_aabb(aabb);

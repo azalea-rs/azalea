@@ -175,7 +175,7 @@ mod tests {
             SystemState::new(ecs);
         let mut messages = system_state.get_mut(ecs);
 
-        messages.drain().map(|e| e.0.clone()).collect::<Vec<_>>()
+        messages.drain().map(|e| e.0).collect::<Vec<_>>()
     }
 
     #[tokio::test]

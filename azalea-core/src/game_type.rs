@@ -1,6 +1,6 @@
 use std::io::{self, Cursor, Write};
 
-use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, BufReadError};
+use azalea_buf::{AzaleaRead, AzaleaReadVar as _, AzaleaWrite, BufReadError};
 use azalea_chat::translatable_component::TranslatableComponent;
 use tracing::debug;
 
@@ -15,7 +15,8 @@ pub enum GameMode {
 }
 
 impl GameMode {
-    pub fn to_id(&self) -> u8 {
+    #[must_use]
+    pub const fn to_id(&self) -> u8 {
         match self {
             GameMode::Survival => 0,
             GameMode::Creative => 1,
@@ -32,7 +33,8 @@ impl GameMode {
         }
     }
 
-    pub fn from_id(id: u8) -> Option<GameMode> {
+    #[must_use]
+    pub const fn from_id(id: u8) -> Option<GameMode> {
         Some(match id {
             0 => GameMode::Survival,
             1 => GameMode::Creative,
@@ -42,6 +44,7 @@ impl GameMode {
         })
     }
 
+    #[must_use]
     pub fn from_optional_id(id: i8) -> Option<OptionalGameType> {
         Some(
             match id {
@@ -53,16 +56,19 @@ impl GameMode {
     }
 
     /// The short translatable display name for the gamemode, like "Survival".
+    #[must_use]
     pub fn short_name(&self) -> TranslatableComponent {
         TranslatableComponent::new(format!("selectWorld.gameMode.{}", self.name()), vec![])
     }
 
     /// The long translatable display name for the gamemode, like "Survival
     /// Mode".
+    #[must_use]
     pub fn long_name(&self) -> TranslatableComponent {
         TranslatableComponent::new(format!("gameMode.{}", self.name()), vec![])
     }
 
+    #[must_use]
     pub fn from_name(name: &str) -> GameMode {
         match name {
             "survival" => GameMode::Survival,
@@ -74,7 +80,8 @@ impl GameMode {
     }
 
     /// The internal name for the game mode, like "survival".
-    pub fn name(&self) -> &'static str {
+    #[must_use]
+    pub const fn name(&self) -> &'static str {
         match self {
             GameMode::Survival => "survival",
             GameMode::Creative => "creative",
@@ -88,7 +95,8 @@ impl GameMode {
     /// Whether the player can't interact with blocks while in this game mode.
     ///
     /// (Returns true if you're in adventure or spectator.)
-    pub fn is_block_placing_restricted(&self) -> bool {
+    #[must_use]
+    pub const fn is_block_placing_restricted(&self) -> bool {
         matches!(self, GameMode::Adventure | GameMode::Spectator)
     }
 }
@@ -115,7 +123,7 @@ impl AzaleaWrite for GameMode {
 
 /// Rust doesn't let us `impl AzaleaRead for Option<GameType>` so we have to
 /// make a new type :(
-#[derive(Hash, Copy, Clone, Debug, PartialEq)]
+#[derive(Hash, Copy, Clone, Debug, PartialEq, Eq)]
 pub struct OptionalGameType(pub Option<GameMode>);
 
 impl From<Option<GameMode>> for OptionalGameType {

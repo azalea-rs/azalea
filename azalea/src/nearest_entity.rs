@@ -68,6 +68,7 @@ where
     ///
     /// This method will return `None` if there are no entities within range. If
     /// multiple entities are within range, only the closest one is returned.
+    #[must_use]
     pub fn nearest_to_position(
         &'a self,
         position: Position,
@@ -97,6 +98,7 @@ where
     /// This method will return `None` if there are no entities within range. If
     /// multiple entities are within range, only the closest one is
     /// returned.
+    #[must_use]
     pub fn nearest_to_entity(&'a self, entity: Entity, max_distance: f64) -> Option<Entity> {
         let Ok((position, instance_name)) = self.all_entities.get(entity) else {
             return None;
@@ -108,7 +110,7 @@ where
         for (target_entity, e_instance, e_pos) in self.filtered_entities.iter() {
             if entity == target_entity {
                 continue;
-            };
+            }
 
             if e_instance != instance_name {
                 continue;
@@ -173,7 +175,7 @@ where
         } else {
             position = Position::default();
             instance_name = None;
-        };
+        }
 
         self.filtered_entities
             .iter()

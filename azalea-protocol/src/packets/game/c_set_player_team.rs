@@ -28,7 +28,7 @@ pub struct Parameters {
     pub player_suffix: FormattedText,
 }
 
-#[derive(Clone, Copy, Debug, AzBuf, PartialEq)]
+#[derive(Clone, Copy, Debug, AzBuf, PartialEq, Eq)]
 pub enum CollisionRule {
     Always,
     Never,
@@ -36,7 +36,7 @@ pub enum CollisionRule {
     PushOwnTeam,
 }
 
-#[derive(Clone, Copy, Debug, AzBuf, PartialEq)]
+#[derive(Clone, Copy, Debug, AzBuf, PartialEq, Eq)]
 pub enum NameTagVisibility {
     Always,
     Never,
@@ -50,7 +50,7 @@ type PlayerList = Vec<String>;
 mod tests {
     use std::io::Cursor;
 
-    use azalea_buf::AzaleaRead;
+    use azalea_buf::AzaleaRead as _;
 
     use crate::packets::game::ClientboundSetPlayerTeam;
 

@@ -6,7 +6,7 @@ use azalea_core::position::{ChunkBlockPos, ChunkPos};
 use azalea_world::{Chunk, ChunkStorage, PartialChunkStorage};
 use criterion::{Bencher, Criterion, criterion_group, criterion_main};
 
-#[allow(dead_code)]
+#[expect(dead_code)]
 fn generate_world(partial_chunks: &mut PartialChunkStorage, size: u32) -> ChunkStorage {
     let size = size as i32;
 
@@ -73,7 +73,7 @@ fn run_physics_benchmark(b: &mut Bencher<'_>) {
             simulation_set.tick();
         }
         simulation_set.despawn(entity);
-    })
+    });
 }
 
 fn bench_pathfinder(c: &mut Criterion) {

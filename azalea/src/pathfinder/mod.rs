@@ -68,7 +68,7 @@ use self::{
 use crate::{
     WalkDirection,
     app::{App, Plugin},
-    bot::{BotClientExt, JumpEvent, LookAtEvent},
+    bot::{BotClientExt as _, JumpEvent, LookAtEvent},
     ecs::{
         component::Component,
         entity::Entity,
@@ -152,7 +152,7 @@ pub struct PathFoundEvent {
     pub allow_mining: bool,
 }
 
-#[allow(clippy::type_complexity)]
+#[expect(clippy::type_complexity)]
 pub fn add_default_pathfinder(
     mut commands: Commands,
     mut query: Query<Entity, (Without<Pathfinder>, With<LocalEntity>, With<Player>)>,
@@ -269,7 +269,7 @@ impl PathfinderClientExt for azalea_client::Client {
                 Ok(_) => (),
                 Err(RecvError::Closed) => return,
                 Err(err) => warn!("{err}"),
-            };
+            }
         }
     }
     fn is_goto_target_reached(&self) -> bool {
@@ -283,7 +283,7 @@ impl PathfinderClientExt for azalea_client::Client {
 #[derive(Component)]
 pub struct ComputePath(Task<Option<PathFoundEvent>>);
 
-#[allow(clippy::type_complexity)]
+#[expect(clippy::type_complexity)]
 pub fn goto_listener(
     mut commands: Commands,
     mut events: MessageReader<GotoEvent>,
@@ -392,6 +392,7 @@ pub fn goto_listener(
 /// This is almost the same as `BlockPos::from(position)`, except that non-full
 /// blocks are handled correctly.
 #[inline]
+#[must_use]
 pub fn player_pos_to_block_pos(position: Vec3) -> BlockPos {
     // 0.5 to account for non-full blocks
     BlockPos::from(position.up(0.5))
@@ -536,7 +537,7 @@ pub fn handle_tasks(
 }
 
 // set the path for the target entity when we get the PathFoundEvent
-#[allow(clippy::type_complexity)]
+#[expect(clippy::type_complexity)]
 pub fn path_found_listener(
     mut events: MessageReader<PathFoundEvent>,
     mut query: Query<(
@@ -651,7 +652,7 @@ pub fn path_found_listener(
     }
 }
 
-#[allow(clippy::type_complexity)]
+#[expect(clippy::type_complexity)]
 pub fn timeout_movement(
     mut query: Query<(
         Entity,
@@ -856,7 +857,7 @@ pub fn check_node_reached(
     }
 }
 
-#[allow(clippy::type_complexity)]
+#[expect(clippy::type_complexity)]
 pub fn check_for_path_obstruction(
     mut query: Query<(
         Entity,
@@ -956,7 +957,7 @@ pub fn check_for_path_obstruction(
 ///
 /// You should avoid making the range too large, since the timeout for the A*
 /// calculation is very low. About 20 nodes is a good amount.
-#[allow(clippy::too_many_arguments)]
+#[expect(clippy::too_many_arguments)]
 fn patch_path(
     patch_nodes: RangeInclusive<usize>,
     executing_path: &mut ExecutingPath,
@@ -1063,7 +1064,7 @@ pub fn recalculate_near_end_of_path(
             && !pathfinder.is_calculating
             && executing_path.is_path_partial
         {
-            match pathfinder.goal.as_ref().cloned() {
+            match pathfinder.goal.clone() {
                 Some(goal) => {
                     debug!("Recalculating path because it's empty or ends soon");
                     debug!(
@@ -1119,7 +1120,7 @@ pub fn recalculate_near_end_of_path(
     }
 }
 
-#[allow(clippy::type_complexity)]
+#[expect(clippy::type_complexity)]
 pub fn tick_execute_path(
     mut commands: Commands,
     mut query: Query<(
@@ -1174,7 +1175,7 @@ pub fn recalculate_if_has_goal_but_no_path(
     for (entity, mut pathfinder) in &mut query {
         if pathfinder.goal.is_some()
             && !pathfinder.is_calculating
-            && let Some(goal) = pathfinder.goal.as_ref().cloned()
+            && let Some(goal) = pathfinder.goal.clone()
             && let Some(opts) = pathfinder.opts.clone()
         {
             debug!("Recalculating path because it has a goal but no ExecutingPath");

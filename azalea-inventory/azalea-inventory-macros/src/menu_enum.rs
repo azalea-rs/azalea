@@ -1,5 +1,5 @@
 //! Generate the `enum menu` and nothing else. Implementations are in
-//! impl_menu.rs
+//! `impl_menu.rs`
 
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -34,11 +34,11 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
 }
 
 /// Player {
-///     craft_result: ItemStack,
-///     craft: [ItemStack; 4],
-///     armor: [ItemStack; 4],
-///     inventory: [ItemStack; 36],
-///     offhand: ItemStack,
+///     `craft_result`: `ItemStack`,
+///     craft: [`ItemStack`; 4],
+///     armor: [`ItemStack`; 4],
+///     inventory: [`ItemStack`; 36],
+///     offhand: `ItemStack`,
 /// },
 fn generate_variant_for_menu(menu: &Menu) -> TokenStream {
     let name = &menu.name;
@@ -62,9 +62,9 @@ fn generate_fields(fields: &[Field], public: bool) -> TokenStream {
         };
         let field_name = &field.name;
         if public {
-            generated_fields.extend(quote! { pub #field_name: #field_type, })
+            generated_fields.extend(quote! { pub #field_name: #field_type, });
         } else {
-            generated_fields.extend(quote! { #field_name: #field_type, })
+            generated_fields.extend(quote! { #field_name: #field_type, });
         }
     }
     generated_fields

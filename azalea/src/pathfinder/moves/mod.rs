@@ -195,6 +195,7 @@ impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_, '_> {
         }
     }
 
+    #[must_use]
     pub fn get_block_state(&self, block: BlockPos) -> BlockState {
         self.instance
             .read()

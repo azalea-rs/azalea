@@ -93,10 +93,12 @@ fn find_bits(min: f64, max: f64) -> i32 {
 }
 
 impl Shapes {
+    #[must_use]
     pub fn or(a: VoxelShape, b: VoxelShape) -> VoxelShape {
         Self::join(a, b, |a, b| a || b)
     }
 
+    #[must_use]
     pub fn collide(
         axis: Axis,
         entity_box: &Aabb,
@@ -121,9 +123,7 @@ impl Shapes {
         b: VoxelShape,
         op: fn(bool, bool) -> bool,
     ) -> VoxelShape {
-        if op(false, false) {
-            panic!("Illegal operation");
-        };
+        assert!(!op(false, false), "Illegal operation");
         // if (a == b) {
         //     return if op(true, true) { a } else { empty_shape() };
         // }
@@ -194,7 +194,7 @@ impl Shapes {
     }
 
     /// Check if the op is true anywhere when joining the two shapes
-    /// vanilla calls this joinIsNotEmpty (join_is_not_empty).
+    /// vanilla calls this joinIsNotEmpty (`join_is_not_empty`).
     pub fn matches_anywhere(
         a: &VoxelShape,
         b: &VoxelShape,
@@ -274,6 +274,7 @@ impl Shapes {
         })
     }
 
+    #[must_use]
     pub fn create_index_merger(
         _var0: i32,
         coords1: &[f64],
@@ -347,13 +348,15 @@ impl VoxelShape {
         }
     }
 
-    pub fn shape(&self) -> &DiscreteVoxelShape {
+    #[must_use]
+    pub const fn shape(&self) -> &DiscreteVoxelShape {
         match self {
             VoxelShape::Array(s) => s.shape(),
             VoxelShape::Cube(s) => s.shape(),
         }
     }
 
+    #[must_use]
     pub fn get_coords(&self, axis: Axis) -> &[f64] {
         match self {
             VoxelShape::Array(s) => s.get_coords(axis),
@@ -361,6 +364,7 @@ impl VoxelShape {
         }
     }
 
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.shape().is_empty()
     }
@@ -389,6 +393,7 @@ impl VoxelShape {
     }
 
     #[inline]
+    #[must_use]
     pub fn get(&self, axis: Axis, index: usize) -> f64 {
         // self.get_coords(axis)[index]
         match self {
@@ -398,16 +403,17 @@ impl VoxelShape {
         }
     }
 
+    #[must_use]
     pub fn find_index(&self, axis: Axis, coord: f64) -> i32 {
-        match self {
-            VoxelShape::Cube(s) => s.find_index(axis, coord),
-            _ => {
-                let upper_limit = (self.shape().size(axis) + 1) as i32;
-                binary_search(0, upper_limit, |t| coord < self.get(axis, t as usize)) - 1
-            }
+        if let VoxelShape::Cube(s) = self {
+            s.find_index(axis, coord)
+        } else {
+            let upper_limit = (self.shape().size(axis) + 1) as i32;
+            binary_search(0, upper_limit, |t| coord < self.get(axis, t as usize)) - 1
         }
     }
 
+    #[must_use]
     pub fn clip(&self, from: Vec3, to: Vec3, block_pos: BlockPos) -> Option<BlockHitResult> {
         if self.is_empty() {
             return None;
@@ -436,9 +442,11 @@ impl VoxelShape {
         }
     }
 
+    #[must_use]
     pub fn collide(&self, axis: Axis, entity_box: &Aabb, movement: f64) -> f64 {
         self.collide_x(AxisCycle::between(axis, Axis::X), entity_box, movement)
     }
+    #[must_use]
     pub fn collide_x(&self, axis_cycle: AxisCycle, entity_box: &Aabb, mut movement: f64) -> f64 {
         if self.shape().is_empty() {
             return movement;
@@ -550,6 +558,7 @@ impl VoxelShape {
         );
     }
 
+    #[must_use]
     pub fn to_aabbs(&self) -> Vec<Aabb> {
         let mut aabbs = Vec::new();
         self.for_all_boxes(|min_x, min_y, min_z, max_x, max_y, max_z| {
@@ -561,6 +570,7 @@ impl VoxelShape {
         aabbs
     }
 
+    #[must_use]
     pub fn bounds(&self) -> Aabb {
         assert!(!self.is_empty(), "Can't get bounds for empty shape");
         Aabb {
@@ -587,7 +597,7 @@ impl From<Aabb> for VoxelShape {
 pub struct ArrayVoxelShape {
     shape: DiscreteVoxelShape,
     // TODO: check where faces is used in minecraft
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     faces: Option<Vec<VoxelShape>>,
 
     pub xs: Vec<f64>,
@@ -599,7 +609,7 @@ pub struct ArrayVoxelShape {
 pub struct CubeVoxelShape {
     shape: DiscreteVoxelShape,
     // TODO: check where faces is used in minecraft
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     faces: Option<Vec<VoxelShape>>,
 
     x_coords: Vec<f64>,
@@ -608,6 +618,7 @@ pub struct CubeVoxelShape {
 }
 
 impl ArrayVoxelShape {
+    #[must_use]
     pub fn new(shape: DiscreteVoxelShape, xs: Vec<f64>, ys: Vec<f64>, zs: Vec<f64>) -> Self {
         let x_size = shape.size(Axis::X) + 1;
         let y_size = shape.size(Axis::Y) + 1;
@@ -629,7 +640,7 @@ impl ArrayVoxelShape {
 }
 
 impl ArrayVoxelShape {
-    fn shape(&self) -> &DiscreteVoxelShape {
+    const fn shape(&self) -> &DiscreteVoxelShape {
         &self.shape
     }
 
@@ -640,6 +651,7 @@ impl ArrayVoxelShape {
 }
 
 impl CubeVoxelShape {
+    #[must_use]
     pub fn new(shape: DiscreteVoxelShape) -> Self {
         let x_coords = Self::calculate_coords(&shape, Axis::X);
         let y_coords = Self::calculate_coords(&shape, Axis::Y);
@@ -656,7 +668,7 @@ impl CubeVoxelShape {
 }
 
 impl CubeVoxelShape {
-    fn shape(&self) -> &DiscreteVoxelShape {
+    const fn shape(&self) -> &DiscreteVoxelShape {
         &self.shape
     }
 
@@ -686,14 +698,17 @@ pub struct CubePointRange {
     pub parts: NonZeroU32,
 }
 impl CubePointRange {
+    #[must_use]
     pub fn get_double(&self, index: u32) -> f64 {
         index as f64 / self.parts.get() as f64
     }
 
-    pub fn size(&self) -> u32 {
+    #[must_use]
+    pub const fn size(&self) -> u32 {
         self.parts.get() + 1
     }
 
+    #[must_use]
     pub fn iter(&self) -> Vec<f64> {
         (0..=self.parts.get()).map(|i| self.get_double(i)).collect()
     }

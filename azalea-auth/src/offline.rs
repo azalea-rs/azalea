@@ -1,6 +1,7 @@
-use md5::{Digest, Md5};
+use md5::{Digest as _, Md5};
 use uuid::Uuid;
 
+#[must_use]
 pub fn generate_uuid(username: &str) -> Uuid {
     uuid::Builder::from_md5_bytes(hash(format!("OfflinePlayer:{username}").as_bytes())).into_uuid()
 }

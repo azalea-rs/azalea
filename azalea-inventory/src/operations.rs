@@ -10,7 +10,7 @@ use crate::{
     Generic9x6MenuLocation, GrindstoneMenuLocation, HopperMenuLocation, ItemStack, ItemStackData,
     LecternMenuLocation, LoomMenuLocation, Menu, MenuLocation, MerchantMenuLocation, Player,
     PlayerMenuLocation, ShulkerBoxMenuLocation, SmithingMenuLocation, SmokerMenuLocation,
-    StonecutterMenuLocation, item::MaxStackSizeExt,
+    StonecutterMenuLocation, item::MaxStackSizeExt as _,
 };
 
 /// A type of click in a Minecraft inventory.
@@ -157,7 +157,8 @@ impl ClickOperation {
     /// Return the slot number that this operation is acting on, if any.
     ///
     /// Note that in the protocol, "None" is represented as -999.
-    pub fn slot_num(&self) -> Option<u16> {
+    #[must_use]
+    pub const fn slot_num(&self) -> Option<u16> {
         match self {
             ClickOperation::Pickup(pickup) => match pickup {
                 PickupClick::Left { slot } => *slot,
@@ -184,7 +185,8 @@ impl ClickOperation {
         }
     }
 
-    pub fn button_num(&self) -> u8 {
+    #[must_use]
+    pub const fn button_num(&self) -> u8 {
         match self {
             ClickOperation::Pickup(pickup) => match pickup {
                 PickupClick::Left { .. } => 0,
@@ -244,7 +246,8 @@ impl ClickOperation {
         }
     }
 
-    pub fn click_type(&self) -> ClickType {
+    #[must_use]
+    pub const fn click_type(&self) -> ClickType {
         match self {
             ClickOperation::Pickup(_) => ClickType::Pickup,
             ClickOperation::QuickMove(_) => ClickType::QuickMove,
@@ -257,7 +260,7 @@ impl ClickOperation {
     }
 }
 
-#[derive(AzBuf, Clone, Copy, Debug, PartialEq)]
+#[derive(AzBuf, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ClickType {
     Pickup = 0,
     QuickMove = 1,
@@ -277,7 +280,7 @@ impl Menu {
         let slot = self.slot(slot_index);
         if slot.is_none() {
             return ItemStack::Empty;
-        };
+        }
 
         let slot_location = self
             .location_for_slot(slot_index)
@@ -617,18 +620,21 @@ impl Menu {
     /// Whether the given item could be placed in this menu.
     ///
     /// TODO: right now this always returns true
-    pub fn may_place(&self, _target_slot_index: usize, _item: &ItemStackData) -> bool {
+    #[must_use]
+    pub const fn may_place(&self, _target_slot_index: usize, _item: &ItemStackData) -> bool {
         true
     }
 
     /// Whether the item in the given slot could be clicked and picked up.
     ///
     /// TODO: right now this always returns true
-    pub fn may_pickup(&self, _source_slot_index: usize) -> bool {
+    #[must_use]
+    pub const fn may_pickup(&self, _source_slot_index: usize) -> bool {
         true
     }
 
     /// Whether the item in the slot can be picked up and placed.
+    #[must_use]
     pub fn allow_modification(&self, target_slot_index: usize) -> bool {
         if !self.may_pickup(target_slot_index) {
             return false;
@@ -641,7 +647,8 @@ impl Menu {
     }
 
     /// Get the maximum number of items that can be placed in this slot.
-    pub fn max_stack_size(&self, _target_slot_index: usize) -> i32 {
+    #[must_use]
+    pub const fn max_stack_size(&self, _target_slot_index: usize) -> i32 {
         64
     }
 

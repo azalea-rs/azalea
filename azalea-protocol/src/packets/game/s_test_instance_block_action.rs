@@ -13,7 +13,7 @@ pub struct ServerboundTestInstanceBlockAction {
     pub data: TestInstanceBlockEntityData,
 }
 
-#[derive(Clone, Copy, Debug, AzBuf, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, AzBuf, Default, PartialEq, Eq)]
 pub enum Action {
     #[default]
     Init,
@@ -35,7 +35,7 @@ pub struct TestInstanceBlockEntityData {
     pub error_message: Option<FormattedText>,
 }
 
-#[derive(Clone, Copy, Debug, AzBuf, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, AzBuf, Default, PartialEq, Eq)]
 pub enum TestInstanceBlockEntityStatus {
     #[default]
     Cleared,

@@ -70,7 +70,7 @@ async fn main() {
 
 /// Runs a loop that checks for deadlocks every 10 seconds.
 ///
-/// Note that this requires the `deadlock_detection` parking_lot feature to be
+/// Note that this requires the `deadlock_detection` `parking_lot` feature to be
 /// enabled, which is only enabled in azalea by default when running in debug
 /// mode.
 fn deadlock_detection_thread() {
@@ -162,18 +162,14 @@ async fn handle(bot: Client, event: azalea::Event, state: State) -> anyhow::Resu
                     Ok(_) => {}
                     Err(err) => {
                         eprintln!("{err:?}");
-                        let command_source = CommandSource {
-                            bot,
-                            chat: chat.clone(),
-                            state: state.clone(),
-                        };
+                        let command_source = CommandSource { bot, state, chat };
                         command_source.reply(format!("{err:?}"));
                     }
                 }
             }
         }
         azalea::Event::Tick => {
-            killaura::tick(bot.clone(), state.clone())?;
+            killaura::tick(bot, state.clone())?;
 
             let task = *state.task.lock();
             match task {
@@ -181,7 +177,7 @@ async fn handle(bot: Client, event: azalea::Event, state: State) -> anyhow::Resu
             }
         }
         azalea::Event::Login => {
-            println!("Got login event")
+            println!("Got login event");
         }
         _ => {}
     }
@@ -214,9 +210,9 @@ pub struct Args {
 }
 
 fn parse_args() -> Args {
-    let mut owner_username = "admin".to_string();
+    let mut owner_username = "admin".to_owned();
     let mut accounts = Vec::new();
-    let mut server = "localhost".to_string();
+    let mut server = "localhost".to_owned();
     let mut pathfinder_debug_particles = false;
 
     let mut args = env::args().skip(1);
@@ -227,7 +223,7 @@ fn parse_args() -> Args {
             }
             "--account" | "-A" => {
                 for account in args.next().expect("Missing account").split(',') {
-                    accounts.push(account.to_string());
+                    accounts.push(account.to_owned());
                 }
             }
             "--server" | "-S" => {
@@ -244,7 +240,7 @@ fn parse_args() -> Args {
     }
 
     if accounts.is_empty() {
-        accounts.push("azalea".to_string());
+        accounts.push("azalea".to_owned());
     }
 
     Args {

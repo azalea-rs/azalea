@@ -20,9 +20,9 @@ use azalea_protocol::{
     },
     read::ReadPacketError,
 };
-use futures::FutureExt;
+use futures::FutureExt as _;
 use tokio::{
-    io::{self, AsyncWriteExt},
+    io::{self, AsyncWriteExt as _},
     net::{TcpListener, TcpStream},
 };
 use tracing::{Level, error, info, warn};
@@ -36,7 +36,7 @@ const PROXY_DESC: &str = "An Azalea Minecraft Proxy";
 static PROXY_FAVICON: LazyLock<Option<String>> = LazyLock::new(|| None);
 
 static PROXY_VERSION: LazyLock<Version> = LazyLock::new(|| Version {
-    name: VERSION_NAME.to_string(),
+    name: VERSION_NAME.to_owned(),
     protocol: PROTOCOL_VERSION,
 });
 
@@ -168,7 +168,7 @@ async fn handle_connection(stream: TcpStream) -> anyhow::Result<()> {
             }
         }
         ClientIntention::Transfer => {
-            warn!("Client attempted to join via transfer")
+            warn!("Client attempted to join via transfer");
         }
     }
 

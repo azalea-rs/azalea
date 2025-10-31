@@ -60,7 +60,7 @@ pub fn poll_request_certs_task(
     mut commands: Commands,
     mut query: Query<(Entity, &mut RequestCertsTask, &Account)>,
 ) {
-    for (entity, mut auth_task, account) in query.iter_mut() {
+    for (entity, mut auth_task, account) in &mut query {
         if let Some(poll_res) = future::block_on(future::poll_once(&mut auth_task.0)) {
             debug!("Finished requesting certs");
             commands.entity(entity).remove::<RequestCertsTask>();
@@ -84,10 +84,10 @@ pub fn poll_request_certs_task(
     }
 }
 
-#[allow(clippy::type_complexity)]
+#[expect(clippy::type_complexity)]
 pub fn request_certs_if_needed(
     mut commands: Commands,
-    mut query: Query<
+    query: Query<
         (
             Entity,
             &Account,
@@ -101,7 +101,7 @@ pub fn request_certs_if_needed(
         ),
     >,
 ) {
-    for (entity, account, only_refresh_certs_after, chat_signing_session) in query.iter_mut() {
+    for (entity, account, only_refresh_certs_after, chat_signing_session) in query {
         if let Some(only_refresh_certs_after) = only_refresh_certs_after
             && only_refresh_certs_after.refresh_at > Instant::now()
         {

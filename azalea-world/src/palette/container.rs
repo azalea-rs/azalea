@@ -4,7 +4,7 @@ use std::{
 };
 
 use azalea_block::BlockState;
-use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
+use azalea_buf::{AzaleaRead as _, AzaleaWrite, BufReadError};
 use azalea_core::position::{ChunkSectionBiomePos, ChunkSectionBlockPos};
 use azalea_registry::Biome;
 use tracing::warn;
@@ -30,6 +30,7 @@ pub trait PalletedContainerKind: Copy + Clone + Debug + Default + TryFrom<u32> +
 
     fn size_bits() -> usize;
 
+    #[must_use]
     fn size() -> usize {
         1 << (Self::size_bits() * 3)
     }
@@ -102,6 +103,7 @@ impl SectionPos for ChunkSectionBiomePos {
 }
 
 impl<S: PalletedContainerKind> PalettedContainer<S> {
+    #[must_use]
     pub fn new() -> Self {
         let palette = Palette::SingleValue(S::default());
         let size = S::size();
@@ -134,7 +136,7 @@ impl<S: PalletedContainerKind> PalettedContainer<S> {
             Err(e) => {
                 warn!("Failed to create bit storage: {:?}", e);
                 return Err(BufReadError::Custom(
-                    "Failed to create bit storage".to_string(),
+                    "Failed to create bit storage".to_owned(),
                 ));
             }
         };

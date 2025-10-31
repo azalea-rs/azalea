@@ -1,6 +1,6 @@
 //! Commands for debugging and getting the current state of the bot.
 
-use std::{env, fs::File, io::Write, thread, time::Duration};
+use std::{env, fs::File, io::Write as _, thread, time::Duration};
 
 use azalea::{
     BlockPos,
@@ -10,7 +10,7 @@ use azalea::{
     interact::pick::HitResultComponent,
     packet::game,
     pathfinder::{ExecutingPath, Pathfinder},
-    prelude::ContainerClientExt,
+    prelude::ContainerClientExt as _,
     world::MinecraftEntityId,
 };
 use azalea_core::hit_result::HitResult;
@@ -184,7 +184,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
             if let Some(queued) = executing_path.queued_path {
                 queued.len().to_string()
             } else {
-                "n/a".to_string()
+                "n/a".to_owned()
             },
         ));
         1

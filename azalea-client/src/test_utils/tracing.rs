@@ -1,7 +1,7 @@
 use bevy_log::tracing_subscriber::{
     self, EnvFilter, Layer,
-    layer::{Context, SubscriberExt},
-    util::SubscriberInitExt,
+    layer::{Context, SubscriberExt as _},
+    util::SubscriberInitExt as _,
 };
 use tracing::{Event, Level, Subscriber};
 
@@ -30,8 +30,6 @@ struct TestTracingLayer {
 impl<S: Subscriber> Layer<S> for TestTracingLayer {
     fn on_event(&self, event: &Event<'_>, _ctx: Context<'_, S>) {
         let level = *event.metadata().level();
-        if level <= self.panic_on_level {
-            panic!("logged on level {level}");
-        }
+        assert!(level > self.panic_on_level, "logged on level {level}");
     }
 }

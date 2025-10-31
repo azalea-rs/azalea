@@ -4,7 +4,7 @@ use std::{
 };
 
 use azalea_auth::game_profile::{GameProfile, GameProfileProperties};
-use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
+use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar as _, AzaleaWrite, AzaleaWriteVar as _, BufReadError};
 use azalea_chat::FormattedText;
 use azalea_core::{bitset::FixedBitSet, game_type::GameMode};
 use azalea_protocol_macros::ClientboundGamePacket;

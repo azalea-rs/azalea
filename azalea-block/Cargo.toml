@@ -10,3 +10,6 @@ repository.workspace = true
 azalea-block-macros.workspace = true
 azalea-buf.workspace = true
 azalea-registry.workspace = true
+
+[lints]
+workspace = true

@@ -2,7 +2,9 @@
 
 use std::io::{self, Cursor, Write};
 
-use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
+use azalea_buf::{
+    AzBuf, AzaleaRead, AzaleaReadVar as _, AzaleaWrite, AzaleaWriteVar as _, BufReadError,
+};
 use azalea_chat::FormattedText;
 use azalea_core::{
     direction::Direction,
@@ -98,7 +100,7 @@ pub enum EntityDataValue {
     ResolvableProfile(components::Profile),
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct OptionalUnsignedInt(pub Option<u32>);
 
 #[derive(Clone, Debug, AzBuf, PartialEq)]
@@ -111,7 +113,7 @@ pub struct Quaternion {
 
 // mojang just calls this ArmadilloState but i added "Kind" since otherwise it
 // collides with a name in metadata.rs
-#[derive(Clone, Debug, Copy, Default, AzBuf, PartialEq)]
+#[derive(Clone, Debug, Copy, Default, AzBuf, PartialEq, Eq)]
 pub enum ArmadilloStateKind {
     #[default]
     Idle,
@@ -169,7 +171,7 @@ pub enum Pose {
     Inhaling,
 }
 
-#[derive(Debug, Clone, AzBuf, PartialEq)]
+#[derive(Debug, Clone, AzBuf, PartialEq, Eq)]
 pub struct VillagerData {
     pub kind: azalea_registry::VillagerKind,
     pub profession: azalea_registry::VillagerProfession,
@@ -177,7 +179,7 @@ pub struct VillagerData {
     pub level: u32,
 }
 
-#[derive(Debug, Copy, Clone, AzBuf, Default, PartialEq)]
+#[derive(Debug, Copy, Clone, AzBuf, Default, PartialEq, Eq)]
 pub enum SnifferStateKind {
     #[default]
     Idling,
@@ -189,7 +191,7 @@ pub enum SnifferStateKind {
     Rising,
 }
 
-#[derive(Debug, Copy, Clone, AzBuf, Default, PartialEq)]
+#[derive(Debug, Copy, Clone, AzBuf, Default, PartialEq, Eq)]
 pub enum CopperGolemStateKind {
     #[default]
     Idle,
@@ -198,7 +200,7 @@ pub enum CopperGolemStateKind {
     DroppingItem,
     DroppingNoItem,
 }
-#[derive(Debug, Copy, Clone, AzBuf, Default, PartialEq)]
+#[derive(Debug, Copy, Clone, AzBuf, Default, PartialEq, Eq)]
 pub enum WeatheringCopperStateKind {
     #[default]
     Unaffected,

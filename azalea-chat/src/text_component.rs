@@ -1,6 +1,6 @@
 use std::fmt::{self, Display};
 
-use serde::{Serialize, Serializer, ser::SerializeMap};
+use serde::{Serialize, Serializer, ser::SerializeMap as _};
 
 use crate::{
     FormattedText,
@@ -59,9 +59,10 @@ impl simdnbt::Serialize for TextComponent {
 
 const LEGACY_FORMATTING_CODE_SYMBOL: char = '§';
 
-/// Convert a legacy color code string into a FormattedText
+/// Convert a legacy color code string into a `FormattedText`
 /// Technically in Minecraft this is done when displaying the text, but AFAIK
-/// it's the same as just doing it in TextComponent
+/// it's the same as just doing it in `TextComponent`
+#[must_use]
 pub fn legacy_color_code_to_text_component(legacy_color_code: &str) -> TextComponent {
     if legacy_color_code.is_empty() {
         return TextComponent::new("");
@@ -95,8 +96,8 @@ pub fn legacy_color_code_to_text_component(legacy_color_code: &str) -> TextCompo
                 if !cur_component.text.is_empty() {
                     // we need to split this into a new component
                     components.push(cur_component.clone());
-                    cur_component.text = "".to_string();
-                };
+                    cur_component.text = String::new();
+                }
                 cur_component.base.style.color = TextColor::parse(&color);
 
                 i += 6;
@@ -104,8 +105,8 @@ pub fn legacy_color_code_to_text_component(legacy_color_code: &str) -> TextCompo
                 if !cur_component.text.is_empty() || formatter == ChatFormatting::Reset {
                     // we need to split this into a new component
                     components.push(cur_component.clone());
-                    cur_component.text = "".to_string();
-                };
+                    cur_component.text = String::new();
+                }
                 cur_component.base.style.apply_formatting(&formatter);
             }
             i += 1;
@@ -113,7 +114,7 @@ pub fn legacy_color_code_to_text_component(legacy_color_code: &str) -> TextCompo
             cur_component
                 .text
                 .push(legacy_color_code.chars().nth(i).unwrap());
-        };
+        }
         i += 1;
     }
 
@@ -142,9 +143,10 @@ impl TextComponent {
         }
     }
 
-    fn get(self) -> FormattedText {
+    const fn get(self) -> FormattedText {
         FormattedText::Text(self)
     }
+    #[must_use]
     pub fn with_style(mut self, style: Style) -> Self {
         *self.base.style = style;
         self
@@ -154,9 +156,9 @@ impl TextComponent {
 impl Display for TextComponent {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         // this contains the final string will all the ansi escape codes
-        for component in FormattedText::Text(self.clone()).into_iter() {
+        for component in FormattedText::Text(self.clone()) {
             let component_text = match &component {
-                FormattedText::Text(c) => c.text.to_string(),
+                FormattedText::Text(c) => c.text.clone(),
                 FormattedText::Translatable(c) => c.read()?.to_string(),
             };
 
@@ -175,7 +177,7 @@ mod tests {
     #[test]
     fn test_hypixel_motd_ansi() {
         let component =
-            TextComponent::new("§aHypixel Network  §c[1.8-1.18]\n§b§lHAPPY HOLIDAYS".to_string())
+            TextComponent::new("§aHypixel Network  §c[1.8-1.18]\n§b§lHAPPY HOLIDAYS".to_owned())
                 .get();
         assert_eq!(
             component.to_ansi(),
@@ -193,7 +195,7 @@ mod tests {
     #[test]
     fn test_hypixel_motd_html() {
         let component =
-            TextComponent::new("§aHypixel Network  §c[1.8-1.18]\n§b§lHAPPY HOLIDAYS".to_string())
+            TextComponent::new("§aHypixel Network  §c[1.8-1.18]\n§b§lHAPPY HOLIDAYS".to_owned())
                 .get();
 
         assert_eq!(
@@ -210,7 +212,7 @@ mod tests {
 
     #[test]
     fn test_xss_html() {
-        let component = TextComponent::new("§a<b>&\n§b</b>".to_string()).get();
+        let component = TextComponent::new("§a<b>&\n§b</b>".to_owned()).get();
 
         assert_eq!(
             component.to_html(),
@@ -225,7 +227,7 @@ mod tests {
 
     #[test]
     fn test_legacy_color_code_to_component() {
-        let component = TextComponent::new("§lHello §r§1w§2o§3r§4l§5d".to_string()).get();
+        let component = TextComponent::new("§lHello §r§1w§2o§3r§4l§5d".to_owned()).get();
         assert_eq!(
             component.to_ansi(),
             format!(
@@ -244,7 +246,7 @@ mod tests {
 
     #[test]
     fn test_legacy_color_code_with_rgb() {
-        let component = TextComponent::new("§#Ff0000This is a test message".to_string()).get();
+        let component = TextComponent::new("§#Ff0000This is a test message".to_owned()).get();
         assert_eq!(
             component.to_ansi(),
             format!(

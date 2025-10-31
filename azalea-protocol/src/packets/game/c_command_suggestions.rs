@@ -2,7 +2,7 @@ use azalea_brigadier::suggestion::Suggestions;
 use azalea_buf::AzBuf;
 use azalea_protocol_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, Eq, ClientboundGamePacket)]
 pub struct ClientboundCommandSuggestions {
     #[var]
     pub id: u32,
@@ -14,7 +14,7 @@ mod tests {
     use std::io::Cursor;
 
     use azalea_brigadier::{context::StringRange, suggestion::Suggestion};
-    use azalea_buf::{AzaleaRead, AzaleaWrite};
+    use azalea_buf::{AzaleaRead as _, AzaleaWrite as _};
 
     use super::*;
 
@@ -25,7 +25,7 @@ mod tests {
             vec![Suggestion::new_with_tooltip(
                 StringRange::new(1, 4),
                 "foo",
-                "bar".to_string(),
+                "bar".to_owned(),
             )],
         );
         let mut buf = Vec::new();

@@ -114,6 +114,7 @@ pub struct FindBlocks<'a> {
 }
 
 impl<'a> FindBlocks<'a> {
+    #[must_use]
     pub fn new(
         nearest_to: BlockPos,
         chunks: &'a ChunkStorage,

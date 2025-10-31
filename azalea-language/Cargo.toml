@@ -9,3 +9,6 @@ repository.workspace = true
 [dependencies]
 compact_str = { workspace = true, features = ["serde"] }
 serde_json.workspace = true
+
+[lints]
+workspace = true

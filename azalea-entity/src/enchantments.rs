@@ -1,4 +1,4 @@
-pub fn _get_enchant_level(
+pub const fn _get_enchant_level(
     _enchantment: azalea_registry::Enchantment,
     _player_inventory: &azalea_inventory::Menu,
 ) -> u32 {

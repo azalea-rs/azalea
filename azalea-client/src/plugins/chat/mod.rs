@@ -50,6 +50,7 @@ impl ChatPacket {
     ///
     /// See [`Self::split_sender_and_content`] for more details about how this
     /// works.
+    #[must_use]
     pub fn message(&self) -> FormattedText {
         match self {
             ChatPacket::System(p) => p.content.clone(),
@@ -72,6 +73,7 @@ impl ChatPacket {
     ///
     /// Also see [`Self::sender`] and [`Self::content`] if you only need one of
     /// the parts.
+    #[must_use]
     pub fn split_sender_and_content(&self) -> (Option<String>, String) {
         match self {
             ChatPacket::System(p) => {
@@ -127,6 +129,7 @@ impl ChatPacket {
     ///
     /// See [`Self::split_sender_and_content`] for more details about how this
     /// works.
+    #[must_use]
     pub fn sender(&self) -> Option<String> {
         self.split_sender_and_content().0
     }
@@ -136,6 +139,7 @@ impl ChatPacket {
     /// If it's not a player-sent chat message, this will be None (this is
     /// sometimes the case when a server uses a plugin to modify chat
     /// messages).
+    #[must_use]
     pub fn sender_uuid(&self) -> Option<Uuid> {
         match self {
             ChatPacket::System(_) => None,
@@ -149,12 +153,14 @@ impl ChatPacket {
     /// This does not preserve formatting codes. If it's not a player-sent chat
     /// message or the sender couldn't be determined, this will contain the
     /// entire message.
+    #[must_use]
     pub fn content(&self) -> String {
         self.split_sender_and_content().1
     }
 
     /// Create a new `ChatPacket` from a string. This is meant to be used as a
     /// convenience function for testing.
+    #[must_use]
     pub fn new(message: &str) -> Self {
         ChatPacket::System(Arc::new(ClientboundSystemChat {
             content: FormattedText::from(message),
@@ -166,6 +172,7 @@ impl ChatPacket {
     /// messaged the bot with /msg).
     ///
     /// This is not guaranteed to work correctly on custom servers.
+    #[must_use]
     pub fn is_whisper(&self) -> bool {
         match self {
             ChatPacket::System(p) => {
@@ -198,7 +205,7 @@ impl Client {
     pub fn write_chat_packet(&self, message: &str) {
         self.ecs.lock().write_message(SendChatKindEvent {
             entity: self.entity,
-            content: message.to_string(),
+            content: message.to_owned(),
             kind: ChatKind::Message,
         });
     }
@@ -211,7 +218,7 @@ impl Client {
     pub fn write_command_packet(&self, command: &str) {
         self.ecs.lock().write_message(SendChatKindEvent {
             entity: self.entity,
-            content: command.to_string(),
+            content: command.to_owned(),
             kind: ChatKind::Command,
         });
     }

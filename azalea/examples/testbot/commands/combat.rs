@@ -13,7 +13,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
                 let mut ecs = bot.ecs.lock();
                 let mut entity = ecs.entity_mut(bot.entity);
                 let mut state = entity.get_mut::<crate::State>().unwrap();
-                state.killaura = enabled
+                state.killaura = enabled;
             }
             source.reply(if enabled {
                 "Enabled killaura"

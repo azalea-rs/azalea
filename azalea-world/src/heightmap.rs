@@ -81,18 +81,22 @@ impl Heightmap {
         }
     }
 
-    pub fn get_index(x: u8, z: u8) -> usize {
+    #[must_use]
+    pub const fn get_index(x: u8, z: u8) -> usize {
         (x as usize) + (z as usize) * 16
     }
 
+    #[must_use]
     pub fn get_first_available_at_index(&self, index: usize) -> i32 {
         self.data.get(index) as i32 + self.min_y
     }
 
+    #[must_use]
     pub fn get_first_available(&self, x: u8, z: u8) -> i32 {
         self.get_first_available_at_index(Self::get_index(x, z))
     }
 
+    #[must_use]
     pub fn get_highest_taken(&self, x: u8, z: u8) -> i32 {
         self.get_first_available(x, z) - 1
     }

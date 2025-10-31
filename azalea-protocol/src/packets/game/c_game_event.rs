@@ -7,7 +7,7 @@ pub struct ClientboundGameEvent {
     pub param: f32,
 }
 
-#[derive(Clone, Debug, Copy, AzBuf, PartialEq)]
+#[derive(Clone, Debug, Copy, AzBuf, PartialEq, Eq)]
 pub enum EventType {
     NoRespawnBlockAvailable = 0,
     StartRaining = 1,

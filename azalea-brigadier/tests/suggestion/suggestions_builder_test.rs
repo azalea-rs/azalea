@@ -127,7 +127,7 @@ fn sort_mixed() {
         "11", "2", "22", "33", "3a", "4", "6", "8", "30", "32", "a", "a3", "b", "c",
     ]
     .into_iter()
-    .map(|s| s.to_string())
+    .map(|s| s.to_owned())
     .collect::<HashSet<_>>();
     assert_eq!(actual, expected);
 }

@@ -22,11 +22,10 @@ fn main() {
 
     if rustc_command.status.success() {
         let rustc_output = String::from_utf8(rustc_command.stdout).unwrap();
-        if !rustc_output.contains("nightly") {
-            panic!(
-                "Azalea currently requires nightly Rust. Please check the documentation for your installation method and ensure you are using the nightly toolchain."
-            );
-        }
+        assert!(
+            rustc_output.contains("nightly"),
+            "Azalea currently requires nightly Rust. Please check the documentation for your installation method and ensure you are using the nightly toolchain."
+        );
     } else {
         let rustc_output = String::from_utf8(rustc_command.stderr).unwrap();
         panic!("Failed to run `{rustc_path} -V` to check the toolchain version, {rustc_output}");

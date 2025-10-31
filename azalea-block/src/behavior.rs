@@ -22,41 +22,49 @@ impl Default for BlockBehavior {
 }
 
 impl BlockBehavior {
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
-    pub fn friction(mut self, friction: f32) -> Self {
+    #[must_use]
+    pub const fn friction(mut self, friction: f32) -> Self {
         self.friction = friction;
         self
     }
 
-    pub fn jump_factor(mut self, jump_factor: f32) -> Self {
+    #[must_use]
+    pub const fn jump_factor(mut self, jump_factor: f32) -> Self {
         self.jump_factor = jump_factor;
         self
     }
 
-    pub fn destroy_time(mut self, destroy_time: f32) -> Self {
+    #[must_use]
+    pub const fn destroy_time(mut self, destroy_time: f32) -> Self {
         self.destroy_time = destroy_time;
         self
     }
 
-    pub fn explosion_resistance(mut self, explosion_resistance: f32) -> Self {
+    #[must_use]
+    pub const fn explosion_resistance(mut self, explosion_resistance: f32) -> Self {
         self.explosion_resistance = f32::max(0., explosion_resistance);
         self
     }
 
-    pub fn strength(self, destroy_time: f32, explosion_resistance: f32) -> Self {
+    #[must_use]
+    pub const fn strength(self, destroy_time: f32, explosion_resistance: f32) -> Self {
         self.destroy_time(destroy_time)
             .explosion_resistance(explosion_resistance)
     }
 
-    pub fn requires_correct_tool_for_drops(mut self) -> Self {
+    #[must_use]
+    pub const fn requires_correct_tool_for_drops(mut self) -> Self {
         self.requires_correct_tool_for_drops = true;
         self
     }
 
-    pub fn force_solid(mut self, force_solid: bool) -> Self {
+    #[must_use]
+    pub const fn force_solid(mut self, force_solid: bool) -> Self {
         self.force_solid = Some(force_solid);
         self
     }

@@ -8,7 +8,15 @@ use azalea_core::{
 };
 
 use super::{Edge, ExecuteCtx, IsReachedCtx, MoveData, PathfinderCtx, default_is_reached};
-use crate::pathfinder::{astar, costs::*, player_pos_to_block_pos, rel_block_pos::RelBlockPos};
+use crate::pathfinder::{
+    astar,
+    costs::{
+        CENTER_AFTER_FALL_COST, FALL_N_BLOCKS_COST, JUMP_ONE_BLOCK_COST, JUMP_PENALTY,
+        SPRINT_ONE_BLOCK_COST, WALK_OFF_BLOCK_COST, WALK_ONE_BLOCK_COST,
+    },
+    player_pos_to_block_pos,
+    rel_block_pos::RelBlockPos,
+};
 
 pub fn basic_move(ctx: &mut PathfinderCtx, node: RelBlockPos) {
     forward_move(ctx, node);
@@ -40,7 +48,7 @@ fn forward_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
                 },
             },
             cost,
-        })
+        });
     }
 }
 
@@ -116,7 +124,7 @@ fn ascend_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
                 },
             },
             cost,
-        })
+        });
     }
 }
 fn execute_ascend_move(mut ctx: ExecuteCtx) {
@@ -153,13 +161,17 @@ fn execute_ascend_move(mut ctx: ExecuteCtx) {
     let x_axis_abs = x_axis.abs(); // either 0 or 1
     let z_axis_abs = z_axis.abs(); // either 0 or 1
 
-    let flat_distance_to_next = x_axis_abs as f64 * (target_center.x - position.x)
-        + z_axis_abs as f64 * (target_center.z - position.z);
-    let side_distance = z_axis_abs as f64 * (target_center.x - position.x).abs()
-        + x_axis_abs as f64 * (target_center.z - position.z).abs();
+    let flat_distance_to_next = (x_axis_abs as f64).mul_add(
+        target_center.x - position.x,
+        z_axis_abs as f64 * (target_center.z - position.z),
+    );
+    let side_distance = (z_axis_abs as f64).mul_add(
+        (target_center.x - position.x).abs(),
+        x_axis_abs as f64 * (target_center.z - position.z).abs(),
+    );
 
     let lateral_motion =
-        x_axis_abs as f64 * physics.velocity.z + z_axis_abs as f64 * physics.velocity.x;
+        (x_axis_abs as f64).mul_add(physics.velocity.z, z_axis_abs as f64 * physics.velocity.x);
     if lateral_motion.abs() > 0.1 {
         return;
     }
@@ -210,7 +222,9 @@ fn validate_stair_and_get_facing(block_state: BlockState) -> Option<properties::
 
     block_state.property::<properties::FacingCardinal>()
 }
-fn cardinal_direction_to_facing_property(dir: CardinalDirection) -> properties::FacingCardinal {
+const fn cardinal_direction_to_facing_property(
+    dir: CardinalDirection,
+) -> properties::FacingCardinal {
     match dir {
         CardinalDirection::North => properties::FacingCardinal::North,
         CardinalDirection::East => properties::FacingCardinal::East,
@@ -238,7 +252,7 @@ fn descend_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
 
         if fall_distance == 0 {
             // if the fall distance is 0, set it to 1 so we try mining
-            fall_distance = 1
+            fall_distance = 1;
         }
 
         let new_position = new_horizontal_position.down(fall_distance as i32);
@@ -280,7 +294,7 @@ fn descend_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
                 },
             },
             cost,
-        })
+        });
     }
 }
 fn execute_descend_move(mut ctx: ExecuteCtx) {
@@ -306,9 +320,9 @@ fn execute_descend_move(mut ctx: ExecuteCtx) {
         .sqrt();
 
     let dest_ahead = Vec3::new(
-        start_center.x + (center.x - start_center.x) * 1.5,
+        (center.x - start_center.x).mul_add(1.5, start_center.x),
         center.y,
-        start_center.z + (center.z - start_center.z) * 1.5,
+        (center.z - start_center.z).mul_add(1.5, start_center.z),
     );
 
     if (BlockPos::from(position).horizontal_distance_squared_to(target) > 0)
@@ -333,7 +347,6 @@ pub fn descend_is_reached(
         start,
         position,
         physics,
-        ..
     }: IsReachedCtx,
 ) -> bool {
     let dest_ahead = BlockPos::new(
@@ -402,7 +415,7 @@ fn descend_forward_1_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
                 },
             },
             cost,
-        })
+        });
     }
 }
 
@@ -414,7 +427,7 @@ fn diagonal_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
         let right_pos = RelBlockPos::new(pos.x + right.x(), pos.y, pos.z + right.z());
 
         // +0.001 so it doesn't unnecessarily go diagonal sometimes
-        let mut cost = SPRINT_ONE_BLOCK_COST * SQRT_2 + 0.001;
+        let mut cost = SPRINT_ONE_BLOCK_COST.mul_add(SQRT_2, 0.001);
 
         let left_passable = ctx.world.is_passable(left_pos);
         let right_passable = ctx.world.is_passable(right_pos);
@@ -441,7 +454,7 @@ fn diagonal_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
                 },
             },
             cost,
-        })
+        });
     }
 }
 fn execute_diagonal_move(mut ctx: ExecuteCtx) {
@@ -477,7 +490,7 @@ fn downward_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
             },
         },
         cost,
-    })
+    });
 }
 fn execute_downward_move(mut ctx: ExecuteCtx) {
     let ExecuteCtx {

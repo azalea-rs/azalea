@@ -10,13 +10,13 @@ fn bench(c: &mut Criterion) {
     }
 
     c.bench_function("Encrypt 64kb", |b| {
-        b.iter(|| encrypt_packet(&mut enc.clone(), &mut packet.clone()))
+        b.iter(|| encrypt_packet(&mut enc.clone(), &mut packet.clone()));
     });
 
     encrypt_packet(&mut enc, &mut packet);
 
     c.bench_function("Decrypt 64kb", |b| {
-        b.iter(|| decrypt_packet(&mut dec.clone(), &mut packet.clone()))
+        b.iter(|| decrypt_packet(&mut dec.clone(), &mut packet.clone()));
     });
 }
 

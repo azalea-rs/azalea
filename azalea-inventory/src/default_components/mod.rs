@@ -16,6 +16,7 @@ impl<T: DataComponentTrait> DefaultableComponent for T {
         None
     }
 }
+#[must_use]
 pub fn get_default_component<T: DefaultableComponent>(item: Item) -> Option<T> {
     T::default_for_item(item)
 }

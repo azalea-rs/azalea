@@ -19,7 +19,7 @@ pub struct PositionMoveRotation {
     pub look_direction: LookDirection,
 }
 
-#[derive(Debug, Clone, Default, PartialEq)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct RelativeMovements {
     pub x: bool,
     pub y: bool,
@@ -32,10 +32,12 @@ pub struct RelativeMovements {
     pub rotate_delta: bool,
 }
 impl RelativeMovements {
+    #[must_use]
     pub fn all_absolute() -> Self {
         RelativeMovements::default()
     }
-    pub fn all_relative() -> Self {
+    #[must_use]
+    pub const fn all_relative() -> Self {
         RelativeMovements {
             x: true,
             y: true,
@@ -133,7 +135,7 @@ impl AzaleaWrite for RelativeMovements {
     }
 }
 
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct MoveFlags {
     pub on_ground: bool,
     pub horizontal_collision: bool,

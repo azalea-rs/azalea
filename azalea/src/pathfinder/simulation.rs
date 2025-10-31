@@ -30,6 +30,7 @@ pub struct SimulatedPlayerBundle {
 }
 
 impl SimulatedPlayerBundle {
+    #[must_use]
     pub fn new(position: Vec3) -> Self {
         let dimensions = EntityDimensions::from(EntityKind::Player);
 
@@ -72,7 +73,7 @@ fn create_simulation_instance(chunks: ChunkStorage) -> (App, Arc<RwLock<Instance
         azalea_client::loading::PlayerLoadedPlugin,
     ))
     .insert_resource(InstanceContainer {
-        instances: [(instance_name.clone(), Arc::downgrade(&instance.clone()))]
+        instances: [(instance_name, Arc::downgrade(&instance))]
             .iter()
             .cloned()
             .collect(),
@@ -104,7 +105,7 @@ fn create_simulation_player_complete_bundle(
         azalea_client::local_player::InstanceHolder {
             // partial_instance is never actually used by the pathfinder so
             partial_instance: Arc::new(RwLock::new(PartialInstance::default())),
-            instance: instance.clone(),
+            instance,
         },
         Inventory::default(),
         LocalGameMode::from(GameMode::Survival),
@@ -133,6 +134,7 @@ pub struct Simulation {
 }
 
 impl Simulation {
+    #[must_use]
     pub fn new(chunks: ChunkStorage, player: SimulatedPlayerBundle) -> Self {
         let (mut app, instance) = create_simulation_instance(chunks);
         let entity = create_simulation_player(app.world_mut(), instance.clone(), player);
@@ -170,6 +172,7 @@ pub struct SimulationSet {
     instance: Arc<RwLock<Instance>>,
 }
 impl SimulationSet {
+    #[must_use]
     pub fn new(chunks: ChunkStorage) -> Self {
         let (app, instance) = create_simulation_instance(chunks);
         Self { app, instance }

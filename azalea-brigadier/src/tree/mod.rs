@@ -23,7 +23,7 @@ use crate::{
 pub type Command<S> =
     Option<Arc<dyn Fn(&CommandContext<S>) -> Result<i32, CommandSyntaxError> + Send + Sync>>;
 
-/// An ArgumentBuilder that has been built.
+/// An `ArgumentBuilder` that has been built.
 #[non_exhaustive]
 pub struct CommandNode<S> {
     pub value: ArgumentBuilderType<S>,
@@ -64,6 +64,7 @@ impl<S> CommandNode<S> {
     ///
     /// Will panic if this node is not a literal. Consider using a match
     /// statement instead.
+    #[must_use]
     pub fn literal(&self) -> &Literal {
         match self.value {
             ArgumentBuilderType::Literal(ref literal) => literal,
@@ -77,6 +78,7 @@ impl<S> CommandNode<S> {
     ///
     /// Will panic if this node is not an argument. Consider using a match
     /// statement instead.
+    #[must_use]
     pub fn argument(&self) -> &Argument<S> {
         match self.value {
             ArgumentBuilderType::Argument(ref argument) => argument,
@@ -126,7 +128,7 @@ impl<S> CommandNode<S> {
             }
         } else {
             self.children
-                .insert(node.read().name().to_string(), node.clone());
+                .insert(node.read().name().to_owned(), node.clone());
             match &node.read().value {
                 ArgumentBuilderType::Literal(literal) => {
                     self.literals.insert(literal.value.clone(), node.clone());
@@ -138,6 +140,7 @@ impl<S> CommandNode<S> {
         }
     }
 
+    #[must_use]
     pub fn name(&self) -> &str {
         match &self.value {
             ArgumentBuilderType::Argument(argument) => &argument.name,
@@ -145,13 +148,15 @@ impl<S> CommandNode<S> {
         }
     }
 
+    #[must_use]
     pub fn usage_text(&self) -> String {
         match &self.value {
             ArgumentBuilderType::Argument(argument) => format!("<{}>", argument.name),
-            ArgumentBuilderType::Literal(literal) => literal.value.to_owned(),
+            ArgumentBuilderType::Literal(literal) => literal.value.clone(),
         }
     }
 
+    #[must_use]
     pub fn child(&self, name: &str) -> Option<Arc<RwLock<CommandNode<S>>>> {
         self.children.get(name).cloned()
     }
@@ -223,6 +228,7 @@ impl<S> CommandNode<S> {
         None
     }
 
+    #[must_use]
     pub fn list_suggestions(
         &self,
         context: CommandContext<S>,
@@ -295,7 +301,7 @@ impl<S> PartialEq for CommandNode<S> {
             return false;
         }
         for (k, v) in &self.children {
-            let other_child = other.children.get(k).unwrap();
+            let other_child = &other.children[k];
             if !Arc::ptr_eq(v, other_child) {
                 return false;
             }
@@ -307,7 +313,7 @@ impl<S> PartialEq for CommandNode<S> {
                 match &other.command {
                     Some(otherexecutes) =>
                     {
-                        #[allow(ambiguous_wide_pointer_comparisons)]
+                        #[expect(ambiguous_wide_pointer_comparisons)]
                         if !Arc::ptr_eq(selfexecutes, otherexecutes) {
                             return false;
                         }

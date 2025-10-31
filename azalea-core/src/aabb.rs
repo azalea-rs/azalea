@@ -30,6 +30,7 @@ pub struct ClipPointOpts<'a> {
 }
 
 impl Aabb {
+    #[must_use]
     pub fn contract(&self, amount: Vec3) -> Aabb {
         let mut min = self.min;
         let mut max = self.max;
@@ -55,6 +56,7 @@ impl Aabb {
         Aabb { min, max }
     }
 
+    #[must_use]
     pub fn expand_towards(&self, other: Vec3) -> Aabb {
         let mut min = self.min;
         let mut max = self.max;
@@ -80,28 +82,33 @@ impl Aabb {
         Aabb { min, max }
     }
 
+    #[must_use]
     pub fn inflate(&self, amount: Vec3) -> Aabb {
         let min = self.min - amount;
         let max = self.max + amount;
 
         Aabb { min, max }
     }
+    #[must_use]
     pub fn inflate_all(&self, amount: f64) -> Aabb {
         self.inflate(Vec3::new(amount, amount, amount))
     }
 
+    #[must_use]
     pub fn intersect(&self, other: &Aabb) -> Aabb {
         let min = self.min.max(other.min);
         let max = self.max.min(other.max);
         Aabb { min, max }
     }
 
+    #[must_use]
     pub fn minmax(&self, other: &Aabb) -> Aabb {
         let min = self.min.min(other.min);
         let max = self.max.max(other.max);
         Aabb { min, max }
     }
 
+    #[must_use]
     pub fn move_relative(&self, delta: Vec3) -> Aabb {
         Aabb {
             min: self.min + delta,
@@ -109,6 +116,7 @@ impl Aabb {
         }
     }
 
+    #[must_use]
     pub fn intersects_aabb(&self, other: &Aabb) -> bool {
         self.min.x < other.max.x
             && self.max.x > other.min.x
@@ -117,12 +125,14 @@ impl Aabb {
             && self.min.z < other.max.z
             && self.max.z > other.min.z
     }
+    #[must_use]
     pub fn intersects_vec3(&self, corner1: Vec3, corner2: Vec3) -> bool {
         let min = corner1.min(corner2);
         let max = corner1.max(corner2);
         self.intersects_aabb(&Aabb { min, max })
     }
 
+    #[must_use]
     pub fn contains(&self, point: Vec3) -> bool {
         point.x >= self.min.x
             && point.x < self.max.x
@@ -132,6 +142,7 @@ impl Aabb {
             && point.z < self.max.z
     }
 
+    #[must_use]
     pub fn size(&self) -> f64 {
         let x = self.get_size(Axis::X);
         let y = self.get_size(Axis::Y);
@@ -140,6 +151,7 @@ impl Aabb {
     }
 
     #[inline]
+    #[must_use]
     pub fn get_size(&self, axis: Axis) -> f64 {
         axis.choose(
             self.max.x - self.min.x,
@@ -148,13 +160,16 @@ impl Aabb {
         )
     }
 
+    #[must_use]
     pub fn deflate(&self, amount: Vec3) -> Aabb {
         self.inflate(Vec3::new(-amount.x, -amount.y, -amount.z))
     }
+    #[must_use]
     pub fn deflate_all(&self, amount: f64) -> Aabb {
         self.deflate(Vec3::new(amount, amount, amount))
     }
 
+    #[must_use]
     pub fn clip(&self, min: Vec3, max: Vec3) -> Option<Vec3> {
         let mut t = 1.0;
         let delta = max - min;
@@ -162,6 +177,7 @@ impl Aabb {
         Some(min + (delta * t))
     }
 
+    #[must_use]
     pub fn clip_with_from_and_to(min: Vec3, max: Vec3, from: Vec3, to: Vec3) -> Option<Vec3> {
         let mut t = 1.0;
         let delta = to - from;
@@ -169,6 +185,7 @@ impl Aabb {
         Some(from + (delta * t))
     }
 
+    #[must_use]
     pub fn clip_iterable(
         boxes: &[Aabb],
         from: Vec3,
@@ -342,8 +359,8 @@ impl Aabb {
 
     fn clip_point(opts: ClipPointOpts) -> Option<Direction> {
         let d = (opts.begin - opts.start.x) / opts.delta.x;
-        let e = opts.start.y + d * opts.delta.y;
-        let f = opts.start.z + d * opts.delta.z;
+        let e = d.mul_add(opts.delta.y, opts.start.y);
+        let f = d.mul_add(opts.delta.z, opts.start.z);
         if 0.0 < d
             && d < *opts.t
             && opts.min_x - EPSILON < e
@@ -358,7 +375,8 @@ impl Aabb {
         }
     }
 
-    pub fn has_nan(&self) -> bool {
+    #[must_use]
+    pub const fn has_nan(&self) -> bool {
         self.min.x.is_nan()
             || self.min.y.is_nan()
             || self.min.z.is_nan()
@@ -367,14 +385,16 @@ impl Aabb {
             || self.max.z.is_nan()
     }
 
-    pub fn get_center(&self) -> Vec3 {
+    #[must_use]
+    pub const fn get_center(&self) -> Vec3 {
         Vec3::new(
-            (self.min.x + self.max.x) / 2.0,
-            (self.min.y + self.max.y) / 2.0,
-            (self.min.z + self.max.z) / 2.0,
+            f64::midpoint(self.min.x, self.max.x),
+            f64::midpoint(self.min.y, self.max.y),
+            f64::midpoint(self.min.z, self.max.z),
         )
     }
 
+    #[must_use]
     pub fn of_size(center: Vec3, dx: f64, dy: f64, dz: f64) -> Aabb {
         Aabb {
             min: Vec3::new(
@@ -390,13 +410,16 @@ impl Aabb {
         }
     }
 
+    #[must_use]
     pub fn max(&self, axis: &Axis) -> f64 {
         axis.choose(self.max.x, self.max.y, self.max.z)
     }
+    #[must_use]
     pub fn min(&self, axis: &Axis) -> f64 {
         axis.choose(self.min.x, self.min.y, self.min.z)
     }
 
+    #[must_use]
     pub fn collided_along_vector(&self, vector: Vec3, boxes: &[Aabb]) -> bool {
         let center = self.get_center();
         let new_center = center + vector;
@@ -421,10 +444,12 @@ impl Aabb {
 }
 
 impl BlockPos {
+    #[must_use]
     pub fn between_closed_aabb(aabb: &Aabb) -> Vec<BlockPos> {
         BlockPos::between_closed(BlockPos::from(aabb.min), BlockPos::from(aabb.max))
     }
 
+    #[must_use]
     pub fn between_closed(min: BlockPos, max: BlockPos) -> Vec<BlockPos> {
         assert!(min.x <= max.x);
         assert!(min.y <= max.y);

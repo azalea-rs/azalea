@@ -23,14 +23,14 @@ pub struct ServerboundSetStructureBlock {
     pub flags: Flags,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(Clone, Debug, AzBuf, PartialEq, Eq)]
 pub struct BytePosition {
     pub x: u8,
     pub y: u8,
     pub z: u8,
 }
 
-#[derive(AzBuf, Clone, Copy, Debug, PartialEq)]
+#[derive(AzBuf, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum UpdateType {
     UpdateData = 0,
     SaveArea = 1,
@@ -38,7 +38,7 @@ pub enum UpdateType {
     ScanArea = 3,
 }
 
-#[derive(AzBuf, Clone, Copy, Debug, PartialEq)]
+#[derive(AzBuf, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum StructureMode {
     Save = 0,
     Load = 1,
@@ -46,7 +46,7 @@ pub enum StructureMode {
     Data = 3,
 }
 
-#[derive(AzBuf, Clone, Copy, Debug, Default, PartialEq)]
+#[derive(AzBuf, Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum Mirror {
     #[default]
     None = 0,
@@ -54,7 +54,7 @@ pub enum Mirror {
     FrontBack = 2,
 }
 
-#[derive(AzBuf, Clone, Copy, Debug, Default, PartialEq)]
+#[derive(AzBuf, Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum Rotation {
     #[default]
     None = 0,
@@ -63,7 +63,7 @@ pub enum Rotation {
     Counterclockwise90 = 3,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Flags {
     pub ignore_entities: bool,
     pub show_air: bool,

@@ -23,14 +23,13 @@ pub fn send_client_information(
     query: Query<&ClientInformation>,
 ) {
     for entity in removed.read() {
-        let client_information = match query.get(entity).ok() {
-            Some(i) => i,
-            None => {
-                warn!(
-                    "ClientInformation component was not set before leaving login state, using a default"
-                );
-                &ClientInformation::default()
-            }
+        let client_information = if let Ok(i) = query.get(entity) {
+            i
+        } else {
+            warn!(
+                "ClientInformation component was not set before leaving login state, using a default"
+            );
+            &ClientInformation::default()
         };
 
         debug!("Writing ClientInformation while in config state: {client_information:?}");

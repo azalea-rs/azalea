@@ -51,6 +51,7 @@ pub struct ItemCost {
     pub components: DataComponentExactPredicate,
 }
 impl ItemCost {
+    #[must_use] 
     pub fn into_item_stack(self) -> ItemStackData {
         let mut component_patch = DataComponentPatch::default();
         for component in self.components.expected {
@@ -84,17 +85,21 @@ pub struct TypedDataComponent {
     value: DataComponentUnion,
 }
 impl TypedDataComponent {
-    pub fn kind(&self) -> &DataComponentKind {
+    #[must_use] 
+    pub const fn kind(&self) -> &DataComponentKind {
         &self.kind
     }
-    pub fn value(&self) -> &DataComponentUnion {
+    #[must_use] 
+    pub const fn value(&self) -> &DataComponentUnion {
         &self.value
     }
+    #[must_use] 
     pub fn as_dyn(&self) -> &dyn components::EncodableDataComponent {
         // SAFETY: the kind is correct because we got it from azalea_read_as, and the
         // kind isn't mutable
         unsafe { self.value.as_kind(self.kind) }
     }
+    #[must_use] 
     pub fn get<T: components::DataComponentTrait>(&self) -> Option<&T> {
         let component = self.as_dyn();
         let component_any = component as &dyn Any;

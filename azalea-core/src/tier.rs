@@ -1,5 +1,12 @@
-pub fn get_item_tier(item: azalea_registry::Item) -> Option<Tier> {
-    use azalea_registry::Item::*;
+#[must_use]
+pub const fn get_item_tier(item: azalea_registry::Item) -> Option<Tier> {
+    use azalea_registry::Item::{
+        DiamondAxe, DiamondHoe, DiamondPickaxe, DiamondShovel, DiamondSword, GoldenAxe, GoldenHoe,
+        GoldenPickaxe, GoldenShovel, GoldenSword, IronAxe, IronHoe, IronPickaxe, IronShovel,
+        IronSword, NetheriteAxe, NetheriteHoe, NetheritePickaxe, NetheriteShovel, NetheriteSword,
+        StoneAxe, StoneHoe, StonePickaxe, StoneShovel, StoneSword, WoodenAxe, WoodenHoe,
+        WoodenPickaxe, WoodenShovel, WoodenSword,
+    };
     Some(match item {
         WoodenPickaxe | WoodenShovel | WoodenAxe | WoodenHoe | WoodenSword => Tier::Wood,
         StonePickaxe | StoneShovel | StoneAxe | StoneHoe | StoneSword => Tier::Stone,
@@ -23,7 +30,8 @@ pub enum Tier {
 }
 
 impl Tier {
-    pub fn level(&self) -> u8 {
+    #[must_use]
+    pub const fn level(&self) -> u8 {
         match self {
             Tier::Wood => 0,
             Tier::Stone => 1,
@@ -33,7 +41,8 @@ impl Tier {
             Tier::Netherite => 4,
         }
     }
-    pub fn speed(&self) -> f32 {
+    #[must_use]
+    pub const fn speed(&self) -> f32 {
         match self {
             Tier::Wood => 2.,
             Tier::Stone => 4.,

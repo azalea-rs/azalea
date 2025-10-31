@@ -161,12 +161,12 @@ mod tests {
 
     #[test]
     fn test_list() {
-        let original_vec = vec!["a".to_string(), "bc".to_string(), "def".to_string()];
+        let original_vec = vec!["a".to_owned(), "bc".to_owned(), "def".to_owned()];
 
         let mut buf = Vec::new();
         original_vec.azalea_write(&mut buf).unwrap();
 
-        dbg!(&buf);
+        &buf;
 
         let result = Vec::<String>::azalea_read(&mut Cursor::new(&buf)).unwrap();
         assert_eq!(result, original_vec);
@@ -184,9 +184,9 @@ mod tests {
     #[test]
     fn test_map() {
         let original_map = HashMap::from([
-            ("a".to_string(), 1),
-            ("bc".to_string(), 23),
-            ("def".to_string(), 456),
+            ("a".to_owned(), 1),
+            ("bc".to_owned(), 23),
+            ("def".to_owned(), 456),
         ]);
         let mut buf = Vec::new();
         original_map.azalea_write_var(&mut buf).unwrap();

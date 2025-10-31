@@ -5,7 +5,7 @@ use azalea_core::tick::GameTick;
 use azalea_entity::PlayerAbilities;
 pub use azalea_inventory::*;
 use azalea_inventory::{
-    item::MaxStackSizeExt,
+    item::MaxStackSizeExt as _,
     operations::{
         ClickOperation, CloneClick, PickupAllClick, PickupClick, QuickCraftKind, QuickCraftStatus,
         QuickCraftStatusKind, QuickMoveClick, ThrowClick,
@@ -49,6 +49,7 @@ pub struct InventorySystems;
 impl Client {
     /// Return the menu that is currently open, or the player's inventory if no
     /// menu is open.
+    #[must_use]
     pub fn menu(&self) -> Menu {
         self.query_self::<&Inventory, _>(|inv| inv.menu().clone())
     }
@@ -60,6 +61,7 @@ impl Client {
     /// the start of [`azalea_inventory::Menu::hotbar_slots_range`].
     ///
     /// You can use [`Self::set_selected_hotbar_slot`] to change it.
+    #[must_use]
     pub fn selected_hotbar_slot(&self) -> u8 {
         self.query_self::<&Inventory, _>(|inv| inv.selected_hotbar_slot)
     }
@@ -141,7 +143,8 @@ impl Inventory {
     /// otherwise [`Self::inventory_menu`].
     ///
     /// Use [`Self::menu_mut`] if you need a mutable reference.
-    pub fn menu(&self) -> &azalea_inventory::Menu {
+    #[must_use]
+    pub const fn menu(&self) -> &azalea_inventory::Menu {
         match &self.container_menu {
             Some(menu) => menu,
             _ => &self.inventory_menu,
@@ -154,7 +157,7 @@ impl Inventory {
     /// otherwise [`Self::inventory_menu`].
     ///
     /// Use [`Self::menu`] if you don't need a mutable reference.
-    pub fn menu_mut(&mut self) -> &mut azalea_inventory::Menu {
+    pub const fn menu_mut(&mut self) -> &mut azalea_inventory::Menu {
         match &mut self.container_menu {
             Some(menu) => menu,
             _ => &mut self.inventory_menu,
@@ -596,6 +599,7 @@ impl Inventory {
 
     /// Get the item in the player's hotbar that is currently being held in its
     /// main hand.
+    #[must_use]
     pub fn held_item(&self) -> ItemStack {
         let inventory = &self.inventory_menu;
         let hotbar_items = &inventory.slots()[inventory.hotbar_slots_range()];
@@ -603,7 +607,7 @@ impl Inventory {
     }
 
     /// TODO: implement bundles
-    fn try_item_click_behavior_override(
+    const fn try_item_click_behavior_override(
         &self,
         _operation: &ClickOperation,
         _slot_item_index: usize,

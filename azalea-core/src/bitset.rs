@@ -5,7 +5,7 @@ use std::{
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
 
-/// Represents Java's BitSet, a list of bits.
+/// Represents Java's `BitSet`, a list of bits.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Default, AzBuf)]
 pub struct BitSet {
     data: Vec<u64>,
@@ -17,6 +17,7 @@ const LOG2_BITS_PER_WORD: usize = 6;
 // the Index trait requires us to return a reference, but we can't do that
 impl BitSet {
     #[inline]
+    #[must_use]
     pub fn new(num_bits: usize) -> Self {
         BitSet {
             data: vec![0; num_bits.div_ceil(64)],
@@ -30,6 +31,7 @@ impl BitSet {
     /// Panics if the index is out of bounds. Use [`Self::get`] for a
     /// non-panicking version.
     #[inline]
+    #[must_use]
     pub fn index(&self, index: usize) -> bool {
         self.get(index).unwrap_or_else(|| {
             let len = self.len();
@@ -38,6 +40,7 @@ impl BitSet {
     }
 
     #[inline]
+    #[must_use]
     pub fn get(&self, index: usize) -> Option<bool> {
         self.data
             .get(index / 64)
@@ -96,6 +99,7 @@ impl BitSet {
 
     /// Returns the index of the first bit that is set to `false`
     /// that occurs on or after the specified starting index.
+    #[must_use]
     pub fn next_clear_bit(&self, from_index: usize) -> usize {
         let mut u = self.word_index(from_index);
         if u >= self.data.len() {
@@ -117,7 +121,7 @@ impl BitSet {
     }
 
     #[inline]
-    fn word_index(&self, bit_index: usize) -> usize {
+    const fn word_index(&self, bit_index: usize) -> usize {
         bit_index >> LOG2_BITS_PER_WORD
     }
 
@@ -141,14 +145,16 @@ impl BitSet {
     ///
     /// This will always be a multiple of 64.
     #[inline]
-    pub fn len(&self) -> usize {
+    #[must_use]
+    pub const fn len(&self) -> usize {
         self.data.len() * 64
     }
 
     /// Returns true if the `BitSet` was created with a size of 0.
     ///
     /// Equivalent to `self.len() == 0`.
-    pub fn is_empty(&self) -> bool {
+    #[must_use]
+    pub const fn is_empty(&self) -> bool {
         self.len() == 0
     }
 }
@@ -190,23 +196,26 @@ impl<const N: usize> FixedBitSet<N>
 where
     [u8; bits_to_bytes(N)]: Sized,
 {
+    #[must_use]
     pub const fn new() -> Self {
         FixedBitSet {
             data: [0; bits_to_bytes(N)],
         }
     }
 
+    #[must_use]
     pub const fn new_with_data(data: [u8; bits_to_bytes(N)]) -> Self {
         FixedBitSet { data }
     }
 
     #[inline]
-    pub fn index(&self, index: usize) -> bool {
+    #[must_use]
+    pub const fn index(&self, index: usize) -> bool {
         (self.data[index / 8] & (1u8 << (index % 8))) != 0
     }
 
     #[inline]
-    pub fn set(&mut self, bit_index: usize) {
+    pub const fn set(&mut self, bit_index: usize) {
         self.data[bit_index / 8] |= 1u8 << (bit_index % 8);
     }
 }
@@ -243,6 +252,7 @@ where
     }
 }
 
+#[must_use]
 pub const fn bits_to_bytes(n: usize) -> usize {
     n.div_ceil(8)
 }
@@ -265,6 +275,7 @@ impl<const N: usize> FastFixedBitSet<N>
 where
     [u64; bits_to_longs(N)]: Sized,
 {
+    #[must_use]
     pub const fn new() -> Self {
         FastFixedBitSet {
             data: [0; bits_to_longs(N)],
@@ -272,12 +283,13 @@ where
     }
 
     #[inline]
-    pub fn index(&self, index: usize) -> bool {
+    #[must_use]
+    pub const fn index(&self, index: usize) -> bool {
         (self.data[index / 64] & (1u64 << (index % 64))) != 0
     }
 
     #[inline]
-    pub fn set(&mut self, bit_index: usize) {
+    pub const fn set(&mut self, bit_index: usize) {
         self.data[bit_index / 64] |= 1u64 << (bit_index % 64);
     }
 }
@@ -289,6 +301,7 @@ where
         Self::new()
     }
 }
+#[must_use]
 pub const fn bits_to_longs(n: usize) -> usize {
     n.div_ceil(64)
 }

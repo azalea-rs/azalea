@@ -35,14 +35,17 @@ pub struct InstanceContainer {
 }
 
 impl InstanceContainer {
+    #[must_use]
     pub fn new() -> Self {
         InstanceContainer::default()
     }
 
     /// Get a world from the container. Returns `None` if none of the clients
     /// are in this world.
+    #[must_use]
     pub fn get(&self, name: &InstanceName) -> Option<Arc<RwLock<Instance>>> {
-        self.instances.get(name).and_then(|world| world.upgrade())
+        let world = self.instances.get(name)?;
+        world.upgrade()
     }
 
     /// Add an empty world to the container (unless it already exists) and
@@ -55,34 +58,31 @@ impl InstanceContainer {
         min_y: i32,
         default_registries: &RegistryHolder,
     ) -> Arc<RwLock<Instance>> {
-        match self.instances.get(&name).and_then(|world| world.upgrade()) {
-            Some(existing_lock) => {
-                let existing = existing_lock.read();
-                if existing.chunks.height != height {
-                    error!(
-                        "Shared world height mismatch: {} != {height}",
-                        existing.chunks.height
-                    );
-                }
-                if existing.chunks.min_y != min_y {
-                    error!(
-                        "Shared world min_y mismatch: {} != {min_y}",
-                        existing.chunks.min_y
-                    );
-                }
-                existing_lock.clone()
+        if let Some(existing_lock) = self.instances.get(&name).and_then(|world| world.upgrade()) {
+            let existing = existing_lock.read();
+            if existing.chunks.height != height {
+                error!(
+                    "Shared world height mismatch: {} != {height}",
+                    existing.chunks.height
+                );
             }
-            _ => {
-                let world = Arc::new(RwLock::new(Instance {
-                    chunks: ChunkStorage::new(height, min_y),
-                    entities_by_chunk: HashMap::new(),
-                    entity_by_id: IntMap::default(),
-                    registries: default_registries.clone(),
-                }));
-                debug!("Added new instance {name}");
-                self.instances.insert(name, Arc::downgrade(&world));
-                world
+            if existing.chunks.min_y != min_y {
+                error!(
+                    "Shared world min_y mismatch: {} != {min_y}",
+                    existing.chunks.min_y
+                );
             }
+            existing_lock.clone()
+        } else {
+            let world = Arc::new(RwLock::new(Instance {
+                chunks: ChunkStorage::new(height, min_y),
+                entities_by_chunk: HashMap::new(),
+                entity_by_id: IntMap::default(),
+                registries: default_registries.clone(),
+            }));
+            debug!("Added new instance {name}");
+            self.instances.insert(name, Arc::downgrade(&world));
+            world
         }
     }
 }
@@ -91,6 +91,6 @@ impl InstanceContainer {
 ///
 /// If two entities share the same instance name, we assume they're in the
 /// same instance.
-#[derive(Component, Clone, Debug, PartialEq, Deref, DerefMut)]
+#[derive(Component, Clone, Debug, PartialEq, Eq, Deref, DerefMut)]
 #[doc(alias("worldname", "world name"))]
 pub struct InstanceName(pub ResourceLocation);

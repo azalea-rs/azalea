@@ -1,7 +1,7 @@
 use azalea_buf::AzBuf;
 use azalea_protocol_macros::ClientboundConfigPacket;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundConfigPacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, Eq, ClientboundConfigPacket)]
 pub struct ClientboundKeepAlive {
     pub id: u64,
 }

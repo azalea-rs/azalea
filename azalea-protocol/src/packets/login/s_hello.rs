@@ -13,14 +13,14 @@ pub struct ServerboundHello {
 mod tests {
     use std::io::Cursor;
 
-    use azalea_buf::{AzaleaRead, AzaleaWrite};
+    use azalea_buf::{AzaleaRead as _, AzaleaWrite as _};
 
     use super::*;
 
     #[test]
     fn test_read_write() {
         let packet = ServerboundHello {
-            name: "test".to_string(),
+            name: "test".to_owned(),
             profile_id: Uuid::nil(),
         };
         let mut buf: Vec<u8> = Vec::new();

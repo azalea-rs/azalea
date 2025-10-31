@@ -213,15 +213,15 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
     }
 }
 
-/// Menu::Player {
-///     craft_result,
+/// `Menu::Player` {
+///     `craft_result`,
 ///     craft,
 ///     armor,
 ///     inventory,
 ///     offhand,
 /// } => {
 ///     match i {
-///         0 => craft_result,
+///         0 => `craft_result`,
 ///         1..=4 => craft,
 ///         5..=8 => armor,
 ///         // ...
@@ -286,7 +286,7 @@ pub fn generate_match_variant_for_kind(menu: &Menu) -> TokenStream {
         let mut menu_field_names = quote! {};
         for field in &menu.fields {
             let field_name = &field.name;
-            menu_field_names.extend(quote! { #field_name: Default::default(), })
+            menu_field_names.extend(quote! { #field_name: Default::default(), });
         }
         quote! { { #menu_field_names } }
     };
@@ -383,24 +383,21 @@ pub fn generate_match_variant_for_player_slots_range(menu: &Menu) -> TokenStream
     // Menu::Generic9x3 { .. } => Menu::GENERIC9X3_SLOTS_RANGE,
     // ..
 
-    match menu.name.to_string().as_str() {
-        "Player" => {
-            quote! {
-                Menu::Player(Player { .. }) => Player::INVENTORY_SLOTS,
-            }
+    if menu.name.to_string().as_str() == "Player" {
+        quote! {
+            Menu::Player(Player { .. }) => Player::INVENTORY_SLOTS,
         }
-        _ => {
-            let menu_name = &menu.name;
-            let menu_slots_range_name = Ident::new(
-                &format!(
-                    "{}_PLAYER_SLOTS",
-                    to_snake_case(&menu.name.to_string()).to_uppercase()
-                ),
-                menu.name.span(),
-            );
-            quote! {
-                Menu::#menu_name { .. } => Menu::#menu_slots_range_name,
-            }
+    } else {
+        let menu_name = &menu.name;
+        let menu_slots_range_name = Ident::new(
+            &format!(
+                "{}_PLAYER_SLOTS",
+                to_snake_case(&menu.name.to_string()).to_uppercase()
+            ),
+            menu.name.span(),
+        );
+        quote! {
+            Menu::#menu_name { .. } => Menu::#menu_slots_range_name,
         }
     }
 }
@@ -444,7 +441,7 @@ pub fn generate_matcher(menu: &Menu, match_arms: &TokenStream, needs_fields: boo
         let mut menu_field_names = quote! {};
         for field in &menu.fields {
             let field_name = &field.name;
-            menu_field_names.extend(quote! { #field_name, })
+            menu_field_names.extend(quote! { #field_name, });
         }
         menu_field_names
     } else {

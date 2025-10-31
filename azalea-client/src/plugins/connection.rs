@@ -23,7 +23,7 @@ use bevy_ecs::prelude::*;
 use bevy_tasks::{IoTaskPool, futures_lite::future};
 use thiserror::Error;
 use tokio::{
-    io::AsyncWriteExt,
+    io::AsyncWriteExt as _,
     net::tcp::OwnedWriteHalf,
     sync::mpsc::{self},
 };
@@ -128,7 +128,7 @@ pub fn read_packets(ecs: &mut World) {
 }
 
 fn poll_all_writer_tasks(mut conn_query: Query<&mut RawConnection>) {
-    for mut conn in conn_query.iter_mut() {
+    for mut conn in &mut conn_query {
         if let Some(net_conn) = &mut conn.network {
             // this needs to be done at some point every update to make sure packets are
             // actually sent to the network
@@ -189,6 +189,7 @@ pub struct RawConnection {
     pub injected_clientbound_packets: Vec<Box<[u8]>>,
 }
 impl RawConnection {
+    #[must_use]
     pub fn new(
         reader: RawReadConnection,
         writer: RawWriteConnection,
@@ -213,7 +214,8 @@ impl RawConnection {
         conn
     }
 
-    pub fn new_networkless(state: ConnectionProtocol) -> Self {
+    #[must_use]
+    pub const fn new_networkless(state: ConnectionProtocol) -> Self {
         Self {
             network: None,
             state,
@@ -222,7 +224,8 @@ impl RawConnection {
         }
     }
 
-    pub fn is_alive(&self) -> bool {
+    #[must_use]
+    pub const fn is_alive(&self) -> bool {
         self.is_alive
     }
 
@@ -251,7 +254,7 @@ impl RawConnection {
         Ok(())
     }
 
-    pub fn net_conn(&mut self) -> Option<&mut NetworkConnection> {
+    pub const fn net_conn(&mut self) -> Option<&mut NetworkConnection> {
         self.network.as_mut()
     }
 }
@@ -295,7 +298,7 @@ pub fn handle_raw_packet(
                 .config
                 .push(ReceiveConfigPacketEvent { entity, packet });
         }
-    };
+    }
 
     Ok(())
 }
@@ -365,7 +368,7 @@ async fn write_task(
         if let Err(e) = write_half.write_all(&network_packet).await {
             debug!("Error writing packet to server: {e}");
             break;
-        };
+        }
     }
 
     trace!("write task is done");

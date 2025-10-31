@@ -3,7 +3,7 @@ use azalea_buf::AzBuf;
 use azalea_core::position::BlockPos;
 use azalea_protocol_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, Eq, ClientboundGamePacket)]
 pub struct ClientboundBlockUpdate {
     pub pos: BlockPos,
     pub block_state: BlockState,

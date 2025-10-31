@@ -103,6 +103,7 @@ pub struct StartClientOpts {
 }
 
 impl StartClientOpts {
+    #[must_use]
     pub fn new(
         account: Account,
         address: ServerAddress,
@@ -129,6 +130,7 @@ impl StartClientOpts {
         }
     }
 
+    #[must_use]
     pub fn proxy(mut self, proxy: Proxy) -> Self {
         self.connect_opts.proxy = Some(proxy);
         self
@@ -140,7 +142,7 @@ impl Client {
     /// World, and schedule runner function.
     /// You should only use this if you want to change these fields from the
     /// defaults, otherwise use [`Client::join`].
-    pub fn new(entity: Entity, ecs: Arc<Mutex<World>>) -> Self {
+    pub const fn new(entity: Entity, ecs: Arc<Mutex<World>>) -> Self {
         Self {
             // default our id to 0, it'll be set later
             entity,
@@ -243,7 +245,7 @@ impl Client {
 
     /// Disconnect this client from the server by ending all tasks.
     ///
-    /// The OwnedReadHalf for the TCP connection is in one of the tasks, so it
+    /// The `OwnedReadHalf` for the TCP connection is in one of the tasks, so it
     /// automatically closes the connection when that's dropped.
     pub fn disconnect(&self) {
         self.ecs.lock().write_message(DisconnectEvent {
@@ -282,6 +284,7 @@ impl Client {
     /// # fn example(client: &azalea_client::Client) {
     /// let world_name = client.component::<InstanceName>();
     /// # }
+    #[must_use]
     pub fn component<T: Component + Clone>(&self) -> T {
         self.query_self::<&T, _>(|t| t.clone())
     }
@@ -292,11 +295,13 @@ impl Client {
     /// with `Option<&T>` instead.
     ///
     /// You may also have to use [`Self::query_self`] directly.
+    #[must_use]
     pub fn get_component<T: Component + Clone>(&self) -> Option<T> {
         self.query_self::<Option<&T>, _>(|t| t.cloned())
     }
 
     /// Get a resource from the ECS. This will clone the resource and return it.
+    #[must_use]
     pub fn resource<T: Resource + Clone>(&self) -> T {
         self.ecs.lock().resource::<T>().clone()
     }
@@ -321,9 +326,10 @@ impl Client {
     /// component. If it's a normal client, then it'll be the same as the
     /// world the client has loaded. If the client is using a shared world,
     /// then the shared world will be a superset of the client's world.
+    #[must_use]
     pub fn world(&self) -> Arc<RwLock<Instance>> {
         let instance_holder = self.component::<InstanceHolder>();
-        instance_holder.instance.clone()
+        instance_holder.instance
     }
 
     /// Get an `RwLock` with a reference to the world that this client has
@@ -335,12 +341,14 @@ impl Client {
     /// let world = client.partial_world();
     /// let is_0_0_loaded = world.read().chunks.limited_get(&ChunkPos::new(0, 0)).is_some();
     /// # }
+    #[must_use]
     pub fn partial_world(&self) -> Arc<RwLock<PartialInstance>> {
         let instance_holder = self.component::<InstanceHolder>();
-        instance_holder.partial_instance.clone()
+        instance_holder.partial_instance
     }
 
     /// Returns whether we have a received the login packet yet.
+    #[must_use]
     pub fn logged_in(&self) -> bool {
         // the login packet tells us the world name
         self.query_self::<Option<&InstanceName>, _>(|ins| ins.is_some())
@@ -355,6 +363,7 @@ impl Client {
     /// Note that this value is given a default of [`Vec3::ZERO`] when it
     /// receives the login packet, its true position may be set ticks
     /// later.
+    #[must_use]
     pub fn position(&self) -> Vec3 {
         Vec3::from(
             &self
@@ -368,6 +377,7 @@ impl Client {
     ///
     /// This is a shortcut for
     /// `self.component::<EntityDimensions>()`.
+    #[must_use]
     pub fn dimensions(&self) -> EntityDimensions {
         self.component::<EntityDimensions>()
     }
@@ -376,6 +386,7 @@ impl Client {
     ///
     /// This is a shortcut for
     /// `bot.position().up(bot.dimensions().eye_height)`.
+    #[must_use]
     pub fn eye_position(&self) -> Vec3 {
         self.query_self::<(&Position, &EntityDimensions), _>(|(pos, dim)| {
             pos.up(dim.eye_height as f64)
@@ -385,6 +396,7 @@ impl Client {
     /// Get the health of this client.
     ///
     /// This is a shortcut for `*bot.component::<Health>()`.
+    #[must_use]
     pub fn health(&self) -> f32 {
         *self.component::<Health>()
     }
@@ -393,21 +405,24 @@ impl Client {
     /// saturation.
     ///
     /// This is a shortcut for `self.component::<Hunger>().to_owned()`.
+    #[must_use]
     pub fn hunger(&self) -> Hunger {
-        self.component::<Hunger>().to_owned()
+        self.component::<Hunger>()
     }
 
     /// Get the username of this client.
     ///
     /// This is a shortcut for
     /// `bot.component::<GameProfileComponent>().name.to_owned()`.
+    #[must_use]
     pub fn username(&self) -> String {
-        self.profile().name.to_owned()
+        self.profile().name
     }
 
     /// Get the Minecraft UUID of this client.
     ///
     /// This is a shortcut for `bot.component::<GameProfileComponent>().uuid`.
+    #[must_use]
     pub fn uuid(&self) -> Uuid {
         self.profile().uuid
     }
@@ -415,6 +430,7 @@ impl Client {
     /// Get a map of player UUIDs to their information in the tab list.
     ///
     /// This is a shortcut for `*bot.component::<TabList>()`.
+    #[must_use]
     pub fn tab_list(&self) -> HashMap<Uuid, PlayerInfo> {
         (*self.component::<TabList>()).clone()
     }
@@ -428,6 +444,7 @@ impl Client {
     /// the tab list, which you can get from [`Self::tab_list`].
     ///
     /// This as also available from the ECS as [`GameProfileComponent`].
+    #[must_use]
     pub fn profile(&self) -> GameProfile {
         (*self.component::<GameProfileComponent>()).clone()
     }
@@ -437,6 +454,7 @@ impl Client {
     ///
     /// You can chain this with [`Client::entity_by_uuid`] to get the ECS
     /// `Entity` for the player.
+    #[must_use]
     pub fn player_uuid_by_username(&self, username: &str) -> Option<Uuid> {
         self.tab_list()
             .values()
@@ -446,17 +464,20 @@ impl Client {
 
     /// Get an ECS `Entity` in the world by its Minecraft UUID, if it's within
     /// render distance.
+    #[must_use]
     pub fn entity_by_uuid(&self, uuid: Uuid) -> Option<Entity> {
         self.map_resource::<EntityUuidIndex, _>(|entity_uuid_index| entity_uuid_index.get(&uuid))
     }
 
     /// Convert an ECS `Entity` to a [`MinecraftEntityId`].
+    #[must_use]
     pub fn minecraft_entity_by_ecs_entity(&self, entity: Entity) -> Option<MinecraftEntityId> {
         self.query_self::<&EntityIdIndex, _>(|entity_id_index| {
             entity_id_index.get_by_ecs_entity(entity)
         })
     }
     /// Convert a [`MinecraftEntityId`] to an ECS `Entity`.
+    #[must_use]
     pub fn ecs_entity_by_minecraft_entity(&self, entity: MinecraftEntityId) -> Option<Entity> {
         self.query_self::<&EntityIdIndex, _>(|entity_id_index| {
             entity_id_index.get_by_minecraft_entity(entity)
@@ -644,7 +665,7 @@ async fn run_schedule_loop(
         if let Some(last_update) = last_update {
             let elapsed = now.duration_since(last_update);
             if elapsed < UPDATE_DURATION_TARGET {
-                time::sleep(UPDATE_DURATION_TARGET - elapsed).await;
+                time::sleep(UPDATE_DURATION_TARGET.checked_sub(elapsed).unwrap()).await;
             }
         }
         last_update = Some(now);
@@ -688,7 +709,7 @@ async fn run_schedule_loop(
 
 /// Checks whether the [`AppExit`] event was sent, and if so returns it.
 ///
-/// This is based on Bevy's `should_exit` function: https://github.com/bevyengine/bevy/blob/b9fd7680e78c4073dfc90fcfdc0867534d92abe0/crates/bevy_app/src/app.rs#L1292
+/// This is based on Bevy's `should_exit` function: <https://github.com/bevyengine/bevy/blob/b9fd7680e78c4073dfc90fcfdc0867534d92abe0/crates/bevy_app/src/app.rs#L1292>
 fn should_exit(ecs: &mut World) -> Option<AppExit> {
     let mut reader = MessageCursor::default();
 

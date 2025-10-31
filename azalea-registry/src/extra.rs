@@ -160,7 +160,7 @@ enum ChatType {
 }
 impl ChatType {
     #[must_use]
-    pub fn chat_translation_key(self) -> &'static str {
+    pub const fn chat_translation_key(self) -> &'static str {
         match self {
             ChatType::Chat => "chat.type.text",
             ChatType::SayCommand => "chat.type.announcement",
@@ -173,7 +173,7 @@ impl ChatType {
     }
 
     #[must_use]
-    pub fn narrator_translation_key(self) -> &'static str {
+    pub const fn narrator_translation_key(self) -> &'static str {
         match self {
             ChatType::EmoteCommand => "chat.type.emote",
             _ => "chat.type.text.narrate",

@@ -32,6 +32,7 @@ pub struct AttributeInstance {
 pub struct AlreadyPresentError;
 
 impl AttributeInstance {
+    #[must_use]
     pub fn new(base: f64) -> Self {
         Self {
             base,
@@ -39,16 +40,17 @@ impl AttributeInstance {
         }
     }
 
+    #[must_use]
     pub fn calculate(&self) -> f64 {
         let mut total = self.base;
         for modifier in self.modifiers_by_id.values() {
             match modifier.operation {
                 AttributeModifierOperation::AddValue => total += modifier.amount,
                 AttributeModifierOperation::AddMultipliedBase => {
-                    total += modifier.amount * self.base
+                    total += modifier.amount * self.base;
                 }
                 AttributeModifierOperation::AddMultipliedTotal => total *= 1. + modifier.amount,
-            };
+            }
         }
         total
     }
@@ -85,13 +87,14 @@ pub struct AttributeModifier {
     pub operation: AttributeModifierOperation,
 }
 
-#[derive(Clone, Debug, Copy, AzBuf, PartialEq)]
+#[derive(Clone, Debug, Copy, AzBuf, PartialEq, Eq)]
 pub enum AttributeModifierOperation {
     AddValue,
     AddMultipliedBase,
     AddMultipliedTotal,
 }
 
+#[must_use]
 pub fn sprinting_modifier() -> AttributeModifier {
     AttributeModifier {
         id: ResourceLocation::new("sprinting"),
@@ -99,6 +102,7 @@ pub fn sprinting_modifier() -> AttributeModifier {
         operation: AttributeModifierOperation::AddMultipliedTotal,
     }
 }
+#[must_use]
 pub fn base_attack_speed_modifier(amount: f64) -> AttributeModifier {
     AttributeModifier {
         id: ResourceLocation::new("base_attack_speed"),
@@ -106,6 +110,7 @@ pub fn base_attack_speed_modifier(amount: f64) -> AttributeModifier {
         operation: AttributeModifierOperation::AddValue,
     }
 }
+#[must_use]
 pub fn creative_block_interaction_range_modifier() -> AttributeModifier {
     AttributeModifier {
         id: ResourceLocation::new("creative_mode_block_range"),
@@ -114,6 +119,7 @@ pub fn creative_block_interaction_range_modifier() -> AttributeModifier {
     }
 }
 
+#[must_use]
 pub fn creative_entity_interaction_range_modifier() -> AttributeModifier {
     AttributeModifier {
         id: ResourceLocation::new("creative_mode_entity_range"),

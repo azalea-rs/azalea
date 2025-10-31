@@ -3,7 +3,7 @@ use azalea_buf::UnsizedByteArray;
 use azalea_core::resource_location::ResourceLocation;
 use azalea_protocol_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, Eq, ClientboundGamePacket)]
 pub struct ClientboundCustomPayload {
     pub identifier: ResourceLocation,
     pub data: UnsizedByteArray,

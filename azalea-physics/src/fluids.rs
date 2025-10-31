@@ -13,7 +13,7 @@ use bevy_ecs::prelude::*;
 
 use crate::collision::legacy_blocks_motion;
 
-#[allow(clippy::type_complexity)]
+#[expect(clippy::type_complexity)]
 pub fn update_in_water_state_and_do_fluid_pushing(
     mut query: Query<
         (&mut Physics, &Position, &InstanceName),
@@ -138,7 +138,7 @@ fn update_fluid_height_and_do_fluid_pushing(
                     get_fluid_flow(&fluid_at_cur_pos, world, cur_pos);
                 if min_height_touching < 0.4 {
                     additional_player_delta_for_fluid *= min_height_touching;
-                };
+                }
 
                 additional_player_delta += additional_player_delta_for_fluid;
                 num_fluids_being_touched += 1;
@@ -172,16 +172,17 @@ fn update_fluid_height_and_do_fluid_pushing(
         FluidKind::Water => physics.water_fluid_height = min_height_touching,
         FluidKind::Lava => physics.lava_fluid_height = min_height_touching,
         FluidKind::Empty => panic!("FluidKind::Empty should not be passed to update_fluid_height"),
-    };
+    }
 
     touching_fluid
 }
 
-pub fn update_swimming() {
+pub const fn update_swimming() {
     // TODO: swimming
 }
 
 // FlowingFluid.getFlow
+#[must_use]
 pub fn get_fluid_flow(fluid: &FluidState, world: &Instance, pos: BlockPos) -> Vec3 {
     let mut z_flow: f64 = 0.;
     let mut x_flow: f64 = 0.;
@@ -198,7 +199,7 @@ pub fn get_fluid_flow(fluid: &FluidState, world: &Instance, pos: BlockPos) -> Ve
 
         if !fluid.affects_flow(&adjacent_fluid_state) {
             continue;
-        };
+        }
         let mut adjacent_fluid_height = adjacent_fluid_state.height();
         let mut adjacent_height_difference: f32 = 0.;
 
@@ -269,7 +270,7 @@ fn is_solid_face(
     is_face_sturdy(block_state, world, adjacent_pos, direction)
 }
 
-fn is_face_sturdy(
+const fn is_face_sturdy(
     _block_state: BlockState,
     _world: &Instance,
     _pos: BlockPos,

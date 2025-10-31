@@ -22,16 +22,19 @@ pub struct EntityUuidIndex {
     entity_by_uuid: HashMap<Uuid, Entity>,
 }
 impl EntityUuidIndex {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             entity_by_uuid: HashMap::default(),
         }
     }
 
+    #[must_use]
     pub fn get(&self, uuid: &Uuid) -> Option<Entity> {
         self.entity_by_uuid.get(uuid).copied()
     }
 
+    #[must_use]
     pub fn contains_key(&self, uuid: &Uuid) -> bool {
         self.entity_by_uuid.contains_key(uuid)
     }
@@ -54,22 +57,26 @@ impl EntityUuidIndex {
 /// use [`Instance::entity_by_id`].
 #[derive(Component, Default)]
 pub struct EntityIdIndex {
-    /// An index of entities by their MinecraftEntityId
+    /// An index of entities by their `MinecraftEntityId`
     entity_by_id: IntMap<MinecraftEntityId, Entity>,
     id_by_entity: HashMap<Entity, MinecraftEntityId>,
 }
 
 impl EntityIdIndex {
+    #[must_use]
     pub fn get_by_minecraft_entity(&self, id: MinecraftEntityId) -> Option<Entity> {
         self.entity_by_id.get(&id).copied()
     }
+    #[must_use]
     pub fn get_by_ecs_entity(&self, entity: Entity) -> Option<MinecraftEntityId> {
         self.id_by_entity.get(&entity).copied()
     }
 
+    #[must_use]
     pub fn contains_minecraft_entity(&self, id: MinecraftEntityId) -> bool {
         self.entity_by_id.contains_key(&id)
     }
+    #[must_use]
     pub fn contains_ecs_entity(&self, id: Entity) -> bool {
         self.id_by_entity.contains_key(&id)
     }
@@ -132,7 +139,7 @@ pub fn update_entity_chunk_positions(
     mut query: Query<(Entity, &Position, &InstanceName, &mut EntityChunkPos), Changed<Position>>,
     instance_container: Res<InstanceContainer>,
 ) {
-    for (entity, pos, instance_name, mut entity_chunk_pos) in query.iter_mut() {
+    for (entity, pos, instance_name, mut entity_chunk_pos) in &mut query {
         let old_chunk = **entity_chunk_pos;
         let new_chunk = ChunkPos::from(*pos);
         if old_chunk != new_chunk {
@@ -181,7 +188,7 @@ pub fn insert_entity_chunk_position(
 }
 
 /// Despawn entities that aren't being loaded by anything.
-#[allow(clippy::type_complexity)]
+#[expect(clippy::type_complexity)]
 pub fn remove_despawned_entities_from_indexes(
     mut commands: Commands,
     mut entity_uuid_index: ResMut<EntityUuidIndex>,
@@ -225,33 +232,14 @@ pub fn remove_despawned_entities_from_indexes(
 
         // remove the entity from the chunk index
         let chunk = ChunkPos::from(position);
-        match instance.entities_by_chunk.get_mut(&chunk) {
-            Some(entities_in_chunk) => {
-                if entities_in_chunk.remove(&entity) {
-                    // remove the chunk if there's no entities in it anymore
-                    if entities_in_chunk.is_empty() {
-                        instance.entities_by_chunk.remove(&chunk);
-                    }
-                } else {
-                    // search all the other chunks for it :(
-                    let mut found_in_other_chunks = HashSet::new();
-                    for (other_chunk, entities_in_other_chunk) in &mut instance.entities_by_chunk {
-                        if entities_in_other_chunk.remove(&entity) {
-                            found_in_other_chunks.insert(other_chunk);
-                        }
-                    }
-                    if found_in_other_chunks.is_empty() {
-                        warn!(
-                            "Tried to remove entity {entity:?} from chunk {chunk:?} but the entity was not there or in any other chunks."
-                        );
-                    } else {
-                        warn!(
-                            "Tried to remove entity {entity:?} from chunk {chunk:?} but the entity was not there. Found in and removed from other chunk(s): {found_in_other_chunks:?}"
-                        );
-                    }
+        if let Some(entities_in_chunk) = instance.entities_by_chunk.get_mut(&chunk) {
+            if entities_in_chunk.remove(&entity) {
+                // remove the chunk if there's no entities in it anymore
+                if entities_in_chunk.is_empty() {
+                    instance.entities_by_chunk.remove(&chunk);
                 }
-            }
-            _ => {
+            } else {
+                // search all the other chunks for it :(
                 let mut found_in_other_chunks = HashSet::new();
                 for (other_chunk, entities_in_other_chunk) in &mut instance.entities_by_chunk {
                     if entities_in_other_chunk.remove(&entity) {
@@ -260,13 +248,29 @@ pub fn remove_despawned_entities_from_indexes(
                 }
                 if found_in_other_chunks.is_empty() {
                     warn!(
-                        "Tried to remove entity {entity:?} from chunk {chunk:?} but the chunk was not found and the entity wasn't in any other chunks."
+                        "Tried to remove entity {entity:?} from chunk {chunk:?} but the entity was not there or in any other chunks."
                     );
                 } else {
                     warn!(
-                        "Tried to remove entity {entity:?} from chunk {chunk:?} but the chunk was not found. Entity found in and removed from other chunk(s): {found_in_other_chunks:?}"
+                        "Tried to remove entity {entity:?} from chunk {chunk:?} but the entity was not there. Found in and removed from other chunk(s): {found_in_other_chunks:?}"
                     );
                 }
+            }
+        } else {
+            let mut found_in_other_chunks = HashSet::new();
+            for (other_chunk, entities_in_other_chunk) in &mut instance.entities_by_chunk {
+                if entities_in_other_chunk.remove(&entity) {
+                    found_in_other_chunks.insert(other_chunk);
+                }
+            }
+            if found_in_other_chunks.is_empty() {
+                warn!(
+                    "Tried to remove entity {entity:?} from chunk {chunk:?} but the chunk was not found and the entity wasn't in any other chunks."
+                );
+            } else {
+                warn!(
+                    "Tried to remove entity {entity:?} from chunk {chunk:?} but the chunk was not found. Entity found in and removed from other chunk(s): {found_in_other_chunks:?}"
+                );
             }
         }
         // remove it from the uuid index
@@ -280,7 +284,7 @@ pub fn remove_despawned_entities_from_indexes(
         }
 
         // remove it from every client's EntityIdIndex
-        for mut entity_id_index in entity_id_index_query.iter_mut() {
+        for mut entity_id_index in &mut entity_id_index_query {
             entity_id_index.remove_by_ecs_entity(entity);
         }
 

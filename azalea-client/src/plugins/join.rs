@@ -126,7 +126,7 @@ pub fn handle_start_join_server_event(
 
         entity_mut.insert((
             // add the Account to the entity now so plugins can access it earlier
-            event.account.to_owned(),
+            event.account.clone(),
             // localentity is always present for our clients, even if we're not actually logged
             // in
             LocalEntity,
@@ -187,7 +187,7 @@ pub fn poll_create_connection_task(
     mut query: Query<(Entity, &mut CreateConnectionTask, &Account)>,
     mut connection_failed_events: MessageWriter<ConnectionFailedEvent>,
 ) {
-    for (entity, mut task, account) in query.iter_mut() {
+    for (entity, mut task, account) in &mut query {
         if let Some(poll_res) = future::block_on(future::poll_once(&mut task.0)) {
             let mut entity_mut = commands.entity(entity);
             entity_mut.remove::<CreateConnectionTask>();

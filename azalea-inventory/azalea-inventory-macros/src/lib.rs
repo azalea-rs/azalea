@@ -27,7 +27,7 @@ pub fn declare_menus(input: TokenStream) -> TokenStream {
             menu.fields.push(Field {
                 name: Ident::new("player", Span::call_site()),
                 length: 36,
-            })
+            });
         }
     }
 

@@ -12,7 +12,7 @@ pub struct ClientboundTabList {
 mod tests {
     use std::io::Cursor;
 
-    use azalea_buf::AzaleaRead;
+    use azalea_buf::AzaleaRead as _;
 
     use super::*;
 

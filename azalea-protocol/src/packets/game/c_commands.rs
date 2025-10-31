@@ -1,6 +1,6 @@
 use std::io::{self, Cursor, Write};
 
-use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
+use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar as _, AzaleaWrite, AzaleaWriteVar as _, BufReadError};
 use azalea_core::{bitset::FixedBitSet, resource_location::ResourceLocation};
 use azalea_protocol_macros::ClientboundGamePacket;
 use tracing::warn;
@@ -27,7 +27,7 @@ pub struct BrigadierNumber<T> {
     pub max: Option<T>,
 }
 impl<T> BrigadierNumber<T> {
-    pub fn new(min: Option<T>, max: Option<T>) -> BrigadierNumber<T> {
+    pub const fn new(min: Option<T>, max: Option<T>) -> BrigadierNumber<T> {
         BrigadierNumber { min, max }
     }
 }
@@ -359,7 +359,7 @@ mod tests {
             children: vec![],
             redirect_node: None,
             node_type: NodeType::Literal {
-                name: "String".to_string(),
+                name: "String".to_owned(),
             },
             is_restricted: false,
         };
@@ -377,7 +377,7 @@ mod tests {
             children: vec![6, 9],
             redirect_node: Some(5),
             node_type: NodeType::Argument {
-                name: "position".to_string(),
+                name: "position".to_owned(),
                 parser: BrigadierParser::Vec3,
                 suggestions_type: Some(ResourceLocation::new("minecraft:test_suggestion")),
             },

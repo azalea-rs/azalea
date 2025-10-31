@@ -38,7 +38,7 @@ pub fn handle_block_update_event(
         &mut BlockStatePredictionHandler,
     )>,
 ) {
-    for (mut queued, instance_holder, mut prediction_handler) in query.iter_mut() {
+    for (mut queued, instance_holder, mut prediction_handler) in &mut query {
         let world = instance_holder.instance.read();
         for (pos, block_state) in queued.list.drain(..) {
             if !prediction_handler.update_known_server_state(pos, block_state) {

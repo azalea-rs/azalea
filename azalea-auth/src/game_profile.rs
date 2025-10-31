@@ -4,7 +4,8 @@ use std::{
 };
 
 use azalea_buf::{
-    AzBuf, AzaleaRead, AzaleaReadLimited, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError,
+    AzBuf, AzaleaRead, AzaleaReadLimited as _, AzaleaReadVar as _, AzaleaWrite,
+    AzaleaWriteVar as _, BufReadError,
 };
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize, Serializer};
@@ -15,8 +16,8 @@ use uuid::Uuid;
 pub struct GameProfile {
     /// The UUID of the player.
     ///
-    /// Typically a UUIDv4 for online-mode players and UUIDv3 for offline-mode
-    /// players.
+    /// Typically a `UUIDv4` for online-mode players and `UUIDv3` for
+    /// offline-mode players.
     pub uuid: Uuid,
     /// The username of the player.
     ///
@@ -29,6 +30,7 @@ pub struct GameProfile {
 }
 
 impl GameProfile {
+    #[must_use]
     pub fn new(uuid: Uuid, name: String) -> Self {
         GameProfile {
             uuid,
@@ -131,7 +133,8 @@ pub struct SerializableProfileProperties {
     pub list: Vec<SerializableProfilePropertyValue>,
 }
 impl SerializableProfileProperties {
-    pub fn is_empty(&self) -> bool {
+    #[must_use]
+    pub const fn is_empty(&self) -> bool {
         self.list.is_empty()
     }
 }
@@ -202,14 +205,14 @@ mod tests {
             profile,
             GameProfile {
                 uuid: Uuid::parse_str("f1a2b3c4-d5e6-f7a8-b9c0-d1e2f3a4b5c6").unwrap(),
-                name: "Notch".to_string(),
+                name: "Notch".to_owned(),
                 properties: {
                     let mut map = IndexMap::new();
                     map.insert(
-                        "qwer".to_string(),
+                        "qwer".to_owned(),
                         ProfilePropertyValue {
-                            value: "asdf".to_string(),
-                            signature: Some("zxcv".to_string()),
+                            value: "asdf".to_owned(),
+                            signature: Some("zxcv".to_owned()),
                         },
                     );
                     GameProfileProperties { map }.into()

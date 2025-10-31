@@ -13,7 +13,7 @@ pub struct ClientboundPlayerAbilities {
     pub walking_speed: f32,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PlayerAbilitiesFlags {
     pub invulnerable: bool,
     pub flying: bool,

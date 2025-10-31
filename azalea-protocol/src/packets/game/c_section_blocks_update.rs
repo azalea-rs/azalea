@@ -1,17 +1,17 @@
 use std::io::{self, Cursor, Write};
 
 use azalea_block::BlockState;
-use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
+use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar as _, AzaleaWrite, AzaleaWriteVar as _, BufReadError};
 use azalea_core::position::{ChunkSectionBlockPos, ChunkSectionPos};
 use azalea_protocol_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, Eq, ClientboundGamePacket)]
 pub struct ClientboundSectionBlocksUpdate {
     pub section_pos: ChunkSectionPos,
     pub states: Vec<BlockStateWithPosition>,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct BlockStateWithPosition {
     pub pos: ChunkSectionBlockPos,
     pub state: BlockState,

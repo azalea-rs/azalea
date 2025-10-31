@@ -1,4 +1,4 @@
-use std::{io::Cursor, str::FromStr};
+use std::{io::Cursor, str::FromStr as _};
 
 use azalea_registry::DataRegistry;
 use simdnbt::owned::NbtCompound;

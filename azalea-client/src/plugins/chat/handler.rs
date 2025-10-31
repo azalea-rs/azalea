@@ -2,7 +2,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use azalea_crypto::SignChatMessageOptions;
 use azalea_protocol::packets::{
-    Packet,
+    Packet as _,
     game::{ServerboundChat, ServerboundChatCommand, s_chat::LastSeenMessagesUpdate},
 };
 use bevy_ecs::prelude::*;

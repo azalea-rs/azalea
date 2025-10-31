@@ -2,11 +2,11 @@ use std::{
     backtrace::Backtrace,
     collections::HashMap,
     hash::Hash,
-    io::{self, Cursor, Read},
+    io::{self, Cursor, Read as _},
     sync::Arc,
 };
 
-use byteorder::{BE, ReadBytesExt};
+use byteorder::{BE, ReadBytesExt as _};
 use indexmap::IndexMap;
 use thiserror::Error;
 use tracing::warn;
@@ -103,7 +103,7 @@ fn read_utf_with_len(buf: &mut Cursor<&[u8]>, max_length: u32) -> Result<String,
             lossy: String::from_utf8_lossy(buffer).to_string(),
             // backtrace: Backtrace::capture(),
         })?
-        .to_string();
+        .to_owned();
     if string.len() > length as usize {
         return Err(BufReadError::StringLengthTooLong { length, max_length });
     }
@@ -422,7 +422,7 @@ impl AzaleaRead for simdnbt::owned::NbtCompound {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         match simdnbt::owned::read_tag(buf).map_err(simdnbt::Error::from)? {
             simdnbt::owned::NbtTag::Compound(compound) => Ok(compound),
-            _ => Err(BufReadError::Custom("Expected compound tag".to_string())),
+            _ => Err(BufReadError::Custom("Expected compound tag".to_owned())),
         }
     }
 }

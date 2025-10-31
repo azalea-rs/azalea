@@ -39,11 +39,11 @@ fn tick_global_task_pools(_main_thread_marker: Option<NonSend<NonSendMarker>>) {
 /// For end-users who want full control, set up [`TaskPoolPlugin`]
 #[derive(Clone, Resource)]
 pub struct TaskPoolOptions {
-    /// If the number of physical cores is less than min_total_threads, force
-    /// using min_total_threads
+    /// If the number of physical cores is less than `min_total_threads`, force
+    /// using `min_total_threads`
     pub min_total_threads: usize,
-    /// If the number of physical cores is greater than max_total_threads, force
-    /// using max_total_threads
+    /// If the number of physical cores is greater than `max_total_threads`,
+    /// force using `max_total_threads`
     pub max_total_threads: usize,
 
     /// Used to determine number of IO threads to allocate
@@ -105,7 +105,7 @@ impl TaskPoolOptions {
             IoTaskPool::get_or_init(|| {
                 TaskPoolBuilder::default()
                     .num_threads(io_threads)
-                    .thread_name("IO Task Pool".to_string())
+                    .thread_name("IO Task Pool".to_owned())
                     .build()
             });
         }
@@ -121,7 +121,7 @@ impl TaskPoolOptions {
             AsyncComputeTaskPool::get_or_init(|| {
                 TaskPoolBuilder::default()
                     .num_threads(async_compute_threads)
-                    .thread_name("Async Compute Task Pool".to_string())
+                    .thread_name("Async Compute Task Pool".to_owned())
                     .build()
             });
         }
@@ -136,7 +136,7 @@ impl TaskPoolOptions {
             ComputeTaskPool::get_or_init(|| {
                 TaskPoolBuilder::default()
                     .num_threads(compute_threads)
-                    .thread_name("Compute Task Pool".to_string())
+                    .thread_name("Compute Task Pool".to_owned())
                     .build()
             });
         }
@@ -151,8 +151,8 @@ pub struct TaskPoolThreadAssignmentPolicy {
     pub min_threads: usize,
     /// Under no circumstance use more than this many threads for this pool
     pub max_threads: usize,
-    /// Target using this percentage of total cores, clamped by min_threads and
-    /// max_threads.
+    /// Target using this percentage of total cores, clamped by `min_threads`
+    /// and `max_threads`.
     ///
     /// It is permitted to use 1.0 to try to use all remaining
     /// threads

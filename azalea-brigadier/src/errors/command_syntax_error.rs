@@ -1,6 +1,6 @@
 use std::{
     cmp,
-    fmt::{self, Debug, Write},
+    fmt::{self, Debug, Write as _},
 };
 
 use super::builtin_errors::BuiltInError;
@@ -16,16 +16,18 @@ pub struct CommandSyntaxError {
 const CONTEXT_AMOUNT: usize = 10;
 
 impl CommandSyntaxError {
+    #[must_use]
     pub fn new(kind: BuiltInError, message: String, input: &str, cursor: usize) -> Self {
         Self {
             kind,
             message,
-            input: Some(input.to_string()),
+            input: Some(input.to_owned()),
             cursor: Some(cursor),
         }
     }
 
-    pub fn create(kind: BuiltInError, message: String) -> Self {
+    #[must_use]
+    pub const fn create(kind: BuiltInError, message: String) -> Self {
         Self {
             kind,
             message,
@@ -34,6 +36,7 @@ impl CommandSyntaxError {
         }
     }
 
+    #[must_use]
     pub fn message(&self) -> String {
         let mut message = self.message.clone();
         let context = self.context();
@@ -48,10 +51,12 @@ impl CommandSyntaxError {
         message
     }
 
-    pub fn raw_message(&self) -> &String {
+    #[must_use]
+    pub const fn raw_message(&self) -> &String {
         &self.message
     }
 
+    #[must_use]
     pub fn context(&self) -> Option<String> {
         if let Some(input) = &self.input
             && let Some(cursor) = self.cursor
@@ -73,15 +78,18 @@ impl CommandSyntaxError {
         None
     }
 
-    pub fn kind(&self) -> &BuiltInError {
+    #[must_use]
+    pub const fn kind(&self) -> &BuiltInError {
         &self.kind
     }
 
-    pub fn input(&self) -> &Option<String> {
+    #[must_use]
+    pub const fn input(&self) -> &Option<String> {
         &self.input
     }
 
-    pub fn cursor(&self) -> Option<usize> {
+    #[must_use]
+    pub const fn cursor(&self) -> Option<usize> {
         self.cursor
     }
 }

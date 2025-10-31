@@ -4,7 +4,7 @@ use azalea_inventory::{ItemStack, operations::ClickType};
 use azalea_protocol_macros::ServerboundGamePacket;
 use indexmap::IndexMap;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ServerboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, Eq, ServerboundGamePacket)]
 pub struct ServerboundContainerClick {
     #[var]
     pub container_id: i32,
@@ -19,10 +19,10 @@ pub struct ServerboundContainerClick {
 
 /// Similar to an [`ItemStack`] but only carrying a CRC32 hash of the value of
 /// added data components instead of their entire contents.
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(Clone, Debug, AzBuf, PartialEq, Eq)]
 pub struct HashedStack(pub Option<HashedActualItem>);
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(Clone, Debug, AzBuf, PartialEq, Eq)]
 pub struct HashedActualItem {
     pub kind: azalea_registry::Item,
     #[var]
@@ -30,7 +30,7 @@ pub struct HashedActualItem {
     pub components: HashedPatchMap,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(Clone, Debug, AzBuf, PartialEq, Eq)]
 pub struct HashedPatchMap {
     #[limit(256)]
     pub added_components: Vec<(azalea_registry::DataComponentKind, Checksum)>,
@@ -47,6 +47,7 @@ impl HashedStack {
     ///
     /// The [`RegistryHolder`] is required as some components will hash
     /// differently based on the server's registries.
+    #[must_use] 
     pub fn from_item_stack(item: &ItemStack, registries: &RegistryHolder) -> Self {
         let ItemStack::Present(item) = item else {
             return HashedStack(None);

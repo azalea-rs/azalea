@@ -35,7 +35,7 @@ pub struct ClientInformation {
 impl Default for ClientInformation {
     fn default() -> Self {
         Self {
-            language: "en_us".to_string(),
+            language: "en_us".to_owned(),
             view_distance: 8,
             chat_visibility: ChatVisibility::default(),
             chat_colors: true,
@@ -147,7 +147,7 @@ impl AzaleaWrite for ModelCustomization {
 mod tests {
     use std::io::Cursor;
 
-    use azalea_buf::{AzaleaRead, AzaleaWrite};
+    use azalea_buf::{AzaleaRead as _, AzaleaWrite as _};
 
     use super::*;
 
@@ -164,7 +164,7 @@ mod tests {
         }
 
         let data = ClientInformation {
-            language: "en_gb".to_string(),
+            language: "en_gb".to_owned(),
             view_distance: 24,
             chat_visibility: ChatVisibility::Hidden,
             chat_colors: false,

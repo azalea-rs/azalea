@@ -16,6 +16,7 @@ static STORAGE: LazyLock<Box<[(CompactString, CompactString)]>> = LazyLock::new(
     json.into_boxed_slice()
 });
 
+#[must_use]
 pub fn get(key: &str) -> Option<&str> {
     let key = CompactString::from(key);
     let storage = &*STORAGE;

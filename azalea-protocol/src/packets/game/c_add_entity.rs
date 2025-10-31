@@ -34,6 +34,7 @@ impl ClientboundAddEntity {
     ///
     /// You must apply the metadata after inserting the bundle with
     /// [`Self::apply_metadata`].
+    #[must_use] 
     pub fn as_entity_bundle(&self, world_name: ResourceLocation) -> EntityBundle {
         EntityBundle::new(self.uuid, self.position, self.entity_type, world_name)
     }

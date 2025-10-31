@@ -5,19 +5,19 @@ use std::{
     env,
     fmt::Debug,
     io,
-    io::{Cursor, Read},
+    io::{Cursor, Read as _},
     sync::LazyLock,
 };
 
-use azalea_buf::{AzaleaReadVar, BufReadError};
+use azalea_buf::{AzaleaReadVar as _, BufReadError};
 use azalea_crypto::Aes128CfbDec;
 use flate2::read::ZlibDecoder;
-use futures::StreamExt;
+use futures::StreamExt as _;
 use futures_lite::future;
 use thiserror::Error;
 use tokio::io::AsyncRead;
 use tokio_util::{
-    bytes::Buf,
+    bytes::Buf as _,
     codec::{BytesCodec, FramedRead},
 };
 use tracing::trace;
@@ -283,7 +283,7 @@ where
         if let Some(buf) = read_raw_packet_from_buffer::<R>(buffer, compression_threshold)? {
             // we got a full packet!!
             return Ok(buf);
-        };
+        }
 
         let bytes = read_and_decrypt_frame(stream, cipher).await?;
         buffer.get_mut().extend_from_slice(&bytes);
@@ -304,7 +304,7 @@ where
         if let Some(buf) = read_raw_packet_from_buffer::<R>(buffer, compression_threshold)? {
             // we got a full packet!!
             return Ok(Some(buf));
-        };
+        }
         let Some(bytes) = try_read_and_decrypt_frame(stream, cipher)? else {
             // no data received
             return Ok(None);
@@ -397,7 +397,7 @@ where
             }
         };
         trace!("Reading packet with bytes: {buf_string}");
-    };
+    }
 
     Ok(Some(buf))
 }

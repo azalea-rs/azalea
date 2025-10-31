@@ -2,7 +2,7 @@ use azalea_chat::{
     FormattedText,
     style::{Ansi, ChatFormatting, TextColor},
 };
-use serde::Deserialize;
+use serde::Deserialize as _;
 use serde_json::Value;
 
 #[test]

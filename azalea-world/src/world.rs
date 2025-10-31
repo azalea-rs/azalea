@@ -20,8 +20,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{ChunkStorage, PartialChunkStorage};
 
-/// PartialInstances are usually owned by clients, and hold strong references to
-/// chunks and entities in [`Instance`]s.
+/// `PartialInstances` are usually owned by clients, and hold strong references
+/// to chunks and entities in [`Instance`]s.
 ///
 /// Basically, they hold the chunks and entities that are within render
 /// distance but can still access chunks and entities owned by other
@@ -36,6 +36,7 @@ pub struct PartialInstance {
 }
 
 impl PartialInstance {
+    #[must_use]
     pub fn new(chunk_radius: u32, owner_entity: Option<Entity>) -> Self {
         PartialInstance {
             chunks: PartialChunkStorage::new(chunk_radius),
@@ -43,7 +44,7 @@ impl PartialInstance {
         }
     }
 
-    /// Clears the internal references to chunks in the PartialInstance and
+    /// Clears the internal references to chunks in the `PartialInstance` and
     /// resets the view center.
     pub fn reset(&mut self) {
         self.chunks = PartialChunkStorage::new(self.chunks.chunk_radius);
@@ -61,9 +62,9 @@ impl PartialInstance {
 /// `EntityUuid` from `azalea_entity`, that one is unlikely to change even
 /// across server restarts.
 ///
-/// This serializes as a i32. Usually it's a VarInt in the protocol, but not
-/// always. If you do need it to serialize as a VarInt, make sure to use use the
-/// `#[var]` attribute.
+/// This serializes as a i32. Usually it's a `VarInt` in the protocol, but not
+/// always. If you do need it to serialize as a `VarInt`, make sure to use use
+/// the `#[var]` attribute.
 ///
 /// [`Entity`]: bevy_ecs::entity::Entity
 #[derive(Component, Copy, Clone, Debug, Default, PartialEq, Eq, Deref, DerefMut)]
@@ -135,6 +136,7 @@ pub struct PartialEntityInfos {
 }
 
 impl PartialEntityInfos {
+    #[must_use]
     pub fn new(owner_entity: Option<Entity>) -> Self {
         Self {
             owner_entity,
@@ -169,6 +171,7 @@ pub struct Instance {
 }
 
 impl Instance {
+    #[must_use]
     pub fn get_block_state(&self, pos: BlockPos) -> Option<BlockState> {
         self.chunks.get_block_state(pos)
     }
@@ -185,10 +188,12 @@ impl Instance {
     /// Note that biomes are internally stored as 4x4x4 blocks, so if you're
     /// writing code that searches for a specific biome it'll probably be more
     /// efficient to avoid scanning every single block.
+    #[must_use]
     pub fn get_biome(&self, pos: BlockPos) -> Option<Biome> {
         self.chunks.get_biome(pos)
     }
 
+    #[must_use]
     pub fn set_block_state(&self, pos: BlockPos, state: BlockState) -> Option<BlockState> {
         self.chunks.set_block_state(pos, state)
     }

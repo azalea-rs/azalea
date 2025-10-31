@@ -54,7 +54,7 @@ pub struct SmithingRecipeDisplay {
     pub crafting_station: SlotDisplayData,
 }
 
-#[derive(Clone, Debug, PartialEq, AzBuf)]
+#[derive(Clone, Debug, PartialEq, Eq, AzBuf)]
 pub struct Ingredient {
     pub allowed: HolderSet<azalea_registry::Item, ResourceLocation>,
 }
@@ -72,7 +72,7 @@ pub enum SlotDisplayData {
     Composite(CompositeSlotDisplay),
 }
 
-#[derive(Clone, Debug, PartialEq, AzBuf)]
+#[derive(Clone, Debug, PartialEq, Eq, AzBuf)]
 pub struct ItemStackDisplay {
     pub item: azalea_registry::Item,
 }
@@ -80,7 +80,7 @@ pub struct ItemStackDisplay {
 pub struct ItemStackSlotDisplay {
     pub stack: ItemStack,
 }
-#[derive(Clone, Debug, PartialEq, AzBuf)]
+#[derive(Clone, Debug, PartialEq, Eq, AzBuf)]
 pub struct TagSlotDisplay {
     pub tag: azalea_registry::Item,
 }

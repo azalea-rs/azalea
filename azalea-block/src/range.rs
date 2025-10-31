@@ -32,6 +32,7 @@ impl IntoIterator for BlockStates {
 }
 
 impl BlockStates {
+    #[must_use]
     pub fn contains(&self, state: &BlockState) -> bool {
         self.set.contains(state)
     }

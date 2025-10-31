@@ -50,6 +50,7 @@ pub fn move_relative(
     physics.velocity += input_vector;
 }
 
+#[must_use]
 pub fn input_vector(direction: LookDirection, speed: f32, acceleration: Vec3) -> Vec3 {
     let distance = acceleration.length_squared();
     if distance < 1.0e-7 {
@@ -64,12 +65,17 @@ pub fn input_vector(direction: LookDirection, speed: f32, acceleration: Vec3) ->
     let y_rot = math::sin(direction.y_rot * (PI / 180.) as f32);
     let x_rot = math::cos(direction.y_rot * (PI / 180.) as f32);
     Vec3 {
-        x: acceleration.x * (x_rot as f64) - acceleration.z * (y_rot as f64),
+        x: acceleration
+            .x
+            .mul_add(x_rot as f64, -(acceleration.z * (y_rot as f64))),
         y: acceleration.y,
-        z: acceleration.z * (x_rot as f64) + acceleration.x * (y_rot as f64),
+        z: acceleration
+            .z
+            .mul_add(x_rot as f64, acceleration.x * (y_rot as f64)),
     }
 }
 
+#[must_use]
 pub fn view_vector(look_direction: LookDirection) -> Vec3 {
     let x_rot = look_direction.x_rot * 0.017453292;
     let y_rot = -look_direction.y_rot * 0.017453292;
@@ -85,6 +91,7 @@ pub fn view_vector(look_direction: LookDirection) -> Vec3 {
 }
 
 /// Get the position of the block below the entity, but a little lower.
+#[must_use]
 pub fn on_pos_legacy(chunk_storage: &ChunkStorage, position: Position) -> BlockPos {
     on_pos(0.2, chunk_storage, position)
 }
@@ -101,6 +108,7 @@ pub fn on_pos_legacy(chunk_storage: &ChunkStorage, position: Position) -> BlockP
 //    }
 // }
 // return var5;
+#[must_use]
 pub fn on_pos(offset: f32, chunk_storage: &ChunkStorage, pos: Position) -> BlockPos {
     let x = pos.x.floor() as i32;
     let y = (pos.y - offset as f64).floor() as i32;
@@ -130,10 +138,11 @@ pub fn on_pos(offset: f32, chunk_storage: &ChunkStorage, pos: Position) -> Block
 ///
 /// For players, this is their actual player UUID, and for other entities it's
 /// just random.
-#[derive(Component, Deref, DerefMut, Clone, Copy, Default, PartialEq)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, Default, PartialEq, Eq)]
 pub struct EntityUuid(Uuid);
 impl EntityUuid {
-    pub fn new(uuid: Uuid) -> Self {
+    #[must_use]
+    pub const fn new(uuid: Uuid) -> Self {
         Self(uuid)
     }
 }
@@ -153,7 +162,8 @@ impl Debug for EntityUuid {
 #[derive(Component, Clone, Copy, Debug, Default, PartialEq, Deref, DerefMut)]
 pub struct Position(Vec3);
 impl Position {
-    pub fn new(pos: Vec3) -> Self {
+    #[must_use]
+    pub const fn new(pos: Vec3) -> Self {
         Self(pos)
     }
 }
@@ -236,20 +246,23 @@ pub struct LookDirection {
 
 impl LookDirection {
     /// Create a new look direction and clamp the `x_rot` to the allowed values.
-    pub fn new(y_rot: f32, x_rot: f32) -> Self {
+    #[must_use]
+    pub const fn new(y_rot: f32, x_rot: f32) -> Self {
         apply_clamp_look_direction(Self { y_rot, x_rot })
     }
     /// Returns yaw (left and right) in degrees.
     ///
     /// Minecraft allows this to go outside of ±360°, so it won't necessarily be
     /// in any range.
-    pub fn y_rot(&self) -> f32 {
+    #[must_use]
+    pub const fn y_rot(&self) -> f32 {
         self.y_rot
     }
     /// Returns pitch (up and down) in degrees.
     ///
     /// Clamped to ±90°.
-    pub fn x_rot(&self) -> f32 {
+    #[must_use]
+    pub const fn x_rot(&self) -> f32 {
         self.x_rot
     }
 
@@ -381,6 +394,7 @@ pub struct Physics {
 }
 
 impl Physics {
+    #[must_use]
     pub fn new(dimensions: &EntityDimensions, pos: Vec3) -> Self {
         Self {
             velocity: Vec3::ZERO,
@@ -414,36 +428,40 @@ impl Physics {
         }
     }
 
-    pub fn on_ground(&self) -> bool {
+    #[must_use]
+    pub const fn on_ground(&self) -> bool {
         self.on_ground
     }
     /// Updates [`Self::on_ground`] and [`Self::last_on_ground`].
-    pub fn set_on_ground(&mut self, on_ground: bool) {
+    pub const fn set_on_ground(&mut self, on_ground: bool) {
         self.last_on_ground = self.on_ground;
         self.on_ground = on_ground;
     }
 
-    /// The last value of the on_ground value.
+    /// The last value of the `on_ground` value.
     ///
     /// This is used by Azalea internally for physics, it might not work as you
     /// expect since it can be influenced by packets sent by the server.
-    pub fn last_on_ground(&self) -> bool {
+    #[must_use]
+    pub const fn last_on_ground(&self) -> bool {
         self.last_on_ground
     }
-    pub fn set_last_on_ground(&mut self, last_on_ground: bool) {
+    pub const fn set_last_on_ground(&mut self, last_on_ground: bool) {
         self.last_on_ground = last_on_ground;
     }
 
-    pub fn reset_fall_distance(&mut self) {
+    pub const fn reset_fall_distance(&mut self) {
         self.fall_distance = 0.;
     }
-    pub fn clear_fire(&mut self) {
+    pub const fn clear_fire(&mut self) {
         self.remaining_fire_ticks = 0;
     }
 
-    pub fn is_in_water(&self) -> bool {
+    #[must_use]
+    pub const fn is_in_water(&self) -> bool {
         self.was_touching_water
     }
+    #[must_use]
     pub fn is_in_lava(&self) -> bool {
         // TODO: also check `!this.firstTick &&`
         self.lava_fluid_height > 0.
@@ -460,11 +478,11 @@ impl Physics {
 #[derive(Component, Copy, Clone, Default)]
 pub struct Dead;
 
-/// A component NewType for [`azalea_registry::EntityKind`].
+/// A component `NewType` for [`azalea_registry::EntityKind`].
 ///
 /// Most of the time, you should be using `azalea_registry::EntityKind`
 /// directly instead.
-#[derive(Component, Clone, Copy, Debug, PartialEq, Deref)]
+#[derive(Component, Clone, Copy, Debug, PartialEq, Eq, Deref)]
 pub struct EntityKindComponent(pub azalea_registry::EntityKind);
 
 /// A bundle of components that every entity has.
@@ -492,6 +510,7 @@ pub struct EntityBundle {
 }
 
 impl EntityBundle {
+    #[must_use]
     pub fn new(
         uuid: Uuid,
         pos: Vec3,
@@ -522,6 +541,7 @@ impl EntityBundle {
     }
 }
 
+#[must_use]
 pub fn default_attributes(_entity_kind: EntityKind) -> Attributes {
     // TODO: do the correct defaults for everything, some
     // entities have different defaults
@@ -545,16 +565,17 @@ pub fn default_attributes(_entity_kind: EntityKind) -> Attributes {
 #[derive(Component, Clone, Copy, Debug, Default)]
 pub struct LocalEntity;
 
-#[derive(Component, Clone, Copy, Debug, PartialEq, Deref, DerefMut)]
+#[derive(Component, Clone, Copy, Debug, PartialEq, Eq, Deref, DerefMut)]
 pub struct FluidOnEyes(FluidKind);
 
 impl FluidOnEyes {
-    pub fn new(fluid: FluidKind) -> Self {
+    #[must_use]
+    pub const fn new(fluid: FluidKind) -> Self {
         Self(fluid)
     }
 }
 
-#[derive(Component, Clone, Copy, Debug, PartialEq, Deref, DerefMut)]
+#[derive(Component, Clone, Copy, Debug, PartialEq, Eq, Deref, DerefMut)]
 pub struct OnClimbable(bool);
 
 /// A component that indicates whether the player is currently sneaking.

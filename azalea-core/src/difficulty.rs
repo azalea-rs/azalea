@@ -26,7 +26,8 @@ impl Debug for Err {
 }
 
 impl Difficulty {
-    pub fn name(&self) -> &'static str {
+    #[must_use]
+    pub const fn name(&self) -> &'static str {
         match self {
             Difficulty::PEACEFUL => "peaceful",
             Difficulty::EASY => "easy",
@@ -41,10 +42,11 @@ impl Difficulty {
             "easy" => Ok(Difficulty::EASY),
             "normal" => Ok(Difficulty::NORMAL),
             "hard" => Ok(Difficulty::HARD),
-            _ => Err(Err::InvalidDifficulty(name.to_string())),
+            _ => Err(Err::InvalidDifficulty(name.to_owned())),
         }
     }
 
+    #[must_use]
     pub fn by_id(id: u8) -> Difficulty {
         match id % 4 {
             0 => Difficulty::PEACEFUL,
@@ -56,7 +58,8 @@ impl Difficulty {
         }
     }
 
-    pub fn id(&self) -> u8 {
+    #[must_use]
+    pub const fn id(&self) -> u8 {
         match self {
             Difficulty::PEACEFUL => 0,
             Difficulty::EASY => 1,

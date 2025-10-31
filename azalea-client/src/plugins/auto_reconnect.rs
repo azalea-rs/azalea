@@ -131,7 +131,8 @@ pub struct AutoReconnectDelay {
     pub delay: Duration,
 }
 impl AutoReconnectDelay {
-    pub fn new(delay: Duration) -> Self {
+    #[must_use]
+    pub const fn new(delay: Duration) -> Self {
         Self { delay }
     }
 }

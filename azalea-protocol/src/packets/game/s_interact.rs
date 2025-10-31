@@ -1,6 +1,6 @@
 use std::io::{self, Cursor, Write};
 
-use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar};
+use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar as _, AzaleaWrite, AzaleaWriteVar as _};
 use azalea_core::position::Vec3;
 use azalea_protocol_macros::ServerboundGamePacket;
 use azalea_world::MinecraftEntityId;
@@ -80,7 +80,7 @@ impl AzaleaRead for ActionType {
     }
 }
 
-#[derive(AzBuf, Clone, Copy, Debug, Default, PartialEq)]
+#[derive(AzBuf, Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum InteractionHand {
     #[default]
     MainHand = 0,

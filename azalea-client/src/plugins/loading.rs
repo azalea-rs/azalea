@@ -29,7 +29,7 @@ impl Plugin for PlayerLoadedPlugin {
 // i prefer the client one because it makes it clear that the component is only
 // present on our own clients
 
-#[allow(clippy::type_complexity)]
+#[expect(clippy::type_complexity)]
 pub fn player_loaded_packet(
     mut commands: Commands,
     query: Query<

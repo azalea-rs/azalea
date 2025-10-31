@@ -20,6 +20,7 @@ pub struct MiningCache {
 }
 
 impl MiningCache {
+    #[must_use]
     pub fn new(inventory_menu: Option<Menu>) -> Self {
         let water_block_states = BlockStates::from(azalea_registry::Block::Water);
         let lava_block_states = BlockStates::from(azalea_registry::Block::Lava);
@@ -113,6 +114,7 @@ impl MiningCache {
     }
 }
 
+#[must_use]
 pub fn is_waterlogged(block: BlockState) -> bool {
     block.property::<Waterlogged>().unwrap_or_default()
 }
