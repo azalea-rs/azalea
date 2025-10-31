@@ -107,8 +107,6 @@ azalea-world = { path = "azalea-world", version = "0.14.0" }
 
 # --- Lints ---
 [workspace.lints.rust]
-unsafe_code = "warn"
-
 # Not used for bevy compat
 # elided_lifetimes_in_paths = "warn"
 # rust_2018_idioms = { level = "warn", priority = -1 }
