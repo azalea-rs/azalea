@@ -145,24 +145,29 @@ fn generate_height_checks(distance: i16) -> Vec<(i32, f32)> {
 fn execute_parkour_move(mut ctx: ExecuteCtx) {
     let delta = ctx.target - ctx.start;
     let jump_distance = (delta.x as f64).hypot(delta.z as f64);
-    
+
     if jump_distance >= 3.0 {
         ctx.sprint(SprintDirection::Forward);
     } else {
         ctx.walk(WalkDirection::Forward);
     }
 
-    let should_jump = [(delta.x, ctx.start.x, ctx.position.x), (delta.z, ctx.start.z, ctx.position.z)]
-        .iter()
-        .any(|&(d, start, pos)| {
-            if d == 0 { return false }
-            
-            let edge = if d > 0 { start + 1 } else { start } as f64;
-            (d > 0 && pos >= edge) || (d < 0 && pos <= edge)
-        });
+    let should_jump = [
+        (delta.x, ctx.start.x, ctx.position.x),
+        (delta.z, ctx.start.z, ctx.position.z),
+    ]
+    .iter()
+    .any(|&(d, start, pos)| {
+        if d == 0 {
+            return false;
+        }
+
+        let edge = if d > 0 { start + 1 } else { start } as f64;
+        (d > 0 && pos >= edge) || (d < 0 && pos <= edge)
+    });
 
     ctx.look_at(ctx.target.center());
-    
+
     if should_jump {
         ctx.jump();
     }

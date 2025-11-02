@@ -83,6 +83,8 @@ tokio-util = "0.7"
 tracing = "0.1"
 tracing-subscriber = "0.3"
 uuid = "1"
+rustmatica = "0.5"
+mcdata = { version = "0.4", features = ["latest"] }
 
 azalea-block-macros = { path = "azalea-block/azalea-block-macros", version = "0.14.0" }
 azalea-block = { path = "azalea-block", version = "0.14.0" }
