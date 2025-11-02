@@ -22,7 +22,7 @@ use azalea_core::position::ChunkPos;
 use azalea_inventory::Menu;
 use azalea_registry::{Block, Registry};
 use azalea_world::{Chunk, ChunkStorage, PartialChunkStorage};
-use criterion::{Criterion, criterion_group, criterion_main};
+use criterion::{BatchSize, Criterion, criterion_group, criterion_main};
 use mcdata::GenericBlockState;
 use parking_lot::RwLock;
 use rustmatica::Litematic;
@@ -90,7 +90,8 @@ fn bench_folder(c: &mut Criterion, folder: &str, mine: bool) {
         let (world, start, end) = load_litematic(path, &mut partial_chunks, 16).unwrap();
         println!("Bench: {name}, Start: {start}, End: {end}");
 
-        if iteration(&world, start, end, mine) {
+        let (cached_world, mining_cache) = setup(&world, start, mine);
+        if iteration(cached_world, mining_cache, start, end) {
             println!(
                 "Partial path getted, its a bug. It maybe can works in non-test enviroment, but its must be fixed."
             );
@@ -98,20 +99,33 @@ fn bench_folder(c: &mut Criterion, folder: &str, mine: bool) {
         }
 
         c.bench_function(&name, |b| {
-            b.iter(|| {
-                iteration(&world, start, end, mine);
-            });
+            b.iter_batched(
+                || setup(&world, start, mine),
+                |(cached_world, mining_cache)| {
+                    iteration(cached_world, mining_cache, start, end);
+                },
+                BatchSize::SmallInput,
+            );
         });
     }
 }
 
-fn iteration(world: &ChunkStorage, start: BlockPos, end: BlockPos, mine: bool) -> bool {
+fn setup(world: &ChunkStorage, start: BlockPos, mine: bool) -> (CachedWorld, MiningCache) {
     let cached_world = CachedWorld::new(Arc::new(RwLock::new(world.clone().into())), start);
     let mining_cache = MiningCache::new(if mine {
         Some(Menu::Player(azalea_inventory::Player::default()))
     } else {
         None
     });
+    (cached_world, mining_cache)
+}
+
+fn iteration(
+    cached_world: CachedWorld,
+    mining_cache: MiningCache,
+    start: BlockPos,
+    end: BlockPos,
+) -> bool {
     let goal = BlockPosGoal(end);
 
     let successors = |pos: RelBlockPos| {
