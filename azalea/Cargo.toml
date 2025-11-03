@@ -49,6 +49,8 @@ parking_lot = { workspace = true, features = ["deadlock_detection"] }
 rand.workspace = true
 anyhow.workspace = true
 bevy_log.workspace = true
+rustmatica.workspace = true
+mcdata.workspace = true
 
 [features]
 default = ["log", "serde", "packet-event"]
@@ -56,6 +58,10 @@ default = ["log", "serde", "packet-event"]
 log = ["azalea-client/log"]
 serde = ["dep:serde", "azalea-registry/serde", "azalea-world/serde"]
 packet-event = ["azalea-client/packet-event"]
+
+[[bench]]
+name = "checks"
+harness = false
 
 [[bench]]
 name = "pathfinder"
@@ -66,5 +72,5 @@ name = "physics"
 harness = false
 
 [[bench]]
-name = "checks"
+name = "realistic_one"
 harness = false
