@@ -73,7 +73,7 @@ fn bench_pathfinder(c: &mut Criterion) {
 
 fn bench_folder(c: &mut Criterion, folder: &str, mine: bool) {
     let mut g = c.benchmark_group("realistic benches");
-    let c = g.measurement_time(Duration::from_secs(10));
+    let c = g.measurement_time(Duration::from_secs(20));
 
     let mut entries = vec![];
     for file in fs::read_dir(folder).unwrap() {
