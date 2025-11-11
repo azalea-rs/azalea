@@ -5,6 +5,6 @@ use crate::resource_location::ResourceLocation;
 
 #[derive(Clone, Debug, PartialEq, AzBuf, Serialize)]
 pub struct CustomSound {
-    pub location: ResourceLocation,
-    pub fixed_range: Option<f32>,
+    pub sound_id: ResourceLocation,
+    pub range: Option<f32>,
 }

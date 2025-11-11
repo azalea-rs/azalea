@@ -54,6 +54,10 @@ macro_rules! data_registry {
     };
 }
 
+// TODO: these should be represented as an enum with like a "Custom(u32)"
+// variant, this is necessary to have a correct `impl DefaultableComponent for
+// DamageType`
+
 data_registry! {Enchantment, "enchantment"}
 data_registry! {DimensionType, "dimension_type"}
 data_registry! {DamageKind, "damage_kind"}

@@ -6,7 +6,9 @@
 use std::collections::HashMap;
 
 use azalea_chat::translatable_component::TranslatableComponent;
-use azalea_registry::{Attribute, Block, EntityKind, HolderSet, Item, MobEffect, SoundEvent};
+use azalea_registry::{
+    Attribute, Block, DataRegistry, EntityKind, HolderSet, Item, MobEffect, SoundEvent,
+};
 use simdnbt::owned::NbtCompound;
 
 use crate::{
@@ -2180,23 +2182,37 @@ impl DefaultableComponent for RepairCost {
 impl DefaultableComponent for SwingAnimation {
     fn default_for_item(item: Item) -> Option<Self> {
         let value = match item {
-            Item::CopperSpear => todo!(), /* see DataComponents.java {type: */
-            // FIXME_UNKNOWN_TYPE::Stab,duration: 17,},
-            Item::DiamondSpear => todo!(), /* see DataComponents.java {type: */
-            // FIXME_UNKNOWN_TYPE::Stab,duration: 21,},
-            Item::GoldenSpear => todo!(), /* see DataComponents.java {type: */
-            // FIXME_UNKNOWN_TYPE::Stab,duration: 19,},
-            Item::IronSpear => todo!(), /* see DataComponents.java {type: */
-            // FIXME_UNKNOWN_TYPE::Stab,duration: 19,},
-            Item::NetheriteSpear => todo!(), /* see DataComponents.java {type: */
-            // FIXME_UNKNOWN_TYPE::Stab,duration: 23,},
-            Item::StoneSpear => todo!(), /* see DataComponents.java {type: */
-            // FIXME_UNKNOWN_TYPE::Stab,duration: 15,},
-            Item::WoodenSpear => todo!(), /* see DataComponents.java {type: */
-            // FIXME_UNKNOWN_TYPE::Stab,duration: 13,},
-            _ => todo!(), // see DataComponents.java::new(),
+            Item::CopperSpear => SwingAnimation {
+                kind: SwingAnimationKind::Stab,
+                duration: 17,
+            },
+            Item::DiamondSpear => SwingAnimation {
+                kind: SwingAnimationKind::Stab,
+                duration: 21,
+            },
+            Item::GoldenSpear => SwingAnimation {
+                kind: SwingAnimationKind::Stab,
+                duration: 19,
+            },
+            Item::IronSpear => SwingAnimation {
+                kind: SwingAnimationKind::Stab,
+                duration: 19,
+            },
+            Item::NetheriteSpear => SwingAnimation {
+                kind: SwingAnimationKind::Stab,
+                duration: 23,
+            },
+            Item::StoneSpear => SwingAnimation {
+                kind: SwingAnimationKind::Stab,
+                duration: 15,
+            },
+            Item::WoodenSpear => SwingAnimation {
+                kind: SwingAnimationKind::Stab,
+                duration: 13,
+            },
+            _ => SwingAnimation::new(),
         };
-        Some(SwingAnimation { todo: value })
+        Some(value)
     }
 }
 impl DefaultableComponent for TooltipDisplay {
@@ -2207,23 +2223,44 @@ impl DefaultableComponent for TooltipDisplay {
 impl DefaultableComponent for UseEffects {
     fn default_for_item(item: Item) -> Option<Self> {
         let value = match item {
-            Item::CopperSpear => todo!(), /* see DataComponents.java {can_sprint: */
-            // true,speed_multiplier: 1.0,},
-            Item::DiamondSpear => todo!(), /* see DataComponents.java {can_sprint: */
-            // true,speed_multiplier: 1.0,},
-            Item::GoldenSpear => todo!(), /* see DataComponents.java {can_sprint: */
-            // true,speed_multiplier: 1.0,},
-            Item::IronSpear => todo!(), /* see DataComponents.java {can_sprint: */
-            // true,speed_multiplier: 1.0,},
-            Item::NetheriteSpear => todo!(), /* see DataComponents.java {can_sprint: */
-            // true,speed_multiplier: 1.0,},
-            Item::StoneSpear => todo!(), /* see DataComponents.java {can_sprint: */
-            // true,speed_multiplier: 1.0,},
-            Item::WoodenSpear => todo!(), /* see DataComponents.java {can_sprint: */
-            // true,speed_multiplier: 1.0,},
-            _ => todo!(), // see DataComponents.java::new(),
+            Item::CopperSpear => UseEffects {
+                can_sprint: true,
+                speed_multiplier: 1.0,
+                ..UseEffects::new()
+            },
+            Item::DiamondSpear => UseEffects {
+                can_sprint: true,
+                speed_multiplier: 1.0,
+                ..UseEffects::new()
+            },
+            Item::GoldenSpear => UseEffects {
+                can_sprint: true,
+                speed_multiplier: 1.0,
+                ..UseEffects::new()
+            },
+            Item::IronSpear => UseEffects {
+                can_sprint: true,
+                speed_multiplier: 1.0,
+                ..UseEffects::new()
+            },
+            Item::NetheriteSpear => UseEffects {
+                can_sprint: true,
+                speed_multiplier: 1.0,
+                ..UseEffects::new()
+            },
+            Item::StoneSpear => UseEffects {
+                can_sprint: true,
+                speed_multiplier: 1.0,
+                ..UseEffects::new()
+            },
+            Item::WoodenSpear => UseEffects {
+                can_sprint: true,
+                speed_multiplier: 1.0,
+                ..UseEffects::new()
+            },
+            _ => UseEffects::new(),
         };
-        Some(UseEffects { todo: value })
+        Some(value)
     }
 }
 impl DefaultableComponent for Container {
@@ -5728,107 +5765,210 @@ impl DefaultableComponent for Weapon {
 impl DefaultableComponent for DamageType {
     fn default_for_item(item: Item) -> Option<Self> {
         let value = match item {
-            Item::CopperSpear => todo!(),    // see DataComponents.java::Spear,
-            Item::DiamondSpear => todo!(),   // see DataComponents.java::Spear,
-            Item::GoldenSpear => todo!(),    // see DataComponents.java::Spear,
-            Item::IronSpear => todo!(),      // see DataComponents.java::Spear,
-            Item::NetheriteSpear => todo!(), // see DataComponents.java::Spear,
-            Item::StoneSpear => todo!(),     // see DataComponents.java::Spear,
-            Item::WoodenSpear => todo!(),    // see DataComponents.java::Spear,
+            Item::CopperSpear => DamageType::Registry(azalea_registry::DamageKind::new_raw(0)),
+            Item::DiamondSpear => DamageType::Registry(azalea_registry::DamageKind::new_raw(0)),
+            Item::GoldenSpear => DamageType::Registry(azalea_registry::DamageKind::new_raw(0)),
+            Item::IronSpear => DamageType::Registry(azalea_registry::DamageKind::new_raw(0)),
+            Item::NetheriteSpear => DamageType::Registry(azalea_registry::DamageKind::new_raw(0)),
+            Item::StoneSpear => DamageType::Registry(azalea_registry::DamageKind::new_raw(0)),
+            Item::WoodenSpear => DamageType::Registry(azalea_registry::DamageKind::new_raw(0)),
             _ => return None,
         };
-        Some(DamageType { todo: value })
+        Some(value)
     }
 }
 impl DefaultableComponent for KineticWeapon {
     fn default_for_item(item: Item) -> Option<Self> {
         let value = match item {
-            Item::CopperSpear => todo!(), /* see DataComponents.java {damage_conditions: */
-            // FIXME_UNKNOWN_TYPE {max_duration_ticks:
-            // 250,min_relative_speed: 4.6,},damage_multiplier:
-            // 0.82,delay_ticks: 13,dismount_conditions:
-            // FIXME_UNKNOWN_TYPE {max_duration_ticks:
-            // 80,min_speed: 9.0,},forward_movement:
-            // 0.38,hit_sound:
-            // FIXME_UNKNOWN_TYPE::ItemSpearHit,hitbox_margin:
-            // 0.25,knockback_conditions: FIXME_UNKNOWN_TYPE
-            // {max_duration_ticks: 100,min_speed:
-            // 5.1,},max_reach: 4.5,min_reach: 2.0,sound:
-            // FIXME_UNKNOWN_TYPE::ItemSpearUse,},
-            Item::DiamondSpear => todo!(), /* see DataComponents.java {damage_conditions: */
-            // FIXME_UNKNOWN_TYPE {max_duration_ticks:
-            // 200,min_relative_speed: 4.6,},damage_multiplier:
-            // 1.075,delay_ticks: 10,dismount_conditions:
-            // FIXME_UNKNOWN_TYPE {max_duration_ticks:
-            // 60,min_speed: 7.5,},forward_movement:
-            // 0.38,hit_sound:
-            // FIXME_UNKNOWN_TYPE::ItemSpearHit,hitbox_margin:
-            // 0.25,knockback_conditions: FIXME_UNKNOWN_TYPE
-            // {max_duration_ticks: 80,min_speed:
-            // 5.1,},max_reach: 4.5,min_reach: 2.0,sound:
-            // FIXME_UNKNOWN_TYPE::ItemSpearUse,},
-            Item::GoldenSpear => todo!(), /* see DataComponents.java {damage_conditions: */
-            // FIXME_UNKNOWN_TYPE {max_duration_ticks:
-            // 275,min_relative_speed: 4.6,},damage_multiplier:
-            // 0.7,delay_ticks: 14,dismount_conditions:
-            // FIXME_UNKNOWN_TYPE {max_duration_ticks:
-            // 70,min_speed: 10.0,},forward_movement:
-            // 0.38,hit_sound:
-            // FIXME_UNKNOWN_TYPE::ItemSpearHit,hitbox_margin:
-            // 0.25,knockback_conditions: FIXME_UNKNOWN_TYPE
-            // {max_duration_ticks: 110,min_speed:
-            // 5.1,},max_reach: 4.5,min_reach: 2.0,sound:
-            // FIXME_UNKNOWN_TYPE::ItemSpearUse,},
-            Item::IronSpear => todo!(), /* see DataComponents.java {damage_conditions: */
-            // FIXME_UNKNOWN_TYPE {max_duration_ticks:
-            // 225,min_relative_speed: 4.6,},damage_multiplier:
-            // 0.95,delay_ticks: 12,dismount_conditions:
-            // FIXME_UNKNOWN_TYPE {max_duration_ticks: 50,min_speed:
-            // 8.0,},forward_movement: 0.38,hit_sound:
-            // FIXME_UNKNOWN_TYPE::ItemSpearHit,hitbox_margin:
-            // 0.25,knockback_conditions: FIXME_UNKNOWN_TYPE
-            // {max_duration_ticks: 90,min_speed: 5.1,},max_reach:
-            // 4.5,min_reach: 2.0,sound:
-            // FIXME_UNKNOWN_TYPE::ItemSpearUse,},
-            Item::NetheriteSpear => todo!(), /* see DataComponents.java {damage_conditions: */
-            // FIXME_UNKNOWN_TYPE {max_duration_ticks:
-            // 175,min_relative_speed: 4.6,},damage_multiplier:
-            // 1.2,delay_ticks: 8,dismount_conditions:
-            // FIXME_UNKNOWN_TYPE {max_duration_ticks:
-            // 50,min_speed: 7.0,},forward_movement:
-            // 0.38,hit_sound:
-            // FIXME_UNKNOWN_TYPE::ItemSpearHit,hitbox_margin:
-            // 0.25,knockback_conditions: FIXME_UNKNOWN_TYPE
-            // {max_duration_ticks: 70,min_speed:
-            // 5.1,},max_reach: 4.5,min_reach: 2.0,sound:
-            // FIXME_UNKNOWN_TYPE::ItemSpearUse,},
-            Item::StoneSpear => todo!(), /* see DataComponents.java {damage_conditions: */
-            // FIXME_UNKNOWN_TYPE {max_duration_ticks:
-            // 275,min_relative_speed: 4.6,},damage_multiplier:
-            // 0.82,delay_ticks: 14,dismount_conditions:
-            // FIXME_UNKNOWN_TYPE {max_duration_ticks:
-            // 90,min_speed: 10.0,},forward_movement:
-            // 0.38,hit_sound:
-            // FIXME_UNKNOWN_TYPE::ItemSpearHit,hitbox_margin:
-            // 0.25,knockback_conditions: FIXME_UNKNOWN_TYPE
-            // {max_duration_ticks: 110,min_speed: 5.1,},max_reach:
-            // 4.5,min_reach: 2.0,sound:
-            // FIXME_UNKNOWN_TYPE::ItemSpearUse,},
-            Item::WoodenSpear => todo!(), /* see DataComponents.java {damage_conditions: */
-            // FIXME_UNKNOWN_TYPE {max_duration_ticks:
-            // 300,min_relative_speed: 4.6,},damage_multiplier:
-            // 0.7,delay_ticks: 15,dismount_conditions:
-            // FIXME_UNKNOWN_TYPE {max_duration_ticks:
-            // 100,min_speed: 14.0,},forward_movement:
-            // 0.38,hit_sound:
-            // FIXME_UNKNOWN_TYPE::ItemSpearWoodHit,hitbox_margin:
-            // 0.25,knockback_conditions: FIXME_UNKNOWN_TYPE
-            // {max_duration_ticks: 120,min_speed:
-            // 5.1,},max_reach: 4.5,min_reach: 2.0,sound:
-            // FIXME_UNKNOWN_TYPE::ItemSpearWoodUse,},
+            Item::CopperSpear => KineticWeapon {
+                damage_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 250,
+                    min_relative_speed: 4.6,
+                    ..KineticWeaponCondition::new()
+                }),
+                damage_multiplier: 0.82,
+                delay_ticks: 13,
+                dismount_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 80,
+                    min_speed: 9.0,
+                    ..KineticWeaponCondition::new()
+                }),
+                forward_movement: 0.38,
+                hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
+                hitbox_margin: 0.25,
+                knockback_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 100,
+                    min_speed: 5.1,
+                    ..KineticWeaponCondition::new()
+                }),
+                max_reach: 4.5,
+                min_reach: 2.0,
+                sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearUse)),
+                ..KineticWeapon::new()
+            },
+            Item::DiamondSpear => KineticWeapon {
+                damage_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 200,
+                    min_relative_speed: 4.6,
+                    ..KineticWeaponCondition::new()
+                }),
+                damage_multiplier: 1.075,
+                delay_ticks: 10,
+                dismount_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 60,
+                    min_speed: 7.5,
+                    ..KineticWeaponCondition::new()
+                }),
+                forward_movement: 0.38,
+                hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
+                hitbox_margin: 0.25,
+                knockback_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 80,
+                    min_speed: 5.1,
+                    ..KineticWeaponCondition::new()
+                }),
+                max_reach: 4.5,
+                min_reach: 2.0,
+                sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearUse)),
+                ..KineticWeapon::new()
+            },
+            Item::GoldenSpear => KineticWeapon {
+                damage_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 275,
+                    min_relative_speed: 4.6,
+                    ..KineticWeaponCondition::new()
+                }),
+                damage_multiplier: 0.7,
+                delay_ticks: 14,
+                dismount_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 70,
+                    min_speed: 10.0,
+                    ..KineticWeaponCondition::new()
+                }),
+                forward_movement: 0.38,
+                hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
+                hitbox_margin: 0.25,
+                knockback_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 110,
+                    min_speed: 5.1,
+                    ..KineticWeaponCondition::new()
+                }),
+                max_reach: 4.5,
+                min_reach: 2.0,
+                sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearUse)),
+                ..KineticWeapon::new()
+            },
+            Item::IronSpear => KineticWeapon {
+                damage_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 225,
+                    min_relative_speed: 4.6,
+                    ..KineticWeaponCondition::new()
+                }),
+                damage_multiplier: 0.95,
+                delay_ticks: 12,
+                dismount_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 50,
+                    min_speed: 8.0,
+                    ..KineticWeaponCondition::new()
+                }),
+                forward_movement: 0.38,
+                hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
+                hitbox_margin: 0.25,
+                knockback_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 90,
+                    min_speed: 5.1,
+                    ..KineticWeaponCondition::new()
+                }),
+                max_reach: 4.5,
+                min_reach: 2.0,
+                sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearUse)),
+                ..KineticWeapon::new()
+            },
+            Item::NetheriteSpear => KineticWeapon {
+                damage_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 175,
+                    min_relative_speed: 4.6,
+                    ..KineticWeaponCondition::new()
+                }),
+                damage_multiplier: 1.2,
+                delay_ticks: 8,
+                dismount_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 50,
+                    min_speed: 7.0,
+                    ..KineticWeaponCondition::new()
+                }),
+                forward_movement: 0.38,
+                hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
+                hitbox_margin: 0.25,
+                knockback_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 70,
+                    min_speed: 5.1,
+                    ..KineticWeaponCondition::new()
+                }),
+                max_reach: 4.5,
+                min_reach: 2.0,
+                sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearUse)),
+                ..KineticWeapon::new()
+            },
+            Item::StoneSpear => KineticWeapon {
+                damage_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 275,
+                    min_relative_speed: 4.6,
+                    ..KineticWeaponCondition::new()
+                }),
+                damage_multiplier: 0.82,
+                delay_ticks: 14,
+                dismount_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 90,
+                    min_speed: 10.0,
+                    ..KineticWeaponCondition::new()
+                }),
+                forward_movement: 0.38,
+                hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
+                hitbox_margin: 0.25,
+                knockback_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 110,
+                    min_speed: 5.1,
+                    ..KineticWeaponCondition::new()
+                }),
+                max_reach: 4.5,
+                min_reach: 2.0,
+                sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearUse)),
+                ..KineticWeapon::new()
+            },
+            Item::WoodenSpear => KineticWeapon {
+                damage_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 300,
+                    min_relative_speed: 4.6,
+                    ..KineticWeaponCondition::new()
+                }),
+                damage_multiplier: 0.7,
+                delay_ticks: 15,
+                dismount_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 100,
+                    min_speed: 14.0,
+                    ..KineticWeaponCondition::new()
+                }),
+                forward_movement: 0.38,
+                hit_sound: Some(azalea_registry::Holder::Reference(
+                    SoundEvent::ItemSpearWoodHit,
+                )),
+                hitbox_margin: 0.25,
+                knockback_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 120,
+                    min_speed: 5.1,
+                    ..KineticWeaponCondition::new()
+                }),
+                max_reach: 4.5,
+                min_reach: 2.0,
+                sound: Some(azalea_registry::Holder::Reference(
+                    SoundEvent::ItemSpearWoodUse,
+                )),
+                ..KineticWeapon::new()
+            },
             _ => return None,
         };
-        Some(KineticWeapon { todo: value })
+        Some(value)
     }
 }
 impl DefaultableComponent for MinimumAttackCharge {
@@ -5843,43 +5983,87 @@ impl DefaultableComponent for MinimumAttackCharge {
             Item::WoodenSpear => 1.0,
             _ => return None,
         };
-        Some(MinimumAttackCharge { todo: value })
+        Some(MinimumAttackCharge { value: value })
     }
 }
 impl DefaultableComponent for PiercingWeapon {
     fn default_for_item(item: Item) -> Option<Self> {
         let value = match item {
-            Item::CopperSpear => todo!(), /* see DataComponents.java {hit_sound: */
-            // FIXME_UNKNOWN_TYPE::ItemSpearHit,hitbox_margin:
-            // 0.25,max_reach: 4.5,min_reach: 2.0,sound:
-            // FIXME_UNKNOWN_TYPE::ItemSpearAttack,},
-            Item::DiamondSpear => todo!(), /* see DataComponents.java {hit_sound: */
-            // FIXME_UNKNOWN_TYPE::ItemSpearHit,hitbox_margin:
-            // 0.25,max_reach: 4.5,min_reach: 2.0,sound:
-            // FIXME_UNKNOWN_TYPE::ItemSpearAttack,},
-            Item::GoldenSpear => todo!(), /* see DataComponents.java {hit_sound: */
-            // FIXME_UNKNOWN_TYPE::ItemSpearHit,hitbox_margin:
-            // 0.25,max_reach: 4.5,min_reach: 2.0,sound:
-            // FIXME_UNKNOWN_TYPE::ItemSpearAttack,},
-            Item::IronSpear => todo!(), /* see DataComponents.java {hit_sound: */
-            // FIXME_UNKNOWN_TYPE::ItemSpearHit,hitbox_margin:
-            // 0.25,max_reach: 4.5,min_reach: 2.0,sound:
-            // FIXME_UNKNOWN_TYPE::ItemSpearAttack,},
-            Item::NetheriteSpear => todo!(), /* see DataComponents.java {hit_sound: */
-            // FIXME_UNKNOWN_TYPE::ItemSpearHit,hitbox_margin:
-            // 0.25,max_reach: 4.5,min_reach: 2.0,sound:
-            // FIXME_UNKNOWN_TYPE::ItemSpearAttack,},
-            Item::StoneSpear => todo!(), /* see DataComponents.java {hit_sound: */
-            // FIXME_UNKNOWN_TYPE::ItemSpearHit,hitbox_margin:
-            // 0.25,max_reach: 4.5,min_reach: 2.0,sound:
-            // FIXME_UNKNOWN_TYPE::ItemSpearAttack,},
-            Item::WoodenSpear => todo!(), /* see DataComponents.java {hit_sound: */
-            // FIXME_UNKNOWN_TYPE::ItemSpearWoodHit,hitbox_margin:
-            // 0.25,max_reach: 4.5,min_reach: 2.0,sound:
-            // FIXME_UNKNOWN_TYPE::ItemSpearWoodAttack,},
+            Item::CopperSpear => PiercingWeapon {
+                hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
+                hitbox_margin: 0.25,
+                max_reach: 4.5,
+                min_reach: 2.0,
+                sound: Some(azalea_registry::Holder::Reference(
+                    SoundEvent::ItemSpearAttack,
+                )),
+                ..PiercingWeapon::new()
+            },
+            Item::DiamondSpear => PiercingWeapon {
+                hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
+                hitbox_margin: 0.25,
+                max_reach: 4.5,
+                min_reach: 2.0,
+                sound: Some(azalea_registry::Holder::Reference(
+                    SoundEvent::ItemSpearAttack,
+                )),
+                ..PiercingWeapon::new()
+            },
+            Item::GoldenSpear => PiercingWeapon {
+                hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
+                hitbox_margin: 0.25,
+                max_reach: 4.5,
+                min_reach: 2.0,
+                sound: Some(azalea_registry::Holder::Reference(
+                    SoundEvent::ItemSpearAttack,
+                )),
+                ..PiercingWeapon::new()
+            },
+            Item::IronSpear => PiercingWeapon {
+                hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
+                hitbox_margin: 0.25,
+                max_reach: 4.5,
+                min_reach: 2.0,
+                sound: Some(azalea_registry::Holder::Reference(
+                    SoundEvent::ItemSpearAttack,
+                )),
+                ..PiercingWeapon::new()
+            },
+            Item::NetheriteSpear => PiercingWeapon {
+                hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
+                hitbox_margin: 0.25,
+                max_reach: 4.5,
+                min_reach: 2.0,
+                sound: Some(azalea_registry::Holder::Reference(
+                    SoundEvent::ItemSpearAttack,
+                )),
+                ..PiercingWeapon::new()
+            },
+            Item::StoneSpear => PiercingWeapon {
+                hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
+                hitbox_margin: 0.25,
+                max_reach: 4.5,
+                min_reach: 2.0,
+                sound: Some(azalea_registry::Holder::Reference(
+                    SoundEvent::ItemSpearAttack,
+                )),
+                ..PiercingWeapon::new()
+            },
+            Item::WoodenSpear => PiercingWeapon {
+                hit_sound: Some(azalea_registry::Holder::Reference(
+                    SoundEvent::ItemSpearWoodHit,
+                )),
+                hitbox_margin: 0.25,
+                max_reach: 4.5,
+                min_reach: 2.0,
+                sound: Some(azalea_registry::Holder::Reference(
+                    SoundEvent::ItemSpearWoodAttack,
+                )),
+                ..PiercingWeapon::new()
+            },
             _ => return None,
         };
-        Some(PiercingWeapon { todo: value })
+        Some(value)
     }
 }
 impl DefaultableComponent for ChargedProjectiles {

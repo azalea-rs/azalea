@@ -188,7 +188,7 @@ impl<D: Registry, ResourceLocation: AzaleaRead + AzaleaWrite> Default
 }
 
 /// A reference to either a registry or a custom value (usually something with a
-/// ResourceLocation).
+/// `ResourceLocation`).
 pub enum Holder<R: Registry, Direct: AzaleaRead + AzaleaWrite> {
     Reference(R),
     Direct(Direct),

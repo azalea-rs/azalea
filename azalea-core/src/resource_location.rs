@@ -1,4 +1,4 @@
-//! A resource, like minecraft:stone
+//! A resource identifier, like minecraft:stone
 
 use std::{
     fmt,

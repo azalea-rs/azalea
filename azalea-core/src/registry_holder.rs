@@ -7,6 +7,7 @@
 
 use std::{collections::HashMap, io::Cursor};
 
+use azalea_buf::AzBuf;
 use indexmap::IndexMap;
 use simdnbt::{
     Deserialize, FromNbtTag, Serialize, ToNbtTag,
@@ -14,7 +15,7 @@ use simdnbt::{
 };
 use tracing::error;
 
-use crate::resource_location::ResourceLocation;
+use crate::{codec_utils::*, resource_location::ResourceLocation};
 
 /// The base of the registry.
 ///
@@ -334,12 +335,16 @@ pub struct TrimPatternElement {
     pub pattern: HashMap<String, String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(
+    Debug, Clone, serde::Serialize, simdnbt::Serialize, simdnbt::Deserialize, AzBuf, PartialEq,
+)]
 #[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
 pub struct DamageTypeElement {
     pub message_id: String,
     pub scaling: String,
     pub exhaustion: f32,
+    #[serde(skip_serializing_if = "is_default")]
     pub effects: Option<String>,
+    #[serde(skip_serializing_if = "is_default")]
     pub death_message_type: Option<String>,
 }
