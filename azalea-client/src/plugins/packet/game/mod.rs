@@ -115,7 +115,7 @@ pub fn process_packet(ecs: &mut World, player: Entity, packet: &ClientboundGameP
             delete_chat,
             explode,
             forget_level_chunk,
-            horse_screen_open,
+            mount_screen_open,
             map_item_data,
             merchant_offers,
             move_vehicle,
@@ -1250,7 +1250,7 @@ impl GamePacketHandler<'_> {
         });
     }
 
-    pub fn horse_screen_open(&mut self, _p: &ClientboundHorseScreenOpen) {}
+    pub fn mount_screen_open(&mut self, _p: &ClientboundMountScreenOpen) {}
 
     pub fn map_item_data(&mut self, _p: &ClientboundMapItemData) {}
 

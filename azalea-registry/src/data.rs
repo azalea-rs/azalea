@@ -72,6 +72,7 @@ data_registry! {CatVariant, "cat_variant"}
 data_registry! {PigVariant, "pig_variant"}
 data_registry! {PaintingVariant, "painting_variant"}
 data_registry! {WolfVariant, "wolf_variant"}
+data_registry! {ZombieNautilusVariant, "zombie_nautilus_variant"}
 
 data_registry! {
     /// An opaque biome identifier.

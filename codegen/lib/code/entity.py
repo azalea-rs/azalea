@@ -124,7 +124,7 @@ use super::{
     ArmadilloStateKind, CopperGolemStateKind, EntityDataItem, EntityDataValue, OptionalUnsignedInt,
     Pose, Quaternion, Rotations, SnifferStateKind, VillagerData, WeatheringCopperStateKind,
 };
-use crate::particle::Particle;
+use crate::{HumanoidArm, particle::Particle};
 
 #[derive(Error, Debug)]
 pub enum UpdateMetadataError {

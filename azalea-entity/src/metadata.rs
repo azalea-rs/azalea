@@ -19,7 +19,7 @@ use super::{
     ArmadilloStateKind, CopperGolemStateKind, EntityDataItem, EntityDataValue, OptionalUnsignedInt,
     Pose, Quaternion, Rotations, SnifferStateKind, VillagerData, WeatheringCopperStateKind,
 };
-use crate::particle::Particle;
+use crate::{HumanoidArm, particle::Particle};
 
 #[derive(Error, Debug)]
 pub enum UpdateMetadataError {
@@ -6136,7 +6136,7 @@ impl Default for MangroveChestBoatMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct PlayerMainHand(pub u8);
+pub struct PlayerMainHand(pub HumanoidArm);
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct PlayerModeCustomisation(pub u8);
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
@@ -11224,6 +11224,8 @@ impl Default for ZombieHorseMetadataBundle {
 
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct ZombieNautilusDash(pub bool);
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
+pub struct ZombieNautilusVariant(pub azalea_registry::ZombieNautilusVariant);
 #[derive(Component)]
 pub struct ZombieNautilus;
 impl ZombieNautilus {
@@ -11236,6 +11238,11 @@ impl ZombieNautilus {
             19 => {
                 entity.insert(ZombieNautilusDash(d.value.into_boolean()?));
             }
+            20 => {
+                entity.insert(ZombieNautilusVariant(
+                    d.value.into_zombie_nautilus_variant()?,
+                ));
+            }
             _ => {}
         }
         Ok(())
@@ -11247,6 +11254,7 @@ pub struct ZombieNautilusMetadataBundle {
     _marker: ZombieNautilus,
     parent: AbstractTameableMetadataBundle,
     zombie_nautilus_dash: ZombieNautilusDash,
+    zombie_nautilus_variant: ZombieNautilusVariant,
 }
 impl Default for ZombieNautilusMetadataBundle {
     fn default() -> Self {
@@ -11305,6 +11313,9 @@ impl Default for ZombieNautilusMetadataBundle {
                 owneruuid: Owneruuid(None),
             },
             zombie_nautilus_dash: ZombieNautilusDash(false),
+            zombie_nautilus_variant: ZombieNautilusVariant(
+                azalea_registry::ZombieNautilusVariant::new_raw(0),
+            ),
         }
     }
 }
@@ -11692,7 +11703,7 @@ impl AbstractAvatar {
         match d.index {
             0..=14 => AbstractLiving::apply_metadata(entity, d)?,
             15 => {
-                entity.insert(PlayerMainHand(d.value.into_byte()?));
+                entity.insert(PlayerMainHand(d.value.into_humanoid_arm()?));
             }
             16 => {
                 entity.insert(PlayerModeCustomisation(d.value.into_byte()?));

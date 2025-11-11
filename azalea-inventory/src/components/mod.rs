@@ -291,6 +291,7 @@ define_data_components!(
     PiercingWeapon,
     KineticWeapon,
     SwingAnimation,
+    ZombieNautilusVariant,
 );
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -1472,6 +1473,18 @@ pub struct ChickenVariantData {
     pub registry: azalea_registry::ChickenVariant,
 }
 
+// TODO: check in-game if this is correct
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+pub enum ZombieNautilusVariant {
+    Referenced(ResourceLocation),
+    Direct(ZombieNautilusVariantData),
+}
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(transparent)]
+pub struct ZombieNautilusVariantData {
+    pub value: azalea_registry::ZombieNautilusVariant,
+}
+
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct UseEffects {
     pub can_sprint: bool,
@@ -1528,6 +1541,11 @@ impl PiercingWeapon {
             sound: None,
             hit_sound: None,
         }
+    }
+}
+impl Default for PiercingWeapon {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
