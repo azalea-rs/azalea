@@ -1124,7 +1124,6 @@ impl GamePacketHandler<'_> {
                 };
 
                 let partial_instance = instance_holder.partial_instance.clone();
-                let mob_effect = mob_effect;
                 let effect_data = effect_data.clone();
                 commands.entity(entity).queue(RelativeEntityUpdate::new(
                     partial_instance,
