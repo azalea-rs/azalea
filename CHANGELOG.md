@@ -21,6 +21,7 @@ is breaking anyways, semantic versioning is not followed.
 - Rename `SendPacketEvent` to `SendGamePacketEvent` and `PingEvent` to `GamePingEvent`.
 - Swap the order of the type parameters in entity filtering functions so query is first, then filter.
 - Add optional `timeout_ticks` field to `Client::open_container_at`.
+- Rename `ResourceLocation` to `Identifier` to match Minecraft's new internal name for it.
 
 ### Fixed
 
