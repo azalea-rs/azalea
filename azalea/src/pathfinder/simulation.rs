@@ -7,7 +7,7 @@ use azalea_client::{
     local_player::LocalGameMode, mining::MineBundle,
 };
 use azalea_core::{
-    game_type::GameMode, position::Vec3, resource_location::ResourceLocation, tick::GameTick,
+    game_type::GameMode, position::Vec3, resource_location::Identifier, tick::GameTick,
 };
 use azalea_entity::{
     Attributes, LookDirection, Physics, Position, default_attributes, dimensions::EntityDimensions,
@@ -44,8 +44,8 @@ impl SimulatedPlayerBundle {
     }
 }
 
-fn simulation_instance_name() -> ResourceLocation {
-    ResourceLocation::new("azalea:simulation")
+fn simulation_instance_name() -> Identifier {
+    Identifier::new("azalea:simulation")
 }
 
 fn create_simulation_instance(chunks: ChunkStorage) -> (App, Arc<RwLock<Instance>>) {

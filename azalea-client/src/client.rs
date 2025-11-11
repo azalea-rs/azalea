@@ -10,7 +10,7 @@ use std::{
 
 use azalea_auth::game_profile::GameProfile;
 use azalea_core::{
-    data_registry::ResolvableDataRegistry, position::Vec3, resource_location::ResourceLocation,
+    data_registry::ResolvableDataRegistry, position::Vec3, resource_location::Identifier,
     tick::GameTick,
 };
 use azalea_entity::{
@@ -487,7 +487,7 @@ impl Client {
     pub fn resolve_registry_name(
         &self,
         registry: &impl ResolvableDataRegistry,
-    ) -> Option<ResourceLocation> {
+    ) -> Option<Identifier> {
         self.with_registry_holder(|registries| registry.resolve_name(registries))
     }
     /// Resolve the given registry to its name and data and call the given
@@ -502,7 +502,7 @@ impl Client {
     pub fn with_resolved_registry<R>(
         &self,
         registry: impl ResolvableDataRegistry,
-        f: impl FnOnce(&ResourceLocation, &NbtCompound) -> R,
+        f: impl FnOnce(&Identifier, &NbtCompound) -> R,
     ) -> Option<R> {
         self.with_registry_holder(|registries| {
             registry

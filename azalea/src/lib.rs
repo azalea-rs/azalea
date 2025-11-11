@@ -24,7 +24,7 @@ pub use azalea_core as core;
 // these are re-exported on this level because they're very common
 pub use azalea_core::{
     position::{BlockPos, Vec3},
-    resource_location::ResourceLocation,
+    resource_location::Identifier,
 };
 pub use azalea_entity as entity;
 pub use azalea_physics as physics;

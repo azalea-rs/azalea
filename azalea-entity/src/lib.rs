@@ -24,7 +24,7 @@ use azalea_core::{
     aabb::Aabb,
     math,
     position::{BlockPos, ChunkPos, Vec3},
-    resource_location::ResourceLocation,
+    resource_location::Identifier,
 };
 use azalea_registry::EntityKind;
 use azalea_world::{ChunkStorage, InstanceName};
@@ -494,7 +494,7 @@ impl EntityBundle {
         uuid: Uuid,
         pos: Vec3,
         kind: azalea_registry::EntityKind,
-        world_name: ResourceLocation,
+        world_name: Identifier,
     ) -> Self {
         let dimensions = EntityDimensions::from(kind);
 

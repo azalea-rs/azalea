@@ -7,7 +7,7 @@ use azalea_core::{
     delta::LpVec3,
     game_type::{GameMode, OptionalGameType},
     position::{BlockPos, ChunkPos, Vec3},
-    resource_location::ResourceLocation,
+    resource_location::Identifier,
     tick::GameTick,
 };
 use azalea_entity::metadata::PlayerMetadataBundle;
@@ -76,9 +76,9 @@ impl Simulation {
             ConnectionProtocol::Configuration => {}
             ConnectionProtocol::Game => {
                 simulation.receive_packet(ClientboundRegistryData {
-                    registry_id: ResourceLocation::new("minecraft:dimension_type"),
+                    registry_id: Identifier::new("minecraft:dimension_type"),
                     entries: vec![(
-                        ResourceLocation::new("minecraft:overworld"),
+                        Identifier::new("minecraft:overworld"),
                         Some(NbtCompound::from_values(vec![
                             ("height".into(), NbtTag::Int(384)),
                             ("min_y".into(), NbtTag::Int(-64)),
@@ -302,13 +302,13 @@ fn tick_app(app: &mut App) {
 pub fn default_login_packet() -> ClientboundLogin {
     make_basic_login_packet(
         DimensionType::new_raw(0), // overworld
-        ResourceLocation::new("minecraft:overworld"),
+        Identifier::new("minecraft:overworld"),
     )
 }
 
 pub fn make_basic_login_packet(
     dimension_type: DimensionType,
-    dimension: ResourceLocation,
+    dimension: Identifier,
 ) -> ClientboundLogin {
     ClientboundLogin {
         player_id: MinecraftEntityId(0),
@@ -338,7 +338,7 @@ pub fn make_basic_login_packet(
 
 pub fn make_basic_respawn_packet(
     dimension_type: DimensionType,
-    dimension: ResourceLocation,
+    dimension: Identifier,
 ) -> ClientboundRespawn {
     ClientboundRespawn {
         common: CommonPlayerSpawnInfo {

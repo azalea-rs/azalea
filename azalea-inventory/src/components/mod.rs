@@ -16,7 +16,7 @@ use azalea_core::{
     filterable::Filterable,
     position::GlobalPos,
     registry_holder::{DamageTypeElement, RegistryHolder},
-    resource_location::ResourceLocation,
+    resource_location::Identifier,
     sound::CustomSound,
 };
 use azalea_registry::{
@@ -379,7 +379,7 @@ pub struct BlockStatePropertyMatcher {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct BlockPredicate {
     #[serde(skip_serializing_if = "is_default")]
-    pub blocks: Option<HolderSet<Block, ResourceLocation>>,
+    pub blocks: Option<HolderSet<Block, Identifier>>,
     #[serde(skip_serializing_if = "is_default")]
     pub properties: Option<Vec<BlockStatePropertyMatcher>>,
     #[serde(skip_serializing_if = "is_default")]
@@ -433,7 +433,7 @@ pub enum AttributeModifierOperation {
 // circular dependency)
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct AttributeModifier {
-    pub id: ResourceLocation,
+    pub id: Identifier,
     pub amount: f64,
     pub operation: AttributeModifierOperation,
 }
@@ -565,7 +565,7 @@ impl Food {
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct ToolRule {
-    pub blocks: HolderSet<Block, ResourceLocation>,
+    pub blocks: HolderSet<Block, Identifier>,
     #[serde(skip_serializing_if = "is_default")]
     pub speed: Option<f32>,
     #[serde(skip_serializing_if = "is_default")]
@@ -786,7 +786,7 @@ pub struct OminousBottleAmplifier {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct Recipes {
-    pub recipes: Vec<ResourceLocation>,
+    pub recipes: Vec<Identifier>,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -846,7 +846,7 @@ impl Default for Fireworks {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct NoteBlockSound {
-    pub sound: ResourceLocation,
+    pub sound: Identifier,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -937,7 +937,7 @@ pub struct ContainerLoot {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(untagged)]
 pub enum JukeboxPlayable {
-    Referenced(ResourceLocation),
+    Referenced(Identifier),
     Direct(Holder<registry::JukeboxSong, JukeboxSongData>),
 }
 
@@ -1013,7 +1013,7 @@ pub struct UseRemainder {
 pub struct UseCooldown {
     pub seconds: f32,
     #[serde(skip_serializing_if = "is_default")]
-    pub cooldown_group: Option<ResourceLocation>,
+    pub cooldown_group: Option<Identifier>,
 }
 
 impl UseCooldown {
@@ -1038,19 +1038,19 @@ pub struct Enchantable {
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct Repairable {
-    pub items: HolderSet<Item, ResourceLocation>,
+    pub items: HolderSet<Item, Identifier>,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct ItemModel {
-    pub resource_location: ResourceLocation,
+    pub resource_location: Identifier,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct DamageResistant {
     /// In vanilla this only allows tag keys, i.e. it must start with '#'
-    pub types: ResourceLocation,
+    pub types: Identifier,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -1059,11 +1059,11 @@ pub struct Equippable {
     #[serde(skip_serializing_if = "is_default_equip_sound")]
     pub equip_sound: SoundEvent,
     #[serde(skip_serializing_if = "is_default")]
-    pub asset_id: Option<ResourceLocation>,
+    pub asset_id: Option<Identifier>,
     #[serde(skip_serializing_if = "is_default")]
-    pub camera_overlay: Option<ResourceLocation>,
+    pub camera_overlay: Option<Identifier>,
     #[serde(skip_serializing_if = "is_default")]
-    pub allowed_entities: Option<HolderSet<EntityKind, ResourceLocation>>,
+    pub allowed_entities: Option<HolderSet<EntityKind, Identifier>>,
     #[serde(skip_serializing_if = "is_true")]
     pub dispensable: bool,
     #[serde(skip_serializing_if = "is_true")]
@@ -1126,7 +1126,7 @@ pub struct Glider;
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct TooltipStyle {
-    pub resource_location: ResourceLocation,
+    pub resource_location: Identifier,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -1275,7 +1275,7 @@ pub struct PaintingVariantData {
     pub width: i32,
     #[var]
     pub height: i32,
-    pub asset_id: ResourceLocation,
+    pub asset_id: Identifier,
     #[serde(skip_serializing_if = "is_default")]
     pub title: Option<FormattedText>,
     #[serde(skip_serializing_if = "is_default")]
@@ -1351,7 +1351,7 @@ pub struct BlocksAttacks {
     #[serde(skip_serializing_if = "is_default")]
     pub item_damage: ItemDamageFunction,
     #[serde(skip_serializing_if = "is_default")]
-    pub bypassed_by: Option<ResourceLocation>,
+    pub bypassed_by: Option<Identifier>,
     #[serde(skip_serializing_if = "is_default")]
     pub block_sound: Option<azalea_registry::Holder<SoundEvent, CustomSound>>,
     #[serde(skip_serializing_if = "is_default")]
@@ -1390,7 +1390,7 @@ pub struct DamageReduction {
     #[serde(skip_serializing_if = "is_default_horizontal_blocking_angle")]
     pub horizontal_blocking_angle: f32,
     #[serde(skip_serializing_if = "is_default")]
-    pub kind: Option<HolderSet<DamageKind, ResourceLocation>>,
+    pub kind: Option<HolderSet<DamageKind, Identifier>>,
     pub base: f32,
     pub factor: f32,
 }
@@ -1416,7 +1416,7 @@ impl Default for ItemDamageFunction {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(untagged)]
 pub enum ProvidesTrimMaterial {
-    Referenced(ResourceLocation),
+    Referenced(Identifier),
     Direct(Holder<TrimMaterial, DirectTrimMaterial>),
 }
 
@@ -1429,7 +1429,7 @@ pub struct DirectTrimMaterial {
 pub struct MaterialAssetGroup {
     pub base: AssetInfo,
     #[serde(skip_serializing_if = "is_default")]
-    pub overrides: Vec<(ResourceLocation, AssetInfo)>,
+    pub overrides: Vec<(Identifier, AssetInfo)>,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -1440,7 +1440,7 @@ pub struct AssetInfo {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct ProvidesBannerPatterns {
-    pub key: ResourceLocation,
+    pub key: Identifier,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -1464,7 +1464,7 @@ pub struct CowVariant {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(untagged)]
 pub enum ChickenVariant {
-    Referenced(ResourceLocation),
+    Referenced(Identifier),
     Direct(ChickenVariantData),
 }
 
@@ -1476,7 +1476,7 @@ pub struct ChickenVariantData {
 // TODO: check in-game if this is correct
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub enum ZombieNautilusVariant {
-    Referenced(ResourceLocation),
+    Referenced(Identifier),
     Direct(ZombieNautilusVariantData),
 }
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
