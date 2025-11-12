@@ -19,17 +19,6 @@ pub struct PositionDelta8 {
     pub za: i16,
 }
 
-impl PositionDelta8 {
-    #[deprecated = "Use Self::x, y, z instead"]
-    pub fn float(&self) -> (f64, f64, f64) {
-        (
-            (self.xa as f64) / 4096.0,
-            (self.ya as f64) / 4096.0,
-            (self.za as f64) / 4096.0,
-        )
-    }
-}
-
 impl PositionDeltaTrait for PositionDelta8 {
     fn x(&self) -> f64 {
         (self.xa as f64) / 4096.0

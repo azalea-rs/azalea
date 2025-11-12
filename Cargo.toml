@@ -107,6 +107,8 @@ azalea-registry-macros = { path = "azalea-registry/azalea-registry-macros", vers
 azalea-registry = { path = "azalea-registry", version = "0.14.0" }
 azalea-world = { path = "azalea-world", version = "0.14.0" }
 
+[workspace.lints.clippy]
+
 # --- Profile Settings ---
 
 [profile.release]

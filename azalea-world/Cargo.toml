@@ -30,3 +30,6 @@ serde = ["dep:serde"]
 [[bench]]
 name = "chunks"
 harness = false
+
+[lints]
+workspace = true

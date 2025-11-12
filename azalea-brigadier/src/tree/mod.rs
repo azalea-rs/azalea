@@ -305,9 +305,7 @@ impl<S> PartialEq for CommandNode<S> {
             Some(selfexecutes) => {
                 // idk how to do this better since we can't compare `dyn Fn`s
                 match &other.command {
-                    Some(otherexecutes) =>
-                    {
-                        #[allow(ambiguous_wide_pointer_comparisons)]
+                    Some(otherexecutes) => {
                         if !Arc::ptr_eq(selfexecutes, otherexecutes) {
                             return false;
                         }

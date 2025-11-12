@@ -129,7 +129,6 @@ pub struct MoveCtx<'world, 'state, 'a, 'b> {
 /// Move an entity by a given delta, checking for collisions.
 ///
 /// In Mojmap, this is `Entity.move`.
-#[allow(clippy::too_many_arguments)]
 pub fn move_colliding(ctx: &mut MoveCtx, mut movement: Vec3) {
     // TODO: do all these
 

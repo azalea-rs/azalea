@@ -224,7 +224,6 @@ pub struct DeviceCodeResponse {
     pub interval: u64,
 }
 
-#[allow(unused)]
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct AccessTokenResponse {
     pub token_type: String,
@@ -235,7 +234,6 @@ pub struct AccessTokenResponse {
     pub user_id: String,
 }
 
-#[allow(unused)]
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct XboxLiveAuthResponse {
@@ -252,7 +250,6 @@ pub struct XboxLiveAuth {
     pub user_hash: String,
 }
 
-#[allow(unused)]
 #[derive(Debug, Deserialize, Serialize)]
 pub struct MinecraftAuthResponse {
     pub username: String,
@@ -270,7 +267,6 @@ pub struct GameOwnershipResponse {
     pub key_id: String,
 }
 
-#[allow(unused)]
 #[derive(Debug, Deserialize)]
 pub struct GameOwnershipItem {
     pub name: String,

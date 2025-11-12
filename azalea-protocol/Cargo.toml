@@ -47,3 +47,6 @@ indexmap.workspace = true
 connecting = []
 default = ["packets"]
 packets = ["connecting", "dep:azalea-core"]
+
+[lints]
+workspace = true

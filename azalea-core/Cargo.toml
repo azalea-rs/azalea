@@ -24,3 +24,6 @@ uuid.workspace = true
 [features]
 bevy_ecs = ["dep:bevy_ecs"]
 strict_registry = []
+
+[lints]
+workspace = true
