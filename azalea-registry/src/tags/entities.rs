@@ -5,9 +5,9 @@ use std::{collections::HashSet, sync::LazyLock};
 use crate::EntityKind;
 
 pub static ACCEPTS_IRON_GOLEM_GIFT: LazyLock<HashSet<EntityKind>> =
-    LazyLock::new(|| HashSet::from_iter(vec![EntityKind::CopperGolem]));
+    LazyLock::new(|| HashSet::from_iter([EntityKind::CopperGolem]));
 pub static AQUATIC: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         EntityKind::Turtle,
         EntityKind::Axolotl,
         EntityKind::Guardian,
@@ -25,9 +25,9 @@ pub static AQUATIC: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
     ])
 });
 pub static ARROWS: LazyLock<HashSet<EntityKind>> =
-    LazyLock::new(|| HashSet::from_iter(vec![EntityKind::Arrow, EntityKind::SpectralArrow]));
+    LazyLock::new(|| HashSet::from_iter([EntityKind::Arrow, EntityKind::SpectralArrow]));
 pub static ARTHROPOD: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         EntityKind::Bee,
         EntityKind::Endermite,
         EntityKind::Silverfish,
@@ -36,14 +36,14 @@ pub static ARTHROPOD: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
     ])
 });
 pub static AXOLOTL_ALWAYS_HOSTILES: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         EntityKind::Drowned,
         EntityKind::Guardian,
         EntityKind::ElderGuardian,
     ])
 });
 pub static AXOLOTL_HUNT_TARGETS: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         EntityKind::TropicalFish,
         EntityKind::Pufferfish,
         EntityKind::Salmon,
@@ -54,9 +54,9 @@ pub static AXOLOTL_HUNT_TARGETS: LazyLock<HashSet<EntityKind>> = LazyLock::new(|
     ])
 });
 pub static BEEHIVE_INHABITORS: LazyLock<HashSet<EntityKind>> =
-    LazyLock::new(|| HashSet::from_iter(vec![EntityKind::Bee]));
+    LazyLock::new(|| HashSet::from_iter([EntityKind::Bee]));
 pub static BOAT: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         EntityKind::OakBoat,
         EntityKind::SpruceBoat,
         EntityKind::BirchBoat,
@@ -70,7 +70,7 @@ pub static BOAT: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
     ])
 });
 pub static BURN_IN_DAYLIGHT: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         EntityKind::Skeleton,
         EntityKind::Stray,
         EntityKind::WitherSkeleton,
@@ -84,7 +84,7 @@ pub static BURN_IN_DAYLIGHT: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
     ])
 });
 pub static CAN_BREATHE_UNDER_WATER: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         EntityKind::Axolotl,
         EntityKind::Frog,
         EntityKind::Guardian,
@@ -120,9 +120,9 @@ pub static CAN_BREATHE_UNDER_WATER: LazyLock<HashSet<EntityKind>> = LazyLock::ne
     ])
 });
 pub static CAN_EQUIP_HARNESS: LazyLock<HashSet<EntityKind>> =
-    LazyLock::new(|| HashSet::from_iter(vec![EntityKind::HappyGhast]));
+    LazyLock::new(|| HashSet::from_iter([EntityKind::HappyGhast]));
 pub static CAN_EQUIP_SADDLE: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         EntityKind::Horse,
         EntityKind::SkeletonHorse,
         EntityKind::ZombieHorse,
@@ -137,7 +137,7 @@ pub static CAN_EQUIP_SADDLE: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
     ])
 });
 pub static CAN_FLOAT_WHILE_RIDDEN: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         EntityKind::Horse,
         EntityKind::ZombieHorse,
         EntityKind::Mule,
@@ -146,15 +146,15 @@ pub static CAN_FLOAT_WHILE_RIDDEN: LazyLock<HashSet<EntityKind>> = LazyLock::new
     ])
 });
 pub static CAN_TURN_IN_BOATS: LazyLock<HashSet<EntityKind>> =
-    LazyLock::new(|| HashSet::from_iter(vec![EntityKind::Breeze]));
+    LazyLock::new(|| HashSet::from_iter([EntityKind::Breeze]));
 pub static CAN_WEAR_HORSE_ARMOR: LazyLock<HashSet<EntityKind>> =
-    LazyLock::new(|| HashSet::from_iter(vec![EntityKind::Horse, EntityKind::ZombieHorse]));
+    LazyLock::new(|| HashSet::from_iter([EntityKind::Horse, EntityKind::ZombieHorse]));
 pub static CAN_WEAR_NAUTILUS_ARMOR: LazyLock<HashSet<EntityKind>> =
-    LazyLock::new(|| HashSet::from_iter(vec![EntityKind::Nautilus, EntityKind::ZombieNautilus]));
+    LazyLock::new(|| HashSet::from_iter([EntityKind::Nautilus, EntityKind::ZombieNautilus]));
 pub static CANDIDATE_FOR_IRON_GOLEM_GIFT: LazyLock<HashSet<EntityKind>> =
-    LazyLock::new(|| HashSet::from_iter(vec![EntityKind::Villager, EntityKind::CopperGolem]));
+    LazyLock::new(|| HashSet::from_iter([EntityKind::Villager, EntityKind::CopperGolem]));
 pub static CANNOT_BE_PUSHED_ONTO_BOATS: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         EntityKind::Player,
         EntityKind::ElderGuardian,
         EntityKind::Cod,
@@ -171,9 +171,9 @@ pub static CANNOT_BE_PUSHED_ONTO_BOATS: LazyLock<HashSet<EntityKind>> = LazyLock
     ])
 });
 pub static DEFLECTS_PROJECTILES: LazyLock<HashSet<EntityKind>> =
-    LazyLock::new(|| HashSet::from_iter(vec![EntityKind::Breeze]));
+    LazyLock::new(|| HashSet::from_iter([EntityKind::Breeze]));
 pub static DISMOUNTS_UNDERWATER: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         EntityKind::Camel,
         EntityKind::Chicken,
         EntityKind::Donkey,
@@ -190,7 +190,7 @@ pub static DISMOUNTS_UNDERWATER: LazyLock<HashSet<EntityKind>> = LazyLock::new(|
     ])
 });
 pub static FALL_DAMAGE_IMMUNE: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         EntityKind::CopperGolem,
         EntityKind::IronGolem,
         EntityKind::SnowGolem,
@@ -212,7 +212,7 @@ pub static FALL_DAMAGE_IMMUNE: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| 
     ])
 });
 pub static FOLLOWABLE_FRIENDLY_MOBS: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         EntityKind::Armadillo,
         EntityKind::Bee,
         EntityKind::Camel,
@@ -241,14 +241,14 @@ pub static FOLLOWABLE_FRIENDLY_MOBS: LazyLock<HashSet<EntityKind>> = LazyLock::n
     ])
 });
 pub static FREEZE_HURTS_EXTRA_TYPES: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         EntityKind::Strider,
         EntityKind::Blaze,
         EntityKind::MagmaCube,
     ])
 });
 pub static FREEZE_IMMUNE_ENTITY_TYPES: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         EntityKind::Stray,
         EntityKind::PolarBear,
         EntityKind::SnowGolem,
@@ -256,9 +256,9 @@ pub static FREEZE_IMMUNE_ENTITY_TYPES: LazyLock<HashSet<EntityKind>> = LazyLock:
     ])
 });
 pub static FROG_FOOD: LazyLock<HashSet<EntityKind>> =
-    LazyLock::new(|| HashSet::from_iter(vec![EntityKind::Slime, EntityKind::MagmaCube]));
+    LazyLock::new(|| HashSet::from_iter([EntityKind::Slime, EntityKind::MagmaCube]));
 pub static IGNORES_POISON_AND_REGEN: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         EntityKind::Wither,
         EntityKind::Phantom,
         EntityKind::Skeleton,
@@ -279,7 +279,7 @@ pub static IGNORES_POISON_AND_REGEN: LazyLock<HashSet<EntityKind>> = LazyLock::n
     ])
 });
 pub static ILLAGER: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         EntityKind::Evoker,
         EntityKind::Illusioner,
         EntityKind::Pillager,
@@ -287,7 +287,7 @@ pub static ILLAGER: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
     ])
 });
 pub static ILLAGER_FRIENDS: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         EntityKind::Evoker,
         EntityKind::Illusioner,
         EntityKind::Pillager,
@@ -295,11 +295,11 @@ pub static ILLAGER_FRIENDS: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
     ])
 });
 pub static IMMUNE_TO_INFESTED: LazyLock<HashSet<EntityKind>> =
-    LazyLock::new(|| HashSet::from_iter(vec![EntityKind::Silverfish]));
+    LazyLock::new(|| HashSet::from_iter([EntityKind::Silverfish]));
 pub static IMMUNE_TO_OOZING: LazyLock<HashSet<EntityKind>> =
-    LazyLock::new(|| HashSet::from_iter(vec![EntityKind::Slime]));
+    LazyLock::new(|| HashSet::from_iter([EntityKind::Slime]));
 pub static IMPACT_PROJECTILES: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         EntityKind::FireworkRocket,
         EntityKind::Snowball,
         EntityKind::Fireball,
@@ -315,7 +315,7 @@ pub static IMPACT_PROJECTILES: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| 
     ])
 });
 pub static INVERTED_HEALING_AND_HARM: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         EntityKind::Wither,
         EntityKind::Phantom,
         EntityKind::Skeleton,
@@ -336,9 +336,9 @@ pub static INVERTED_HEALING_AND_HARM: LazyLock<HashSet<EntityKind>> = LazyLock::
     ])
 });
 pub static NAUTILUS_HOSTILES: LazyLock<HashSet<EntityKind>> =
-    LazyLock::new(|| HashSet::from_iter(vec![EntityKind::Pufferfish]));
+    LazyLock::new(|| HashSet::from_iter([EntityKind::Pufferfish]));
 pub static NO_ANGER_FROM_WIND_CHARGE: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         EntityKind::Breeze,
         EntityKind::Skeleton,
         EntityKind::Bogged,
@@ -351,9 +351,9 @@ pub static NO_ANGER_FROM_WIND_CHARGE: LazyLock<HashSet<EntityKind>> = LazyLock::
     ])
 });
 pub static NON_CONTROLLING_RIDER: LazyLock<HashSet<EntityKind>> =
-    LazyLock::new(|| HashSet::from_iter(vec![EntityKind::Slime, EntityKind::MagmaCube]));
+    LazyLock::new(|| HashSet::from_iter([EntityKind::Slime, EntityKind::MagmaCube]));
 pub static NOT_SCARY_FOR_PUFFERFISH: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         EntityKind::Turtle,
         EntityKind::Guardian,
         EntityKind::ElderGuardian,
@@ -370,7 +370,7 @@ pub static NOT_SCARY_FOR_PUFFERFISH: LazyLock<HashSet<EntityKind>> = LazyLock::n
     ])
 });
 pub static POWDER_SNOW_WALKABLE_MOBS: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         EntityKind::Rabbit,
         EntityKind::Endermite,
         EntityKind::Silverfish,
@@ -378,7 +378,7 @@ pub static POWDER_SNOW_WALKABLE_MOBS: LazyLock<HashSet<EntityKind>> = LazyLock::
     ])
 });
 pub static RAIDERS: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         EntityKind::Evoker,
         EntityKind::Pillager,
         EntityKind::Ravager,
@@ -388,14 +388,14 @@ pub static RAIDERS: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
     ])
 });
 pub static REDIRECTABLE_PROJECTILE: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         EntityKind::Fireball,
         EntityKind::WindCharge,
         EntityKind::BreezeWindCharge,
     ])
 });
 pub static SENSITIVE_TO_BANE_OF_ARTHROPODS: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         EntityKind::Bee,
         EntityKind::Endermite,
         EntityKind::Silverfish,
@@ -404,7 +404,7 @@ pub static SENSITIVE_TO_BANE_OF_ARTHROPODS: LazyLock<HashSet<EntityKind>> = Lazy
     ])
 });
 pub static SENSITIVE_TO_IMPALING: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         EntityKind::Turtle,
         EntityKind::Axolotl,
         EntityKind::Guardian,
@@ -422,7 +422,7 @@ pub static SENSITIVE_TO_IMPALING: LazyLock<HashSet<EntityKind>> = LazyLock::new(
     ])
 });
 pub static SENSITIVE_TO_SMITE: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         EntityKind::Wither,
         EntityKind::Phantom,
         EntityKind::Skeleton,
@@ -443,7 +443,7 @@ pub static SENSITIVE_TO_SMITE: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| 
     ])
 });
 pub static SKELETONS: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         EntityKind::Skeleton,
         EntityKind::Stray,
         EntityKind::WitherSkeleton,
@@ -453,7 +453,7 @@ pub static SKELETONS: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
     ])
 });
 pub static UNDEAD: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         EntityKind::Wither,
         EntityKind::Phantom,
         EntityKind::Skeleton,
@@ -474,7 +474,7 @@ pub static UNDEAD: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
     ])
 });
 pub static WITHER_FRIENDS: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         EntityKind::Wither,
         EntityKind::Phantom,
         EntityKind::Skeleton,
@@ -495,7 +495,7 @@ pub static WITHER_FRIENDS: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
     ])
 });
 pub static ZOMBIES: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
+    HashSet::from_iter([
         EntityKind::ZombieHorse,
         EntityKind::CamelHusk,
         EntityKind::Zombie,

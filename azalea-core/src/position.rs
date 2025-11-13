@@ -21,6 +21,13 @@ use crate::{codec_utils::IntArray, direction::Direction, math, resource_location
 macro_rules! vec3_impl {
     ($name:ident, $type:ty) => {
         impl $name {
+            /// The position where x, y, and z are all 0.
+            pub const ZERO: Self = Self {
+                x: 0 as $type,
+                y: 0 as $type,
+                z: 0 as $type,
+            };
+
             #[inline]
             pub const fn new(x: $type, y: $type, z: $type) -> Self {
                 Self { x, y, z }
@@ -306,8 +313,6 @@ pub struct Vec3 {
 vec3_impl!(Vec3, f64);
 
 impl Vec3 {
-    pub const ZERO: Vec3 = Vec3::new(0.0, 0.0, 0.0);
-
     /// Get the distance of this vector to the origin by doing
     /// `sqrt(x^2 + y^2 + z^2)`.
     pub fn length(&self) -> f64 {
@@ -470,8 +475,10 @@ impl<'de> serde::Deserialize<'de> for BlockPos {
     }
 }
 
-/// Similar to [`BlockPos`] but it's serialized as 3 varints instead of one
-/// 64-bit integer, so it can represent a bigger range of numbers.
+/// An arbitrary position that's represented as 32-bit integers.
+///
+/// This is similar to [`BlockPos`], but isn't limited to representing block
+/// positions and can represent a larger range of numbers.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, AzBuf)]
 pub struct Vec3i {
     #[var]
@@ -481,6 +488,7 @@ pub struct Vec3i {
     #[var]
     pub z: i32,
 }
+vec3_impl!(Vec3i, i32);
 
 /// Chunk coordinates are used to represent where a chunk is in the world.
 ///

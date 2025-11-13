@@ -20,3 +20,6 @@ bevy_app.workspace = true
 bevy_ecs.workspace = true
 tracing.workspace = true
 parking_lot.workspace = true
+
+[lints]
+workspace = true

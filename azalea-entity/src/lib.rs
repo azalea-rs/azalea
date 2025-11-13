@@ -31,6 +31,7 @@ use azalea_world::{ChunkStorage, InstanceName};
 use bevy_ecs::{bundle::Bundle, component::Component};
 pub use data::*;
 use derive_more::{Deref, DerefMut};
+pub use effects::{ActiveEffects, MobEffectData};
 use plugin::indexing::EntityChunkPos;
 use uuid::Uuid;
 use vec_delta_codec::VecDeltaCodec;
@@ -487,6 +488,7 @@ pub struct EntityBundle {
     pub crouching: Crouching,
     pub fluid_on_eyes: FluidOnEyes,
     pub on_climbable: OnClimbable,
+    pub active_effects: ActiveEffects,
 }
 
 impl EntityBundle {
@@ -515,6 +517,7 @@ impl EntityBundle {
             crouching: Crouching(false),
             fluid_on_eyes: FluidOnEyes(FluidKind::Empty),
             on_climbable: OnClimbable(false),
+            active_effects: ActiveEffects::default(),
         }
     }
 }

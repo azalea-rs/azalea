@@ -4,7 +4,7 @@ use azalea_core::{
     direction::{Axis, AxisCycle, Direction},
     hit_result::BlockHitResult,
     math::{EPSILON, binary_search},
-    position::{BlockPos, Vec3},
+    position::{BlockPos, Vec3, Vec3i},
 };
 
 use super::mergers::IndexMerger;
@@ -56,12 +56,16 @@ pub fn box_shape(
         x_bits,
         y_bits,
         z_bits,
-        (min_x * x_bits as f64).round() as i32,
-        (min_y * y_bits as f64).round() as i32,
-        (min_z * z_bits as f64).round() as i32,
-        (max_x * x_bits as f64).round() as i32,
-        (max_y * y_bits as f64).round() as i32,
-        (max_z * z_bits as f64).round() as i32,
+        Vec3i {
+            x: (min_x * x_bits as f64).round() as i32,
+            y: (min_y * y_bits as f64).round() as i32,
+            z: (min_z * z_bits as f64).round() as i32,
+        },
+        Vec3i {
+            x: (max_x * x_bits as f64).round() as i32,
+            y: (max_y * y_bits as f64).round() as i32,
+            z: (max_z * z_bits as f64).round() as i32,
+        },
     );
     VoxelShape::Cube(CubeVoxelShape::new(DiscreteVoxelShape::BitSet(shape)))
 }
@@ -262,12 +266,12 @@ impl Shapes {
         shape2: DiscreteVoxelShape,
         op: impl Fn(bool, bool) -> bool,
     ) -> bool {
-        !merged_x.for_merged_indexes(|var5x, var6, _var7| {
-            merged_y.for_merged_indexes(|var6x, var7x, _var8| {
-                merged_z.for_merged_indexes(|var7, var8x, _var9| {
+        !merged_x.for_merged_indexes(|x, x2, _x3| {
+            merged_y.for_merged_indexes(|y, y2, _y3| {
+                merged_z.for_merged_indexes(|z, z2, _z3| {
                     !op(
-                        shape1.is_full_wide(var5x, var6x, var7),
-                        shape2.is_full_wide(var6, var7x, var8x),
+                        shape1.is_full_wide(Vec3i::new(x, y, z)),
+                        shape2.is_full_wide(Vec3i::new(x2, y2, z2)),
                     )
                 })
             })
@@ -418,11 +422,11 @@ impl VoxelShape {
         }
         let right_after_start = from + (vector * 0.001);
 
-        if self.shape().is_full_wide(
+        if self.shape().is_full_wide(Vec3i::new(
             self.find_index(Axis::X, right_after_start.x - block_pos.x as f64),
             self.find_index(Axis::Y, right_after_start.y - block_pos.y as f64),
             self.find_index(Axis::Z, right_after_start.z - block_pos.z as f64),
-        ) {
+        )) {
             Some(BlockHitResult {
                 block_pos,
                 direction: Direction::nearest(vector).opposite(),
@@ -483,7 +487,7 @@ impl VoxelShape {
                     for z in z_min_index..z_max_index {
                         if self
                             .shape()
-                            .is_full_wide_axis_cycle(inverse_axis_cycle, x, y, z)
+                            .is_full_wide_axis_cycle(inverse_axis_cycle, Vec3i { x, y, z })
                         {
                             let var23 = self.get(x_axis, x as usize) - max_x;
                             if var23 >= -EPSILON {
@@ -500,7 +504,7 @@ impl VoxelShape {
                     for z in z_min_index..z_max_index {
                         if self
                             .shape()
-                            .is_full_wide_axis_cycle(inverse_axis_cycle, x, y, z)
+                            .is_full_wide_axis_cycle(inverse_axis_cycle, Vec3i { x, y, z })
                         {
                             let var23 = self.get(x_axis, (x + 1) as usize) - min_x;
                             if var23 <= EPSILON {

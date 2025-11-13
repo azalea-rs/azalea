@@ -5,6 +5,6 @@ use std::{collections::HashSet, sync::LazyLock};
 use crate::Fluid;
 
 pub static LAVA: LazyLock<HashSet<Fluid>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Fluid::Lava, Fluid::FlowingLava]));
+    LazyLock::new(|| HashSet::from_iter([Fluid::Lava, Fluid::FlowingLava]));
 pub static WATER: LazyLock<HashSet<Fluid>> =
-    LazyLock::new(|| HashSet::from_iter(vec![Fluid::Water, Fluid::FlowingWater]));
+    LazyLock::new(|| HashSet::from_iter([Fluid::Water, Fluid::FlowingWater]));

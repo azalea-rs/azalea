@@ -68,3 +68,6 @@ harness = false
 [[bench]]
 name = "checks"
 harness = false
+
+[lints]
+workspace = true

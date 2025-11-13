@@ -1,5 +1,3 @@
-use std::{backtrace::Backtrace, io};
-
 use azalea_core::{
     game_type::GameMode,
     position::{Vec2, Vec3},
@@ -32,34 +30,15 @@ use azalea_protocol::{
     },
 };
 use azalea_registry::EntityKind;
-use azalea_world::{Instance, MinecraftEntityId, MoveEntityError};
+use azalea_world::{Instance, MinecraftEntityId};
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
-use thiserror::Error;
 
 use crate::{
     client::Client,
     local_player::{Hunger, InstanceHolder, LocalGameMode},
     packet::game::SendGamePacketEvent,
 };
-
-#[derive(Error, Debug)]
-pub enum MovePlayerError {
-    #[error("Player is not in world")]
-    PlayerNotInWorld(Backtrace),
-    #[error("{0}")]
-    Io(#[from] io::Error),
-}
-
-impl From<MoveEntityError> for MovePlayerError {
-    fn from(err: MoveEntityError) -> Self {
-        match err {
-            MoveEntityError::EntityDoesNotExist(backtrace) => {
-                MovePlayerError::PlayerNotInWorld(backtrace)
-            }
-        }
-    }
-}
 
 pub struct MovementPlugin;
 
