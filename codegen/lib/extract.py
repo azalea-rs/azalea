@@ -254,16 +254,16 @@ def get_packet_list(version_id: str):
     packet_list = []
     for state, state_value in packets_report.items():
         for direction, direction_value in state_value.items():
-            for packet_resourcelocation, packet_value in direction_value.items():
-                assert packet_resourcelocation.startswith("minecraft:")
-                packet_resourcelocation = upper_first_letter(
-                    to_camel_case(packet_resourcelocation[len("minecraft:") :])
+            for packet_identifier, packet_value in direction_value.items():
+                assert packet_identifier.startswith("minecraft:")
+                packet_identifier = upper_first_letter(
+                    to_camel_case(packet_identifier[len("minecraft:") :])
                 )
                 packet_list.append(
                     {
                         "state": state,
                         "direction": direction,
-                        "name": packet_resourcelocation,
+                        "name": packet_identifier,
                         "id": packet_value["protocol_id"],
                     }
                 )

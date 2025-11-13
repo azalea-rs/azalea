@@ -88,22 +88,20 @@ impl<D: Registry, C: AzaleaRead + AzaleaWrite> AzaleaWrite for CustomRegistry<D,
 }
 
 #[derive(Clone, PartialEq)]
-pub enum HolderSet<D: Registry, ResourceLocation: AzaleaRead + AzaleaWrite> {
+pub enum HolderSet<D: Registry, Identifier: AzaleaRead + AzaleaWrite> {
     Direct {
         contents: Vec<D>,
     },
     Named {
-        key: ResourceLocation,
-        contents: Vec<ResourceLocation>,
+        key: Identifier,
+        contents: Vec<Identifier>,
     },
 }
-impl<D: Registry, ResourceLocation: AzaleaRead + AzaleaWrite> AzaleaRead
-    for HolderSet<D, ResourceLocation>
-{
+impl<D: Registry, Identifier: AzaleaRead + AzaleaWrite> AzaleaRead for HolderSet<D, Identifier> {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let size = i32::azalea_read_var(buf)? - 1;
         if size == -1 {
-            let key = ResourceLocation::azalea_read(buf)?;
+            let key = Identifier::azalea_read(buf)?;
             Ok(Self::Named {
                 key,
                 contents: Vec::new(),
@@ -117,9 +115,7 @@ impl<D: Registry, ResourceLocation: AzaleaRead + AzaleaWrite> AzaleaRead
         }
     }
 }
-impl<D: Registry, ResourceLocation: AzaleaRead + AzaleaWrite> AzaleaWrite
-    for HolderSet<D, ResourceLocation>
-{
+impl<D: Registry, Identifier: AzaleaRead + AzaleaWrite> AzaleaWrite for HolderSet<D, Identifier> {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         match self {
             Self::Direct { contents } => {
@@ -136,8 +132,8 @@ impl<D: Registry, ResourceLocation: AzaleaRead + AzaleaWrite> AzaleaWrite
         Ok(())
     }
 }
-impl<D: Registry + Debug, ResourceLocation: AzaleaRead + AzaleaWrite + Debug> Debug
-    for HolderSet<D, ResourceLocation>
+impl<D: Registry + Debug, Identifier: AzaleaRead + AzaleaWrite + Debug> Debug
+    for HolderSet<D, Identifier>
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
@@ -150,16 +146,14 @@ impl<D: Registry + Debug, ResourceLocation: AzaleaRead + AzaleaWrite + Debug> De
         }
     }
 }
-impl<D: Registry, ResourceLocation: AzaleaRead + AzaleaWrite> From<Vec<D>>
-    for HolderSet<D, ResourceLocation>
-{
+impl<D: Registry, Identifier: AzaleaRead + AzaleaWrite> From<Vec<D>> for HolderSet<D, Identifier> {
     fn from(contents: Vec<D>) -> Self {
         Self::Direct { contents }
     }
 }
 #[cfg(feature = "serde")]
-impl<D: Registry + Serialize, ResourceLocation: AzaleaRead + AzaleaWrite + Serialize> Serialize
-    for HolderSet<D, ResourceLocation>
+impl<D: Registry + Serialize, Identifier: AzaleaRead + AzaleaWrite + Serialize> Serialize
+    for HolderSet<D, Identifier>
 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -177,9 +171,7 @@ impl<D: Registry + Serialize, ResourceLocation: AzaleaRead + AzaleaWrite + Seria
         }
     }
 }
-impl<D: Registry, ResourceLocation: AzaleaRead + AzaleaWrite> Default
-    for HolderSet<D, ResourceLocation>
-{
+impl<D: Registry, Identifier: AzaleaRead + AzaleaWrite> Default for HolderSet<D, Identifier> {
     fn default() -> Self {
         Self::Direct {
             contents: Vec::new(),
@@ -188,7 +180,7 @@ impl<D: Registry, ResourceLocation: AzaleaRead + AzaleaWrite> Default
 }
 
 /// A reference to either a registry or a custom value (usually something with a
-/// ResourceLocation).
+/// Identifier).
 pub enum Holder<R: Registry, Direct: AzaleaRead + AzaleaWrite> {
     Reference(R),
     Direct(Direct),
@@ -1646,7 +1638,7 @@ enum CommandArgumentKind {
     Team => "minecraft:team",
     ItemSlot => "minecraft:item_slot",
     ItemSlots => "minecraft:item_slots",
-    ResourceLocation => "minecraft:resource_location",
+    Identifier => "minecraft:resource_location",
     Function => "minecraft:function",
     EntityAnchor => "minecraft:entity_anchor",
     IntRange => "minecraft:int_range",

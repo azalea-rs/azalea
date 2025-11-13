@@ -4,7 +4,7 @@ use azalea_client::{
     packet::{config::SendConfigPacketEvent, game::SendGamePacketEvent},
     test_utils::prelude::*,
 };
-use azalea_core::resource_location::ResourceLocation;
+use azalea_core::identifier::Identifier;
 use azalea_protocol::packets::{
     ConnectionProtocol,
     config::{
@@ -42,9 +42,9 @@ fn reply_to_ping_with_pong() {
     // move into game state and test ClientboundPing there
 
     simulation.receive_packet(ClientboundRegistryData {
-        registry_id: ResourceLocation::new("minecraft:dimension_type"),
+        registry_id: Identifier::new("minecraft:dimension_type"),
         entries: vec![(
-            ResourceLocation::new("minecraft:overworld"),
+            Identifier::new("minecraft:overworld"),
             Some(NbtCompound::from_values(vec![
                 ("height".into(), NbtTag::Int(384)),
                 ("min_y".into(), NbtTag::Int(-64)),

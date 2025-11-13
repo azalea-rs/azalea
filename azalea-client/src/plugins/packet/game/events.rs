@@ -1,7 +1,7 @@
 use std::sync::{Arc, Weak};
 
 use azalea_chat::FormattedText;
-use azalea_core::resource_location::ResourceLocation;
+use azalea_core::identifier::Identifier;
 use azalea_protocol::packets::{
     Packet,
     game::{ClientboundGamePacket, ClientboundPlayerCombatKill, ServerboundGamePacket},
@@ -145,7 +145,7 @@ pub struct ResourcePackEvent {
 #[derive(Message, Debug, Clone)]
 pub struct InstanceLoadedEvent {
     pub entity: Entity,
-    pub name: ResourceLocation,
+    pub name: Identifier,
     pub instance: Weak<RwLock<Instance>>,
 }
 

@@ -3,7 +3,7 @@
 use std::collections::{HashMap, hash_map};
 
 use azalea_buf::AzBuf;
-use azalea_core::resource_location::ResourceLocation;
+use azalea_core::identifier::Identifier;
 use bevy_ecs::component::Component;
 use thiserror::Error;
 
@@ -23,7 +23,7 @@ pub struct Attributes {
 #[derive(Clone, Debug)]
 pub struct AttributeInstance {
     pub base: f64,
-    modifiers_by_id: HashMap<ResourceLocation, AttributeModifier>,
+    modifiers_by_id: HashMap<Identifier, AttributeModifier>,
     // TODO: add cache
 }
 
@@ -73,14 +73,14 @@ impl AttributeInstance {
 
     /// Remove the modifier with the given ID from this attribute, returning
     /// the previous modifier is present.
-    pub fn remove(&mut self, id: &ResourceLocation) -> Option<AttributeModifier> {
+    pub fn remove(&mut self, id: &Identifier) -> Option<AttributeModifier> {
         self.modifiers_by_id.remove(id)
     }
 }
 
 #[derive(Clone, Debug, AzBuf, PartialEq)]
 pub struct AttributeModifier {
-    pub id: ResourceLocation,
+    pub id: Identifier,
     pub amount: f64,
     pub operation: AttributeModifierOperation,
 }
@@ -94,21 +94,21 @@ pub enum AttributeModifierOperation {
 
 pub fn sprinting_modifier() -> AttributeModifier {
     AttributeModifier {
-        id: ResourceLocation::new("sprinting"),
+        id: Identifier::new("sprinting"),
         amount: 0.3f32 as f64,
         operation: AttributeModifierOperation::AddMultipliedTotal,
     }
 }
 pub fn base_attack_speed_modifier(amount: f64) -> AttributeModifier {
     AttributeModifier {
-        id: ResourceLocation::new("base_attack_speed"),
+        id: Identifier::new("base_attack_speed"),
         amount,
         operation: AttributeModifierOperation::AddValue,
     }
 }
 pub fn creative_block_interaction_range_modifier() -> AttributeModifier {
     AttributeModifier {
-        id: ResourceLocation::new("creative_mode_block_range"),
+        id: Identifier::new("creative_mode_block_range"),
         amount: 0.5,
         operation: AttributeModifierOperation::AddValue,
     }
@@ -116,7 +116,7 @@ pub fn creative_block_interaction_range_modifier() -> AttributeModifier {
 
 pub fn creative_entity_interaction_range_modifier() -> AttributeModifier {
     AttributeModifier {
-        id: ResourceLocation::new("creative_mode_entity_range"),
+        id: Identifier::new("creative_mode_entity_range"),
         amount: 2.0,
         operation: AttributeModifierOperation::AddValue,
     }

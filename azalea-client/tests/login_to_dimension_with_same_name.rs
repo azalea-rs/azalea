@@ -1,7 +1,7 @@
 use azalea_client::{
     InConfigState, InGameState, local_player::InstanceHolder, test_utils::prelude::*,
 };
-use azalea_core::{position::ChunkPos, resource_location::ResourceLocation};
+use azalea_core::{identifier::Identifier, position::ChunkPos};
 use azalea_entity::LocalEntity;
 use azalea_protocol::packets::{
     ConnectionProtocol, Packet,
@@ -22,11 +22,11 @@ fn test_login_to_dimension_with_same_name() {
 
 fn generic_test_login_to_dimension_with_same_name(using_respawn: bool) {
     let make_basic_login_or_respawn_packet = if using_respawn {
-        |dimension: DimensionType, instance_name: ResourceLocation| {
+        |dimension: DimensionType, instance_name: Identifier| {
             make_basic_respawn_packet(dimension, instance_name).into_variant()
         }
     } else {
-        |dimension: DimensionType, instance_name: ResourceLocation| {
+        |dimension: DimensionType, instance_name: Identifier| {
             make_basic_login_packet(dimension, instance_name).into_variant()
         }
     };
@@ -36,9 +36,9 @@ fn generic_test_login_to_dimension_with_same_name(using_respawn: bool) {
     assert!(!simulation.has_component::<InGameState>());
 
     simulation.receive_packet(ClientboundRegistryData {
-        registry_id: ResourceLocation::new("minecraft:dimension_type"),
+        registry_id: Identifier::new("minecraft:dimension_type"),
         entries: vec![(
-            ResourceLocation::new("minecraft:overworld"),
+            Identifier::new("minecraft:overworld"),
             Some(NbtCompound::from_values(vec![
                 ("height".into(), NbtTag::Int(384)),
                 ("min_y".into(), NbtTag::Int(-64)),
@@ -61,13 +61,13 @@ fn generic_test_login_to_dimension_with_same_name(using_respawn: bool) {
 
     simulation.receive_packet(make_basic_login_packet(
         DimensionType::new_raw(0), // overworld
-        ResourceLocation::new("azalea:overworld"),
+        Identifier::new("azalea:overworld"),
     ));
     simulation.tick();
 
     assert_eq!(
         *simulation.component::<InstanceName>(),
-        ResourceLocation::new("azalea:overworld"),
+        Identifier::new("azalea:overworld"),
         "InstanceName should be azalea:overworld after setting dimension to that"
     );
 
@@ -84,9 +84,9 @@ fn generic_test_login_to_dimension_with_same_name(using_respawn: bool) {
 
     simulation.receive_packet(ClientboundStartConfiguration);
     simulation.receive_packet(ClientboundRegistryData {
-        registry_id: ResourceLocation::new("minecraft:dimension_type"),
+        registry_id: Identifier::new("minecraft:dimension_type"),
         entries: vec![(
-            ResourceLocation::new("minecraft:overworld"),
+            Identifier::new("minecraft:overworld"),
             Some(NbtCompound::from_values(vec![
                 ("height".into(), NbtTag::Int(256)),
                 ("min_y".into(), NbtTag::Int(0)),
@@ -98,7 +98,7 @@ fn generic_test_login_to_dimension_with_same_name(using_respawn: bool) {
     simulation.receive_packet(ClientboundFinishConfiguration);
     simulation.receive_packet(make_basic_login_or_respawn_packet(
         DimensionType::new_raw(0),
-        ResourceLocation::new("azalea:overworld"),
+        Identifier::new("azalea:overworld"),
     ));
     simulation.tick();
 
@@ -108,7 +108,7 @@ fn generic_test_login_to_dimension_with_same_name(using_respawn: bool) {
     );
     assert_eq!(
         *simulation.component::<InstanceName>(),
-        ResourceLocation::new("azalea:overworld"),
+        Identifier::new("azalea:overworld"),
         "InstanceName should still be azalea:overworld after changing dimensions to that"
     );
     assert_eq!(

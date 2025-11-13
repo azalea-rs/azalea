@@ -4,8 +4,8 @@ use azalea_block::{
 };
 use azalea_core::{
     direction::Direction,
+    identifier::Identifier,
     position::{BlockPos, Vec3},
-    resource_location::ResourceLocation,
 };
 use azalea_entity::{HasClientLoaded, LocalEntity, Physics, Position};
 use azalea_world::{Instance, InstanceContainer, InstanceName};
@@ -40,7 +40,7 @@ pub fn update_in_water_state_and_do_fluid_pushing(
         let is_ultrawarm = world
             .registries
             .map
-            .get(&ResourceLocation::new("minecraft:dimension_type"))
+            .get(&Identifier::new("minecraft:dimension_type"))
             .and_then(|d| {
                 d.get(&**instance_name)
                     .map(|d| d.byte("ultrawarm") != Some(0))

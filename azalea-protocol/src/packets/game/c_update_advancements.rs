@@ -5,7 +5,7 @@ use std::{
 
 use azalea_buf::AzBuf;
 use azalea_chat::FormattedText;
-use azalea_core::resource_location::ResourceLocation;
+use azalea_core::identifier::Identifier;
 use azalea_inventory::ItemStack;
 use azalea_protocol_macros::ClientboundGamePacket;
 use indexmap::IndexMap;
@@ -14,14 +14,14 @@ use indexmap::IndexMap;
 pub struct ClientboundUpdateAdvancements {
     pub reset: bool,
     pub added: Vec<AdvancementHolder>,
-    pub removed: Vec<ResourceLocation>,
-    pub progress: IndexMap<ResourceLocation, AdvancementProgress>,
+    pub removed: Vec<Identifier>,
+    pub progress: IndexMap<Identifier, AdvancementProgress>,
     pub show_advancements: bool,
 }
 
 #[derive(Clone, Debug, AzBuf, PartialEq)]
 pub struct Advancement {
-    pub parent_id: Option<ResourceLocation>,
+    pub parent_id: Option<Identifier>,
     pub display: Option<DisplayInfo>,
     pub requirements: Vec<Vec<String>>,
     pub sends_telemetry_event: bool,
@@ -35,7 +35,7 @@ pub struct DisplayInfo {
     pub frame: FrameType,
     pub show_toast: bool,
     pub hidden: bool,
-    pub background: Option<ResourceLocation>,
+    pub background: Option<Identifier>,
     pub x: f32,
     pub y: f32,
 }
@@ -80,7 +80,7 @@ impl azalea_buf::AzaleaRead for DisplayInfo {
         let hidden = (data & 0b100) != 0;
 
         let background = if has_background {
-            Some(ResourceLocation::azalea_read(buf)?)
+            Some(Identifier::azalea_read(buf)?)
         } else {
             None
         };
@@ -116,7 +116,7 @@ pub struct CriterionProgress {
 
 #[derive(Clone, Debug, AzBuf, PartialEq)]
 pub struct AdvancementHolder {
-    pub id: ResourceLocation,
+    pub id: Identifier,
     pub value: Advancement,
 }
 
@@ -131,7 +131,7 @@ mod tests {
         let packet = ClientboundUpdateAdvancements {
             reset: true,
             added: [AdvancementHolder {
-                id: ResourceLocation::new("minecraft:test"),
+                id: Identifier::new("minecraft:test"),
                 value: Advancement {
                     parent_id: None,
                     display: Some(DisplayInfo {
@@ -151,9 +151,9 @@ mod tests {
             }]
             .into_iter()
             .collect(),
-            removed: vec![ResourceLocation::new("minecraft:test2")],
+            removed: vec![Identifier::new("minecraft:test2")],
             progress: [(
-                ResourceLocation::new("minecraft:test3"),
+                Identifier::new("minecraft:test3"),
                 [(
                     "minecraft:test4".to_string(),
                     CriterionProgress {
@@ -180,7 +180,7 @@ mod tests {
             .added
             .into_iter()
             .find_map(|a| {
-                if a.id == ResourceLocation::new("minecraft:test") {
+                if a.id == Identifier::new("minecraft:test") {
                     Some(a.value)
                 } else {
                     None
@@ -192,7 +192,7 @@ mod tests {
             .added
             .into_iter()
             .find_map(|a| {
-                if a.id == ResourceLocation::new("minecraft:test") {
+                if a.id == Identifier::new("minecraft:test") {
                     Some(a.value)
                 } else {
                     None

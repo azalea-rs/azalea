@@ -1,5 +1,5 @@
 use azalea_client::test_utils::prelude::*;
-use azalea_core::{position::ChunkPos, resource_location::ResourceLocation};
+use azalea_core::{identifier::Identifier, position::ChunkPos};
 use azalea_entity::metadata::Cow;
 use azalea_protocol::packets::{
     ConnectionProtocol,
@@ -15,17 +15,17 @@ fn test_despawn_entities_when_changing_dimension() {
 
     let mut simulation = Simulation::new(ConnectionProtocol::Configuration);
     simulation.receive_packet(ClientboundRegistryData {
-        registry_id: ResourceLocation::new("minecraft:dimension_type"),
+        registry_id: Identifier::new("minecraft:dimension_type"),
         entries: vec![
             (
-                ResourceLocation::new("minecraft:overworld"),
+                Identifier::new("minecraft:overworld"),
                 Some(NbtCompound::from_values(vec![
                     ("height".into(), NbtTag::Int(384)),
                     ("min_y".into(), NbtTag::Int(-64)),
                 ])),
             ),
             (
-                ResourceLocation::new("minecraft:nether"),
+                Identifier::new("minecraft:nether"),
                 Some(NbtCompound::from_values(vec![
                     ("height".into(), NbtTag::Int(256)),
                     ("min_y".into(), NbtTag::Int(0)),
@@ -45,7 +45,7 @@ fn test_despawn_entities_when_changing_dimension() {
 
     simulation.receive_packet(make_basic_login_packet(
         DimensionType::new_raw(0), // overworld
-        ResourceLocation::new("azalea:a"),
+        Identifier::new("azalea:a"),
     ));
     simulation.tick();
 
@@ -65,7 +65,7 @@ fn test_despawn_entities_when_changing_dimension() {
 
     simulation.receive_packet(make_basic_respawn_packet(
         DimensionType::new_raw(1), // nether
-        ResourceLocation::new("azalea:b"),
+        Identifier::new("azalea:b"),
     ));
     simulation.tick();
 

@@ -16,9 +16,7 @@ use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
 use serde::{Serialize, Serializer};
 use simdnbt::Deserialize;
 
-use crate::{
-    codec_utils::IntArray, direction::Direction, math, resource_location::ResourceLocation,
-};
+use crate::{codec_utils::IntArray, direction::Direction, identifier::Identifier, math};
 
 macro_rules! vec3_impl {
     ($name:ident, $type:ty) => {
@@ -723,7 +721,7 @@ impl nohash_hasher::IsEnabled for ChunkSectionBlockPos {}
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct GlobalPos {
     // this is actually a ResourceKey in Minecraft, but i don't think it matters?
-    pub dimension: ResourceLocation,
+    pub dimension: Identifier,
     pub pos: BlockPos,
 }
 
@@ -958,7 +956,7 @@ impl AzaleaRead for BlockPos {
 impl AzaleaRead for GlobalPos {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(GlobalPos {
-            dimension: ResourceLocation::azalea_read(buf)?,
+            dimension: Identifier::azalea_read(buf)?,
             pos: BlockPos::azalea_read(buf)?,
         })
     }
@@ -987,7 +985,7 @@ impl AzaleaWrite for BlockPos {
 
 impl AzaleaWrite for GlobalPos {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        ResourceLocation::azalea_write(&self.dimension, buf)?;
+        Identifier::azalea_write(&self.dimension, buf)?;
         BlockPos::azalea_write(&self.pos, buf)?;
 
         Ok(())

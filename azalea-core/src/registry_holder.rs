@@ -14,7 +14,7 @@ use simdnbt::{
 };
 use tracing::error;
 
-use crate::resource_location::ResourceLocation;
+use crate::identifier::Identifier;
 
 /// The base of the registry.
 ///
@@ -26,15 +26,11 @@ use crate::resource_location::ResourceLocation;
 /// world.
 #[derive(Default, Debug, Clone)]
 pub struct RegistryHolder {
-    pub map: HashMap<ResourceLocation, IndexMap<ResourceLocation, NbtCompound>>,
+    pub map: HashMap<Identifier, IndexMap<Identifier, NbtCompound>>,
 }
 
 impl RegistryHolder {
-    pub fn append(
-        &mut self,
-        id: ResourceLocation,
-        entries: Vec<(ResourceLocation, Option<NbtCompound>)>,
-    ) {
+    pub fn append(&mut self, id: Identifier, entries: Vec<(Identifier, Option<NbtCompound>)>) {
         let map = self.map.entry(id).or_default();
         for (key, value) in entries {
             if let Some(value) = value {
@@ -49,7 +45,7 @@ impl RegistryHolder {
     ///
     /// You should do some type of error handling if this returns `None`.
     pub fn dimension_type(&self) -> Option<RegistryType<DimensionTypeElement>> {
-        let name = ResourceLocation::new("minecraft:dimension_type");
+        let name = Identifier::new("minecraft:dimension_type");
         match self.get(&name) {
             Some(Ok(registry)) => Some(registry),
             Some(Err(err)) => {
@@ -65,7 +61,7 @@ impl RegistryHolder {
 
     fn get<T: Deserialize>(
         &self,
-        name: &ResourceLocation,
+        name: &Identifier,
     ) -> Option<Result<RegistryType<T>, simdnbt::DeserializeError>> {
         // this is suboptimal, ideally simdnbt should just have a way to get the
         // owned::NbtCompound as a borrow::NbtCompound
@@ -95,14 +91,14 @@ impl RegistryHolder {
 /// A collection of values for a certain type of registry data.
 #[derive(Debug, Clone)]
 pub struct RegistryType<T> {
-    pub map: HashMap<ResourceLocation, T>,
+    pub map: HashMap<Identifier, T>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
 pub struct TrimMaterialElement {
     pub asset_name: String,
-    pub ingredient: ResourceLocation,
+    pub ingredient: Identifier,
     pub item_model_index: f32,
     pub override_armor_materials: HashMap<String, String>,
     pub description: Option<String>,
@@ -145,13 +141,13 @@ pub struct DimensionTypeElement {
     pub ambient_light: f32,
     pub bed_works: bool,
     pub coordinate_scale: f32,
-    pub effects: ResourceLocation,
+    pub effects: Identifier,
     pub fixed_time: Option<u32>,
     pub has_ceiling: bool,
     pub has_raids: bool,
     pub has_skylight: bool,
     pub height: u32,
-    pub infiniburn: ResourceLocation,
+    pub infiniburn: Identifier,
     pub logical_height: u32,
     pub min_y: i32,
     pub monster_spawn_block_light_limit: u32,
@@ -185,7 +181,7 @@ pub enum MonsterSpawnLightLevel {
     /// A complex value with a type, minimum, and maximum.
     /// Vanilla minecraft only uses one type, "minecraft:uniform".
     Complex {
-        kind: ResourceLocation,
+        kind: Identifier,
         value: MonsterSpawnLightLevelValues,
     },
 }
@@ -195,7 +191,7 @@ impl FromNbtTag for MonsterSpawnLightLevel {
         if let Some(value) = tag.int() {
             Some(Self::Simple(value as u32))
         } else if let Some(value) = tag.compound() {
-            let kind = ResourceLocation::from_nbt_tag(value.get("type")?)?;
+            let kind = Identifier::from_nbt_tag(value.get("type")?)?;
             let value = MonsterSpawnLightLevelValues::from_nbt_tag(value.get("value")?)?;
             Some(Self::Complex { kind, value })
         } else {
@@ -285,7 +281,7 @@ pub struct BiomeEffects {
     pub music: Option<BiomeMusic>,
     pub mood_sound: BiomeMoodSound,
     pub additions_sound: Option<AdditionsSound>,
-    pub ambient_sound: Option<ResourceLocation>,
+    pub ambient_sound: Option<Identifier>,
     pub particle: Option<BiomeParticle>,
 }
 

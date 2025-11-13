@@ -6,7 +6,7 @@ use serde::{Serialize, ser};
 use thiserror::Error;
 use tracing::error;
 
-use crate::{registry_holder::RegistryHolder, resource_location::ResourceLocation};
+use crate::{identifier::Identifier, registry_holder::RegistryHolder};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, AzBuf)]
 pub struct Checksum(pub u32);
@@ -200,7 +200,7 @@ impl<'a, 'r> ser::Serializer for ChecksumSerializer<'a, 'r> {
             let value = self
                 .registries
                 .map
-                .get(&ResourceLocation::from(name))
+                .get(&Identifier::from(name))
                 .and_then(|r| r.get_index(variant_index as usize))
                 .map(|r| r.0.to_string())
                 .unwrap_or_default();

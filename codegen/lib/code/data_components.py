@@ -220,7 +220,7 @@ use crate::{
         "probability": "f32",
     }
     enum_and_struct_fields["ConsumeEffect::RemoveEffects"] = {
-        "effects": "HolderSet<MobEffect, ResourceLocation>",
+        "effects": "HolderSet<MobEffect, Identifier>",
     }
     enum_and_struct_fields["ConsumeEffect::ClearAllEffects"] = {}
     enum_and_struct_fields["ConsumeEffect::TeleportRandomly"] = {
@@ -342,7 +342,7 @@ use crate::{
             return t
 
         if isinstance(python_value, dict):
-            if target_rust_type == "ResourceLocation" and len(python_value) == 1:
+            if target_rust_type == "Identifier" and len(python_value) == 1:
                 return python_to_rust_value(
                     list(python_value.values())[0], target_rust_type
                 )
@@ -401,8 +401,8 @@ use crate::{
             return str(python_value).lower()
         if isinstance(python_value, str):
             fields_for_rust_type = enum_and_struct_fields.get(target_rust_type, [])
-            if "Referenced(ResourceLocation)" in fields_for_rust_type:
-                return f"{target_rust_type}::Referenced({python_to_rust_value(python_value, 'ResourceLocation')})"
+            if "Referenced(Identifier)" in fields_for_rust_type:
+                return f"{target_rust_type}::Referenced({python_to_rust_value(python_value, 'Identifier')})"
             elif "Registry(registry::Instrument)" in fields_for_rust_type:
                 return f"{target_rust_type}::Registry({python_to_rust_value(python_value, 'azalea_registry::Instrument')})"
             elif target_rust_type.startswith("HolderSet<"):
@@ -415,8 +415,8 @@ use crate::{
                 holder_type = target_rust_type.split("<", 1)[1].split(",", 1)[0]
                 inner_type = python_to_rust_value(python_value, holder_type)
                 return f"azalea_registry::Holder::Reference({inner_type})"
-            elif target_rust_type == "ResourceLocation":
-                # convert minecraft:air into ResourceLocation::from_static("minecraft:air")
+            elif target_rust_type == "Identifier":
+                # convert minecraft:air into Identifier::from_static("minecraft:air")
                 return f'"{python_value}".into()'
             else:
                 # enum variant

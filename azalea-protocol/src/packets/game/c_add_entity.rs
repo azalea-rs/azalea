@@ -1,5 +1,5 @@
 use azalea_buf::AzBuf;
-use azalea_core::{delta::LpVec3, position::Vec3, resource_location::ResourceLocation};
+use azalea_core::{delta::LpVec3, identifier::Identifier, position::Vec3};
 use azalea_entity::{EntityBundle, metadata::apply_default_metadata};
 use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_world::MinecraftEntityId;
@@ -34,7 +34,7 @@ impl ClientboundAddEntity {
     ///
     /// You must apply the metadata after inserting the bundle with
     /// [`Self::apply_metadata`].
-    pub fn as_entity_bundle(&self, world_name: ResourceLocation) -> EntityBundle {
+    pub fn as_entity_bundle(&self, world_name: Identifier) -> EntityBundle {
         EntityBundle::new(self.uuid, self.position, self.entity_type, world_name)
     }
 

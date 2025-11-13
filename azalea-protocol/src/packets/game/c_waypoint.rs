@@ -1,7 +1,7 @@
 use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
-use azalea_core::{color::RgbColor, position::Vec3i, resource_location::ResourceLocation};
+use azalea_core::{color::RgbColor, identifier::Identifier, position::Vec3i};
 use azalea_protocol_macros::ClientboundGamePacket;
 use uuid::Uuid;
 
@@ -33,7 +33,7 @@ pub enum WaypointIdentifier {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct WaypointIcon {
-    pub style: ResourceLocation,
+    pub style: Identifier,
     pub color: Option<RgbColor>,
 }
 impl AzaleaWrite for WaypointIcon {
@@ -50,7 +50,7 @@ impl AzaleaWrite for WaypointIcon {
 }
 impl AzaleaRead for WaypointIcon {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let style = ResourceLocation::azalea_read(buf)?;
+        let style = Identifier::azalea_read(buf)?;
         let color = Option::<CompactRgbColor>::azalea_read(buf)?;
         let color = color.map(|c| RgbColor::new(c.r, c.g, c.b));
 

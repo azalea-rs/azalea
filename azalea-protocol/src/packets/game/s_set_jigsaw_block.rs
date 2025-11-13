@@ -4,7 +4,7 @@ use std::{
 };
 
 use azalea_buf::{AzBuf, AzaleaRead};
-use azalea_core::{position::BlockPos, resource_location::ResourceLocation};
+use azalea_core::{identifier::Identifier, position::BlockPos};
 use azalea_protocol_macros::ServerboundGamePacket;
 
 use crate::packets::{AzaleaWrite, BufReadError};
@@ -12,9 +12,9 @@ use crate::packets::{AzaleaWrite, BufReadError};
 #[derive(Clone, Debug, AzBuf, PartialEq, ServerboundGamePacket)]
 pub struct ServerboundSetJigsawBlock {
     pub pos: BlockPos,
-    pub name: ResourceLocation,
-    pub target: ResourceLocation,
-    pub pool: ResourceLocation,
+    pub name: Identifier,
+    pub target: Identifier,
+    pub pool: Identifier,
     pub final_state: String,
     pub joint: String,
     #[var]

@@ -1,5 +1,5 @@
 use azalea_client::{InConfigState, test_utils::prelude::*};
-use azalea_core::resource_location::ResourceLocation;
+use azalea_core::identifier::Identifier;
 use azalea_entity::{LocalEntity, metadata::Health};
 use azalea_protocol::packets::{
     ConnectionProtocol,
@@ -16,9 +16,9 @@ fn test_set_health_before_login() {
     assert!(simulation.has_component::<InConfigState>());
 
     simulation.receive_packet(ClientboundRegistryData {
-        registry_id: ResourceLocation::new("minecraft:dimension_type"),
+        registry_id: Identifier::new("minecraft:dimension_type"),
         entries: vec![(
-            ResourceLocation::new("minecraft:overworld"),
+            Identifier::new("minecraft:overworld"),
             Some(NbtCompound::from_values(vec![
                 ("height".into(), NbtTag::Int(384)),
                 ("min_y".into(), NbtTag::Int(-64)),

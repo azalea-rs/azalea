@@ -1,14 +1,14 @@
 use std::collections::HashMap;
 
 use azalea_buf::AzBuf;
-use azalea_core::resource_location::ResourceLocation;
+use azalea_core::identifier::Identifier;
 use azalea_protocol_macros::ClientboundGamePacket;
 
 use crate::common::recipe::{Ingredient, SlotDisplayData};
 
 #[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundUpdateRecipes {
-    pub item_sets: HashMap<ResourceLocation, RecipePropertySet>,
+    pub item_sets: HashMap<Identifier, RecipePropertySet>,
     pub stonecutter_recipes: Vec<SingleInputEntry>,
 }
 

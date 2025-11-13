@@ -4,15 +4,15 @@ use std::{
 };
 
 use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
-use azalea_core::resource_location::ResourceLocation;
+use azalea_core::identifier::Identifier;
 use indexmap::IndexMap;
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct TagMap(pub IndexMap<ResourceLocation, Vec<Tags>>);
+pub struct TagMap(pub IndexMap<Identifier, Vec<Tags>>);
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Tags {
-    pub name: ResourceLocation,
+    pub name: Identifier,
     pub elements: Vec<i32>,
 }
 
@@ -21,7 +21,7 @@ impl AzaleaRead for TagMap {
         let length = u32::azalea_read_var(buf)? as usize;
         let mut data = IndexMap::with_capacity(length);
         for _ in 0..length {
-            let tag_type = ResourceLocation::azalea_read(buf)?;
+            let tag_type = Identifier::azalea_read(buf)?;
             let tags_count = i32::azalea_read_var(buf)? as usize;
             let mut tags_vec = Vec::with_capacity(tags_count);
             for _ in 0..tags_count {
@@ -46,7 +46,7 @@ impl AzaleaWrite for TagMap {
 }
 impl AzaleaRead for Tags {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let name = ResourceLocation::azalea_read(buf)?;
+        let name = Identifier::azalea_read(buf)?;
         let elements = Vec::<i32>::azalea_read_var(buf)?;
         Ok(Tags { name, elements })
     }
@@ -61,7 +61,7 @@ impl AzaleaWrite for Tags {
 }
 
 impl Deref for TagMap {
-    type Target = IndexMap<ResourceLocation, Vec<Tags>>;
+    type Target = IndexMap<Identifier, Vec<Tags>>;
 
     fn deref(&self) -> &Self::Target {
         &self.0

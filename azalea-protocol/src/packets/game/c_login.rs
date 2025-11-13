@@ -1,5 +1,5 @@
 use azalea_buf::AzBuf;
-use azalea_core::resource_location::ResourceLocation;
+use azalea_core::identifier::Identifier;
 use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_world::MinecraftEntityId;
 
@@ -13,7 +13,7 @@ use crate::packets::common::CommonPlayerSpawnInfo;
 pub struct ClientboundLogin {
     pub player_id: MinecraftEntityId,
     pub hardcore: bool,
-    pub levels: Vec<ResourceLocation>,
+    pub levels: Vec<Identifier>,
     #[var]
     pub max_players: i32,
     #[var]

@@ -1,13 +1,13 @@
 use std::hash::Hash;
 
 use azalea_buf::{AzBuf, UnsizedByteArray};
-use azalea_core::resource_location::ResourceLocation;
+use azalea_core::identifier::Identifier;
 use azalea_protocol_macros::ClientboundLoginPacket;
 
 #[derive(Hash, Clone, Debug, AzBuf, PartialEq, ClientboundLoginPacket)]
 pub struct ClientboundCustomQuery {
     #[var]
     pub transaction_id: u32,
-    pub identifier: ResourceLocation,
+    pub identifier: Identifier,
     pub data: UnsizedByteArray,
 }
