@@ -1,4 +1,4 @@
-//! An arbitrary string identifier.
+//! An arbitrary identifier or resource location.
 
 use std::{
     fmt,
@@ -123,7 +123,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn basic_resource_location() {
+    fn basic_identifier() {
         let r = Identifier::new("abcdef:ghijkl");
         assert_eq!(r.namespace, "abcdef");
         assert_eq!(r.path, "ghijkl");
@@ -148,7 +148,7 @@ mod tests {
     }
 
     #[test]
-    fn azbuf_resource_location() {
+    fn azbuf_identifier() {
         let mut buf = Vec::new();
         Identifier::new("minecraft:dirt")
             .azalea_write(&mut buf)

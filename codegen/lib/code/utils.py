@@ -58,7 +58,7 @@ def burger_type_to_rust_type(
         uses.add("azalea_chat::FormattedText")
     elif burger_type == "identifier":
         field_type_rs = "Identifier"
-        uses.add("azalea_core::resource_location::Identifier")
+        uses.add("azalea_core::identifier::Identifier")
     elif burger_type == "uuid":
         field_type_rs = "Uuid"
         uses.add("uuid::Uuid")

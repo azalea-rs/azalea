@@ -1638,7 +1638,7 @@ enum CommandArgumentKind {
     Team => "minecraft:team",
     ItemSlot => "minecraft:item_slot",
     ItemSlots => "minecraft:item_slots",
-    Identifier => "minecraft:resource_location",
+    ResourceLocation => "minecraft:resource_location",
     Function => "minecraft:function",
     EntityAnchor => "minecraft:entity_anchor",
     IntRange => "minecraft:int_range",
