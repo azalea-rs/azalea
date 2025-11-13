@@ -118,9 +118,9 @@ def set_packets(packets_report):
 
 def packet_direction_report_to_packet_names(report):
     name_to_id = {}
-    for resource_location, packet in report.items():
+    for identifier, packet in report.items():
         packet_id = packet["protocol_id"]
-        name_to_id[resource_location.split(":")[-1]] = packet_id
+        name_to_id[identifier.split(":")[-1]] = packet_id
 
     names_sorted = [name for name in sorted(name_to_id, key=lambda x: name_to_id[x])]
     return names_sorted

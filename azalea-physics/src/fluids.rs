@@ -4,8 +4,8 @@ use azalea_block::{
 };
 use azalea_core::{
     direction::Direction,
+    identifier::Identifier,
     position::{BlockPos, Vec3},
-    resource_location::Identifier,
 };
 use azalea_entity::{HasClientLoaded, LocalEntity, Physics, Position};
 use azalea_world::{Instance, InstanceContainer, InstanceName};

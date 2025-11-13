@@ -1,5 +1,5 @@
 use azalea_client::{InConfigState, test_utils::prelude::*};
-use azalea_core::resource_location::Identifier;
+use azalea_core::identifier::Identifier;
 use azalea_entity::metadata::Health;
 use azalea_protocol::packets::{
     ConnectionProtocol,

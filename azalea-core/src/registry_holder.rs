@@ -15,7 +15,7 @@ use simdnbt::{
 };
 use tracing::error;
 
-use crate::{codec_utils::*, resource_location::Identifier};
+use crate::{codec_utils::*, identifier::Identifier};
 
 /// The base of the registry.
 ///

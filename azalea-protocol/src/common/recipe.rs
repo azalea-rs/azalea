@@ -1,5 +1,5 @@
 use azalea_buf::AzBuf;
-use azalea_core::resource_location::Identifier;
+use azalea_core::identifier::Identifier;
 use azalea_inventory::ItemStack;
 use azalea_registry::HolderSet;
 

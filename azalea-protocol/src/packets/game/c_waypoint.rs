@@ -1,7 +1,7 @@
 use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
-use azalea_core::{color::RgbColor, position::Vec3i, resource_location::Identifier};
+use azalea_core::{color::RgbColor, identifier::Identifier, position::Vec3i};
 use azalea_protocol_macros::ClientboundGamePacket;
 use uuid::Uuid;
 

@@ -179,8 +179,8 @@ impl<D: Registry, Identifier: AzaleaRead + AzaleaWrite> Default for HolderSet<D,
     }
 }
 
-/// A reference to either a registry or a custom value (usually something with a
-/// `Identifier`).
+/// A reference to either a registry or a custom value (usually something with
+/// an `Identifier`).
 pub enum Holder<R: Registry, Direct: AzaleaRead + AzaleaWrite> {
     Reference(R),
     Direct(Direct),

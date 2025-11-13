@@ -1,4 +1,4 @@
-//! A resource identifier, like minecraft:stone
+//! An arbitrary identifier or resource location.
 
 use std::{
     fmt,
@@ -10,6 +10,10 @@ use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
 use simdnbt::{FromNbtTag, ToNbtTag, owned::NbtTag};
 
+/// An identifier, like `minecraft:stone` or `brigadier:number`.
+///
+/// This was formerly called a `ResourceLocation`.
+#[doc(alias = "ResourceLocation")]
 #[derive(Hash, Clone, PartialEq, Eq, Default)]
 pub struct Identifier {
     pub namespace: String,
@@ -119,7 +123,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn basic_resource_location() {
+    fn basic_identifier() {
         let r = Identifier::new("abcdef:ghijkl");
         assert_eq!(r.namespace, "abcdef");
         assert_eq!(r.path, "ghijkl");
@@ -144,7 +148,7 @@ mod tests {
     }
 
     #[test]
-    fn azbuf_resource_location() {
+    fn azbuf_identifier() {
         let mut buf = Vec::new();
         Identifier::new("minecraft:dirt")
             .azalea_write(&mut buf)

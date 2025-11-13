@@ -22,9 +22,9 @@ use azalea_block::{BlockState, fluid_state::FluidKind};
 use azalea_buf::AzBuf;
 use azalea_core::{
     aabb::Aabb,
+    identifier::Identifier,
     math,
     position::{BlockPos, ChunkPos, Vec3},
-    resource_location::Identifier,
 };
 use azalea_registry::EntityKind;
 use azalea_world::{ChunkStorage, InstanceName};

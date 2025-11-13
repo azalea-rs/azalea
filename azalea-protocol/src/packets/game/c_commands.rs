@@ -1,7 +1,7 @@
 use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
-use azalea_core::{bitset::FixedBitSet, resource_location::Identifier};
+use azalea_core::{bitset::FixedBitSet, identifier::Identifier};
 use azalea_protocol_macros::ClientboundGamePacket;
 use tracing::warn;
 

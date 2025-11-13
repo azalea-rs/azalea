@@ -3,7 +3,7 @@ use std::{
     sync::{Arc, Weak},
 };
 
-use azalea_core::{registry_holder::RegistryHolder, resource_location::Identifier};
+use azalea_core::{identifier::Identifier, registry_holder::RegistryHolder};
 use bevy_ecs::{component::Component, resource::Resource};
 use derive_more::{Deref, DerefMut};
 use nohash_hasher::IntMap;

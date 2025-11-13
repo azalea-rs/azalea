@@ -5,9 +5,9 @@ use azalea_block::{
     properties::WaterLevel,
 };
 use azalea_core::{
+    identifier::Identifier,
     position::{BlockPos, ChunkPos, Vec3},
     registry_holder::RegistryHolder,
-    resource_location::Identifier,
     tick::GameTick,
 };
 use azalea_entity::{EntityBundle, EntityPlugin, HasClientLoaded, LocalEntity, Physics, Position};

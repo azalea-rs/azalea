@@ -1,5 +1,5 @@
 use azalea_client::test_utils::prelude::*;
-use azalea_core::{position::ChunkPos, resource_location::Identifier};
+use azalea_core::{identifier::Identifier, position::ChunkPos};
 use azalea_entity::metadata::Cow;
 use azalea_protocol::packets::{
     ConnectionProtocol,

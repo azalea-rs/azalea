@@ -2,9 +2,9 @@ use azalea_buf::AzBuf;
 use azalea_core::{
     data_registry::ResolvableDataRegistry,
     game_type::{GameMode, OptionalGameType},
+    identifier::Identifier,
     position::GlobalPos,
     registry_holder::{DimensionTypeElement, RegistryHolder},
-    resource_location::Identifier,
 };
 use tracing::error;
 

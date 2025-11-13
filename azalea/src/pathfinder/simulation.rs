@@ -6,9 +6,7 @@ use azalea_client::{
     PhysicsState, interact::BlockStatePredictionHandler, inventory::Inventory,
     local_player::LocalGameMode, mining::MineBundle,
 };
-use azalea_core::{
-    game_type::GameMode, position::Vec3, resource_location::Identifier, tick::GameTick,
-};
+use azalea_core::{game_type::GameMode, identifier::Identifier, position::Vec3, tick::GameTick};
 use azalea_entity::{
     Attributes, LookDirection, Physics, Position, default_attributes, dimensions::EntityDimensions,
 };

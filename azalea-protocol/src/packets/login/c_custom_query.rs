@@ -1,7 +1,7 @@
 use std::hash::Hash;
 
 use azalea_buf::{AzBuf, UnsizedByteArray};
-use azalea_core::resource_location::Identifier;
+use azalea_core::identifier::Identifier;
 use azalea_protocol_macros::ClientboundLoginPacket;
 
 #[derive(Hash, Clone, Debug, AzBuf, PartialEq, ClientboundLoginPacket)]

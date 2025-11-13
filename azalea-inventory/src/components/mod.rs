@@ -14,9 +14,9 @@ use azalea_core::{
     checksum::{Checksum, get_checksum},
     codec_utils::*,
     filterable::Filterable,
+    identifier::Identifier,
     position::GlobalPos,
     registry_holder::{DamageTypeElement, RegistryHolder},
-    resource_location::Identifier,
     sound::CustomSound,
 };
 use azalea_registry::{

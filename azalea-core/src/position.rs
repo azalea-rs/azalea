@@ -16,7 +16,7 @@ use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
 use serde::{Serialize, Serializer};
 use simdnbt::Deserialize;
 
-use crate::{codec_utils::IntArray, direction::Direction, math, resource_location::Identifier};
+use crate::{codec_utils::IntArray, direction::Direction, identifier::Identifier, math};
 
 macro_rules! vec3_impl {
     ($name:ident, $type:ty) => {

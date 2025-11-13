@@ -1,5 +1,5 @@
 use azalea_buf::AzBuf;
-use azalea_core::{codec_utils::is_default, resource_location::Identifier};
+use azalea_core::{codec_utils::is_default, identifier::Identifier};
 use azalea_registry::{HolderSet, MobEffect, SoundEvent};
 use serde::Serialize;
 

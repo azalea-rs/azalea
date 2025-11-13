@@ -21,10 +21,13 @@ pub use azalea_buf as buf;
 pub use azalea_chat::FormattedText;
 pub use azalea_client::*;
 pub use azalea_core as core;
+#[deprecated(note = "renamed to `Identifier`.")]
+#[expect(deprecated)]
+pub use azalea_core::resource_location::ResourceLocation;
 // these are re-exported on this level because they're very common
 pub use azalea_core::{
+    identifier::Identifier,
     position::{BlockPos, Vec3},
-    resource_location::Identifier,
 };
 pub use azalea_entity as entity;
 pub use azalea_physics as physics;

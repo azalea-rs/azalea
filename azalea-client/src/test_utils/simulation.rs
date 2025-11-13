@@ -6,8 +6,8 @@ use azalea_buf::AzaleaWrite;
 use azalea_core::{
     delta::LpVec3,
     game_type::{GameMode, OptionalGameType},
+    identifier::Identifier,
     position::{BlockPos, ChunkPos, Vec3},
-    resource_location::Identifier,
     tick::GameTick,
 };
 use azalea_entity::metadata::PlayerMetadataBundle;

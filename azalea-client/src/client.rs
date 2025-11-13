@@ -10,8 +10,7 @@ use std::{
 
 use azalea_auth::game_profile::GameProfile;
 use azalea_core::{
-    data_registry::ResolvableDataRegistry, position::Vec3, resource_location::Identifier,
-    tick::GameTick,
+    data_registry::ResolvableDataRegistry, identifier::Identifier, position::Vec3, tick::GameTick,
 };
 use azalea_entity::{
     EntityUpdateSystems, PlayerAbilities, Position,

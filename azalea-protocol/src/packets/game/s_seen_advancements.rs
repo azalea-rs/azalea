@@ -1,7 +1,7 @@
 use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite};
-use azalea_core::resource_location::Identifier;
+use azalea_core::identifier::Identifier;
 use azalea_protocol_macros::ServerboundGamePacket;
 
 use crate::packets::BufReadError;

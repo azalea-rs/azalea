@@ -3,7 +3,7 @@
 use std::collections::{HashMap, hash_map};
 
 use azalea_buf::AzBuf;
-use azalea_core::resource_location::Identifier;
+use azalea_core::identifier::Identifier;
 use bevy_ecs::component::Component;
 use thiserror::Error;
 

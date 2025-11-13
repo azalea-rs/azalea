@@ -6,7 +6,7 @@ use serde::{Serialize, ser};
 use thiserror::Error;
 use tracing::error;
 
-use crate::{registry_holder::RegistryHolder, resource_location::Identifier};
+use crate::{identifier::Identifier, registry_holder::RegistryHolder};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, AzBuf)]
 pub struct Checksum(pub u32);

@@ -1,7 +1,7 @@
 use azalea_buf::AzBuf;
 use serde::Serialize;
 
-use crate::resource_location::Identifier;
+use crate::identifier::Identifier;
 
 #[derive(Clone, Debug, PartialEq, AzBuf, Serialize)]
 pub struct CustomSound {

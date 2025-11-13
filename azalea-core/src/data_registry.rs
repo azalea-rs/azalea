@@ -3,7 +3,7 @@ use std::{io::Cursor, str::FromStr};
 use azalea_registry::DataRegistry;
 use simdnbt::owned::NbtCompound;
 
-use crate::{registry_holder::RegistryHolder, resource_location::Identifier};
+use crate::{identifier::Identifier, registry_holder::RegistryHolder};
 
 pub trait ResolvableDataRegistry: DataRegistry {
     fn resolve_name(&self, registries: &RegistryHolder) -> Option<Identifier> {
