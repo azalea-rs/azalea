@@ -2,6 +2,7 @@ use std::io::{self, Cursor};
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite};
 use azalea_core::bitset::FixedBitSet;
+use azalea_entity::HumanoidArm;
 use bevy_ecs::component::Component;
 
 /// A component that contains some of the "settings" for this client that are
@@ -58,13 +59,6 @@ pub enum ChatVisibility {
     System = 1,
     /// No chat messages should be sent to the client.
     Hidden = 2,
-}
-
-#[derive(AzBuf, Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum HumanoidArm {
-    Left = 0,
-    #[default]
-    Right = 1,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
