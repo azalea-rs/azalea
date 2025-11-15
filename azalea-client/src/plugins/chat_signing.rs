@@ -39,7 +39,7 @@ pub struct RequestCertsTask(pub Task<Result<Certificates, FetchCertificatesError
 ///
 /// This is used to avoid spamming requests if requesting certs fails. Usually,
 /// we just check [`Certificates::expires_at`].
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct OnlyRefreshCertsAfter {
     pub refresh_at: Instant,
 }
