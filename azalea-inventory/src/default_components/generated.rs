@@ -2518,7 +2518,6 @@ impl DefaultableComponent for Consumable {
                 ..Consumable::new()
             },
             Item::Cod => Consumable::new(),
-            Item::CodBucket => Consumable::new(),
             Item::CookedBeef => Consumable::new(),
             Item::CookedChicken => Consumable::new(),
             Item::CookedCod => Consumable::new(),
@@ -2686,7 +2685,6 @@ impl DefaultableComponent for Consumable {
                 }],
                 ..Consumable::new()
             },
-            Item::PufferfishBucket => Consumable::new(),
             Item::PumpkinPie => Consumable::new(),
             Item::Rabbit => Consumable::new(),
             Item::RabbitStew => Consumable::new(),
@@ -2705,7 +2703,6 @@ impl DefaultableComponent for Consumable {
                 ..Consumable::new()
             },
             Item::Salmon => Consumable::new(),
-            Item::SalmonBucket => Consumable::new(),
             Item::SpiderEye => Consumable {
                 on_consume_effects: vec![ConsumeEffect::ApplyEffects {
                     effects: vec![MobEffectInstance {
@@ -2723,7 +2720,6 @@ impl DefaultableComponent for Consumable {
             Item::SuspiciousStew => Consumable::new(),
             Item::SweetBerries => Consumable::new(),
             Item::TropicalFish => Consumable::new(),
-            Item::TropicalFishBucket => Consumable::new(),
             _ => return None,
         };
         Some(value)
@@ -5834,6 +5830,56 @@ impl DefaultableComponent for Weapon {
         Some(value)
     }
 }
+impl DefaultableComponent for AttackRange {
+    fn default_for_item(item: Item) -> Option<Self> {
+        let value = match item {
+            Item::CopperSpear => AttackRange {
+                hitbox_margin: 0.125,
+                max_reach: 4.5,
+                min_reach: 2.0,
+                mob_factor: 0.5,
+            },
+            Item::DiamondSpear => AttackRange {
+                hitbox_margin: 0.125,
+                max_reach: 4.5,
+                min_reach: 2.0,
+                mob_factor: 0.5,
+            },
+            Item::GoldenSpear => AttackRange {
+                hitbox_margin: 0.125,
+                max_reach: 4.5,
+                min_reach: 2.0,
+                mob_factor: 0.5,
+            },
+            Item::IronSpear => AttackRange {
+                hitbox_margin: 0.125,
+                max_reach: 4.5,
+                min_reach: 2.0,
+                mob_factor: 0.5,
+            },
+            Item::NetheriteSpear => AttackRange {
+                hitbox_margin: 0.125,
+                max_reach: 4.5,
+                min_reach: 2.0,
+                mob_factor: 0.5,
+            },
+            Item::StoneSpear => AttackRange {
+                hitbox_margin: 0.125,
+                max_reach: 4.5,
+                min_reach: 2.0,
+                mob_factor: 0.5,
+            },
+            Item::WoodenSpear => AttackRange {
+                hitbox_margin: 0.125,
+                max_reach: 4.5,
+                min_reach: 2.0,
+                mob_factor: 0.5,
+            },
+            _ => return None,
+        };
+        Some(value)
+    }
+}
 impl DefaultableComponent for DamageType {
     fn default_for_item(item: Item) -> Option<Self> {
         let value = match item {
@@ -5867,14 +5913,11 @@ impl DefaultableComponent for KineticWeapon {
                 }),
                 forward_movement: 0.38,
                 hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
-                hitbox_margin: 0.125,
                 knockback_conditions: Some(KineticWeaponCondition {
                     max_duration_ticks: 100,
                     min_speed: 5.1,
                     ..KineticWeaponCondition::new()
                 }),
-                max_reach: 4.5,
-                min_reach: 2.0,
                 sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearUse)),
                 ..KineticWeapon::new()
             },
@@ -5893,14 +5936,11 @@ impl DefaultableComponent for KineticWeapon {
                 }),
                 forward_movement: 0.38,
                 hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
-                hitbox_margin: 0.125,
                 knockback_conditions: Some(KineticWeaponCondition {
                     max_duration_ticks: 80,
                     min_speed: 5.1,
                     ..KineticWeaponCondition::new()
                 }),
-                max_reach: 4.5,
-                min_reach: 2.0,
                 sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearUse)),
                 ..KineticWeapon::new()
             },
@@ -5919,14 +5959,11 @@ impl DefaultableComponent for KineticWeapon {
                 }),
                 forward_movement: 0.38,
                 hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
-                hitbox_margin: 0.125,
                 knockback_conditions: Some(KineticWeaponCondition {
                     max_duration_ticks: 110,
                     min_speed: 5.1,
                     ..KineticWeaponCondition::new()
                 }),
-                max_reach: 4.5,
-                min_reach: 2.0,
                 sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearUse)),
                 ..KineticWeapon::new()
             },
@@ -5945,14 +5982,11 @@ impl DefaultableComponent for KineticWeapon {
                 }),
                 forward_movement: 0.38,
                 hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
-                hitbox_margin: 0.125,
                 knockback_conditions: Some(KineticWeaponCondition {
                     max_duration_ticks: 90,
                     min_speed: 5.1,
                     ..KineticWeaponCondition::new()
                 }),
-                max_reach: 4.5,
-                min_reach: 2.0,
                 sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearUse)),
                 ..KineticWeapon::new()
             },
@@ -5971,14 +6005,11 @@ impl DefaultableComponent for KineticWeapon {
                 }),
                 forward_movement: 0.38,
                 hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
-                hitbox_margin: 0.125,
                 knockback_conditions: Some(KineticWeaponCondition {
                     max_duration_ticks: 70,
                     min_speed: 5.1,
                     ..KineticWeaponCondition::new()
                 }),
-                max_reach: 4.5,
-                min_reach: 2.0,
                 sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearUse)),
                 ..KineticWeapon::new()
             },
@@ -5997,14 +6028,11 @@ impl DefaultableComponent for KineticWeapon {
                 }),
                 forward_movement: 0.38,
                 hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
-                hitbox_margin: 0.125,
                 knockback_conditions: Some(KineticWeaponCondition {
                     max_duration_ticks: 110,
                     min_speed: 5.1,
                     ..KineticWeaponCondition::new()
                 }),
-                max_reach: 4.5,
-                min_reach: 2.0,
                 sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearUse)),
                 ..KineticWeapon::new()
             },
@@ -6025,14 +6053,11 @@ impl DefaultableComponent for KineticWeapon {
                 hit_sound: Some(azalea_registry::Holder::Reference(
                     SoundEvent::ItemSpearWoodHit,
                 )),
-                hitbox_margin: 0.125,
                 knockback_conditions: Some(KineticWeaponCondition {
                     max_duration_ticks: 120,
                     min_speed: 5.1,
                     ..KineticWeaponCondition::new()
                 }),
-                max_reach: 4.5,
-                min_reach: 2.0,
                 sound: Some(azalea_registry::Holder::Reference(
                     SoundEvent::ItemSpearWoodUse,
                 )),
@@ -6063,9 +6088,6 @@ impl DefaultableComponent for PiercingWeapon {
         let value = match item {
             Item::CopperSpear => PiercingWeapon {
                 hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
-                hitbox_margin: 0.25,
-                max_reach: 4.5,
-                min_reach: 2.0,
                 sound: Some(azalea_registry::Holder::Reference(
                     SoundEvent::ItemSpearAttack,
                 )),
@@ -6073,9 +6095,6 @@ impl DefaultableComponent for PiercingWeapon {
             },
             Item::DiamondSpear => PiercingWeapon {
                 hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
-                hitbox_margin: 0.25,
-                max_reach: 4.5,
-                min_reach: 2.0,
                 sound: Some(azalea_registry::Holder::Reference(
                     SoundEvent::ItemSpearAttack,
                 )),
@@ -6083,9 +6102,6 @@ impl DefaultableComponent for PiercingWeapon {
             },
             Item::GoldenSpear => PiercingWeapon {
                 hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
-                hitbox_margin: 0.25,
-                max_reach: 4.5,
-                min_reach: 2.0,
                 sound: Some(azalea_registry::Holder::Reference(
                     SoundEvent::ItemSpearAttack,
                 )),
@@ -6093,9 +6109,6 @@ impl DefaultableComponent for PiercingWeapon {
             },
             Item::IronSpear => PiercingWeapon {
                 hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
-                hitbox_margin: 0.25,
-                max_reach: 4.5,
-                min_reach: 2.0,
                 sound: Some(azalea_registry::Holder::Reference(
                     SoundEvent::ItemSpearAttack,
                 )),
@@ -6103,9 +6116,6 @@ impl DefaultableComponent for PiercingWeapon {
             },
             Item::NetheriteSpear => PiercingWeapon {
                 hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
-                hitbox_margin: 0.25,
-                max_reach: 4.5,
-                min_reach: 2.0,
                 sound: Some(azalea_registry::Holder::Reference(
                     SoundEvent::ItemSpearAttack,
                 )),
@@ -6113,9 +6123,6 @@ impl DefaultableComponent for PiercingWeapon {
             },
             Item::StoneSpear => PiercingWeapon {
                 hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
-                hitbox_margin: 0.25,
-                max_reach: 4.5,
-                min_reach: 2.0,
                 sound: Some(azalea_registry::Holder::Reference(
                     SoundEvent::ItemSpearAttack,
                 )),
@@ -6125,9 +6132,6 @@ impl DefaultableComponent for PiercingWeapon {
                 hit_sound: Some(azalea_registry::Holder::Reference(
                     SoundEvent::ItemSpearWoodHit,
                 )),
-                hitbox_margin: 0.25,
-                max_reach: 4.5,
-                min_reach: 2.0,
                 sound: Some(azalea_registry::Holder::Reference(
                     SoundEvent::ItemSpearWoodAttack,
                 )),

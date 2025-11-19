@@ -1684,7 +1684,7 @@ pub static PIGLIN_LOVED: LazyLock<HashSet<Item>> = LazyLock::new(|| {
     ])
 });
 pub static PIGLIN_PREFERRED_WEAPONS: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::Crossbow]));
+    LazyLock::new(|| HashSet::from_iter([Item::Crossbow, Item::GoldenSpear]));
 pub static PIGLIN_REPELLENTS: LazyLock<HashSet<Item>> =
     LazyLock::new(|| HashSet::from_iter([Item::SoulTorch, Item::SoulLantern, Item::SoulCampfire]));
 pub static PIGLIN_SAFE_ARMOR: LazyLock<HashSet<Item>> = LazyLock::new(|| {

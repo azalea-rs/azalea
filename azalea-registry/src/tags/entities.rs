@@ -143,6 +143,7 @@ pub static CAN_FLOAT_WHILE_RIDDEN: LazyLock<HashSet<EntityKind>> = LazyLock::new
         EntityKind::Mule,
         EntityKind::Donkey,
         EntityKind::Camel,
+        EntityKind::CamelHusk,
     ])
 });
 pub static CAN_TURN_IN_BOATS: LazyLock<HashSet<EntityKind>> =

@@ -292,6 +292,7 @@ define_data_components!(
     KineticWeapon,
     SwingAnimation,
     ZombieNautilusVariant,
+    AttackRange,
 );
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -1522,9 +1523,6 @@ pub enum DamageType {
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct PiercingWeapon {
-    pub min_reach: f32,
-    pub max_reach: f32,
-    pub hitbox_margin: f32,
     pub deals_knockback: bool,
     pub dismounts: bool,
     pub sound: Option<Holder<SoundEvent, azalea_core::sound::CustomSound>>,
@@ -1533,9 +1531,6 @@ pub struct PiercingWeapon {
 impl PiercingWeapon {
     pub const fn new() -> Self {
         Self {
-            min_reach: 0.,
-            max_reach: 3.,
-            hitbox_margin: 0.,
             deals_knockback: true,
             dismounts: false,
             sound: None,
@@ -1551,9 +1546,6 @@ impl Default for PiercingWeapon {
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct KineticWeapon {
-    pub min_reach: f32,
-    pub max_reach: f32,
-    pub hitbox_margin: f32,
     #[var]
     pub contact_cooldown_ticks: i32,
     #[var]
@@ -1569,9 +1561,6 @@ pub struct KineticWeapon {
 impl KineticWeapon {
     pub const fn new() -> Self {
         Self {
-            min_reach: 0.,
-            max_reach: 3.,
-            hitbox_margin: 0.3,
             contact_cooldown_ticks: 10,
             delay_ticks: 0,
             dismount_conditions: None,
@@ -1639,4 +1628,27 @@ pub enum SwingAnimationKind {
     None,
     Whack,
     Stab,
+}
+
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+pub struct AttackRange {
+    pub min_reach: f32,
+    pub max_reach: f32,
+    pub hitbox_margin: f32,
+    pub mob_factor: f32,
+}
+impl AttackRange {
+    pub const fn new() -> Self {
+        Self {
+            min_reach: 0.,
+            max_reach: 3.,
+            hitbox_margin: 0.3,
+            mob_factor: 1.,
+        }
+    }
+}
+impl Default for AttackRange {
+    fn default() -> Self {
+        Self::new()
+    }
 }
