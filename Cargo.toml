@@ -32,7 +32,6 @@ repository = "https://github.com/azalea-rs/azalea"
 aes = "0.8.4"
 anyhow = "1.0.100"
 async-compat = "0.2.5"
-async-recursion = "1.1.1"
 base64 = "0.22.1"
 bevy_app = "0.17.2"
 bevy_ecs = { version = "0.17.2", default-features = false }

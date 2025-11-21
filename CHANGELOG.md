@@ -23,20 +23,23 @@ is breaking anyways, semantic versioning is not followed.
 - Swap the order of the type parameters in entity filtering functions so query is first, then filter.
 - Add optional `timeout_ticks` field to `Client::open_container_at`.
 - Rename `ResourceLocation` to `Identifier` to match Minecraft's new internal naming.
+- Rename `azalea_protocol::resolver` to `resolve` and `ResolverError` to `ResolveError`.
 
 ### Fixed
 
 - The wrong path was temporarily executed if we received a `GotoEvent` while the path that's being executed was more than 50 nodes long.
 - The pathfinder can now jump from dirt path and farmland blocks correctly.
 - Don't panic when receiving an unexpected `PathFoundEvent`. (@Hiradpi)
-- Don't panic when the `LocalPlayerEvents` component is missing. (@suprohub)
 - The pathfinder sometimes got stuck when going up stairs that are facing the wrong direction.
 - ReachBlockPosGoal had the wrong cost when the destination is surrounded in blocks.
 - Some parkour movements had the wrong costs.
 - The pathfinder no longer spins when descending more than one block.
 - The pathfinder now avoids slipping off when the last block of the path is on ice.
+- Don't panic when the `LocalPlayerEvents` component is missing. (@suprohub)
 - The 'with' field in formatted text didn't correctly support mixed types. (@Tert0)
 - The WritableBookContent and ResolvableProfile data components had the wrong protocol implementations.
+- Resolving server addresses shouldn't be recursive.
+
 
 ## [0.14.0+mc1.21.8] - 2025-09-28
 

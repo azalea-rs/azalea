@@ -12,7 +12,6 @@ tracing.workspace = true
 tracing-subscriber.workspace = true
 
 [dependencies]
-async-recursion.workspace = true
 azalea-auth.workspace = true
 azalea-block.workspace = true
 azalea-brigadier = { workspace = true, features = ["azalea-buf"] }
