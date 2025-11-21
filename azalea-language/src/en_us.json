@@ -5842,7 +5842,7 @@
   "options.controls": "Controls...",
   "options.credits_and_attribution": "Credits & Attribution...",
   "options.cutoutLeaves": "See-Through Leaves",
-  "options.cutoutLeaves.tooltip": "Allows to see through gaps in leaves. Disabling may improve performance.",
+  "options.cutoutLeaves.tooltip": "Allows you to see through gaps in leaves. Disabling improves performance.",
   "options.damageTiltStrength": "Damage Tilt",
   "options.damageTiltStrength.tooltip": "The amount of camera shake caused by being hurt.",
   "options.darkMojangStudiosBackgroundColor": "Monochrome Logo",
