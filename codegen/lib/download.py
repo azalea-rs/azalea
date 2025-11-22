@@ -137,7 +137,10 @@ def get_latest_fabric_api_version():
             maven_metadata_xml = json.load(f)
 
     tree = ET.ElementTree(ET.fromstring(maven_metadata_xml))
-    return tree.find(".//latest").text
+    name = tree.find(".//latest").text
+    if name.endswith('_unobfuscated'):
+        name = name[:-len('_unobfuscated')]
+    return name
 
 
 def get_latest_fabric_kotlin_version():
