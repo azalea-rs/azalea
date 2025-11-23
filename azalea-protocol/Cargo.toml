@@ -43,9 +43,10 @@ uuid.workspace = true
 indexmap.workspace = true
 
 [features]
+default = ["packets", "online-mode"]
 connecting = []
-default = ["packets"]
 packets = ["connecting", "dep:azalea-core"]
+online-mode = ["azalea-auth/online-mode"]
 
 [lints]
 workspace = true
