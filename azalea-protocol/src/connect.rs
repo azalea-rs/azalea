@@ -7,6 +7,7 @@ use std::{
     net::SocketAddr,
 };
 
+#[cfg(feature = "online-mode")]
 use azalea_auth::{
     game_profile::GameProfile,
     sessionserver::{ClientSessionServerError, ServerSessionServerError},
@@ -21,15 +22,18 @@ use tokio::{
     },
 };
 use tracing::{error, info};
+#[cfg(feature = "online-mode")]
 use uuid::Uuid;
 
+#[cfg(feature = "online-mode")]
+use crate::packets::login::ClientboundHello;
 use crate::{
     packets::{
         ProtocolPacket,
         config::{ClientboundConfigPacket, ServerboundConfigPacket},
         game::{ClientboundGamePacket, ServerboundGamePacket},
         handshake::{ClientboundHandshakePacket, ServerboundHandshakePacket},
-        login::{ClientboundLoginPacket, ServerboundLoginPacket, c_hello::ClientboundHello},
+        login::{ClientboundLoginPacket, ServerboundLoginPacket},
         status::{ClientboundStatusPacket, ServerboundStatusPacket},
     },
     read::{ReadPacketError, deserialize_packet, read_raw_packet, try_read_raw_packet},
@@ -453,6 +457,7 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     /// # Ok(())
     /// # }
     /// ```
+    #[cfg(feature = "online-mode")]
     pub async fn authenticate(
         &self,
         access_token: &str,
@@ -526,6 +531,7 @@ impl Connection<ServerboundLoginPacket, ClientboundLoginPacket> {
     /// Verify connecting clients have authenticated with Minecraft's servers.
     /// This must happen after the client sends a `ServerboundLoginPacket::Key`
     /// packet.
+    #[cfg(feature = "online-mode")]
     pub async fn authenticate(
         &self,
         username: &str,

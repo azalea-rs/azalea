@@ -1,3 +1,4 @@
+#[cfg(feature = "online-mode")]
 use azalea_auth::sessionserver::ClientSessionServerError;
 use azalea_protocol::packets::login::{
     ClientboundHello, ServerboundCustomQueryAnswer, ServerboundKey,
@@ -80,8 +81,10 @@ pub struct AuthTask(Task<Result<(ServerboundKey, PrivateKey), AuthWithAccountErr
 pub enum AuthWithAccountError {
     #[error("Failed to encrypt the challenge from the server for {0:?}")]
     Encryption(ClientboundHello),
+    #[cfg(feature = "online-mode")]
     #[error("{0}")]
     SessionServer(#[from] ClientSessionServerError),
+    #[cfg(feature = "online-mode")]
     #[error("Couldn't refresh access token: {0}")]
     Auth(#[from] azalea_auth::AuthError),
 }
@@ -99,49 +102,56 @@ pub async fn auth_with_account(
     };
     let private_key = encrypt_res.secret_key;
 
-    let Some(access_token) = &account.access_token else {
-        // offline mode account, no need to do auth
-        return Ok((key_packet, private_key));
-    };
+    #[cfg(not(feature = "online-mode"))]
+    let _ = account;
 
-    // keep track of the number of times we tried authenticating so we can give up
-    // after too many
-    let mut attempts: usize = 1;
+    #[cfg(feature = "online-mode")]
+    if packet.should_authenticate {
+        let Some(access_token) = &account.access_token else {
+            // offline mode account, no need to do auth
+            return Ok((key_packet, private_key));
+        };
 
-    while let Err(err) = {
-        let access_token = access_token.lock().clone();
+        // keep track of the number of times we tried authenticating so we can give up
+        // after too many
+        let mut attempts: usize = 1;
 
-        let uuid = &account
-            .uuid
-            .expect("Uuid must be present if access token is present.");
+        while let Err(err) = {
+            let access_token = access_token.lock().clone();
 
-        // this is necessary since reqwest usually depends on tokio and we're using
-        // `futures` here
-        async_compat::Compat::new(azalea_auth::sessionserver::join(
-            &access_token,
-            &packet.public_key,
-            &private_key,
-            uuid,
-            &packet.server_id,
-        ))
-        .await
-    } {
-        if attempts >= 2 {
-            // if this is the second attempt and we failed
-            // both times, give up
-            return Err(err.into());
+            let uuid = &account
+                .uuid
+                .expect("Uuid must be present if access token is present.");
+
+            // this is necessary since reqwest usually depends on tokio and we're using
+            // `futures` here
+            async_compat::Compat::new(azalea_auth::sessionserver::join(
+                &access_token,
+                &packet.public_key,
+                &private_key,
+                uuid,
+                &packet.server_id,
+            ))
+            .await
+        } {
+            if attempts >= 2 {
+                // if this is the second attempt and we failed
+                // both times, give up
+                return Err(err.into());
+            }
+            if matches!(
+                err,
+                ClientSessionServerError::InvalidSession
+                    | ClientSessionServerError::ForbiddenOperation
+            ) {
+                // uh oh, we got an invalid session and have
+                // to reauthenticate now
+                async_compat::Compat::new(account.refresh()).await?;
+            } else {
+                return Err(err.into());
+            }
+            attempts += 1;
         }
-        if matches!(
-            err,
-            ClientSessionServerError::InvalidSession | ClientSessionServerError::ForbiddenOperation
-        ) {
-            // uh oh, we got an invalid session and have
-            // to reauthenticate now
-            async_compat::Compat::new(account.refresh()).await?;
-        } else {
-            return Err(err.into());
-        }
-        attempts += 1;
     }
 
     Ok((key_packet, private_key))

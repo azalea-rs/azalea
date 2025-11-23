@@ -43,6 +43,7 @@ tokio.workspace = true
 tracing.workspace = true
 uuid.workspace = true
 
+
 [dev-dependencies]
 criterion.workspace = true
 parking_lot = { workspace = true, features = ["deadlock_detection"] }
@@ -51,11 +52,12 @@ anyhow.workspace = true
 bevy_log.workspace = true
 
 [features]
-default = ["log", "serde", "packet-event"]
+default = ["log", "serde", "packet-event", "online-mode"]
 # enables bevy_log::LogPlugin by default
 log = ["azalea-client/log"]
 serde = ["dep:serde", "azalea-registry/serde", "azalea-world/serde"]
 packet-event = ["azalea-client/packet-event"]
+online-mode = ["azalea-client/online-mode"]
 
 [[bench]]
 name = "pathfinder"

@@ -2,14 +2,14 @@
 
 use std::sync::Arc;
 
-use azalea_auth::{
-    AccessTokenResponse,
-    certs::{Certificates, FetchCertificatesError},
-};
+#[cfg(feature = "online-mode")]
+use azalea_auth::AccessTokenResponse;
+#[cfg(feature = "online-mode")]
+use azalea_auth::certs::{Certificates, FetchCertificatesError};
 use bevy_ecs::component::Component;
 use parking_lot::Mutex;
+#[cfg(feature = "online-mode")]
 use thiserror::Error;
-use tracing::trace;
 use uuid::Uuid;
 
 /// Something that can join Minecraft servers.
@@ -58,6 +58,7 @@ pub struct Account {
     ///
     /// This is set when you call [`Self::request_certs`], but you only
     /// need to if the servers you're joining require it.
+    #[cfg(feature = "online-mode")]
     pub certs: Arc<Mutex<Option<Certificates>>>,
 }
 
@@ -67,9 +68,11 @@ pub enum AccountOpts {
     Offline {
         username: String,
     },
+    #[cfg(feature = "online-mode")]
     Microsoft {
         email: String,
     },
+    #[cfg(feature = "online-mode")]
     MicrosoftWithAccessToken {
         msa: Arc<Mutex<azalea_auth::cache::ExpiringValue<AccessTokenResponse>>>,
     },
@@ -88,6 +91,7 @@ impl Account {
             account_opts: AccountOpts::Offline {
                 username: username.to_string(),
             },
+            #[cfg(feature = "online-mode")]
             certs: Arc::new(Mutex::new(None)),
         }
     }
@@ -97,6 +101,7 @@ impl Account {
     ///
     /// The cache key is used for avoiding having to log in every time. This is
     /// typically set to the account email, but it can be any string.
+    #[cfg(feature = "online-mode")]
     pub async fn microsoft(cache_key: &str) -> Result<Self, azalea_auth::AuthError> {
         Self::microsoft_with_custom_client_id_and_scope(cache_key, None, None).await
     }
@@ -105,6 +110,7 @@ impl Account {
     /// and `scope`.
     ///
     /// Pass `None` if you want to use default ones.
+    #[cfg(feature = "online-mode")]
     pub async fn microsoft_with_custom_client_id_and_scope(
         cache_key: &str,
         client_id: Option<&str>,
@@ -162,6 +168,7 @@ impl Account {
     /// # Ok(())
     /// # }
     /// ```
+    #[cfg(feature = "online-mode")]
     pub async fn with_microsoft_access_token(
         msa: azalea_auth::cache::ExpiringValue<AccessTokenResponse>,
     ) -> Result<Self, azalea_auth::AuthError> {
@@ -170,6 +177,7 @@ impl Account {
 
     /// Similar to [`Account::with_microsoft_access_token`] but you can use
     /// custom `client_id` and `scope`.
+    #[cfg(feature = "online-mode")]
     pub async fn with_microsoft_access_token_and_custom_client_id_and_scope(
         mut msa: azalea_auth::cache::ExpiringValue<AccessTokenResponse>,
         client_id: Option<&str>,
@@ -178,6 +186,8 @@ impl Account {
         let client = reqwest::Client::new();
 
         if msa.is_expired() {
+            use tracing::trace;
+
             trace!("refreshing Microsoft auth token");
             msa = azalea_auth::refresh_ms_auth_token(
                 &client,
@@ -209,6 +219,7 @@ impl Account {
     /// This requires the `auth_opts` field to be set correctly (which is done
     /// by default if you used the constructor functions). Note that if the
     /// Account is offline-mode then this function won't do anything.
+    #[cfg(feature = "online-mode")]
     pub async fn refresh(&self) -> Result<(), azalea_auth::AuthError> {
         match &self.account_opts {
             // offline mode doesn't need to refresh so just don't do anything lol
@@ -240,6 +251,13 @@ impl Account {
         }
     }
 
+    /// Stub function that does nothing when the `online-mode` feature is
+    /// disabled.
+    #[cfg(not(feature = "online-mode"))]
+    pub async fn refresh(&self) -> Result<(), ()> {
+        Ok(())
+    }
+
     /// Get the UUID of this account.
     ///
     /// If the `uuid` field is None, the UUID will be determined by using
@@ -250,6 +268,7 @@ impl Account {
     }
 }
 
+#[cfg(feature = "online-mode")]
 #[derive(Error, Debug)]
 pub enum RequestCertError {
     #[error("Failed to fetch certificates")]
@@ -261,6 +280,7 @@ pub enum RequestCertError {
 impl Account {
     /// Request the certificates used for chat signing and set it in
     /// [`Self::certs`].
+    #[cfg(feature = "online-mode")]
     pub async fn request_certs(&mut self) -> Result<(), RequestCertError> {
         let access_token = self
             .access_token
