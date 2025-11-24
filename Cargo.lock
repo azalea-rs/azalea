@@ -424,6 +424,7 @@ dependencies = [
  "bevy_ecs",
  "derive_more",
  "enum-as-inner",
+ "indexmap",
  "nohash-hasher",
  "parking_lot",
  "simdnbt",

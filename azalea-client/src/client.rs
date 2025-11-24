@@ -14,7 +14,7 @@ use azalea_core::{
     tick::GameTick,
 };
 use azalea_entity::{
-    EntityUpdateSystems, PlayerAbilities, Position,
+    Attributes, EntityUpdateSystems, PlayerAbilities, Position,
     dimensions::EntityDimensions,
     indexing::{EntityIdIndex, EntityUuidIndex},
     inventory::Inventory,
@@ -35,7 +35,6 @@ use bevy_ecs::{
     schedule::{InternedScheduleLabel, LogLevel, ScheduleBuildSettings},
 };
 use parking_lot::{Mutex, RwLock};
-use simdnbt::owned::NbtCompound;
 use thiserror::Error;
 use tokio::{
     sync::{

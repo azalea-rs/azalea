@@ -3,8 +3,8 @@
 use std::sync::Arc;
 
 use azalea_client::{
-    PhysicsState, interact::BlockStatePredictionHandler, inventory::Inventory,
-    local_player::LocalGameMode, mining::MineBundle,
+    PhysicsState, interact::BlockStatePredictionHandler, local_player::LocalGameMode,
+    mining::MineBundle,
 };
 use azalea_core::{
     game_type::GameMode, position::Vec3, resource_location::ResourceLocation, tick::GameTick,

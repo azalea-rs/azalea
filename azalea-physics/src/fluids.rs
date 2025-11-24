@@ -5,7 +5,6 @@ use azalea_block::{
 use azalea_core::{
     direction::Direction,
     position::{BlockPos, Vec3},
-    resource_location::ResourceLocation,
 };
 use azalea_entity::{HasClientLoaded, LocalEntity, Physics, Position};
 use azalea_world::{Instance, InstanceContainer, InstanceName};

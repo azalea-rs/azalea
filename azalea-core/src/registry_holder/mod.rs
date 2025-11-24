@@ -11,7 +11,7 @@ pub mod enchantment;
 use std::{collections::HashMap, io::Cursor};
 
 use indexmap::IndexMap;
-use simdnbt::{Deserialize, owned::NbtCompound};
+use simdnbt::owned::NbtCompound;
 use thiserror::Error;
 use tracing::error;
 
@@ -30,7 +30,8 @@ pub struct RegistryHolder {
     // if you add new fields here, don't forget to also update `RegistryHolder::append`,
     // `protocol_id_to_resource_location`, and `define_default_deserializes_to!` in
     // `data_registry.rs`.
-    ///
+    #[rustfmt::skip] // allow empty line
+
     /// Attributes about the dimension.
     pub dimension_type: RegistryType<dimension_type::DimensionTypeElement>,
 
@@ -43,68 +44,71 @@ pub struct RegistryHolder {
     pub extra: HashMap<ResourceLocation, RegistryType<NbtCompound>>,
 }
 
-impl RegistryHolder {
-    pub fn append(
-        &mut self,
-        id: ResourceLocation,
-        entries: Vec<(ResourceLocation, Option<NbtCompound>)>,
-    ) {
-        macro_rules! with_registries {
-            ($($field:ident),* $(,)?) => {
-                match id.path() {
-                    $(
-                        stringify!($field) => {
-                            return self.$field.append_nbt(id, entries);
-                        }
-                    )*
-                    _ => {}
+macro_rules! registry_holder {
+    ($($registry:ident),* $(,)?) => {
+        impl RegistryHolder {
+            pub fn append(
+                &mut self,
+                id: ResourceLocation,
+                entries: Vec<(ResourceLocation, Option<NbtCompound>)>,
+            ) {
+
+                if id.namespace() == "minecraft" {
+                    match id.path() {
+                        $(
+                            stringify!($registry) => {
+                                return self.$registry.append_nbt(id, entries);
+                            }
+                        )*
+                        _ => {}
+                    }
                 }
-            };
-        }
 
-        if id.namespace() == "minecraft" {
-            with_registries!(dimension_type, enchantment);
-        }
+                self.extra
+                    .entry(id.clone())
+                    .or_default()
+                    .append_nbt(id, entries);
+            }
 
-        self.extra
-            .entry(id.clone())
-            .or_default()
-            .append_nbt(id, entries);
-    }
+            pub fn extend(&mut self, other: RegistryHolder) {
+                $(
+                    self.$registry = other.$registry;
+                )*
+                self.extra.extend(other.extra);
+            }
 
-    /// Convert a protocol ID for a registry key (like the protocol_id for
-    /// something that implements `DataRegistry`) and convert it to its string
-    /// name.
-    pub fn protocol_id_to_resource_location(
-        &self,
-        registry: ResourceLocation,
-        protocol_id: u32,
-    ) -> Option<&ResourceLocation> {
-        let index = protocol_id as usize;
+            /// Convert a protocol ID for a registry key (like the protocol_id for
+            /// something that implements `DataRegistry`) and convert it to its string
+            /// name.
+            pub fn protocol_id_to_resource_location(
+                &self,
+                registry: ResourceLocation,
+                protocol_id: u32,
+            ) -> Option<&ResourceLocation> {
+                let index = protocol_id as usize;
 
-        macro_rules! with_registries {
-            ($($field:ident),* $(,)?) => {
-                match registry.path() {
-                    $(
-                        stringify!($field) => {
-                            return self.$field.map.get_index(index).map(|(k, _)| k);
-                        }
-                    )*
-                    _ => {}
+
+                if registry.namespace() == "minecraft" {
+                    match registry.path() {
+                        $(
+                            stringify!($registry) => {
+                                return self.$registry.map.get_index(index).map(|(k, _)| k);
+                            }
+                        )*
+                        _ => {}
+                    }
                 }
-            };
-        }
 
-        if registry.namespace() == "minecraft" {
-            with_registries!(dimension_type, enchantment);
+                self.extra
+                    .get(&registry)
+                    .and_then(|r| r.map.get_index(index))
+                    .map(|(k, _)| k)
+            }
         }
-
-        self.extra
-            .get(&registry)
-            .and_then(|r| r.map.get_index(index))
-            .map(|(k, _)| k)
-    }
+    };
 }
+
+registry_holder!(dimension_type, enchantment);
 
 fn nbt_to_serializable_type<T: simdnbt::Deserialize>(
     value: &NbtCompound,

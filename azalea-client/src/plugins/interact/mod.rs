@@ -17,6 +17,7 @@ use azalea_entity::{
     },
     clamp_look_direction,
     indexing::EntityIdIndex,
+    inventory::Inventory,
 };
 use azalea_inventory::{ItemStack, ItemStackData, components};
 use azalea_physics::{
@@ -29,6 +30,7 @@ use azalea_protocol::packets::game::{
     s_swing::ServerboundSwing,
     s_use_item_on::ServerboundUseItemOn,
 };
+use azalea_registry::Item;
 use azalea_world::Instance;
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
@@ -39,7 +41,7 @@ use crate::{
     Client,
     attack::handle_attack_event,
     interact::pick::{HitResultComponent, update_hit_result_component},
-    inventory::{Inventory, InventorySystems},
+    inventory::InventorySystems,
     local_player::{LocalGameMode, PermissionLevel},
     movement::MoveEventsSystems,
     packet::game::SendGamePacketEvent,

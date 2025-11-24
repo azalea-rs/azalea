@@ -20,10 +20,16 @@ pub trait AutoToolClientExt {
 
 impl AutoToolClientExt for Client {
     fn best_tool_in_hotbar_for_block(&self, block: BlockState) -> BestToolResult {
-        self.query_self::<(&Inventory, &Physics, &FluidOnEyes), _>(
-            |(inventory, physics, fluid_on_eyes)| {
+        self.query_self::<(&Inventory, &Physics, &FluidOnEyes, &Attributes), _>(
+            |(inventory, physics, fluid_on_eyes, attributes)| {
                 let menu = &inventory.inventory_menu;
-                accurate_best_tool_in_hotbar_for_block(block, menu, physics, fluid_on_eyes)
+                accurate_best_tool_in_hotbar_for_block(
+                    block,
+                    menu,
+                    physics,
+                    fluid_on_eyes,
+                    attributes,
+                )
             },
         )
     }

@@ -19,7 +19,7 @@ use crate::{
         BlockStatePredictionHandler, SwingArmEvent, can_use_game_master_blocks,
         check_is_interaction_restricted, pick::HitResultComponent,
     },
-    inventory::{Inventory, InventorySystems},
+    inventory::InventorySystems,
     local_player::{InstanceHolder, LocalGameMode, PermissionLevel},
     movement::MoveEventsSystems,
     packet::game::SendGamePacketEvent,
