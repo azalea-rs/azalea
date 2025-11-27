@@ -21,10 +21,13 @@ pub use azalea_buf as buf;
 pub use azalea_chat::FormattedText;
 pub use azalea_client::*;
 pub use azalea_core as core;
+#[deprecated(note = "renamed to `Identifier`.")]
+#[expect(deprecated)]
+pub use azalea_core::resource_location::ResourceLocation;
 // these are re-exported on this level because they're very common
 pub use azalea_core::{
+    identifier::Identifier,
     position::{BlockPos, Vec3},
-    resource_location::ResourceLocation,
 };
 pub use azalea_entity as entity;
 pub use azalea_physics as physics;
@@ -36,7 +39,7 @@ use bevy_app::AppExit;
 pub use bevy_ecs as ecs;
 use ecs::component::Component;
 use futures::{Future, future::BoxFuture};
-use protocol::{ServerAddress, connect::Proxy, resolver::ResolverError};
+use protocol::{ServerAddress, connect::Proxy, resolve::ResolveError};
 use swarm::SwarmBuilder;
 use thiserror::Error;
 
@@ -52,7 +55,7 @@ pub enum StartError {
     #[error("Invalid address")]
     InvalidAddress,
     #[error(transparent)]
-    ResolveAddress(#[from] ResolverError),
+    ResolveAddress(#[from] ResolveError),
 }
 
 /// A builder for creating new [`Client`]s. This is the recommended way of

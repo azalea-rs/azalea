@@ -10,8 +10,7 @@ use std::{
 
 use azalea_auth::game_profile::GameProfile;
 use azalea_core::{
-    data_registry::ResolvableDataRegistry, position::Vec3, resource_location::ResourceLocation,
-    tick::GameTick,
+    data_registry::ResolvableDataRegistry, identifier::Identifier, position::Vec3, tick::GameTick,
 };
 use azalea_entity::{
     Attributes, EntityUpdateSystems, PlayerAbilities, Position,
@@ -25,7 +24,7 @@ use azalea_protocol::{
     ServerAddress,
     connect::Proxy,
     packets::{Packet, game::ServerboundGamePacket},
-    resolver,
+    resolve,
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName, MinecraftEntityId, PartialInstance};
 use bevy_app::{App, AppExit, Plugin, PluginsState, SubApp, Update};
@@ -88,8 +87,8 @@ pub struct Client {
 /// An error that happened while joining the server.
 #[derive(Error, Debug)]
 pub enum JoinError {
-    #[error("{0}")]
-    Resolver(#[from] resolver::ResolverError),
+    #[error(transparent)]
+    Resolver(#[from] resolve::ResolveError),
     #[error("The given address could not be parsed into a ServerAddress")]
     InvalidAddress,
 }
@@ -173,7 +172,7 @@ impl Client {
         address: impl TryInto<ServerAddress>,
     ) -> Result<(Self, mpsc::UnboundedReceiver<Event>), JoinError> {
         let address: ServerAddress = address.try_into().map_err(|_| JoinError::InvalidAddress)?;
-        let resolved_address = resolver::resolve_address(&address).await?;
+        let resolved_address = resolve::resolve_address(&address).await?;
         let (tx, rx) = mpsc::unbounded_channel();
 
         let client = Self::start_client(StartClientOpts::new(
@@ -192,7 +191,7 @@ impl Client {
         proxy: Proxy,
     ) -> Result<(Self, mpsc::UnboundedReceiver<Event>), JoinError> {
         let address: ServerAddress = address.try_into().map_err(|_| JoinError::InvalidAddress)?;
-        let resolved_address = resolver::resolve_address(&address).await?;
+        let resolved_address = resolve::resolve_address(&address).await?;
         let (tx, rx) = mpsc::unbounded_channel();
 
         let client = Self::start_client(
@@ -492,7 +491,7 @@ impl Client {
     pub fn resolve_registry_name(
         &self,
         registry: &impl ResolvableDataRegistry,
-    ) -> Option<ResourceLocation> {
+    ) -> Option<Identifier> {
         self.with_registry_holder(|registries| registry.resolve_name(registries).cloned())
     }
     /// Resolve the given registry to its name and data and call the given
@@ -507,7 +506,7 @@ impl Client {
     pub fn with_resolved_registry<R: ResolvableDataRegistry, Ret>(
         &self,
         registry: R,
-        f: impl FnOnce(&ResourceLocation, &R::DeserializesTo) -> Ret,
+        f: impl FnOnce(&Identifier, &R::DeserializesTo) -> Ret,
     ) -> Option<Ret> {
         self.with_registry_holder(|registries| {
             registry

@@ -3,7 +3,7 @@ use std::{
     sync::{Arc, Weak},
 };
 
-use azalea_core::{registry_holder::RegistryHolder, resource_location::ResourceLocation};
+use azalea_core::{identifier::Identifier, registry_holder::RegistryHolder};
 use bevy_ecs::{component::Component, resource::Resource};
 use derive_more::{Deref, DerefMut};
 use nohash_hasher::IntMap;
@@ -31,7 +31,7 @@ pub struct InstanceContainer {
     // telling them apart. We hope most servers are nice and don't do that though. It's only an
     // issue when there's multiple clients with the same WorldContainer in different worlds
     // anyways.
-    pub instances: FxHashMap<ResourceLocation, Weak<RwLock<Instance>>>,
+    pub instances: FxHashMap<Identifier, Weak<RwLock<Instance>>>,
 }
 
 impl InstanceContainer {
@@ -50,7 +50,7 @@ impl InstanceContainer {
     #[must_use = "the world will be immediately forgotten if unused"]
     pub fn get_or_insert(
         &mut self,
-        name: ResourceLocation,
+        name: Identifier,
         height: u32,
         min_y: i32,
         default_registries: &RegistryHolder,
@@ -93,4 +93,4 @@ impl InstanceContainer {
 /// same instance.
 #[derive(Component, Clone, Debug, PartialEq, Deref, DerefMut)]
 #[doc(alias("worldname", "world name"))]
-pub struct InstanceName(pub ResourceLocation);
+pub struct InstanceName(pub Identifier);

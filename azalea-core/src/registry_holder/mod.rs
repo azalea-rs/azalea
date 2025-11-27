@@ -31,7 +31,7 @@ use crate::resource_location::ResourceLocation;
 #[derive(Default, Debug, Clone)]
 pub struct RegistryHolder {
     // if you add new fields here, don't forget to also update `RegistryHolder::append`,
-    // `protocol_id_to_resource_location`, and `define_default_deserializes_to!` in
+    // `protocol_id_to_identifier`, and `define_default_deserializes_to!` in
     // `data_registry.rs`.
     #[rustfmt::skip] // allow empty line
 
@@ -83,7 +83,7 @@ macro_rules! registry_holder {
             /// Convert a protocol ID for a registry key (like the protocol_id for
             /// something that implements `DataRegistry`) and convert it to its string
             /// name.
-            pub fn protocol_id_to_resource_location(
+            pub fn protocol_id_to_identifier(
                 &self,
                 registry: ResourceLocation,
                 protocol_id: u32,

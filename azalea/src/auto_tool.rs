@@ -1,7 +1,7 @@
 use azalea_block::{BlockState, BlockTrait, fluid_state::FluidKind};
 use azalea_client::Client;
 use azalea_core::position::BlockPos;
-use azalea_entity::{Attributes, FluidOnEyes, Physics, inventory::Inventory};
+use azalea_entity::{ActiveEffects, FluidOnEyes, Physics};
 use azalea_inventory::{ItemStack, Menu, components};
 use azalea_registry::EntityKind;
 
@@ -20,8 +20,14 @@ pub trait AutoToolClientExt {
 
 impl AutoToolClientExt for Client {
     fn best_tool_in_hotbar_for_block(&self, block: BlockState) -> BestToolResult {
-        self.query_self::<(&Inventory, &Physics, &FluidOnEyes, &Attributes), _>(
-            |(inventory, physics, fluid_on_eyes, attributes)| {
+        self.query_self::<(
+            &Inventory,
+            &Physics,
+            &FluidOnEyes,
+            &Attributes,
+            &ActiveEffects,
+        ), _>(
+            |(inventory, physics, fluid_on_eyes, attributes, active_effects)| {
                 let menu = &inventory.inventory_menu;
                 accurate_best_tool_in_hotbar_for_block(
                     block,
@@ -29,6 +35,7 @@ impl AutoToolClientExt for Client {
                     physics,
                     fluid_on_eyes,
                     attributes,
+                    active_effects,
                 )
             },
         )
@@ -55,12 +62,14 @@ pub fn best_tool_in_hotbar_for_block(block: BlockState, menu: &Menu) -> BestTool
     let mut physics = Physics::default();
     physics.set_on_ground(true);
 
+    let inactive_effects = ActiveEffects::default();
     accurate_best_tool_in_hotbar_for_block(
         block,
         menu,
         &physics,
         &FluidOnEyes::new(FluidKind::Empty),
         &Attributes::new(EntityKind::Player),
+        &inactive_effects,
     )
 }
 
@@ -70,6 +79,7 @@ pub fn accurate_best_tool_in_hotbar_for_block(
     physics: &Physics,
     fluid_on_eyes: &FluidOnEyes,
     attributes: &Attributes,
+    active_effects: &ActiveEffects,
 ) -> BestToolResult {
     let hotbar_slots = &menu.slots()[menu.hotbar_slots_range()];
 
@@ -101,6 +111,7 @@ pub fn accurate_best_tool_in_hotbar_for_block(
                     fluid_on_eyes,
                     physics,
                     attributes,
+                    active_effects,
                 ));
             }
             ItemStack::Present(item_stack) => {
@@ -113,6 +124,7 @@ pub fn accurate_best_tool_in_hotbar_for_block(
                         fluid_on_eyes,
                         physics,
                         attributes,
+                        active_effects,
                     ));
                 } else {
                     this_item_speed = None;
@@ -136,6 +148,7 @@ pub fn accurate_best_tool_in_hotbar_for_block(
                 fluid_on_eyes,
                 physics,
                 attributes,
+                active_effects,
             );
             if this_item_speed > best_speed {
                 best_slot = Some(i);

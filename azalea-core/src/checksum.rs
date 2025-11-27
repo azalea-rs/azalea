@@ -6,7 +6,7 @@ use serde::{Serialize, ser};
 use thiserror::Error;
 use tracing::error;
 
-use crate::{registry_holder::RegistryHolder, resource_location::ResourceLocation};
+use crate::{identifier::Identifier, registry_holder::RegistryHolder};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, AzBuf)]
 pub struct Checksum(pub u32);
@@ -199,7 +199,7 @@ impl<'a, 'r> ser::Serializer for ChecksumSerializer<'a, 'r> {
         if name.starts_with("minecraft:") {
             let value = self
                 .registries
-                .protocol_id_to_resource_location(ResourceLocation::from(name), variant_index)
+                .protocol_id_to_identifier(Identifier::from(name), variant_index)
                 .map(|v| v.to_string())
                 .unwrap_or_default();
             self.serialize_str(&value)?;

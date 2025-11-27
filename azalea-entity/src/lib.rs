@@ -22,15 +22,16 @@ use azalea_block::{BlockState, fluid_state::FluidKind};
 use azalea_buf::AzBuf;
 use azalea_core::{
     aabb::Aabb,
+    identifier::Identifier,
     math,
     position::{BlockPos, ChunkPos, Vec3},
-    resource_location::ResourceLocation,
 };
 use azalea_registry::EntityKind;
 use azalea_world::{ChunkStorage, InstanceName};
 use bevy_ecs::{bundle::Bundle, component::Component};
 pub use data::*;
 use derive_more::{Deref, DerefMut};
+pub use effects::{ActiveEffects, MobEffectData};
 use plugin::indexing::EntityChunkPos;
 use uuid::Uuid;
 use vec_delta_codec::VecDeltaCodec;
@@ -487,6 +488,7 @@ pub struct EntityBundle {
     pub crouching: Crouching,
     pub fluid_on_eyes: FluidOnEyes,
     pub on_climbable: OnClimbable,
+    pub active_effects: ActiveEffects,
 }
 
 impl EntityBundle {
@@ -494,7 +496,7 @@ impl EntityBundle {
         uuid: Uuid,
         pos: Vec3,
         kind: azalea_registry::EntityKind,
-        world_name: ResourceLocation,
+        world_name: Identifier,
     ) -> Self {
         let dimensions = EntityDimensions::from(kind);
 
@@ -515,6 +517,7 @@ impl EntityBundle {
             crouching: Crouching(false),
             fluid_on_eyes: FluidOnEyes(FluidKind::Empty),
             on_climbable: OnClimbable(false),
+            active_effects: ActiveEffects::default(),
         }
     }
 }

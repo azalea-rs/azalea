@@ -1,5 +1,5 @@
 use azalea_buf::AzBuf;
-use azalea_core::resource_location::ResourceLocation;
+use azalea_core::identifier::Identifier;
 use azalea_inventory::ItemStack;
 use azalea_registry::HolderSet;
 
@@ -56,7 +56,7 @@ pub struct SmithingRecipeDisplay {
 
 #[derive(Clone, Debug, PartialEq, AzBuf)]
 pub struct Ingredient {
-    pub allowed: HolderSet<azalea_registry::Item, ResourceLocation>,
+    pub allowed: HolderSet<azalea_registry::Item, Identifier>,
 }
 
 /// [`azalea_registry::SlotDisplay`]
@@ -66,7 +66,7 @@ pub enum SlotDisplayData {
     AnyFuel,
     Item(ItemStackDisplay),
     ItemStack(ItemStackSlotDisplay),
-    Tag(ResourceLocation),
+    Tag(Identifier),
     SmithingTrim(Box<SmithingTrimDemoSlotDisplay>),
     WithRemainder(Box<WithRemainderSlotDisplay>),
     Composite(CompositeSlotDisplay),

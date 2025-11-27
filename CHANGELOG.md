@@ -12,6 +12,7 @@ is breaking anyways, semantic versioning is not followed.
 
 - Add `Client::query_entity` and `try_query_entity` to complement `query_self`.
 - Add `Client::entity_interact` and `EntityInteractEvent` to interact with entities without checking that they're in the crosshair.
+- Implement initial support for mob effects, including jump boost, haste, conduit power, and mining fatigue. (@ShayBox)
 
 ### Changed
 
@@ -22,6 +23,8 @@ is breaking anyways, semantic versioning is not followed.
 - Swap the order of the type parameters in entity filtering functions so query is first, then filter.
 - Add optional `timeout_ticks` field to `Client::open_container_at`.
 - Moved `azalea_client::inventory::Inventory` to `azalea_entity::inventory::Inventory`.
+- Rename `ResourceLocation` to `Identifier` to match Minecraft's new internal naming.
+- Rename `azalea_protocol::resolver` to `resolve` and `ResolverError` to `ResolveError`.
 
 ### Fixed
 
@@ -33,8 +36,11 @@ is breaking anyways, semantic versioning is not followed.
 - Some parkour movements had the wrong costs.
 - The pathfinder no longer spins when descending more than one block.
 - The pathfinder now avoids slipping off when the last block of the path is on ice.
+- Don't panic when the `LocalPlayerEvents` component is missing. (@suprohub)
 - The 'with' field in formatted text didn't correctly support mixed types. (@Tert0)
 - The WritableBookContent and ResolvableProfile data components had the wrong protocol implementations.
+- Resolving server addresses shouldn't be recursive.
+
 
 ## [0.14.0+mc1.21.8] - 2025-09-28
 

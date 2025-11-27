@@ -17,7 +17,7 @@ members = [
     "azalea-registry",
     "azalea-world",
 ]
-resolver = "2"
+resolver = "3"
 
 # --- Workspace Settings ---
 
@@ -29,60 +29,61 @@ repository = "https://github.com/azalea-rs/azalea"
 # homepage = "https://github.com/azalea-rs/azalea"
 
 [workspace.dependencies]
-aes = "0.8"
-anyhow = "1"
-async-compat = "0.2"
-async-recursion = "1"
-base64 = "0.22"
+aes = "0.8.4"
+anyhow = "1.0.100"
+async-compat = "0.2.5"
+base64 = "0.22.1"
 bevy_app = "0.17.2"
 bevy_ecs = { version = "0.17.2", default-features = false }
 bevy_log = "0.17.2"
 bevy_tasks = "0.17.2"
 bevy_time = "0.17.2"
-byteorder = "1"
-cfb8 = "0.8"
-chrono = { version = "0.4", default-features = false }
-compact_str = "0.9"
-crc32c = "0.6"
-criterion = "0.7"
-derive_more = "2"
-enum-as-inner = "0.6"
-env_logger = "0.11"
-flate2 = { version = "1", features = ["zlib-rs"] }
-futures = "0.3"
-futures-lite = "2"
-hickory-resolver = "0.25"
-indexmap = "2"
-md-5 = "0.10"
-minecraft_folder_path = "0.1"
-nohash-hasher = "0.2"
-num-bigint = "0.4"
-num-format = "0.4"
-num-traits = "0.2"
-parking_lot = "0.12"
-pastey = "0.1"
-proc-macro2 = "1"
-quote = "1"
-rand = "0.9"
-regex = "1"
-reqwest = { version = "0.12", default-features = false }
-rsa = "0.10.0-rc.9"
-signature = "=3.0.0-rc.4"                                                   # TODO: Remove when rsa is fixed.
-rsa_public_encrypt_pkcs1 = "0.4"
-rustc-hash = "2"
-serde = "1"
-serde_json = "1"
-sha1 = "0.11.0-rc.2"
-sha2 = "0.11.0-rc.2"
-simdnbt = { version = "0.8", git = "https://github.com/azalea-rs/simdnbt" }
-socks5-impl = "0.7"
-syn = "2"
-thiserror = "2"
-tokio = "1"
-tokio-util = "0.7"
-tracing = "0.1"
-tracing-subscriber = "0.3"
-uuid = "1"
+byteorder = "1.5.0"
+cfb8 = "0.8.1"
+chrono = { version = "0.4.42", default-features = false }
+compact_str = "0.9.0"
+crc32c = "0.6.8"
+criterion = "0.7.0"
+crypto-bigint = "=0.7.0-rc.10" # TODO: Remove when rsa is fixed.
+crypto-primes = "=0.7.0-pre.4" # TODO: Remove when rsa is fixed.
+derive_more = "2.0.1"
+enum-as-inner = "0.6.1"
+env_logger = "0.11.8"
+flate2 = { version = "1.1.5", features = ["zlib-rs"] }
+futures = "0.3.31"
+futures-lite = "2.6.1"
+hickory-resolver = "0.25.2"
+indexmap = "2.12.0"
+md-5 = "0.10.6"
+minecraft_folder_path = "0.1.2"
+nohash-hasher = "0.2.0"
+num-bigint = "0.4.6"
+num-format = "0.4.4"
+num-traits = "0.2.19"
+parking_lot = "0.12.5"
+pastey = "0.1.1"
+proc-macro2 = "1.0.103"
+quote = "1.0.42"
+rand = "0.10.0-rc.5"
+regex = "1.12.2"
+reqwest = { version = "0.12.24", default-features = false }
+rsa = "0.10.0-rc.10"
+rsa_public_encrypt_pkcs1 = "0.4.0"
+rustc-hash = "2.1.1"
+serde = "1.0.228"
+serde_json = "1.0.145"
+sha1 = "0.11.0-rc.3"
+sha2 = "0.11.0-rc.3"
+signature = "=3.0.0-rc.5" # TODO: Remove when rsa is fixed.
+simdnbt = { version = "0.8.0", git = "https://github.com/azalea-rs/simdnbt" }
+socks5-impl = "0.7.2"
+syn = "2.0.110"
+thiserror = "2.0.17"
+tokio = "1.48.0"
+tokio-util = "0.7.17"
+tracing = "0.1.41"
+tracing-subscriber = "0.3.20"
+uuid = "1.18.1"
 
 azalea-block-macros = { path = "azalea-block/azalea-block-macros", version = "0.14.0" }
 azalea-block = { path = "azalea-block", version = "0.14.0" }
@@ -104,6 +105,8 @@ azalea-protocol = { path = "azalea-protocol", version = "0.14.0" }
 azalea-registry-macros = { path = "azalea-registry/azalea-registry-macros", version = "0.14.0" }
 azalea-registry = { path = "azalea-registry", version = "0.14.0" }
 azalea-world = { path = "azalea-world", version = "0.14.0" }
+
+[workspace.lints.clippy]
 
 # --- Profile Settings ---
 

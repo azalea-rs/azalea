@@ -1,4 +1,4 @@
-//! A resource, like minecraft:stone
+//! An arbitrary identifier or resource location.
 
 use std::{
     fmt::{self, Debug, Display},
@@ -11,8 +11,12 @@ use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
 use simdnbt::{FromNbtTag, ToNbtTag, owned::NbtTag};
 
+/// An identifier, like `minecraft:stone` or `brigadier:number`.
+///
+/// This was formerly called a `ResourceLocation`.
+#[doc(alias = "ResourceLocation")]
 #[derive(Hash, Clone, PartialEq, Eq, Default)]
-pub struct ResourceLocation {
+pub struct Identifier {
     // empty namespaces aren't allowed so NonZero is fine.
     colon_index: Option<NonZeroUsize>,
     inner: Box<str>,
@@ -21,12 +25,12 @@ pub struct ResourceLocation {
 static DEFAULT_NAMESPACE: &str = "minecraft";
 // static REALMS_NAMESPACE: &str = "realms";
 
-impl ResourceLocation {
-    pub fn new(resource_string: impl Into<String>) -> ResourceLocation {
+impl Identifier {
+    pub fn new(resource_string: impl Into<String>) -> Identifier {
         let resource_string = resource_string.into();
 
         let colon_index = resource_string.find(':').and_then(|i| NonZeroUsize::new(i));
-        ResourceLocation {
+        Self {
             colon_index,
             inner: resource_string.into(),
         }
@@ -48,7 +52,7 @@ impl ResourceLocation {
     }
 }
 
-impl Display for ResourceLocation {
+impl Display for Identifier {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.colon_index.is_some() {
             write!(f, "{}", self.inner)
@@ -57,37 +61,37 @@ impl Display for ResourceLocation {
         }
     }
 }
-impl Debug for ResourceLocation {
+impl Debug for Identifier {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{self}")
     }
 }
-impl FromStr for ResourceLocation {
+impl FromStr for Identifier {
     type Err = &'static str;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(ResourceLocation::new(s))
+        Ok(Identifier::new(s))
     }
 }
-impl From<&str> for ResourceLocation {
+impl From<&str> for Identifier {
     fn from(s: &str) -> Self {
-        ResourceLocation::new(s)
+        Identifier::new(s)
     }
 }
 
-impl AzaleaRead for ResourceLocation {
+impl AzaleaRead for Identifier {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let location_string = String::azalea_read(buf)?;
-        Ok(ResourceLocation::new(&location_string))
+        Ok(Identifier::new(&location_string))
     }
 }
-impl AzaleaWrite for ResourceLocation {
+impl AzaleaWrite for Identifier {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         self.to_string().azalea_write(buf)
     }
 }
 
-impl Serialize for ResourceLocation {
+impl Serialize for Identifier {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -96,30 +100,30 @@ impl Serialize for ResourceLocation {
     }
 }
 
-impl<'de> Deserialize<'de> for ResourceLocation {
+impl<'de> Deserialize<'de> for Identifier {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
         let s = String::deserialize(deserializer)?;
         if s.contains(':') {
-            Ok(ResourceLocation::new(&s))
+            Ok(Identifier::new(&s))
         } else {
             Err(de::Error::invalid_value(
                 de::Unexpected::Str(&s),
-                &"a valid ResourceLocation",
+                &"a valid Identifier",
             ))
         }
     }
 }
 
-impl FromNbtTag for ResourceLocation {
+impl FromNbtTag for Identifier {
     fn from_nbt_tag(tag: simdnbt::borrow::NbtTag) -> Option<Self> {
         tag.string().and_then(|s| s.to_str().parse().ok())
     }
 }
 
-impl ToNbtTag for ResourceLocation {
+impl ToNbtTag for Identifier {
     fn to_nbt_tag(self) -> NbtTag {
         NbtTag::String(self.to_string().into())
     }
@@ -130,42 +134,42 @@ mod tests {
     use super::*;
 
     #[test]
-    fn basic_resource_location() {
-        let r = ResourceLocation::new("abcdef:ghijkl");
+    fn basic_identifier() {
+        let r = Identifier::new("abcdef:ghijkl");
         assert_eq!(r.namespace(), "abcdef");
         assert_eq!(r.path(), "ghijkl");
     }
     #[test]
     fn no_namespace() {
-        let r = ResourceLocation::new("azalea");
+        let r = Identifier::new("azalea");
         assert_eq!(r.namespace(), "minecraft");
         assert_eq!(r.path(), "azalea");
     }
     #[test]
     fn colon_start() {
-        let r = ResourceLocation::new(":azalea");
+        let r = Identifier::new(":azalea");
         assert_eq!(r.namespace(), "minecraft");
         assert_eq!(r.path(), "azalea");
     }
     #[test]
     fn colon_end() {
-        let r = ResourceLocation::new("azalea:");
+        let r = Identifier::new("azalea:");
         assert_eq!(r.namespace(), "azalea");
         assert_eq!(r.path(), "");
     }
 
     #[test]
-    fn azbuf_resource_location() {
+    fn azbuf_identifier() {
         let mut buf = Vec::new();
-        ResourceLocation::new("minecraft:dirt")
+        Identifier::new("minecraft:dirt")
             .azalea_write(&mut buf)
             .unwrap();
 
         let mut buf = Cursor::new(&buf[..]);
 
         assert_eq!(
-            ResourceLocation::azalea_read(&mut buf).unwrap(),
-            ResourceLocation::new("minecraft:dirt")
+            Identifier::azalea_read(&mut buf).unwrap(),
+            Identifier::new("minecraft:dirt")
         );
     }
 }

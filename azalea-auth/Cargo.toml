@@ -11,6 +11,8 @@ azalea-buf.workspace = true
 azalea-crypto.workspace = true
 base64.workspace = true
 chrono = { workspace = true, features = ["serde"] }
+crypto-bigint.workspace = true # TODO: Remove when rsa is fixed.
+crypto-primes.workspace = true # TODO: Remove when rsa is fixed.
 indexmap.workspace = true
 md-5.workspace = true
 reqwest = { workspace = true, default-features = false, features = [
@@ -29,3 +31,6 @@ uuid = { workspace = true, features = ["serde", "v3"] }
 [dev-dependencies]
 env_logger.workspace = true
 tokio = { workspace = true, features = ["full"] }
+
+[lints]
+workspace = true

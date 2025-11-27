@@ -26,13 +26,13 @@ use azalea_client::{
     start_ecs_runner,
 };
 use azalea_entity::LocalEntity;
-use azalea_protocol::{ServerAddress, resolver};
+use azalea_protocol::{ServerAddress, resolve};
 use azalea_world::InstanceContainer;
 use bevy_app::{App, AppExit, PluginGroup, PluginGroupBuilder, Plugins, SubApp};
 use bevy_ecs::prelude::*;
 use futures::future::{BoxFuture, join_all};
 use parking_lot::{Mutex, RwLock};
-use tokio::{sync::mpsc, time::sleep};
+use tokio::sync::mpsc;
 use tracing::{debug, error, warn};
 
 use crate::{BoxHandleFn, DefaultBotPlugins, HandleFn, JoinOpts, NoState, StartError};
@@ -445,7 +445,7 @@ where
         let resolved_address = if let Some(a) = default_join_opts.custom_resolved_address {
             a
         } else {
-            resolver::resolve_address(&address).await?
+            resolve::resolve_address(&address).await?
         };
 
         let instance_container = Arc::new(RwLock::new(InstanceContainer::default()));
@@ -843,52 +843,6 @@ impl Swarm {
             "client sender ended for {}, this won't trigger SwarmEvent::Disconnect unless the client already sent its own disconnect event",
             bot.entity
         );
-    }
-
-    /// Add a new account to the swarm, retrying if it couldn't join.
-    ///
-    /// This will run forever until the bot joins or the task is aborted.
-    ///
-    /// This does exponential backoff (though very limited), starting at 5
-    /// seconds and doubling up to 15 seconds.
-    #[deprecated(note = "azalea has auto-reconnect functionality built-in now, use `add` instead")]
-    pub async fn add_and_retry_forever<S: Component + Clone>(
-        &self,
-        account: &Account,
-        state: S,
-    ) -> Client {
-        #[allow(deprecated)]
-        self.add_and_retry_forever_with_opts(account, state, &JoinOpts::default())
-            .await
-    }
-
-    /// Same as [`Self::add_and_retry_forever`], but allow passing custom join
-    /// options.
-    #[deprecated(
-        note = "azalea has auto-reconnect functionality built-in now, use `add_with_opts` instead"
-    )]
-    pub async fn add_and_retry_forever_with_opts<S: Component + Clone>(
-        &self,
-        account: &Account,
-        state: S,
-        opts: &JoinOpts,
-    ) -> Client {
-        let mut disconnects: u32 = 0;
-        loop {
-            match self.add_with_opts(account, state.clone(), opts).await {
-                Ok(bot) => return bot,
-                Err(e) => {
-                    disconnects += 1;
-                    let delay = (Duration::from_secs(5) * 2u32.pow(disconnects.min(16)))
-                        .min(Duration::from_secs(15));
-                    let username = account.username.clone();
-
-                    error!("Error joining as {username}: {e}. Waiting {delay:?} and trying again.");
-
-                    sleep(delay).await;
-                }
-            }
-        }
     }
 
     /// Get an array of ECS [`Entity`]s for all [`LocalEntity`]s in our world.

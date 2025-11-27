@@ -15,11 +15,16 @@ pub mod direction;
 pub mod filterable;
 pub mod game_type;
 pub mod hit_result;
+pub mod identifier;
 pub mod math;
 pub mod objectives;
 pub mod position;
 pub mod registry_holder;
-pub mod resource_location;
+pub mod resource_location {
+    #![deprecated(note = "renamed to `identifier`.")]
+    #[deprecated(note = "renamed to `identifier::Identifier`.")]
+    pub type ResourceLocation = crate::identifier::Identifier;
+}
 pub mod sound;
 #[cfg(feature = "bevy_ecs")]
 pub mod tick;

@@ -52,7 +52,7 @@ impl BitSet {
     pub fn clear(&mut self, range: Range<usize>) {
         assert!(
             range.start <= range.end,
-            "Range ends before it starts; {} must be greater than {}",
+            "Range ends before it starts; {} must be less than or equal to {}",
             range.start,
             range.end
         );

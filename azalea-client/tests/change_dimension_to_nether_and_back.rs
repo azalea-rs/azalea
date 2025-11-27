@@ -1,5 +1,5 @@
 use azalea_client::{InConfigState, InGameState, test_utils::prelude::*};
-use azalea_core::{position::ChunkPos, resource_location::ResourceLocation};
+use azalea_core::{identifier::Identifier, position::ChunkPos};
 use azalea_entity::LocalEntity;
 use azalea_protocol::packets::{
     ConnectionProtocol, Packet,
@@ -19,11 +19,11 @@ fn test_change_dimension_to_nether_and_back() {
 
 fn generic_test_change_dimension_to_nether_and_back(using_respawn: bool) {
     let make_basic_login_or_respawn_packet = if using_respawn {
-        |dimension: DimensionType, instance_name: ResourceLocation| {
+        |dimension: DimensionType, instance_name: Identifier| {
             make_basic_respawn_packet(dimension, instance_name).into_variant()
         }
     } else {
-        |dimension: DimensionType, instance_name: ResourceLocation| {
+        |dimension: DimensionType, instance_name: Identifier| {
             make_basic_login_packet(dimension, instance_name).into_variant()
         }
     };
@@ -33,26 +33,26 @@ fn generic_test_change_dimension_to_nether_and_back(using_respawn: bool) {
     assert!(!simulation.has_component::<InGameState>());
 
     simulation.receive_packet(ClientboundRegistryData {
-        registry_id: ResourceLocation::new("minecraft:dimension_type"),
+        registry_id: Identifier::new("minecraft:dimension_type"),
         entries: vec![
             (
                 // this dimension should never be created. it just exists to make sure we're not
                 // hard-coding the dimension type id anywhere.
-                ResourceLocation::new("azalea:fakedimension"),
+                Identifier::new("azalea:fakedimension"),
                 Some(NbtCompound::from_values(vec![
                     ("height".into(), NbtTag::Int(16)),
                     ("min_y".into(), NbtTag::Int(0)),
                 ])),
             ),
             (
-                ResourceLocation::new("minecraft:overworld"),
+                Identifier::new("minecraft:overworld"),
                 Some(NbtCompound::from_values(vec![
                     ("height".into(), NbtTag::Int(384)),
                     ("min_y".into(), NbtTag::Int(-64)),
                 ])),
             ),
             (
-                ResourceLocation::new("minecraft:nether"),
+                Identifier::new("minecraft:nether"),
                 Some(NbtCompound::from_values(vec![
                     ("height".into(), NbtTag::Int(256)),
                     ("min_y".into(), NbtTag::Int(0)),
@@ -76,13 +76,13 @@ fn generic_test_change_dimension_to_nether_and_back(using_respawn: bool) {
 
     simulation.receive_packet(make_basic_login_packet(
         DimensionType::new_raw(1), // overworld
-        ResourceLocation::new("azalea:a"),
+        Identifier::new("azalea:a"),
     ));
     simulation.tick();
 
     assert_eq!(
         *simulation.component::<InstanceName>(),
-        ResourceLocation::new("azalea:a"),
+        Identifier::new("azalea:a"),
         "InstanceName should be azalea:a after setting dimension to that"
     );
 
@@ -99,7 +99,7 @@ fn generic_test_change_dimension_to_nether_and_back(using_respawn: bool) {
 
     simulation.receive_packet(make_basic_login_or_respawn_packet(
         DimensionType::new_raw(2), // nether
-        ResourceLocation::new("azalea:b"),
+        Identifier::new("azalea:b"),
     ));
     simulation.tick();
 
@@ -109,7 +109,7 @@ fn generic_test_change_dimension_to_nether_and_back(using_respawn: bool) {
     );
     assert_eq!(
         *simulation.component::<InstanceName>(),
-        ResourceLocation::new("azalea:b"),
+        Identifier::new("azalea:b"),
         "InstanceName should be azalea:b after changing dimensions to that"
     );
 
@@ -121,7 +121,7 @@ fn generic_test_change_dimension_to_nether_and_back(using_respawn: bool) {
         .expect("chunk should exist");
     simulation.receive_packet(make_basic_login_or_respawn_packet(
         DimensionType::new_raw(2), // nether
-        ResourceLocation::new("minecraft:nether"),
+        Identifier::new("minecraft:nether"),
     ));
     simulation.tick();
 
@@ -131,13 +131,13 @@ fn generic_test_change_dimension_to_nether_and_back(using_respawn: bool) {
 
     simulation.receive_packet(make_basic_login_packet(
         DimensionType::new_raw(1), // overworld
-        ResourceLocation::new("azalea:a"),
+        Identifier::new("azalea:a"),
     ));
     simulation.tick();
 
     assert_eq!(
         *simulation.component::<InstanceName>(),
-        ResourceLocation::new("azalea:a"),
+        Identifier::new("azalea:a"),
         "InstanceName should be azalea:a after setting dimension back to that"
     );
     assert!(

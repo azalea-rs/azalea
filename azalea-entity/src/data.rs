@@ -1,5 +1,8 @@
 //! Define some types needed for entity metadata.
 
+// TODO: this is here because of a bug in enum_as_inner. remove when it's fixed
+#![allow(clippy::double_parens)]
+
 use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};

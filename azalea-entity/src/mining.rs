@@ -1,6 +1,6 @@
 use azalea_block::{BlockBehavior, BlockTrait};
 use azalea_core::tier::get_item_tier;
-use azalea_registry as registry;
+use azalea_registry::{self as registry, MobEffect};
 
 use crate::{Attributes, FluidOnEyes, Physics, effects};
 
@@ -20,6 +20,7 @@ pub fn get_mine_progress(
     fluid_on_eyes: &FluidOnEyes,
     physics: &Physics,
     attributes: &Attributes,
+    active_effects: &ActiveEffects,
 ) -> f32 {
     let block_behavior: BlockBehavior = block.behavior();
 
@@ -39,6 +40,7 @@ pub fn get_mine_progress(
         fluid_on_eyes,
         physics,
         attributes,
+        active_effects,
     );
     (base_destroy_speed / destroy_time) / divisor as f32
 }
@@ -82,6 +84,7 @@ fn destroy_speed(
     _fluid_on_eyes: &FluidOnEyes,
     physics: &Physics,
     attributes: &Attributes,
+    active_effects: &ActiveEffects,
 ) -> f32 {
     let mut base_destroy_speed = base_destroy_speed(block, tool);
 
@@ -90,11 +93,11 @@ fn destroy_speed(
         base_destroy_speed += attributes.mining_efficiency.calculate() as f32;
     }
 
-    if let Some(dig_speed_amplifier) = effects::get_dig_speed_amplifier() {
+    if let Some(dig_speed_amplifier) = active_effects.get_dig_speed_amplifier() {
         base_destroy_speed *= 1. + (dig_speed_amplifier + 1) as f32 * 0.2;
     }
 
-    if let Some(dig_slowdown) = effects::get_effect(registry::MobEffect::MiningFatigue) {
+    if let Some(dig_slowdown) = active_effects.get_level(MobEffect::MiningFatigue) {
         let multiplier = match dig_slowdown {
             0 => 0.3,
             1 => 0.09,

@@ -5,9 +5,9 @@ use azalea_block::{
     properties::WaterLevel,
 };
 use azalea_core::{
+    identifier::Identifier,
     position::{BlockPos, ChunkPos, Vec3},
     registry_holder::RegistryHolder,
-    resource_location::ResourceLocation,
     tick::GameTick,
 };
 use azalea_entity::{EntityBundle, EntityPlugin, HasClientLoaded, LocalEntity, Physics, Position};
@@ -29,7 +29,7 @@ pub fn insert_overworld(app: &mut App) -> Arc<RwLock<Instance>> {
     app.world_mut()
         .resource_mut::<InstanceContainer>()
         .get_or_insert(
-            ResourceLocation::new("minecraft:overworld"),
+            Identifier::new("minecraft:overworld"),
             384,
             -64,
             &RegistryHolder::default(),
@@ -59,7 +59,7 @@ fn test_gravity() {
                     z: 0.,
                 },
                 azalea_registry::EntityKind::Zombie,
-                ResourceLocation::new("minecraft:overworld"),
+                Identifier::new("minecraft:overworld"),
             ),
             MinecraftEntityId(0),
             LocalEntity,
@@ -115,7 +115,7 @@ fn test_collision() {
                     z: 0.5,
                 },
                 azalea_registry::EntityKind::Player,
-                ResourceLocation::new("minecraft:overworld"),
+                Identifier::new("minecraft:overworld"),
             ),
             MinecraftEntityId(0),
             LocalEntity,
@@ -172,7 +172,7 @@ fn test_slab_collision() {
                     z: 0.5,
                 },
                 azalea_registry::EntityKind::Player,
-                ResourceLocation::new("minecraft:overworld"),
+                Identifier::new("minecraft:overworld"),
             ),
             MinecraftEntityId(0),
             LocalEntity,
@@ -223,7 +223,7 @@ fn test_top_slab_collision() {
                     z: 0.5,
                 },
                 azalea_registry::EntityKind::Player,
-                ResourceLocation::new("minecraft:overworld"),
+                Identifier::new("minecraft:overworld"),
             ),
             MinecraftEntityId(0),
             LocalEntity,
@@ -258,7 +258,7 @@ fn test_weird_wall_collision() {
         .world_mut()
         .resource_mut::<InstanceContainer>()
         .get_or_insert(
-            ResourceLocation::new("minecraft:overworld"),
+            Identifier::new("minecraft:overworld"),
             384,
             -64,
             &RegistryHolder::default(),
@@ -281,7 +281,7 @@ fn test_weird_wall_collision() {
                     z: 0.5,
                 },
                 azalea_registry::EntityKind::Player,
-                ResourceLocation::new("minecraft:overworld"),
+                Identifier::new("minecraft:overworld"),
             ),
             MinecraftEntityId(0),
             LocalEntity,
@@ -321,7 +321,7 @@ fn test_negative_coordinates_weird_wall_collision() {
         .world_mut()
         .resource_mut::<InstanceContainer>()
         .get_or_insert(
-            ResourceLocation::new("minecraft:overworld"),
+            Identifier::new("minecraft:overworld"),
             384,
             -64,
             &RegistryHolder::default(),
@@ -344,7 +344,7 @@ fn test_negative_coordinates_weird_wall_collision() {
                     z: -7.5,
                 },
                 azalea_registry::EntityKind::Player,
-                ResourceLocation::new("minecraft:overworld"),
+                Identifier::new("minecraft:overworld"),
             ),
             MinecraftEntityId(0),
             LocalEntity,
@@ -388,7 +388,7 @@ fn spawn_and_unload_world() {
         .world_mut()
         .resource_mut::<InstanceContainer>()
         .get_or_insert(
-            ResourceLocation::new("minecraft:overworld"),
+            Identifier::new("minecraft:overworld"),
             384,
             -64,
             &RegistryHolder::default(),
@@ -411,7 +411,7 @@ fn spawn_and_unload_world() {
                     z: -7.5,
                 },
                 azalea_registry::EntityKind::Player,
-                ResourceLocation::new("minecraft:overworld"),
+                Identifier::new("minecraft:overworld"),
             ),
             MinecraftEntityId(0),
             LocalEntity,
@@ -527,7 +527,7 @@ fn test_afk_pool() {
                     z: 1.5,
                 },
                 azalea_registry::EntityKind::Player,
-                ResourceLocation::new("minecraft:overworld"),
+                Identifier::new("minecraft:overworld"),
             ),
             MinecraftEntityId(0),
             LocalEntity,

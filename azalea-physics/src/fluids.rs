@@ -4,6 +4,7 @@ use azalea_block::{
 };
 use azalea_core::{
     direction::Direction,
+    identifier::Identifier,
     position::{BlockPos, Vec3},
 };
 use azalea_entity::{HasClientLoaded, LocalEntity, Physics, Position};

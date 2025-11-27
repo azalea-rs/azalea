@@ -1,5 +1,5 @@
 use azalea_buf::AzBuf;
-use azalea_core::{codec_utils::is_default, resource_location::ResourceLocation};
+use azalea_core::{codec_utils::is_default, identifier::Identifier};
 use azalea_registry::{HolderSet, MobEffect, SoundEvent};
 use serde::Serialize;
 
@@ -16,7 +16,7 @@ pub enum ConsumeEffect {
     },
     RemoveEffects {
         #[serde(skip_serializing_if = "is_default")]
-        effects: HolderSet<MobEffect, ResourceLocation>,
+        effects: HolderSet<MobEffect, Identifier>,
     },
     ClearAllEffects,
     TeleportRandomly {

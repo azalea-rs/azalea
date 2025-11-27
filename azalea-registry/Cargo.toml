@@ -15,3 +15,6 @@ simdnbt.workspace = true
 [features]
 serde = ["azalea-registry-macros/serde", "dep:serde"]
 default = ["serde"]
+
+[lints]
+workspace = true

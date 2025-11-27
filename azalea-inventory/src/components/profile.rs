@@ -2,7 +2,7 @@ use azalea_auth::game_profile::{
     GameProfile, GameProfileProperties, SerializableProfileProperties,
 };
 use azalea_buf::AzBuf;
-use azalea_core::{codec_utils::*, resource_location::ResourceLocation};
+use azalea_core::{codec_utils::*, identifier::Identifier};
 use serde::{Serialize, Serializer};
 use uuid::Uuid;
 
@@ -70,5 +70,5 @@ pub enum PlayerModelType {
 #[derive(Clone, Debug, AzBuf, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct ResourceTexture {
-    pub id: ResourceLocation,
+    pub id: Identifier,
 }

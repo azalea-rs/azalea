@@ -246,6 +246,7 @@ pub fn handle_mining_queued(
         &InstanceHolder,
         &LocalGameMode,
         &Inventory,
+        &ActiveEffects,
         &FluidOnEyes,
         &Physics,
         &Attributes,
@@ -264,6 +265,7 @@ pub fn handle_mining_queued(
         instance_holder,
         game_mode,
         inventory,
+        active_effects,
         fluid_on_eyes,
         physics,
         attributes,
@@ -364,6 +366,7 @@ pub fn handle_mining_queued(
                     fluid_on_eyes,
                     physics,
                     &attributes,
+                    active_effects,
                 ) >= 1.
             {
                 // block was broken instantly (instamined)
@@ -598,6 +601,7 @@ pub fn continue_mining_block(
         &Inventory,
         &MineBlockPos,
         &MineItem,
+        &ActiveEffects,
         &FluidOnEyes,
         &Physics,
         &Attributes,
@@ -618,6 +622,7 @@ pub fn continue_mining_block(
         inventory,
         current_mining_pos,
         current_mining_item,
+        active_effects,
         fluid_on_eyes,
         physics,
         attributes,
@@ -676,6 +681,7 @@ pub fn continue_mining_block(
                 fluid_on_eyes,
                 physics,
                 &attributes,
+                active_effects,
             );
 
             if **mine_ticks % 4. == 0. {

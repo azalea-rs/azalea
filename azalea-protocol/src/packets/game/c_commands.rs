@@ -1,7 +1,7 @@
 use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
-use azalea_core::{bitset::FixedBitSet, resource_location::ResourceLocation};
+use azalea_core::{bitset::FixedBitSet, identifier::Identifier};
 use azalea_protocol_macros::ClientboundGamePacket;
 use tracing::warn;
 
@@ -131,7 +131,7 @@ pub enum BrigadierParser {
     Team,
     ItemSlot,
     ItemSlots,
-    ResourceLocation,
+    Identifier,
     Function,
     EntityAnchor,
     IntRange,
@@ -139,11 +139,11 @@ pub enum BrigadierParser {
     Dimension,
     GameMode,
     Time { min: i32 },
-    ResourceOrTag { registry_key: ResourceLocation },
-    ResourceOrTagKey { registry_key: ResourceLocation },
-    Resource { registry_key: ResourceLocation },
-    ResourceKey { registry_key: ResourceLocation },
-    ResourceSelector { registry_key: ResourceLocation },
+    ResourceOrTag { registry_key: Identifier },
+    ResourceOrTagKey { registry_key: Identifier },
+    Resource { registry_key: Identifier },
+    ResourceKey { registry_key: Identifier },
+    ResourceSelector { registry_key: Identifier },
     TemplateMirror,
     TemplateRotation,
     Heightmap,
@@ -210,7 +210,7 @@ impl AzaleaRead for BrigadierNodeStub {
             let name = String::azalea_read(buf)?;
             let parser = BrigadierParser::azalea_read(buf)?;
             let suggestions_type = if has_suggestions_type {
-                Some(ResourceLocation::azalea_read(buf)?)
+                Some(Identifier::azalea_read(buf)?)
             } else {
                 None
             };
@@ -318,7 +318,7 @@ pub enum NodeType {
     Argument {
         name: String,
         parser: BrigadierParser,
-        suggestions_type: Option<ResourceLocation>,
+        suggestions_type: Option<Identifier>,
     },
 }
 
@@ -379,7 +379,7 @@ mod tests {
             node_type: NodeType::Argument {
                 name: "position".to_string(),
                 parser: BrigadierParser::Vec3,
-                suggestions_type: Some(ResourceLocation::new("minecraft:test_suggestion")),
+                suggestions_type: Some(Identifier::new("minecraft:test_suggestion")),
             },
             is_restricted: false,
         };

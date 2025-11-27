@@ -1,7 +1,7 @@
 use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite};
-use azalea_core::resource_location::ResourceLocation;
+use azalea_core::identifier::Identifier;
 use azalea_protocol_macros::ServerboundGamePacket;
 
 use crate::packets::BufReadError;
@@ -9,7 +9,7 @@ use crate::packets::BufReadError;
 #[derive(Clone, Debug, PartialEq, ServerboundGamePacket)]
 pub struct ServerboundSeenAdvancements {
     pub action: Action,
-    pub tab: Option<ResourceLocation>,
+    pub tab: Option<Identifier>,
 }
 
 #[derive(AzBuf, Clone, Copy, Debug, Eq, PartialEq)]
@@ -22,7 +22,7 @@ impl AzaleaRead for ServerboundSeenAdvancements {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let action = Action::azalea_read(buf)?;
         let tab = if action == Action::OpenedTab {
-            Some(ResourceLocation::azalea_read(buf)?)
+            Some(Identifier::azalea_read(buf)?)
         } else {
             None
         };

@@ -24,3 +24,6 @@ uuid.workspace = true
 [[bench]]
 harness = false
 name = "my_benchmark"
+
+[lints]
+workspace = true

@@ -374,7 +374,7 @@ define_style_struct! {
     click_event: ClickEvent,
     hover_event: HoverEvent,
     insertion: String,
-    /// Represented as a `ResourceLocation`.
+    /// Represented as an `Identifier`.
     font: String,
 }
 

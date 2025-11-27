@@ -2,25 +2,22 @@ use azalea_registry::DataRegistry;
 use simdnbt::owned::NbtCompound;
 
 use crate::{
+    identifier::Identifier,
     registry_holder::{self, RegistryDeserializesTo, RegistryHolder},
-    resource_location::ResourceLocation,
 };
 
 pub trait ResolvableDataRegistry: DataRegistry {
     type DeserializesTo: RegistryDeserializesTo;
 
-    fn resolve_name<'a>(&self, registries: &'a RegistryHolder) -> Option<&'a ResourceLocation> {
+    fn resolve_name<'a>(&self, registries: &'a RegistryHolder) -> Option<&'a Identifier> {
         // self.resolve(registries).map(|(name, _)| name.clone())
-        registries.protocol_id_to_resource_location(
-            ResourceLocation::from(Self::NAME),
-            self.protocol_id(),
-        )
+        registries.protocol_id_to_identifier(Identifier::from(Self::NAME), self.protocol_id())
     }
 
     fn resolve<'a>(
         &self,
         registries: &'a RegistryHolder,
-    ) -> Option<(&'a ResourceLocation, &'a Self::DeserializesTo)> {
+    ) -> Option<(&'a Identifier, &'a Self::DeserializesTo)> {
         Self::DeserializesTo::get_for_registry(registries, Self::NAME, self.protocol_id())
     }
 }
