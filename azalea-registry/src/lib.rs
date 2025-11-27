@@ -20,6 +20,7 @@ pub use data::*;
 pub use extra::*;
 #[cfg(feature = "serde")]
 use serde::Serialize;
+use simdnbt::{FromNbtTag, borrow::NbtTag};
 
 pub trait Registry: AzaleaRead + AzaleaWrite
 where
@@ -262,6 +263,19 @@ impl<R: Registry + Serialize, Direct: AzaleaRead + AzaleaWrite + Serialize> Seri
             Self::Reference(value) => value.serialize(serializer),
             Self::Direct(value) => value.serialize(serializer),
         }
+    }
+}
+
+impl<
+    R: Registry + Serialize + FromNbtTag,
+    Direct: AzaleaRead + AzaleaWrite + Serialize + FromNbtTag,
+> FromNbtTag for Holder<R, Direct>
+{
+    fn from_nbt_tag(tag: NbtTag) -> Option<Self> {
+        if let Some(reference) = R::from_nbt_tag(tag) {
+            return Some(Self::Reference(reference));
+        };
+        Direct::from_nbt_tag(tag).map(Self::Direct)
     }
 }
 

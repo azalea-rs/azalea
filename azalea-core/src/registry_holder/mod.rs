@@ -5,8 +5,11 @@
 //! the game, including the types of chat messages, dimensions, and
 //! biomes.
 
+pub mod components;
 pub mod dimension_type;
 pub mod enchantment;
+pub mod entity_effect;
+pub mod value;
 
 use std::{collections::HashMap, io::Cursor};
 

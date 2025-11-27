@@ -115,7 +115,7 @@ macro_rules! define_data_components {
                 }
             }
             pub fn azalea_read_as(
-                kind: registry::DataComponentKind,
+                kind: DataComponentKind,
                 buf: &mut Cursor<&[u8]>,
             ) -> Result<Self, BufReadError> {
                 trace!("Reading data component {kind}");
@@ -131,7 +131,7 @@ macro_rules! define_data_components {
             /// `kind` must be the correct value for this union.
             pub unsafe fn azalea_write_as(
                 &self,
-                kind: registry::DataComponentKind,
+                kind: DataComponentKind,
                 buf: &mut impl std::io::Write,
             ) -> io::Result<()> {
                 let mut value = Vec::new();
@@ -147,7 +147,7 @@ macro_rules! define_data_components {
             /// `kind` must be the correct value for this union.
             pub unsafe fn clone_as(
                 &self,
-                kind: registry::DataComponentKind,
+                kind: DataComponentKind,
             ) -> Self {
                 match kind {
                     $( DataComponentKind::$x => {
@@ -161,7 +161,7 @@ macro_rules! define_data_components {
             pub unsafe fn eq_as(
                 &self,
                 other: &Self,
-                kind: registry::DataComponentKind,
+                kind: DataComponentKind,
             ) -> bool {
                 match kind {
                     $( DataComponentKind::$x => unsafe { self.$x.eq(&other.$x) }, )*

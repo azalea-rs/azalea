@@ -14,7 +14,7 @@ use std::{
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
 use serde::{Serialize, Serializer};
-use simdnbt::Deserialize;
+use simdnbt::{Deserialize, borrow::NbtTag};
 
 use crate::{
     codec_utils::IntArray, direction::Direction, math, resource_location::ResourceLocation,
@@ -306,6 +306,13 @@ pub struct Vec3 {
     pub z: f64,
 }
 vec3_impl!(Vec3, f64);
+impl simdnbt::FromNbtTag for Vec3 {
+    fn from_nbt_tag(tag: NbtTag) -> Option<Self> {
+        let pos = tag.list()?.doubles()?;
+        let [x, y, z] = <[f64; 3]>::try_from(pos).ok()?;
+        Some(Self { x, y, z })
+    }
+}
 
 impl Vec3 {
     pub const ZERO: Vec3 = Vec3::new(0.0, 0.0, 0.0);
