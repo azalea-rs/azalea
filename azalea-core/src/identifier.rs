@@ -27,9 +27,18 @@ static DEFAULT_NAMESPACE: &str = "minecraft";
 
 impl Identifier {
     pub fn new(resource_string: impl Into<String>) -> Identifier {
-        let resource_string = resource_string.into();
+        let mut resource_string = resource_string.into();
 
-        let colon_index = resource_string.find(':').and_then(|i| NonZeroUsize::new(i));
+        let colon_index = resource_string.find(':');
+        let colon_index = if let Some(colon_index) = colon_index {
+            if colon_index == 0 {
+                resource_string = resource_string.split_off(1);
+            }
+            NonZeroUsize::new(colon_index)
+        } else {
+            None
+        };
+
         Self {
             colon_index,
             inner: resource_string.into(),
