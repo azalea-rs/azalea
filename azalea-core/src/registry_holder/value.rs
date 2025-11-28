@@ -1,6 +1,16 @@
+use azalea_registry::{
+    Attribute, EnchantmentLevelBasedValueKind as LevelBasedValueKind,
+    EnchantmentValueEffectKind as ValueEffectKind,
+};
 use simdnbt::{
     DeserializeError, FromNbtTag,
     borrow::{NbtCompound, NbtTag},
+};
+
+use crate::{
+    attribute_modifier_operation::AttributeModifierOperation,
+    identifier::Identifier,
+    registry_holder::{components::impl_from_effect_nbt_tag, get_in_compound},
 };
 
 #[derive(Debug, Clone)]
@@ -14,43 +24,41 @@ pub enum ValueEffect {
 
 impl simdnbt::Deserialize for ValueEffect {
     fn from_compound(nbt: NbtCompound) -> Result<Self, DeserializeError> {
-        let kind = nbt.string("kind").ok_or(DeserializeError::MissingField)?;
-        match kind.to_str().as_ref() {
-            "minecraft:set" => {
+        let kind = get_in_compound(&nbt, "type")?;
+        match kind {
+            ValueEffectKind::Set => {
                 let value = get_in_compound(&nbt, "value")?;
                 return Ok(Self::Set { value });
             }
-            "minecraft:add" => {
+            ValueEffectKind::Add => {
                 let value = get_in_compound(&nbt, "value")?;
                 return Ok(Self::Add { value });
             }
-            "minecraft:multiply" => {
+            ValueEffectKind::Multiply => {
                 let factor = get_in_compound(&nbt, "factor")?;
                 return Ok(Self::Multiply { factor });
             }
-            "minecraft:remove_binomial" => {
+            ValueEffectKind::RemoveBinomial => {
                 let chance = get_in_compound(&nbt, "chance")?;
                 return Ok(Self::RemoveBinomial { chance });
             }
-            "minecraft:all_of" => {
+            ValueEffectKind::AllOf => {
                 let effects = get_in_compound(&nbt, "effects")?;
                 return Ok(Self::AllOf { effects });
             }
-            _ => return Err(DeserializeError::MismatchedFieldType("kind".to_owned())),
         }
     }
 }
+impl_from_effect_nbt_tag!(ValueEffect);
 
-pub struct AttributeEffect {}
-pub struct EntityEffect {}
-
-fn get_in_compound<T: FromNbtTag>(
-    compound: &NbtCompound,
-    key: &str,
-) -> Result<T, DeserializeError> {
-    T::from_nbt_tag(compound.get(key).ok_or(DeserializeError::MissingField)?)
-        .ok_or(DeserializeError::MissingField)
+#[derive(Debug, Clone, simdnbt::Deserialize)]
+pub struct AttributeEffect {
+    pub id: Identifier,
+    pub attribute: Attribute,
+    pub amount: LevelBasedValue,
+    pub operation: AttributeModifierOperation,
 }
+impl_from_effect_nbt_tag!(AttributeEffect);
 
 #[derive(Debug, Clone)]
 pub enum LevelBasedValue {
@@ -102,49 +110,49 @@ impl FromNbtTag for LevelBasedValue {
 }
 impl LevelBasedValue {
     fn from_compound(nbt: NbtCompound) -> Result<Self, DeserializeError> {
-        let kind = nbt.string("kind").ok_or(DeserializeError::MissingField)?;
-        match kind.to_str().as_ref() {
-            "minecraft:exponent" => {
-                let base = get_in_compound(&nbt, "base")?;
-                let power = get_in_compound(&nbt, "power")?;
-                return Ok(Self::Exponent { base, power });
-            }
-            "minecraft:lienar" => {
+        let kind = get_in_compound(&nbt, "type")?;
+        let value = match kind {
+            // LevelBasedValueKind::Exponent => {
+            //     let base = get_in_compound(&nbt, "base")?;
+            //     let power = get_in_compound(&nbt, "power")?;
+            //     return Ok(Self::Exponent { base, power });
+            // }
+            LevelBasedValueKind::Linear => {
                 let base = get_in_compound(&nbt, "base")?;
                 let per_level_above_first = get_in_compound(&nbt, "per_level_above_first")?;
-                return Ok(Self::Linear {
+                Self::Linear {
                     base,
                     per_level_above_first,
-                });
+                }
             }
-            "minecraft:levels_squared" => {
+            LevelBasedValueKind::LevelsSquared => {
                 let added = get_in_compound(&nbt, "added")?;
-                return Ok(Self::LevelsSquared { added });
+                Self::LevelsSquared { added }
             }
-            "minecraft:clamped" => {
+            LevelBasedValueKind::Clamped => {
                 let value = Box::new(get_in_compound(&nbt, "value")?);
                 let min = get_in_compound(&nbt, "min")?;
                 let max = get_in_compound(&nbt, "max")?;
-                return Ok(Self::Clamped { value, min, max });
+                Self::Clamped { value, min, max }
             }
-            "minecraft:fraction" => {
+            LevelBasedValueKind::Fraction => {
                 let numerator = Box::new(get_in_compound(&nbt, "numerator")?);
                 let denominator = Box::new(get_in_compound(&nbt, "denominator")?);
-                return Ok(Self::Fraction {
+                Self::Fraction {
                     numerator,
                     denominator,
-                });
+                }
             }
-            "minecraft:lookup" => {
+            LevelBasedValueKind::Lookup => {
                 let values = nbt
                     .list("values")
                     .ok_or(DeserializeError::MissingField)?
                     .floats()
                     .ok_or(DeserializeError::MissingField)?;
                 let fallback = Box::new(get_in_compound(&nbt, "fallback")?);
-                return Ok(Self::Lookup { values, fallback });
+                Self::Lookup { values, fallback }
             }
-            _ => return Err(DeserializeError::MismatchedFieldType("kind".to_owned())),
-        }
+        };
+        Ok(value)
     }
 }

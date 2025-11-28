@@ -1,7 +1,7 @@
 use std::{
     any::Any,
     borrow::Cow,
-    fmt,
+    fmt::{self, Debug},
     io::{self, Cursor, Write},
 };
 
@@ -448,7 +448,7 @@ impl Clone for DataComponentPatch {
         DataComponentPatch { components }
     }
 }
-impl fmt::Debug for DataComponentPatch {
+impl Debug for DataComponentPatch {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_set().entries(self.components.keys()).finish()
     }

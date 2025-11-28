@@ -3003,7 +3003,6 @@ dependencies = [
 [[package]]
 name = "simdnbt"
 version = "0.8.0"
-source = "git+https://github.com/azalea-rs/simdnbt#4fd47f941f4a721a64341519267c8f95c0b275c5"
 dependencies = [
  "byteorder",
  "flate2",
@@ -3016,7 +3015,6 @@ dependencies = [
 [[package]]
 name = "simdnbt-derive"
 version = "0.8.0"
-source = "git+https://github.com/azalea-rs/simdnbt#4fd47f941f4a721a64341519267c8f95c0b275c5"
 dependencies = [
  "proc-macro2",
  "quote",

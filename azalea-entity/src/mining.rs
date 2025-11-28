@@ -2,7 +2,7 @@ use azalea_block::{BlockBehavior, BlockTrait};
 use azalea_core::tier::get_item_tier;
 use azalea_registry::{self as registry, MobEffect};
 
-use crate::{Attributes, FluidOnEyes, Physics, effects};
+use crate::{ActiveEffects, Attributes, FluidOnEyes, Physics};
 
 /// How much progress is made towards mining the block per tick, as a
 /// percentage.

@@ -5,20 +5,23 @@
 //! the game, including the types of chat messages, dimensions, and
 //! biomes.
 
+pub mod block_predicate;
+pub mod block_state_provider;
 pub mod components;
 pub mod dimension_type;
 pub mod enchantment;
 pub mod entity_effect;
+pub mod float_provider;
 pub mod value;
 
 use std::{collections::HashMap, io::Cursor};
 
 use indexmap::IndexMap;
-use simdnbt::owned::NbtCompound;
+use simdnbt::{DeserializeError, FromNbtTag, borrow, owned::NbtCompound};
 use thiserror::Error;
 use tracing::error;
 
-use crate::resource_location::ResourceLocation;
+use crate::identifier::Identifier;
 
 /// The base of the registry.
 ///
@@ -44,7 +47,7 @@ pub struct RegistryHolder {
     ///
     /// You can still access these just fine, but they'll be NBT instead of
     /// nicer structs.
-    pub extra: HashMap<ResourceLocation, RegistryType<NbtCompound>>,
+    pub extra: HashMap<Identifier, RegistryType<NbtCompound>>,
 }
 
 macro_rules! registry_holder {
@@ -52,8 +55,8 @@ macro_rules! registry_holder {
         impl RegistryHolder {
             pub fn append(
                 &mut self,
-                id: ResourceLocation,
-                entries: Vec<(ResourceLocation, Option<NbtCompound>)>,
+                id: Identifier,
+                entries: Vec<(Identifier, Option<NbtCompound>)>,
             ) {
 
                 if id.namespace() == "minecraft" {
@@ -85,9 +88,9 @@ macro_rules! registry_holder {
             /// name.
             pub fn protocol_id_to_identifier(
                 &self,
-                registry: ResourceLocation,
+                registry: Identifier,
                 protocol_id: u32,
-            ) -> Option<&ResourceLocation> {
+            ) -> Option<&Identifier> {
                 let index = protocol_id as usize;
 
 
@@ -134,7 +137,7 @@ enum NbtToSerializableTypeError {
 /// A collection of values for a certain type of registry data.
 #[derive(Debug, Clone)]
 pub struct RegistryType<T: simdnbt::Deserialize> {
-    pub map: IndexMap<ResourceLocation, T>,
+    pub map: IndexMap<Identifier, T>,
 }
 
 impl<T: simdnbt::Deserialize> Default for RegistryType<T> {
@@ -146,11 +149,7 @@ impl<T: simdnbt::Deserialize> Default for RegistryType<T> {
 }
 
 impl<T: simdnbt::Deserialize> RegistryType<T> {
-    fn append_nbt(
-        &mut self,
-        id: ResourceLocation,
-        entries: Vec<(ResourceLocation, Option<NbtCompound>)>,
-    ) {
+    fn append_nbt(&mut self, id: Identifier, entries: Vec<(Identifier, Option<NbtCompound>)>) {
         let map = &mut self.map;
         for (key, value) in entries {
             if let Some(value) = value {
@@ -174,7 +173,7 @@ pub trait RegistryDeserializesTo: simdnbt::Deserialize {
         registries: &'a RegistryHolder,
         registry_name: &'static str,
         protocol_id: u32,
-    ) -> Option<(&'a ResourceLocation, &'a Self)>;
+    ) -> Option<(&'a Identifier, &'a Self)>;
 }
 
 impl RegistryDeserializesTo for NbtCompound {
@@ -182,10 +181,10 @@ impl RegistryDeserializesTo for NbtCompound {
         registries: &'a RegistryHolder,
         registry_name: &'static str,
         protocol_id: u32,
-    ) -> Option<(&'a ResourceLocation, &'a Self)> {
+    ) -> Option<(&'a Identifier, &'a Self)> {
         registries
             .extra
-            .get(&ResourceLocation::new(registry_name))?
+            .get(&Identifier::new(registry_name))?
             .map
             .get_index(protocol_id as usize)
     }
@@ -195,7 +194,7 @@ impl RegistryDeserializesTo for dimension_type::DimensionTypeElement {
         registries: &'a RegistryHolder,
         registry_name: &'static str,
         protocol_id: u32,
-    ) -> Option<(&'a ResourceLocation, &'a Self)> {
+    ) -> Option<(&'a Identifier, &'a Self)> {
         if registry_name != "dimension_type" {
             error!(
                 "called RegistryDeserializesTo::get_for_registry with the wrong registry: {registry_name}"
@@ -206,4 +205,12 @@ impl RegistryDeserializesTo for dimension_type::DimensionTypeElement {
             .map
             .get_index(protocol_id as usize)
     }
+}
+
+pub fn get_in_compound<T: FromNbtTag>(
+    compound: &borrow::NbtCompound,
+    key: &str,
+) -> Result<T, DeserializeError> {
+    T::from_nbt_tag(compound.get(key).ok_or(DeserializeError::MissingField)?)
+        .ok_or(DeserializeError::MissingField)
 }

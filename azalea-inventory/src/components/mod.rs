@@ -11,6 +11,7 @@ use std::{
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
 use azalea_chat::FormattedText;
 use azalea_core::{
+    attribute_modifier_operation::AttributeModifierOperation,
     checksum::{Checksum, get_checksum},
     codec_utils::*,
     filterable::Filterable,
@@ -411,14 +412,6 @@ pub enum EquipmentSlotGroup {
     Head,
     Armor,
     Body,
-}
-
-#[derive(Clone, Copy, PartialEq, AzBuf, Debug, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub enum AttributeModifierOperation {
-    AddValue,
-    AddMultipliedBase,
-    AddMultipliedTotal,
 }
 
 // this is duplicated in azalea-entity, BUT the one there has a different

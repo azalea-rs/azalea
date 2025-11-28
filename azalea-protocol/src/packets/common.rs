@@ -5,7 +5,6 @@ use azalea_core::{
     identifier::Identifier,
     position::GlobalPos,
     registry_holder::{RegistryHolder, dimension_type::DimensionTypeElement},
-    resource_location::ResourceLocation,
 };
 use tracing::error;
 

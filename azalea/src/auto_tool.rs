@@ -1,7 +1,7 @@
 use azalea_block::{BlockState, BlockTrait, fluid_state::FluidKind};
 use azalea_client::Client;
 use azalea_core::position::BlockPos;
-use azalea_entity::{ActiveEffects, FluidOnEyes, Physics};
+use azalea_entity::{ActiveEffects, Attributes, FluidOnEyes, Physics, inventory::Inventory};
 use azalea_inventory::{ItemStack, Menu, components};
 use azalea_registry::EntityKind;
 
