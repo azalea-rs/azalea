@@ -11,18 +11,11 @@ jobs:
   clippy_and_test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - uses: actions/checkout@v4
       - name: Install Nightly
         run: rustup update nightly && rustup default nightly && rustup component add clippy
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2
       - name: Clippy
         run: cargo clippy --all-features
       - name: Test
