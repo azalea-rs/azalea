@@ -106,12 +106,8 @@ define_effect_components!(
     TridentSpinAttackStrength: TridentSpinAttackStrength,
 );
 
-/// A trait that's implemented on the effect components that we can access from
-/// [`EnchantmentData::get`](super::enchantment::EnchantmentData::get).
-///
-/// This is currently not implemented on all effect components.
-// TODO: make a unique struct for every effect component and impl this on all
-// of them
+/// A trait that's implemented on all effect components so we can access them
+/// from [`EnchantmentData::get`](super::enchantment::EnchantmentData::get).
 pub trait EffectComponentTrait: Any {
     const KIND: EnchantmentEffectComponentKind;
 }
