@@ -209,7 +209,7 @@ checksum = "c08606f8c3cbf4ce6ec8e28fb0014a2c086708fe954eaa885384a6165172e7e8"
 
 [[package]]
 name = "azalea"
-version = "0.14.0+mc1.21.11-pre2"
+version = "0.14.0+mc1.21.11-pre3"
 dependencies = [
  "anyhow",
  "azalea-auth",
@@ -249,7 +249,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-auth"
-version = "0.14.0+mc1.21.11-pre2"
+version = "0.14.0+mc1.21.11-pre3"
 dependencies = [
  "azalea-buf",
  "azalea-crypto",
@@ -273,7 +273,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-block"
-version = "0.14.0+mc1.21.11-pre2"
+version = "0.14.0+mc1.21.11-pre3"
 dependencies = [
  "azalea-block-macros",
  "azalea-buf",
@@ -282,7 +282,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-block-macros"
-version = "0.14.0+mc1.21.11-pre2"
+version = "0.14.0+mc1.21.11-pre3"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -291,7 +291,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-brigadier"
-version = "0.14.0+mc1.21.11-pre2"
+version = "0.14.0+mc1.21.11-pre3"
 dependencies = [
  "azalea-buf",
  "azalea-chat",
@@ -302,7 +302,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-buf"
-version = "0.14.0+mc1.21.11-pre2"
+version = "0.14.0+mc1.21.11-pre3"
 dependencies = [
  "azalea-buf-macros",
  "byteorder",
@@ -316,7 +316,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-buf-macros"
-version = "0.14.0+mc1.21.11-pre2"
+version = "0.14.0+mc1.21.11-pre3"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -325,7 +325,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-chat"
-version = "0.14.0+mc1.21.11-pre2"
+version = "0.14.0+mc1.21.11-pre3"
 dependencies = [
  "azalea-buf",
  "azalea-language",
@@ -338,7 +338,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-client"
-version = "0.14.0+mc1.21.11-pre2"
+version = "0.14.0+mc1.21.11-pre3"
 dependencies = [
  "anyhow",
  "async-compat",
@@ -376,7 +376,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-core"
-version = "0.14.0+mc1.21.11-pre2"
+version = "0.14.0+mc1.21.11-pre3"
 dependencies = [
  "azalea-buf",
  "azalea-chat",
@@ -395,7 +395,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-crypto"
-version = "0.14.0+mc1.21.11-pre2"
+version = "0.14.0+mc1.21.11-pre3"
 dependencies = [
  "aes",
  "azalea-buf",
@@ -412,7 +412,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-entity"
-version = "0.14.0+mc1.21.11-pre2"
+version = "0.14.0+mc1.21.11-pre3"
 dependencies = [
  "azalea-auth",
  "azalea-block",
@@ -436,7 +436,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-inventory"
-version = "0.14.0+mc1.21.11-pre2"
+version = "0.14.0+mc1.21.11-pre3"
 dependencies = [
  "azalea-auth",
  "azalea-buf",
@@ -453,7 +453,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-inventory-macros"
-version = "0.14.0+mc1.21.11-pre2"
+version = "0.14.0+mc1.21.11-pre3"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -462,7 +462,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-language"
-version = "0.14.0+mc1.21.11-pre2"
+version = "0.14.0+mc1.21.11-pre3"
 dependencies = [
  "compact_str",
  "serde_json",
@@ -470,7 +470,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-physics"
-version = "0.14.0+mc1.21.11-pre2"
+version = "0.14.0+mc1.21.11-pre3"
 dependencies = [
  "azalea-block",
  "azalea-core",
@@ -487,7 +487,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-protocol"
-version = "0.14.0+mc1.21.11-pre2"
+version = "0.14.0+mc1.21.11-pre3"
 dependencies = [
  "anyhow",
  "async-recursion",
@@ -523,7 +523,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-protocol-macros"
-version = "0.14.0+mc1.21.11-pre2"
+version = "0.14.0+mc1.21.11-pre3"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -532,7 +532,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-registry"
-version = "0.14.0+mc1.21.11-pre2"
+version = "0.14.0+mc1.21.11-pre3"
 dependencies = [
  "azalea-buf",
  "azalea-registry-macros",
@@ -542,7 +542,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-registry-macros"
-version = "0.14.0+mc1.21.11-pre2"
+version = "0.14.0+mc1.21.11-pre3"
 dependencies = [
  "quote",
  "syn",
@@ -550,7 +550,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-world"
-version = "0.14.0+mc1.21.11-pre2"
+version = "0.14.0+mc1.21.11-pre3"
 dependencies = [
  "azalea-block",
  "azalea-buf",
