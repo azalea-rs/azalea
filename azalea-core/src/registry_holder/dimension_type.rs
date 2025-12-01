@@ -1,9 +1,9 @@
-#[cfg(not(feature = "strict_registry"))]
 use std::collections::HashMap;
 
-#[cfg(not(feature = "strict_registry"))]
-use simdnbt::{Deserialize, Serialize, owned::NbtTag};
-use simdnbt::{FromNbtTag, ToNbtTag, owned::NbtCompound};
+use simdnbt::{
+    Deserialize, FromNbtTag, Serialize, ToNbtTag,
+    owned::{NbtCompound, NbtTag},
+};
 
 use crate::identifier::Identifier;
 

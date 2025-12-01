@@ -5,13 +5,9 @@ use std::{
     sync::LazyLock,
 };
 
-#[cfg(feature = "azalea-buf")]
+#[cfg(all(feature = "azalea-buf", feature = "simdnbt"))]
 use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
 use serde::{Deserialize, Deserializer, Serialize, de};
-#[cfg(feature = "simdnbt")]
-use simdnbt::{Deserialize as _, FromNbtTag as _, Serialize as _};
-#[cfg(all(feature = "azalea-buf", feature = "simdnbt"))]
-use tracing::{debug, trace, warn};
 
 use crate::{
     base_component::BaseComponent,
@@ -66,6 +62,8 @@ impl FormattedText {
 
     #[cfg(feature = "simdnbt")]
     fn parse_separator_nbt(nbt: &simdnbt::borrow::NbtCompound) -> Option<FormattedText> {
+        use simdnbt::FromNbtTag;
+
         if let Some(separator) = nbt.get("separator") {
             FormattedText::from_nbt_tag(separator)
         } else {
@@ -447,6 +445,8 @@ impl FormattedText {
         FormattedText::from(s)
     }
     fn from_nbt_list(list: simdnbt::borrow::NbtList) -> Option<FormattedText> {
+        use tracing::debug;
+
         let mut component;
         if let Some(compounds) = list.compounds() {
             component = FormattedText::from_nbt_compound(compounds.first()?)?;
@@ -466,6 +466,9 @@ impl FormattedText {
     }
 
     pub fn from_nbt_compound(compound: simdnbt::borrow::NbtCompound) -> Option<Self> {
+        use simdnbt::{Deserialize, FromNbtTag};
+        use tracing::{trace, warn};
+
         let mut component: FormattedText;
 
         if let Some(text) = compound.get("text") {
@@ -617,6 +620,9 @@ impl From<&simdnbt::Mutf8Str> for FormattedText {
 #[cfg(all(feature = "azalea-buf", feature = "simdnbt"))]
 impl AzaleaRead for FormattedText {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        use simdnbt::FromNbtTag;
+        use tracing::trace;
+
         let nbt = simdnbt::borrow::read_optional_tag(buf)?;
         trace!(
             "Reading NBT for FormattedText: {:?}",
@@ -634,6 +640,8 @@ impl AzaleaRead for FormattedText {
 #[cfg(all(feature = "azalea-buf", feature = "simdnbt"))]
 impl AzaleaWrite for FormattedText {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+        use simdnbt::Serialize;
+
         let mut out = Vec::new();
         simdnbt::owned::BaseNbt::write_unnamed(&(self.clone().to_compound().into()), &mut out);
         buf.write_all(&out)
