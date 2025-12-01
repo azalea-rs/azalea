@@ -13,11 +13,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Install Nightly
         run: rustup update nightly && rustup default nightly && rustup component add clippy
+
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v2
+
       - name: Clippy
         run: cargo clippy --all-features
+
       - name: Test
         run: cargo test
