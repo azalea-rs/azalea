@@ -4,6 +4,7 @@ use core::f64;
 use std::{
     any::Any,
     collections::HashMap,
+    fmt::{self, Display},
     io::{self, Cursor},
     mem::ManuallyDrop,
 };
@@ -346,11 +347,11 @@ pub enum Rarity {
     Epic,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Serialize)]
+#[derive(Clone, PartialEq, AzBuf, Serialize, Default)]
 #[serde(transparent)]
 pub struct Enchantments {
     #[var]
-    pub levels: HashMap<Enchantment, u32>,
+    pub levels: HashMap<Enchantment, i32>,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -435,7 +436,7 @@ pub struct AttributeModifiersEntry {
     pub display: AttributeModifierDisplay,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize, Default)]
 #[serde(transparent)]
 pub struct AttributeModifiers {
     pub modifiers: Vec<AttributeModifiersEntry>,
@@ -1093,7 +1094,8 @@ impl Default for Equippable {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, AzBuf, Serialize)]
+/// An enum that represents inventory slots that can hold items.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, AzBuf, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum EquipmentSlot {
     Mainhand,
@@ -1102,8 +1104,54 @@ pub enum EquipmentSlot {
     Legs,
     Chest,
     Head,
+    /// This is for animal armor, use [`Self::Chest`] for the chestplate slot.
     Body,
     Saddle,
+}
+impl EquipmentSlot {
+    #[must_use]
+    pub fn from_byte(byte: u8) -> Option<Self> {
+        let value = match byte {
+            0 => Self::Mainhand,
+            1 => Self::Offhand,
+            2 => Self::Feet,
+            3 => Self::Legs,
+            4 => Self::Chest,
+            5 => Self::Head,
+            _ => return None,
+        };
+        Some(value)
+    }
+    pub fn values() -> [Self; 8] {
+        [
+            Self::Mainhand,
+            Self::Offhand,
+            Self::Feet,
+            Self::Legs,
+            Self::Chest,
+            Self::Head,
+            Self::Body,
+            Self::Saddle,
+        ]
+    }
+    /// Get the display name for the equipment slot, like "mainhand".
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Mainhand => "mainhand",
+            Self::Offhand => "offhand",
+            Self::Feet => "feet",
+            Self::Legs => "legs",
+            Self::Chest => "chest",
+            Self::Head => "head",
+            Self::Body => "body",
+            Self::Saddle => "saddle",
+        }
+    }
+}
+impl Display for EquipmentSlot {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.name())
+    }
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]

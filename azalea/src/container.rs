@@ -166,7 +166,7 @@ impl ContainerClientExt for Client {
     }
 
     fn get_held_item(&self) -> ItemStack {
-        self.query_self::<&Inventory, _>(|inv| inv.held_item())
+        self.query_self::<&Inventory, _>(|inv| inv.held_item().clone())
     }
 }
 

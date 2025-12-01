@@ -3,6 +3,7 @@ use std::{cmp, collections::HashSet};
 use azalea_chat::FormattedText;
 use azalea_inventory::{
     ItemStack, ItemStackData, Menu,
+    components::EquipmentSlot,
     item::MaxStackSizeExt,
     operations::{
         ClickOperation, CloneClick, PickupAllClick, PickupClick, QuickCraftKind, QuickCraftStatus,
@@ -521,12 +522,11 @@ impl Inventory {
         self.quick_craft_slots.clear();
     }
 
-    /// Get the item in the player's hotbar that is currently being held in its
-    /// main hand.
-    pub fn held_item(&self) -> ItemStack {
-        let inventory = &self.inventory_menu;
-        let hotbar_items = &inventory.slots()[inventory.hotbar_slots_range()];
-        hotbar_items[self.selected_hotbar_slot as usize].clone()
+    /// Get the item in the player's hotbar that is currently being held in
+    /// their main hand.
+    pub fn held_item(&self) -> &ItemStack {
+        self.get_equipment(EquipmentSlot::Mainhand)
+            .expect("The main hand item should always be present")
     }
 
     /// TODO: implement bundles
@@ -588,6 +588,36 @@ impl Inventory {
         }
 
         Some(removed)
+    }
+
+    /// Get the item at the given equipment slot, or `None` if the inventory
+    /// can't contain that slot.
+    pub fn get_equipment(&self, equipment_slot: EquipmentSlot) -> Option<&ItemStack> {
+        let player = self.inventory_menu.as_player();
+        let item = match equipment_slot {
+            EquipmentSlot::Mainhand => {
+                let menu = self.menu();
+                let main_hand_slot_idx =
+                    *menu.hotbar_slots_range().start() + self.selected_hotbar_slot as usize;
+                menu.slot(main_hand_slot_idx)?
+            }
+            EquipmentSlot::Offhand => &player.offhand,
+            EquipmentSlot::Feet => &player.armor[3],
+            EquipmentSlot::Legs => &player.armor[2],
+            EquipmentSlot::Chest => &player.armor[1],
+            EquipmentSlot::Head => &player.armor[0],
+            EquipmentSlot::Body => {
+                // TODO: when riding entities is implemented, mount/horse inventories should be
+                // implemented too. note that horse inventories aren't a normal menu (they're
+                // not in MenuKind), maybe they should be a separate field in `Inventory`?
+                return None;
+            }
+            EquipmentSlot::Saddle => {
+                // TODO: implement riding entities, see above
+                return None;
+            }
+        };
+        Some(item)
     }
 }
 

@@ -1,4 +1,9 @@
-use std::{any::type_name, fmt::Debug, mem::ManuallyDrop, str::FromStr};
+use std::{
+    any::{Any, type_name},
+    fmt::Debug,
+    mem::ManuallyDrop,
+    str::FromStr,
+};
 
 use azalea_registry::{EnchantmentEffectComponentKind, SoundEvent};
 use simdnbt::{
@@ -55,42 +60,71 @@ macro_rules! define_effect_components {
                     }, )*
                 }
             }
+
+            /// # Safety
+            ///
+            /// `kind` must be the correct value for this union.
+            pub unsafe fn as_kind(&self, kind: EnchantmentEffectComponentKind) -> &dyn ResolvedEffectComponent {
+                match kind {
+                    $( EnchantmentEffectComponentKind::$x => { unsafe { &**(&self.$x as &ManuallyDrop<dyn ResolvedEffectComponent>) } }, )*
+                }
+            }
         }
+
+        $(
+            impl EffectComponentTrait for $t {
+                const KIND: EnchantmentEffectComponentKind = EnchantmentEffectComponentKind::$x;
+            }
+        )*
     };
 }
 
 define_effect_components!(
-    DamageProtection: ConditionalEffect<ValueEffect>,
+    DamageProtection: DamageProtection,
     DamageImmunity: ConditionalEffect<DamageImmunity>,
-    Damage: ConditionalEffect<ValueEffect>,
-    SmashDamagePerFallenBlock: ConditionalEffect<ValueEffect>,
-    Knockback: ConditionalEffect<ValueEffect>,
-    ArmorEffectiveness: ConditionalEffect<ValueEffect>,
-    PostAttack: TargetedConditionalEffect<EntityEffect>,
-    HitBlock: ConditionalEffect<EntityEffect>,
-    ItemDamage: ConditionalEffect<ValueEffect>,
+    Damage: Damage,
+    SmashDamagePerFallenBlock: SmashDamagePerFallenBlock,
+    Knockback: Knockback,
+    ArmorEffectiveness: ArmorEffectiveness,
+    PostAttack: PostAttack,
+    HitBlock: ConditionalEntityEffect,
+    ItemDamage: ConditionalValueEffect,
     Attributes: AttributeEffect,
-    EquipmentDrops: ConditionalEffect<ValueEffect>,
+    EquipmentDrops: EquipmentDrops,
     LocationChanged: ConditionalEffect<LocationBasedEffect>,
-    Tick: ConditionalEffect<EntityEffect>,
-    AmmoUse: ConditionalEffect<ValueEffect>,
-    ProjectilePiercing: ConditionalEffect<ValueEffect>,
-    ProjectileSpawned: ConditionalEffect<EntityEffect>,
-    ProjectileSpread: ConditionalEffect<ValueEffect>,
-    ProjectileCount: ConditionalEffect<ValueEffect>,
-    TridentReturnAcceleration: ConditionalEffect<ValueEffect>,
-    FishingTimeReduction: ConditionalEffect<ValueEffect>,
-    FishingLuckBonus: ConditionalEffect<ValueEffect>,
-    BlockExperience: ConditionalEffect<ValueEffect>,
-    MobExperience: ConditionalEffect<ValueEffect>,
-    RepairWithXp: ConditionalEffect<ValueEffect>,
-    CrossbowChargeTime: ValueEffect,
+    Tick: Tick,
+    AmmoUse: AmmoUse,
+    ProjectilePiercing: ProjectilePiercing,
+    ProjectileSpawned: ProjectileSpawned,
+    ProjectileSpread: ProjectileSpread,
+    ProjectileCount: ProjectileCount,
+    TridentReturnAcceleration: TridentReturnAcceleration,
+    FishingTimeReduction: FishingTimeReduction,
+    FishingLuckBonus: FishingLuckBonus,
+    BlockExperience: BlockExperience,
+    MobExperience: MobExperience,
+    RepairWithXp: RepairWithXp,
+    CrossbowChargeTime: CrossbowChargeTime,
     CrossbowChargingSounds: CrossbowChargingSounds,
     TridentSound: TridentSound,
     PreventEquipmentDrop: PreventEquipmentDrop,
     PreventArmorChange: PreventArmorChange,
-    TridentSpinAttackStrength: ValueEffect,
+    TridentSpinAttackStrength: TridentSpinAttackStrength,
 );
+
+/// A trait that's implemented on the effect components that we can access from
+/// [`EnchantmentData::get`](super::enchantment::EnchantmentData::get).
+///
+/// This is currently not implemented on all effect components.
+// TODO: make a unique struct for every effect component and impl this on all
+// of them
+pub trait EffectComponentTrait: Any {
+    const KIND: EnchantmentEffectComponentKind;
+}
+
+// this exists because EffectComponentTrait isn't dyn-compatible
+pub trait ResolvedEffectComponent: Any {}
+impl<T: EffectComponentTrait> ResolvedEffectComponent for T {}
 
 /// An alternative to `simdnbt::borrow::NbtTag` used internally when
 /// deserializing effects.
@@ -155,6 +189,10 @@ pub struct TargetedConditionalEffect<T: simdnbt::Deserialize + Debug + Clone> {
     // pub requirements
 }
 
+// makes for cleaner-looking types
+type ConditionalValueEffect = ConditionalEffect<ValueEffect>;
+type ConditionalEntityEffect = ConditionalEffect<EntityEffect>;
+
 impl<T: simdnbt::Deserialize + Debug + Clone> simdnbt::Deserialize for ConditionalEffect<T> {
     fn from_compound(nbt: NbtCompound) -> Result<Self, DeserializeError> {
         let effect = get_in_compound(&nbt, "effect")?;
@@ -176,7 +214,43 @@ impl<T: simdnbt::Deserialize + Debug + Clone> simdnbt::Deserialize
         Ok(Self { effect })
     }
 }
-impl_from_effect_nbt_tag!(<T: simdnbt::Deserialize + Debug + Clone> TargetedConditionalEffect<T>);
+
+macro_rules! declare_newtype_components {
+    ( $( $struct_name:ident: $inner_type:ty ),* $(,)? ) => {
+        $(
+            #[derive(Clone, Debug, simdnbt::Deserialize)]
+            pub struct $struct_name(pub $inner_type);
+            impl_from_effect_nbt_tag!($struct_name);
+        )*
+    };
+}
+
+declare_newtype_components! {
+    DamageProtection: ConditionalValueEffect,
+    Damage: ConditionalValueEffect,
+    SmashDamagePerFallenBlock: ConditionalValueEffect,
+    Knockback: ConditionalValueEffect,
+    ArmorEffectiveness: ConditionalValueEffect,
+    PostAttack: TargetedConditionalEffect<EntityEffect>,
+    HitBlock: ConditionalEntityEffect,
+    ItemDamage: ConditionalValueEffect,
+    EquipmentDrops: ConditionalValueEffect,
+    Tick: ConditionalEntityEffect,
+    AmmoUse: ConditionalValueEffect,
+    ProjectilePiercing: ConditionalValueEffect,
+    ProjectileSpawned: ConditionalEntityEffect,
+    ProjectileSpread: ConditionalValueEffect,
+    ProjectileCount: ConditionalValueEffect,
+    TridentReturnAcceleration: ConditionalValueEffect,
+    FishingTimeReduction: ConditionalValueEffect,
+    FishingLuckBonus: ConditionalValueEffect,
+    BlockExperience: ConditionalValueEffect,
+    MobExperience: ConditionalValueEffect,
+    RepairWithXp: ConditionalValueEffect,
+    CrossbowChargeTime: ValueEffect,
+    TridentSpinAttackStrength: ValueEffect,
+
+}
 
 #[derive(Clone, Debug, simdnbt::Deserialize)]
 pub struct DamageImmunity {}

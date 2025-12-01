@@ -1,16 +1,44 @@
-use std::{fmt::Debug, str::FromStr};
+use std::{any::Any, fmt::Debug, str::FromStr};
 
 use azalea_registry::EnchantmentEffectComponentKind;
 use indexmap::IndexMap;
 use simdnbt::{DeserializeError, borrow::NbtCompound};
 
-use crate::registry_holder::components::{EffectComponentUnion, EffectNbtTag};
+use crate::registry_holder::components::{
+    EffectComponentTrait, EffectComponentUnion, EffectNbtTag, ResolvedEffectComponent,
+};
 
 pub struct EnchantmentData {
     // TODO: make these two deserializable
     // pub description: TextComponent,
     // pub exclusive_set: HolderSet<Enchantment, ResourceLocation>,
-    pub effects: IndexMap<EnchantmentEffectComponentKind, Vec<EffectComponentUnion>>,
+    effects: IndexMap<EnchantmentEffectComponentKind, Vec<EffectComponentUnion>>,
+}
+
+impl EnchantmentData {
+    pub fn get<T: EffectComponentTrait>(&self) -> Option<Vec<&T>> {
+        let components = self.get_kind(T::KIND)?;
+        let components_any = components
+            .into_iter()
+            .map(|c| (c as &dyn Any).downcast_ref::<T>())
+            .collect::<Option<_>>()?;
+        Some(components_any)
+    }
+
+    pub fn get_kind(
+        &self,
+        kind: EnchantmentEffectComponentKind,
+    ) -> Option<Vec<&dyn ResolvedEffectComponent>> {
+        self.effects.get(&kind).map(|c| {
+            c.iter()
+                .map(|c| {
+                    // SAFETY: we just got the component from the map, so it must be the correct
+                    // kind
+                    unsafe { c.as_kind(kind) }
+                })
+                .collect()
+        })
+    }
 }
 
 impl simdnbt::Deserialize for EnchantmentData {
@@ -44,7 +72,6 @@ impl simdnbt::Deserialize for EnchantmentData {
                     .compounds()
                     .ok_or_else(|| DeserializeError::MismatchedFieldType("effects".to_owned()))?
                 {
-                    println!("value: {:#?}", tag.to_owned());
                     let value = EffectComponentUnion::from_effect_nbt_tag_as(
                         kind,
                         EffectNbtTag::Compound(tag),

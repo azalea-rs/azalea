@@ -43,10 +43,10 @@ macro_rules! define_default_deserializes_to {
 
 define_deserializes_to! {
     azalea_registry::DimensionType => registry_holder::dimension_type::DimensionTypeElement,
+    azalea_registry::Enchantment => registry_holder::enchantment::EnchantmentData,
 }
 
 define_default_deserializes_to! {
-    azalea_registry::Enchantment,
     azalea_registry::DamageKind,
     azalea_registry::Dialog,
     azalea_registry::WolfSoundVariant,

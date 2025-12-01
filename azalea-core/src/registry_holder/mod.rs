@@ -206,6 +206,20 @@ impl RegistryDeserializesTo for dimension_type::DimensionTypeElement {
             .get_index(protocol_id as usize)
     }
 }
+impl RegistryDeserializesTo for enchantment::EnchantmentData {
+    fn get_for_registry<'a>(
+        registries: &'a RegistryHolder,
+        registry_name: &'static str,
+        protocol_id: u32,
+    ) -> Option<(&'a Identifier, &'a Self)> {
+        if registry_name != "enchantment" {
+            error!(
+                "called RegistryDeserializesTo::get_for_registry with the wrong registry: {registry_name}"
+            );
+        }
+        registries.enchantment.map.get_index(protocol_id as usize)
+    }
+}
 
 pub fn get_in_compound<T: FromNbtTag>(
     compound: &borrow::NbtCompound,

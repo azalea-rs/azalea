@@ -387,7 +387,7 @@ pub fn handle_mining_queued(
                 trace!("inserting mining component {mining:?} for entity {entity:?}");
                 commands.entity(entity).insert(mining);
                 **current_mining_pos = Some(mining_queued.position);
-                **current_mining_item = held_item;
+                **current_mining_item = held_item.clone();
                 **mine_progress = 0.;
                 **mine_ticks = 0.;
                 mine_block_progress_events.write(MineBlockProgressEvent {
@@ -437,7 +437,7 @@ fn is_same_mining_target(
     current_mining_item: &MineItem,
 ) -> bool {
     let held_item = inventory.held_item();
-    Some(target_block) == current_mining_pos.0 && held_item == current_mining_item.0
+    Some(target_block) == current_mining_pos.0 && held_item == &current_mining_item.0
 }
 
 /// A component bundle for players that can mine blocks.
@@ -684,7 +684,7 @@ pub fn continue_mining_block(
                 current_mining_item.kind(),
                 fluid_on_eyes,
                 physics,
-                &attributes,
+                attributes,
                 active_effects,
             );
 

@@ -1,3 +1,5 @@
+pub mod equipment_effects;
+
 use azalea_chat::FormattedText;
 use azalea_core::tick::GameTick;
 use azalea_entity::{PlayerAbilities, inventory::Inventory};
@@ -15,14 +17,23 @@ use bevy_ecs::prelude::*;
 use indexmap::IndexMap;
 use tracing::{error, warn};
 
-use crate::{Client, packet::game::SendGamePacketEvent};
+use crate::{
+    Client,
+    inventory::equipment_effects::{collect_equipment_changes, handle_equipment_changes},
+    packet::game::SendGamePacketEvent,
+};
 
 pub struct InventoryPlugin;
 impl Plugin for InventoryPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             GameTick,
-            ensure_has_sent_carried_item.after(super::mining::handle_mining_queued),
+            (
+                ensure_has_sent_carried_item.after(super::mining::handle_mining_queued),
+                collect_equipment_changes
+                    .after(super::interact::handle_start_use_item_queued)
+                    .before(azalea_physics::ai_step),
+            ),
         )
         .add_observer(handle_client_side_close_container_trigger)
         .add_observer(handle_menu_opened_trigger)
@@ -31,7 +42,8 @@ impl Plugin for InventoryPlugin {
         .add_observer(handle_container_click_event)
         // number keys are checked on tick but scrolling can happen outside of ticks, therefore
         // this is fine
-        .add_observer(handle_set_selected_hotbar_slot_event);
+        .add_observer(handle_set_selected_hotbar_slot_event)
+        .add_observer(handle_equipment_changes);
     }
 }
 

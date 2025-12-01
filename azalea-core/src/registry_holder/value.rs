@@ -25,28 +25,29 @@ pub enum ValueEffect {
 impl simdnbt::Deserialize for ValueEffect {
     fn from_compound(nbt: NbtCompound) -> Result<Self, DeserializeError> {
         let kind = get_in_compound(&nbt, "type")?;
-        match kind {
+        let value = match kind {
             ValueEffectKind::Set => {
                 let value = get_in_compound(&nbt, "value")?;
-                return Ok(Self::Set { value });
+                Self::Set { value }
             }
             ValueEffectKind::Add => {
                 let value = get_in_compound(&nbt, "value")?;
-                return Ok(Self::Add { value });
+                Self::Add { value }
             }
             ValueEffectKind::Multiply => {
                 let factor = get_in_compound(&nbt, "factor")?;
-                return Ok(Self::Multiply { factor });
+                Self::Multiply { factor }
             }
             ValueEffectKind::RemoveBinomial => {
                 let chance = get_in_compound(&nbt, "chance")?;
-                return Ok(Self::RemoveBinomial { chance });
+                Self::RemoveBinomial { chance }
             }
             ValueEffectKind::AllOf => {
                 let effects = get_in_compound(&nbt, "effects")?;
-                return Ok(Self::AllOf { effects });
+                Self::AllOf { effects }
             }
-        }
+        };
+        Ok(value)
     }
 }
 impl_from_effect_nbt_tag!(ValueEffect);
@@ -64,8 +65,8 @@ impl_from_effect_nbt_tag!(AttributeEffect);
 pub enum LevelBasedValue {
     Constant(f32),
     Exponent {
-        base: f32,
-        power: f32,
+        base: Box<LevelBasedValue>,
+        power: Box<LevelBasedValue>,
     },
     Linear {
         base: f32,
@@ -87,6 +88,37 @@ pub enum LevelBasedValue {
         values: Vec<f32>,
         fallback: Box<LevelBasedValue>,
     },
+}
+impl LevelBasedValue {
+    pub fn calculate(&self, n: i32) -> f32 {
+        match self {
+            LevelBasedValue::Constant(v) => *v,
+            LevelBasedValue::Exponent { base, power } => {
+                (base.calculate(n) as f64).powf(power.calculate(n) as f64) as f32
+            }
+            LevelBasedValue::Linear {
+                base,
+                per_level_above_first,
+            } => *base + *per_level_above_first * ((n - 1) as f32),
+            LevelBasedValue::LevelsSquared { added } => (n * n) as f32 + *added,
+            LevelBasedValue::Clamped { value, min, max } => value.calculate(n).clamp(*min, *max),
+            LevelBasedValue::Fraction {
+                numerator,
+                denominator,
+            } => {
+                let value = denominator.calculate(n);
+                if value == 0. {
+                    0.
+                } else {
+                    numerator.calculate(n) / value
+                }
+            }
+            LevelBasedValue::Lookup { values, fallback } => values
+                .get((n - 1) as usize)
+                .copied()
+                .unwrap_or_else(|| fallback.calculate(n)),
+        }
+    }
 }
 
 impl Default for LevelBasedValue {

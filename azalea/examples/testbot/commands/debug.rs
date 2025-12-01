@@ -14,7 +14,7 @@ use azalea::{
     world::MinecraftEntityId,
 };
 use azalea_core::hit_result::HitResult;
-use azalea_entity::{EntityKindComponent, EntityUuid, metadata};
+use azalea_entity::{Attributes, EntityKindComponent, EntityUuid, metadata};
 use azalea_inventory::components::MaxStackSize;
 use azalea_world::InstanceContainer;
 use bevy_app::AppExit;
@@ -229,6 +229,24 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
                 uuid
             ));
         }
+        1
+    }));
+
+    commands.register(literal("enchants").executes(|ctx: &Ctx| {
+        let source = ctx.source.lock();
+        source.bot.with_registry_holder(|r| {
+            let enchants = &r.enchantment;
+            println!("enchants: {enchants:?}");
+        });
+        1
+    }));
+
+    commands.register(literal("attributes").executes(|ctx: &Ctx| {
+        let source = ctx.source.lock();
+        let attributes = source.bot.component::<Attributes>();
+        // println!("attributes: {attributes:?}");
+        let mining_efficiency = attributes.mining_efficiency;
+        println!("mining_efficiency: {mining_efficiency:?}");
         1
     }));
 
