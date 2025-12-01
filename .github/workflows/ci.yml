@@ -3,6 +3,7 @@ on:
   pull_request:
 
 env:
+  CARGO_INCREMENTAL: 0 # required so ci doesn't run out of space
   CARGO_TERM_COLOR: always
 
 name: Cargo clippy & test
