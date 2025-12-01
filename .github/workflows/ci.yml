@@ -1,6 +1,7 @@
 on:
   push:
   pull_request:
+    types: [opened, reopened]
 
 env:
   CARGO_INCREMENTAL: 0 # required so ci doesn't run out of space
