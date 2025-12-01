@@ -12,8 +12,10 @@ is breaking anyways, semantic versioning is not followed.
 
 - Add `Client::query_entity` and `try_query_entity` to complement `query_self`.
 - Add `Client::entity_interact` and `EntityInteractEvent` to interact with entities without checking that they're in the crosshair.
-- Implement initial support for mob effects, including jump boost, haste, conduit power, and mining fatigue. (@ShayBox)
 - Allow disabling dependencies related to Microsoft auth with the `online-mode` cargo feature.
+- Implement mob effects, including jump boost, haste, conduit power, and mining fatigue. (@ShayBox)
+- Support for the efficiency enchantment.
+- Support for items with attribute modifiers.
 
 ### Changed
 
@@ -23,8 +25,10 @@ is breaking anyways, semantic versioning is not followed.
 - Rename `SendPacketEvent` to `SendGamePacketEvent` and `PingEvent` to `GamePingEvent`.
 - Swap the order of the type parameters in entity filtering functions so query is first, then filter.
 - Add optional `timeout_ticks` field to `Client::open_container_at`.
+- Moved `azalea_client::inventory::Inventory` to `azalea_entity::inventory::Inventory`.
 - Rename `ResourceLocation` to `Identifier` to match Minecraft's new internal naming.
 - Rename `azalea_protocol::resolver` to `resolve` and `ResolverError` to `ResolveError`.
+- Refactor `RegistryHolder` to pre-deserialize some registries.
 
 ### Fixed
 

@@ -1,5 +1,5 @@
 use azalea_buf::AzBuf;
-use azalea_entity::attributes::AttributeModifier;
+use azalea_inventory::components::AttributeModifier;
 use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_registry::Attribute;
 use azalea_world::MinecraftEntityId;

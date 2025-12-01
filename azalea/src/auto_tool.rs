@@ -1,8 +1,9 @@
 use azalea_block::{BlockState, BlockTrait, fluid_state::FluidKind};
-use azalea_client::{Client, inventory::Inventory};
+use azalea_client::Client;
 use azalea_core::position::BlockPos;
-use azalea_entity::{ActiveEffects, FluidOnEyes, Physics};
+use azalea_entity::{ActiveEffects, Attributes, FluidOnEyes, Physics, inventory::Inventory};
 use azalea_inventory::{ItemStack, Menu, components};
+use azalea_registry::EntityKind;
 
 use crate::bot::BotClientExt;
 
@@ -19,14 +20,21 @@ pub trait AutoToolClientExt {
 
 impl AutoToolClientExt for Client {
     fn best_tool_in_hotbar_for_block(&self, block: BlockState) -> BestToolResult {
-        self.query_self::<(&Inventory, &Physics, &FluidOnEyes, &ActiveEffects), _>(
-            |(inventory, physics, fluid_on_eyes, active_effects)| {
+        self.query_self::<(
+            &Inventory,
+            &Physics,
+            &FluidOnEyes,
+            &Attributes,
+            &ActiveEffects,
+        ), _>(
+            |(inventory, physics, fluid_on_eyes, attributes, active_effects)| {
                 let menu = &inventory.inventory_menu;
                 accurate_best_tool_in_hotbar_for_block(
                     block,
                     menu,
                     physics,
                     fluid_on_eyes,
+                    attributes,
                     active_effects,
                 )
             },
@@ -60,6 +68,7 @@ pub fn best_tool_in_hotbar_for_block(block: BlockState, menu: &Menu) -> BestTool
         menu,
         &physics,
         &FluidOnEyes::new(FluidKind::Empty),
+        &Attributes::new(EntityKind::Player),
         &inactive_effects,
     )
 }
@@ -69,6 +78,7 @@ pub fn accurate_best_tool_in_hotbar_for_block(
     menu: &Menu,
     physics: &Physics,
     fluid_on_eyes: &FluidOnEyes,
+    attributes: &Attributes,
     active_effects: &ActiveEffects,
 ) -> BestToolResult {
     let hotbar_slots = &menu.slots()[menu.hotbar_slots_range()];
@@ -98,9 +108,9 @@ pub fn accurate_best_tool_in_hotbar_for_block(
                 this_item_speed = Some(azalea_entity::mining::get_mine_progress(
                     block.as_ref(),
                     azalea_registry::Item::Air,
-                    menu,
                     fluid_on_eyes,
                     physics,
+                    attributes,
                     active_effects,
                 ));
             }
@@ -111,9 +121,9 @@ pub fn accurate_best_tool_in_hotbar_for_block(
                     this_item_speed = Some(azalea_entity::mining::get_mine_progress(
                         block.as_ref(),
                         item_stack.kind,
-                        menu,
                         fluid_on_eyes,
                         physics,
+                        attributes,
                         active_effects,
                     ));
                 } else {
@@ -135,9 +145,9 @@ pub fn accurate_best_tool_in_hotbar_for_block(
             let this_item_speed = azalea_entity::mining::get_mine_progress(
                 block.as_ref(),
                 item_slot.kind,
-                menu,
                 fluid_on_eyes,
                 physics,
+                attributes,
                 active_effects,
             );
             if this_item_speed > best_speed {

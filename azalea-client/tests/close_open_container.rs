@@ -1,6 +1,7 @@
 use azalea_chat::FormattedText;
-use azalea_client::{inventory::Inventory, test_utils::prelude::*};
+use azalea_client::test_utils::prelude::*;
 use azalea_core::position::ChunkPos;
+use azalea_entity::inventory::Inventory;
 use azalea_protocol::packets::{
     ConnectionProtocol,
     game::{ClientboundContainerClose, ClientboundOpenScreen, ClientboundSetChunkCacheCenter},

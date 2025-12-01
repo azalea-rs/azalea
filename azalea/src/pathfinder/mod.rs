@@ -35,7 +35,7 @@ use astar::{Edge, PathfinderTimeout};
 use azalea_block::{BlockState, BlockTrait};
 use azalea_client::{
     StartSprintEvent, StartWalkEvent,
-    inventory::{Inventory, InventorySystems},
+    inventory::InventorySystems,
     local_player::InstanceHolder,
     mining::{Mining, MiningSystems, StartMiningBlockEvent},
     movement::MoveEventsSystems,
@@ -44,7 +44,7 @@ use azalea_core::{
     position::{BlockPos, Vec3},
     tick::GameTick,
 };
-use azalea_entity::{LocalEntity, Physics, Position, metadata::Player};
+use azalea_entity::{LocalEntity, Physics, Position, inventory::Inventory, metadata::Player};
 use azalea_physics::{PhysicsSystems, get_block_pos_below_that_affects_movement};
 use azalea_world::{InstanceContainer, InstanceName};
 use bevy_app::{PreUpdate, Update};

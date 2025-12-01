@@ -80,7 +80,7 @@ pub fn registry(input: TokenStream) -> TokenStream {
     let attributes = input.attrs;
     generated.extend(quote! {
         #(#attributes)*
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, azalea_buf::AzBuf, simdnbt::ToNbtTag, simdnbt::FromNbtTag)]
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, azalea_buf::AzBuf)]
         #[repr(u32)]
         pub enum #name {
             #enum_items
@@ -188,6 +188,18 @@ pub fn registry(input: TokenStream) -> TokenStream {
             {
                 let s = String::deserialize(deserializer)?;
                 s.parse().map_err(serde::de::Error::custom)
+            }
+        }
+
+        impl simdnbt::FromNbtTag for #name {
+            fn from_nbt_tag(tag: simdnbt::borrow::NbtTag) -> Option<Self> {
+                let v = tag.string()?;
+                std::str::FromStr::from_str(&v.to_str()).ok()
+            }
+        }
+        impl simdnbt::ToNbtTag for #name {
+            fn to_nbt_tag(self) -> simdnbt::owned::NbtTag {
+                simdnbt::owned::NbtTag::String(self.to_string().into())
             }
         }
     });

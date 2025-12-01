@@ -3,6 +3,7 @@
 #![doc = include_str!("../README.md")]
 
 pub mod aabb;
+pub mod attribute_modifier_operation;
 pub mod bitset;
 pub mod checksum;
 pub mod codec_utils;

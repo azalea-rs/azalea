@@ -49,10 +49,16 @@ impl Menu {
     ///
     /// Will panic if the menu isn't `Menu::Player`.
     pub fn as_player(&self) -> &Player {
+        self.try_as_player()
+            .expect("Called `Menu::as_player` on a menu that wasn't `Player`.")
+    }
+    /// Get the [`Player`] from this [`Menu`], or returns `None` if the menu
+    /// isn't a player menu.
+    pub fn try_as_player(&self) -> Option<&Player> {
         if let Menu::Player(player) = &self {
-            player
+            Some(player)
         } else {
-            unreachable!("Called `Menu::as_player` on a menu that wasn't `Player`.")
+            None
         }
     }
 
@@ -63,10 +69,16 @@ impl Menu {
     ///
     /// Will panic if the menu isn't `Menu::Player`.
     pub fn as_player_mut(&mut self) -> &mut Player {
+        self.try_as_player_mut()
+            .expect("Called `Menu::as_player_mut` on a menu that wasn't `Player`.")
+    }
+    /// Same as [`Menu::try_as_player`], but returns a mutable reference to the
+    /// [`Player`].
+    pub fn try_as_player_mut(&mut self) -> Option<&mut Player> {
         if let Menu::Player(player) = self {
-            player
+            Some(player)
         } else {
-            unreachable!("Called `Menu::as_player_mut` on a menu that wasn't `Player`.")
+            None
         }
     }
 }

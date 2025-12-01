@@ -1,7 +1,8 @@
 use azalea_block::{BlockState, BlockTrait, fluid_state::FluidState};
 use azalea_core::{direction::Direction, game_type::GameMode, position::BlockPos, tick::GameTick};
 use azalea_entity::{
-    ActiveEffects, FluidOnEyes, Physics, PlayerAbilities, Position, mining::get_mine_progress,
+    ActiveEffects, Attributes, FluidOnEyes, Physics, PlayerAbilities, Position,
+    inventory::Inventory, mining::get_mine_progress,
 };
 use azalea_inventory::ItemStack;
 use azalea_physics::{PhysicsSystems, collision::BlockWithShape};
@@ -18,7 +19,7 @@ use crate::{
         BlockStatePredictionHandler, SwingArmEvent, can_use_game_master_blocks,
         check_is_interaction_restricted, pick::HitResultComponent,
     },
-    inventory::{Inventory, InventorySystems},
+    inventory::InventorySystems,
     local_player::{InstanceHolder, LocalGameMode, PermissionLevel},
     movement::MoveEventsSystems,
     packet::game::SendGamePacketEvent,
@@ -248,13 +249,16 @@ pub fn handle_mining_queued(
         &ActiveEffects,
         &FluidOnEyes,
         &Physics,
+        &Attributes,
         Option<&mut Mining>,
         &mut BlockStatePredictionHandler,
-        &mut MineDelay,
-        &mut MineProgress,
-        &mut MineTicks,
-        &mut MineItem,
-        &mut MineBlockPos,
+        (
+            &mut MineDelay,
+            &mut MineProgress,
+            &mut MineTicks,
+            &mut MineItem,
+            &mut MineBlockPos,
+        ),
     )>,
 ) {
     for (
@@ -266,13 +270,16 @@ pub fn handle_mining_queued(
         active_effects,
         fluid_on_eyes,
         physics,
+        attributes,
         mut mining,
         mut sequence_number,
-        mut mine_delay,
-        mut mine_progress,
-        mut mine_ticks,
-        mut current_mining_item,
-        mut current_mining_pos,
+        (
+            mut mine_delay,
+            mut mine_progress,
+            mut mine_ticks,
+            mut current_mining_item,
+            mut current_mining_pos,
+        ),
     ) in query
     {
         trace!("handle_mining_queued {mining_queued:?}");
@@ -360,9 +367,9 @@ pub fn handle_mining_queued(
                 && get_mine_progress(
                     block.as_ref(),
                     held_item.kind(),
-                    &inventory.inventory_menu,
                     fluid_on_eyes,
                     physics,
+                    attributes,
                     active_effects,
                 ) >= 1.
             {
@@ -380,7 +387,7 @@ pub fn handle_mining_queued(
                 trace!("inserting mining component {mining:?} for entity {entity:?}");
                 commands.entity(entity).insert(mining);
                 **current_mining_pos = Some(mining_queued.position);
-                **current_mining_item = held_item;
+                **current_mining_item = held_item.clone();
                 **mine_progress = 0.;
                 **mine_ticks = 0.;
                 mine_block_progress_events.write(MineBlockProgressEvent {
@@ -430,7 +437,7 @@ fn is_same_mining_target(
     current_mining_item: &MineItem,
 ) -> bool {
     let held_item = inventory.held_item();
-    Some(target_block) == current_mining_pos.0 && held_item == current_mining_item.0
+    Some(target_block) == current_mining_pos.0 && held_item == &current_mining_item.0
 }
 
 /// A component bundle for players that can mine blocks.
@@ -601,6 +608,7 @@ pub fn continue_mining_block(
         &ActiveEffects,
         &FluidOnEyes,
         &Physics,
+        &Attributes,
         &Mining,
         &mut MineDelay,
         &mut MineProgress,
@@ -621,6 +629,7 @@ pub fn continue_mining_block(
         active_effects,
         fluid_on_eyes,
         physics,
+        attributes,
         mining,
         mut mine_delay,
         mut mine_progress,
@@ -673,9 +682,9 @@ pub fn continue_mining_block(
             **mine_progress += get_mine_progress(
                 block.as_ref(),
                 current_mining_item.kind(),
-                &inventory.inventory_menu,
                 fluid_on_eyes,
                 physics,
+                attributes,
                 active_effects,
             );
 
