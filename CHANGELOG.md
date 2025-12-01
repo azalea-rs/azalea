@@ -12,7 +12,8 @@ is breaking anyways, semantic versioning is not followed.
 
 - Add `Client::query_entity` and `try_query_entity` to complement `query_self`.
 - Add `Client::entity_interact` and `EntityInteractEvent` to interact with entities without checking that they're in the crosshair.
-- Initial support for mob effects, including jump boost, haste, conduit power, and mining fatigue. (@ShayBox)
+- Allow disabling dependencies related to Microsoft auth with the `online-mode` cargo feature.
+- Implement mob effects, including jump boost, haste, conduit power, and mining fatigue. (@ShayBox)
 - Support for the efficiency enchantment.
 - Support for items with attribute modifiers.
 
@@ -43,7 +44,6 @@ is breaking anyways, semantic versioning is not followed.
 - The 'with' field in formatted text didn't correctly support mixed types. (@Tert0)
 - The WritableBookContent and ResolvableProfile data components had the wrong protocol implementations.
 - Resolving server addresses shouldn't be recursive.
-
 
 ## [0.14.0+mc1.21.8] - 2025-09-28
 

@@ -43,8 +43,8 @@ pub struct RequestCertsTask(pub Task<Result<Certificates, FetchCertificatesError
 pub struct OnlyRefreshCertsAfter {
     pub refresh_at: Instant,
 }
-/// A component that's present when that this client has sent its certificates
-/// to the server.
+/// A component that's present when this client has sent its certificates to the
+/// server.
 ///
 /// This should be removed if you want to re-send the certs.
 ///

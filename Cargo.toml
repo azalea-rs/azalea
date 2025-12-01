@@ -90,7 +90,7 @@ uuid = "1.18.1"
 
 azalea-block-macros = { path = "azalea-block/azalea-block-macros", version = "0.14.0" }
 azalea-block = { path = "azalea-block", version = "0.14.0" }
-azalea-auth = { path = "azalea-auth", version = "0.14.0" }
+azalea-auth = { path = "azalea-auth", version = "0.14.0", default-features = false }
 azalea-brigadier = { path = "azalea-brigadier", version = "0.14.0" }
 azalea-buf-macros = { path = "azalea-buf/azalea-buf-macros", version = "0.14.0" }
 azalea-buf = { path = "azalea-buf", version = "0.14.0" }
@@ -104,7 +104,7 @@ azalea-inventory = { path = "azalea-inventory", version = "0.14.0" }
 azalea-language = { path = "azalea-language", version = "0.14.0" }
 azalea-physics = { path = "azalea-physics", version = "0.14.0" }
 azalea-protocol-macros = { path = "azalea-protocol/azalea-protocol-macros", version = "0.14.0" }
-azalea-protocol = { path = "azalea-protocol", version = "0.14.0" }
+azalea-protocol = { path = "azalea-protocol", version = "0.14.0", default-features = false }
 azalea-registry-macros = { path = "azalea-registry/azalea-registry-macros", version = "0.14.0" }
 azalea-registry = { path = "azalea-registry", version = "0.14.0" }
 azalea-world = { path = "azalea-world", version = "0.14.0" }

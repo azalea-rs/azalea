@@ -1,6 +1,5 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use azalea_crypto::SignChatMessageOptions;
 use azalea_protocol::packets::{
     Packet,
     game::{ServerboundChat, ServerboundChatCommand, s_chat::LastSeenMessagesUpdate},
@@ -8,7 +7,9 @@ use azalea_protocol::packets::{
 use bevy_ecs::prelude::*;
 
 use super::ChatKind;
-use crate::{Account, chat_signing::ChatSigningSession, packet::game::SendGamePacketEvent};
+use crate::packet::game::SendGamePacketEvent;
+#[cfg(feature = "online-mode")]
+use crate::{Account, chat_signing::ChatSigningSession};
 
 /// Send a chat packet to the server of a specific kind (chat message or
 /// command). Usually you just want [`SendChatEvent`] instead.
@@ -31,7 +32,7 @@ pub struct SendChatKindEvent {
 pub fn handle_send_chat_kind_event(
     mut events: MessageReader<SendChatKindEvent>,
     mut commands: Commands,
-    mut query: Query<(&Account, &mut ChatSigningSession)>,
+    #[cfg(feature = "online-mode")] mut query: Query<(&Account, &mut ChatSigningSession)>,
 ) {
     for event in events.read() {
         let content = event
@@ -47,6 +48,7 @@ pub fn handle_send_chat_kind_event(
             ChatKind::Message => {
                 let salt = azalea_crypto::make_salt();
 
+                #[cfg(feature = "online-mode")]
                 let signature = if let Ok((account, mut chat_session)) = query.get_mut(event.entity)
                 {
                     Some(create_signature(
@@ -59,6 +61,8 @@ pub fn handle_send_chat_kind_event(
                 } else {
                     None
                 };
+                #[cfg(not(feature = "online-mode"))]
+                let signature = None;
 
                 ServerboundChat {
                     message: content,
@@ -85,6 +89,7 @@ pub fn handle_send_chat_kind_event(
     }
 }
 
+#[cfg(feature = "online-mode")]
 pub fn create_signature(
     account: &Account,
     chat_session: &mut ChatSigningSession,
@@ -92,6 +97,8 @@ pub fn create_signature(
     timestamp: SystemTime,
     message: &str,
 ) -> azalea_crypto::MessageSignature {
+    use azalea_crypto::SignChatMessageOptions;
+
     let certs = account.certs.lock();
     let certs = certs.as_ref().expect("certs shouldn't be set back to None");
 
