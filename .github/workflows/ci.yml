@@ -20,8 +20,9 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - uses: actions/checkout@v4
-      - run: rustup update nightly && rustup default nightly
+      - name: Install Nightly
+        run: rustup update nightly && rustup default nightly
       - name: Clippy
-      - run: cargo clippy --all-features
+        run: cargo clippy --all-features
       - name: Test
-      - run: cargo test
+        run: cargo test
