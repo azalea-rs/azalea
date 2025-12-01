@@ -5,6 +5,7 @@ pub mod auto_reconnect;
 pub mod block_update;
 pub mod brand;
 pub mod chat;
+#[cfg(feature = "online-mode")]
 pub mod chat_signing;
 pub mod chunks;
 pub mod client_information;
@@ -62,8 +63,11 @@ impl PluginGroup for DefaultPlugins {
             .add(connection::ConnectionPlugin)
             .add(login::LoginPlugin)
             .add(join::JoinPlugin)
-            .add(auto_reconnect::AutoReconnectPlugin)
-            .add(chat_signing::ChatSigningPlugin);
+            .add(auto_reconnect::AutoReconnectPlugin);
+        #[cfg(feature = "online-mode")]
+        {
+            group = group.add(chat_signing::ChatSigningPlugin);
+        }
         #[cfg(feature = "log")]
         {
             group = group.add(bevy_log::LogPlugin::default());

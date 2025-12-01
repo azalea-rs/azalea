@@ -17,7 +17,7 @@ azalea-crypto.workspace = true
 azalea-entity.workspace = true
 azalea-inventory.workspace = true
 azalea-physics.workspace = true
-azalea-protocol.workspace = true
+azalea-protocol = { workspace = true, features = ["packets", "connecting"] }
 azalea-registry.workspace = true
 azalea-world.workspace = true
 bevy_app.workspace = true
@@ -32,7 +32,7 @@ minecraft_folder_path.workspace = true
 parking_lot.workspace = true
 pastey.workspace = true
 regex.workspace = true
-reqwest.workspace = true
+reqwest = { workspace = true, optional = true }
 simdnbt.workspace = true
 thiserror.workspace = true
 tokio = { workspace = true, features = ["sync"] }
@@ -43,10 +43,15 @@ uuid.workspace = true
 anyhow.workspace = true
 
 [features]
-default = ["log", "packet-event"]
+default = ["log", "packet-event", "online-mode"]
 # enables bevy_log::LogPlugin by default
 log = ["bevy_log"]
 packet-event = []
+online-mode = [
+    "azalea-auth/online-mode",
+    "azalea-protocol/online-mode",
+    "dep:reqwest",
+]
 
 [lints]
 workspace = true
