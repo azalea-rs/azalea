@@ -244,9 +244,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
     commands.register(literal("attributes").executes(|ctx: &Ctx| {
         let source = ctx.source.lock();
         let attributes = source.bot.component::<Attributes>();
-        // println!("attributes: {attributes:?}");
-        let mining_efficiency = attributes.mining_efficiency;
-        println!("mining_efficiency: {mining_efficiency:?}");
+        println!("attributes: {attributes:?}");
         1
     }));
 

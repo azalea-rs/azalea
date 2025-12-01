@@ -1,9 +1,4 @@
-use std::{
-    any::{Any, type_name},
-    fmt::Debug,
-    mem::ManuallyDrop,
-    str::FromStr,
-};
+use std::{any::Any, fmt::Debug, mem::ManuallyDrop, str::FromStr};
 
 use azalea_registry::{EnchantmentEffectComponentKind, SoundEvent};
 use simdnbt::{
@@ -39,7 +34,6 @@ macro_rules! define_effect_components {
                 kind: EnchantmentEffectComponentKind,
                 tag: EffectNbtTag,
             ) -> Result<Self, DeserializeError> {
-                println!("from_nbt_tag_as {kind:?} {tag:?}");
                 Ok(match kind {
                     $( EnchantmentEffectComponentKind::$x => {
                         Self { $x: ManuallyDrop::new(<$t>::from_effect_nbt_tag(tag)?) }
@@ -134,7 +128,7 @@ impl<T: EffectComponentTrait> ResolvedEffectComponent for T {}
 /// just use `from_nbt_tag`, because `borrow::NbtTag` can't be constructed on
 /// its own. To work around this, we have this `EffectNbtTag` struct that we
 /// *can* construct that we use when deserializing.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum EffectNbtTag<'a, 'tape> {
     Compound(NbtCompound<'a, 'tape>),
     List(NbtList<'a, 'tape>),
@@ -205,12 +199,7 @@ impl<T: simdnbt::Deserialize + Debug + Clone> simdnbt::Deserialize
     for TargetedConditionalEffect<T>
 {
     fn from_compound(nbt: NbtCompound) -> Result<Self, DeserializeError> {
-        println!(
-            "parsing TargetedConditionalEffect<{}> in {nbt:?}",
-            type_name::<T>()
-        );
         let effect = get_in_compound(&nbt, "effect")?;
-        println!("parsed TargetedConditionalEffect");
         Ok(Self { effect })
     }
 }
@@ -265,7 +254,11 @@ impl simdnbt::FromNbtTag for CrossbowChargingSounds {
 }
 impl CrossbowChargingSounds {
     pub fn from_effect_nbt_tag(nbt: EffectNbtTag) -> Result<Self, DeserializeError> {
-        let nbt = nbt.list("CrossbowChargingSounds")?;
+        let Ok(nbt) = nbt.list("CrossbowChargingSounds") else {
+            return Ok(Self(vec![simdnbt::Deserialize::from_compound(
+                nbt.compound("CrossbowChargingSounds")?,
+            )?]));
+        };
 
         Ok(Self(
             nbt.compounds()
@@ -281,9 +274,9 @@ impl CrossbowChargingSounds {
 
 #[derive(Clone, Debug, simdnbt::Deserialize)]
 pub struct CrossbowChargingSound {
-    pub start: SoundEvent,
-    pub mid: SoundEvent,
-    pub end: SoundEvent,
+    pub start: Option<SoundEvent>,
+    pub mid: Option<SoundEvent>,
+    pub end: Option<SoundEvent>,
 }
 
 #[derive(Clone, Debug)]

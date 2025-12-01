@@ -45,42 +45,45 @@ impl simdnbt::Deserialize for EnchantmentData {
     fn from_compound(nbt: NbtCompound) -> Result<Self, DeserializeError> {
         let mut effects: IndexMap<EnchantmentEffectComponentKind, Vec<EffectComponentUnion>> =
             IndexMap::new();
-        for (key, list) in nbt
-            .compound("effects")
-            .ok_or(DeserializeError::MissingField)?
-            .iter()
-        {
-            println!("key: {key}");
-            let kind = EnchantmentEffectComponentKind::from_str(&key.to_str())
-                .map_err(|_| DeserializeError::UnknownField(key.to_string()))?;
-            println!("parsed kind: {kind}");
-            println!("list: {list:?}");
 
-            let mut components = Vec::new();
-            if let Some(empty_list) = list.compound() {
-                if !empty_list.is_empty() {
-                    return Err(DeserializeError::MismatchedFieldType("effects".to_owned()));
+        if let Some(effects_tag) = nbt.compound("effects") {
+            for (key, list) in effects_tag.iter() {
+                let kind = EnchantmentEffectComponentKind::from_str(&key.to_str())
+                    .map_err(|_| DeserializeError::UnknownField(key.to_string()))?;
+
+                let mut components = Vec::new();
+                if let Some(tag) = list.compound() {
+                    if !tag.is_empty() {
+                        let value = EffectComponentUnion::from_effect_nbt_tag_as(
+                            kind,
+                            EffectNbtTag::Compound(tag),
+                        )?;
+                        components.push(value);
+                    }
+                } else {
+                    let list = list.list().ok_or_else(|| {
+                        DeserializeError::MismatchedFieldType("effects".to_owned())
+                    })?;
+
+                    if let Some(tags) = list.compounds() {
+                        for tag in tags {
+                            let value = EffectComponentUnion::from_effect_nbt_tag_as(
+                                kind,
+                                EffectNbtTag::Compound(tag),
+                            )?;
+                            components.push(value);
+                        }
+                    } else {
+                        let value = EffectComponentUnion::from_effect_nbt_tag_as(
+                            kind,
+                            EffectNbtTag::List(list),
+                        )?;
+                        components.push(value);
+                    }
                 }
-            } else {
-                let list = list
-                    .list()
-                    .ok_or_else(|| DeserializeError::MismatchedFieldType("effects".to_owned()))?;
 
-                println!("list type: {}", list.id());
-
-                for tag in list
-                    .compounds()
-                    .ok_or_else(|| DeserializeError::MismatchedFieldType("effects".to_owned()))?
-                {
-                    let value = EffectComponentUnion::from_effect_nbt_tag_as(
-                        kind,
-                        EffectNbtTag::Compound(tag),
-                    )?;
-                    components.push(value);
-                }
+                effects.insert(kind, components);
             }
-
-            effects.insert(kind, components);
         }
 
         let value = Self { effects };

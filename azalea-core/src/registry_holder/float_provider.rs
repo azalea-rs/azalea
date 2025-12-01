@@ -1,7 +1,10 @@
 use std::ops::Range;
 
 use azalea_registry::FloatProviderKind;
-use simdnbt::{DeserializeError, borrow::NbtCompound};
+use simdnbt::{
+    DeserializeError, FromNbtTag,
+    borrow::{NbtCompound, NbtTag},
+};
 
 use crate::registry_holder::get_in_compound;
 
@@ -23,8 +26,18 @@ pub enum FloatProvider {
         plateau: f32,
     },
 }
-
-impl simdnbt::Deserialize for FloatProvider {
+impl FromNbtTag for FloatProvider {
+    fn from_nbt_tag(tag: NbtTag) -> Option<Self> {
+        if let Some(f) = tag.float() {
+            return Some(Self::Constant(f));
+        }
+        if let Some(c) = tag.compound() {
+            return Self::from_compound(c).ok();
+        }
+        None
+    }
+}
+impl FloatProvider {
     fn from_compound(nbt: NbtCompound) -> Result<Self, DeserializeError> {
         let kind = get_in_compound(&nbt, "type")?;
         match kind {

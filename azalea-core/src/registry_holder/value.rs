@@ -132,11 +132,9 @@ impl FromNbtTag for LevelBasedValue {
         if let Some(f) = tag.float() {
             return Some(Self::Constant(f));
         }
-
         if let Some(c) = tag.compound() {
             return Self::from_compound(c).ok();
         }
-
         None
     }
 }

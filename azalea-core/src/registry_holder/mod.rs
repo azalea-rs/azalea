@@ -225,6 +225,6 @@ pub fn get_in_compound<T: FromNbtTag>(
     compound: &borrow::NbtCompound,
     key: &str,
 ) -> Result<T, DeserializeError> {
-    T::from_nbt_tag(compound.get(key).ok_or(DeserializeError::MissingField)?)
-        .ok_or(DeserializeError::MissingField)
+    let value = compound.get(key).ok_or(DeserializeError::MissingField)?;
+    T::from_nbt_tag(value).ok_or(DeserializeError::MissingField)
 }

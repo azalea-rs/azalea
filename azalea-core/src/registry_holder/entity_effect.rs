@@ -1,8 +1,7 @@
 use std::collections::HashMap;
 
 use azalea_registry::{
-    EnchantmentEntityEffectKind as EntityEffectKind, GameEvent, Holder, ParticleKind,
-    PositionSourceKind, SoundEvent,
+    EnchantmentEntityEffectKind as EntityEffectKind, GameEvent, Holder, ParticleKind, SoundEvent,
 };
 use simdnbt::{
     Deserialize, DeserializeError,
@@ -38,9 +37,7 @@ pub enum EntityEffect {
 
 impl Deserialize for EntityEffect {
     fn from_compound(nbt: NbtCompound) -> Result<Self, DeserializeError> {
-        println!("getting type {nbt:?}");
         let kind = get_in_compound(&nbt, "type")?;
-        println!("EntityEffect {kind}");
         match kind {
             EntityEffectKind::AllOf => Deserialize::from_compound(nbt).map(Self::AllOf),
             EntityEffectKind::ApplyMobEffect => {
@@ -101,15 +98,15 @@ impl simdnbt::FromNbtTag for HomogeneousList {
                 ids: vec![Identifier::new(string.to_str())],
             });
         }
-        if let Some(list) = tag.list() {
-            if let Some(strings) = list.strings() {
-                return Some(Self {
-                    ids: strings
-                        .iter()
-                        .map(|&s| Identifier::new(s.to_str()))
-                        .collect(),
-                });
-            }
+        if let Some(list) = tag.list()
+            && let Some(strings) = list.strings()
+        {
+            return Some(Self {
+                ids: strings
+                    .iter()
+                    .map(|&s| Identifier::new(s.to_str()))
+                    .collect(),
+            });
         }
         None
     }
@@ -160,8 +157,8 @@ pub struct ApplyExhaustion {
 #[derive(Debug, Clone, simdnbt::Deserialize)]
 pub struct PlaySound {
     pub sound: Holder<SoundEvent, CustomSound>,
-    pub volume: f32,
-    pub pitch: f32,
+    pub volume: FloatProvider,
+    pub pitch: FloatProvider,
 }
 
 #[derive(Debug, Clone, simdnbt::Deserialize)]
@@ -196,17 +193,24 @@ pub struct SetBlockProperties {
 
 #[derive(Debug, Clone, simdnbt::Deserialize)]
 pub struct SpawnParticles {
-    pub particle: ParticleKind,
+    pub particle: ParticleKindCodec,
     pub horizontal_position: SpawnParticlesPosition,
     pub vertical_position: SpawnParticlesPosition,
     pub horizontal_velocity: SpawnParticlesVelocity,
     pub vertical_velocity: SpawnParticlesVelocity,
     pub speed: Option<FloatProvider>,
 }
+
+#[derive(Debug, Clone, simdnbt::Deserialize)]
+pub struct ParticleKindCodec {
+    #[simdnbt(rename = "type")]
+    pub kind: ParticleKind,
+}
+
 #[derive(Debug, Clone, simdnbt::Deserialize)]
 pub struct SpawnParticlesPosition {
     #[simdnbt(rename = "type")]
-    pub kind: PositionSourceKind,
+    pub kind: Identifier,
     pub offset: Option<f32>,
     pub scale: Option<f32>,
 }

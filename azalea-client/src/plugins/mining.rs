@@ -369,7 +369,7 @@ pub fn handle_mining_queued(
                     held_item.kind(),
                     fluid_on_eyes,
                     physics,
-                    &attributes,
+                    attributes,
                     active_effects,
                 ) >= 1.
             {

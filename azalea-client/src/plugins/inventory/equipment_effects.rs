@@ -14,9 +14,9 @@ use azalea_inventory::{
 use bevy_ecs::{
     component::Component,
     entity::Entity,
-    error::trace,
     event::EntityEvent,
     observer::On,
+    query::With,
     system::{Commands, Query},
 };
 use tracing::{debug, error, warn};
@@ -33,7 +33,7 @@ pub struct LastEquipmentItems {
 
 pub fn collect_equipment_changes(
     mut commands: Commands,
-    mut query: Query<(Entity, &Inventory, Option<&LastEquipmentItems>)>,
+    mut query: Query<(Entity, &Inventory, Option<&LastEquipmentItems>), With<Attributes>>,
 ) {
     for (entity, inventory, last_equipment_items) in &mut query {
         let last_equipment_items = if let Some(e) = last_equipment_items {
@@ -42,7 +42,7 @@ pub fn collect_equipment_changes(
             commands
                 .entity(entity)
                 .insert(LastEquipmentItems::default());
-            &LastEquipmentItems::default()
+            continue;
         };
 
         let mut changes = HashMap::new();
@@ -68,6 +68,10 @@ pub fn collect_equipment_changes(
                     new: current_item.clone(),
                 },
             );
+        }
+
+        if changes.is_empty() {
+            continue;
         }
         commands.trigger(EquipmentChangesEvent {
             entity,
