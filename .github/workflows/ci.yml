@@ -1,9 +1,13 @@
 on:
   push:
   pull_request:
-name: Clippy check
+
+env:
+  CARGO_TERM_COLOR: always
+
+name: Cargo clippy & test
 jobs:
-  clippy_check:
+  clippy_and_test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/cache@v3
@@ -15,13 +19,9 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-      - uses: actions/checkout@v1
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly
-          components: clippy
-          override: true
-      - uses: actions-rs/clippy-check@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          args: --all-features
+      - uses: actions/checkout@v4
+      - run: rustup update nightly && rustup default nightly
+      - name: Clippy
+      - run: cargo clippy --all-features
+      - name: Test
+      - run: cargo test
