@@ -90,6 +90,7 @@ pub enum EntityDataValue {
     WolfSoundVariant(azalea_registry::WolfSoundVariant),
     FrogVariant(azalea_registry::FrogVariant),
     PigVariant(azalea_registry::PigVariant),
+    ZombieNautilusVariant(azalea_registry::ZombieNautilusVariant),
     OptionalGlobalPos(Option<GlobalPos>),
     PaintingVariant(azalea_registry::PaintingVariant),
     SnifferState(SnifferStateKind),
@@ -99,6 +100,7 @@ pub enum EntityDataValue {
     Vector3(Vec3f32),
     Quaternion(Quaternion),
     ResolvableProfile(components::Profile),
+    HumanoidArm(HumanoidArm),
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -208,4 +210,11 @@ pub enum WeatheringCopperStateKind {
     Exposed,
     Weathered,
     Oxidized,
+}
+
+#[derive(AzBuf, Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum HumanoidArm {
+    Left = 0,
+    #[default]
+    Right = 1,
 }

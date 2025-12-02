@@ -20,6 +20,8 @@ pub static AQUATIC: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
         EntityKind::Squid,
         EntityKind::GlowSquid,
         EntityKind::Tadpole,
+        EntityKind::Nautilus,
+        EntityKind::ZombieNautilus,
     ])
 });
 pub static ARROWS: LazyLock<HashSet<EntityKind>> =
@@ -67,6 +69,20 @@ pub static BOAT: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
         EntityKind::BambooRaft,
     ])
 });
+pub static BURN_IN_DAYLIGHT: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        EntityKind::Skeleton,
+        EntityKind::Stray,
+        EntityKind::WitherSkeleton,
+        EntityKind::Bogged,
+        EntityKind::Zombie,
+        EntityKind::ZombieHorse,
+        EntityKind::ZombieVillager,
+        EntityKind::Drowned,
+        EntityKind::ZombieNautilus,
+        EntityKind::Phantom,
+    ])
+});
 pub static CAN_BREATHE_UNDER_WATER: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
     HashSet::from_iter([
         EntityKind::Axolotl,
@@ -83,6 +99,7 @@ pub static CAN_BREATHE_UNDER_WATER: LazyLock<HashSet<EntityKind>> = LazyLock::ne
         EntityKind::Tadpole,
         EntityKind::ArmorStand,
         EntityKind::CopperGolem,
+        EntityKind::Nautilus,
         EntityKind::Wither,
         EntityKind::Phantom,
         EntityKind::Skeleton,
@@ -90,13 +107,16 @@ pub static CAN_BREATHE_UNDER_WATER: LazyLock<HashSet<EntityKind>> = LazyLock::ne
         EntityKind::WitherSkeleton,
         EntityKind::SkeletonHorse,
         EntityKind::Bogged,
+        EntityKind::Parched,
         EntityKind::ZombieHorse,
+        EntityKind::CamelHusk,
         EntityKind::Zombie,
         EntityKind::ZombieVillager,
         EntityKind::ZombifiedPiglin,
         EntityKind::Zoglin,
         EntityKind::Drowned,
         EntityKind::Husk,
+        EntityKind::ZombieNautilus,
     ])
 });
 pub static CAN_EQUIP_HARNESS: LazyLock<HashSet<EntityKind>> =
@@ -111,12 +131,27 @@ pub static CAN_EQUIP_SADDLE: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
         EntityKind::Pig,
         EntityKind::Strider,
         EntityKind::Camel,
+        EntityKind::CamelHusk,
+        EntityKind::Nautilus,
+        EntityKind::ZombieNautilus,
+    ])
+});
+pub static CAN_FLOAT_WHILE_RIDDEN: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        EntityKind::Horse,
+        EntityKind::ZombieHorse,
+        EntityKind::Mule,
+        EntityKind::Donkey,
+        EntityKind::Camel,
+        EntityKind::CamelHusk,
     ])
 });
 pub static CAN_TURN_IN_BOATS: LazyLock<HashSet<EntityKind>> =
     LazyLock::new(|| HashSet::from_iter([EntityKind::Breeze]));
 pub static CAN_WEAR_HORSE_ARMOR: LazyLock<HashSet<EntityKind>> =
-    LazyLock::new(|| HashSet::from_iter([EntityKind::Horse]));
+    LazyLock::new(|| HashSet::from_iter([EntityKind::Horse, EntityKind::ZombieHorse]));
+pub static CAN_WEAR_NAUTILUS_ARMOR: LazyLock<HashSet<EntityKind>> =
+    LazyLock::new(|| HashSet::from_iter([EntityKind::Nautilus, EntityKind::ZombieNautilus]));
 pub static CANDIDATE_FOR_IRON_GOLEM_GIFT: LazyLock<HashSet<EntityKind>> =
     LazyLock::new(|| HashSet::from_iter([EntityKind::Villager, EntityKind::CopperGolem]));
 pub static CANNOT_BE_PUSHED_ONTO_BOATS: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
@@ -132,6 +167,8 @@ pub static CANNOT_BE_PUSHED_ONTO_BOATS: LazyLock<HashSet<EntityKind>> = LazyLock
         EntityKind::GlowSquid,
         EntityKind::Tadpole,
         EntityKind::Creaking,
+        EntityKind::Nautilus,
+        EntityKind::ZombieNautilus,
     ])
 });
 pub static DEFLECTS_PROJECTILES: LazyLock<HashSet<EntityKind>> =
@@ -230,13 +267,16 @@ pub static IGNORES_POISON_AND_REGEN: LazyLock<HashSet<EntityKind>> = LazyLock::n
         EntityKind::WitherSkeleton,
         EntityKind::SkeletonHorse,
         EntityKind::Bogged,
+        EntityKind::Parched,
         EntityKind::ZombieHorse,
+        EntityKind::CamelHusk,
         EntityKind::Zombie,
         EntityKind::ZombieVillager,
         EntityKind::ZombifiedPiglin,
         EntityKind::Zoglin,
         EntityKind::Drowned,
         EntityKind::Husk,
+        EntityKind::ZombieNautilus,
     ])
 });
 pub static ILLAGER: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
@@ -284,15 +324,20 @@ pub static INVERTED_HEALING_AND_HARM: LazyLock<HashSet<EntityKind>> = LazyLock::
         EntityKind::WitherSkeleton,
         EntityKind::SkeletonHorse,
         EntityKind::Bogged,
+        EntityKind::Parched,
         EntityKind::ZombieHorse,
+        EntityKind::CamelHusk,
         EntityKind::Zombie,
         EntityKind::ZombieVillager,
         EntityKind::ZombifiedPiglin,
         EntityKind::Zoglin,
         EntityKind::Drowned,
         EntityKind::Husk,
+        EntityKind::ZombieNautilus,
     ])
 });
+pub static NAUTILUS_HOSTILES: LazyLock<HashSet<EntityKind>> =
+    LazyLock::new(|| HashSet::from_iter([EntityKind::Pufferfish]));
 pub static NO_ANGER_FROM_WIND_CHARGE: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
     HashSet::from_iter([
         EntityKind::Breeze,
@@ -321,6 +366,8 @@ pub static NOT_SCARY_FOR_PUFFERFISH: LazyLock<HashSet<EntityKind>> = LazyLock::n
         EntityKind::Squid,
         EntityKind::GlowSquid,
         EntityKind::Tadpole,
+        EntityKind::Nautilus,
+        EntityKind::ZombieNautilus,
     ])
 });
 pub static POWDER_SNOW_WALKABLE_MOBS: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
@@ -371,6 +418,8 @@ pub static SENSITIVE_TO_IMPALING: LazyLock<HashSet<EntityKind>> = LazyLock::new(
         EntityKind::Squid,
         EntityKind::GlowSquid,
         EntityKind::Tadpole,
+        EntityKind::Nautilus,
+        EntityKind::ZombieNautilus,
     ])
 });
 pub static SENSITIVE_TO_SMITE: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
@@ -382,13 +431,16 @@ pub static SENSITIVE_TO_SMITE: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| 
         EntityKind::WitherSkeleton,
         EntityKind::SkeletonHorse,
         EntityKind::Bogged,
+        EntityKind::Parched,
         EntityKind::ZombieHorse,
+        EntityKind::CamelHusk,
         EntityKind::Zombie,
         EntityKind::ZombieVillager,
         EntityKind::ZombifiedPiglin,
         EntityKind::Zoglin,
         EntityKind::Drowned,
         EntityKind::Husk,
+        EntityKind::ZombieNautilus,
     ])
 });
 pub static SKELETONS: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
@@ -398,6 +450,7 @@ pub static SKELETONS: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
         EntityKind::WitherSkeleton,
         EntityKind::SkeletonHorse,
         EntityKind::Bogged,
+        EntityKind::Parched,
     ])
 });
 pub static UNDEAD: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
@@ -409,13 +462,16 @@ pub static UNDEAD: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
         EntityKind::WitherSkeleton,
         EntityKind::SkeletonHorse,
         EntityKind::Bogged,
+        EntityKind::Parched,
         EntityKind::ZombieHorse,
+        EntityKind::CamelHusk,
         EntityKind::Zombie,
         EntityKind::ZombieVillager,
         EntityKind::ZombifiedPiglin,
         EntityKind::Zoglin,
         EntityKind::Drowned,
         EntityKind::Husk,
+        EntityKind::ZombieNautilus,
     ])
 });
 pub static WITHER_FRIENDS: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
@@ -427,23 +483,28 @@ pub static WITHER_FRIENDS: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
         EntityKind::WitherSkeleton,
         EntityKind::SkeletonHorse,
         EntityKind::Bogged,
+        EntityKind::Parched,
         EntityKind::ZombieHorse,
+        EntityKind::CamelHusk,
         EntityKind::Zombie,
         EntityKind::ZombieVillager,
         EntityKind::ZombifiedPiglin,
         EntityKind::Zoglin,
         EntityKind::Drowned,
         EntityKind::Husk,
+        EntityKind::ZombieNautilus,
     ])
 });
 pub static ZOMBIES: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
     HashSet::from_iter([
         EntityKind::ZombieHorse,
+        EntityKind::CamelHusk,
         EntityKind::Zombie,
         EntityKind::ZombieVillager,
         EntityKind::ZombifiedPiglin,
         EntityKind::Zoglin,
         EntityKind::Drowned,
         EntityKind::Husk,
+        EntityKind::ZombieNautilus,
     ])
 });
