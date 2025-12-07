@@ -51,7 +51,6 @@ pub struct InteractPlugin;
 impl Plugin for InteractPlugin {
     fn build(&self, app: &mut App) {
         app.add_message::<StartUseItemEvent>()
-            .add_observer(handle_entity_interact)
             .add_systems(
                 Update,
                 (
@@ -76,6 +75,7 @@ impl Plugin for InteractPlugin {
                 GameTick,
                 handle_start_use_item_queued.before(PhysicsSystems),
             )
+            .add_observer(handle_entity_interact)
             .add_observer(handle_swing_arm_trigger);
     }
 }
@@ -349,7 +349,7 @@ pub fn handle_start_use_item_queued(
 
 /// An ECS `Event` that makes the client tell the server that we right-clicked
 /// an entity.
-#[derive(EntityEvent)]
+#[derive(EntityEvent, Clone, Debug)]
 pub struct EntityInteractEvent {
     #[event_target]
     pub client: Entity,
@@ -370,7 +370,7 @@ pub fn handle_entity_interact(
     client_query: Query<(&PhysicsState, &EntityIdIndex, &HitResultComponent)>,
     target_query: Query<&Position>,
 ) {
-    let Some((physics_state, entity_id_index, hit_result)) = client_query.get(trigger.target).ok()
+    let Some((physics_state, entity_id_index, hit_result)) = client_query.get(trigger.client).ok()
     else {
         warn!(
             "tried to interact with an entity but the client didn't have the required components"
@@ -413,6 +413,7 @@ pub fn handle_entity_interact(
         using_secondary_action: physics_state.trying_to_crouch,
     };
     commands.trigger(SendGamePacketEvent::new(trigger.client, interact.clone()));
+
     // TODO: this is true if the interaction failed, which i think can only happen
     // in certain cases when interacting with armor stands
     let consumes_action = false;
