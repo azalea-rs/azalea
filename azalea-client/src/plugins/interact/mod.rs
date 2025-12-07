@@ -51,7 +51,6 @@ pub struct InteractPlugin;
 impl Plugin for InteractPlugin {
     fn build(&self, app: &mut App) {
         app.add_message::<StartUseItemEvent>()
-            .add_message::<EntityInteractEvent>()
             .add_systems(
                 Update,
                 (
@@ -74,10 +73,9 @@ impl Plugin for InteractPlugin {
             )
             .add_systems(
                 GameTick,
-                (handle_start_use_item_queued, handle_entity_interact)
-                    .chain()
-                    .before(PhysicsSystems),
+                handle_start_use_item_queued.before(PhysicsSystems),
             )
+            .add_observer(handle_entity_interact)
             .add_observer(handle_swing_arm_trigger);
     }
 }
@@ -108,7 +106,7 @@ impl Client {
     /// behavior isn't desired, consider using [`Client::start_use_item`]
     /// instead.
     pub fn entity_interact(&self, entity: Entity) {
-        self.ecs.lock().write_message(EntityInteractEvent {
+        self.ecs.lock().trigger(EntityInteractEvent {
             client: self.entity,
             target: entity,
             location: None,
@@ -275,7 +273,6 @@ pub fn handle_start_use_item_queued(
         &LookDirection,
         Option<&Mining>,
     )>,
-    mut entity_interact: MessageWriter<EntityInteractEvent>,
 ) {
     for (entity, start_use_item, mut prediction_handler, hit_result, look_direction, mining) in
         query
@@ -340,7 +337,7 @@ pub fn handle_start_use_item_queued(
                 }
             }
             HitResult::Entity(r) => {
-                entity_interact.write(EntityInteractEvent {
+                commands.trigger(EntityInteractEvent {
                     client: entity,
                     target: r.entity,
                     location: Some(r.location),
@@ -350,10 +347,11 @@ pub fn handle_start_use_item_queued(
     }
 }
 
-/// An ECS `Message` that makes the client tell the server that we right-clicked
+/// An ECS `Event` that makes the client tell the server that we right-clicked
 /// an entity.
-#[derive(Message)]
+#[derive(EntityEvent, Clone, Debug)]
 pub struct EntityInteractEvent {
+    #[event_target]
     pub client: Entity,
     pub target: Entity,
     /// The position on the entity that we'll tell the server that we clicked
@@ -367,67 +365,65 @@ pub struct EntityInteractEvent {
 }
 
 pub fn handle_entity_interact(
-    mut events: MessageReader<EntityInteractEvent>,
+    trigger: On<EntityInteractEvent>,
     mut commands: Commands,
     client_query: Query<(&PhysicsState, &EntityIdIndex, &HitResultComponent)>,
     target_query: Query<&Position>,
 ) {
-    for event in events.read() {
-        let Some((physics_state, entity_id_index, hit_result)) =
-            client_query.get(event.target).ok()
-        else {
-            warn!(
-                "tried to interact with an entity but the client didn't have the required components"
-            );
-            continue;
-        };
+    let Some((physics_state, entity_id_index, hit_result)) = client_query.get(trigger.client).ok()
+    else {
+        warn!(
+            "tried to interact with an entity but the client didn't have the required components"
+        );
+        return;
+    };
 
-        // TODO: worldborder check
+    // TODO: worldborder check
 
-        let Some(entity_id) = entity_id_index.get_by_ecs_entity(event.target) else {
-            warn!("tried to interact with an entity that isn't known by the client");
-            continue;
-        };
+    let Some(entity_id) = entity_id_index.get_by_ecs_entity(trigger.target) else {
+        warn!("tried to interact with an entity that isn't known by the client");
+        return;
+    };
 
-        let location = if let Some(l) = event.location {
-            l
+    let location = if let Some(l) = trigger.location {
+        l
+    } else {
+        // if we're looking at the entity, use that
+        if let Some(entity_hit_result) = hit_result.as_entity_hit_result()
+            && entity_hit_result.entity == trigger.target
+        {
+            entity_hit_result.location
         } else {
-            // if we're looking at the entity, use that
-            if let Some(entity_hit_result) = hit_result.as_entity_hit_result()
-                && entity_hit_result.entity == event.target
-            {
-                entity_hit_result.location
-            } else {
-                // if we're not looking at the entity, make up a value that's good enough by
-                // using the entity's position
-                let Ok(target_position) = target_query.get(event.target) else {
-                    warn!("tried to look at an entity without the entity having a position");
-                    continue;
-                };
-                **target_position
-            }
-        };
-
-        let mut interact = ServerboundInteract {
-            entity_id,
-            action: s_interact::ActionType::InteractAt {
-                location,
-                hand: InteractionHand::MainHand,
-            },
-            using_secondary_action: physics_state.trying_to_crouch,
-        };
-        commands.trigger(SendGamePacketEvent::new(event.client, interact.clone()));
-        // TODO: this is true if the interaction failed, which i think can only happen
-        // in certain cases when interacting with armor stands
-        let consumes_action = false;
-        if !consumes_action {
-            // but yes, most of the time vanilla really does send two interact packets like
-            // this
-            interact.action = s_interact::ActionType::Interact {
-                hand: InteractionHand::MainHand,
+            // if we're not looking at the entity, make up a value that's good enough by
+            // using the entity's position
+            let Ok(target_position) = target_query.get(trigger.target) else {
+                warn!("tried to look at an entity without the entity having a position");
+                return;
             };
-            commands.trigger(SendGamePacketEvent::new(event.client, interact));
+            **target_position
         }
+    };
+
+    let mut interact = ServerboundInteract {
+        entity_id,
+        action: s_interact::ActionType::InteractAt {
+            location,
+            hand: InteractionHand::MainHand,
+        },
+        using_secondary_action: physics_state.trying_to_crouch,
+    };
+    commands.trigger(SendGamePacketEvent::new(trigger.client, interact.clone()));
+
+    // TODO: this is true if the interaction failed, which i think can only happen
+    // in certain cases when interacting with armor stands
+    let consumes_action = false;
+    if !consumes_action {
+        // but yes, most of the time vanilla really does send two interact packets like
+        // this
+        interact.action = s_interact::ActionType::Interact {
+            hand: InteractionHand::MainHand,
+        };
+        commands.trigger(SendGamePacketEvent::new(trigger.client, interact));
     }
 }
 
