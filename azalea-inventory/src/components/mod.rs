@@ -350,6 +350,7 @@ pub enum Rarity {
 #[derive(Clone, PartialEq, AzBuf, Serialize, Default)]
 #[serde(transparent)]
 pub struct Enchantments {
+    /// Enchantment levels here are 1-indexed, level 0 does not exist.
     #[var]
     pub levels: HashMap<Enchantment, i32>,
 }
