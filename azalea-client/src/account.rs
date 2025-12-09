@@ -264,7 +264,7 @@ impl Account {
     /// Minecraft's offline-mode UUIDv3 algorithm.
     pub fn uuid_or_offline(&self) -> Uuid {
         self.uuid
-            .unwrap_or_else(|| azalea_auth::offline::generate_uuid(&self.username))
+            .unwrap_or_else(|| azalea_crypto::offline::generate_uuid(&self.username))
     }
 }
 

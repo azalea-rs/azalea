@@ -2,7 +2,7 @@ pub mod equipment_effects;
 
 use azalea_chat::FormattedText;
 use azalea_core::tick::GameTick;
-use azalea_entity::{PlayerAbilities, inventory::Inventory};
+use azalea_entity::{PlayerAbilities, inventory::Inventory as Inv};
 use azalea_inventory::operations::ClickOperation;
 pub use azalea_inventory::*;
 use azalea_protocol::packets::game::{
@@ -22,6 +22,11 @@ use crate::{
     inventory::equipment_effects::{collect_equipment_changes, handle_equipment_changes},
     packet::game::SendGamePacketEvent,
 };
+
+// TODO: when this is removed, remove the Inv alias above (which just exists to
+// avoid conflicting with this pub deprecated type)
+#[deprecated = "moved to `azalea_entity::inventory::Inventory`."]
+pub type Inventory = azalea_entity::inventory::Inventory;
 
 pub struct InventoryPlugin;
 impl Plugin for InventoryPlugin {
@@ -54,7 +59,7 @@ impl Client {
     /// Return the menu that is currently open, or the player's inventory if no
     /// menu is open.
     pub fn menu(&self) -> Menu {
-        self.query_self::<&Inventory, _>(|inv| inv.menu().clone())
+        self.query_self::<&Inv, _>(|inv| inv.menu().clone())
     }
 
     /// Returns the index of the hotbar slot that's currently selected.
@@ -65,7 +70,7 @@ impl Client {
     ///
     /// You can use [`Self::set_selected_hotbar_slot`] to change it.
     pub fn selected_hotbar_slot(&self) -> u8 {
-        self.query_self::<&Inventory, _>(|inv| inv.selected_hotbar_slot)
+        self.query_self::<&Inv, _>(|inv| inv.selected_hotbar_slot)
     }
 
     /// Update the selected hotbar slot index.
@@ -103,7 +108,7 @@ pub struct MenuOpenedEvent {
     pub menu_type: MenuKind,
     pub title: FormattedText,
 }
-fn handle_menu_opened_trigger(event: On<MenuOpenedEvent>, mut query: Query<&mut Inventory>) {
+fn handle_menu_opened_trigger(event: On<MenuOpenedEvent>, mut query: Query<&mut Inv>) {
     let mut inventory = query.get_mut(event.entity).unwrap();
     inventory.id = event.window_id;
     inventory.container_menu = Some(Menu::from_kind(event.menu_type));
@@ -126,7 +131,7 @@ pub struct CloseContainerEvent {
 fn handle_container_close_event(
     close_container: On<CloseContainerEvent>,
     mut commands: Commands,
-    query: Query<(Entity, &Inventory)>,
+    query: Query<(Entity, &Inv)>,
 ) {
     let (entity, inventory) = query.get(close_container.entity).unwrap();
     if close_container.id != inventory.id {
@@ -162,7 +167,7 @@ pub struct ClientsideCloseContainerEvent {
 }
 pub fn handle_client_side_close_container_trigger(
     event: On<ClientsideCloseContainerEvent>,
-    mut query: Query<&mut Inventory>,
+    mut query: Query<&mut Inv>,
 ) {
     let mut inventory = query.get_mut(event.entity).unwrap();
 
@@ -202,12 +207,7 @@ pub struct ContainerClickEvent {
 pub fn handle_container_click_event(
     container_click: On<ContainerClickEvent>,
     mut commands: Commands,
-    mut query: Query<(
-        Entity,
-        &mut Inventory,
-        Option<&PlayerAbilities>,
-        &InstanceName,
-    )>,
+    mut query: Query<(Entity, &mut Inv, Option<&PlayerAbilities>, &InstanceName)>,
     instance_container: Res<InstanceContainer>,
 ) {
     let (entity, mut inventory, player_abilities, instance_name) =
@@ -275,7 +275,7 @@ pub struct SetContainerContentEvent {
 }
 pub fn handle_set_container_content_trigger(
     set_container_content: On<SetContainerContentEvent>,
-    mut query: Query<&mut Inventory>,
+    mut query: Query<&mut Inv>,
 ) {
     let mut inventory = query.get_mut(set_container_content.entity).unwrap();
 
@@ -306,7 +306,7 @@ pub struct SetSelectedHotbarSlotEvent {
 }
 pub fn handle_set_selected_hotbar_slot_event(
     set_selected_hotbar_slot: On<SetSelectedHotbarSlotEvent>,
-    mut query: Query<&mut Inventory>,
+    mut query: Query<&mut Inv>,
 ) {
     let mut inventory = query.get_mut(set_selected_hotbar_slot.entity).unwrap();
     inventory.selected_hotbar_slot = set_selected_hotbar_slot.slot;
@@ -320,13 +320,13 @@ pub struct LastSentSelectedHotbarSlot {
     pub slot: u8,
 }
 /// A system that makes sure that [`LastSentSelectedHotbarSlot`] is in sync with
-/// [`Inventory::selected_hotbar_slot`].
+/// [`Inv::selected_hotbar_slot`].
 ///
 /// This is necessary to make sure that [`ServerboundSetCarriedItem`] is sent in
 /// the right order, since it's not allowed to happen outside of a tick.
 pub fn ensure_has_sent_carried_item(
     mut commands: Commands,
-    query: Query<(Entity, &Inventory, Option<&LastSentSelectedHotbarSlot>)>,
+    query: Query<(Entity, &Inv, Option<&LastSentSelectedHotbarSlot>)>,
 ) {
     for (entity, inventory, last_sent) in query.iter() {
         if let Some(last_sent) = last_sent {
