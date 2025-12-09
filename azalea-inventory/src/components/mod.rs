@@ -16,7 +16,7 @@ use azalea_core::{
     filterable::Filterable,
     identifier::Identifier,
     position::GlobalPos,
-    registry_holder::RegistryHolder,
+    registry_holder::{DamageTypeElement, RegistryHolder},
     sound::CustomSound,
 };
 use azalea_registry::{
@@ -285,6 +285,14 @@ define_data_components!(
     CatCollar,
     SheepColor,
     ShulkerColor,
+    UseEffects,
+    MinimumAttackCharge,
+    DamageType,
+    PiercingWeapon,
+    KineticWeapon,
+    SwingAnimation,
+    ZombieNautilusVariant,
+    AttackRange,
 );
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -1464,4 +1472,187 @@ pub enum ChickenVariant {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct ChickenVariantData {
     pub registry: azalea_registry::ChickenVariant,
+}
+
+// TODO: check in-game if this is correct
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+pub enum ZombieNautilusVariant {
+    Referenced(Identifier),
+    Direct(ZombieNautilusVariantData),
+}
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(transparent)]
+pub struct ZombieNautilusVariantData {
+    pub value: azalea_registry::ZombieNautilusVariant,
+}
+
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+pub struct UseEffects {
+    pub can_sprint: bool,
+    pub interact_vibrations: bool,
+    pub speed_multiplier: f32,
+}
+impl UseEffects {
+    pub const fn new() -> Self {
+        Self {
+            can_sprint: false,
+            interact_vibrations: true,
+            speed_multiplier: 0.2,
+        }
+    }
+}
+impl Default for UseEffects {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(transparent)]
+pub struct MinimumAttackCharge {
+    pub value: f32,
+}
+
+// TODO: this is probably wrong, check in-game
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(untagged)]
+pub enum DamageType {
+    Registry(registry::DamageKind),
+    Holder(Holder<registry::DamageKind, DamageTypeElement>),
+}
+
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+pub struct PiercingWeapon {
+    pub deals_knockback: bool,
+    pub dismounts: bool,
+    pub sound: Option<Holder<SoundEvent, azalea_core::sound::CustomSound>>,
+    pub hit_sound: Option<Holder<SoundEvent, azalea_core::sound::CustomSound>>,
+}
+impl PiercingWeapon {
+    pub const fn new() -> Self {
+        Self {
+            deals_knockback: true,
+            dismounts: false,
+            sound: None,
+            hit_sound: None,
+        }
+    }
+}
+impl Default for PiercingWeapon {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+pub struct KineticWeapon {
+    #[var]
+    pub contact_cooldown_ticks: i32,
+    #[var]
+    pub delay_ticks: i32,
+    pub dismount_conditions: Option<KineticWeaponCondition>,
+    pub knockback_conditions: Option<KineticWeaponCondition>,
+    pub damage_conditions: Option<KineticWeaponCondition>,
+    pub forward_movement: f32,
+    pub damage_multiplier: f32,
+    pub sound: Option<Holder<SoundEvent, azalea_core::sound::CustomSound>>,
+    pub hit_sound: Option<Holder<SoundEvent, azalea_core::sound::CustomSound>>,
+}
+impl KineticWeapon {
+    pub const fn new() -> Self {
+        Self {
+            contact_cooldown_ticks: 10,
+            delay_ticks: 0,
+            dismount_conditions: None,
+            knockback_conditions: None,
+            damage_conditions: None,
+            forward_movement: 0.,
+            damage_multiplier: 1.,
+            sound: None,
+            hit_sound: None,
+        }
+    }
+}
+impl Default for KineticWeapon {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+pub struct KineticWeaponCondition {
+    #[var]
+    pub max_duration_ticks: i32,
+    pub min_speed: f32,
+    pub min_relative_speed: f32,
+}
+impl KineticWeaponCondition {
+    pub const fn new() -> Self {
+        Self {
+            max_duration_ticks: 0,
+            min_speed: 0.,
+            min_relative_speed: 0.,
+        }
+    }
+}
+impl Default for KineticWeaponCondition {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+pub struct SwingAnimation {
+    #[serde(rename = "type")]
+    pub kind: SwingAnimationKind,
+    #[var]
+    pub duration: i32,
+}
+impl SwingAnimation {
+    pub const fn new() -> Self {
+        Self {
+            kind: SwingAnimationKind::Whack,
+            duration: 6,
+        }
+    }
+}
+impl Default for SwingAnimation {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[derive(Clone, Copy, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SwingAnimationKind {
+    None,
+    Whack,
+    Stab,
+}
+
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+pub struct AttackRange {
+    pub min_reach: f32,
+    pub max_reach: f32,
+    pub min_creative_reach: f32,
+    pub max_creative_reach: f32,
+    pub hitbox_margin: f32,
+    pub mob_factor: f32,
+}
+impl AttackRange {
+    pub const fn new() -> Self {
+        Self {
+            min_reach: 0.,
+            max_reach: 3.,
+            min_creative_reach: 0.,
+            max_creative_reach: 5.,
+            hitbox_margin: 0.3,
+            mob_factor: 1.,
+        }
+    }
+}
+impl Default for AttackRange {
+    fn default() -> Self {
+        Self::new()
+    }
 }

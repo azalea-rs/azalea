@@ -6,7 +6,9 @@
 use std::collections::HashMap;
 
 use azalea_chat::translatable_component::TranslatableComponent;
-use azalea_registry::{Attribute, Block, EntityKind, HolderSet, Item, MobEffect, SoundEvent};
+use azalea_registry::{
+    Attribute, Block, DataRegistry, EntityKind, HolderSet, Item, MobEffect, SoundEvent,
+};
 use simdnbt::owned::NbtCompound;
 
 use crate::{
@@ -269,6 +271,28 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
             ],
+            Item::CopperNautilusArmor => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Body,
+                    kind: Attribute::Armor,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.body".into(),
+                        amount: 4.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Body,
+                    kind: Attribute::ArmorToughness,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.body".into(),
+                        amount: 0.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
             Item::CopperPickaxe => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Mainhand,
@@ -309,6 +333,28 @@ impl DefaultableComponent for AttributeModifiers {
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
                         amount: -3.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            Item::CopperSpear => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackDamage,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_damage".into(),
+                        amount: 1.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackSpeed,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_speed".into(),
+                        amount: -2.8235294818878174,
                         operation: AttributeModifierOperation::AddValue,
                     },
                 },
@@ -499,6 +545,28 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
             ],
+            Item::DiamondNautilusArmor => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Body,
+                    kind: Attribute::Armor,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.body".into(),
+                        amount: 11.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Body,
+                    kind: Attribute::ArmorToughness,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.body".into(),
+                        amount: 2.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
             Item::DiamondPickaxe => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Mainhand,
@@ -539,6 +607,28 @@ impl DefaultableComponent for AttributeModifiers {
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
                         amount: -3.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            Item::DiamondSpear => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackDamage,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_damage".into(),
+                        amount: 3.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackSpeed,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_speed".into(),
+                        amount: -3.0476189851760864,
                         operation: AttributeModifierOperation::AddValue,
                     },
                 },
@@ -729,6 +819,28 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
             ],
+            Item::GoldenNautilusArmor => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Body,
+                    kind: Attribute::Armor,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.body".into(),
+                        amount: 7.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Body,
+                    kind: Attribute::ArmorToughness,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.body".into(),
+                        amount: 0.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
             Item::GoldenPickaxe => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Mainhand,
@@ -769,6 +881,28 @@ impl DefaultableComponent for AttributeModifiers {
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
                         amount: -3.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            Item::GoldenSpear => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackDamage,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_damage".into(),
+                        amount: 0.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackSpeed,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_speed".into(),
+                        amount: -2.9473683834075928,
                         operation: AttributeModifierOperation::AddValue,
                     },
                 },
@@ -949,6 +1083,28 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
             ],
+            Item::IronNautilusArmor => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Body,
+                    kind: Attribute::Armor,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.body".into(),
+                        amount: 5.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Body,
+                    kind: Attribute::ArmorToughness,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.body".into(),
+                        amount: 0.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
             Item::IronPickaxe => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Mainhand,
@@ -989,6 +1145,28 @@ impl DefaultableComponent for AttributeModifiers {
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
                         amount: -3.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            Item::IronSpear => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackDamage,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_damage".into(),
+                        amount: 2.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackSpeed,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_speed".into(),
+                        amount: -2.9473683834075928,
                         operation: AttributeModifierOperation::AddValue,
                     },
                 },
@@ -1287,6 +1465,38 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
             ],
+            Item::NetheriteHorseArmor => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Body,
+                    kind: Attribute::Armor,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.body".into(),
+                        amount: 19.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Body,
+                    kind: Attribute::ArmorToughness,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.body".into(),
+                        amount: 3.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Body,
+                    kind: Attribute::KnockbackResistance,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.body".into(),
+                        amount: 0.10000000149011612,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
             Item::NetheriteLeggings => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Legs,
@@ -1314,6 +1524,38 @@ impl DefaultableComponent for AttributeModifiers {
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.leggings".into(),
+                        amount: 0.10000000149011612,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            Item::NetheriteNautilusArmor => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Body,
+                    kind: Attribute::Armor,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.body".into(),
+                        amount: 19.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Body,
+                    kind: Attribute::ArmorToughness,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.body".into(),
+                        amount: 3.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Body,
+                    kind: Attribute::KnockbackResistance,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.body".into(),
                         amount: 0.10000000149011612,
                         operation: AttributeModifierOperation::AddValue,
                     },
@@ -1359,6 +1601,28 @@ impl DefaultableComponent for AttributeModifiers {
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
                         amount: -3.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            Item::NetheriteSpear => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackDamage,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_damage".into(),
+                        amount: 4.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackSpeed,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_speed".into(),
+                        amount: -3.13043475151062,
                         operation: AttributeModifierOperation::AddValue,
                     },
                 },
@@ -1499,6 +1763,28 @@ impl DefaultableComponent for AttributeModifiers {
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
                         amount: -3.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            Item::StoneSpear => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackDamage,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_damage".into(),
+                        amount: 1.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackSpeed,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_speed".into(),
+                        amount: -2.666666626930237,
                         operation: AttributeModifierOperation::AddValue,
                     },
                 },
@@ -1689,6 +1975,28 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
             ],
+            Item::WoodenSpear => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackDamage,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_damage".into(),
+                        amount: 0.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackSpeed,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_speed".into(),
+                        amount: -2.4615384340286255,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
             Item::WoodenSword => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Mainhand,
@@ -1744,7 +2052,7 @@ impl DefaultableComponent for Enchantments {
     }
 }
 #[rustfmt::skip]
-static ITEM_MODEL_VALUES: [&str; 1488] = ["minecraft:air","minecraft:stone","minecraft:granite","minecraft:polished_granite","minecraft:diorite","minecraft:polished_diorite","minecraft:andesite","minecraft:polished_andesite","minecraft:deepslate","minecraft:cobbled_deepslate","minecraft:polished_deepslate","minecraft:calcite","minecraft:tuff","minecraft:tuff_slab","minecraft:tuff_stairs","minecraft:tuff_wall","minecraft:chiseled_tuff","minecraft:polished_tuff","minecraft:polished_tuff_slab","minecraft:polished_tuff_stairs","minecraft:polished_tuff_wall","minecraft:tuff_bricks","minecraft:tuff_brick_slab","minecraft:tuff_brick_stairs","minecraft:tuff_brick_wall","minecraft:chiseled_tuff_bricks","minecraft:dripstone_block","minecraft:grass_block","minecraft:dirt","minecraft:coarse_dirt","minecraft:podzol","minecraft:rooted_dirt","minecraft:mud","minecraft:crimson_nylium","minecraft:warped_nylium","minecraft:cobblestone","minecraft:oak_planks","minecraft:spruce_planks","minecraft:birch_planks","minecraft:jungle_planks","minecraft:acacia_planks","minecraft:cherry_planks","minecraft:dark_oak_planks","minecraft:pale_oak_planks","minecraft:mangrove_planks","minecraft:bamboo_planks","minecraft:crimson_planks","minecraft:warped_planks","minecraft:bamboo_mosaic","minecraft:oak_sapling","minecraft:spruce_sapling","minecraft:birch_sapling","minecraft:jungle_sapling","minecraft:acacia_sapling","minecraft:cherry_sapling","minecraft:dark_oak_sapling","minecraft:pale_oak_sapling","minecraft:mangrove_propagule","minecraft:bedrock","minecraft:sand","minecraft:suspicious_sand","minecraft:suspicious_gravel","minecraft:red_sand","minecraft:gravel","minecraft:coal_ore","minecraft:deepslate_coal_ore","minecraft:iron_ore","minecraft:deepslate_iron_ore","minecraft:copper_ore","minecraft:deepslate_copper_ore","minecraft:gold_ore","minecraft:deepslate_gold_ore","minecraft:redstone_ore","minecraft:deepslate_redstone_ore","minecraft:emerald_ore","minecraft:deepslate_emerald_ore","minecraft:lapis_ore","minecraft:deepslate_lapis_ore","minecraft:diamond_ore","minecraft:deepslate_diamond_ore","minecraft:nether_gold_ore","minecraft:nether_quartz_ore","minecraft:ancient_debris","minecraft:coal_block","minecraft:raw_iron_block","minecraft:raw_copper_block","minecraft:raw_gold_block","minecraft:heavy_core","minecraft:amethyst_block","minecraft:budding_amethyst","minecraft:iron_block","minecraft:copper_block","minecraft:gold_block","minecraft:diamond_block","minecraft:netherite_block","minecraft:exposed_copper","minecraft:weathered_copper","minecraft:oxidized_copper","minecraft:chiseled_copper","minecraft:exposed_chiseled_copper","minecraft:weathered_chiseled_copper","minecraft:oxidized_chiseled_copper","minecraft:cut_copper","minecraft:exposed_cut_copper","minecraft:weathered_cut_copper","minecraft:oxidized_cut_copper","minecraft:cut_copper_stairs","minecraft:exposed_cut_copper_stairs","minecraft:weathered_cut_copper_stairs","minecraft:oxidized_cut_copper_stairs","minecraft:cut_copper_slab","minecraft:exposed_cut_copper_slab","minecraft:weathered_cut_copper_slab","minecraft:oxidized_cut_copper_slab","minecraft:waxed_copper_block","minecraft:waxed_exposed_copper","minecraft:waxed_weathered_copper","minecraft:waxed_oxidized_copper","minecraft:waxed_chiseled_copper","minecraft:waxed_exposed_chiseled_copper","minecraft:waxed_weathered_chiseled_copper","minecraft:waxed_oxidized_chiseled_copper","minecraft:waxed_cut_copper","minecraft:waxed_exposed_cut_copper","minecraft:waxed_weathered_cut_copper","minecraft:waxed_oxidized_cut_copper","minecraft:waxed_cut_copper_stairs","minecraft:waxed_exposed_cut_copper_stairs","minecraft:waxed_weathered_cut_copper_stairs","minecraft:waxed_oxidized_cut_copper_stairs","minecraft:waxed_cut_copper_slab","minecraft:waxed_exposed_cut_copper_slab","minecraft:waxed_weathered_cut_copper_slab","minecraft:waxed_oxidized_cut_copper_slab","minecraft:oak_log","minecraft:spruce_log","minecraft:birch_log","minecraft:jungle_log","minecraft:acacia_log","minecraft:cherry_log","minecraft:pale_oak_log","minecraft:dark_oak_log","minecraft:mangrove_log","minecraft:mangrove_roots","minecraft:muddy_mangrove_roots","minecraft:crimson_stem","minecraft:warped_stem","minecraft:bamboo_block","minecraft:stripped_oak_log","minecraft:stripped_spruce_log","minecraft:stripped_birch_log","minecraft:stripped_jungle_log","minecraft:stripped_acacia_log","minecraft:stripped_cherry_log","minecraft:stripped_dark_oak_log","minecraft:stripped_pale_oak_log","minecraft:stripped_mangrove_log","minecraft:stripped_crimson_stem","minecraft:stripped_warped_stem","minecraft:stripped_oak_wood","minecraft:stripped_spruce_wood","minecraft:stripped_birch_wood","minecraft:stripped_jungle_wood","minecraft:stripped_acacia_wood","minecraft:stripped_cherry_wood","minecraft:stripped_dark_oak_wood","minecraft:stripped_pale_oak_wood","minecraft:stripped_mangrove_wood","minecraft:stripped_crimson_hyphae","minecraft:stripped_warped_hyphae","minecraft:stripped_bamboo_block","minecraft:oak_wood","minecraft:spruce_wood","minecraft:birch_wood","minecraft:jungle_wood","minecraft:acacia_wood","minecraft:cherry_wood","minecraft:pale_oak_wood","minecraft:dark_oak_wood","minecraft:mangrove_wood","minecraft:crimson_hyphae","minecraft:warped_hyphae","minecraft:oak_leaves","minecraft:spruce_leaves","minecraft:birch_leaves","minecraft:jungle_leaves","minecraft:acacia_leaves","minecraft:cherry_leaves","minecraft:dark_oak_leaves","minecraft:pale_oak_leaves","minecraft:mangrove_leaves","minecraft:azalea_leaves","minecraft:flowering_azalea_leaves","minecraft:sponge","minecraft:wet_sponge","minecraft:glass","minecraft:tinted_glass","minecraft:lapis_block","minecraft:sandstone","minecraft:chiseled_sandstone","minecraft:cut_sandstone","minecraft:cobweb","minecraft:short_grass","minecraft:fern","minecraft:bush","minecraft:azalea","minecraft:flowering_azalea","minecraft:dead_bush","minecraft:firefly_bush","minecraft:short_dry_grass","minecraft:tall_dry_grass","minecraft:seagrass","minecraft:sea_pickle","minecraft:white_wool","minecraft:orange_wool","minecraft:magenta_wool","minecraft:light_blue_wool","minecraft:yellow_wool","minecraft:lime_wool","minecraft:pink_wool","minecraft:gray_wool","minecraft:light_gray_wool","minecraft:cyan_wool","minecraft:purple_wool","minecraft:blue_wool","minecraft:brown_wool","minecraft:green_wool","minecraft:red_wool","minecraft:black_wool","minecraft:dandelion","minecraft:open_eyeblossom","minecraft:closed_eyeblossom","minecraft:poppy","minecraft:blue_orchid","minecraft:allium","minecraft:azure_bluet","minecraft:red_tulip","minecraft:orange_tulip","minecraft:white_tulip","minecraft:pink_tulip","minecraft:oxeye_daisy","minecraft:cornflower","minecraft:lily_of_the_valley","minecraft:wither_rose","minecraft:torchflower","minecraft:pitcher_plant","minecraft:spore_blossom","minecraft:brown_mushroom","minecraft:red_mushroom","minecraft:crimson_fungus","minecraft:warped_fungus","minecraft:crimson_roots","minecraft:warped_roots","minecraft:nether_sprouts","minecraft:weeping_vines","minecraft:twisting_vines","minecraft:sugar_cane","minecraft:kelp","minecraft:pink_petals","minecraft:wildflowers","minecraft:leaf_litter","minecraft:moss_carpet","minecraft:moss_block","minecraft:pale_moss_carpet","minecraft:pale_hanging_moss","minecraft:pale_moss_block","minecraft:hanging_roots","minecraft:big_dripleaf","minecraft:small_dripleaf","minecraft:bamboo","minecraft:oak_slab","minecraft:spruce_slab","minecraft:birch_slab","minecraft:jungle_slab","minecraft:acacia_slab","minecraft:cherry_slab","minecraft:dark_oak_slab","minecraft:pale_oak_slab","minecraft:mangrove_slab","minecraft:bamboo_slab","minecraft:bamboo_mosaic_slab","minecraft:crimson_slab","minecraft:warped_slab","minecraft:stone_slab","minecraft:smooth_stone_slab","minecraft:sandstone_slab","minecraft:cut_sandstone_slab","minecraft:petrified_oak_slab","minecraft:cobblestone_slab","minecraft:brick_slab","minecraft:stone_brick_slab","minecraft:mud_brick_slab","minecraft:nether_brick_slab","minecraft:quartz_slab","minecraft:red_sandstone_slab","minecraft:cut_red_sandstone_slab","minecraft:purpur_slab","minecraft:prismarine_slab","minecraft:prismarine_brick_slab","minecraft:dark_prismarine_slab","minecraft:smooth_quartz","minecraft:smooth_red_sandstone","minecraft:smooth_sandstone","minecraft:smooth_stone","minecraft:bricks","minecraft:acacia_shelf","minecraft:bamboo_shelf","minecraft:birch_shelf","minecraft:cherry_shelf","minecraft:crimson_shelf","minecraft:dark_oak_shelf","minecraft:jungle_shelf","minecraft:mangrove_shelf","minecraft:oak_shelf","minecraft:pale_oak_shelf","minecraft:spruce_shelf","minecraft:warped_shelf","minecraft:bookshelf","minecraft:chiseled_bookshelf","minecraft:decorated_pot","minecraft:mossy_cobblestone","minecraft:obsidian","minecraft:torch","minecraft:end_rod","minecraft:chorus_plant","minecraft:chorus_flower","minecraft:purpur_block","minecraft:purpur_pillar","minecraft:purpur_stairs","minecraft:spawner","minecraft:creaking_heart","minecraft:chest","minecraft:crafting_table","minecraft:farmland","minecraft:furnace","minecraft:ladder","minecraft:cobblestone_stairs","minecraft:snow","minecraft:ice","minecraft:snow_block","minecraft:cactus","minecraft:cactus_flower","minecraft:clay","minecraft:jukebox","minecraft:oak_fence","minecraft:spruce_fence","minecraft:birch_fence","minecraft:jungle_fence","minecraft:acacia_fence","minecraft:cherry_fence","minecraft:dark_oak_fence","minecraft:pale_oak_fence","minecraft:mangrove_fence","minecraft:bamboo_fence","minecraft:crimson_fence","minecraft:warped_fence","minecraft:pumpkin","minecraft:carved_pumpkin","minecraft:jack_o_lantern","minecraft:netherrack","minecraft:soul_sand","minecraft:soul_soil","minecraft:basalt","minecraft:polished_basalt","minecraft:smooth_basalt","minecraft:soul_torch","minecraft:copper_torch","minecraft:glowstone","minecraft:infested_stone","minecraft:infested_cobblestone","minecraft:infested_stone_bricks","minecraft:infested_mossy_stone_bricks","minecraft:infested_cracked_stone_bricks","minecraft:infested_chiseled_stone_bricks","minecraft:infested_deepslate","minecraft:stone_bricks","minecraft:mossy_stone_bricks","minecraft:cracked_stone_bricks","minecraft:chiseled_stone_bricks","minecraft:packed_mud","minecraft:mud_bricks","minecraft:deepslate_bricks","minecraft:cracked_deepslate_bricks","minecraft:deepslate_tiles","minecraft:cracked_deepslate_tiles","minecraft:chiseled_deepslate","minecraft:reinforced_deepslate","minecraft:brown_mushroom_block","minecraft:red_mushroom_block","minecraft:mushroom_stem","minecraft:iron_bars","minecraft:copper_bars","minecraft:exposed_copper_bars","minecraft:weathered_copper_bars","minecraft:oxidized_copper_bars","minecraft:waxed_copper_bars","minecraft:waxed_exposed_copper_bars","minecraft:waxed_weathered_copper_bars","minecraft:waxed_oxidized_copper_bars","minecraft:iron_chain","minecraft:copper_chain","minecraft:exposed_copper_chain","minecraft:weathered_copper_chain","minecraft:oxidized_copper_chain","minecraft:waxed_copper_chain","minecraft:waxed_exposed_copper_chain","minecraft:waxed_weathered_copper_chain","minecraft:waxed_oxidized_copper_chain","minecraft:glass_pane","minecraft:melon","minecraft:vine","minecraft:glow_lichen","minecraft:resin_clump","minecraft:resin_block","minecraft:resin_bricks","minecraft:resin_brick_stairs","minecraft:resin_brick_slab","minecraft:resin_brick_wall","minecraft:chiseled_resin_bricks","minecraft:brick_stairs","minecraft:stone_brick_stairs","minecraft:mud_brick_stairs","minecraft:mycelium","minecraft:lily_pad","minecraft:nether_bricks","minecraft:cracked_nether_bricks","minecraft:chiseled_nether_bricks","minecraft:nether_brick_fence","minecraft:nether_brick_stairs","minecraft:sculk","minecraft:sculk_vein","minecraft:sculk_catalyst","minecraft:sculk_shrieker","minecraft:enchanting_table","minecraft:end_portal_frame","minecraft:end_stone","minecraft:end_stone_bricks","minecraft:dragon_egg","minecraft:sandstone_stairs","minecraft:ender_chest","minecraft:emerald_block","minecraft:oak_stairs","minecraft:spruce_stairs","minecraft:birch_stairs","minecraft:jungle_stairs","minecraft:acacia_stairs","minecraft:cherry_stairs","minecraft:dark_oak_stairs","minecraft:pale_oak_stairs","minecraft:mangrove_stairs","minecraft:bamboo_stairs","minecraft:bamboo_mosaic_stairs","minecraft:crimson_stairs","minecraft:warped_stairs","minecraft:command_block","minecraft:beacon","minecraft:cobblestone_wall","minecraft:mossy_cobblestone_wall","minecraft:brick_wall","minecraft:prismarine_wall","minecraft:red_sandstone_wall","minecraft:mossy_stone_brick_wall","minecraft:granite_wall","minecraft:stone_brick_wall","minecraft:mud_brick_wall","minecraft:nether_brick_wall","minecraft:andesite_wall","minecraft:red_nether_brick_wall","minecraft:sandstone_wall","minecraft:end_stone_brick_wall","minecraft:diorite_wall","minecraft:blackstone_wall","minecraft:polished_blackstone_wall","minecraft:polished_blackstone_brick_wall","minecraft:cobbled_deepslate_wall","minecraft:polished_deepslate_wall","minecraft:deepslate_brick_wall","minecraft:deepslate_tile_wall","minecraft:anvil","minecraft:chipped_anvil","minecraft:damaged_anvil","minecraft:chiseled_quartz_block","minecraft:quartz_block","minecraft:quartz_bricks","minecraft:quartz_pillar","minecraft:quartz_stairs","minecraft:white_terracotta","minecraft:orange_terracotta","minecraft:magenta_terracotta","minecraft:light_blue_terracotta","minecraft:yellow_terracotta","minecraft:lime_terracotta","minecraft:pink_terracotta","minecraft:gray_terracotta","minecraft:light_gray_terracotta","minecraft:cyan_terracotta","minecraft:purple_terracotta","minecraft:blue_terracotta","minecraft:brown_terracotta","minecraft:green_terracotta","minecraft:red_terracotta","minecraft:black_terracotta","minecraft:barrier","minecraft:light","minecraft:hay_block","minecraft:white_carpet","minecraft:orange_carpet","minecraft:magenta_carpet","minecraft:light_blue_carpet","minecraft:yellow_carpet","minecraft:lime_carpet","minecraft:pink_carpet","minecraft:gray_carpet","minecraft:light_gray_carpet","minecraft:cyan_carpet","minecraft:purple_carpet","minecraft:blue_carpet","minecraft:brown_carpet","minecraft:green_carpet","minecraft:red_carpet","minecraft:black_carpet","minecraft:terracotta","minecraft:packed_ice","minecraft:dirt_path","minecraft:sunflower","minecraft:lilac","minecraft:rose_bush","minecraft:peony","minecraft:tall_grass","minecraft:large_fern","minecraft:white_stained_glass","minecraft:orange_stained_glass","minecraft:magenta_stained_glass","minecraft:light_blue_stained_glass","minecraft:yellow_stained_glass","minecraft:lime_stained_glass","minecraft:pink_stained_glass","minecraft:gray_stained_glass","minecraft:light_gray_stained_glass","minecraft:cyan_stained_glass","minecraft:purple_stained_glass","minecraft:blue_stained_glass","minecraft:brown_stained_glass","minecraft:green_stained_glass","minecraft:red_stained_glass","minecraft:black_stained_glass","minecraft:white_stained_glass_pane","minecraft:orange_stained_glass_pane","minecraft:magenta_stained_glass_pane","minecraft:light_blue_stained_glass_pane","minecraft:yellow_stained_glass_pane","minecraft:lime_stained_glass_pane","minecraft:pink_stained_glass_pane","minecraft:gray_stained_glass_pane","minecraft:light_gray_stained_glass_pane","minecraft:cyan_stained_glass_pane","minecraft:purple_stained_glass_pane","minecraft:blue_stained_glass_pane","minecraft:brown_stained_glass_pane","minecraft:green_stained_glass_pane","minecraft:red_stained_glass_pane","minecraft:black_stained_glass_pane","minecraft:prismarine","minecraft:prismarine_bricks","minecraft:dark_prismarine","minecraft:prismarine_stairs","minecraft:prismarine_brick_stairs","minecraft:dark_prismarine_stairs","minecraft:sea_lantern","minecraft:red_sandstone","minecraft:chiseled_red_sandstone","minecraft:cut_red_sandstone","minecraft:red_sandstone_stairs","minecraft:repeating_command_block","minecraft:chain_command_block","minecraft:magma_block","minecraft:nether_wart_block","minecraft:warped_wart_block","minecraft:red_nether_bricks","minecraft:bone_block","minecraft:structure_void","minecraft:shulker_box","minecraft:white_shulker_box","minecraft:orange_shulker_box","minecraft:magenta_shulker_box","minecraft:light_blue_shulker_box","minecraft:yellow_shulker_box","minecraft:lime_shulker_box","minecraft:pink_shulker_box","minecraft:gray_shulker_box","minecraft:light_gray_shulker_box","minecraft:cyan_shulker_box","minecraft:purple_shulker_box","minecraft:blue_shulker_box","minecraft:brown_shulker_box","minecraft:green_shulker_box","minecraft:red_shulker_box","minecraft:black_shulker_box","minecraft:white_glazed_terracotta","minecraft:orange_glazed_terracotta","minecraft:magenta_glazed_terracotta","minecraft:light_blue_glazed_terracotta","minecraft:yellow_glazed_terracotta","minecraft:lime_glazed_terracotta","minecraft:pink_glazed_terracotta","minecraft:gray_glazed_terracotta","minecraft:light_gray_glazed_terracotta","minecraft:cyan_glazed_terracotta","minecraft:purple_glazed_terracotta","minecraft:blue_glazed_terracotta","minecraft:brown_glazed_terracotta","minecraft:green_glazed_terracotta","minecraft:red_glazed_terracotta","minecraft:black_glazed_terracotta","minecraft:white_concrete","minecraft:orange_concrete","minecraft:magenta_concrete","minecraft:light_blue_concrete","minecraft:yellow_concrete","minecraft:lime_concrete","minecraft:pink_concrete","minecraft:gray_concrete","minecraft:light_gray_concrete","minecraft:cyan_concrete","minecraft:purple_concrete","minecraft:blue_concrete","minecraft:brown_concrete","minecraft:green_concrete","minecraft:red_concrete","minecraft:black_concrete","minecraft:white_concrete_powder","minecraft:orange_concrete_powder","minecraft:magenta_concrete_powder","minecraft:light_blue_concrete_powder","minecraft:yellow_concrete_powder","minecraft:lime_concrete_powder","minecraft:pink_concrete_powder","minecraft:gray_concrete_powder","minecraft:light_gray_concrete_powder","minecraft:cyan_concrete_powder","minecraft:purple_concrete_powder","minecraft:blue_concrete_powder","minecraft:brown_concrete_powder","minecraft:green_concrete_powder","minecraft:red_concrete_powder","minecraft:black_concrete_powder","minecraft:turtle_egg","minecraft:sniffer_egg","minecraft:dried_ghast","minecraft:dead_tube_coral_block","minecraft:dead_brain_coral_block","minecraft:dead_bubble_coral_block","minecraft:dead_fire_coral_block","minecraft:dead_horn_coral_block","minecraft:tube_coral_block","minecraft:brain_coral_block","minecraft:bubble_coral_block","minecraft:fire_coral_block","minecraft:horn_coral_block","minecraft:tube_coral","minecraft:brain_coral","minecraft:bubble_coral","minecraft:fire_coral","minecraft:horn_coral","minecraft:dead_brain_coral","minecraft:dead_bubble_coral","minecraft:dead_fire_coral","minecraft:dead_horn_coral","minecraft:dead_tube_coral","minecraft:tube_coral_fan","minecraft:brain_coral_fan","minecraft:bubble_coral_fan","minecraft:fire_coral_fan","minecraft:horn_coral_fan","minecraft:dead_tube_coral_fan","minecraft:dead_brain_coral_fan","minecraft:dead_bubble_coral_fan","minecraft:dead_fire_coral_fan","minecraft:dead_horn_coral_fan","minecraft:blue_ice","minecraft:conduit","minecraft:polished_granite_stairs","minecraft:smooth_red_sandstone_stairs","minecraft:mossy_stone_brick_stairs","minecraft:polished_diorite_stairs","minecraft:mossy_cobblestone_stairs","minecraft:end_stone_brick_stairs","minecraft:stone_stairs","minecraft:smooth_sandstone_stairs","minecraft:smooth_quartz_stairs","minecraft:granite_stairs","minecraft:andesite_stairs","minecraft:red_nether_brick_stairs","minecraft:polished_andesite_stairs","minecraft:diorite_stairs","minecraft:cobbled_deepslate_stairs","minecraft:polished_deepslate_stairs","minecraft:deepslate_brick_stairs","minecraft:deepslate_tile_stairs","minecraft:polished_granite_slab","minecraft:smooth_red_sandstone_slab","minecraft:mossy_stone_brick_slab","minecraft:polished_diorite_slab","minecraft:mossy_cobblestone_slab","minecraft:end_stone_brick_slab","minecraft:smooth_sandstone_slab","minecraft:smooth_quartz_slab","minecraft:granite_slab","minecraft:andesite_slab","minecraft:red_nether_brick_slab","minecraft:polished_andesite_slab","minecraft:diorite_slab","minecraft:cobbled_deepslate_slab","minecraft:polished_deepslate_slab","minecraft:deepslate_brick_slab","minecraft:deepslate_tile_slab","minecraft:scaffolding","minecraft:redstone","minecraft:redstone_torch","minecraft:redstone_block","minecraft:repeater","minecraft:comparator","minecraft:piston","minecraft:sticky_piston","minecraft:slime_block","minecraft:honey_block","minecraft:observer","minecraft:hopper","minecraft:dispenser","minecraft:dropper","minecraft:lectern","minecraft:target","minecraft:lever","minecraft:lightning_rod","minecraft:exposed_lightning_rod","minecraft:weathered_lightning_rod","minecraft:oxidized_lightning_rod","minecraft:waxed_lightning_rod","minecraft:waxed_exposed_lightning_rod","minecraft:waxed_weathered_lightning_rod","minecraft:waxed_oxidized_lightning_rod","minecraft:daylight_detector","minecraft:sculk_sensor","minecraft:calibrated_sculk_sensor","minecraft:tripwire_hook","minecraft:trapped_chest","minecraft:tnt","minecraft:redstone_lamp","minecraft:note_block","minecraft:stone_button","minecraft:polished_blackstone_button","minecraft:oak_button","minecraft:spruce_button","minecraft:birch_button","minecraft:jungle_button","minecraft:acacia_button","minecraft:cherry_button","minecraft:dark_oak_button","minecraft:pale_oak_button","minecraft:mangrove_button","minecraft:bamboo_button","minecraft:crimson_button","minecraft:warped_button","minecraft:stone_pressure_plate","minecraft:polished_blackstone_pressure_plate","minecraft:light_weighted_pressure_plate","minecraft:heavy_weighted_pressure_plate","minecraft:oak_pressure_plate","minecraft:spruce_pressure_plate","minecraft:birch_pressure_plate","minecraft:jungle_pressure_plate","minecraft:acacia_pressure_plate","minecraft:cherry_pressure_plate","minecraft:dark_oak_pressure_plate","minecraft:pale_oak_pressure_plate","minecraft:mangrove_pressure_plate","minecraft:bamboo_pressure_plate","minecraft:crimson_pressure_plate","minecraft:warped_pressure_plate","minecraft:iron_door","minecraft:oak_door","minecraft:spruce_door","minecraft:birch_door","minecraft:jungle_door","minecraft:acacia_door","minecraft:cherry_door","minecraft:dark_oak_door","minecraft:pale_oak_door","minecraft:mangrove_door","minecraft:bamboo_door","minecraft:crimson_door","minecraft:warped_door","minecraft:copper_door","minecraft:exposed_copper_door","minecraft:weathered_copper_door","minecraft:oxidized_copper_door","minecraft:waxed_copper_door","minecraft:waxed_exposed_copper_door","minecraft:waxed_weathered_copper_door","minecraft:waxed_oxidized_copper_door","minecraft:iron_trapdoor","minecraft:oak_trapdoor","minecraft:spruce_trapdoor","minecraft:birch_trapdoor","minecraft:jungle_trapdoor","minecraft:acacia_trapdoor","minecraft:cherry_trapdoor","minecraft:dark_oak_trapdoor","minecraft:pale_oak_trapdoor","minecraft:mangrove_trapdoor","minecraft:bamboo_trapdoor","minecraft:crimson_trapdoor","minecraft:warped_trapdoor","minecraft:copper_trapdoor","minecraft:exposed_copper_trapdoor","minecraft:weathered_copper_trapdoor","minecraft:oxidized_copper_trapdoor","minecraft:waxed_copper_trapdoor","minecraft:waxed_exposed_copper_trapdoor","minecraft:waxed_weathered_copper_trapdoor","minecraft:waxed_oxidized_copper_trapdoor","minecraft:oak_fence_gate","minecraft:spruce_fence_gate","minecraft:birch_fence_gate","minecraft:jungle_fence_gate","minecraft:acacia_fence_gate","minecraft:cherry_fence_gate","minecraft:dark_oak_fence_gate","minecraft:pale_oak_fence_gate","minecraft:mangrove_fence_gate","minecraft:bamboo_fence_gate","minecraft:crimson_fence_gate","minecraft:warped_fence_gate","minecraft:powered_rail","minecraft:detector_rail","minecraft:rail","minecraft:activator_rail","minecraft:saddle","minecraft:white_harness","minecraft:orange_harness","minecraft:magenta_harness","minecraft:light_blue_harness","minecraft:yellow_harness","minecraft:lime_harness","minecraft:pink_harness","minecraft:gray_harness","minecraft:light_gray_harness","minecraft:cyan_harness","minecraft:purple_harness","minecraft:blue_harness","minecraft:brown_harness","minecraft:green_harness","minecraft:red_harness","minecraft:black_harness","minecraft:minecart","minecraft:chest_minecart","minecraft:furnace_minecart","minecraft:tnt_minecart","minecraft:hopper_minecart","minecraft:carrot_on_a_stick","minecraft:warped_fungus_on_a_stick","minecraft:phantom_membrane","minecraft:elytra","minecraft:oak_boat","minecraft:oak_chest_boat","minecraft:spruce_boat","minecraft:spruce_chest_boat","minecraft:birch_boat","minecraft:birch_chest_boat","minecraft:jungle_boat","minecraft:jungle_chest_boat","minecraft:acacia_boat","minecraft:acacia_chest_boat","minecraft:cherry_boat","minecraft:cherry_chest_boat","minecraft:dark_oak_boat","minecraft:dark_oak_chest_boat","minecraft:pale_oak_boat","minecraft:pale_oak_chest_boat","minecraft:mangrove_boat","minecraft:mangrove_chest_boat","minecraft:bamboo_raft","minecraft:bamboo_chest_raft","minecraft:structure_block","minecraft:jigsaw","minecraft:test_block","minecraft:test_instance_block","minecraft:turtle_helmet","minecraft:turtle_scute","minecraft:armadillo_scute","minecraft:wolf_armor","minecraft:flint_and_steel","minecraft:bowl","minecraft:apple","minecraft:bow","minecraft:arrow","minecraft:coal","minecraft:charcoal","minecraft:diamond","minecraft:emerald","minecraft:lapis_lazuli","minecraft:quartz","minecraft:amethyst_shard","minecraft:raw_iron","minecraft:iron_ingot","minecraft:raw_copper","minecraft:copper_ingot","minecraft:raw_gold","minecraft:gold_ingot","minecraft:netherite_ingot","minecraft:netherite_scrap","minecraft:wooden_sword","minecraft:wooden_shovel","minecraft:wooden_pickaxe","minecraft:wooden_axe","minecraft:wooden_hoe","minecraft:copper_sword","minecraft:copper_shovel","minecraft:copper_pickaxe","minecraft:copper_axe","minecraft:copper_hoe","minecraft:stone_sword","minecraft:stone_shovel","minecraft:stone_pickaxe","minecraft:stone_axe","minecraft:stone_hoe","minecraft:golden_sword","minecraft:golden_shovel","minecraft:golden_pickaxe","minecraft:golden_axe","minecraft:golden_hoe","minecraft:iron_sword","minecraft:iron_shovel","minecraft:iron_pickaxe","minecraft:iron_axe","minecraft:iron_hoe","minecraft:diamond_sword","minecraft:diamond_shovel","minecraft:diamond_pickaxe","minecraft:diamond_axe","minecraft:diamond_hoe","minecraft:netherite_sword","minecraft:netherite_shovel","minecraft:netherite_pickaxe","minecraft:netherite_axe","minecraft:netherite_hoe","minecraft:stick","minecraft:mushroom_stew","minecraft:string","minecraft:feather","minecraft:gunpowder","minecraft:wheat_seeds","minecraft:wheat","minecraft:bread","minecraft:leather_helmet","minecraft:leather_chestplate","minecraft:leather_leggings","minecraft:leather_boots","minecraft:copper_helmet","minecraft:copper_chestplate","minecraft:copper_leggings","minecraft:copper_boots","minecraft:chainmail_helmet","minecraft:chainmail_chestplate","minecraft:chainmail_leggings","minecraft:chainmail_boots","minecraft:iron_helmet","minecraft:iron_chestplate","minecraft:iron_leggings","minecraft:iron_boots","minecraft:diamond_helmet","minecraft:diamond_chestplate","minecraft:diamond_leggings","minecraft:diamond_boots","minecraft:golden_helmet","minecraft:golden_chestplate","minecraft:golden_leggings","minecraft:golden_boots","minecraft:netherite_helmet","minecraft:netherite_chestplate","minecraft:netherite_leggings","minecraft:netherite_boots","minecraft:flint","minecraft:porkchop","minecraft:cooked_porkchop","minecraft:painting","minecraft:golden_apple","minecraft:enchanted_golden_apple","minecraft:oak_sign","minecraft:spruce_sign","minecraft:birch_sign","minecraft:jungle_sign","minecraft:acacia_sign","minecraft:cherry_sign","minecraft:dark_oak_sign","minecraft:pale_oak_sign","minecraft:mangrove_sign","minecraft:bamboo_sign","minecraft:crimson_sign","minecraft:warped_sign","minecraft:oak_hanging_sign","minecraft:spruce_hanging_sign","minecraft:birch_hanging_sign","minecraft:jungle_hanging_sign","minecraft:acacia_hanging_sign","minecraft:cherry_hanging_sign","minecraft:dark_oak_hanging_sign","minecraft:pale_oak_hanging_sign","minecraft:mangrove_hanging_sign","minecraft:bamboo_hanging_sign","minecraft:crimson_hanging_sign","minecraft:warped_hanging_sign","minecraft:bucket","minecraft:water_bucket","minecraft:lava_bucket","minecraft:powder_snow_bucket","minecraft:snowball","minecraft:leather","minecraft:milk_bucket","minecraft:pufferfish_bucket","minecraft:salmon_bucket","minecraft:cod_bucket","minecraft:tropical_fish_bucket","minecraft:axolotl_bucket","minecraft:tadpole_bucket","minecraft:brick","minecraft:clay_ball","minecraft:dried_kelp_block","minecraft:paper","minecraft:book","minecraft:slime_ball","minecraft:egg","minecraft:blue_egg","minecraft:brown_egg","minecraft:compass","minecraft:recovery_compass","minecraft:bundle","minecraft:white_bundle","minecraft:orange_bundle","minecraft:magenta_bundle","minecraft:light_blue_bundle","minecraft:yellow_bundle","minecraft:lime_bundle","minecraft:pink_bundle","minecraft:gray_bundle","minecraft:light_gray_bundle","minecraft:cyan_bundle","minecraft:purple_bundle","minecraft:blue_bundle","minecraft:brown_bundle","minecraft:green_bundle","minecraft:red_bundle","minecraft:black_bundle","minecraft:fishing_rod","minecraft:clock","minecraft:spyglass","minecraft:glowstone_dust","minecraft:cod","minecraft:salmon","minecraft:tropical_fish","minecraft:pufferfish","minecraft:cooked_cod","minecraft:cooked_salmon","minecraft:ink_sac","minecraft:glow_ink_sac","minecraft:cocoa_beans","minecraft:white_dye","minecraft:orange_dye","minecraft:magenta_dye","minecraft:light_blue_dye","minecraft:yellow_dye","minecraft:lime_dye","minecraft:pink_dye","minecraft:gray_dye","minecraft:light_gray_dye","minecraft:cyan_dye","minecraft:purple_dye","minecraft:blue_dye","minecraft:brown_dye","minecraft:green_dye","minecraft:red_dye","minecraft:black_dye","minecraft:bone_meal","minecraft:bone","minecraft:sugar","minecraft:cake","minecraft:white_bed","minecraft:orange_bed","minecraft:magenta_bed","minecraft:light_blue_bed","minecraft:yellow_bed","minecraft:lime_bed","minecraft:pink_bed","minecraft:gray_bed","minecraft:light_gray_bed","minecraft:cyan_bed","minecraft:purple_bed","minecraft:blue_bed","minecraft:brown_bed","minecraft:green_bed","minecraft:red_bed","minecraft:black_bed","minecraft:cookie","minecraft:crafter","minecraft:filled_map","minecraft:shears","minecraft:melon_slice","minecraft:dried_kelp","minecraft:pumpkin_seeds","minecraft:melon_seeds","minecraft:beef","minecraft:cooked_beef","minecraft:chicken","minecraft:cooked_chicken","minecraft:rotten_flesh","minecraft:ender_pearl","minecraft:blaze_rod","minecraft:ghast_tear","minecraft:gold_nugget","minecraft:nether_wart","minecraft:glass_bottle","minecraft:potion","minecraft:spider_eye","minecraft:fermented_spider_eye","minecraft:blaze_powder","minecraft:magma_cream","minecraft:brewing_stand","minecraft:cauldron","minecraft:ender_eye","minecraft:glistering_melon_slice","minecraft:armadillo_spawn_egg","minecraft:allay_spawn_egg","minecraft:axolotl_spawn_egg","minecraft:bat_spawn_egg","minecraft:bee_spawn_egg","minecraft:blaze_spawn_egg","minecraft:bogged_spawn_egg","minecraft:breeze_spawn_egg","minecraft:cat_spawn_egg","minecraft:camel_spawn_egg","minecraft:cave_spider_spawn_egg","minecraft:chicken_spawn_egg","minecraft:cod_spawn_egg","minecraft:copper_golem_spawn_egg","minecraft:cow_spawn_egg","minecraft:creeper_spawn_egg","minecraft:dolphin_spawn_egg","minecraft:donkey_spawn_egg","minecraft:drowned_spawn_egg","minecraft:elder_guardian_spawn_egg","minecraft:ender_dragon_spawn_egg","minecraft:enderman_spawn_egg","minecraft:endermite_spawn_egg","minecraft:evoker_spawn_egg","minecraft:fox_spawn_egg","minecraft:frog_spawn_egg","minecraft:ghast_spawn_egg","minecraft:happy_ghast_spawn_egg","minecraft:glow_squid_spawn_egg","minecraft:goat_spawn_egg","minecraft:guardian_spawn_egg","minecraft:hoglin_spawn_egg","minecraft:horse_spawn_egg","minecraft:husk_spawn_egg","minecraft:iron_golem_spawn_egg","minecraft:llama_spawn_egg","minecraft:magma_cube_spawn_egg","minecraft:mooshroom_spawn_egg","minecraft:mule_spawn_egg","minecraft:ocelot_spawn_egg","minecraft:panda_spawn_egg","minecraft:parrot_spawn_egg","minecraft:phantom_spawn_egg","minecraft:pig_spawn_egg","minecraft:piglin_spawn_egg","minecraft:piglin_brute_spawn_egg","minecraft:pillager_spawn_egg","minecraft:polar_bear_spawn_egg","minecraft:pufferfish_spawn_egg","minecraft:rabbit_spawn_egg","minecraft:ravager_spawn_egg","minecraft:salmon_spawn_egg","minecraft:sheep_spawn_egg","minecraft:shulker_spawn_egg","minecraft:silverfish_spawn_egg","minecraft:skeleton_spawn_egg","minecraft:skeleton_horse_spawn_egg","minecraft:slime_spawn_egg","minecraft:sniffer_spawn_egg","minecraft:snow_golem_spawn_egg","minecraft:spider_spawn_egg","minecraft:squid_spawn_egg","minecraft:stray_spawn_egg","minecraft:strider_spawn_egg","minecraft:tadpole_spawn_egg","minecraft:trader_llama_spawn_egg","minecraft:tropical_fish_spawn_egg","minecraft:turtle_spawn_egg","minecraft:vex_spawn_egg","minecraft:villager_spawn_egg","minecraft:vindicator_spawn_egg","minecraft:wandering_trader_spawn_egg","minecraft:warden_spawn_egg","minecraft:witch_spawn_egg","minecraft:wither_spawn_egg","minecraft:wither_skeleton_spawn_egg","minecraft:wolf_spawn_egg","minecraft:zoglin_spawn_egg","minecraft:creaking_spawn_egg","minecraft:zombie_spawn_egg","minecraft:zombie_horse_spawn_egg","minecraft:zombie_villager_spawn_egg","minecraft:zombified_piglin_spawn_egg","minecraft:experience_bottle","minecraft:fire_charge","minecraft:wind_charge","minecraft:writable_book","minecraft:written_book","minecraft:breeze_rod","minecraft:mace","minecraft:item_frame","minecraft:glow_item_frame","minecraft:flower_pot","minecraft:carrot","minecraft:potato","minecraft:baked_potato","minecraft:poisonous_potato","minecraft:map","minecraft:golden_carrot","minecraft:skeleton_skull","minecraft:wither_skeleton_skull","minecraft:player_head","minecraft:zombie_head","minecraft:creeper_head","minecraft:dragon_head","minecraft:piglin_head","minecraft:nether_star","minecraft:pumpkin_pie","minecraft:firework_rocket","minecraft:firework_star","minecraft:enchanted_book","minecraft:nether_brick","minecraft:resin_brick","minecraft:prismarine_shard","minecraft:prismarine_crystals","minecraft:rabbit","minecraft:cooked_rabbit","minecraft:rabbit_stew","minecraft:rabbit_foot","minecraft:rabbit_hide","minecraft:armor_stand","minecraft:copper_horse_armor","minecraft:iron_horse_armor","minecraft:golden_horse_armor","minecraft:diamond_horse_armor","minecraft:leather_horse_armor","minecraft:lead","minecraft:name_tag","minecraft:command_block_minecart","minecraft:mutton","minecraft:cooked_mutton","minecraft:white_banner","minecraft:orange_banner","minecraft:magenta_banner","minecraft:light_blue_banner","minecraft:yellow_banner","minecraft:lime_banner","minecraft:pink_banner","minecraft:gray_banner","minecraft:light_gray_banner","minecraft:cyan_banner","minecraft:purple_banner","minecraft:blue_banner","minecraft:brown_banner","minecraft:green_banner","minecraft:red_banner","minecraft:black_banner","minecraft:end_crystal","minecraft:chorus_fruit","minecraft:popped_chorus_fruit","minecraft:torchflower_seeds","minecraft:pitcher_pod","minecraft:beetroot","minecraft:beetroot_seeds","minecraft:beetroot_soup","minecraft:dragon_breath","minecraft:splash_potion","minecraft:spectral_arrow","minecraft:tipped_arrow","minecraft:lingering_potion","minecraft:shield","minecraft:totem_of_undying","minecraft:shulker_shell","minecraft:iron_nugget","minecraft:copper_nugget","minecraft:knowledge_book","minecraft:debug_stick","minecraft:music_disc_13","minecraft:music_disc_cat","minecraft:music_disc_blocks","minecraft:music_disc_chirp","minecraft:music_disc_creator","minecraft:music_disc_creator_music_box","minecraft:music_disc_far","minecraft:music_disc_lava_chicken","minecraft:music_disc_mall","minecraft:music_disc_mellohi","minecraft:music_disc_stal","minecraft:music_disc_strad","minecraft:music_disc_ward","minecraft:music_disc_11","minecraft:music_disc_wait","minecraft:music_disc_otherside","minecraft:music_disc_relic","minecraft:music_disc_5","minecraft:music_disc_pigstep","minecraft:music_disc_precipice","minecraft:music_disc_tears","minecraft:disc_fragment_5","minecraft:trident","minecraft:nautilus_shell","minecraft:heart_of_the_sea","minecraft:crossbow","minecraft:suspicious_stew","minecraft:loom","minecraft:flower_banner_pattern","minecraft:creeper_banner_pattern","minecraft:skull_banner_pattern","minecraft:mojang_banner_pattern","minecraft:globe_banner_pattern","minecraft:piglin_banner_pattern","minecraft:flow_banner_pattern","minecraft:guster_banner_pattern","minecraft:field_masoned_banner_pattern","minecraft:bordure_indented_banner_pattern","minecraft:goat_horn","minecraft:composter","minecraft:barrel","minecraft:smoker","minecraft:blast_furnace","minecraft:cartography_table","minecraft:fletching_table","minecraft:grindstone","minecraft:smithing_table","minecraft:stonecutter","minecraft:bell","minecraft:lantern","minecraft:soul_lantern","minecraft:copper_lantern","minecraft:exposed_copper_lantern","minecraft:weathered_copper_lantern","minecraft:oxidized_copper_lantern","minecraft:waxed_copper_lantern","minecraft:waxed_exposed_copper_lantern","minecraft:waxed_weathered_copper_lantern","minecraft:waxed_oxidized_copper_lantern","minecraft:sweet_berries","minecraft:glow_berries","minecraft:campfire","minecraft:soul_campfire","minecraft:shroomlight","minecraft:honeycomb","minecraft:bee_nest","minecraft:beehive","minecraft:honey_bottle","minecraft:honeycomb_block","minecraft:lodestone","minecraft:crying_obsidian","minecraft:blackstone","minecraft:blackstone_slab","minecraft:blackstone_stairs","minecraft:gilded_blackstone","minecraft:polished_blackstone","minecraft:polished_blackstone_slab","minecraft:polished_blackstone_stairs","minecraft:chiseled_polished_blackstone","minecraft:polished_blackstone_bricks","minecraft:polished_blackstone_brick_slab","minecraft:polished_blackstone_brick_stairs","minecraft:cracked_polished_blackstone_bricks","minecraft:respawn_anchor","minecraft:candle","minecraft:white_candle","minecraft:orange_candle","minecraft:magenta_candle","minecraft:light_blue_candle","minecraft:yellow_candle","minecraft:lime_candle","minecraft:pink_candle","minecraft:gray_candle","minecraft:light_gray_candle","minecraft:cyan_candle","minecraft:purple_candle","minecraft:blue_candle","minecraft:brown_candle","minecraft:green_candle","minecraft:red_candle","minecraft:black_candle","minecraft:small_amethyst_bud","minecraft:medium_amethyst_bud","minecraft:large_amethyst_bud","minecraft:amethyst_cluster","minecraft:pointed_dripstone","minecraft:ochre_froglight","minecraft:verdant_froglight","minecraft:pearlescent_froglight","minecraft:frogspawn","minecraft:echo_shard","minecraft:brush","minecraft:netherite_upgrade_smithing_template","minecraft:sentry_armor_trim_smithing_template","minecraft:dune_armor_trim_smithing_template","minecraft:coast_armor_trim_smithing_template","minecraft:wild_armor_trim_smithing_template","minecraft:ward_armor_trim_smithing_template","minecraft:eye_armor_trim_smithing_template","minecraft:vex_armor_trim_smithing_template","minecraft:tide_armor_trim_smithing_template","minecraft:snout_armor_trim_smithing_template","minecraft:rib_armor_trim_smithing_template","minecraft:spire_armor_trim_smithing_template","minecraft:wayfinder_armor_trim_smithing_template","minecraft:shaper_armor_trim_smithing_template","minecraft:silence_armor_trim_smithing_template","minecraft:raiser_armor_trim_smithing_template","minecraft:host_armor_trim_smithing_template","minecraft:flow_armor_trim_smithing_template","minecraft:bolt_armor_trim_smithing_template","minecraft:angler_pottery_sherd","minecraft:archer_pottery_sherd","minecraft:arms_up_pottery_sherd","minecraft:blade_pottery_sherd","minecraft:brewer_pottery_sherd","minecraft:burn_pottery_sherd","minecraft:danger_pottery_sherd","minecraft:explorer_pottery_sherd","minecraft:flow_pottery_sherd","minecraft:friend_pottery_sherd","minecraft:guster_pottery_sherd","minecraft:heart_pottery_sherd","minecraft:heartbreak_pottery_sherd","minecraft:howl_pottery_sherd","minecraft:miner_pottery_sherd","minecraft:mourner_pottery_sherd","minecraft:plenty_pottery_sherd","minecraft:prize_pottery_sherd","minecraft:scrape_pottery_sherd","minecraft:sheaf_pottery_sherd","minecraft:shelter_pottery_sherd","minecraft:skull_pottery_sherd","minecraft:snort_pottery_sherd","minecraft:copper_grate","minecraft:exposed_copper_grate","minecraft:weathered_copper_grate","minecraft:oxidized_copper_grate","minecraft:waxed_copper_grate","minecraft:waxed_exposed_copper_grate","minecraft:waxed_weathered_copper_grate","minecraft:waxed_oxidized_copper_grate","minecraft:copper_bulb","minecraft:exposed_copper_bulb","minecraft:weathered_copper_bulb","minecraft:oxidized_copper_bulb","minecraft:waxed_copper_bulb","minecraft:waxed_exposed_copper_bulb","minecraft:waxed_weathered_copper_bulb","minecraft:waxed_oxidized_copper_bulb","minecraft:copper_chest","minecraft:exposed_copper_chest","minecraft:weathered_copper_chest","minecraft:oxidized_copper_chest","minecraft:waxed_copper_chest","minecraft:waxed_exposed_copper_chest","minecraft:waxed_weathered_copper_chest","minecraft:waxed_oxidized_copper_chest","minecraft:copper_golem_statue","minecraft:exposed_copper_golem_statue","minecraft:weathered_copper_golem_statue","minecraft:oxidized_copper_golem_statue","minecraft:waxed_copper_golem_statue","minecraft:waxed_exposed_copper_golem_statue","minecraft:waxed_weathered_copper_golem_statue","minecraft:waxed_oxidized_copper_golem_statue","minecraft:trial_spawner","minecraft:trial_key","minecraft:ominous_trial_key","minecraft:vault","minecraft:ominous_bottle"];
+static ITEM_MODEL_VALUES: [&str; 1505] = ["minecraft:air","minecraft:stone","minecraft:granite","minecraft:polished_granite","minecraft:diorite","minecraft:polished_diorite","minecraft:andesite","minecraft:polished_andesite","minecraft:deepslate","minecraft:cobbled_deepslate","minecraft:polished_deepslate","minecraft:calcite","minecraft:tuff","minecraft:tuff_slab","minecraft:tuff_stairs","minecraft:tuff_wall","minecraft:chiseled_tuff","minecraft:polished_tuff","minecraft:polished_tuff_slab","minecraft:polished_tuff_stairs","minecraft:polished_tuff_wall","minecraft:tuff_bricks","minecraft:tuff_brick_slab","minecraft:tuff_brick_stairs","minecraft:tuff_brick_wall","minecraft:chiseled_tuff_bricks","minecraft:dripstone_block","minecraft:grass_block","minecraft:dirt","minecraft:coarse_dirt","minecraft:podzol","minecraft:rooted_dirt","minecraft:mud","minecraft:crimson_nylium","minecraft:warped_nylium","minecraft:cobblestone","minecraft:oak_planks","minecraft:spruce_planks","minecraft:birch_planks","minecraft:jungle_planks","minecraft:acacia_planks","minecraft:cherry_planks","minecraft:dark_oak_planks","minecraft:pale_oak_planks","minecraft:mangrove_planks","minecraft:bamboo_planks","minecraft:crimson_planks","minecraft:warped_planks","minecraft:bamboo_mosaic","minecraft:oak_sapling","minecraft:spruce_sapling","minecraft:birch_sapling","minecraft:jungle_sapling","minecraft:acacia_sapling","minecraft:cherry_sapling","minecraft:dark_oak_sapling","minecraft:pale_oak_sapling","minecraft:mangrove_propagule","minecraft:bedrock","minecraft:sand","minecraft:suspicious_sand","minecraft:suspicious_gravel","minecraft:red_sand","minecraft:gravel","minecraft:coal_ore","minecraft:deepslate_coal_ore","minecraft:iron_ore","minecraft:deepslate_iron_ore","minecraft:copper_ore","minecraft:deepslate_copper_ore","minecraft:gold_ore","minecraft:deepslate_gold_ore","minecraft:redstone_ore","minecraft:deepslate_redstone_ore","minecraft:emerald_ore","minecraft:deepslate_emerald_ore","minecraft:lapis_ore","minecraft:deepslate_lapis_ore","minecraft:diamond_ore","minecraft:deepslate_diamond_ore","minecraft:nether_gold_ore","minecraft:nether_quartz_ore","minecraft:ancient_debris","minecraft:coal_block","minecraft:raw_iron_block","minecraft:raw_copper_block","minecraft:raw_gold_block","minecraft:heavy_core","minecraft:amethyst_block","minecraft:budding_amethyst","minecraft:iron_block","minecraft:copper_block","minecraft:gold_block","minecraft:diamond_block","minecraft:netherite_block","minecraft:exposed_copper","minecraft:weathered_copper","minecraft:oxidized_copper","minecraft:chiseled_copper","minecraft:exposed_chiseled_copper","minecraft:weathered_chiseled_copper","minecraft:oxidized_chiseled_copper","minecraft:cut_copper","minecraft:exposed_cut_copper","minecraft:weathered_cut_copper","minecraft:oxidized_cut_copper","minecraft:cut_copper_stairs","minecraft:exposed_cut_copper_stairs","minecraft:weathered_cut_copper_stairs","minecraft:oxidized_cut_copper_stairs","minecraft:cut_copper_slab","minecraft:exposed_cut_copper_slab","minecraft:weathered_cut_copper_slab","minecraft:oxidized_cut_copper_slab","minecraft:waxed_copper_block","minecraft:waxed_exposed_copper","minecraft:waxed_weathered_copper","minecraft:waxed_oxidized_copper","minecraft:waxed_chiseled_copper","minecraft:waxed_exposed_chiseled_copper","minecraft:waxed_weathered_chiseled_copper","minecraft:waxed_oxidized_chiseled_copper","minecraft:waxed_cut_copper","minecraft:waxed_exposed_cut_copper","minecraft:waxed_weathered_cut_copper","minecraft:waxed_oxidized_cut_copper","minecraft:waxed_cut_copper_stairs","minecraft:waxed_exposed_cut_copper_stairs","minecraft:waxed_weathered_cut_copper_stairs","minecraft:waxed_oxidized_cut_copper_stairs","minecraft:waxed_cut_copper_slab","minecraft:waxed_exposed_cut_copper_slab","minecraft:waxed_weathered_cut_copper_slab","minecraft:waxed_oxidized_cut_copper_slab","minecraft:oak_log","minecraft:spruce_log","minecraft:birch_log","minecraft:jungle_log","minecraft:acacia_log","minecraft:cherry_log","minecraft:pale_oak_log","minecraft:dark_oak_log","minecraft:mangrove_log","minecraft:mangrove_roots","minecraft:muddy_mangrove_roots","minecraft:crimson_stem","minecraft:warped_stem","minecraft:bamboo_block","minecraft:stripped_oak_log","minecraft:stripped_spruce_log","minecraft:stripped_birch_log","minecraft:stripped_jungle_log","minecraft:stripped_acacia_log","minecraft:stripped_cherry_log","minecraft:stripped_dark_oak_log","minecraft:stripped_pale_oak_log","minecraft:stripped_mangrove_log","minecraft:stripped_crimson_stem","minecraft:stripped_warped_stem","minecraft:stripped_oak_wood","minecraft:stripped_spruce_wood","minecraft:stripped_birch_wood","minecraft:stripped_jungle_wood","minecraft:stripped_acacia_wood","minecraft:stripped_cherry_wood","minecraft:stripped_dark_oak_wood","minecraft:stripped_pale_oak_wood","minecraft:stripped_mangrove_wood","minecraft:stripped_crimson_hyphae","minecraft:stripped_warped_hyphae","minecraft:stripped_bamboo_block","minecraft:oak_wood","minecraft:spruce_wood","minecraft:birch_wood","minecraft:jungle_wood","minecraft:acacia_wood","minecraft:cherry_wood","minecraft:pale_oak_wood","minecraft:dark_oak_wood","minecraft:mangrove_wood","minecraft:crimson_hyphae","minecraft:warped_hyphae","minecraft:oak_leaves","minecraft:spruce_leaves","minecraft:birch_leaves","minecraft:jungle_leaves","minecraft:acacia_leaves","minecraft:cherry_leaves","minecraft:dark_oak_leaves","minecraft:pale_oak_leaves","minecraft:mangrove_leaves","minecraft:azalea_leaves","minecraft:flowering_azalea_leaves","minecraft:sponge","minecraft:wet_sponge","minecraft:glass","minecraft:tinted_glass","minecraft:lapis_block","minecraft:sandstone","minecraft:chiseled_sandstone","minecraft:cut_sandstone","minecraft:cobweb","minecraft:short_grass","minecraft:fern","minecraft:bush","minecraft:azalea","minecraft:flowering_azalea","minecraft:dead_bush","minecraft:firefly_bush","minecraft:short_dry_grass","minecraft:tall_dry_grass","minecraft:seagrass","minecraft:sea_pickle","minecraft:white_wool","minecraft:orange_wool","minecraft:magenta_wool","minecraft:light_blue_wool","minecraft:yellow_wool","minecraft:lime_wool","minecraft:pink_wool","minecraft:gray_wool","minecraft:light_gray_wool","minecraft:cyan_wool","minecraft:purple_wool","minecraft:blue_wool","minecraft:brown_wool","minecraft:green_wool","minecraft:red_wool","minecraft:black_wool","minecraft:dandelion","minecraft:open_eyeblossom","minecraft:closed_eyeblossom","minecraft:poppy","minecraft:blue_orchid","minecraft:allium","minecraft:azure_bluet","minecraft:red_tulip","minecraft:orange_tulip","minecraft:white_tulip","minecraft:pink_tulip","minecraft:oxeye_daisy","minecraft:cornflower","minecraft:lily_of_the_valley","minecraft:wither_rose","minecraft:torchflower","minecraft:pitcher_plant","minecraft:spore_blossom","minecraft:brown_mushroom","minecraft:red_mushroom","minecraft:crimson_fungus","minecraft:warped_fungus","minecraft:crimson_roots","minecraft:warped_roots","minecraft:nether_sprouts","minecraft:weeping_vines","minecraft:twisting_vines","minecraft:sugar_cane","minecraft:kelp","minecraft:pink_petals","minecraft:wildflowers","minecraft:leaf_litter","minecraft:moss_carpet","minecraft:moss_block","minecraft:pale_moss_carpet","minecraft:pale_hanging_moss","minecraft:pale_moss_block","minecraft:hanging_roots","minecraft:big_dripleaf","minecraft:small_dripleaf","minecraft:bamboo","minecraft:oak_slab","minecraft:spruce_slab","minecraft:birch_slab","minecraft:jungle_slab","minecraft:acacia_slab","minecraft:cherry_slab","minecraft:dark_oak_slab","minecraft:pale_oak_slab","minecraft:mangrove_slab","minecraft:bamboo_slab","minecraft:bamboo_mosaic_slab","minecraft:crimson_slab","minecraft:warped_slab","minecraft:stone_slab","minecraft:smooth_stone_slab","minecraft:sandstone_slab","minecraft:cut_sandstone_slab","minecraft:petrified_oak_slab","minecraft:cobblestone_slab","minecraft:brick_slab","minecraft:stone_brick_slab","minecraft:mud_brick_slab","minecraft:nether_brick_slab","minecraft:quartz_slab","minecraft:red_sandstone_slab","minecraft:cut_red_sandstone_slab","minecraft:purpur_slab","minecraft:prismarine_slab","minecraft:prismarine_brick_slab","minecraft:dark_prismarine_slab","minecraft:smooth_quartz","minecraft:smooth_red_sandstone","minecraft:smooth_sandstone","minecraft:smooth_stone","minecraft:bricks","minecraft:acacia_shelf","minecraft:bamboo_shelf","minecraft:birch_shelf","minecraft:cherry_shelf","minecraft:crimson_shelf","minecraft:dark_oak_shelf","minecraft:jungle_shelf","minecraft:mangrove_shelf","minecraft:oak_shelf","minecraft:pale_oak_shelf","minecraft:spruce_shelf","minecraft:warped_shelf","minecraft:bookshelf","minecraft:chiseled_bookshelf","minecraft:decorated_pot","minecraft:mossy_cobblestone","minecraft:obsidian","minecraft:torch","minecraft:end_rod","minecraft:chorus_plant","minecraft:chorus_flower","minecraft:purpur_block","minecraft:purpur_pillar","minecraft:purpur_stairs","minecraft:spawner","minecraft:creaking_heart","minecraft:chest","minecraft:crafting_table","minecraft:farmland","minecraft:furnace","minecraft:ladder","minecraft:cobblestone_stairs","minecraft:snow","minecraft:ice","minecraft:snow_block","minecraft:cactus","minecraft:cactus_flower","minecraft:clay","minecraft:jukebox","minecraft:oak_fence","minecraft:spruce_fence","minecraft:birch_fence","minecraft:jungle_fence","minecraft:acacia_fence","minecraft:cherry_fence","minecraft:dark_oak_fence","minecraft:pale_oak_fence","minecraft:mangrove_fence","minecraft:bamboo_fence","minecraft:crimson_fence","minecraft:warped_fence","minecraft:pumpkin","minecraft:carved_pumpkin","minecraft:jack_o_lantern","minecraft:netherrack","minecraft:soul_sand","minecraft:soul_soil","minecraft:basalt","minecraft:polished_basalt","minecraft:smooth_basalt","minecraft:soul_torch","minecraft:copper_torch","minecraft:glowstone","minecraft:infested_stone","minecraft:infested_cobblestone","minecraft:infested_stone_bricks","minecraft:infested_mossy_stone_bricks","minecraft:infested_cracked_stone_bricks","minecraft:infested_chiseled_stone_bricks","minecraft:infested_deepslate","minecraft:stone_bricks","minecraft:mossy_stone_bricks","minecraft:cracked_stone_bricks","minecraft:chiseled_stone_bricks","minecraft:packed_mud","minecraft:mud_bricks","minecraft:deepslate_bricks","minecraft:cracked_deepslate_bricks","minecraft:deepslate_tiles","minecraft:cracked_deepslate_tiles","minecraft:chiseled_deepslate","minecraft:reinforced_deepslate","minecraft:brown_mushroom_block","minecraft:red_mushroom_block","minecraft:mushroom_stem","minecraft:iron_bars","minecraft:copper_bars","minecraft:exposed_copper_bars","minecraft:weathered_copper_bars","minecraft:oxidized_copper_bars","minecraft:waxed_copper_bars","minecraft:waxed_exposed_copper_bars","minecraft:waxed_weathered_copper_bars","minecraft:waxed_oxidized_copper_bars","minecraft:iron_chain","minecraft:copper_chain","minecraft:exposed_copper_chain","minecraft:weathered_copper_chain","minecraft:oxidized_copper_chain","minecraft:waxed_copper_chain","minecraft:waxed_exposed_copper_chain","minecraft:waxed_weathered_copper_chain","minecraft:waxed_oxidized_copper_chain","minecraft:glass_pane","minecraft:melon","minecraft:vine","minecraft:glow_lichen","minecraft:resin_clump","minecraft:resin_block","minecraft:resin_bricks","minecraft:resin_brick_stairs","minecraft:resin_brick_slab","minecraft:resin_brick_wall","minecraft:chiseled_resin_bricks","minecraft:brick_stairs","minecraft:stone_brick_stairs","minecraft:mud_brick_stairs","minecraft:mycelium","minecraft:lily_pad","minecraft:nether_bricks","minecraft:cracked_nether_bricks","minecraft:chiseled_nether_bricks","minecraft:nether_brick_fence","minecraft:nether_brick_stairs","minecraft:sculk","minecraft:sculk_vein","minecraft:sculk_catalyst","minecraft:sculk_shrieker","minecraft:enchanting_table","minecraft:end_portal_frame","minecraft:end_stone","minecraft:end_stone_bricks","minecraft:dragon_egg","minecraft:sandstone_stairs","minecraft:ender_chest","minecraft:emerald_block","minecraft:oak_stairs","minecraft:spruce_stairs","minecraft:birch_stairs","minecraft:jungle_stairs","minecraft:acacia_stairs","minecraft:cherry_stairs","minecraft:dark_oak_stairs","minecraft:pale_oak_stairs","minecraft:mangrove_stairs","minecraft:bamboo_stairs","minecraft:bamboo_mosaic_stairs","minecraft:crimson_stairs","minecraft:warped_stairs","minecraft:command_block","minecraft:beacon","minecraft:cobblestone_wall","minecraft:mossy_cobblestone_wall","minecraft:brick_wall","minecraft:prismarine_wall","minecraft:red_sandstone_wall","minecraft:mossy_stone_brick_wall","minecraft:granite_wall","minecraft:stone_brick_wall","minecraft:mud_brick_wall","minecraft:nether_brick_wall","minecraft:andesite_wall","minecraft:red_nether_brick_wall","minecraft:sandstone_wall","minecraft:end_stone_brick_wall","minecraft:diorite_wall","minecraft:blackstone_wall","minecraft:polished_blackstone_wall","minecraft:polished_blackstone_brick_wall","minecraft:cobbled_deepslate_wall","minecraft:polished_deepslate_wall","minecraft:deepslate_brick_wall","minecraft:deepslate_tile_wall","minecraft:anvil","minecraft:chipped_anvil","minecraft:damaged_anvil","minecraft:chiseled_quartz_block","minecraft:quartz_block","minecraft:quartz_bricks","minecraft:quartz_pillar","minecraft:quartz_stairs","minecraft:white_terracotta","minecraft:orange_terracotta","minecraft:magenta_terracotta","minecraft:light_blue_terracotta","minecraft:yellow_terracotta","minecraft:lime_terracotta","minecraft:pink_terracotta","minecraft:gray_terracotta","minecraft:light_gray_terracotta","minecraft:cyan_terracotta","minecraft:purple_terracotta","minecraft:blue_terracotta","minecraft:brown_terracotta","minecraft:green_terracotta","minecraft:red_terracotta","minecraft:black_terracotta","minecraft:barrier","minecraft:light","minecraft:hay_block","minecraft:white_carpet","minecraft:orange_carpet","minecraft:magenta_carpet","minecraft:light_blue_carpet","minecraft:yellow_carpet","minecraft:lime_carpet","minecraft:pink_carpet","minecraft:gray_carpet","minecraft:light_gray_carpet","minecraft:cyan_carpet","minecraft:purple_carpet","minecraft:blue_carpet","minecraft:brown_carpet","minecraft:green_carpet","minecraft:red_carpet","minecraft:black_carpet","minecraft:terracotta","minecraft:packed_ice","minecraft:dirt_path","minecraft:sunflower","minecraft:lilac","minecraft:rose_bush","minecraft:peony","minecraft:tall_grass","minecraft:large_fern","minecraft:white_stained_glass","minecraft:orange_stained_glass","minecraft:magenta_stained_glass","minecraft:light_blue_stained_glass","minecraft:yellow_stained_glass","minecraft:lime_stained_glass","minecraft:pink_stained_glass","minecraft:gray_stained_glass","minecraft:light_gray_stained_glass","minecraft:cyan_stained_glass","minecraft:purple_stained_glass","minecraft:blue_stained_glass","minecraft:brown_stained_glass","minecraft:green_stained_glass","minecraft:red_stained_glass","minecraft:black_stained_glass","minecraft:white_stained_glass_pane","minecraft:orange_stained_glass_pane","minecraft:magenta_stained_glass_pane","minecraft:light_blue_stained_glass_pane","minecraft:yellow_stained_glass_pane","minecraft:lime_stained_glass_pane","minecraft:pink_stained_glass_pane","minecraft:gray_stained_glass_pane","minecraft:light_gray_stained_glass_pane","minecraft:cyan_stained_glass_pane","minecraft:purple_stained_glass_pane","minecraft:blue_stained_glass_pane","minecraft:brown_stained_glass_pane","minecraft:green_stained_glass_pane","minecraft:red_stained_glass_pane","minecraft:black_stained_glass_pane","minecraft:prismarine","minecraft:prismarine_bricks","minecraft:dark_prismarine","minecraft:prismarine_stairs","minecraft:prismarine_brick_stairs","minecraft:dark_prismarine_stairs","minecraft:sea_lantern","minecraft:red_sandstone","minecraft:chiseled_red_sandstone","minecraft:cut_red_sandstone","minecraft:red_sandstone_stairs","minecraft:repeating_command_block","minecraft:chain_command_block","minecraft:magma_block","minecraft:nether_wart_block","minecraft:warped_wart_block","minecraft:red_nether_bricks","minecraft:bone_block","minecraft:structure_void","minecraft:shulker_box","minecraft:white_shulker_box","minecraft:orange_shulker_box","minecraft:magenta_shulker_box","minecraft:light_blue_shulker_box","minecraft:yellow_shulker_box","minecraft:lime_shulker_box","minecraft:pink_shulker_box","minecraft:gray_shulker_box","minecraft:light_gray_shulker_box","minecraft:cyan_shulker_box","minecraft:purple_shulker_box","minecraft:blue_shulker_box","minecraft:brown_shulker_box","minecraft:green_shulker_box","minecraft:red_shulker_box","minecraft:black_shulker_box","minecraft:white_glazed_terracotta","minecraft:orange_glazed_terracotta","minecraft:magenta_glazed_terracotta","minecraft:light_blue_glazed_terracotta","minecraft:yellow_glazed_terracotta","minecraft:lime_glazed_terracotta","minecraft:pink_glazed_terracotta","minecraft:gray_glazed_terracotta","minecraft:light_gray_glazed_terracotta","minecraft:cyan_glazed_terracotta","minecraft:purple_glazed_terracotta","minecraft:blue_glazed_terracotta","minecraft:brown_glazed_terracotta","minecraft:green_glazed_terracotta","minecraft:red_glazed_terracotta","minecraft:black_glazed_terracotta","minecraft:white_concrete","minecraft:orange_concrete","minecraft:magenta_concrete","minecraft:light_blue_concrete","minecraft:yellow_concrete","minecraft:lime_concrete","minecraft:pink_concrete","minecraft:gray_concrete","minecraft:light_gray_concrete","minecraft:cyan_concrete","minecraft:purple_concrete","minecraft:blue_concrete","minecraft:brown_concrete","minecraft:green_concrete","minecraft:red_concrete","minecraft:black_concrete","minecraft:white_concrete_powder","minecraft:orange_concrete_powder","minecraft:magenta_concrete_powder","minecraft:light_blue_concrete_powder","minecraft:yellow_concrete_powder","minecraft:lime_concrete_powder","minecraft:pink_concrete_powder","minecraft:gray_concrete_powder","minecraft:light_gray_concrete_powder","minecraft:cyan_concrete_powder","minecraft:purple_concrete_powder","minecraft:blue_concrete_powder","minecraft:brown_concrete_powder","minecraft:green_concrete_powder","minecraft:red_concrete_powder","minecraft:black_concrete_powder","minecraft:turtle_egg","minecraft:sniffer_egg","minecraft:dried_ghast","minecraft:dead_tube_coral_block","minecraft:dead_brain_coral_block","minecraft:dead_bubble_coral_block","minecraft:dead_fire_coral_block","minecraft:dead_horn_coral_block","minecraft:tube_coral_block","minecraft:brain_coral_block","minecraft:bubble_coral_block","minecraft:fire_coral_block","minecraft:horn_coral_block","minecraft:tube_coral","minecraft:brain_coral","minecraft:bubble_coral","minecraft:fire_coral","minecraft:horn_coral","minecraft:dead_brain_coral","minecraft:dead_bubble_coral","minecraft:dead_fire_coral","minecraft:dead_horn_coral","minecraft:dead_tube_coral","minecraft:tube_coral_fan","minecraft:brain_coral_fan","minecraft:bubble_coral_fan","minecraft:fire_coral_fan","minecraft:horn_coral_fan","minecraft:dead_tube_coral_fan","minecraft:dead_brain_coral_fan","minecraft:dead_bubble_coral_fan","minecraft:dead_fire_coral_fan","minecraft:dead_horn_coral_fan","minecraft:blue_ice","minecraft:conduit","minecraft:polished_granite_stairs","minecraft:smooth_red_sandstone_stairs","minecraft:mossy_stone_brick_stairs","minecraft:polished_diorite_stairs","minecraft:mossy_cobblestone_stairs","minecraft:end_stone_brick_stairs","minecraft:stone_stairs","minecraft:smooth_sandstone_stairs","minecraft:smooth_quartz_stairs","minecraft:granite_stairs","minecraft:andesite_stairs","minecraft:red_nether_brick_stairs","minecraft:polished_andesite_stairs","minecraft:diorite_stairs","minecraft:cobbled_deepslate_stairs","minecraft:polished_deepslate_stairs","minecraft:deepslate_brick_stairs","minecraft:deepslate_tile_stairs","minecraft:polished_granite_slab","minecraft:smooth_red_sandstone_slab","minecraft:mossy_stone_brick_slab","minecraft:polished_diorite_slab","minecraft:mossy_cobblestone_slab","minecraft:end_stone_brick_slab","minecraft:smooth_sandstone_slab","minecraft:smooth_quartz_slab","minecraft:granite_slab","minecraft:andesite_slab","minecraft:red_nether_brick_slab","minecraft:polished_andesite_slab","minecraft:diorite_slab","minecraft:cobbled_deepslate_slab","minecraft:polished_deepslate_slab","minecraft:deepslate_brick_slab","minecraft:deepslate_tile_slab","minecraft:scaffolding","minecraft:redstone","minecraft:redstone_torch","minecraft:redstone_block","minecraft:repeater","minecraft:comparator","minecraft:piston","minecraft:sticky_piston","minecraft:slime_block","minecraft:honey_block","minecraft:observer","minecraft:hopper","minecraft:dispenser","minecraft:dropper","minecraft:lectern","minecraft:target","minecraft:lever","minecraft:lightning_rod","minecraft:exposed_lightning_rod","minecraft:weathered_lightning_rod","minecraft:oxidized_lightning_rod","minecraft:waxed_lightning_rod","minecraft:waxed_exposed_lightning_rod","minecraft:waxed_weathered_lightning_rod","minecraft:waxed_oxidized_lightning_rod","minecraft:daylight_detector","minecraft:sculk_sensor","minecraft:calibrated_sculk_sensor","minecraft:tripwire_hook","minecraft:trapped_chest","minecraft:tnt","minecraft:redstone_lamp","minecraft:note_block","minecraft:stone_button","minecraft:polished_blackstone_button","minecraft:oak_button","minecraft:spruce_button","minecraft:birch_button","minecraft:jungle_button","minecraft:acacia_button","minecraft:cherry_button","minecraft:dark_oak_button","minecraft:pale_oak_button","minecraft:mangrove_button","minecraft:bamboo_button","minecraft:crimson_button","minecraft:warped_button","minecraft:stone_pressure_plate","minecraft:polished_blackstone_pressure_plate","minecraft:light_weighted_pressure_plate","minecraft:heavy_weighted_pressure_plate","minecraft:oak_pressure_plate","minecraft:spruce_pressure_plate","minecraft:birch_pressure_plate","minecraft:jungle_pressure_plate","minecraft:acacia_pressure_plate","minecraft:cherry_pressure_plate","minecraft:dark_oak_pressure_plate","minecraft:pale_oak_pressure_plate","minecraft:mangrove_pressure_plate","minecraft:bamboo_pressure_plate","minecraft:crimson_pressure_plate","minecraft:warped_pressure_plate","minecraft:iron_door","minecraft:oak_door","minecraft:spruce_door","minecraft:birch_door","minecraft:jungle_door","minecraft:acacia_door","minecraft:cherry_door","minecraft:dark_oak_door","minecraft:pale_oak_door","minecraft:mangrove_door","minecraft:bamboo_door","minecraft:crimson_door","minecraft:warped_door","minecraft:copper_door","minecraft:exposed_copper_door","minecraft:weathered_copper_door","minecraft:oxidized_copper_door","minecraft:waxed_copper_door","minecraft:waxed_exposed_copper_door","minecraft:waxed_weathered_copper_door","minecraft:waxed_oxidized_copper_door","minecraft:iron_trapdoor","minecraft:oak_trapdoor","minecraft:spruce_trapdoor","minecraft:birch_trapdoor","minecraft:jungle_trapdoor","minecraft:acacia_trapdoor","minecraft:cherry_trapdoor","minecraft:dark_oak_trapdoor","minecraft:pale_oak_trapdoor","minecraft:mangrove_trapdoor","minecraft:bamboo_trapdoor","minecraft:crimson_trapdoor","minecraft:warped_trapdoor","minecraft:copper_trapdoor","minecraft:exposed_copper_trapdoor","minecraft:weathered_copper_trapdoor","minecraft:oxidized_copper_trapdoor","minecraft:waxed_copper_trapdoor","minecraft:waxed_exposed_copper_trapdoor","minecraft:waxed_weathered_copper_trapdoor","minecraft:waxed_oxidized_copper_trapdoor","minecraft:oak_fence_gate","minecraft:spruce_fence_gate","minecraft:birch_fence_gate","minecraft:jungle_fence_gate","minecraft:acacia_fence_gate","minecraft:cherry_fence_gate","minecraft:dark_oak_fence_gate","minecraft:pale_oak_fence_gate","minecraft:mangrove_fence_gate","minecraft:bamboo_fence_gate","minecraft:crimson_fence_gate","minecraft:warped_fence_gate","minecraft:powered_rail","minecraft:detector_rail","minecraft:rail","minecraft:activator_rail","minecraft:saddle","minecraft:white_harness","minecraft:orange_harness","minecraft:magenta_harness","minecraft:light_blue_harness","minecraft:yellow_harness","minecraft:lime_harness","minecraft:pink_harness","minecraft:gray_harness","minecraft:light_gray_harness","minecraft:cyan_harness","minecraft:purple_harness","minecraft:blue_harness","minecraft:brown_harness","minecraft:green_harness","minecraft:red_harness","minecraft:black_harness","minecraft:minecart","minecraft:chest_minecart","minecraft:furnace_minecart","minecraft:tnt_minecart","minecraft:hopper_minecart","minecraft:carrot_on_a_stick","minecraft:warped_fungus_on_a_stick","minecraft:phantom_membrane","minecraft:elytra","minecraft:oak_boat","minecraft:oak_chest_boat","minecraft:spruce_boat","minecraft:spruce_chest_boat","minecraft:birch_boat","minecraft:birch_chest_boat","minecraft:jungle_boat","minecraft:jungle_chest_boat","minecraft:acacia_boat","minecraft:acacia_chest_boat","minecraft:cherry_boat","minecraft:cherry_chest_boat","minecraft:dark_oak_boat","minecraft:dark_oak_chest_boat","minecraft:pale_oak_boat","minecraft:pale_oak_chest_boat","minecraft:mangrove_boat","minecraft:mangrove_chest_boat","minecraft:bamboo_raft","minecraft:bamboo_chest_raft","minecraft:structure_block","minecraft:jigsaw","minecraft:test_block","minecraft:test_instance_block","minecraft:turtle_helmet","minecraft:turtle_scute","minecraft:armadillo_scute","minecraft:wolf_armor","minecraft:flint_and_steel","minecraft:bowl","minecraft:apple","minecraft:bow","minecraft:arrow","minecraft:coal","minecraft:charcoal","minecraft:diamond","minecraft:emerald","minecraft:lapis_lazuli","minecraft:quartz","minecraft:amethyst_shard","minecraft:raw_iron","minecraft:iron_ingot","minecraft:raw_copper","minecraft:copper_ingot","minecraft:raw_gold","minecraft:gold_ingot","minecraft:netherite_ingot","minecraft:netherite_scrap","minecraft:wooden_sword","minecraft:wooden_shovel","minecraft:wooden_pickaxe","minecraft:wooden_axe","minecraft:wooden_hoe","minecraft:copper_sword","minecraft:copper_shovel","minecraft:copper_pickaxe","minecraft:copper_axe","minecraft:copper_hoe","minecraft:stone_sword","minecraft:stone_shovel","minecraft:stone_pickaxe","minecraft:stone_axe","minecraft:stone_hoe","minecraft:golden_sword","minecraft:golden_shovel","minecraft:golden_pickaxe","minecraft:golden_axe","minecraft:golden_hoe","minecraft:iron_sword","minecraft:iron_shovel","minecraft:iron_pickaxe","minecraft:iron_axe","minecraft:iron_hoe","minecraft:diamond_sword","minecraft:diamond_shovel","minecraft:diamond_pickaxe","minecraft:diamond_axe","minecraft:diamond_hoe","minecraft:netherite_sword","minecraft:netherite_shovel","minecraft:netherite_pickaxe","minecraft:netherite_axe","minecraft:netherite_hoe","minecraft:stick","minecraft:mushroom_stew","minecraft:string","minecraft:feather","minecraft:gunpowder","minecraft:wheat_seeds","minecraft:wheat","minecraft:bread","minecraft:leather_helmet","minecraft:leather_chestplate","minecraft:leather_leggings","minecraft:leather_boots","minecraft:copper_helmet","minecraft:copper_chestplate","minecraft:copper_leggings","minecraft:copper_boots","minecraft:chainmail_helmet","minecraft:chainmail_chestplate","minecraft:chainmail_leggings","minecraft:chainmail_boots","minecraft:iron_helmet","minecraft:iron_chestplate","minecraft:iron_leggings","minecraft:iron_boots","minecraft:diamond_helmet","minecraft:diamond_chestplate","minecraft:diamond_leggings","minecraft:diamond_boots","minecraft:golden_helmet","minecraft:golden_chestplate","minecraft:golden_leggings","minecraft:golden_boots","minecraft:netherite_helmet","minecraft:netherite_chestplate","minecraft:netherite_leggings","minecraft:netherite_boots","minecraft:flint","minecraft:porkchop","minecraft:cooked_porkchop","minecraft:painting","minecraft:golden_apple","minecraft:enchanted_golden_apple","minecraft:oak_sign","minecraft:spruce_sign","minecraft:birch_sign","minecraft:jungle_sign","minecraft:acacia_sign","minecraft:cherry_sign","minecraft:dark_oak_sign","minecraft:pale_oak_sign","minecraft:mangrove_sign","minecraft:bamboo_sign","minecraft:crimson_sign","minecraft:warped_sign","minecraft:oak_hanging_sign","minecraft:spruce_hanging_sign","minecraft:birch_hanging_sign","minecraft:jungle_hanging_sign","minecraft:acacia_hanging_sign","minecraft:cherry_hanging_sign","minecraft:dark_oak_hanging_sign","minecraft:pale_oak_hanging_sign","minecraft:mangrove_hanging_sign","minecraft:bamboo_hanging_sign","minecraft:crimson_hanging_sign","minecraft:warped_hanging_sign","minecraft:bucket","minecraft:water_bucket","minecraft:lava_bucket","minecraft:powder_snow_bucket","minecraft:snowball","minecraft:leather","minecraft:milk_bucket","minecraft:pufferfish_bucket","minecraft:salmon_bucket","minecraft:cod_bucket","minecraft:tropical_fish_bucket","minecraft:axolotl_bucket","minecraft:tadpole_bucket","minecraft:brick","minecraft:clay_ball","minecraft:dried_kelp_block","minecraft:paper","minecraft:book","minecraft:slime_ball","minecraft:egg","minecraft:blue_egg","minecraft:brown_egg","minecraft:compass","minecraft:recovery_compass","minecraft:bundle","minecraft:white_bundle","minecraft:orange_bundle","minecraft:magenta_bundle","minecraft:light_blue_bundle","minecraft:yellow_bundle","minecraft:lime_bundle","minecraft:pink_bundle","minecraft:gray_bundle","minecraft:light_gray_bundle","minecraft:cyan_bundle","minecraft:purple_bundle","minecraft:blue_bundle","minecraft:brown_bundle","minecraft:green_bundle","minecraft:red_bundle","minecraft:black_bundle","minecraft:fishing_rod","minecraft:clock","minecraft:spyglass","minecraft:glowstone_dust","minecraft:cod","minecraft:salmon","minecraft:tropical_fish","minecraft:pufferfish","minecraft:cooked_cod","minecraft:cooked_salmon","minecraft:ink_sac","minecraft:glow_ink_sac","minecraft:cocoa_beans","minecraft:white_dye","minecraft:orange_dye","minecraft:magenta_dye","minecraft:light_blue_dye","minecraft:yellow_dye","minecraft:lime_dye","minecraft:pink_dye","minecraft:gray_dye","minecraft:light_gray_dye","minecraft:cyan_dye","minecraft:purple_dye","minecraft:blue_dye","minecraft:brown_dye","minecraft:green_dye","minecraft:red_dye","minecraft:black_dye","minecraft:bone_meal","minecraft:bone","minecraft:sugar","minecraft:cake","minecraft:white_bed","minecraft:orange_bed","minecraft:magenta_bed","minecraft:light_blue_bed","minecraft:yellow_bed","minecraft:lime_bed","minecraft:pink_bed","minecraft:gray_bed","minecraft:light_gray_bed","minecraft:cyan_bed","minecraft:purple_bed","minecraft:blue_bed","minecraft:brown_bed","minecraft:green_bed","minecraft:red_bed","minecraft:black_bed","minecraft:cookie","minecraft:crafter","minecraft:filled_map","minecraft:shears","minecraft:melon_slice","minecraft:dried_kelp","minecraft:pumpkin_seeds","minecraft:melon_seeds","minecraft:beef","minecraft:cooked_beef","minecraft:chicken","minecraft:cooked_chicken","minecraft:rotten_flesh","minecraft:ender_pearl","minecraft:blaze_rod","minecraft:ghast_tear","minecraft:gold_nugget","minecraft:nether_wart","minecraft:glass_bottle","minecraft:potion","minecraft:spider_eye","minecraft:fermented_spider_eye","minecraft:blaze_powder","minecraft:magma_cream","minecraft:brewing_stand","minecraft:cauldron","minecraft:ender_eye","minecraft:glistering_melon_slice","minecraft:chicken_spawn_egg","minecraft:cow_spawn_egg","minecraft:pig_spawn_egg","minecraft:sheep_spawn_egg","minecraft:camel_spawn_egg","minecraft:donkey_spawn_egg","minecraft:horse_spawn_egg","minecraft:mule_spawn_egg","minecraft:cat_spawn_egg","minecraft:parrot_spawn_egg","minecraft:wolf_spawn_egg","minecraft:armadillo_spawn_egg","minecraft:bat_spawn_egg","minecraft:bee_spawn_egg","minecraft:fox_spawn_egg","minecraft:goat_spawn_egg","minecraft:llama_spawn_egg","minecraft:ocelot_spawn_egg","minecraft:panda_spawn_egg","minecraft:polar_bear_spawn_egg","minecraft:rabbit_spawn_egg","minecraft:axolotl_spawn_egg","minecraft:cod_spawn_egg","minecraft:dolphin_spawn_egg","minecraft:frog_spawn_egg","minecraft:glow_squid_spawn_egg","minecraft:nautilus_spawn_egg","minecraft:pufferfish_spawn_egg","minecraft:salmon_spawn_egg","minecraft:squid_spawn_egg","minecraft:tadpole_spawn_egg","minecraft:tropical_fish_spawn_egg","minecraft:turtle_spawn_egg","minecraft:allay_spawn_egg","minecraft:mooshroom_spawn_egg","minecraft:sniffer_spawn_egg","minecraft:copper_golem_spawn_egg","minecraft:iron_golem_spawn_egg","minecraft:snow_golem_spawn_egg","minecraft:trader_llama_spawn_egg","minecraft:villager_spawn_egg","minecraft:wandering_trader_spawn_egg","minecraft:bogged_spawn_egg","minecraft:camel_husk_spawn_egg","minecraft:drowned_spawn_egg","minecraft:husk_spawn_egg","minecraft:parched_spawn_egg","minecraft:skeleton_spawn_egg","minecraft:skeleton_horse_spawn_egg","minecraft:stray_spawn_egg","minecraft:wither_spawn_egg","minecraft:wither_skeleton_spawn_egg","minecraft:zombie_spawn_egg","minecraft:zombie_horse_spawn_egg","minecraft:zombie_nautilus_spawn_egg","minecraft:zombie_villager_spawn_egg","minecraft:cave_spider_spawn_egg","minecraft:spider_spawn_egg","minecraft:breeze_spawn_egg","minecraft:creaking_spawn_egg","minecraft:creeper_spawn_egg","minecraft:elder_guardian_spawn_egg","minecraft:guardian_spawn_egg","minecraft:phantom_spawn_egg","minecraft:silverfish_spawn_egg","minecraft:slime_spawn_egg","minecraft:warden_spawn_egg","minecraft:witch_spawn_egg","minecraft:evoker_spawn_egg","minecraft:pillager_spawn_egg","minecraft:ravager_spawn_egg","minecraft:vindicator_spawn_egg","minecraft:vex_spawn_egg","minecraft:blaze_spawn_egg","minecraft:ghast_spawn_egg","minecraft:happy_ghast_spawn_egg","minecraft:hoglin_spawn_egg","minecraft:magma_cube_spawn_egg","minecraft:piglin_spawn_egg","minecraft:piglin_brute_spawn_egg","minecraft:strider_spawn_egg","minecraft:zoglin_spawn_egg","minecraft:zombified_piglin_spawn_egg","minecraft:ender_dragon_spawn_egg","minecraft:enderman_spawn_egg","minecraft:endermite_spawn_egg","minecraft:shulker_spawn_egg","minecraft:experience_bottle","minecraft:fire_charge","minecraft:wind_charge","minecraft:writable_book","minecraft:written_book","minecraft:breeze_rod","minecraft:mace","minecraft:item_frame","minecraft:glow_item_frame","minecraft:flower_pot","minecraft:carrot","minecraft:potato","minecraft:baked_potato","minecraft:poisonous_potato","minecraft:map","minecraft:golden_carrot","minecraft:skeleton_skull","minecraft:wither_skeleton_skull","minecraft:player_head","minecraft:zombie_head","minecraft:creeper_head","minecraft:dragon_head","minecraft:piglin_head","minecraft:nether_star","minecraft:pumpkin_pie","minecraft:firework_rocket","minecraft:firework_star","minecraft:enchanted_book","minecraft:nether_brick","minecraft:resin_brick","minecraft:prismarine_shard","minecraft:prismarine_crystals","minecraft:rabbit","minecraft:cooked_rabbit","minecraft:rabbit_stew","minecraft:rabbit_foot","minecraft:rabbit_hide","minecraft:armor_stand","minecraft:copper_horse_armor","minecraft:iron_horse_armor","minecraft:golden_horse_armor","minecraft:diamond_horse_armor","minecraft:netherite_horse_armor","minecraft:leather_horse_armor","minecraft:lead","minecraft:name_tag","minecraft:command_block_minecart","minecraft:mutton","minecraft:cooked_mutton","minecraft:white_banner","minecraft:orange_banner","minecraft:magenta_banner","minecraft:light_blue_banner","minecraft:yellow_banner","minecraft:lime_banner","minecraft:pink_banner","minecraft:gray_banner","minecraft:light_gray_banner","minecraft:cyan_banner","minecraft:purple_banner","minecraft:blue_banner","minecraft:brown_banner","minecraft:green_banner","minecraft:red_banner","minecraft:black_banner","minecraft:end_crystal","minecraft:chorus_fruit","minecraft:popped_chorus_fruit","minecraft:torchflower_seeds","minecraft:pitcher_pod","minecraft:beetroot","minecraft:beetroot_seeds","minecraft:beetroot_soup","minecraft:dragon_breath","minecraft:splash_potion","minecraft:spectral_arrow","minecraft:tipped_arrow","minecraft:lingering_potion","minecraft:shield","minecraft:wooden_spear","minecraft:stone_spear","minecraft:copper_spear","minecraft:iron_spear","minecraft:golden_spear","minecraft:diamond_spear","minecraft:netherite_spear","minecraft:totem_of_undying","minecraft:shulker_shell","minecraft:iron_nugget","minecraft:copper_nugget","minecraft:knowledge_book","minecraft:debug_stick","minecraft:music_disc_13","minecraft:music_disc_cat","minecraft:music_disc_blocks","minecraft:music_disc_chirp","minecraft:music_disc_creator","minecraft:music_disc_creator_music_box","minecraft:music_disc_far","minecraft:music_disc_lava_chicken","minecraft:music_disc_mall","minecraft:music_disc_mellohi","minecraft:music_disc_stal","minecraft:music_disc_strad","minecraft:music_disc_ward","minecraft:music_disc_11","minecraft:music_disc_wait","minecraft:music_disc_otherside","minecraft:music_disc_relic","minecraft:music_disc_5","minecraft:music_disc_pigstep","minecraft:music_disc_precipice","minecraft:music_disc_tears","minecraft:disc_fragment_5","minecraft:trident","minecraft:nautilus_shell","minecraft:iron_nautilus_armor","minecraft:golden_nautilus_armor","minecraft:diamond_nautilus_armor","minecraft:netherite_nautilus_armor","minecraft:copper_nautilus_armor","minecraft:heart_of_the_sea","minecraft:crossbow","minecraft:suspicious_stew","minecraft:loom","minecraft:flower_banner_pattern","minecraft:creeper_banner_pattern","minecraft:skull_banner_pattern","minecraft:mojang_banner_pattern","minecraft:globe_banner_pattern","minecraft:piglin_banner_pattern","minecraft:flow_banner_pattern","minecraft:guster_banner_pattern","minecraft:field_masoned_banner_pattern","minecraft:bordure_indented_banner_pattern","minecraft:goat_horn","minecraft:composter","minecraft:barrel","minecraft:smoker","minecraft:blast_furnace","minecraft:cartography_table","minecraft:fletching_table","minecraft:grindstone","minecraft:smithing_table","minecraft:stonecutter","minecraft:bell","minecraft:lantern","minecraft:soul_lantern","minecraft:copper_lantern","minecraft:exposed_copper_lantern","minecraft:weathered_copper_lantern","minecraft:oxidized_copper_lantern","minecraft:waxed_copper_lantern","minecraft:waxed_exposed_copper_lantern","minecraft:waxed_weathered_copper_lantern","minecraft:waxed_oxidized_copper_lantern","minecraft:sweet_berries","minecraft:glow_berries","minecraft:campfire","minecraft:soul_campfire","minecraft:shroomlight","minecraft:honeycomb","minecraft:bee_nest","minecraft:beehive","minecraft:honey_bottle","minecraft:honeycomb_block","minecraft:lodestone","minecraft:crying_obsidian","minecraft:blackstone","minecraft:blackstone_slab","minecraft:blackstone_stairs","minecraft:gilded_blackstone","minecraft:polished_blackstone","minecraft:polished_blackstone_slab","minecraft:polished_blackstone_stairs","minecraft:chiseled_polished_blackstone","minecraft:polished_blackstone_bricks","minecraft:polished_blackstone_brick_slab","minecraft:polished_blackstone_brick_stairs","minecraft:cracked_polished_blackstone_bricks","minecraft:respawn_anchor","minecraft:candle","minecraft:white_candle","minecraft:orange_candle","minecraft:magenta_candle","minecraft:light_blue_candle","minecraft:yellow_candle","minecraft:lime_candle","minecraft:pink_candle","minecraft:gray_candle","minecraft:light_gray_candle","minecraft:cyan_candle","minecraft:purple_candle","minecraft:blue_candle","minecraft:brown_candle","minecraft:green_candle","minecraft:red_candle","minecraft:black_candle","minecraft:small_amethyst_bud","minecraft:medium_amethyst_bud","minecraft:large_amethyst_bud","minecraft:amethyst_cluster","minecraft:pointed_dripstone","minecraft:ochre_froglight","minecraft:verdant_froglight","minecraft:pearlescent_froglight","minecraft:frogspawn","minecraft:echo_shard","minecraft:brush","minecraft:netherite_upgrade_smithing_template","minecraft:sentry_armor_trim_smithing_template","minecraft:dune_armor_trim_smithing_template","minecraft:coast_armor_trim_smithing_template","minecraft:wild_armor_trim_smithing_template","minecraft:ward_armor_trim_smithing_template","minecraft:eye_armor_trim_smithing_template","minecraft:vex_armor_trim_smithing_template","minecraft:tide_armor_trim_smithing_template","minecraft:snout_armor_trim_smithing_template","minecraft:rib_armor_trim_smithing_template","minecraft:spire_armor_trim_smithing_template","minecraft:wayfinder_armor_trim_smithing_template","minecraft:shaper_armor_trim_smithing_template","minecraft:silence_armor_trim_smithing_template","minecraft:raiser_armor_trim_smithing_template","minecraft:host_armor_trim_smithing_template","minecraft:flow_armor_trim_smithing_template","minecraft:bolt_armor_trim_smithing_template","minecraft:angler_pottery_sherd","minecraft:archer_pottery_sherd","minecraft:arms_up_pottery_sherd","minecraft:blade_pottery_sherd","minecraft:brewer_pottery_sherd","minecraft:burn_pottery_sherd","minecraft:danger_pottery_sherd","minecraft:explorer_pottery_sherd","minecraft:flow_pottery_sherd","minecraft:friend_pottery_sherd","minecraft:guster_pottery_sherd","minecraft:heart_pottery_sherd","minecraft:heartbreak_pottery_sherd","minecraft:howl_pottery_sherd","minecraft:miner_pottery_sherd","minecraft:mourner_pottery_sherd","minecraft:plenty_pottery_sherd","minecraft:prize_pottery_sherd","minecraft:scrape_pottery_sherd","minecraft:sheaf_pottery_sherd","minecraft:shelter_pottery_sherd","minecraft:skull_pottery_sherd","minecraft:snort_pottery_sherd","minecraft:copper_grate","minecraft:exposed_copper_grate","minecraft:weathered_copper_grate","minecraft:oxidized_copper_grate","minecraft:waxed_copper_grate","minecraft:waxed_exposed_copper_grate","minecraft:waxed_weathered_copper_grate","minecraft:waxed_oxidized_copper_grate","minecraft:copper_bulb","minecraft:exposed_copper_bulb","minecraft:weathered_copper_bulb","minecraft:oxidized_copper_bulb","minecraft:waxed_copper_bulb","minecraft:waxed_exposed_copper_bulb","minecraft:waxed_weathered_copper_bulb","minecraft:waxed_oxidized_copper_bulb","minecraft:copper_chest","minecraft:exposed_copper_chest","minecraft:weathered_copper_chest","minecraft:oxidized_copper_chest","minecraft:waxed_copper_chest","minecraft:waxed_exposed_copper_chest","minecraft:waxed_weathered_copper_chest","minecraft:waxed_oxidized_copper_chest","minecraft:copper_golem_statue","minecraft:exposed_copper_golem_statue","minecraft:weathered_copper_golem_statue","minecraft:oxidized_copper_golem_statue","minecraft:waxed_copper_golem_statue","minecraft:waxed_exposed_copper_golem_statue","minecraft:waxed_weathered_copper_golem_statue","minecraft:waxed_oxidized_copper_golem_statue","minecraft:trial_spawner","minecraft:trial_key","minecraft:ominous_trial_key","minecraft:vault","minecraft:ominous_bottle"];
 impl DefaultableComponent for ItemModel {
     fn default_for_item(item: Item) -> Option<Self> {
         let value = ITEM_MODEL_VALUES[item as usize];
@@ -1754,7 +2062,7 @@ impl DefaultableComponent for ItemModel {
     }
 }
 #[rustfmt::skip]
-static ITEM_NAME_VALUES: [&str; 1488] = ["block.minecraft.air","block.minecraft.stone","block.minecraft.granite","block.minecraft.polished_granite","block.minecraft.diorite","block.minecraft.polished_diorite","block.minecraft.andesite","block.minecraft.polished_andesite","block.minecraft.deepslate","block.minecraft.cobbled_deepslate","block.minecraft.polished_deepslate","block.minecraft.calcite","block.minecraft.tuff","block.minecraft.tuff_slab","block.minecraft.tuff_stairs","block.minecraft.tuff_wall","block.minecraft.chiseled_tuff","block.minecraft.polished_tuff","block.minecraft.polished_tuff_slab","block.minecraft.polished_tuff_stairs","block.minecraft.polished_tuff_wall","block.minecraft.tuff_bricks","block.minecraft.tuff_brick_slab","block.minecraft.tuff_brick_stairs","block.minecraft.tuff_brick_wall","block.minecraft.chiseled_tuff_bricks","block.minecraft.dripstone_block","block.minecraft.grass_block","block.minecraft.dirt","block.minecraft.coarse_dirt","block.minecraft.podzol","block.minecraft.rooted_dirt","block.minecraft.mud","block.minecraft.crimson_nylium","block.minecraft.warped_nylium","block.minecraft.cobblestone","block.minecraft.oak_planks","block.minecraft.spruce_planks","block.minecraft.birch_planks","block.minecraft.jungle_planks","block.minecraft.acacia_planks","block.minecraft.cherry_planks","block.minecraft.dark_oak_planks","block.minecraft.pale_oak_planks","block.minecraft.mangrove_planks","block.minecraft.bamboo_planks","block.minecraft.crimson_planks","block.minecraft.warped_planks","block.minecraft.bamboo_mosaic","block.minecraft.oak_sapling","block.minecraft.spruce_sapling","block.minecraft.birch_sapling","block.minecraft.jungle_sapling","block.minecraft.acacia_sapling","block.minecraft.cherry_sapling","block.minecraft.dark_oak_sapling","block.minecraft.pale_oak_sapling","block.minecraft.mangrove_propagule","block.minecraft.bedrock","block.minecraft.sand","block.minecraft.suspicious_sand","block.minecraft.suspicious_gravel","block.minecraft.red_sand","block.minecraft.gravel","block.minecraft.coal_ore","block.minecraft.deepslate_coal_ore","block.minecraft.iron_ore","block.minecraft.deepslate_iron_ore","block.minecraft.copper_ore","block.minecraft.deepslate_copper_ore","block.minecraft.gold_ore","block.minecraft.deepslate_gold_ore","block.minecraft.redstone_ore","block.minecraft.deepslate_redstone_ore","block.minecraft.emerald_ore","block.minecraft.deepslate_emerald_ore","block.minecraft.lapis_ore","block.minecraft.deepslate_lapis_ore","block.minecraft.diamond_ore","block.minecraft.deepslate_diamond_ore","block.minecraft.nether_gold_ore","block.minecraft.nether_quartz_ore","block.minecraft.ancient_debris","block.minecraft.coal_block","block.minecraft.raw_iron_block","block.minecraft.raw_copper_block","block.minecraft.raw_gold_block","block.minecraft.heavy_core","block.minecraft.amethyst_block","block.minecraft.budding_amethyst","block.minecraft.iron_block","block.minecraft.copper_block","block.minecraft.gold_block","block.minecraft.diamond_block","block.minecraft.netherite_block","block.minecraft.exposed_copper","block.minecraft.weathered_copper","block.minecraft.oxidized_copper","block.minecraft.chiseled_copper","block.minecraft.exposed_chiseled_copper","block.minecraft.weathered_chiseled_copper","block.minecraft.oxidized_chiseled_copper","block.minecraft.cut_copper","block.minecraft.exposed_cut_copper","block.minecraft.weathered_cut_copper","block.minecraft.oxidized_cut_copper","block.minecraft.cut_copper_stairs","block.minecraft.exposed_cut_copper_stairs","block.minecraft.weathered_cut_copper_stairs","block.minecraft.oxidized_cut_copper_stairs","block.minecraft.cut_copper_slab","block.minecraft.exposed_cut_copper_slab","block.minecraft.weathered_cut_copper_slab","block.minecraft.oxidized_cut_copper_slab","block.minecraft.waxed_copper_block","block.minecraft.waxed_exposed_copper","block.minecraft.waxed_weathered_copper","block.minecraft.waxed_oxidized_copper","block.minecraft.waxed_chiseled_copper","block.minecraft.waxed_exposed_chiseled_copper","block.minecraft.waxed_weathered_chiseled_copper","block.minecraft.waxed_oxidized_chiseled_copper","block.minecraft.waxed_cut_copper","block.minecraft.waxed_exposed_cut_copper","block.minecraft.waxed_weathered_cut_copper","block.minecraft.waxed_oxidized_cut_copper","block.minecraft.waxed_cut_copper_stairs","block.minecraft.waxed_exposed_cut_copper_stairs","block.minecraft.waxed_weathered_cut_copper_stairs","block.minecraft.waxed_oxidized_cut_copper_stairs","block.minecraft.waxed_cut_copper_slab","block.minecraft.waxed_exposed_cut_copper_slab","block.minecraft.waxed_weathered_cut_copper_slab","block.minecraft.waxed_oxidized_cut_copper_slab","block.minecraft.oak_log","block.minecraft.spruce_log","block.minecraft.birch_log","block.minecraft.jungle_log","block.minecraft.acacia_log","block.minecraft.cherry_log","block.minecraft.pale_oak_log","block.minecraft.dark_oak_log","block.minecraft.mangrove_log","block.minecraft.mangrove_roots","block.minecraft.muddy_mangrove_roots","block.minecraft.crimson_stem","block.minecraft.warped_stem","block.minecraft.bamboo_block","block.minecraft.stripped_oak_log","block.minecraft.stripped_spruce_log","block.minecraft.stripped_birch_log","block.minecraft.stripped_jungle_log","block.minecraft.stripped_acacia_log","block.minecraft.stripped_cherry_log","block.minecraft.stripped_dark_oak_log","block.minecraft.stripped_pale_oak_log","block.minecraft.stripped_mangrove_log","block.minecraft.stripped_crimson_stem","block.minecraft.stripped_warped_stem","block.minecraft.stripped_oak_wood","block.minecraft.stripped_spruce_wood","block.minecraft.stripped_birch_wood","block.minecraft.stripped_jungle_wood","block.minecraft.stripped_acacia_wood","block.minecraft.stripped_cherry_wood","block.minecraft.stripped_dark_oak_wood","block.minecraft.stripped_pale_oak_wood","block.minecraft.stripped_mangrove_wood","block.minecraft.stripped_crimson_hyphae","block.minecraft.stripped_warped_hyphae","block.minecraft.stripped_bamboo_block","block.minecraft.oak_wood","block.minecraft.spruce_wood","block.minecraft.birch_wood","block.minecraft.jungle_wood","block.minecraft.acacia_wood","block.minecraft.cherry_wood","block.minecraft.pale_oak_wood","block.minecraft.dark_oak_wood","block.minecraft.mangrove_wood","block.minecraft.crimson_hyphae","block.minecraft.warped_hyphae","block.minecraft.oak_leaves","block.minecraft.spruce_leaves","block.minecraft.birch_leaves","block.minecraft.jungle_leaves","block.minecraft.acacia_leaves","block.minecraft.cherry_leaves","block.minecraft.dark_oak_leaves","block.minecraft.pale_oak_leaves","block.minecraft.mangrove_leaves","block.minecraft.azalea_leaves","block.minecraft.flowering_azalea_leaves","block.minecraft.sponge","block.minecraft.wet_sponge","block.minecraft.glass","block.minecraft.tinted_glass","block.minecraft.lapis_block","block.minecraft.sandstone","block.minecraft.chiseled_sandstone","block.minecraft.cut_sandstone","block.minecraft.cobweb","block.minecraft.short_grass","block.minecraft.fern","block.minecraft.bush","block.minecraft.azalea","block.minecraft.flowering_azalea","block.minecraft.dead_bush","block.minecraft.firefly_bush","block.minecraft.short_dry_grass","block.minecraft.tall_dry_grass","block.minecraft.seagrass","block.minecraft.sea_pickle","block.minecraft.white_wool","block.minecraft.orange_wool","block.minecraft.magenta_wool","block.minecraft.light_blue_wool","block.minecraft.yellow_wool","block.minecraft.lime_wool","block.minecraft.pink_wool","block.minecraft.gray_wool","block.minecraft.light_gray_wool","block.minecraft.cyan_wool","block.minecraft.purple_wool","block.minecraft.blue_wool","block.minecraft.brown_wool","block.minecraft.green_wool","block.minecraft.red_wool","block.minecraft.black_wool","block.minecraft.dandelion","block.minecraft.open_eyeblossom","block.minecraft.closed_eyeblossom","block.minecraft.poppy","block.minecraft.blue_orchid","block.minecraft.allium","block.minecraft.azure_bluet","block.minecraft.red_tulip","block.minecraft.orange_tulip","block.minecraft.white_tulip","block.minecraft.pink_tulip","block.minecraft.oxeye_daisy","block.minecraft.cornflower","block.minecraft.lily_of_the_valley","block.minecraft.wither_rose","block.minecraft.torchflower","block.minecraft.pitcher_plant","block.minecraft.spore_blossom","block.minecraft.brown_mushroom","block.minecraft.red_mushroom","block.minecraft.crimson_fungus","block.minecraft.warped_fungus","block.minecraft.crimson_roots","block.minecraft.warped_roots","block.minecraft.nether_sprouts","block.minecraft.weeping_vines","block.minecraft.twisting_vines","block.minecraft.sugar_cane","block.minecraft.kelp","block.minecraft.pink_petals","block.minecraft.wildflowers","block.minecraft.leaf_litter","block.minecraft.moss_carpet","block.minecraft.moss_block","block.minecraft.pale_moss_carpet","block.minecraft.pale_hanging_moss","block.minecraft.pale_moss_block","block.minecraft.hanging_roots","block.minecraft.big_dripleaf","block.minecraft.small_dripleaf","block.minecraft.bamboo","block.minecraft.oak_slab","block.minecraft.spruce_slab","block.minecraft.birch_slab","block.minecraft.jungle_slab","block.minecraft.acacia_slab","block.minecraft.cherry_slab","block.minecraft.dark_oak_slab","block.minecraft.pale_oak_slab","block.minecraft.mangrove_slab","block.minecraft.bamboo_slab","block.minecraft.bamboo_mosaic_slab","block.minecraft.crimson_slab","block.minecraft.warped_slab","block.minecraft.stone_slab","block.minecraft.smooth_stone_slab","block.minecraft.sandstone_slab","block.minecraft.cut_sandstone_slab","block.minecraft.petrified_oak_slab","block.minecraft.cobblestone_slab","block.minecraft.brick_slab","block.minecraft.stone_brick_slab","block.minecraft.mud_brick_slab","block.minecraft.nether_brick_slab","block.minecraft.quartz_slab","block.minecraft.red_sandstone_slab","block.minecraft.cut_red_sandstone_slab","block.minecraft.purpur_slab","block.minecraft.prismarine_slab","block.minecraft.prismarine_brick_slab","block.minecraft.dark_prismarine_slab","block.minecraft.smooth_quartz","block.minecraft.smooth_red_sandstone","block.minecraft.smooth_sandstone","block.minecraft.smooth_stone","block.minecraft.bricks","block.minecraft.acacia_shelf","block.minecraft.bamboo_shelf","block.minecraft.birch_shelf","block.minecraft.cherry_shelf","block.minecraft.crimson_shelf","block.minecraft.dark_oak_shelf","block.minecraft.jungle_shelf","block.minecraft.mangrove_shelf","block.minecraft.oak_shelf","block.minecraft.pale_oak_shelf","block.minecraft.spruce_shelf","block.minecraft.warped_shelf","block.minecraft.bookshelf","block.minecraft.chiseled_bookshelf","block.minecraft.decorated_pot","block.minecraft.mossy_cobblestone","block.minecraft.obsidian","block.minecraft.torch","block.minecraft.end_rod","block.minecraft.chorus_plant","block.minecraft.chorus_flower","block.minecraft.purpur_block","block.minecraft.purpur_pillar","block.minecraft.purpur_stairs","block.minecraft.spawner","block.minecraft.creaking_heart","block.minecraft.chest","block.minecraft.crafting_table","block.minecraft.farmland","block.minecraft.furnace","block.minecraft.ladder","block.minecraft.cobblestone_stairs","block.minecraft.snow","block.minecraft.ice","block.minecraft.snow_block","block.minecraft.cactus","block.minecraft.cactus_flower","block.minecraft.clay","block.minecraft.jukebox","block.minecraft.oak_fence","block.minecraft.spruce_fence","block.minecraft.birch_fence","block.minecraft.jungle_fence","block.minecraft.acacia_fence","block.minecraft.cherry_fence","block.minecraft.dark_oak_fence","block.minecraft.pale_oak_fence","block.minecraft.mangrove_fence","block.minecraft.bamboo_fence","block.minecraft.crimson_fence","block.minecraft.warped_fence","block.minecraft.pumpkin","block.minecraft.carved_pumpkin","block.minecraft.jack_o_lantern","block.minecraft.netherrack","block.minecraft.soul_sand","block.minecraft.soul_soil","block.minecraft.basalt","block.minecraft.polished_basalt","block.minecraft.smooth_basalt","block.minecraft.soul_torch","block.minecraft.copper_torch","block.minecraft.glowstone","block.minecraft.infested_stone","block.minecraft.infested_cobblestone","block.minecraft.infested_stone_bricks","block.minecraft.infested_mossy_stone_bricks","block.minecraft.infested_cracked_stone_bricks","block.minecraft.infested_chiseled_stone_bricks","block.minecraft.infested_deepslate","block.minecraft.stone_bricks","block.minecraft.mossy_stone_bricks","block.minecraft.cracked_stone_bricks","block.minecraft.chiseled_stone_bricks","block.minecraft.packed_mud","block.minecraft.mud_bricks","block.minecraft.deepslate_bricks","block.minecraft.cracked_deepslate_bricks","block.minecraft.deepslate_tiles","block.minecraft.cracked_deepslate_tiles","block.minecraft.chiseled_deepslate","block.minecraft.reinforced_deepslate","block.minecraft.brown_mushroom_block","block.minecraft.red_mushroom_block","block.minecraft.mushroom_stem","block.minecraft.iron_bars","block.minecraft.copper_bars","block.minecraft.exposed_copper_bars","block.minecraft.weathered_copper_bars","block.minecraft.oxidized_copper_bars","block.minecraft.waxed_copper_bars","block.minecraft.waxed_exposed_copper_bars","block.minecraft.waxed_weathered_copper_bars","block.minecraft.waxed_oxidized_copper_bars","block.minecraft.iron_chain","block.minecraft.copper_chain","block.minecraft.exposed_copper_chain","block.minecraft.weathered_copper_chain","block.minecraft.oxidized_copper_chain","block.minecraft.waxed_copper_chain","block.minecraft.waxed_exposed_copper_chain","block.minecraft.waxed_weathered_copper_chain","block.minecraft.waxed_oxidized_copper_chain","block.minecraft.glass_pane","block.minecraft.melon","block.minecraft.vine","block.minecraft.glow_lichen","item.minecraft.resin_clump","block.minecraft.resin_block","block.minecraft.resin_bricks","block.minecraft.resin_brick_stairs","block.minecraft.resin_brick_slab","block.minecraft.resin_brick_wall","block.minecraft.chiseled_resin_bricks","block.minecraft.brick_stairs","block.minecraft.stone_brick_stairs","block.minecraft.mud_brick_stairs","block.minecraft.mycelium","block.minecraft.lily_pad","block.minecraft.nether_bricks","block.minecraft.cracked_nether_bricks","block.minecraft.chiseled_nether_bricks","block.minecraft.nether_brick_fence","block.minecraft.nether_brick_stairs","block.minecraft.sculk","block.minecraft.sculk_vein","block.minecraft.sculk_catalyst","block.minecraft.sculk_shrieker","block.minecraft.enchanting_table","block.minecraft.end_portal_frame","block.minecraft.end_stone","block.minecraft.end_stone_bricks","block.minecraft.dragon_egg","block.minecraft.sandstone_stairs","block.minecraft.ender_chest","block.minecraft.emerald_block","block.minecraft.oak_stairs","block.minecraft.spruce_stairs","block.minecraft.birch_stairs","block.minecraft.jungle_stairs","block.minecraft.acacia_stairs","block.minecraft.cherry_stairs","block.minecraft.dark_oak_stairs","block.minecraft.pale_oak_stairs","block.minecraft.mangrove_stairs","block.minecraft.bamboo_stairs","block.minecraft.bamboo_mosaic_stairs","block.minecraft.crimson_stairs","block.minecraft.warped_stairs","block.minecraft.command_block","block.minecraft.beacon","block.minecraft.cobblestone_wall","block.minecraft.mossy_cobblestone_wall","block.minecraft.brick_wall","block.minecraft.prismarine_wall","block.minecraft.red_sandstone_wall","block.minecraft.mossy_stone_brick_wall","block.minecraft.granite_wall","block.minecraft.stone_brick_wall","block.minecraft.mud_brick_wall","block.minecraft.nether_brick_wall","block.minecraft.andesite_wall","block.minecraft.red_nether_brick_wall","block.minecraft.sandstone_wall","block.minecraft.end_stone_brick_wall","block.minecraft.diorite_wall","block.minecraft.blackstone_wall","block.minecraft.polished_blackstone_wall","block.minecraft.polished_blackstone_brick_wall","block.minecraft.cobbled_deepslate_wall","block.minecraft.polished_deepslate_wall","block.minecraft.deepslate_brick_wall","block.minecraft.deepslate_tile_wall","block.minecraft.anvil","block.minecraft.chipped_anvil","block.minecraft.damaged_anvil","block.minecraft.chiseled_quartz_block","block.minecraft.quartz_block","block.minecraft.quartz_bricks","block.minecraft.quartz_pillar","block.minecraft.quartz_stairs","block.minecraft.white_terracotta","block.minecraft.orange_terracotta","block.minecraft.magenta_terracotta","block.minecraft.light_blue_terracotta","block.minecraft.yellow_terracotta","block.minecraft.lime_terracotta","block.minecraft.pink_terracotta","block.minecraft.gray_terracotta","block.minecraft.light_gray_terracotta","block.minecraft.cyan_terracotta","block.minecraft.purple_terracotta","block.minecraft.blue_terracotta","block.minecraft.brown_terracotta","block.minecraft.green_terracotta","block.minecraft.red_terracotta","block.minecraft.black_terracotta","block.minecraft.barrier","block.minecraft.light","block.minecraft.hay_block","block.minecraft.white_carpet","block.minecraft.orange_carpet","block.minecraft.magenta_carpet","block.minecraft.light_blue_carpet","block.minecraft.yellow_carpet","block.minecraft.lime_carpet","block.minecraft.pink_carpet","block.minecraft.gray_carpet","block.minecraft.light_gray_carpet","block.minecraft.cyan_carpet","block.minecraft.purple_carpet","block.minecraft.blue_carpet","block.minecraft.brown_carpet","block.minecraft.green_carpet","block.minecraft.red_carpet","block.minecraft.black_carpet","block.minecraft.terracotta","block.minecraft.packed_ice","block.minecraft.dirt_path","block.minecraft.sunflower","block.minecraft.lilac","block.minecraft.rose_bush","block.minecraft.peony","block.minecraft.tall_grass","block.minecraft.large_fern","block.minecraft.white_stained_glass","block.minecraft.orange_stained_glass","block.minecraft.magenta_stained_glass","block.minecraft.light_blue_stained_glass","block.minecraft.yellow_stained_glass","block.minecraft.lime_stained_glass","block.minecraft.pink_stained_glass","block.minecraft.gray_stained_glass","block.minecraft.light_gray_stained_glass","block.minecraft.cyan_stained_glass","block.minecraft.purple_stained_glass","block.minecraft.blue_stained_glass","block.minecraft.brown_stained_glass","block.minecraft.green_stained_glass","block.minecraft.red_stained_glass","block.minecraft.black_stained_glass","block.minecraft.white_stained_glass_pane","block.minecraft.orange_stained_glass_pane","block.minecraft.magenta_stained_glass_pane","block.minecraft.light_blue_stained_glass_pane","block.minecraft.yellow_stained_glass_pane","block.minecraft.lime_stained_glass_pane","block.minecraft.pink_stained_glass_pane","block.minecraft.gray_stained_glass_pane","block.minecraft.light_gray_stained_glass_pane","block.minecraft.cyan_stained_glass_pane","block.minecraft.purple_stained_glass_pane","block.minecraft.blue_stained_glass_pane","block.minecraft.brown_stained_glass_pane","block.minecraft.green_stained_glass_pane","block.minecraft.red_stained_glass_pane","block.minecraft.black_stained_glass_pane","block.minecraft.prismarine","block.minecraft.prismarine_bricks","block.minecraft.dark_prismarine","block.minecraft.prismarine_stairs","block.minecraft.prismarine_brick_stairs","block.minecraft.dark_prismarine_stairs","block.minecraft.sea_lantern","block.minecraft.red_sandstone","block.minecraft.chiseled_red_sandstone","block.minecraft.cut_red_sandstone","block.minecraft.red_sandstone_stairs","block.minecraft.repeating_command_block","block.minecraft.chain_command_block","block.minecraft.magma_block","block.minecraft.nether_wart_block","block.minecraft.warped_wart_block","block.minecraft.red_nether_bricks","block.minecraft.bone_block","block.minecraft.structure_void","block.minecraft.shulker_box","block.minecraft.white_shulker_box","block.minecraft.orange_shulker_box","block.minecraft.magenta_shulker_box","block.minecraft.light_blue_shulker_box","block.minecraft.yellow_shulker_box","block.minecraft.lime_shulker_box","block.minecraft.pink_shulker_box","block.minecraft.gray_shulker_box","block.minecraft.light_gray_shulker_box","block.minecraft.cyan_shulker_box","block.minecraft.purple_shulker_box","block.minecraft.blue_shulker_box","block.minecraft.brown_shulker_box","block.minecraft.green_shulker_box","block.minecraft.red_shulker_box","block.minecraft.black_shulker_box","block.minecraft.white_glazed_terracotta","block.minecraft.orange_glazed_terracotta","block.minecraft.magenta_glazed_terracotta","block.minecraft.light_blue_glazed_terracotta","block.minecraft.yellow_glazed_terracotta","block.minecraft.lime_glazed_terracotta","block.minecraft.pink_glazed_terracotta","block.minecraft.gray_glazed_terracotta","block.minecraft.light_gray_glazed_terracotta","block.minecraft.cyan_glazed_terracotta","block.minecraft.purple_glazed_terracotta","block.minecraft.blue_glazed_terracotta","block.minecraft.brown_glazed_terracotta","block.minecraft.green_glazed_terracotta","block.minecraft.red_glazed_terracotta","block.minecraft.black_glazed_terracotta","block.minecraft.white_concrete","block.minecraft.orange_concrete","block.minecraft.magenta_concrete","block.minecraft.light_blue_concrete","block.minecraft.yellow_concrete","block.minecraft.lime_concrete","block.minecraft.pink_concrete","block.minecraft.gray_concrete","block.minecraft.light_gray_concrete","block.minecraft.cyan_concrete","block.minecraft.purple_concrete","block.minecraft.blue_concrete","block.minecraft.brown_concrete","block.minecraft.green_concrete","block.minecraft.red_concrete","block.minecraft.black_concrete","block.minecraft.white_concrete_powder","block.minecraft.orange_concrete_powder","block.minecraft.magenta_concrete_powder","block.minecraft.light_blue_concrete_powder","block.minecraft.yellow_concrete_powder","block.minecraft.lime_concrete_powder","block.minecraft.pink_concrete_powder","block.minecraft.gray_concrete_powder","block.minecraft.light_gray_concrete_powder","block.minecraft.cyan_concrete_powder","block.minecraft.purple_concrete_powder","block.minecraft.blue_concrete_powder","block.minecraft.brown_concrete_powder","block.minecraft.green_concrete_powder","block.minecraft.red_concrete_powder","block.minecraft.black_concrete_powder","block.minecraft.turtle_egg","block.minecraft.sniffer_egg","block.minecraft.dried_ghast","block.minecraft.dead_tube_coral_block","block.minecraft.dead_brain_coral_block","block.minecraft.dead_bubble_coral_block","block.minecraft.dead_fire_coral_block","block.minecraft.dead_horn_coral_block","block.minecraft.tube_coral_block","block.minecraft.brain_coral_block","block.minecraft.bubble_coral_block","block.minecraft.fire_coral_block","block.minecraft.horn_coral_block","block.minecraft.tube_coral","block.minecraft.brain_coral","block.minecraft.bubble_coral","block.minecraft.fire_coral","block.minecraft.horn_coral","block.minecraft.dead_brain_coral","block.minecraft.dead_bubble_coral","block.minecraft.dead_fire_coral","block.minecraft.dead_horn_coral","block.minecraft.dead_tube_coral","block.minecraft.tube_coral_fan","block.minecraft.brain_coral_fan","block.minecraft.bubble_coral_fan","block.minecraft.fire_coral_fan","block.minecraft.horn_coral_fan","block.minecraft.dead_tube_coral_fan","block.minecraft.dead_brain_coral_fan","block.minecraft.dead_bubble_coral_fan","block.minecraft.dead_fire_coral_fan","block.minecraft.dead_horn_coral_fan","block.minecraft.blue_ice","block.minecraft.conduit","block.minecraft.polished_granite_stairs","block.minecraft.smooth_red_sandstone_stairs","block.minecraft.mossy_stone_brick_stairs","block.minecraft.polished_diorite_stairs","block.minecraft.mossy_cobblestone_stairs","block.minecraft.end_stone_brick_stairs","block.minecraft.stone_stairs","block.minecraft.smooth_sandstone_stairs","block.minecraft.smooth_quartz_stairs","block.minecraft.granite_stairs","block.minecraft.andesite_stairs","block.minecraft.red_nether_brick_stairs","block.minecraft.polished_andesite_stairs","block.minecraft.diorite_stairs","block.minecraft.cobbled_deepslate_stairs","block.minecraft.polished_deepslate_stairs","block.minecraft.deepslate_brick_stairs","block.minecraft.deepslate_tile_stairs","block.minecraft.polished_granite_slab","block.minecraft.smooth_red_sandstone_slab","block.minecraft.mossy_stone_brick_slab","block.minecraft.polished_diorite_slab","block.minecraft.mossy_cobblestone_slab","block.minecraft.end_stone_brick_slab","block.minecraft.smooth_sandstone_slab","block.minecraft.smooth_quartz_slab","block.minecraft.granite_slab","block.minecraft.andesite_slab","block.minecraft.red_nether_brick_slab","block.minecraft.polished_andesite_slab","block.minecraft.diorite_slab","block.minecraft.cobbled_deepslate_slab","block.minecraft.polished_deepslate_slab","block.minecraft.deepslate_brick_slab","block.minecraft.deepslate_tile_slab","block.minecraft.scaffolding","item.minecraft.redstone","block.minecraft.redstone_torch","block.minecraft.redstone_block","block.minecraft.repeater","block.minecraft.comparator","block.minecraft.piston","block.minecraft.sticky_piston","block.minecraft.slime_block","block.minecraft.honey_block","block.minecraft.observer","block.minecraft.hopper","block.minecraft.dispenser","block.minecraft.dropper","block.minecraft.lectern","block.minecraft.target","block.minecraft.lever","block.minecraft.lightning_rod","block.minecraft.exposed_lightning_rod","block.minecraft.weathered_lightning_rod","block.minecraft.oxidized_lightning_rod","block.minecraft.waxed_lightning_rod","block.minecraft.waxed_exposed_lightning_rod","block.minecraft.waxed_weathered_lightning_rod","block.minecraft.waxed_oxidized_lightning_rod","block.minecraft.daylight_detector","block.minecraft.sculk_sensor","block.minecraft.calibrated_sculk_sensor","block.minecraft.tripwire_hook","block.minecraft.trapped_chest","block.minecraft.tnt","block.minecraft.redstone_lamp","block.minecraft.note_block","block.minecraft.stone_button","block.minecraft.polished_blackstone_button","block.minecraft.oak_button","block.minecraft.spruce_button","block.minecraft.birch_button","block.minecraft.jungle_button","block.minecraft.acacia_button","block.minecraft.cherry_button","block.minecraft.dark_oak_button","block.minecraft.pale_oak_button","block.minecraft.mangrove_button","block.minecraft.bamboo_button","block.minecraft.crimson_button","block.minecraft.warped_button","block.minecraft.stone_pressure_plate","block.minecraft.polished_blackstone_pressure_plate","block.minecraft.light_weighted_pressure_plate","block.minecraft.heavy_weighted_pressure_plate","block.minecraft.oak_pressure_plate","block.minecraft.spruce_pressure_plate","block.minecraft.birch_pressure_plate","block.minecraft.jungle_pressure_plate","block.minecraft.acacia_pressure_plate","block.minecraft.cherry_pressure_plate","block.minecraft.dark_oak_pressure_plate","block.minecraft.pale_oak_pressure_plate","block.minecraft.mangrove_pressure_plate","block.minecraft.bamboo_pressure_plate","block.minecraft.crimson_pressure_plate","block.minecraft.warped_pressure_plate","block.minecraft.iron_door","block.minecraft.oak_door","block.minecraft.spruce_door","block.minecraft.birch_door","block.minecraft.jungle_door","block.minecraft.acacia_door","block.minecraft.cherry_door","block.minecraft.dark_oak_door","block.minecraft.pale_oak_door","block.minecraft.mangrove_door","block.minecraft.bamboo_door","block.minecraft.crimson_door","block.minecraft.warped_door","block.minecraft.copper_door","block.minecraft.exposed_copper_door","block.minecraft.weathered_copper_door","block.minecraft.oxidized_copper_door","block.minecraft.waxed_copper_door","block.minecraft.waxed_exposed_copper_door","block.minecraft.waxed_weathered_copper_door","block.minecraft.waxed_oxidized_copper_door","block.minecraft.iron_trapdoor","block.minecraft.oak_trapdoor","block.minecraft.spruce_trapdoor","block.minecraft.birch_trapdoor","block.minecraft.jungle_trapdoor","block.minecraft.acacia_trapdoor","block.minecraft.cherry_trapdoor","block.minecraft.dark_oak_trapdoor","block.minecraft.pale_oak_trapdoor","block.minecraft.mangrove_trapdoor","block.minecraft.bamboo_trapdoor","block.minecraft.crimson_trapdoor","block.minecraft.warped_trapdoor","block.minecraft.copper_trapdoor","block.minecraft.exposed_copper_trapdoor","block.minecraft.weathered_copper_trapdoor","block.minecraft.oxidized_copper_trapdoor","block.minecraft.waxed_copper_trapdoor","block.minecraft.waxed_exposed_copper_trapdoor","block.minecraft.waxed_weathered_copper_trapdoor","block.minecraft.waxed_oxidized_copper_trapdoor","block.minecraft.oak_fence_gate","block.minecraft.spruce_fence_gate","block.minecraft.birch_fence_gate","block.minecraft.jungle_fence_gate","block.minecraft.acacia_fence_gate","block.minecraft.cherry_fence_gate","block.minecraft.dark_oak_fence_gate","block.minecraft.pale_oak_fence_gate","block.minecraft.mangrove_fence_gate","block.minecraft.bamboo_fence_gate","block.minecraft.crimson_fence_gate","block.minecraft.warped_fence_gate","block.minecraft.powered_rail","block.minecraft.detector_rail","block.minecraft.rail","block.minecraft.activator_rail","item.minecraft.saddle","item.minecraft.white_harness","item.minecraft.orange_harness","item.minecraft.magenta_harness","item.minecraft.light_blue_harness","item.minecraft.yellow_harness","item.minecraft.lime_harness","item.minecraft.pink_harness","item.minecraft.gray_harness","item.minecraft.light_gray_harness","item.minecraft.cyan_harness","item.minecraft.purple_harness","item.minecraft.blue_harness","item.minecraft.brown_harness","item.minecraft.green_harness","item.minecraft.red_harness","item.minecraft.black_harness","item.minecraft.minecart","item.minecraft.chest_minecart","item.minecraft.furnace_minecart","item.minecraft.tnt_minecart","item.minecraft.hopper_minecart","item.minecraft.carrot_on_a_stick","item.minecraft.warped_fungus_on_a_stick","item.minecraft.phantom_membrane","item.minecraft.elytra","item.minecraft.oak_boat","item.minecraft.oak_chest_boat","item.minecraft.spruce_boat","item.minecraft.spruce_chest_boat","item.minecraft.birch_boat","item.minecraft.birch_chest_boat","item.minecraft.jungle_boat","item.minecraft.jungle_chest_boat","item.minecraft.acacia_boat","item.minecraft.acacia_chest_boat","item.minecraft.cherry_boat","item.minecraft.cherry_chest_boat","item.minecraft.dark_oak_boat","item.minecraft.dark_oak_chest_boat","item.minecraft.pale_oak_boat","item.minecraft.pale_oak_chest_boat","item.minecraft.mangrove_boat","item.minecraft.mangrove_chest_boat","item.minecraft.bamboo_raft","item.minecraft.bamboo_chest_raft","block.minecraft.structure_block","block.minecraft.jigsaw","block.minecraft.test_block","block.minecraft.test_instance_block","item.minecraft.turtle_helmet","item.minecraft.turtle_scute","item.minecraft.armadillo_scute","item.minecraft.wolf_armor","item.minecraft.flint_and_steel","item.minecraft.bowl","item.minecraft.apple","item.minecraft.bow","item.minecraft.arrow","item.minecraft.coal","item.minecraft.charcoal","item.minecraft.diamond","item.minecraft.emerald","item.minecraft.lapis_lazuli","item.minecraft.quartz","item.minecraft.amethyst_shard","item.minecraft.raw_iron","item.minecraft.iron_ingot","item.minecraft.raw_copper","item.minecraft.copper_ingot","item.minecraft.raw_gold","item.minecraft.gold_ingot","item.minecraft.netherite_ingot","item.minecraft.netherite_scrap","item.minecraft.wooden_sword","item.minecraft.wooden_shovel","item.minecraft.wooden_pickaxe","item.minecraft.wooden_axe","item.minecraft.wooden_hoe","item.minecraft.copper_sword","item.minecraft.copper_shovel","item.minecraft.copper_pickaxe","item.minecraft.copper_axe","item.minecraft.copper_hoe","item.minecraft.stone_sword","item.minecraft.stone_shovel","item.minecraft.stone_pickaxe","item.minecraft.stone_axe","item.minecraft.stone_hoe","item.minecraft.golden_sword","item.minecraft.golden_shovel","item.minecraft.golden_pickaxe","item.minecraft.golden_axe","item.minecraft.golden_hoe","item.minecraft.iron_sword","item.minecraft.iron_shovel","item.minecraft.iron_pickaxe","item.minecraft.iron_axe","item.minecraft.iron_hoe","item.minecraft.diamond_sword","item.minecraft.diamond_shovel","item.minecraft.diamond_pickaxe","item.minecraft.diamond_axe","item.minecraft.diamond_hoe","item.minecraft.netherite_sword","item.minecraft.netherite_shovel","item.minecraft.netherite_pickaxe","item.minecraft.netherite_axe","item.minecraft.netherite_hoe","item.minecraft.stick","item.minecraft.mushroom_stew","item.minecraft.string","item.minecraft.feather","item.minecraft.gunpowder","item.minecraft.wheat_seeds","item.minecraft.wheat","item.minecraft.bread","item.minecraft.leather_helmet","item.minecraft.leather_chestplate","item.minecraft.leather_leggings","item.minecraft.leather_boots","item.minecraft.copper_helmet","item.minecraft.copper_chestplate","item.minecraft.copper_leggings","item.minecraft.copper_boots","item.minecraft.chainmail_helmet","item.minecraft.chainmail_chestplate","item.minecraft.chainmail_leggings","item.minecraft.chainmail_boots","item.minecraft.iron_helmet","item.minecraft.iron_chestplate","item.minecraft.iron_leggings","item.minecraft.iron_boots","item.minecraft.diamond_helmet","item.minecraft.diamond_chestplate","item.minecraft.diamond_leggings","item.minecraft.diamond_boots","item.minecraft.golden_helmet","item.minecraft.golden_chestplate","item.minecraft.golden_leggings","item.minecraft.golden_boots","item.minecraft.netherite_helmet","item.minecraft.netherite_chestplate","item.minecraft.netherite_leggings","item.minecraft.netherite_boots","item.minecraft.flint","item.minecraft.porkchop","item.minecraft.cooked_porkchop","item.minecraft.painting","item.minecraft.golden_apple","item.minecraft.enchanted_golden_apple","block.minecraft.oak_sign","block.minecraft.spruce_sign","block.minecraft.birch_sign","block.minecraft.jungle_sign","block.minecraft.acacia_sign","block.minecraft.cherry_sign","block.minecraft.dark_oak_sign","block.minecraft.pale_oak_sign","block.minecraft.mangrove_sign","block.minecraft.bamboo_sign","block.minecraft.crimson_sign","block.minecraft.warped_sign","block.minecraft.oak_hanging_sign","block.minecraft.spruce_hanging_sign","block.minecraft.birch_hanging_sign","block.minecraft.jungle_hanging_sign","block.minecraft.acacia_hanging_sign","block.minecraft.cherry_hanging_sign","block.minecraft.dark_oak_hanging_sign","block.minecraft.pale_oak_hanging_sign","block.minecraft.mangrove_hanging_sign","block.minecraft.bamboo_hanging_sign","block.minecraft.crimson_hanging_sign","block.minecraft.warped_hanging_sign","item.minecraft.bucket","item.minecraft.water_bucket","item.minecraft.lava_bucket","item.minecraft.powder_snow_bucket","item.minecraft.snowball","item.minecraft.leather","item.minecraft.milk_bucket","item.minecraft.pufferfish_bucket","item.minecraft.salmon_bucket","item.minecraft.cod_bucket","item.minecraft.tropical_fish_bucket","item.minecraft.axolotl_bucket","item.minecraft.tadpole_bucket","item.minecraft.brick","item.minecraft.clay_ball","block.minecraft.dried_kelp_block","item.minecraft.paper","item.minecraft.book","item.minecraft.slime_ball","item.minecraft.egg","item.minecraft.blue_egg","item.minecraft.brown_egg","item.minecraft.compass","item.minecraft.recovery_compass","item.minecraft.bundle","item.minecraft.white_bundle","item.minecraft.orange_bundle","item.minecraft.magenta_bundle","item.minecraft.light_blue_bundle","item.minecraft.yellow_bundle","item.minecraft.lime_bundle","item.minecraft.pink_bundle","item.minecraft.gray_bundle","item.minecraft.light_gray_bundle","item.minecraft.cyan_bundle","item.minecraft.purple_bundle","item.minecraft.blue_bundle","item.minecraft.brown_bundle","item.minecraft.green_bundle","item.minecraft.red_bundle","item.minecraft.black_bundle","item.minecraft.fishing_rod","item.minecraft.clock","item.minecraft.spyglass","item.minecraft.glowstone_dust","item.minecraft.cod","item.minecraft.salmon","item.minecraft.tropical_fish","item.minecraft.pufferfish","item.minecraft.cooked_cod","item.minecraft.cooked_salmon","item.minecraft.ink_sac","item.minecraft.glow_ink_sac","item.minecraft.cocoa_beans","item.minecraft.white_dye","item.minecraft.orange_dye","item.minecraft.magenta_dye","item.minecraft.light_blue_dye","item.minecraft.yellow_dye","item.minecraft.lime_dye","item.minecraft.pink_dye","item.minecraft.gray_dye","item.minecraft.light_gray_dye","item.minecraft.cyan_dye","item.minecraft.purple_dye","item.minecraft.blue_dye","item.minecraft.brown_dye","item.minecraft.green_dye","item.minecraft.red_dye","item.minecraft.black_dye","item.minecraft.bone_meal","item.minecraft.bone","item.minecraft.sugar","block.minecraft.cake","block.minecraft.white_bed","block.minecraft.orange_bed","block.minecraft.magenta_bed","block.minecraft.light_blue_bed","block.minecraft.yellow_bed","block.minecraft.lime_bed","block.minecraft.pink_bed","block.minecraft.gray_bed","block.minecraft.light_gray_bed","block.minecraft.cyan_bed","block.minecraft.purple_bed","block.minecraft.blue_bed","block.minecraft.brown_bed","block.minecraft.green_bed","block.minecraft.red_bed","block.minecraft.black_bed","item.minecraft.cookie","block.minecraft.crafter","item.minecraft.filled_map","item.minecraft.shears","item.minecraft.melon_slice","item.minecraft.dried_kelp","item.minecraft.pumpkin_seeds","item.minecraft.melon_seeds","item.minecraft.beef","item.minecraft.cooked_beef","item.minecraft.chicken","item.minecraft.cooked_chicken","item.minecraft.rotten_flesh","item.minecraft.ender_pearl","item.minecraft.blaze_rod","item.minecraft.ghast_tear","item.minecraft.gold_nugget","item.minecraft.nether_wart","item.minecraft.glass_bottle","item.minecraft.potion","item.minecraft.spider_eye","item.minecraft.fermented_spider_eye","item.minecraft.blaze_powder","item.minecraft.magma_cream","block.minecraft.brewing_stand","block.minecraft.cauldron","item.minecraft.ender_eye","item.minecraft.glistering_melon_slice","item.minecraft.armadillo_spawn_egg","item.minecraft.allay_spawn_egg","item.minecraft.axolotl_spawn_egg","item.minecraft.bat_spawn_egg","item.minecraft.bee_spawn_egg","item.minecraft.blaze_spawn_egg","item.minecraft.bogged_spawn_egg","item.minecraft.breeze_spawn_egg","item.minecraft.cat_spawn_egg","item.minecraft.camel_spawn_egg","item.minecraft.cave_spider_spawn_egg","item.minecraft.chicken_spawn_egg","item.minecraft.cod_spawn_egg","item.minecraft.copper_golem_spawn_egg","item.minecraft.cow_spawn_egg","item.minecraft.creeper_spawn_egg","item.minecraft.dolphin_spawn_egg","item.minecraft.donkey_spawn_egg","item.minecraft.drowned_spawn_egg","item.minecraft.elder_guardian_spawn_egg","item.minecraft.ender_dragon_spawn_egg","item.minecraft.enderman_spawn_egg","item.minecraft.endermite_spawn_egg","item.minecraft.evoker_spawn_egg","item.minecraft.fox_spawn_egg","item.minecraft.frog_spawn_egg","item.minecraft.ghast_spawn_egg","item.minecraft.happy_ghast_spawn_egg","item.minecraft.glow_squid_spawn_egg","item.minecraft.goat_spawn_egg","item.minecraft.guardian_spawn_egg","item.minecraft.hoglin_spawn_egg","item.minecraft.horse_spawn_egg","item.minecraft.husk_spawn_egg","item.minecraft.iron_golem_spawn_egg","item.minecraft.llama_spawn_egg","item.minecraft.magma_cube_spawn_egg","item.minecraft.mooshroom_spawn_egg","item.minecraft.mule_spawn_egg","item.minecraft.ocelot_spawn_egg","item.minecraft.panda_spawn_egg","item.minecraft.parrot_spawn_egg","item.minecraft.phantom_spawn_egg","item.minecraft.pig_spawn_egg","item.minecraft.piglin_spawn_egg","item.minecraft.piglin_brute_spawn_egg","item.minecraft.pillager_spawn_egg","item.minecraft.polar_bear_spawn_egg","item.minecraft.pufferfish_spawn_egg","item.minecraft.rabbit_spawn_egg","item.minecraft.ravager_spawn_egg","item.minecraft.salmon_spawn_egg","item.minecraft.sheep_spawn_egg","item.minecraft.shulker_spawn_egg","item.minecraft.silverfish_spawn_egg","item.minecraft.skeleton_spawn_egg","item.minecraft.skeleton_horse_spawn_egg","item.minecraft.slime_spawn_egg","item.minecraft.sniffer_spawn_egg","item.minecraft.snow_golem_spawn_egg","item.minecraft.spider_spawn_egg","item.minecraft.squid_spawn_egg","item.minecraft.stray_spawn_egg","item.minecraft.strider_spawn_egg","item.minecraft.tadpole_spawn_egg","item.minecraft.trader_llama_spawn_egg","item.minecraft.tropical_fish_spawn_egg","item.minecraft.turtle_spawn_egg","item.minecraft.vex_spawn_egg","item.minecraft.villager_spawn_egg","item.minecraft.vindicator_spawn_egg","item.minecraft.wandering_trader_spawn_egg","item.minecraft.warden_spawn_egg","item.minecraft.witch_spawn_egg","item.minecraft.wither_spawn_egg","item.minecraft.wither_skeleton_spawn_egg","item.minecraft.wolf_spawn_egg","item.minecraft.zoglin_spawn_egg","item.minecraft.creaking_spawn_egg","item.minecraft.zombie_spawn_egg","item.minecraft.zombie_horse_spawn_egg","item.minecraft.zombie_villager_spawn_egg","item.minecraft.zombified_piglin_spawn_egg","item.minecraft.experience_bottle","item.minecraft.fire_charge","item.minecraft.wind_charge","item.minecraft.writable_book","item.minecraft.written_book","item.minecraft.breeze_rod","item.minecraft.mace","item.minecraft.item_frame","item.minecraft.glow_item_frame","block.minecraft.flower_pot","item.minecraft.carrot","item.minecraft.potato","item.minecraft.baked_potato","item.minecraft.poisonous_potato","item.minecraft.map","item.minecraft.golden_carrot","block.minecraft.skeleton_skull","block.minecraft.wither_skeleton_skull","block.minecraft.player_head","block.minecraft.zombie_head","block.minecraft.creeper_head","block.minecraft.dragon_head","block.minecraft.piglin_head","item.minecraft.nether_star","item.minecraft.pumpkin_pie","item.minecraft.firework_rocket","item.minecraft.firework_star","item.minecraft.enchanted_book","item.minecraft.nether_brick","item.minecraft.resin_brick","item.minecraft.prismarine_shard","item.minecraft.prismarine_crystals","item.minecraft.rabbit","item.minecraft.cooked_rabbit","item.minecraft.rabbit_stew","item.minecraft.rabbit_foot","item.minecraft.rabbit_hide","item.minecraft.armor_stand","item.minecraft.copper_horse_armor","item.minecraft.iron_horse_armor","item.minecraft.golden_horse_armor","item.minecraft.diamond_horse_armor","item.minecraft.leather_horse_armor","item.minecraft.lead","item.minecraft.name_tag","item.minecraft.command_block_minecart","item.minecraft.mutton","item.minecraft.cooked_mutton","block.minecraft.white_banner","block.minecraft.orange_banner","block.minecraft.magenta_banner","block.minecraft.light_blue_banner","block.minecraft.yellow_banner","block.minecraft.lime_banner","block.minecraft.pink_banner","block.minecraft.gray_banner","block.minecraft.light_gray_banner","block.minecraft.cyan_banner","block.minecraft.purple_banner","block.minecraft.blue_banner","block.minecraft.brown_banner","block.minecraft.green_banner","block.minecraft.red_banner","block.minecraft.black_banner","item.minecraft.end_crystal","item.minecraft.chorus_fruit","item.minecraft.popped_chorus_fruit","item.minecraft.torchflower_seeds","item.minecraft.pitcher_pod","item.minecraft.beetroot","item.minecraft.beetroot_seeds","item.minecraft.beetroot_soup","item.minecraft.dragon_breath","item.minecraft.splash_potion","item.minecraft.spectral_arrow","item.minecraft.tipped_arrow","item.minecraft.lingering_potion","item.minecraft.shield","item.minecraft.totem_of_undying","item.minecraft.shulker_shell","item.minecraft.iron_nugget","item.minecraft.copper_nugget","item.minecraft.knowledge_book","item.minecraft.debug_stick","item.minecraft.music_disc_13","item.minecraft.music_disc_cat","item.minecraft.music_disc_blocks","item.minecraft.music_disc_chirp","item.minecraft.music_disc_creator","item.minecraft.music_disc_creator_music_box","item.minecraft.music_disc_far","item.minecraft.music_disc_lava_chicken","item.minecraft.music_disc_mall","item.minecraft.music_disc_mellohi","item.minecraft.music_disc_stal","item.minecraft.music_disc_strad","item.minecraft.music_disc_ward","item.minecraft.music_disc_11","item.minecraft.music_disc_wait","item.minecraft.music_disc_otherside","item.minecraft.music_disc_relic","item.minecraft.music_disc_5","item.minecraft.music_disc_pigstep","item.minecraft.music_disc_precipice","item.minecraft.music_disc_tears","item.minecraft.disc_fragment_5","item.minecraft.trident","item.minecraft.nautilus_shell","item.minecraft.heart_of_the_sea","item.minecraft.crossbow","item.minecraft.suspicious_stew","block.minecraft.loom","item.minecraft.flower_banner_pattern","item.minecraft.creeper_banner_pattern","item.minecraft.skull_banner_pattern","item.minecraft.mojang_banner_pattern","item.minecraft.globe_banner_pattern","item.minecraft.piglin_banner_pattern","item.minecraft.flow_banner_pattern","item.minecraft.guster_banner_pattern","item.minecraft.field_masoned_banner_pattern","item.minecraft.bordure_indented_banner_pattern","item.minecraft.goat_horn","block.minecraft.composter","block.minecraft.barrel","block.minecraft.smoker","block.minecraft.blast_furnace","block.minecraft.cartography_table","block.minecraft.fletching_table","block.minecraft.grindstone","block.minecraft.smithing_table","block.minecraft.stonecutter","block.minecraft.bell","block.minecraft.lantern","block.minecraft.soul_lantern","block.minecraft.copper_lantern","block.minecraft.exposed_copper_lantern","block.minecraft.weathered_copper_lantern","block.minecraft.oxidized_copper_lantern","block.minecraft.waxed_copper_lantern","block.minecraft.waxed_exposed_copper_lantern","block.minecraft.waxed_weathered_copper_lantern","block.minecraft.waxed_oxidized_copper_lantern","item.minecraft.sweet_berries","item.minecraft.glow_berries","block.minecraft.campfire","block.minecraft.soul_campfire","block.minecraft.shroomlight","item.minecraft.honeycomb","block.minecraft.bee_nest","block.minecraft.beehive","item.minecraft.honey_bottle","block.minecraft.honeycomb_block","block.minecraft.lodestone","block.minecraft.crying_obsidian","block.minecraft.blackstone","block.minecraft.blackstone_slab","block.minecraft.blackstone_stairs","block.minecraft.gilded_blackstone","block.minecraft.polished_blackstone","block.minecraft.polished_blackstone_slab","block.minecraft.polished_blackstone_stairs","block.minecraft.chiseled_polished_blackstone","block.minecraft.polished_blackstone_bricks","block.minecraft.polished_blackstone_brick_slab","block.minecraft.polished_blackstone_brick_stairs","block.minecraft.cracked_polished_blackstone_bricks","block.minecraft.respawn_anchor","block.minecraft.candle","block.minecraft.white_candle","block.minecraft.orange_candle","block.minecraft.magenta_candle","block.minecraft.light_blue_candle","block.minecraft.yellow_candle","block.minecraft.lime_candle","block.minecraft.pink_candle","block.minecraft.gray_candle","block.minecraft.light_gray_candle","block.minecraft.cyan_candle","block.minecraft.purple_candle","block.minecraft.blue_candle","block.minecraft.brown_candle","block.minecraft.green_candle","block.minecraft.red_candle","block.minecraft.black_candle","block.minecraft.small_amethyst_bud","block.minecraft.medium_amethyst_bud","block.minecraft.large_amethyst_bud","block.minecraft.amethyst_cluster","block.minecraft.pointed_dripstone","block.minecraft.ochre_froglight","block.minecraft.verdant_froglight","block.minecraft.pearlescent_froglight","block.minecraft.frogspawn","item.minecraft.echo_shard","item.minecraft.brush","item.minecraft.netherite_upgrade_smithing_template","item.minecraft.sentry_armor_trim_smithing_template","item.minecraft.dune_armor_trim_smithing_template","item.minecraft.coast_armor_trim_smithing_template","item.minecraft.wild_armor_trim_smithing_template","item.minecraft.ward_armor_trim_smithing_template","item.minecraft.eye_armor_trim_smithing_template","item.minecraft.vex_armor_trim_smithing_template","item.minecraft.tide_armor_trim_smithing_template","item.minecraft.snout_armor_trim_smithing_template","item.minecraft.rib_armor_trim_smithing_template","item.minecraft.spire_armor_trim_smithing_template","item.minecraft.wayfinder_armor_trim_smithing_template","item.minecraft.shaper_armor_trim_smithing_template","item.minecraft.silence_armor_trim_smithing_template","item.minecraft.raiser_armor_trim_smithing_template","item.minecraft.host_armor_trim_smithing_template","item.minecraft.flow_armor_trim_smithing_template","item.minecraft.bolt_armor_trim_smithing_template","item.minecraft.angler_pottery_sherd","item.minecraft.archer_pottery_sherd","item.minecraft.arms_up_pottery_sherd","item.minecraft.blade_pottery_sherd","item.minecraft.brewer_pottery_sherd","item.minecraft.burn_pottery_sherd","item.minecraft.danger_pottery_sherd","item.minecraft.explorer_pottery_sherd","item.minecraft.flow_pottery_sherd","item.minecraft.friend_pottery_sherd","item.minecraft.guster_pottery_sherd","item.minecraft.heart_pottery_sherd","item.minecraft.heartbreak_pottery_sherd","item.minecraft.howl_pottery_sherd","item.minecraft.miner_pottery_sherd","item.minecraft.mourner_pottery_sherd","item.minecraft.plenty_pottery_sherd","item.minecraft.prize_pottery_sherd","item.minecraft.scrape_pottery_sherd","item.minecraft.sheaf_pottery_sherd","item.minecraft.shelter_pottery_sherd","item.minecraft.skull_pottery_sherd","item.minecraft.snort_pottery_sherd","block.minecraft.copper_grate","block.minecraft.exposed_copper_grate","block.minecraft.weathered_copper_grate","block.minecraft.oxidized_copper_grate","block.minecraft.waxed_copper_grate","block.minecraft.waxed_exposed_copper_grate","block.minecraft.waxed_weathered_copper_grate","block.minecraft.waxed_oxidized_copper_grate","block.minecraft.copper_bulb","block.minecraft.exposed_copper_bulb","block.minecraft.weathered_copper_bulb","block.minecraft.oxidized_copper_bulb","block.minecraft.waxed_copper_bulb","block.minecraft.waxed_exposed_copper_bulb","block.minecraft.waxed_weathered_copper_bulb","block.minecraft.waxed_oxidized_copper_bulb","block.minecraft.copper_chest","block.minecraft.exposed_copper_chest","block.minecraft.weathered_copper_chest","block.minecraft.oxidized_copper_chest","block.minecraft.waxed_copper_chest","block.minecraft.waxed_exposed_copper_chest","block.minecraft.waxed_weathered_copper_chest","block.minecraft.waxed_oxidized_copper_chest","block.minecraft.copper_golem_statue","block.minecraft.exposed_copper_golem_statue","block.minecraft.weathered_copper_golem_statue","block.minecraft.oxidized_copper_golem_statue","block.minecraft.waxed_copper_golem_statue","block.minecraft.waxed_exposed_copper_golem_statue","block.minecraft.waxed_weathered_copper_golem_statue","block.minecraft.waxed_oxidized_copper_golem_statue","block.minecraft.trial_spawner","item.minecraft.trial_key","item.minecraft.ominous_trial_key","block.minecraft.vault","item.minecraft.ominous_bottle"];
+static ITEM_NAME_VALUES: [&str; 1505] = ["block.minecraft.air","block.minecraft.stone","block.minecraft.granite","block.minecraft.polished_granite","block.minecraft.diorite","block.minecraft.polished_diorite","block.minecraft.andesite","block.minecraft.polished_andesite","block.minecraft.deepslate","block.minecraft.cobbled_deepslate","block.minecraft.polished_deepslate","block.minecraft.calcite","block.minecraft.tuff","block.minecraft.tuff_slab","block.minecraft.tuff_stairs","block.minecraft.tuff_wall","block.minecraft.chiseled_tuff","block.minecraft.polished_tuff","block.minecraft.polished_tuff_slab","block.minecraft.polished_tuff_stairs","block.minecraft.polished_tuff_wall","block.minecraft.tuff_bricks","block.minecraft.tuff_brick_slab","block.minecraft.tuff_brick_stairs","block.minecraft.tuff_brick_wall","block.minecraft.chiseled_tuff_bricks","block.minecraft.dripstone_block","block.minecraft.grass_block","block.minecraft.dirt","block.minecraft.coarse_dirt","block.minecraft.podzol","block.minecraft.rooted_dirt","block.minecraft.mud","block.minecraft.crimson_nylium","block.minecraft.warped_nylium","block.minecraft.cobblestone","block.minecraft.oak_planks","block.minecraft.spruce_planks","block.minecraft.birch_planks","block.minecraft.jungle_planks","block.minecraft.acacia_planks","block.minecraft.cherry_planks","block.minecraft.dark_oak_planks","block.minecraft.pale_oak_planks","block.minecraft.mangrove_planks","block.minecraft.bamboo_planks","block.minecraft.crimson_planks","block.minecraft.warped_planks","block.minecraft.bamboo_mosaic","block.minecraft.oak_sapling","block.minecraft.spruce_sapling","block.minecraft.birch_sapling","block.minecraft.jungle_sapling","block.minecraft.acacia_sapling","block.minecraft.cherry_sapling","block.minecraft.dark_oak_sapling","block.minecraft.pale_oak_sapling","block.minecraft.mangrove_propagule","block.minecraft.bedrock","block.minecraft.sand","block.minecraft.suspicious_sand","block.minecraft.suspicious_gravel","block.minecraft.red_sand","block.minecraft.gravel","block.minecraft.coal_ore","block.minecraft.deepslate_coal_ore","block.minecraft.iron_ore","block.minecraft.deepslate_iron_ore","block.minecraft.copper_ore","block.minecraft.deepslate_copper_ore","block.minecraft.gold_ore","block.minecraft.deepslate_gold_ore","block.minecraft.redstone_ore","block.minecraft.deepslate_redstone_ore","block.minecraft.emerald_ore","block.minecraft.deepslate_emerald_ore","block.minecraft.lapis_ore","block.minecraft.deepslate_lapis_ore","block.minecraft.diamond_ore","block.minecraft.deepslate_diamond_ore","block.minecraft.nether_gold_ore","block.minecraft.nether_quartz_ore","block.minecraft.ancient_debris","block.minecraft.coal_block","block.minecraft.raw_iron_block","block.minecraft.raw_copper_block","block.minecraft.raw_gold_block","block.minecraft.heavy_core","block.minecraft.amethyst_block","block.minecraft.budding_amethyst","block.minecraft.iron_block","block.minecraft.copper_block","block.minecraft.gold_block","block.minecraft.diamond_block","block.minecraft.netherite_block","block.minecraft.exposed_copper","block.minecraft.weathered_copper","block.minecraft.oxidized_copper","block.minecraft.chiseled_copper","block.minecraft.exposed_chiseled_copper","block.minecraft.weathered_chiseled_copper","block.minecraft.oxidized_chiseled_copper","block.minecraft.cut_copper","block.minecraft.exposed_cut_copper","block.minecraft.weathered_cut_copper","block.minecraft.oxidized_cut_copper","block.minecraft.cut_copper_stairs","block.minecraft.exposed_cut_copper_stairs","block.minecraft.weathered_cut_copper_stairs","block.minecraft.oxidized_cut_copper_stairs","block.minecraft.cut_copper_slab","block.minecraft.exposed_cut_copper_slab","block.minecraft.weathered_cut_copper_slab","block.minecraft.oxidized_cut_copper_slab","block.minecraft.waxed_copper_block","block.minecraft.waxed_exposed_copper","block.minecraft.waxed_weathered_copper","block.minecraft.waxed_oxidized_copper","block.minecraft.waxed_chiseled_copper","block.minecraft.waxed_exposed_chiseled_copper","block.minecraft.waxed_weathered_chiseled_copper","block.minecraft.waxed_oxidized_chiseled_copper","block.minecraft.waxed_cut_copper","block.minecraft.waxed_exposed_cut_copper","block.minecraft.waxed_weathered_cut_copper","block.minecraft.waxed_oxidized_cut_copper","block.minecraft.waxed_cut_copper_stairs","block.minecraft.waxed_exposed_cut_copper_stairs","block.minecraft.waxed_weathered_cut_copper_stairs","block.minecraft.waxed_oxidized_cut_copper_stairs","block.minecraft.waxed_cut_copper_slab","block.minecraft.waxed_exposed_cut_copper_slab","block.minecraft.waxed_weathered_cut_copper_slab","block.minecraft.waxed_oxidized_cut_copper_slab","block.minecraft.oak_log","block.minecraft.spruce_log","block.minecraft.birch_log","block.minecraft.jungle_log","block.minecraft.acacia_log","block.minecraft.cherry_log","block.minecraft.pale_oak_log","block.minecraft.dark_oak_log","block.minecraft.mangrove_log","block.minecraft.mangrove_roots","block.minecraft.muddy_mangrove_roots","block.minecraft.crimson_stem","block.minecraft.warped_stem","block.minecraft.bamboo_block","block.minecraft.stripped_oak_log","block.minecraft.stripped_spruce_log","block.minecraft.stripped_birch_log","block.minecraft.stripped_jungle_log","block.minecraft.stripped_acacia_log","block.minecraft.stripped_cherry_log","block.minecraft.stripped_dark_oak_log","block.minecraft.stripped_pale_oak_log","block.minecraft.stripped_mangrove_log","block.minecraft.stripped_crimson_stem","block.minecraft.stripped_warped_stem","block.minecraft.stripped_oak_wood","block.minecraft.stripped_spruce_wood","block.minecraft.stripped_birch_wood","block.minecraft.stripped_jungle_wood","block.minecraft.stripped_acacia_wood","block.minecraft.stripped_cherry_wood","block.minecraft.stripped_dark_oak_wood","block.minecraft.stripped_pale_oak_wood","block.minecraft.stripped_mangrove_wood","block.minecraft.stripped_crimson_hyphae","block.minecraft.stripped_warped_hyphae","block.minecraft.stripped_bamboo_block","block.minecraft.oak_wood","block.minecraft.spruce_wood","block.minecraft.birch_wood","block.minecraft.jungle_wood","block.minecraft.acacia_wood","block.minecraft.cherry_wood","block.minecraft.pale_oak_wood","block.minecraft.dark_oak_wood","block.minecraft.mangrove_wood","block.minecraft.crimson_hyphae","block.minecraft.warped_hyphae","block.minecraft.oak_leaves","block.minecraft.spruce_leaves","block.minecraft.birch_leaves","block.minecraft.jungle_leaves","block.minecraft.acacia_leaves","block.minecraft.cherry_leaves","block.minecraft.dark_oak_leaves","block.minecraft.pale_oak_leaves","block.minecraft.mangrove_leaves","block.minecraft.azalea_leaves","block.minecraft.flowering_azalea_leaves","block.minecraft.sponge","block.minecraft.wet_sponge","block.minecraft.glass","block.minecraft.tinted_glass","block.minecraft.lapis_block","block.minecraft.sandstone","block.minecraft.chiseled_sandstone","block.minecraft.cut_sandstone","block.minecraft.cobweb","block.minecraft.short_grass","block.minecraft.fern","block.minecraft.bush","block.minecraft.azalea","block.minecraft.flowering_azalea","block.minecraft.dead_bush","block.minecraft.firefly_bush","block.minecraft.short_dry_grass","block.minecraft.tall_dry_grass","block.minecraft.seagrass","block.minecraft.sea_pickle","block.minecraft.white_wool","block.minecraft.orange_wool","block.minecraft.magenta_wool","block.minecraft.light_blue_wool","block.minecraft.yellow_wool","block.minecraft.lime_wool","block.minecraft.pink_wool","block.minecraft.gray_wool","block.minecraft.light_gray_wool","block.minecraft.cyan_wool","block.minecraft.purple_wool","block.minecraft.blue_wool","block.minecraft.brown_wool","block.minecraft.green_wool","block.minecraft.red_wool","block.minecraft.black_wool","block.minecraft.dandelion","block.minecraft.open_eyeblossom","block.minecraft.closed_eyeblossom","block.minecraft.poppy","block.minecraft.blue_orchid","block.minecraft.allium","block.minecraft.azure_bluet","block.minecraft.red_tulip","block.minecraft.orange_tulip","block.minecraft.white_tulip","block.minecraft.pink_tulip","block.minecraft.oxeye_daisy","block.minecraft.cornflower","block.minecraft.lily_of_the_valley","block.minecraft.wither_rose","block.minecraft.torchflower","block.minecraft.pitcher_plant","block.minecraft.spore_blossom","block.minecraft.brown_mushroom","block.minecraft.red_mushroom","block.minecraft.crimson_fungus","block.minecraft.warped_fungus","block.minecraft.crimson_roots","block.minecraft.warped_roots","block.minecraft.nether_sprouts","block.minecraft.weeping_vines","block.minecraft.twisting_vines","block.minecraft.sugar_cane","block.minecraft.kelp","block.minecraft.pink_petals","block.minecraft.wildflowers","block.minecraft.leaf_litter","block.minecraft.moss_carpet","block.minecraft.moss_block","block.minecraft.pale_moss_carpet","block.minecraft.pale_hanging_moss","block.minecraft.pale_moss_block","block.minecraft.hanging_roots","block.minecraft.big_dripleaf","block.minecraft.small_dripleaf","block.minecraft.bamboo","block.minecraft.oak_slab","block.minecraft.spruce_slab","block.minecraft.birch_slab","block.minecraft.jungle_slab","block.minecraft.acacia_slab","block.minecraft.cherry_slab","block.minecraft.dark_oak_slab","block.minecraft.pale_oak_slab","block.minecraft.mangrove_slab","block.minecraft.bamboo_slab","block.minecraft.bamboo_mosaic_slab","block.minecraft.crimson_slab","block.minecraft.warped_slab","block.minecraft.stone_slab","block.minecraft.smooth_stone_slab","block.minecraft.sandstone_slab","block.minecraft.cut_sandstone_slab","block.minecraft.petrified_oak_slab","block.minecraft.cobblestone_slab","block.minecraft.brick_slab","block.minecraft.stone_brick_slab","block.minecraft.mud_brick_slab","block.minecraft.nether_brick_slab","block.minecraft.quartz_slab","block.minecraft.red_sandstone_slab","block.minecraft.cut_red_sandstone_slab","block.minecraft.purpur_slab","block.minecraft.prismarine_slab","block.minecraft.prismarine_brick_slab","block.minecraft.dark_prismarine_slab","block.minecraft.smooth_quartz","block.minecraft.smooth_red_sandstone","block.minecraft.smooth_sandstone","block.minecraft.smooth_stone","block.minecraft.bricks","block.minecraft.acacia_shelf","block.minecraft.bamboo_shelf","block.minecraft.birch_shelf","block.minecraft.cherry_shelf","block.minecraft.crimson_shelf","block.minecraft.dark_oak_shelf","block.minecraft.jungle_shelf","block.minecraft.mangrove_shelf","block.minecraft.oak_shelf","block.minecraft.pale_oak_shelf","block.minecraft.spruce_shelf","block.minecraft.warped_shelf","block.minecraft.bookshelf","block.minecraft.chiseled_bookshelf","block.minecraft.decorated_pot","block.minecraft.mossy_cobblestone","block.minecraft.obsidian","block.minecraft.torch","block.minecraft.end_rod","block.minecraft.chorus_plant","block.minecraft.chorus_flower","block.minecraft.purpur_block","block.minecraft.purpur_pillar","block.minecraft.purpur_stairs","block.minecraft.spawner","block.minecraft.creaking_heart","block.minecraft.chest","block.minecraft.crafting_table","block.minecraft.farmland","block.minecraft.furnace","block.minecraft.ladder","block.minecraft.cobblestone_stairs","block.minecraft.snow","block.minecraft.ice","block.minecraft.snow_block","block.minecraft.cactus","block.minecraft.cactus_flower","block.minecraft.clay","block.minecraft.jukebox","block.minecraft.oak_fence","block.minecraft.spruce_fence","block.minecraft.birch_fence","block.minecraft.jungle_fence","block.minecraft.acacia_fence","block.minecraft.cherry_fence","block.minecraft.dark_oak_fence","block.minecraft.pale_oak_fence","block.minecraft.mangrove_fence","block.minecraft.bamboo_fence","block.minecraft.crimson_fence","block.minecraft.warped_fence","block.minecraft.pumpkin","block.minecraft.carved_pumpkin","block.minecraft.jack_o_lantern","block.minecraft.netherrack","block.minecraft.soul_sand","block.minecraft.soul_soil","block.minecraft.basalt","block.minecraft.polished_basalt","block.minecraft.smooth_basalt","block.minecraft.soul_torch","block.minecraft.copper_torch","block.minecraft.glowstone","block.minecraft.infested_stone","block.minecraft.infested_cobblestone","block.minecraft.infested_stone_bricks","block.minecraft.infested_mossy_stone_bricks","block.minecraft.infested_cracked_stone_bricks","block.minecraft.infested_chiseled_stone_bricks","block.minecraft.infested_deepslate","block.minecraft.stone_bricks","block.minecraft.mossy_stone_bricks","block.minecraft.cracked_stone_bricks","block.minecraft.chiseled_stone_bricks","block.minecraft.packed_mud","block.minecraft.mud_bricks","block.minecraft.deepslate_bricks","block.minecraft.cracked_deepslate_bricks","block.minecraft.deepslate_tiles","block.minecraft.cracked_deepslate_tiles","block.minecraft.chiseled_deepslate","block.minecraft.reinforced_deepslate","block.minecraft.brown_mushroom_block","block.minecraft.red_mushroom_block","block.minecraft.mushroom_stem","block.minecraft.iron_bars","block.minecraft.copper_bars","block.minecraft.exposed_copper_bars","block.minecraft.weathered_copper_bars","block.minecraft.oxidized_copper_bars","block.minecraft.waxed_copper_bars","block.minecraft.waxed_exposed_copper_bars","block.minecraft.waxed_weathered_copper_bars","block.minecraft.waxed_oxidized_copper_bars","block.minecraft.iron_chain","block.minecraft.copper_chain","block.minecraft.exposed_copper_chain","block.minecraft.weathered_copper_chain","block.minecraft.oxidized_copper_chain","block.minecraft.waxed_copper_chain","block.minecraft.waxed_exposed_copper_chain","block.minecraft.waxed_weathered_copper_chain","block.minecraft.waxed_oxidized_copper_chain","block.minecraft.glass_pane","block.minecraft.melon","block.minecraft.vine","block.minecraft.glow_lichen","item.minecraft.resin_clump","block.minecraft.resin_block","block.minecraft.resin_bricks","block.minecraft.resin_brick_stairs","block.minecraft.resin_brick_slab","block.minecraft.resin_brick_wall","block.minecraft.chiseled_resin_bricks","block.minecraft.brick_stairs","block.minecraft.stone_brick_stairs","block.minecraft.mud_brick_stairs","block.minecraft.mycelium","block.minecraft.lily_pad","block.minecraft.nether_bricks","block.minecraft.cracked_nether_bricks","block.minecraft.chiseled_nether_bricks","block.minecraft.nether_brick_fence","block.minecraft.nether_brick_stairs","block.minecraft.sculk","block.minecraft.sculk_vein","block.minecraft.sculk_catalyst","block.minecraft.sculk_shrieker","block.minecraft.enchanting_table","block.minecraft.end_portal_frame","block.minecraft.end_stone","block.minecraft.end_stone_bricks","block.minecraft.dragon_egg","block.minecraft.sandstone_stairs","block.minecraft.ender_chest","block.minecraft.emerald_block","block.minecraft.oak_stairs","block.minecraft.spruce_stairs","block.minecraft.birch_stairs","block.minecraft.jungle_stairs","block.minecraft.acacia_stairs","block.minecraft.cherry_stairs","block.minecraft.dark_oak_stairs","block.minecraft.pale_oak_stairs","block.minecraft.mangrove_stairs","block.minecraft.bamboo_stairs","block.minecraft.bamboo_mosaic_stairs","block.minecraft.crimson_stairs","block.minecraft.warped_stairs","block.minecraft.command_block","block.minecraft.beacon","block.minecraft.cobblestone_wall","block.minecraft.mossy_cobblestone_wall","block.minecraft.brick_wall","block.minecraft.prismarine_wall","block.minecraft.red_sandstone_wall","block.minecraft.mossy_stone_brick_wall","block.minecraft.granite_wall","block.minecraft.stone_brick_wall","block.minecraft.mud_brick_wall","block.minecraft.nether_brick_wall","block.minecraft.andesite_wall","block.minecraft.red_nether_brick_wall","block.minecraft.sandstone_wall","block.minecraft.end_stone_brick_wall","block.minecraft.diorite_wall","block.minecraft.blackstone_wall","block.minecraft.polished_blackstone_wall","block.minecraft.polished_blackstone_brick_wall","block.minecraft.cobbled_deepslate_wall","block.minecraft.polished_deepslate_wall","block.minecraft.deepslate_brick_wall","block.minecraft.deepslate_tile_wall","block.minecraft.anvil","block.minecraft.chipped_anvil","block.minecraft.damaged_anvil","block.minecraft.chiseled_quartz_block","block.minecraft.quartz_block","block.minecraft.quartz_bricks","block.minecraft.quartz_pillar","block.minecraft.quartz_stairs","block.minecraft.white_terracotta","block.minecraft.orange_terracotta","block.minecraft.magenta_terracotta","block.minecraft.light_blue_terracotta","block.minecraft.yellow_terracotta","block.minecraft.lime_terracotta","block.minecraft.pink_terracotta","block.minecraft.gray_terracotta","block.minecraft.light_gray_terracotta","block.minecraft.cyan_terracotta","block.minecraft.purple_terracotta","block.minecraft.blue_terracotta","block.minecraft.brown_terracotta","block.minecraft.green_terracotta","block.minecraft.red_terracotta","block.minecraft.black_terracotta","block.minecraft.barrier","block.minecraft.light","block.minecraft.hay_block","block.minecraft.white_carpet","block.minecraft.orange_carpet","block.minecraft.magenta_carpet","block.minecraft.light_blue_carpet","block.minecraft.yellow_carpet","block.minecraft.lime_carpet","block.minecraft.pink_carpet","block.minecraft.gray_carpet","block.minecraft.light_gray_carpet","block.minecraft.cyan_carpet","block.minecraft.purple_carpet","block.minecraft.blue_carpet","block.minecraft.brown_carpet","block.minecraft.green_carpet","block.minecraft.red_carpet","block.minecraft.black_carpet","block.minecraft.terracotta","block.minecraft.packed_ice","block.minecraft.dirt_path","block.minecraft.sunflower","block.minecraft.lilac","block.minecraft.rose_bush","block.minecraft.peony","block.minecraft.tall_grass","block.minecraft.large_fern","block.minecraft.white_stained_glass","block.minecraft.orange_stained_glass","block.minecraft.magenta_stained_glass","block.minecraft.light_blue_stained_glass","block.minecraft.yellow_stained_glass","block.minecraft.lime_stained_glass","block.minecraft.pink_stained_glass","block.minecraft.gray_stained_glass","block.minecraft.light_gray_stained_glass","block.minecraft.cyan_stained_glass","block.minecraft.purple_stained_glass","block.minecraft.blue_stained_glass","block.minecraft.brown_stained_glass","block.minecraft.green_stained_glass","block.minecraft.red_stained_glass","block.minecraft.black_stained_glass","block.minecraft.white_stained_glass_pane","block.minecraft.orange_stained_glass_pane","block.minecraft.magenta_stained_glass_pane","block.minecraft.light_blue_stained_glass_pane","block.minecraft.yellow_stained_glass_pane","block.minecraft.lime_stained_glass_pane","block.minecraft.pink_stained_glass_pane","block.minecraft.gray_stained_glass_pane","block.minecraft.light_gray_stained_glass_pane","block.minecraft.cyan_stained_glass_pane","block.minecraft.purple_stained_glass_pane","block.minecraft.blue_stained_glass_pane","block.minecraft.brown_stained_glass_pane","block.minecraft.green_stained_glass_pane","block.minecraft.red_stained_glass_pane","block.minecraft.black_stained_glass_pane","block.minecraft.prismarine","block.minecraft.prismarine_bricks","block.minecraft.dark_prismarine","block.minecraft.prismarine_stairs","block.minecraft.prismarine_brick_stairs","block.minecraft.dark_prismarine_stairs","block.minecraft.sea_lantern","block.minecraft.red_sandstone","block.minecraft.chiseled_red_sandstone","block.minecraft.cut_red_sandstone","block.minecraft.red_sandstone_stairs","block.minecraft.repeating_command_block","block.minecraft.chain_command_block","block.minecraft.magma_block","block.minecraft.nether_wart_block","block.minecraft.warped_wart_block","block.minecraft.red_nether_bricks","block.minecraft.bone_block","block.minecraft.structure_void","block.minecraft.shulker_box","block.minecraft.white_shulker_box","block.minecraft.orange_shulker_box","block.minecraft.magenta_shulker_box","block.minecraft.light_blue_shulker_box","block.minecraft.yellow_shulker_box","block.minecraft.lime_shulker_box","block.minecraft.pink_shulker_box","block.minecraft.gray_shulker_box","block.minecraft.light_gray_shulker_box","block.minecraft.cyan_shulker_box","block.minecraft.purple_shulker_box","block.minecraft.blue_shulker_box","block.minecraft.brown_shulker_box","block.minecraft.green_shulker_box","block.minecraft.red_shulker_box","block.minecraft.black_shulker_box","block.minecraft.white_glazed_terracotta","block.minecraft.orange_glazed_terracotta","block.minecraft.magenta_glazed_terracotta","block.minecraft.light_blue_glazed_terracotta","block.minecraft.yellow_glazed_terracotta","block.minecraft.lime_glazed_terracotta","block.minecraft.pink_glazed_terracotta","block.minecraft.gray_glazed_terracotta","block.minecraft.light_gray_glazed_terracotta","block.minecraft.cyan_glazed_terracotta","block.minecraft.purple_glazed_terracotta","block.minecraft.blue_glazed_terracotta","block.minecraft.brown_glazed_terracotta","block.minecraft.green_glazed_terracotta","block.minecraft.red_glazed_terracotta","block.minecraft.black_glazed_terracotta","block.minecraft.white_concrete","block.minecraft.orange_concrete","block.minecraft.magenta_concrete","block.minecraft.light_blue_concrete","block.minecraft.yellow_concrete","block.minecraft.lime_concrete","block.minecraft.pink_concrete","block.minecraft.gray_concrete","block.minecraft.light_gray_concrete","block.minecraft.cyan_concrete","block.minecraft.purple_concrete","block.minecraft.blue_concrete","block.minecraft.brown_concrete","block.minecraft.green_concrete","block.minecraft.red_concrete","block.minecraft.black_concrete","block.minecraft.white_concrete_powder","block.minecraft.orange_concrete_powder","block.minecraft.magenta_concrete_powder","block.minecraft.light_blue_concrete_powder","block.minecraft.yellow_concrete_powder","block.minecraft.lime_concrete_powder","block.minecraft.pink_concrete_powder","block.minecraft.gray_concrete_powder","block.minecraft.light_gray_concrete_powder","block.minecraft.cyan_concrete_powder","block.minecraft.purple_concrete_powder","block.minecraft.blue_concrete_powder","block.minecraft.brown_concrete_powder","block.minecraft.green_concrete_powder","block.minecraft.red_concrete_powder","block.minecraft.black_concrete_powder","block.minecraft.turtle_egg","block.minecraft.sniffer_egg","block.minecraft.dried_ghast","block.minecraft.dead_tube_coral_block","block.minecraft.dead_brain_coral_block","block.minecraft.dead_bubble_coral_block","block.minecraft.dead_fire_coral_block","block.minecraft.dead_horn_coral_block","block.minecraft.tube_coral_block","block.minecraft.brain_coral_block","block.minecraft.bubble_coral_block","block.minecraft.fire_coral_block","block.minecraft.horn_coral_block","block.minecraft.tube_coral","block.minecraft.brain_coral","block.minecraft.bubble_coral","block.minecraft.fire_coral","block.minecraft.horn_coral","block.minecraft.dead_brain_coral","block.minecraft.dead_bubble_coral","block.minecraft.dead_fire_coral","block.minecraft.dead_horn_coral","block.minecraft.dead_tube_coral","block.minecraft.tube_coral_fan","block.minecraft.brain_coral_fan","block.minecraft.bubble_coral_fan","block.minecraft.fire_coral_fan","block.minecraft.horn_coral_fan","block.minecraft.dead_tube_coral_fan","block.minecraft.dead_brain_coral_fan","block.minecraft.dead_bubble_coral_fan","block.minecraft.dead_fire_coral_fan","block.minecraft.dead_horn_coral_fan","block.minecraft.blue_ice","block.minecraft.conduit","block.minecraft.polished_granite_stairs","block.minecraft.smooth_red_sandstone_stairs","block.minecraft.mossy_stone_brick_stairs","block.minecraft.polished_diorite_stairs","block.minecraft.mossy_cobblestone_stairs","block.minecraft.end_stone_brick_stairs","block.minecraft.stone_stairs","block.minecraft.smooth_sandstone_stairs","block.minecraft.smooth_quartz_stairs","block.minecraft.granite_stairs","block.minecraft.andesite_stairs","block.minecraft.red_nether_brick_stairs","block.minecraft.polished_andesite_stairs","block.minecraft.diorite_stairs","block.minecraft.cobbled_deepslate_stairs","block.minecraft.polished_deepslate_stairs","block.minecraft.deepslate_brick_stairs","block.minecraft.deepslate_tile_stairs","block.minecraft.polished_granite_slab","block.minecraft.smooth_red_sandstone_slab","block.minecraft.mossy_stone_brick_slab","block.minecraft.polished_diorite_slab","block.minecraft.mossy_cobblestone_slab","block.minecraft.end_stone_brick_slab","block.minecraft.smooth_sandstone_slab","block.minecraft.smooth_quartz_slab","block.minecraft.granite_slab","block.minecraft.andesite_slab","block.minecraft.red_nether_brick_slab","block.minecraft.polished_andesite_slab","block.minecraft.diorite_slab","block.minecraft.cobbled_deepslate_slab","block.minecraft.polished_deepslate_slab","block.minecraft.deepslate_brick_slab","block.minecraft.deepslate_tile_slab","block.minecraft.scaffolding","item.minecraft.redstone","block.minecraft.redstone_torch","block.minecraft.redstone_block","block.minecraft.repeater","block.minecraft.comparator","block.minecraft.piston","block.minecraft.sticky_piston","block.minecraft.slime_block","block.minecraft.honey_block","block.minecraft.observer","block.minecraft.hopper","block.minecraft.dispenser","block.minecraft.dropper","block.minecraft.lectern","block.minecraft.target","block.minecraft.lever","block.minecraft.lightning_rod","block.minecraft.exposed_lightning_rod","block.minecraft.weathered_lightning_rod","block.minecraft.oxidized_lightning_rod","block.minecraft.waxed_lightning_rod","block.minecraft.waxed_exposed_lightning_rod","block.minecraft.waxed_weathered_lightning_rod","block.minecraft.waxed_oxidized_lightning_rod","block.minecraft.daylight_detector","block.minecraft.sculk_sensor","block.minecraft.calibrated_sculk_sensor","block.minecraft.tripwire_hook","block.minecraft.trapped_chest","block.minecraft.tnt","block.minecraft.redstone_lamp","block.minecraft.note_block","block.minecraft.stone_button","block.minecraft.polished_blackstone_button","block.minecraft.oak_button","block.minecraft.spruce_button","block.minecraft.birch_button","block.minecraft.jungle_button","block.minecraft.acacia_button","block.minecraft.cherry_button","block.minecraft.dark_oak_button","block.minecraft.pale_oak_button","block.minecraft.mangrove_button","block.minecraft.bamboo_button","block.minecraft.crimson_button","block.minecraft.warped_button","block.minecraft.stone_pressure_plate","block.minecraft.polished_blackstone_pressure_plate","block.minecraft.light_weighted_pressure_plate","block.minecraft.heavy_weighted_pressure_plate","block.minecraft.oak_pressure_plate","block.minecraft.spruce_pressure_plate","block.minecraft.birch_pressure_plate","block.minecraft.jungle_pressure_plate","block.minecraft.acacia_pressure_plate","block.minecraft.cherry_pressure_plate","block.minecraft.dark_oak_pressure_plate","block.minecraft.pale_oak_pressure_plate","block.minecraft.mangrove_pressure_plate","block.minecraft.bamboo_pressure_plate","block.minecraft.crimson_pressure_plate","block.minecraft.warped_pressure_plate","block.minecraft.iron_door","block.minecraft.oak_door","block.minecraft.spruce_door","block.minecraft.birch_door","block.minecraft.jungle_door","block.minecraft.acacia_door","block.minecraft.cherry_door","block.minecraft.dark_oak_door","block.minecraft.pale_oak_door","block.minecraft.mangrove_door","block.minecraft.bamboo_door","block.minecraft.crimson_door","block.minecraft.warped_door","block.minecraft.copper_door","block.minecraft.exposed_copper_door","block.minecraft.weathered_copper_door","block.minecraft.oxidized_copper_door","block.minecraft.waxed_copper_door","block.minecraft.waxed_exposed_copper_door","block.minecraft.waxed_weathered_copper_door","block.minecraft.waxed_oxidized_copper_door","block.minecraft.iron_trapdoor","block.minecraft.oak_trapdoor","block.minecraft.spruce_trapdoor","block.minecraft.birch_trapdoor","block.minecraft.jungle_trapdoor","block.minecraft.acacia_trapdoor","block.minecraft.cherry_trapdoor","block.minecraft.dark_oak_trapdoor","block.minecraft.pale_oak_trapdoor","block.minecraft.mangrove_trapdoor","block.minecraft.bamboo_trapdoor","block.minecraft.crimson_trapdoor","block.minecraft.warped_trapdoor","block.minecraft.copper_trapdoor","block.minecraft.exposed_copper_trapdoor","block.minecraft.weathered_copper_trapdoor","block.minecraft.oxidized_copper_trapdoor","block.minecraft.waxed_copper_trapdoor","block.minecraft.waxed_exposed_copper_trapdoor","block.minecraft.waxed_weathered_copper_trapdoor","block.minecraft.waxed_oxidized_copper_trapdoor","block.minecraft.oak_fence_gate","block.minecraft.spruce_fence_gate","block.minecraft.birch_fence_gate","block.minecraft.jungle_fence_gate","block.minecraft.acacia_fence_gate","block.minecraft.cherry_fence_gate","block.minecraft.dark_oak_fence_gate","block.minecraft.pale_oak_fence_gate","block.minecraft.mangrove_fence_gate","block.minecraft.bamboo_fence_gate","block.minecraft.crimson_fence_gate","block.minecraft.warped_fence_gate","block.minecraft.powered_rail","block.minecraft.detector_rail","block.minecraft.rail","block.minecraft.activator_rail","item.minecraft.saddle","item.minecraft.white_harness","item.minecraft.orange_harness","item.minecraft.magenta_harness","item.minecraft.light_blue_harness","item.minecraft.yellow_harness","item.minecraft.lime_harness","item.minecraft.pink_harness","item.minecraft.gray_harness","item.minecraft.light_gray_harness","item.minecraft.cyan_harness","item.minecraft.purple_harness","item.minecraft.blue_harness","item.minecraft.brown_harness","item.minecraft.green_harness","item.minecraft.red_harness","item.minecraft.black_harness","item.minecraft.minecart","item.minecraft.chest_minecart","item.minecraft.furnace_minecart","item.minecraft.tnt_minecart","item.minecraft.hopper_minecart","item.minecraft.carrot_on_a_stick","item.minecraft.warped_fungus_on_a_stick","item.minecraft.phantom_membrane","item.minecraft.elytra","item.minecraft.oak_boat","item.minecraft.oak_chest_boat","item.minecraft.spruce_boat","item.minecraft.spruce_chest_boat","item.minecraft.birch_boat","item.minecraft.birch_chest_boat","item.minecraft.jungle_boat","item.minecraft.jungle_chest_boat","item.minecraft.acacia_boat","item.minecraft.acacia_chest_boat","item.minecraft.cherry_boat","item.minecraft.cherry_chest_boat","item.minecraft.dark_oak_boat","item.minecraft.dark_oak_chest_boat","item.minecraft.pale_oak_boat","item.minecraft.pale_oak_chest_boat","item.minecraft.mangrove_boat","item.minecraft.mangrove_chest_boat","item.minecraft.bamboo_raft","item.minecraft.bamboo_chest_raft","block.minecraft.structure_block","block.minecraft.jigsaw","block.minecraft.test_block","block.minecraft.test_instance_block","item.minecraft.turtle_helmet","item.minecraft.turtle_scute","item.minecraft.armadillo_scute","item.minecraft.wolf_armor","item.minecraft.flint_and_steel","item.minecraft.bowl","item.minecraft.apple","item.minecraft.bow","item.minecraft.arrow","item.minecraft.coal","item.minecraft.charcoal","item.minecraft.diamond","item.minecraft.emerald","item.minecraft.lapis_lazuli","item.minecraft.quartz","item.minecraft.amethyst_shard","item.minecraft.raw_iron","item.minecraft.iron_ingot","item.minecraft.raw_copper","item.minecraft.copper_ingot","item.minecraft.raw_gold","item.minecraft.gold_ingot","item.minecraft.netherite_ingot","item.minecraft.netherite_scrap","item.minecraft.wooden_sword","item.minecraft.wooden_shovel","item.minecraft.wooden_pickaxe","item.minecraft.wooden_axe","item.minecraft.wooden_hoe","item.minecraft.copper_sword","item.minecraft.copper_shovel","item.minecraft.copper_pickaxe","item.minecraft.copper_axe","item.minecraft.copper_hoe","item.minecraft.stone_sword","item.minecraft.stone_shovel","item.minecraft.stone_pickaxe","item.minecraft.stone_axe","item.minecraft.stone_hoe","item.minecraft.golden_sword","item.minecraft.golden_shovel","item.minecraft.golden_pickaxe","item.minecraft.golden_axe","item.minecraft.golden_hoe","item.minecraft.iron_sword","item.minecraft.iron_shovel","item.minecraft.iron_pickaxe","item.minecraft.iron_axe","item.minecraft.iron_hoe","item.minecraft.diamond_sword","item.minecraft.diamond_shovel","item.minecraft.diamond_pickaxe","item.minecraft.diamond_axe","item.minecraft.diamond_hoe","item.minecraft.netherite_sword","item.minecraft.netherite_shovel","item.minecraft.netherite_pickaxe","item.minecraft.netherite_axe","item.minecraft.netherite_hoe","item.minecraft.stick","item.minecraft.mushroom_stew","item.minecraft.string","item.minecraft.feather","item.minecraft.gunpowder","item.minecraft.wheat_seeds","item.minecraft.wheat","item.minecraft.bread","item.minecraft.leather_helmet","item.minecraft.leather_chestplate","item.minecraft.leather_leggings","item.minecraft.leather_boots","item.minecraft.copper_helmet","item.minecraft.copper_chestplate","item.minecraft.copper_leggings","item.minecraft.copper_boots","item.minecraft.chainmail_helmet","item.minecraft.chainmail_chestplate","item.minecraft.chainmail_leggings","item.minecraft.chainmail_boots","item.minecraft.iron_helmet","item.minecraft.iron_chestplate","item.minecraft.iron_leggings","item.minecraft.iron_boots","item.minecraft.diamond_helmet","item.minecraft.diamond_chestplate","item.minecraft.diamond_leggings","item.minecraft.diamond_boots","item.minecraft.golden_helmet","item.minecraft.golden_chestplate","item.minecraft.golden_leggings","item.minecraft.golden_boots","item.minecraft.netherite_helmet","item.minecraft.netherite_chestplate","item.minecraft.netherite_leggings","item.minecraft.netherite_boots","item.minecraft.flint","item.minecraft.porkchop","item.minecraft.cooked_porkchop","item.minecraft.painting","item.minecraft.golden_apple","item.minecraft.enchanted_golden_apple","block.minecraft.oak_sign","block.minecraft.spruce_sign","block.minecraft.birch_sign","block.minecraft.jungle_sign","block.minecraft.acacia_sign","block.minecraft.cherry_sign","block.minecraft.dark_oak_sign","block.minecraft.pale_oak_sign","block.minecraft.mangrove_sign","block.minecraft.bamboo_sign","block.minecraft.crimson_sign","block.minecraft.warped_sign","block.minecraft.oak_hanging_sign","block.minecraft.spruce_hanging_sign","block.minecraft.birch_hanging_sign","block.minecraft.jungle_hanging_sign","block.minecraft.acacia_hanging_sign","block.minecraft.cherry_hanging_sign","block.minecraft.dark_oak_hanging_sign","block.minecraft.pale_oak_hanging_sign","block.minecraft.mangrove_hanging_sign","block.minecraft.bamboo_hanging_sign","block.minecraft.crimson_hanging_sign","block.minecraft.warped_hanging_sign","item.minecraft.bucket","item.minecraft.water_bucket","item.minecraft.lava_bucket","item.minecraft.powder_snow_bucket","item.minecraft.snowball","item.minecraft.leather","item.minecraft.milk_bucket","item.minecraft.pufferfish_bucket","item.minecraft.salmon_bucket","item.minecraft.cod_bucket","item.minecraft.tropical_fish_bucket","item.minecraft.axolotl_bucket","item.minecraft.tadpole_bucket","item.minecraft.brick","item.minecraft.clay_ball","block.minecraft.dried_kelp_block","item.minecraft.paper","item.minecraft.book","item.minecraft.slime_ball","item.minecraft.egg","item.minecraft.blue_egg","item.minecraft.brown_egg","item.minecraft.compass","item.minecraft.recovery_compass","item.minecraft.bundle","item.minecraft.white_bundle","item.minecraft.orange_bundle","item.minecraft.magenta_bundle","item.minecraft.light_blue_bundle","item.minecraft.yellow_bundle","item.minecraft.lime_bundle","item.minecraft.pink_bundle","item.minecraft.gray_bundle","item.minecraft.light_gray_bundle","item.minecraft.cyan_bundle","item.minecraft.purple_bundle","item.minecraft.blue_bundle","item.minecraft.brown_bundle","item.minecraft.green_bundle","item.minecraft.red_bundle","item.minecraft.black_bundle","item.minecraft.fishing_rod","item.minecraft.clock","item.minecraft.spyglass","item.minecraft.glowstone_dust","item.minecraft.cod","item.minecraft.salmon","item.minecraft.tropical_fish","item.minecraft.pufferfish","item.minecraft.cooked_cod","item.minecraft.cooked_salmon","item.minecraft.ink_sac","item.minecraft.glow_ink_sac","item.minecraft.cocoa_beans","item.minecraft.white_dye","item.minecraft.orange_dye","item.minecraft.magenta_dye","item.minecraft.light_blue_dye","item.minecraft.yellow_dye","item.minecraft.lime_dye","item.minecraft.pink_dye","item.minecraft.gray_dye","item.minecraft.light_gray_dye","item.minecraft.cyan_dye","item.minecraft.purple_dye","item.minecraft.blue_dye","item.minecraft.brown_dye","item.minecraft.green_dye","item.minecraft.red_dye","item.minecraft.black_dye","item.minecraft.bone_meal","item.minecraft.bone","item.minecraft.sugar","block.minecraft.cake","block.minecraft.white_bed","block.minecraft.orange_bed","block.minecraft.magenta_bed","block.minecraft.light_blue_bed","block.minecraft.yellow_bed","block.minecraft.lime_bed","block.minecraft.pink_bed","block.minecraft.gray_bed","block.minecraft.light_gray_bed","block.minecraft.cyan_bed","block.minecraft.purple_bed","block.minecraft.blue_bed","block.minecraft.brown_bed","block.minecraft.green_bed","block.minecraft.red_bed","block.minecraft.black_bed","item.minecraft.cookie","block.minecraft.crafter","item.minecraft.filled_map","item.minecraft.shears","item.minecraft.melon_slice","item.minecraft.dried_kelp","item.minecraft.pumpkin_seeds","item.minecraft.melon_seeds","item.minecraft.beef","item.minecraft.cooked_beef","item.minecraft.chicken","item.minecraft.cooked_chicken","item.minecraft.rotten_flesh","item.minecraft.ender_pearl","item.minecraft.blaze_rod","item.minecraft.ghast_tear","item.minecraft.gold_nugget","item.minecraft.nether_wart","item.minecraft.glass_bottle","item.minecraft.potion","item.minecraft.spider_eye","item.minecraft.fermented_spider_eye","item.minecraft.blaze_powder","item.minecraft.magma_cream","block.minecraft.brewing_stand","block.minecraft.cauldron","item.minecraft.ender_eye","item.minecraft.glistering_melon_slice","item.minecraft.chicken_spawn_egg","item.minecraft.cow_spawn_egg","item.minecraft.pig_spawn_egg","item.minecraft.sheep_spawn_egg","item.minecraft.camel_spawn_egg","item.minecraft.donkey_spawn_egg","item.minecraft.horse_spawn_egg","item.minecraft.mule_spawn_egg","item.minecraft.cat_spawn_egg","item.minecraft.parrot_spawn_egg","item.minecraft.wolf_spawn_egg","item.minecraft.armadillo_spawn_egg","item.minecraft.bat_spawn_egg","item.minecraft.bee_spawn_egg","item.minecraft.fox_spawn_egg","item.minecraft.goat_spawn_egg","item.minecraft.llama_spawn_egg","item.minecraft.ocelot_spawn_egg","item.minecraft.panda_spawn_egg","item.minecraft.polar_bear_spawn_egg","item.minecraft.rabbit_spawn_egg","item.minecraft.axolotl_spawn_egg","item.minecraft.cod_spawn_egg","item.minecraft.dolphin_spawn_egg","item.minecraft.frog_spawn_egg","item.minecraft.glow_squid_spawn_egg","item.minecraft.nautilus_spawn_egg","item.minecraft.pufferfish_spawn_egg","item.minecraft.salmon_spawn_egg","item.minecraft.squid_spawn_egg","item.minecraft.tadpole_spawn_egg","item.minecraft.tropical_fish_spawn_egg","item.minecraft.turtle_spawn_egg","item.minecraft.allay_spawn_egg","item.minecraft.mooshroom_spawn_egg","item.minecraft.sniffer_spawn_egg","item.minecraft.copper_golem_spawn_egg","item.minecraft.iron_golem_spawn_egg","item.minecraft.snow_golem_spawn_egg","item.minecraft.trader_llama_spawn_egg","item.minecraft.villager_spawn_egg","item.minecraft.wandering_trader_spawn_egg","item.minecraft.bogged_spawn_egg","item.minecraft.camel_husk_spawn_egg","item.minecraft.drowned_spawn_egg","item.minecraft.husk_spawn_egg","item.minecraft.parched_spawn_egg","item.minecraft.skeleton_spawn_egg","item.minecraft.skeleton_horse_spawn_egg","item.minecraft.stray_spawn_egg","item.minecraft.wither_spawn_egg","item.minecraft.wither_skeleton_spawn_egg","item.minecraft.zombie_spawn_egg","item.minecraft.zombie_horse_spawn_egg","item.minecraft.zombie_nautilus_spawn_egg","item.minecraft.zombie_villager_spawn_egg","item.minecraft.cave_spider_spawn_egg","item.minecraft.spider_spawn_egg","item.minecraft.breeze_spawn_egg","item.minecraft.creaking_spawn_egg","item.minecraft.creeper_spawn_egg","item.minecraft.elder_guardian_spawn_egg","item.minecraft.guardian_spawn_egg","item.minecraft.phantom_spawn_egg","item.minecraft.silverfish_spawn_egg","item.minecraft.slime_spawn_egg","item.minecraft.warden_spawn_egg","item.minecraft.witch_spawn_egg","item.minecraft.evoker_spawn_egg","item.minecraft.pillager_spawn_egg","item.minecraft.ravager_spawn_egg","item.minecraft.vindicator_spawn_egg","item.minecraft.vex_spawn_egg","item.minecraft.blaze_spawn_egg","item.minecraft.ghast_spawn_egg","item.minecraft.happy_ghast_spawn_egg","item.minecraft.hoglin_spawn_egg","item.minecraft.magma_cube_spawn_egg","item.minecraft.piglin_spawn_egg","item.minecraft.piglin_brute_spawn_egg","item.minecraft.strider_spawn_egg","item.minecraft.zoglin_spawn_egg","item.minecraft.zombified_piglin_spawn_egg","item.minecraft.ender_dragon_spawn_egg","item.minecraft.enderman_spawn_egg","item.minecraft.endermite_spawn_egg","item.minecraft.shulker_spawn_egg","item.minecraft.experience_bottle","item.minecraft.fire_charge","item.minecraft.wind_charge","item.minecraft.writable_book","item.minecraft.written_book","item.minecraft.breeze_rod","item.minecraft.mace","item.minecraft.item_frame","item.minecraft.glow_item_frame","block.minecraft.flower_pot","item.minecraft.carrot","item.minecraft.potato","item.minecraft.baked_potato","item.minecraft.poisonous_potato","item.minecraft.map","item.minecraft.golden_carrot","block.minecraft.skeleton_skull","block.minecraft.wither_skeleton_skull","block.minecraft.player_head","block.minecraft.zombie_head","block.minecraft.creeper_head","block.minecraft.dragon_head","block.minecraft.piglin_head","item.minecraft.nether_star","item.minecraft.pumpkin_pie","item.minecraft.firework_rocket","item.minecraft.firework_star","item.minecraft.enchanted_book","item.minecraft.nether_brick","item.minecraft.resin_brick","item.minecraft.prismarine_shard","item.minecraft.prismarine_crystals","item.minecraft.rabbit","item.minecraft.cooked_rabbit","item.minecraft.rabbit_stew","item.minecraft.rabbit_foot","item.minecraft.rabbit_hide","item.minecraft.armor_stand","item.minecraft.copper_horse_armor","item.minecraft.iron_horse_armor","item.minecraft.golden_horse_armor","item.minecraft.diamond_horse_armor","item.minecraft.netherite_horse_armor","item.minecraft.leather_horse_armor","item.minecraft.lead","item.minecraft.name_tag","item.minecraft.command_block_minecart","item.minecraft.mutton","item.minecraft.cooked_mutton","block.minecraft.white_banner","block.minecraft.orange_banner","block.minecraft.magenta_banner","block.minecraft.light_blue_banner","block.minecraft.yellow_banner","block.minecraft.lime_banner","block.minecraft.pink_banner","block.minecraft.gray_banner","block.minecraft.light_gray_banner","block.minecraft.cyan_banner","block.minecraft.purple_banner","block.minecraft.blue_banner","block.minecraft.brown_banner","block.minecraft.green_banner","block.minecraft.red_banner","block.minecraft.black_banner","item.minecraft.end_crystal","item.minecraft.chorus_fruit","item.minecraft.popped_chorus_fruit","item.minecraft.torchflower_seeds","item.minecraft.pitcher_pod","item.minecraft.beetroot","item.minecraft.beetroot_seeds","item.minecraft.beetroot_soup","item.minecraft.dragon_breath","item.minecraft.splash_potion","item.minecraft.spectral_arrow","item.minecraft.tipped_arrow","item.minecraft.lingering_potion","item.minecraft.shield","item.minecraft.wooden_spear","item.minecraft.stone_spear","item.minecraft.copper_spear","item.minecraft.iron_spear","item.minecraft.golden_spear","item.minecraft.diamond_spear","item.minecraft.netherite_spear","item.minecraft.totem_of_undying","item.minecraft.shulker_shell","item.minecraft.iron_nugget","item.minecraft.copper_nugget","item.minecraft.knowledge_book","item.minecraft.debug_stick","item.minecraft.music_disc_13","item.minecraft.music_disc_cat","item.minecraft.music_disc_blocks","item.minecraft.music_disc_chirp","item.minecraft.music_disc_creator","item.minecraft.music_disc_creator_music_box","item.minecraft.music_disc_far","item.minecraft.music_disc_lava_chicken","item.minecraft.music_disc_mall","item.minecraft.music_disc_mellohi","item.minecraft.music_disc_stal","item.minecraft.music_disc_strad","item.minecraft.music_disc_ward","item.minecraft.music_disc_11","item.minecraft.music_disc_wait","item.minecraft.music_disc_otherside","item.minecraft.music_disc_relic","item.minecraft.music_disc_5","item.minecraft.music_disc_pigstep","item.minecraft.music_disc_precipice","item.minecraft.music_disc_tears","item.minecraft.disc_fragment_5","item.minecraft.trident","item.minecraft.nautilus_shell","item.minecraft.iron_nautilus_armor","item.minecraft.golden_nautilus_armor","item.minecraft.diamond_nautilus_armor","item.minecraft.netherite_nautilus_armor","item.minecraft.copper_nautilus_armor","item.minecraft.heart_of_the_sea","item.minecraft.crossbow","item.minecraft.suspicious_stew","block.minecraft.loom","item.minecraft.flower_banner_pattern","item.minecraft.creeper_banner_pattern","item.minecraft.skull_banner_pattern","item.minecraft.mojang_banner_pattern","item.minecraft.globe_banner_pattern","item.minecraft.piglin_banner_pattern","item.minecraft.flow_banner_pattern","item.minecraft.guster_banner_pattern","item.minecraft.field_masoned_banner_pattern","item.minecraft.bordure_indented_banner_pattern","item.minecraft.goat_horn","block.minecraft.composter","block.minecraft.barrel","block.minecraft.smoker","block.minecraft.blast_furnace","block.minecraft.cartography_table","block.minecraft.fletching_table","block.minecraft.grindstone","block.minecraft.smithing_table","block.minecraft.stonecutter","block.minecraft.bell","block.minecraft.lantern","block.minecraft.soul_lantern","block.minecraft.copper_lantern","block.minecraft.exposed_copper_lantern","block.minecraft.weathered_copper_lantern","block.minecraft.oxidized_copper_lantern","block.minecraft.waxed_copper_lantern","block.minecraft.waxed_exposed_copper_lantern","block.minecraft.waxed_weathered_copper_lantern","block.minecraft.waxed_oxidized_copper_lantern","item.minecraft.sweet_berries","item.minecraft.glow_berries","block.minecraft.campfire","block.minecraft.soul_campfire","block.minecraft.shroomlight","item.minecraft.honeycomb","block.minecraft.bee_nest","block.minecraft.beehive","item.minecraft.honey_bottle","block.minecraft.honeycomb_block","block.minecraft.lodestone","block.minecraft.crying_obsidian","block.minecraft.blackstone","block.minecraft.blackstone_slab","block.minecraft.blackstone_stairs","block.minecraft.gilded_blackstone","block.minecraft.polished_blackstone","block.minecraft.polished_blackstone_slab","block.minecraft.polished_blackstone_stairs","block.minecraft.chiseled_polished_blackstone","block.minecraft.polished_blackstone_bricks","block.minecraft.polished_blackstone_brick_slab","block.minecraft.polished_blackstone_brick_stairs","block.minecraft.cracked_polished_blackstone_bricks","block.minecraft.respawn_anchor","block.minecraft.candle","block.minecraft.white_candle","block.minecraft.orange_candle","block.minecraft.magenta_candle","block.minecraft.light_blue_candle","block.minecraft.yellow_candle","block.minecraft.lime_candle","block.minecraft.pink_candle","block.minecraft.gray_candle","block.minecraft.light_gray_candle","block.minecraft.cyan_candle","block.minecraft.purple_candle","block.minecraft.blue_candle","block.minecraft.brown_candle","block.minecraft.green_candle","block.minecraft.red_candle","block.minecraft.black_candle","block.minecraft.small_amethyst_bud","block.minecraft.medium_amethyst_bud","block.minecraft.large_amethyst_bud","block.minecraft.amethyst_cluster","block.minecraft.pointed_dripstone","block.minecraft.ochre_froglight","block.minecraft.verdant_froglight","block.minecraft.pearlescent_froglight","block.minecraft.frogspawn","item.minecraft.echo_shard","item.minecraft.brush","item.minecraft.netherite_upgrade_smithing_template","item.minecraft.sentry_armor_trim_smithing_template","item.minecraft.dune_armor_trim_smithing_template","item.minecraft.coast_armor_trim_smithing_template","item.minecraft.wild_armor_trim_smithing_template","item.minecraft.ward_armor_trim_smithing_template","item.minecraft.eye_armor_trim_smithing_template","item.minecraft.vex_armor_trim_smithing_template","item.minecraft.tide_armor_trim_smithing_template","item.minecraft.snout_armor_trim_smithing_template","item.minecraft.rib_armor_trim_smithing_template","item.minecraft.spire_armor_trim_smithing_template","item.minecraft.wayfinder_armor_trim_smithing_template","item.minecraft.shaper_armor_trim_smithing_template","item.minecraft.silence_armor_trim_smithing_template","item.minecraft.raiser_armor_trim_smithing_template","item.minecraft.host_armor_trim_smithing_template","item.minecraft.flow_armor_trim_smithing_template","item.minecraft.bolt_armor_trim_smithing_template","item.minecraft.angler_pottery_sherd","item.minecraft.archer_pottery_sherd","item.minecraft.arms_up_pottery_sherd","item.minecraft.blade_pottery_sherd","item.minecraft.brewer_pottery_sherd","item.minecraft.burn_pottery_sherd","item.minecraft.danger_pottery_sherd","item.minecraft.explorer_pottery_sherd","item.minecraft.flow_pottery_sherd","item.minecraft.friend_pottery_sherd","item.minecraft.guster_pottery_sherd","item.minecraft.heart_pottery_sherd","item.minecraft.heartbreak_pottery_sherd","item.minecraft.howl_pottery_sherd","item.minecraft.miner_pottery_sherd","item.minecraft.mourner_pottery_sherd","item.minecraft.plenty_pottery_sherd","item.minecraft.prize_pottery_sherd","item.minecraft.scrape_pottery_sherd","item.minecraft.sheaf_pottery_sherd","item.minecraft.shelter_pottery_sherd","item.minecraft.skull_pottery_sherd","item.minecraft.snort_pottery_sherd","block.minecraft.copper_grate","block.minecraft.exposed_copper_grate","block.minecraft.weathered_copper_grate","block.minecraft.oxidized_copper_grate","block.minecraft.waxed_copper_grate","block.minecraft.waxed_exposed_copper_grate","block.minecraft.waxed_weathered_copper_grate","block.minecraft.waxed_oxidized_copper_grate","block.minecraft.copper_bulb","block.minecraft.exposed_copper_bulb","block.minecraft.weathered_copper_bulb","block.minecraft.oxidized_copper_bulb","block.minecraft.waxed_copper_bulb","block.minecraft.waxed_exposed_copper_bulb","block.minecraft.waxed_weathered_copper_bulb","block.minecraft.waxed_oxidized_copper_bulb","block.minecraft.copper_chest","block.minecraft.exposed_copper_chest","block.minecraft.weathered_copper_chest","block.minecraft.oxidized_copper_chest","block.minecraft.waxed_copper_chest","block.minecraft.waxed_exposed_copper_chest","block.minecraft.waxed_weathered_copper_chest","block.minecraft.waxed_oxidized_copper_chest","block.minecraft.copper_golem_statue","block.minecraft.exposed_copper_golem_statue","block.minecraft.weathered_copper_golem_statue","block.minecraft.oxidized_copper_golem_statue","block.minecraft.waxed_copper_golem_statue","block.minecraft.waxed_exposed_copper_golem_statue","block.minecraft.waxed_weathered_copper_golem_statue","block.minecraft.waxed_oxidized_copper_golem_statue","block.minecraft.trial_spawner","item.minecraft.trial_key","item.minecraft.ominous_trial_key","block.minecraft.vault","item.minecraft.ominous_bottle"];
 impl DefaultableComponent for ItemName {
     fn default_for_item(item: Item) -> Option<Self> {
         let value = ITEM_NAME_VALUES[item as usize];
@@ -1769,7 +2077,7 @@ impl DefaultableComponent for Lore {
     }
 }
 #[rustfmt::skip]
-static MAX_STACK_SIZE_VALUES: [i32; 1488] = [64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,64,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,64,64,64,64,1,64,64,1,1,64,64,1,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,64,1,64,64,64,64,64,64,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,64,64,64,64,64,64,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,1,1,1,16,64,1,1,1,1,1,1,1,64,64,64,64,64,64,16,16,16,64,64,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,64,1,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,64,64,64,1,64,64,64,64,64,64,64,64,64,16,64,64,64,64,64,1,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,1,16,64,1,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,1,64,64,64,64,64,64,1,64,64,16,1,1,1,1,1,64,64,1,64,64,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,64,64,64,64,64,64,64,1,64,1,64,64,1,1,1,64,64,64,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,64,1,64,64,1,1,64,1,1,1,1,1,1,1,1,1,1,1,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,1,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64];
+static MAX_STACK_SIZE_VALUES: [i32; 1505] = [64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,64,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,64,64,64,64,1,64,64,1,1,64,64,1,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,64,1,64,64,64,64,64,64,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,64,64,64,64,64,64,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,1,1,1,16,64,1,1,1,1,1,1,1,64,64,64,64,64,64,16,16,16,64,64,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,64,1,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,64,64,64,1,64,64,64,64,64,64,64,64,64,16,64,64,64,64,64,1,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,1,16,64,1,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,1,64,64,64,64,64,64,1,64,64,16,1,1,1,1,1,1,64,64,1,64,64,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,64,64,64,64,64,64,64,1,64,1,64,64,1,1,1,1,1,1,1,1,1,1,64,64,64,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,64,1,64,1,1,1,1,1,64,1,1,64,1,1,1,1,1,1,1,1,1,1,1,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,1,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64];
 impl DefaultableComponent for MaxStackSize {
     fn default_for_item(item: Item) -> Option<Self> {
         let value = MAX_STACK_SIZE_VALUES[item as usize];
@@ -1903,9 +2211,88 @@ impl DefaultableComponent for RepairCost {
         Some(RepairCost { cost: 0 })
     }
 }
+impl DefaultableComponent for SwingAnimation {
+    fn default_for_item(item: Item) -> Option<Self> {
+        let value = match item {
+            Item::CopperSpear => SwingAnimation {
+                kind: SwingAnimationKind::Stab,
+                duration: 17,
+            },
+            Item::DiamondSpear => SwingAnimation {
+                kind: SwingAnimationKind::Stab,
+                duration: 21,
+            },
+            Item::GoldenSpear => SwingAnimation {
+                kind: SwingAnimationKind::Stab,
+                duration: 19,
+            },
+            Item::IronSpear => SwingAnimation {
+                kind: SwingAnimationKind::Stab,
+                duration: 19,
+            },
+            Item::NetheriteSpear => SwingAnimation {
+                kind: SwingAnimationKind::Stab,
+                duration: 23,
+            },
+            Item::StoneSpear => SwingAnimation {
+                kind: SwingAnimationKind::Stab,
+                duration: 15,
+            },
+            Item::WoodenSpear => SwingAnimation {
+                kind: SwingAnimationKind::Stab,
+                duration: 13,
+            },
+            _ => SwingAnimation::new(),
+        };
+        Some(value)
+    }
+}
 impl DefaultableComponent for TooltipDisplay {
     fn default_for_item(_item: Item) -> Option<Self> {
         Some(TooltipDisplay::new())
+    }
+}
+impl DefaultableComponent for UseEffects {
+    fn default_for_item(item: Item) -> Option<Self> {
+        let value = match item {
+            Item::CopperSpear => UseEffects {
+                can_sprint: true,
+                interact_vibrations: false,
+                speed_multiplier: 1.0,
+            },
+            Item::DiamondSpear => UseEffects {
+                can_sprint: true,
+                interact_vibrations: false,
+                speed_multiplier: 1.0,
+            },
+            Item::GoldenSpear => UseEffects {
+                can_sprint: true,
+                interact_vibrations: false,
+                speed_multiplier: 1.0,
+            },
+            Item::IronSpear => UseEffects {
+                can_sprint: true,
+                interact_vibrations: false,
+                speed_multiplier: 1.0,
+            },
+            Item::NetheriteSpear => UseEffects {
+                can_sprint: true,
+                interact_vibrations: false,
+                speed_multiplier: 1.0,
+            },
+            Item::StoneSpear => UseEffects {
+                can_sprint: true,
+                interact_vibrations: false,
+                speed_multiplier: 1.0,
+            },
+            Item::WoodenSpear => UseEffects {
+                can_sprint: true,
+                interact_vibrations: false,
+                speed_multiplier: 1.0,
+            },
+            _ => UseEffects::new(),
+        };
+        Some(value)
     }
 }
 impl DefaultableComponent for Container {
@@ -1971,6 +2358,7 @@ impl DefaultableComponent for EntityData {
             Item::BlazeSpawnEgg => EntityKind::Blaze,
             Item::BoggedSpawnEgg => EntityKind::Bogged,
             Item::BreezeSpawnEgg => EntityKind::Breeze,
+            Item::CamelHuskSpawnEgg => EntityKind::CamelHusk,
             Item::CamelSpawnEgg => EntityKind::Camel,
             Item::CatSpawnEgg => EntityKind::Cat,
             Item::CaveSpiderSpawnEgg => EntityKind::CaveSpider,
@@ -2003,8 +2391,10 @@ impl DefaultableComponent for EntityData {
             Item::MagmaCubeSpawnEgg => EntityKind::MagmaCube,
             Item::MooshroomSpawnEgg => EntityKind::Mooshroom,
             Item::MuleSpawnEgg => EntityKind::Mule,
+            Item::NautilusSpawnEgg => EntityKind::Nautilus,
             Item::OcelotSpawnEgg => EntityKind::Ocelot,
             Item::PandaSpawnEgg => EntityKind::Panda,
+            Item::ParchedSpawnEgg => EntityKind::Parched,
             Item::ParrotSpawnEgg => EntityKind::Parrot,
             Item::PhantomSpawnEgg => EntityKind::Phantom,
             Item::PigSpawnEgg => EntityKind::Pig,
@@ -2043,6 +2433,7 @@ impl DefaultableComponent for EntityData {
             Item::WolfSpawnEgg => EntityKind::Wolf,
             Item::ZoglinSpawnEgg => EntityKind::Zoglin,
             Item::ZombieHorseSpawnEgg => EntityKind::ZombieHorse,
+            Item::ZombieNautilusSpawnEgg => EntityKind::ZombieNautilus,
             Item::ZombieSpawnEgg => EntityKind::Zombie,
             Item::ZombieVillagerSpawnEgg => EntityKind::ZombieVillager,
             Item::ZombifiedPiglinSpawnEgg => EntityKind::ZombifiedPiglin,
@@ -2084,11 +2475,14 @@ impl DefaultableComponent for DamageResistant {
             Item::NetheriteChestplate => "#minecraft:is_fire".into(),
             Item::NetheriteHelmet => "#minecraft:is_fire".into(),
             Item::NetheriteHoe => "#minecraft:is_fire".into(),
+            Item::NetheriteHorseArmor => "#minecraft:is_fire".into(),
             Item::NetheriteIngot => "#minecraft:is_fire".into(),
             Item::NetheriteLeggings => "#minecraft:is_fire".into(),
+            Item::NetheriteNautilusArmor => "#minecraft:is_fire".into(),
             Item::NetheritePickaxe => "#minecraft:is_fire".into(),
             Item::NetheriteScrap => "#minecraft:is_fire".into(),
             Item::NetheriteShovel => "#minecraft:is_fire".into(),
+            Item::NetheriteSpear => "#minecraft:is_fire".into(),
             Item::NetheriteSword => "#minecraft:is_fire".into(),
             _ => return None,
         };
@@ -2384,6 +2778,11 @@ impl DefaultableComponent for Food {
                 saturation: 0.4,
                 ..Food::new()
             },
+            Item::CodBucket => Food {
+                nutrition: 2,
+                saturation: 0.4,
+                ..Food::new()
+            },
             Item::CookedBeef => Food {
                 nutrition: 8,
                 saturation: 12.8,
@@ -2489,6 +2888,11 @@ impl DefaultableComponent for Food {
                 saturation: 0.2,
                 ..Food::new()
             },
+            Item::PufferfishBucket => Food {
+                nutrition: 1,
+                saturation: 0.2,
+                ..Food::new()
+            },
             Item::PumpkinPie => Food {
                 nutrition: 8,
                 saturation: 4.8,
@@ -2514,6 +2918,11 @@ impl DefaultableComponent for Food {
                 saturation: 0.4,
                 ..Food::new()
             },
+            Item::SalmonBucket => Food {
+                nutrition: 2,
+                saturation: 0.4,
+                ..Food::new()
+            },
             Item::SpiderEye => Food {
                 nutrition: 2,
                 saturation: 3.2,
@@ -2530,6 +2939,11 @@ impl DefaultableComponent for Food {
                 ..Food::new()
             },
             Item::TropicalFish => Food {
+                nutrition: 1,
+                saturation: 0.2,
+                ..Food::new()
+            },
+            Item::TropicalFishBucket => Food {
                 nutrition: 1,
                 saturation: 0.2,
                 ..Food::new()
@@ -2816,6 +3230,22 @@ impl DefaultableComponent for Equippable {
                 slot: EquipmentSlot::Legs,
                 ..Equippable::new()
             },
+            Item::CopperNautilusArmor => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_WEAR_NAUTILUS_ARMOR
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:copper".into()),
+                can_be_sheared: true,
+                damage_on_hurt: false,
+                equip_on_interact: true,
+                equip_sound: SoundEvent::ItemArmorEquipNautilus,
+                shearing_sound: SoundEvent::ItemArmorUnequipNautilus,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
             Item::CreeperHead => Equippable {
                 slot: EquipmentSlot::Head,
                 swappable: false,
@@ -2886,6 +3316,22 @@ impl DefaultableComponent for Equippable {
                 slot: EquipmentSlot::Legs,
                 ..Equippable::new()
             },
+            Item::DiamondNautilusArmor => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_WEAR_NAUTILUS_ARMOR
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:diamond".into()),
+                can_be_sheared: true,
+                damage_on_hurt: false,
+                equip_on_interact: true,
+                equip_sound: SoundEvent::ItemArmorEquipNautilus,
+                shearing_sound: SoundEvent::ItemArmorUnequipNautilus,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
             Item::DragonHead => Equippable {
                 slot: EquipmentSlot::Head,
                 swappable: false,
@@ -2935,6 +3381,22 @@ impl DefaultableComponent for Equippable {
                 asset_id: Some("minecraft:gold".into()),
                 equip_sound: SoundEvent::ItemArmorEquipGold,
                 slot: EquipmentSlot::Legs,
+                ..Equippable::new()
+            },
+            Item::GoldenNautilusArmor => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_WEAR_NAUTILUS_ARMOR
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:gold".into()),
+                can_be_sheared: true,
+                damage_on_hurt: false,
+                equip_on_interact: true,
+                equip_sound: SoundEvent::ItemArmorEquipNautilus,
+                shearing_sound: SoundEvent::ItemArmorUnequipNautilus,
+                slot: EquipmentSlot::Body,
                 ..Equippable::new()
             },
             Item::GrayCarpet => Equippable {
@@ -3026,6 +3488,22 @@ impl DefaultableComponent for Equippable {
                 asset_id: Some("minecraft:iron".into()),
                 equip_sound: SoundEvent::ItemArmorEquipIron,
                 slot: EquipmentSlot::Legs,
+                ..Equippable::new()
+            },
+            Item::IronNautilusArmor => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_WEAR_NAUTILUS_ARMOR
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:iron".into()),
+                can_be_sheared: true,
+                damage_on_hurt: false,
+                equip_on_interact: true,
+                equip_sound: SoundEvent::ItemArmorEquipNautilus,
+                shearing_sound: SoundEvent::ItemArmorUnequipNautilus,
+                slot: EquipmentSlot::Body,
                 ..Equippable::new()
             },
             Item::LeatherBoots => Equippable {
@@ -3189,10 +3667,41 @@ impl DefaultableComponent for Equippable {
                 slot: EquipmentSlot::Head,
                 ..Equippable::new()
             },
+            Item::NetheriteHorseArmor => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_WEAR_HORSE_ARMOR
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:netherite".into()),
+                can_be_sheared: true,
+                damage_on_hurt: false,
+                equip_sound: SoundEvent::EntityHorseArmor,
+                shearing_sound: SoundEvent::ItemHorseArmorUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
             Item::NetheriteLeggings => Equippable {
                 asset_id: Some("minecraft:netherite".into()),
                 equip_sound: SoundEvent::ItemArmorEquipNetherite,
                 slot: EquipmentSlot::Legs,
+                ..Equippable::new()
+            },
+            Item::NetheriteNautilusArmor => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_WEAR_NAUTILUS_ARMOR
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:netherite".into()),
+                can_be_sheared: true,
+                damage_on_hurt: false,
+                equip_on_interact: true,
+                equip_sound: SoundEvent::ItemArmorEquipNautilus,
+                shearing_sound: SoundEvent::ItemArmorUnequipNautilus,
+                slot: EquipmentSlot::Body,
                 ..Equippable::new()
             },
             Item::OrangeCarpet => Equippable {
@@ -3446,6 +3955,7 @@ impl DefaultableComponent for Enchantable {
             Item::CopperLeggings => 8,
             Item::CopperPickaxe => 13,
             Item::CopperShovel => 13,
+            Item::CopperSpear => 13,
             Item::CopperSword => 13,
             Item::Crossbow => 1,
             Item::DiamondAxe => 10,
@@ -3456,6 +3966,7 @@ impl DefaultableComponent for Enchantable {
             Item::DiamondLeggings => 10,
             Item::DiamondPickaxe => 10,
             Item::DiamondShovel => 10,
+            Item::DiamondSpear => 10,
             Item::DiamondSword => 10,
             Item::FishingRod => 1,
             Item::GoldenAxe => 22,
@@ -3466,6 +3977,7 @@ impl DefaultableComponent for Enchantable {
             Item::GoldenLeggings => 25,
             Item::GoldenPickaxe => 22,
             Item::GoldenShovel => 22,
+            Item::GoldenSpear => 22,
             Item::GoldenSword => 22,
             Item::IronAxe => 14,
             Item::IronBoots => 9,
@@ -3475,6 +3987,7 @@ impl DefaultableComponent for Enchantable {
             Item::IronLeggings => 9,
             Item::IronPickaxe => 14,
             Item::IronShovel => 14,
+            Item::IronSpear => 14,
             Item::IronSword => 14,
             Item::LeatherBoots => 15,
             Item::LeatherChestplate => 15,
@@ -3489,11 +4002,13 @@ impl DefaultableComponent for Enchantable {
             Item::NetheriteLeggings => 15,
             Item::NetheritePickaxe => 15,
             Item::NetheriteShovel => 15,
+            Item::NetheriteSpear => 15,
             Item::NetheriteSword => 15,
             Item::StoneAxe => 5,
             Item::StoneHoe => 5,
             Item::StonePickaxe => 5,
             Item::StoneShovel => 5,
+            Item::StoneSpear => 5,
             Item::StoneSword => 5,
             Item::Trident => 1,
             Item::TurtleHelmet => 9,
@@ -3501,6 +4016,7 @@ impl DefaultableComponent for Enchantable {
             Item::WoodenHoe => 15,
             Item::WoodenPickaxe => 15,
             Item::WoodenShovel => 15,
+            Item::WoodenSpear => 15,
             Item::WoodenSword => 15,
             _ => return None,
         };
@@ -3543,6 +4059,7 @@ impl DefaultableComponent for Damage {
             Item::CopperLeggings => 0,
             Item::CopperPickaxe => 0,
             Item::CopperShovel => 0,
+            Item::CopperSpear => 0,
             Item::CopperSword => 0,
             Item::Crossbow => 0,
             Item::DiamondAxe => 0,
@@ -3553,6 +4070,7 @@ impl DefaultableComponent for Damage {
             Item::DiamondLeggings => 0,
             Item::DiamondPickaxe => 0,
             Item::DiamondShovel => 0,
+            Item::DiamondSpear => 0,
             Item::DiamondSword => 0,
             Item::Elytra => 0,
             Item::FishingRod => 0,
@@ -3565,6 +4083,7 @@ impl DefaultableComponent for Damage {
             Item::GoldenLeggings => 0,
             Item::GoldenPickaxe => 0,
             Item::GoldenShovel => 0,
+            Item::GoldenSpear => 0,
             Item::GoldenSword => 0,
             Item::IronAxe => 0,
             Item::IronBoots => 0,
@@ -3574,6 +4093,7 @@ impl DefaultableComponent for Damage {
             Item::IronLeggings => 0,
             Item::IronPickaxe => 0,
             Item::IronShovel => 0,
+            Item::IronSpear => 0,
             Item::IronSword => 0,
             Item::LeatherBoots => 0,
             Item::LeatherChestplate => 0,
@@ -3588,6 +4108,7 @@ impl DefaultableComponent for Damage {
             Item::NetheriteLeggings => 0,
             Item::NetheritePickaxe => 0,
             Item::NetheriteShovel => 0,
+            Item::NetheriteSpear => 0,
             Item::NetheriteSword => 0,
             Item::Shears => 0,
             Item::Shield => 0,
@@ -3595,6 +4116,7 @@ impl DefaultableComponent for Damage {
             Item::StoneHoe => 0,
             Item::StonePickaxe => 0,
             Item::StoneShovel => 0,
+            Item::StoneSpear => 0,
             Item::StoneSword => 0,
             Item::Trident => 0,
             Item::TurtleHelmet => 0,
@@ -3604,6 +4126,7 @@ impl DefaultableComponent for Damage {
             Item::WoodenHoe => 0,
             Item::WoodenPickaxe => 0,
             Item::WoodenShovel => 0,
+            Item::WoodenSpear => 0,
             Item::WoodenSword => 0,
             _ => return None,
         };
@@ -3628,6 +4151,7 @@ impl DefaultableComponent for MaxDamage {
             Item::CopperLeggings => 165,
             Item::CopperPickaxe => 190,
             Item::CopperShovel => 190,
+            Item::CopperSpear => 190,
             Item::CopperSword => 190,
             Item::Crossbow => 465,
             Item::DiamondAxe => 1561,
@@ -3638,6 +4162,7 @@ impl DefaultableComponent for MaxDamage {
             Item::DiamondLeggings => 495,
             Item::DiamondPickaxe => 1561,
             Item::DiamondShovel => 1561,
+            Item::DiamondSpear => 1561,
             Item::DiamondSword => 1561,
             Item::Elytra => 432,
             Item::FishingRod => 64,
@@ -3650,6 +4175,7 @@ impl DefaultableComponent for MaxDamage {
             Item::GoldenLeggings => 105,
             Item::GoldenPickaxe => 32,
             Item::GoldenShovel => 32,
+            Item::GoldenSpear => 32,
             Item::GoldenSword => 32,
             Item::IronAxe => 250,
             Item::IronBoots => 195,
@@ -3659,6 +4185,7 @@ impl DefaultableComponent for MaxDamage {
             Item::IronLeggings => 225,
             Item::IronPickaxe => 250,
             Item::IronShovel => 250,
+            Item::IronSpear => 250,
             Item::IronSword => 250,
             Item::LeatherBoots => 65,
             Item::LeatherChestplate => 80,
@@ -3673,6 +4200,7 @@ impl DefaultableComponent for MaxDamage {
             Item::NetheriteLeggings => 555,
             Item::NetheritePickaxe => 2031,
             Item::NetheriteShovel => 2031,
+            Item::NetheriteSpear => 2031,
             Item::NetheriteSword => 2031,
             Item::Shears => 238,
             Item::Shield => 336,
@@ -3680,6 +4208,7 @@ impl DefaultableComponent for MaxDamage {
             Item::StoneHoe => 131,
             Item::StonePickaxe => 131,
             Item::StoneShovel => 131,
+            Item::StoneSpear => 131,
             Item::StoneSword => 131,
             Item::Trident => 250,
             Item::TurtleHelmet => 275,
@@ -3689,6 +4218,7 @@ impl DefaultableComponent for MaxDamage {
             Item::WoodenHoe => 59,
             Item::WoodenPickaxe => 59,
             Item::WoodenShovel => 59,
+            Item::WoodenSpear => 59,
             Item::WoodenSword => 59,
             _ => return None,
         };
@@ -3770,6 +4300,12 @@ impl DefaultableComponent for Repairable {
                     .into_iter()
                     .collect(),
             },
+            Item::CopperSpear => HolderSet::Direct {
+                contents: azalea_registry::tags::items::COPPER_TOOL_MATERIALS
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
             Item::CopperSword => HolderSet::Direct {
                 contents: azalea_registry::tags::items::COPPER_TOOL_MATERIALS
                     .clone()
@@ -3819,6 +4355,12 @@ impl DefaultableComponent for Repairable {
                     .collect(),
             },
             Item::DiamondShovel => HolderSet::Direct {
+                contents: azalea_registry::tags::items::DIAMOND_TOOL_MATERIALS
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            Item::DiamondSpear => HolderSet::Direct {
                 contents: azalea_registry::tags::items::DIAMOND_TOOL_MATERIALS
                     .clone()
                     .into_iter()
@@ -3881,6 +4423,12 @@ impl DefaultableComponent for Repairable {
                     .into_iter()
                     .collect(),
             },
+            Item::GoldenSpear => HolderSet::Direct {
+                contents: azalea_registry::tags::items::GOLD_TOOL_MATERIALS
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
             Item::GoldenSword => HolderSet::Direct {
                 contents: azalea_registry::tags::items::GOLD_TOOL_MATERIALS
                     .clone()
@@ -3930,6 +4478,12 @@ impl DefaultableComponent for Repairable {
                     .collect(),
             },
             Item::IronShovel => HolderSet::Direct {
+                contents: azalea_registry::tags::items::IRON_TOOL_MATERIALS
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            Item::IronSpear => HolderSet::Direct {
                 contents: azalea_registry::tags::items::IRON_TOOL_MATERIALS
                     .clone()
                     .into_iter()
@@ -4016,6 +4570,12 @@ impl DefaultableComponent for Repairable {
                     .into_iter()
                     .collect(),
             },
+            Item::NetheriteSpear => HolderSet::Direct {
+                contents: azalea_registry::tags::items::NETHERITE_TOOL_MATERIALS
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
             Item::NetheriteSword => HolderSet::Direct {
                 contents: azalea_registry::tags::items::NETHERITE_TOOL_MATERIALS
                     .clone()
@@ -4047,6 +4607,12 @@ impl DefaultableComponent for Repairable {
                     .collect(),
             },
             Item::StoneShovel => HolderSet::Direct {
+                contents: azalea_registry::tags::items::STONE_TOOL_MATERIALS
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            Item::StoneSpear => HolderSet::Direct {
                 contents: azalea_registry::tags::items::STONE_TOOL_MATERIALS
                     .clone()
                     .into_iter()
@@ -4089,6 +4655,12 @@ impl DefaultableComponent for Repairable {
                     .collect(),
             },
             Item::WoodenShovel => HolderSet::Direct {
+                contents: azalea_registry::tags::items::WOODEN_TOOL_MATERIALS
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            Item::WoodenSpear => HolderSet::Direct {
                 contents: azalea_registry::tags::items::WOODEN_TOOL_MATERIALS
                     .clone()
                     .into_iter()
@@ -5141,6 +5713,7 @@ impl DefaultableComponent for Weapon {
                 item_damage_per_attack: 2,
                 ..Weapon::new()
             },
+            Item::CopperSpear => Weapon::new(),
             Item::CopperSword => Weapon::new(),
             Item::DiamondAxe => Weapon {
                 disable_blocking_for_seconds: 5.0,
@@ -5158,6 +5731,7 @@ impl DefaultableComponent for Weapon {
                 item_damage_per_attack: 2,
                 ..Weapon::new()
             },
+            Item::DiamondSpear => Weapon::new(),
             Item::DiamondSword => Weapon::new(),
             Item::GoldenAxe => Weapon {
                 disable_blocking_for_seconds: 5.0,
@@ -5175,6 +5749,7 @@ impl DefaultableComponent for Weapon {
                 item_damage_per_attack: 2,
                 ..Weapon::new()
             },
+            Item::GoldenSpear => Weapon::new(),
             Item::GoldenSword => Weapon::new(),
             Item::IronAxe => Weapon {
                 disable_blocking_for_seconds: 5.0,
@@ -5192,6 +5767,7 @@ impl DefaultableComponent for Weapon {
                 item_damage_per_attack: 2,
                 ..Weapon::new()
             },
+            Item::IronSpear => Weapon::new(),
             Item::IronSword => Weapon::new(),
             Item::Mace => Weapon::new(),
             Item::NetheriteAxe => Weapon {
@@ -5210,6 +5786,7 @@ impl DefaultableComponent for Weapon {
                 item_damage_per_attack: 2,
                 ..Weapon::new()
             },
+            Item::NetheriteSpear => Weapon::new(),
             Item::NetheriteSword => Weapon::new(),
             Item::StoneAxe => Weapon {
                 disable_blocking_for_seconds: 5.0,
@@ -5227,6 +5804,7 @@ impl DefaultableComponent for Weapon {
                 item_damage_per_attack: 2,
                 ..Weapon::new()
             },
+            Item::StoneSpear => Weapon::new(),
             Item::StoneSword => Weapon::new(),
             Item::Trident => Weapon::new(),
             Item::WoodenAxe => Weapon {
@@ -5245,7 +5823,334 @@ impl DefaultableComponent for Weapon {
                 item_damage_per_attack: 2,
                 ..Weapon::new()
             },
+            Item::WoodenSpear => Weapon::new(),
             Item::WoodenSword => Weapon::new(),
+            _ => return None,
+        };
+        Some(value)
+    }
+}
+impl DefaultableComponent for AttackRange {
+    fn default_for_item(item: Item) -> Option<Self> {
+        let value = match item {
+            Item::CopperSpear => AttackRange {
+                hitbox_margin: 0.125,
+                max_creative_reach: 6.5,
+                max_reach: 4.5,
+                min_creative_reach: 2.0,
+                min_reach: 2.0,
+                mob_factor: 0.5,
+            },
+            Item::DiamondSpear => AttackRange {
+                hitbox_margin: 0.125,
+                max_creative_reach: 6.5,
+                max_reach: 4.5,
+                min_creative_reach: 2.0,
+                min_reach: 2.0,
+                mob_factor: 0.5,
+            },
+            Item::GoldenSpear => AttackRange {
+                hitbox_margin: 0.125,
+                max_creative_reach: 6.5,
+                max_reach: 4.5,
+                min_creative_reach: 2.0,
+                min_reach: 2.0,
+                mob_factor: 0.5,
+            },
+            Item::IronSpear => AttackRange {
+                hitbox_margin: 0.125,
+                max_creative_reach: 6.5,
+                max_reach: 4.5,
+                min_creative_reach: 2.0,
+                min_reach: 2.0,
+                mob_factor: 0.5,
+            },
+            Item::NetheriteSpear => AttackRange {
+                hitbox_margin: 0.125,
+                max_creative_reach: 6.5,
+                max_reach: 4.5,
+                min_creative_reach: 2.0,
+                min_reach: 2.0,
+                mob_factor: 0.5,
+            },
+            Item::StoneSpear => AttackRange {
+                hitbox_margin: 0.125,
+                max_creative_reach: 6.5,
+                max_reach: 4.5,
+                min_creative_reach: 2.0,
+                min_reach: 2.0,
+                mob_factor: 0.5,
+            },
+            Item::WoodenSpear => AttackRange {
+                hitbox_margin: 0.125,
+                max_creative_reach: 6.5,
+                max_reach: 4.5,
+                min_creative_reach: 2.0,
+                min_reach: 2.0,
+                mob_factor: 0.5,
+            },
+            _ => return None,
+        };
+        Some(value)
+    }
+}
+impl DefaultableComponent for DamageType {
+    fn default_for_item(item: Item) -> Option<Self> {
+        let value = match item {
+            Item::CopperSpear => DamageType::Registry(azalea_registry::DamageKind::new_raw(0)),
+            Item::DiamondSpear => DamageType::Registry(azalea_registry::DamageKind::new_raw(0)),
+            Item::GoldenSpear => DamageType::Registry(azalea_registry::DamageKind::new_raw(0)),
+            Item::IronSpear => DamageType::Registry(azalea_registry::DamageKind::new_raw(0)),
+            Item::NetheriteSpear => DamageType::Registry(azalea_registry::DamageKind::new_raw(0)),
+            Item::StoneSpear => DamageType::Registry(azalea_registry::DamageKind::new_raw(0)),
+            Item::WoodenSpear => DamageType::Registry(azalea_registry::DamageKind::new_raw(0)),
+            _ => return None,
+        };
+        Some(value)
+    }
+}
+impl DefaultableComponent for KineticWeapon {
+    fn default_for_item(item: Item) -> Option<Self> {
+        let value = match item {
+            Item::CopperSpear => KineticWeapon {
+                damage_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 250,
+                    min_relative_speed: 4.6,
+                    ..KineticWeaponCondition::new()
+                }),
+                damage_multiplier: 0.82,
+                delay_ticks: 13,
+                dismount_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 80,
+                    min_speed: 9.0,
+                    ..KineticWeaponCondition::new()
+                }),
+                forward_movement: 0.38,
+                hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
+                knockback_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 165,
+                    min_speed: 5.1,
+                    ..KineticWeaponCondition::new()
+                }),
+                sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearUse)),
+                ..KineticWeapon::new()
+            },
+            Item::DiamondSpear => KineticWeapon {
+                damage_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 200,
+                    min_relative_speed: 4.6,
+                    ..KineticWeaponCondition::new()
+                }),
+                damage_multiplier: 1.075,
+                delay_ticks: 10,
+                dismount_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 60,
+                    min_speed: 7.5,
+                    ..KineticWeaponCondition::new()
+                }),
+                forward_movement: 0.38,
+                hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
+                knockback_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 130,
+                    min_speed: 5.1,
+                    ..KineticWeaponCondition::new()
+                }),
+                sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearUse)),
+                ..KineticWeapon::new()
+            },
+            Item::GoldenSpear => KineticWeapon {
+                damage_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 275,
+                    min_relative_speed: 4.6,
+                    ..KineticWeaponCondition::new()
+                }),
+                damage_multiplier: 0.7,
+                delay_ticks: 14,
+                dismount_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 70,
+                    min_speed: 10.0,
+                    ..KineticWeaponCondition::new()
+                }),
+                forward_movement: 0.38,
+                hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
+                knockback_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 170,
+                    min_speed: 5.1,
+                    ..KineticWeaponCondition::new()
+                }),
+                sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearUse)),
+                ..KineticWeapon::new()
+            },
+            Item::IronSpear => KineticWeapon {
+                damage_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 225,
+                    min_relative_speed: 4.6,
+                    ..KineticWeaponCondition::new()
+                }),
+                damage_multiplier: 0.95,
+                delay_ticks: 12,
+                dismount_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 50,
+                    min_speed: 8.0,
+                    ..KineticWeaponCondition::new()
+                }),
+                forward_movement: 0.38,
+                hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
+                knockback_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 135,
+                    min_speed: 5.1,
+                    ..KineticWeaponCondition::new()
+                }),
+                sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearUse)),
+                ..KineticWeapon::new()
+            },
+            Item::NetheriteSpear => KineticWeapon {
+                damage_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 175,
+                    min_relative_speed: 4.6,
+                    ..KineticWeaponCondition::new()
+                }),
+                damage_multiplier: 1.2,
+                delay_ticks: 8,
+                dismount_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 50,
+                    min_speed: 7.0,
+                    ..KineticWeaponCondition::new()
+                }),
+                forward_movement: 0.38,
+                hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
+                knockback_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 110,
+                    min_speed: 5.1,
+                    ..KineticWeaponCondition::new()
+                }),
+                sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearUse)),
+                ..KineticWeapon::new()
+            },
+            Item::StoneSpear => KineticWeapon {
+                damage_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 275,
+                    min_relative_speed: 4.6,
+                    ..KineticWeaponCondition::new()
+                }),
+                damage_multiplier: 0.82,
+                delay_ticks: 14,
+                dismount_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 90,
+                    min_speed: 10.0,
+                    ..KineticWeaponCondition::new()
+                }),
+                forward_movement: 0.38,
+                hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
+                knockback_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 180,
+                    min_speed: 5.1,
+                    ..KineticWeaponCondition::new()
+                }),
+                sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearUse)),
+                ..KineticWeapon::new()
+            },
+            Item::WoodenSpear => KineticWeapon {
+                damage_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 300,
+                    min_relative_speed: 4.6,
+                    ..KineticWeaponCondition::new()
+                }),
+                damage_multiplier: 0.7,
+                delay_ticks: 15,
+                dismount_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 100,
+                    min_speed: 14.0,
+                    ..KineticWeaponCondition::new()
+                }),
+                forward_movement: 0.38,
+                hit_sound: Some(azalea_registry::Holder::Reference(
+                    SoundEvent::ItemSpearWoodHit,
+                )),
+                knockback_conditions: Some(KineticWeaponCondition {
+                    max_duration_ticks: 200,
+                    min_speed: 5.1,
+                    ..KineticWeaponCondition::new()
+                }),
+                sound: Some(azalea_registry::Holder::Reference(
+                    SoundEvent::ItemSpearWoodUse,
+                )),
+                ..KineticWeapon::new()
+            },
+            _ => return None,
+        };
+        Some(value)
+    }
+}
+impl DefaultableComponent for MinimumAttackCharge {
+    fn default_for_item(item: Item) -> Option<Self> {
+        let value = match item {
+            Item::CopperSpear => 1.0,
+            Item::DiamondSpear => 1.0,
+            Item::GoldenSpear => 1.0,
+            Item::IronSpear => 1.0,
+            Item::NetheriteSpear => 1.0,
+            Item::StoneSpear => 1.0,
+            Item::WoodenSpear => 1.0,
+            _ => return None,
+        };
+        Some(MinimumAttackCharge { value: value })
+    }
+}
+impl DefaultableComponent for PiercingWeapon {
+    fn default_for_item(item: Item) -> Option<Self> {
+        let value = match item {
+            Item::CopperSpear => PiercingWeapon {
+                hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
+                sound: Some(azalea_registry::Holder::Reference(
+                    SoundEvent::ItemSpearAttack,
+                )),
+                ..PiercingWeapon::new()
+            },
+            Item::DiamondSpear => PiercingWeapon {
+                hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
+                sound: Some(azalea_registry::Holder::Reference(
+                    SoundEvent::ItemSpearAttack,
+                )),
+                ..PiercingWeapon::new()
+            },
+            Item::GoldenSpear => PiercingWeapon {
+                hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
+                sound: Some(azalea_registry::Holder::Reference(
+                    SoundEvent::ItemSpearAttack,
+                )),
+                ..PiercingWeapon::new()
+            },
+            Item::IronSpear => PiercingWeapon {
+                hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
+                sound: Some(azalea_registry::Holder::Reference(
+                    SoundEvent::ItemSpearAttack,
+                )),
+                ..PiercingWeapon::new()
+            },
+            Item::NetheriteSpear => PiercingWeapon {
+                hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
+                sound: Some(azalea_registry::Holder::Reference(
+                    SoundEvent::ItemSpearAttack,
+                )),
+                ..PiercingWeapon::new()
+            },
+            Item::StoneSpear => PiercingWeapon {
+                hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
+                sound: Some(azalea_registry::Holder::Reference(
+                    SoundEvent::ItemSpearAttack,
+                )),
+                ..PiercingWeapon::new()
+            },
+            Item::WoodenSpear => PiercingWeapon {
+                hit_sound: Some(azalea_registry::Holder::Reference(
+                    SoundEvent::ItemSpearWoodHit,
+                )),
+                sound: Some(azalea_registry::Holder::Reference(
+                    SoundEvent::ItemSpearWoodAttack,
+                )),
+                ..PiercingWeapon::new()
+            },
             _ => return None,
         };
         Some(value)
