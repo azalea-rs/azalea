@@ -31,26 +31,41 @@ pub trait ContainerClientExt {
     ///
     /// Use [`Client::open_inventory`] to open your own inventory.
     ///
-    /// `timeout_ticks` indicates how long the client will wait before giving
-    /// up and returning `None`. You may need to adjust it based on latency.
-    /// Setting the timeout to `None` will result in waiting potentially
-    /// forever.
+    /// This function times out after 5 seconds (100 ticks). Use
+    /// [`Self::open_container_at_with_timeout_ticks`] if you would like to
+    /// configure this.
     ///
     /// ```
-    /// # use azalea::prelude::*;
+    /// # use azalea::{prelude::*, azalea::registry::Block};
     /// # async fn example(mut bot: azalea::Client) {
     /// let target_pos = bot
     ///     .world()
     ///     .read()
-    ///     .find_block(bot.position(), &azalea::registry::Block::Chest.into());
+    ///     .find_block(bot.position(), &Block::Chest.into());
     /// let Some(target_pos) = target_pos else {
     ///     bot.chat("no chest found");
     ///     return;
     /// };
-    /// let container = bot.open_container_at(target_pos, None).await;
+    /// let container = bot.open_container_at(target_pos).await;
     /// # }
     /// ```
     fn open_container_at(
+        &self,
+        pos: BlockPos,
+    ) -> impl Future<Output = Option<ContainerHandle>> + Send;
+
+    /// Open a container in the world, or time out after a specified amount of
+    /// ticks.
+    ///
+    /// See [`Self::open_container_at`] for more information. That function
+    /// defaults to a timeout of 5 seconds (100 ticks), which is usually good
+    /// enough. However to detect failures faster or to account for server
+    /// lag, you may find it useful to adjust the timeout to a different
+    /// value.
+    ///
+    /// The timeout is measured in game ticks (on the client, not the server),
+    /// i.e. 1/20th of a second.
+    fn open_container_at_with_timeout_ticks(
         &self,
         pos: BlockPos,
         timeout_ticks: Option<usize>,
@@ -59,7 +74,7 @@ pub trait ContainerClientExt {
     /// Wait until a container is open, up to the specified number of ticks.
     ///
     /// Returns `None` if the container was immediately opened and closed, or if
-    /// the timeout expires.
+    /// the timeout expired.
     ///
     /// If `timeout_ticks` is None, there will be no timeout.
     fn wait_for_container_open(
@@ -97,7 +112,12 @@ pub trait ContainerClientExt {
 }
 
 impl ContainerClientExt for Client {
-    async fn open_container_at(
+    async fn open_container_at(&self, pos: BlockPos) -> Option<ContainerHandle> {
+        self.open_container_at_with_timeout_ticks(pos, Some(20 * 5))
+            .await
+    }
+
+    async fn open_container_at_with_timeout_ticks(
         &self,
         pos: BlockPos,
         timeout_ticks: Option<usize>,

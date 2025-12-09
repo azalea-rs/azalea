@@ -22,7 +22,7 @@ is breaking anyways, semantic versioning is not followed.
 - `Client::query`, `map_component`, and `map_get_component` were replaced by `Client::query_self`.
 - Rename `SendPacketEvent` to `SendGamePacketEvent` and `PingEvent` to `GamePingEvent`.
 - Swap the order of the type parameters in entity filtering functions so query is first, then filter.
-- Add optional `timeout_ticks` field to `Client::open_container_at`.
+- Add `Client::open_container_at_with_timeout_ticks`, and `Client::open_container_at` now times out after 5 seconds.
 - Rename `ResourceLocation` to `Identifier` to match Minecraft's new internal naming.
 - Rename `azalea_protocol::resolver` to `resolve` and `ResolverError` to `ResolveError`.
 
