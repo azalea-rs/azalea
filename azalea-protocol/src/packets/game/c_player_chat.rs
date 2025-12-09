@@ -6,7 +6,7 @@ use azalea_chat::{
     translatable_component::{PrimitiveOrComponent, TranslatableComponent},
 };
 use azalea_core::bitset::BitSet;
-use azalea_crypto::MessageSignature;
+use azalea_crypto::signing::MessageSignature;
 use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_registry::Holder;
 use simdnbt::owned::NbtCompound;

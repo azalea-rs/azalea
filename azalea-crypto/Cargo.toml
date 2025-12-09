@@ -11,7 +11,7 @@ criterion.workspace = true
 
 [dependencies]
 aes.workspace = true
-azalea-buf.workspace = true
+azalea-buf = { workspace = true, optional = true }
 cfb8.workspace = true
 num-bigint.workspace = true
 rand = { workspace = true, features = ["os_rng"] }
@@ -21,6 +21,9 @@ sha1.workspace = true
 sha2.workspace = true
 uuid.workspace = true
 md-5.workspace = true
+
+[features]
+signing = ["dep:azalea-buf"]
 
 [[bench]]
 harness = false

@@ -1,6 +1,6 @@
 use azalea_buf::AzBuf;
 use azalea_core::bitset::FixedBitSet;
-use azalea_crypto::MessageSignature;
+use azalea_crypto::signing::MessageSignature;
 use azalea_protocol_macros::ServerboundGamePacket;
 
 #[derive(Clone, Debug, AzBuf, PartialEq, ServerboundGamePacket)]

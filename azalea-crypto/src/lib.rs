@@ -1,7 +1,8 @@
 #![doc = include_str!("../README.md")]
 
 pub mod offline;
-mod signing;
+#[cfg(feature = "signing")]
+pub mod signing;
 
 use aes::{
     Aes128,
@@ -9,7 +10,20 @@ use aes::{
 };
 use rand::{TryRngCore, rngs::OsRng};
 use sha1::{Digest, Sha1};
-pub use signing::*;
+
+#[cfg(feature = "signing")]
+#[deprecated = "moved to `signing::MessageSignature`."]
+pub type MessageSignature = signing::MessageSignature;
+
+#[cfg(feature = "signing")]
+#[deprecated = "moved to `signing::SignChatMessageOptions`."]
+pub type SignChatMessageOptions = signing::SignChatMessageOptions;
+
+#[cfg(feature = "signing")]
+#[deprecated = "moved to `signing::make_salt`."]
+pub fn make_salt() -> u64 {
+    signing::make_salt()
+}
 
 fn generate_secret_key() -> [u8; 16] {
     let mut key = [0u8; 16];
