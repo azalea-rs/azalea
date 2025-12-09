@@ -153,28 +153,42 @@ impl FormattedText {
         F: FnMut(&Style, &Style) -> (String, String),
         S: FnMut(&str) -> String,
     {
-        let component_text = match &self {
-            Self::Text(c) => c.text.to_string(),
-            Self::Translatable(c) => match c.read() {
-                Ok(c) => c.to_string(),
-                Err(_) => c.key.to_string(),
-            },
-        };
-
         let component_style = &self.get_base().style;
         let new_style = parent_style.merged_with(component_style);
 
-        if !component_text.is_empty() {
-            let (formatted_style_prefix, formatted_style_suffix) =
-                style_formatter(running_style, &new_style);
-            let formatted_text = text_formatter(&component_text);
+        let mut append_text = |text: &str| {
+            if !text.is_empty() {
+                let (formatted_style_prefix, formatted_style_suffix) =
+                    style_formatter(running_style, &new_style);
+                let formatted_text = text_formatter(text);
 
-            output.push_str(&formatted_style_prefix);
-            output.push_str(&formatted_text);
-            output.push_str(&formatted_style_suffix);
+                output.push_str(&formatted_style_prefix);
+                output.push_str(&formatted_text);
+                output.push_str(&formatted_style_suffix);
 
-            *running_style = new_style.clone();
-        }
+                *running_style = new_style.clone();
+            }
+        };
+
+        match &self {
+            Self::Text(c) => {
+                append_text(&c.text);
+            }
+            Self::Translatable(c) => match c.read() {
+                Ok(c) => {
+                    FormattedText::Text(c).to_custom_format_recursive(
+                        output,
+                        style_formatter,
+                        text_formatter,
+                        &new_style,
+                        running_style,
+                    );
+                }
+                Err(_) => {
+                    append_text(&c.key);
+                }
+            },
+        };
 
         for sibling in &self.get_base().siblings {
             sibling.to_custom_format_recursive(
@@ -758,5 +772,17 @@ mod tests {
                 ]
             ))
         );
+    }
+
+    #[test]
+    fn test_translatable_with_color_inheritance() {
+        let json = serde_json::json!({
+            "translate": "advancements.story.smelt_iron.title",
+            "color": "green",
+            "with": [{"text": "Acquire Hardware"}]
+        });
+        let component = FormattedText::deserialize(&json).unwrap();
+        let ansi = component.to_ansi();
+        assert!(ansi.contains("\u{1b}[38;2;85;255;85m"));
     }
 }

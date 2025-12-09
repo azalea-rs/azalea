@@ -39,7 +39,7 @@ use bevy_app::AppExit;
 pub use bevy_ecs as ecs;
 use ecs::component::Component;
 use futures::{Future, future::BoxFuture};
-use protocol::{ServerAddress, connect::Proxy, resolver::ResolverError};
+use protocol::{ServerAddress, connect::Proxy, resolve::ResolveError};
 use swarm::SwarmBuilder;
 use thiserror::Error;
 
@@ -55,7 +55,7 @@ pub enum StartError {
     #[error("Invalid address")]
     InvalidAddress,
     #[error(transparent)]
-    ResolveAddress(#[from] ResolverError),
+    ResolveAddress(#[from] ResolveError),
 }
 
 /// A builder for creating new [`Client`]s. This is the recommended way of

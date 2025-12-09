@@ -26,7 +26,7 @@ use azalea_client::{
     start_ecs_runner,
 };
 use azalea_entity::LocalEntity;
-use azalea_protocol::{ServerAddress, resolver};
+use azalea_protocol::{ServerAddress, resolve};
 use azalea_world::InstanceContainer;
 use bevy_app::{App, AppExit, PluginGroup, PluginGroupBuilder, Plugins, SubApp};
 use bevy_ecs::prelude::*;
@@ -445,7 +445,7 @@ where
         let resolved_address = if let Some(a) = default_join_opts.custom_resolved_address {
             a
         } else {
-            resolver::resolve_address(&address).await?
+            resolve::resolve_address(&address).await?
         };
 
         let instance_container = Arc::new(RwLock::new(InstanceContainer::default()));

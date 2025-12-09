@@ -32,7 +32,6 @@ repository = "https://github.com/azalea-rs/azalea"
 aes = "0.8.4"
 anyhow = "1.0.100"
 async-compat = "0.2.5"
-async-recursion = "1.1.1"
 base64 = "0.22.1"
 bevy_app = "0.17.2"
 bevy_ecs = { version = "0.17.2", default-features = false }
@@ -45,8 +44,10 @@ chrono = { version = "0.4.42", default-features = false }
 compact_str = "0.9.0"
 crc32c = "0.6.8"
 criterion = "0.7.0"
-crypto-bigint = "=0.7.0-rc.10" # TODO: Remove when rsa is fixed.
-crypto-primes = "=0.7.0-pre.4" # TODO: Remove when rsa is fixed.
+# TODO: Remove when rsa is fixed.
+crypto-bigint = "=0.7.0-rc.10"
+# TODO: Remove when rsa is fixed.
+crypto-primes = "=0.7.0-pre.4"
 derive_more = "2.0.1"
 enum-as-inner = "0.6.1"
 env_logger = "0.11.8"
@@ -75,7 +76,8 @@ serde = "1.0.228"
 serde_json = "1.0.145"
 sha1 = "0.11.0-rc.3"
 sha2 = "0.11.0-rc.3"
-signature = "=3.0.0-rc.5" # TODO: Remove when rsa is fixed.
+# TODO: Remove when rsa is fixed.
+signature = "=3.0.0-rc.5"
 simdnbt = { version = "0.8.0", git = "https://github.com/azalea-rs/simdnbt" }
 socks5-impl = "0.7.2"
 syn = "2.0.110"
@@ -88,7 +90,7 @@ uuid = "1.18.1"
 
 azalea-block-macros = { path = "azalea-block/azalea-block-macros", version = "0.14.0" }
 azalea-block = { path = "azalea-block", version = "0.14.0" }
-azalea-auth = { path = "azalea-auth", version = "0.14.0" }
+azalea-auth = { path = "azalea-auth", version = "0.14.0", default-features = false }
 azalea-brigadier = { path = "azalea-brigadier", version = "0.14.0" }
 azalea-buf-macros = { path = "azalea-buf/azalea-buf-macros", version = "0.14.0" }
 azalea-buf = { path = "azalea-buf", version = "0.14.0" }
@@ -102,7 +104,7 @@ azalea-inventory = { path = "azalea-inventory", version = "0.14.0" }
 azalea-language = { path = "azalea-language", version = "0.14.0" }
 azalea-physics = { path = "azalea-physics", version = "0.14.0" }
 azalea-protocol-macros = { path = "azalea-protocol/azalea-protocol-macros", version = "0.14.0" }
-azalea-protocol = { path = "azalea-protocol", version = "0.14.0" }
+azalea-protocol = { path = "azalea-protocol", version = "0.14.0", default-features = false }
 azalea-registry-macros = { path = "azalea-registry/azalea-registry-macros", version = "0.14.0" }
 azalea-registry = { path = "azalea-registry", version = "0.14.0" }
 azalea-world = { path = "azalea-world", version = "0.14.0" }

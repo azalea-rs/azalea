@@ -23,7 +23,7 @@ use azalea_protocol::{
     ServerAddress,
     connect::Proxy,
     packets::{Packet, game::ServerboundGamePacket},
-    resolver,
+    resolve,
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName, MinecraftEntityId, PartialInstance};
 use bevy_app::{App, AppExit, Plugin, PluginsState, SubApp, Update};
@@ -88,8 +88,8 @@ pub struct Client {
 /// An error that happened while joining the server.
 #[derive(Error, Debug)]
 pub enum JoinError {
-    #[error("{0}")]
-    Resolver(#[from] resolver::ResolverError),
+    #[error(transparent)]
+    Resolver(#[from] resolve::ResolveError),
     #[error("The given address could not be parsed into a ServerAddress")]
     InvalidAddress,
 }
@@ -173,7 +173,7 @@ impl Client {
         address: impl TryInto<ServerAddress>,
     ) -> Result<(Self, mpsc::UnboundedReceiver<Event>), JoinError> {
         let address: ServerAddress = address.try_into().map_err(|_| JoinError::InvalidAddress)?;
-        let resolved_address = resolver::resolve_address(&address).await?;
+        let resolved_address = resolve::resolve_address(&address).await?;
         let (tx, rx) = mpsc::unbounded_channel();
 
         let client = Self::start_client(StartClientOpts::new(
@@ -192,7 +192,7 @@ impl Client {
         proxy: Proxy,
     ) -> Result<(Self, mpsc::UnboundedReceiver<Event>), JoinError> {
         let address: ServerAddress = address.try_into().map_err(|_| JoinError::InvalidAddress)?;
-        let resolved_address = resolver::resolve_address(&address).await?;
+        let resolved_address = resolve::resolve_address(&address).await?;
         let (tx, rx) = mpsc::unbounded_channel();
 
         let client = Self::start_client(

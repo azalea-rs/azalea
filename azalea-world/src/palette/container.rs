@@ -7,7 +7,7 @@ use azalea_block::BlockState;
 use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
 use azalea_core::position::{ChunkSectionBiomePos, ChunkSectionBlockPos};
 use azalea_registry::Biome;
-use tracing::warn;
+use tracing::{debug, warn};
 
 use super::{Palette, PaletteKind};
 use crate::BitStorage;
@@ -231,6 +231,10 @@ impl<S: PalletedContainerKind> PalettedContainer<S> {
     }
 
     fn on_resize(&mut self, bits_per_entry: u8, value: S) -> usize {
+        debug!(
+            "Resizing PalettedContainer from {} bpe to {bits_per_entry} for {value:?} with palette={:?}",
+            self.bits_per_entry, self.palette
+        );
         // in vanilla this is always true, but it's sometimes false in purpur servers
         // assert!(bits_per_entry <= 5, "bits_per_entry must be <= 5");
         let mut new_data = self.create_or_reuse_data(bits_per_entry);

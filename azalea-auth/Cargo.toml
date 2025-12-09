@@ -14,8 +14,7 @@ chrono = { workspace = true, features = ["serde"] }
 crypto-bigint.workspace = true # TODO: Remove when rsa is fixed.
 crypto-primes.workspace = true # TODO: Remove when rsa is fixed.
 indexmap.workspace = true
-md-5.workspace = true
-reqwest = { workspace = true, default-features = false, features = [
+reqwest = { workspace = true, optional = true, default-features = false, features = [
     "json",
     "rustls-tls",
 ] }
@@ -31,6 +30,10 @@ uuid = { workspace = true, features = ["serde", "v3"] }
 [dev-dependencies]
 env_logger.workspace = true
 tokio = { workspace = true, features = ["full"] }
+
+[features]
+default = ["online-mode"]
+online-mode = ["dep:reqwest"]
 
 [lints]
 workspace = true

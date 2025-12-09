@@ -1,4 +1,5 @@
 //! Tell Mojang you're joining a multiplayer server.
+
 use std::sync::LazyLock;
 
 use reqwest::StatusCode;

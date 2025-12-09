@@ -24,8 +24,13 @@ pub mod connect;
 #[cfg(feature = "packets")]
 pub mod packets;
 pub mod read;
-pub mod resolver;
+pub mod resolve;
 pub mod write;
+
+#[deprecated(note = "Renamed to resolve")]
+pub mod resolver {
+    pub use super::resolve::*;
+}
 
 /// A host and port. It's possible that the port doesn't resolve to anything.
 ///

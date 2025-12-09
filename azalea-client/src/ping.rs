@@ -16,14 +16,14 @@ use azalea_protocol::{
             s_status_request::ServerboundStatusRequest,
         },
     },
-    resolver,
+    resolve,
 };
 use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum PingError {
     #[error("{0}")]
-    Resolver(#[from] resolver::ResolverError),
+    Resolver(#[from] resolve::ResolveError),
     #[error("{0}")]
     Connection(#[from] ConnectionError),
     #[error("{0}")]
@@ -51,7 +51,7 @@ pub async fn ping_server(
     address: impl TryInto<ServerAddress>,
 ) -> Result<ClientboundStatusResponse, PingError> {
     let address: ServerAddress = address.try_into().map_err(|_| PingError::InvalidAddress)?;
-    let resolved_address = resolver::resolve_address(&address).await?;
+    let resolved_address = resolve::resolve_address(&address).await?;
     let conn = Connection::new(&resolved_address).await?;
     ping_server_with_connection(address, conn).await
 }
@@ -62,7 +62,7 @@ pub async fn ping_server_with_proxy(
     proxy: Proxy,
 ) -> Result<ClientboundStatusResponse, PingError> {
     let address: ServerAddress = address.try_into().map_err(|_| PingError::InvalidAddress)?;
-    let resolved_address = resolver::resolve_address(&address).await?;
+    let resolved_address = resolve::resolve_address(&address).await?;
     let conn = Connection::new_with_proxy(&resolved_address, proxy).await?;
     ping_server_with_connection(address, conn).await
 }
