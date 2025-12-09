@@ -78,6 +78,7 @@ sha1 = "0.11.0-rc.3"
 sha2 = "0.11.0-rc.3"
 # TODO: Remove when rsa is fixed.
 signature = "=3.0.0-rc.5"
+# TODO
 simdnbt = { version = "0.8.0", git = "https://github.com/azalea-rs/simdnbt" }
 socks5-impl = "0.7.2"
 syn = "2.0.110"

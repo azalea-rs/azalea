@@ -14,7 +14,7 @@ use std::{
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
 use serde::{Serialize, Serializer};
-use simdnbt::Deserialize;
+use simdnbt::borrow::NbtTag;
 
 use crate::{codec_utils::IntArray, direction::Direction, identifier::Identifier, math};
 
@@ -311,6 +311,13 @@ pub struct Vec3 {
     pub z: f64,
 }
 vec3_impl!(Vec3, f64);
+impl simdnbt::FromNbtTag for Vec3 {
+    fn from_nbt_tag(tag: NbtTag) -> Option<Self> {
+        let pos = tag.list()?.doubles()?;
+        let [x, y, z] = <[f64; 3]>::try_from(pos).ok()?;
+        Some(Self { x, y, z })
+    }
+}
 
 impl Vec3 {
     /// Get the distance of this vector to the origin by doing
@@ -489,6 +496,13 @@ pub struct Vec3i {
     pub z: i32,
 }
 vec3_impl!(Vec3i, i32);
+impl simdnbt::FromNbtTag for Vec3i {
+    fn from_nbt_tag(tag: NbtTag) -> Option<Self> {
+        let pos = tag.list()?.ints()?;
+        let [x, y, z] = <[i32; 3]>::try_from(pos).ok()?;
+        Some(Self { x, y, z })
+    }
+}
 
 /// Chunk coordinates are used to represent where a chunk is in the world.
 ///
@@ -876,7 +890,7 @@ impl fmt::Display for Vec3 {
 }
 
 /// A 2D vector.
-#[derive(Clone, Copy, Debug, Default, PartialEq, AzBuf, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, AzBuf, simdnbt::Deserialize, Serialize)]
 pub struct Vec2 {
     pub x: f32,
     pub y: f32,

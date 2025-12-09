@@ -4,6 +4,7 @@ use core::f64;
 use std::{
     any::Any,
     collections::HashMap,
+    fmt::{self, Display},
     io::{self, Cursor},
     mem::ManuallyDrop,
 };
@@ -11,12 +12,13 @@ use std::{
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
 use azalea_chat::FormattedText;
 use azalea_core::{
+    attribute_modifier_operation::AttributeModifierOperation,
     checksum::{Checksum, get_checksum},
     codec_utils::*,
     filterable::Filterable,
     identifier::Identifier,
     position::GlobalPos,
-    registry_holder::{DamageTypeElement, RegistryHolder},
+    registry_holder::{RegistryHolder, dimension_type::DamageTypeElement},
     sound::CustomSound,
 };
 use azalea_registry::{
@@ -115,7 +117,7 @@ macro_rules! define_data_components {
                 }
             }
             pub fn azalea_read_as(
-                kind: registry::DataComponentKind,
+                kind: DataComponentKind,
                 buf: &mut Cursor<&[u8]>,
             ) -> Result<Self, BufReadError> {
                 trace!("Reading data component {kind}");
@@ -131,7 +133,7 @@ macro_rules! define_data_components {
             /// `kind` must be the correct value for this union.
             pub unsafe fn azalea_write_as(
                 &self,
-                kind: registry::DataComponentKind,
+                kind: DataComponentKind,
                 buf: &mut impl std::io::Write,
             ) -> io::Result<()> {
                 let mut value = Vec::new();
@@ -147,7 +149,7 @@ macro_rules! define_data_components {
             /// `kind` must be the correct value for this union.
             pub unsafe fn clone_as(
                 &self,
-                kind: registry::DataComponentKind,
+                kind: DataComponentKind,
             ) -> Self {
                 match kind {
                     $( DataComponentKind::$x => {
@@ -161,7 +163,7 @@ macro_rules! define_data_components {
             pub unsafe fn eq_as(
                 &self,
                 other: &Self,
-                kind: registry::DataComponentKind,
+                kind: DataComponentKind,
             ) -> bool {
                 match kind {
                     $( DataComponentKind::$x => unsafe { self.$x.eq(&other.$x) }, )*
@@ -353,11 +355,12 @@ pub enum Rarity {
     Epic,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Serialize)]
+#[derive(Clone, PartialEq, AzBuf, Serialize, Default)]
 #[serde(transparent)]
 pub struct Enchantments {
+    /// Enchantment levels here are 1-indexed, level 0 does not exist.
     #[var]
-    pub levels: HashMap<Enchantment, u32>,
+    pub levels: HashMap<Enchantment, i32>,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -421,14 +424,6 @@ pub enum EquipmentSlotGroup {
     Body,
 }
 
-#[derive(Clone, Copy, PartialEq, AzBuf, Debug, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub enum AttributeModifierOperation {
-    AddValue,
-    AddMultipliedBase,
-    AddMultipliedTotal,
-}
-
 // this is duplicated in azalea-entity, BUT the one there has a different
 // protocol format (and we can't use it anyways because it would cause a
 // circular dependency)
@@ -450,7 +445,7 @@ pub struct AttributeModifiersEntry {
     pub display: AttributeModifierDisplay,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize, Default)]
 #[serde(transparent)]
 pub struct AttributeModifiers {
     pub modifiers: Vec<AttributeModifiersEntry>,
@@ -1108,7 +1103,8 @@ impl Default for Equippable {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, AzBuf, Serialize)]
+/// An enum that represents inventory slots that can hold items.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, AzBuf, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum EquipmentSlot {
     Mainhand,
@@ -1117,8 +1113,54 @@ pub enum EquipmentSlot {
     Legs,
     Chest,
     Head,
+    /// This is for animal armor, use [`Self::Chest`] for the chestplate slot.
     Body,
     Saddle,
+}
+impl EquipmentSlot {
+    #[must_use]
+    pub fn from_byte(byte: u8) -> Option<Self> {
+        let value = match byte {
+            0 => Self::Mainhand,
+            1 => Self::Offhand,
+            2 => Self::Feet,
+            3 => Self::Legs,
+            4 => Self::Chest,
+            5 => Self::Head,
+            _ => return None,
+        };
+        Some(value)
+    }
+    pub fn values() -> [Self; 8] {
+        [
+            Self::Mainhand,
+            Self::Offhand,
+            Self::Feet,
+            Self::Legs,
+            Self::Chest,
+            Self::Head,
+            Self::Body,
+            Self::Saddle,
+        ]
+    }
+    /// Get the display name for the equipment slot, like "mainhand".
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Mainhand => "mainhand",
+            Self::Offhand => "offhand",
+            Self::Feet => "feet",
+            Self::Legs => "legs",
+            Self::Chest => "chest",
+            Self::Head => "head",
+            Self::Body => "body",
+            Self::Saddle => "saddle",
+        }
+    }
+}
+impl Display for EquipmentSlot {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.name())
+    }
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]

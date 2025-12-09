@@ -180,6 +180,7 @@ def update_default_variants(version_id: str):
 use std::collections::HashMap;
 
 use azalea_chat::translatable_component::TranslatableComponent;
+use azalea_core::attribute_modifier_operation::AttributeModifierOperation;
 use azalea_registry::{
     Attribute, Block, DataRegistry, EntityKind, HolderSet, Item, MobEffect, SoundEvent,
 };
@@ -385,9 +386,9 @@ use crate::{
                 # create a struct based on the defaults
                 t = f"{target_rust_type} {{"
                 for k, v in python_value.items():
-                    if k == 'type':
+                    if k == "type":
                         # azalea's convention is to use "kind" instead of "type"
-                        k = 'kind'
+                        k = "kind"
 
                     # get the type of the fields
                     inner_type = enum_and_struct_fields.get(target_rust_type, {}).get(
@@ -417,17 +418,19 @@ use crate::{
                     [python_value], f"Vec<{holderset_type}>"
                 )
                 return f"HolderSet::Direct {{ contents: {main_vec} }}"
-            elif target_rust_type.startswith("azalea_registry::Holder<") or  target_rust_type.startswith("Holder<"):
+            elif target_rust_type.startswith(
+                "azalea_registry::Holder<"
+            ) or target_rust_type.startswith("Holder<"):
                 holder_type = target_rust_type.split("<", 1)[1].split(",", 1)[0]
                 inner_type = python_to_rust_value(python_value, holder_type)
                 return f"azalea_registry::Holder::Reference({inner_type})"
             elif target_rust_type == "Identifier":
                 # convert minecraft:air into Identifier::from_static("minecraft:air")
                 return f'"{python_value}".into()'
-            elif target_rust_type == 'DamageType':
+            elif target_rust_type == "DamageType":
                 # TODO: this is intentionally incorrect, see the comment in
                 # azalea-registry/src/data.rs to see how to fix this properly
-                return 'DamageType::Registry(azalea_registry::DamageKind::new_raw(0))'
+                return "DamageType::Registry(azalea_registry::DamageKind::new_raw(0))"
             else:
                 # enum variant
                 return f"{target_rust_type}::{lib.utils.to_camel_case(python_value.split(':')[-1])}"

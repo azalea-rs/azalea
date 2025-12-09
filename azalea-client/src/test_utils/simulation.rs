@@ -1,4 +1,4 @@
-use std::{collections::VecDeque, fmt::Debug, sync::Arc};
+use std::{any, collections::VecDeque, fmt::Debug, sync::Arc};
 
 use azalea_auth::game_profile::GameProfile;
 use azalea_block::BlockState;
@@ -28,7 +28,12 @@ use azalea_protocol::{
 use azalea_registry::{Biome, DataRegistry, DimensionType, EntityKind};
 use azalea_world::{Chunk, Instance, MinecraftEntityId, Section, palette::PalettedContainer};
 use bevy_app::App;
-use bevy_ecs::{component::Mutable, prelude::*, schedule::ExecutorKind};
+use bevy_ecs::{
+    component::Mutable,
+    prelude::*,
+    query::{QueryData, QueryItem},
+    schedule::ExecutorKind,
+};
 use parking_lot::{Mutex, RwLock};
 use simdnbt::owned::{NbtCompound, NbtTag};
 use uuid::Uuid;
@@ -133,6 +138,18 @@ impl Simulation {
     pub fn with_component<T: Component>(&self, f: impl FnOnce(&T)) {
         f(self.app.world().entity(self.entity).get::<T>().unwrap());
     }
+    pub fn query_self<D: QueryData, R>(&mut self, f: impl FnOnce(QueryItem<D>) -> R) -> R {
+        let mut ecs = self.app.world_mut();
+        let mut qs = ecs.query::<D>();
+        let res = qs.get_mut(&mut ecs, self.entity).unwrap_or_else(|_| {
+            panic!(
+                "Our client is missing a required component {:?}",
+                any::type_name::<D>()
+            )
+        });
+        f(res)
+    }
+
     pub fn with_component_mut<T: Component<Mutability = Mutable>>(
         &mut self,
         f: impl FnOnce(&mut T),

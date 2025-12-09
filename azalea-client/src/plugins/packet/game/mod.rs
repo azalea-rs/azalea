@@ -10,6 +10,7 @@ use azalea_entity::{
     ActiveEffects, Dead, EntityBundle, EntityKindComponent, HasClientLoaded, LoadedBy, LocalEntity,
     LookDirection, Physics, PlayerAbilities, Position, RelativeEntityUpdate,
     indexing::{EntityIdIndex, EntityUuidIndex},
+    inventory::Inventory,
     metadata::{Health, apply_metadata},
 };
 use azalea_protocol::{
@@ -29,9 +30,7 @@ use crate::{
     connection::RawConnection,
     disconnect::DisconnectEvent,
     interact::BlockStatePredictionHandler,
-    inventory::{
-        ClientsideCloseContainerEvent, Inventory, MenuOpenedEvent, SetContainerContentEvent,
-    },
+    inventory::{ClientsideCloseContainerEvent, MenuOpenedEvent, SetContainerContentEvent},
     local_player::{Hunger, InstanceHolder, LocalGameMode, TabList},
     movement::{KnockbackEvent, KnockbackType},
     packet::{as_system, declare_packet_handlers},
@@ -245,26 +244,30 @@ impl GamePacketHandler<'_> {
                         .insert(InstanceName(new_instance_name.clone()));
                 }
 
-                let Some((_dimension_type, dimension_data)) = p
-                    .common
-                    .dimension_type(&instance_holder.instance.read().registries)
-                else {
-                    return;
-                };
+                let weak_instance;
+                {
+                    let client_registries = &instance_holder.instance.read().registries;
 
-                // add this world to the instance_container (or don't if it's already
-                // there)
-                let weak_instance = instance_container.get_or_insert(
-                    new_instance_name.clone(),
-                    dimension_data.height,
-                    dimension_data.min_y,
-                    &instance_holder.instance.read().registries,
-                );
-                instance_loaded_events.write(InstanceLoadedEvent {
-                    entity: self.player,
-                    name: new_instance_name.clone(),
-                    instance: Arc::downgrade(&weak_instance),
-                });
+                    let Some((_dimension_type, dimension_data)) =
+                        p.common.dimension_type(client_registries)
+                    else {
+                        return;
+                    };
+
+                    // add this world to the instance_container (or don't if it's already
+                    // there)
+                    weak_instance = instance_container.get_or_insert(
+                        new_instance_name.clone(),
+                        dimension_data.height,
+                        dimension_data.min_y,
+                        client_registries,
+                    );
+                    instance_loaded_events.write(InstanceLoadedEvent {
+                        entity: self.player,
+                        name: new_instance_name.clone(),
+                        instance: Arc::downgrade(&weak_instance),
+                    });
+                }
 
                 // set the partial_world to an empty world
                 // (when we add chunks or entities those will be in the
@@ -279,12 +282,10 @@ impl GamePacketHandler<'_> {
                     Some(self.player),
                 );
                 {
-                    let map = instance_holder.instance.read().registries.map.clone();
-                    let new_registries = &mut weak_instance.write().registries;
+                    let client_registries = instance_holder.instance.read().registries.clone();
+                    let shared_registries = &mut weak_instance.write().registries;
                     // add the registries from this instance to the weak instance
-                    for (registry_name, registry) in map {
-                        new_registries.map.insert(registry_name, registry);
-                    }
+                    shared_registries.extend(client_registries);
                 }
                 instance_holder.instance = weak_instance;
 
@@ -1432,26 +1433,29 @@ impl GamePacketHandler<'_> {
                         .insert(InstanceName(new_instance_name.clone()));
                 }
 
-                let Some((_dimension_type, dimension_data)) = p
-                    .common
-                    .dimension_type(&instance_holder.instance.read().registries)
-                else {
-                    return;
-                };
+                let weak_instance;
+                {
+                    let client_registries = &instance_holder.instance.read().registries;
+                    let Some((_dimension_type, dimension_data)) =
+                        p.common.dimension_type(client_registries)
+                    else {
+                        return;
+                    };
 
-                // add this world to the instance_container (or don't if it's already
-                // there)
-                let weak_instance = instance_container.get_or_insert(
-                    new_instance_name.clone(),
-                    dimension_data.height,
-                    dimension_data.min_y,
-                    &instance_holder.instance.read().registries,
-                );
-                events.write(InstanceLoadedEvent {
-                    entity: self.player,
-                    name: new_instance_name.clone(),
-                    instance: Arc::downgrade(&weak_instance),
-                });
+                    // add this world to the instance_container (or don't if it's already
+                    // there)
+                    weak_instance = instance_container.get_or_insert(
+                        new_instance_name.clone(),
+                        dimension_data.height,
+                        dimension_data.min_y,
+                        client_registries,
+                    );
+                    events.write(InstanceLoadedEvent {
+                        entity: self.player,
+                        name: new_instance_name.clone(),
+                        instance: Arc::downgrade(&weak_instance),
+                    });
+                }
 
                 // set the partial_world to an empty world
                 // (when we add chunks or entities those will be in the

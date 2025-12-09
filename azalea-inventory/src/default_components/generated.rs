@@ -6,6 +6,7 @@
 use std::collections::HashMap;
 
 use azalea_chat::translatable_component::TranslatableComponent;
+use azalea_core::attribute_modifier_operation::AttributeModifierOperation;
 use azalea_registry::{
     Attribute, Block, DataRegistry, EntityKind, HolderSet, Item, MobEffect, SoundEvent,
 };
