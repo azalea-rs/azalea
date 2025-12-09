@@ -1,11 +1,12 @@
 use std::collections::HashMap;
 
+use azalea_buf::AzBuf;
 use simdnbt::{
     Deserialize, FromNbtTag, Serialize, ToNbtTag,
     owned::{NbtCompound, NbtTag},
 };
 
-use crate::identifier::Identifier;
+use crate::{codec_utils::*, identifier::Identifier};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
@@ -243,12 +244,16 @@ pub struct TrimPatternElement {
     pub pattern: HashMap<String, String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(
+    Debug, Clone, serde::Serialize, simdnbt::Serialize, simdnbt::Deserialize, AzBuf, PartialEq,
+)]
 #[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
 pub struct DamageTypeElement {
     pub message_id: String,
     pub scaling: String,
     pub exhaustion: f32,
+    #[serde(skip_serializing_if = "is_default")]
     pub effects: Option<String>,
+    #[serde(skip_serializing_if = "is_default")]
     pub death_message_type: Option<String>,
 }

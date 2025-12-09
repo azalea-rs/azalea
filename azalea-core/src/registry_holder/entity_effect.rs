@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, str::FromStr};
 
 use azalea_registry::{
     EnchantmentEntityEffectKind as EntityEffectKind, GameEvent, Holder, ParticleKind, SoundEvent,
@@ -26,6 +26,8 @@ pub enum EntityEffect {
     DamageEntity(DamageEntity),
     Explode(Explode),
     Ignite(Ignite),
+    ApplyImpulse(ApplyEntityImpulse),
+    ApplyExhaustion(ApplyExhaustion),
     PlaySound(PlaySound),
     ReplaceBlock(ReplaceBlock),
     ReplaceDisk(ReplaceDisk),
@@ -51,6 +53,12 @@ impl Deserialize for EntityEffect {
             }
             EntityEffectKind::Explode => Deserialize::from_compound(nbt).map(Self::Explode),
             EntityEffectKind::Ignite => Deserialize::from_compound(nbt).map(Self::Ignite),
+            EntityEffectKind::ApplyImpulse => {
+                Deserialize::from_compound(nbt).map(Self::ApplyImpulse)
+            }
+            EntityEffectKind::ApplyExhaustion => {
+                Deserialize::from_compound(nbt).map(Self::ApplyExhaustion)
+            }
             EntityEffectKind::PlaySound => Deserialize::from_compound(nbt).map(Self::PlaySound),
             EntityEffectKind::ReplaceBlock => {
                 Deserialize::from_compound(nbt).map(Self::ReplaceBlock)
@@ -154,11 +162,44 @@ pub struct ApplyExhaustion {
     pub amount: LevelBasedValue,
 }
 
-#[derive(Debug, Clone, simdnbt::Deserialize)]
+#[derive(Debug, Clone)]
 pub struct PlaySound {
-    pub sound: Holder<SoundEvent, CustomSound>,
+    // #[simdnbt(compact)]
+    pub sound: Vec<Holder<SoundEvent, CustomSound>>,
     pub volume: FloatProvider,
     pub pitch: FloatProvider,
+}
+
+impl Deserialize for PlaySound {
+    fn from_compound(nbt: NbtCompound) -> Result<Self, DeserializeError> {
+        let sound = if let Some(list) = nbt.list("sound") {
+            // TODO: this will probably break in the future because it's only handling lists
+            // of strings. you should refactor simdnbt to have an owned NbtTag enum that
+            // contains the borrow types so this works for more than just
+            // strings.
+            list.strings()
+                .ok_or(DeserializeError::MissingField)?
+                .into_iter()
+                .map(|s| {
+                    SoundEvent::from_str(&s.to_str())
+                        .map(Holder::Reference)
+                        .ok()
+                })
+                .collect::<Option<_>>()
+                .ok_or(DeserializeError::MissingField)?
+        } else {
+            vec![get_in_compound(&nbt, "sound")?]
+        };
+
+        let volume = get_in_compound(&nbt, "volume")?;
+        let pitch = get_in_compound(&nbt, "pitch")?;
+
+        Ok(Self {
+            sound,
+            volume,
+            pitch,
+        })
+    }
 }
 
 #[derive(Debug, Clone, simdnbt::Deserialize)]

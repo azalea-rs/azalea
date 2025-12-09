@@ -15,11 +15,25 @@ use crate::{
 
 #[derive(Debug, Clone)]
 pub enum ValueEffect {
-    Set { value: LevelBasedValue },
-    Add { value: LevelBasedValue },
-    Multiply { factor: LevelBasedValue },
-    RemoveBinomial { chance: LevelBasedValue },
-    AllOf { effects: Vec<ValueEffect> },
+    Set {
+        value: LevelBasedValue,
+    },
+    Add {
+        value: LevelBasedValue,
+    },
+    Multiply {
+        factor: LevelBasedValue,
+    },
+    RemoveBinomial {
+        chance: LevelBasedValue,
+    },
+    AllOf {
+        effects: Vec<ValueEffect>,
+    },
+    Exponential {
+        base: LevelBasedValue,
+        exponent: LevelBasedValue,
+    },
 }
 
 impl simdnbt::Deserialize for ValueEffect {
@@ -45,6 +59,11 @@ impl simdnbt::Deserialize for ValueEffect {
             ValueEffectKind::AllOf => {
                 let effects = get_in_compound(&nbt, "effects")?;
                 Self::AllOf { effects }
+            }
+            ValueEffectKind::Exponential => {
+                let base = get_in_compound(&nbt, "base")?;
+                let exponent = get_in_compound(&nbt, "exponent")?;
+                Self::Exponential { base, exponent }
             }
         };
         Ok(value)
@@ -142,11 +161,11 @@ impl LevelBasedValue {
     fn from_compound(nbt: NbtCompound) -> Result<Self, DeserializeError> {
         let kind = get_in_compound(&nbt, "type")?;
         let value = match kind {
-            // LevelBasedValueKind::Exponent => {
-            //     let base = get_in_compound(&nbt, "base")?;
-            //     let power = get_in_compound(&nbt, "power")?;
-            //     return Ok(Self::Exponent { base, power });
-            // }
+            LevelBasedValueKind::Exponent => {
+                let base = Box::new(get_in_compound(&nbt, "base")?);
+                let power = Box::new(get_in_compound(&nbt, "power")?);
+                return Ok(Self::Exponent { base, power });
+            }
             LevelBasedValueKind::Linear => {
                 let base = get_in_compound(&nbt, "base")?;
                 let per_level_above_first = get_in_compound(&nbt, "per_level_above_first")?;
