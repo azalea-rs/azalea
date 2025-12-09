@@ -36,7 +36,7 @@ pub trait ContainerClientExt {
     /// configure this.
     ///
     /// ```
-    /// # use azalea::{prelude::*, azalea::registry::Block};
+    /// # use azalea::{prelude::*, registry::Block};
     /// # async fn example(mut bot: azalea::Client) {
     /// let target_pos = bot
     ///     .world()

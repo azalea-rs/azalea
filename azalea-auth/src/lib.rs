@@ -12,4 +12,3 @@ pub mod sessionserver;
 pub use auth::*;
 
 pub mod game_profile;
-pub mod offline;
