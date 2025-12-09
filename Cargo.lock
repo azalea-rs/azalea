@@ -497,6 +497,7 @@ dependencies = [
  "futures-lite",
  "hickory-resolver",
  "indexmap",
+ "reqwest",
  "serde",
  "serde_json",
  "simdnbt",

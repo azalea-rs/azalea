@@ -56,7 +56,7 @@ pub async fn ping_server(
     ping_server_with_connection(address, conn).await
 }
 
-/// Ping a Minecraft server through a Socks5 proxy.
+/// Ping a Minecraft server through a SOCKS5 proxy.
 pub async fn ping_server_with_proxy(
     address: impl TryInto<ServerAddress>,
     proxy: Proxy,

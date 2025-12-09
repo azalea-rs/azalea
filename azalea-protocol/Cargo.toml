@@ -41,12 +41,13 @@ tracing.workspace = true
 hickory-resolver = { workspace = true, features = ["tokio", "system-config"] }
 uuid.workspace = true
 indexmap.workspace = true
+reqwest = { workspace = true, optional = true, features = ["socks"] }
 
 [features]
 default = ["packets", "online-mode"]
 connecting = []
 packets = ["connecting", "dep:azalea-core"]
-online-mode = ["azalea-auth/online-mode"]
+online-mode = ["azalea-auth/online-mode", "dep:reqwest"]
 
 [lints]
 workspace = true

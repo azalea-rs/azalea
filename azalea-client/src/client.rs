@@ -122,14 +122,39 @@ impl StartClientOpts {
             connect_opts: ConnectOpts {
                 address,
                 resolved_address,
-                proxy: None,
+                server_proxy: None,
+                auth_proxy: None,
             },
             event_sender,
         }
     }
 
-    pub fn proxy(mut self, proxy: Proxy) -> Self {
-        self.connect_opts.proxy = Some(proxy);
+    /// Configure the SOCKS5 proxy used for connecting to the server and for
+    /// authenticating with Mojang.
+    ///
+    /// To configure these separately, for example to only use the proxy for the
+    /// Minecraft server and not for authentication, you may use
+    /// [`Self::server_proxy`] and [`Self::auth_proxy`] individually.
+    pub fn proxy(self, proxy: Proxy) -> Self {
+        self.server_proxy(proxy.clone()).auth_proxy(proxy)
+    }
+    /// Configure the SOCKS5 proxy that will be used for connecting to the
+    /// Minecraft server.
+    ///
+    /// To avoid errors on servers with the "prevent-proxy-connections" option
+    /// set, you should usually use [`Self::proxy`] instead.
+    ///
+    /// Also see [`Self::auth_proxy`].
+    pub fn server_proxy(mut self, proxy: Proxy) -> Self {
+        self.connect_opts.server_proxy = Some(proxy);
+        self
+    }
+    /// Configure the SOCKS5 proxy that this bot will use for authenticating the
+    /// server join with Mojang's API.
+    ///
+    /// Also see [`Self::proxy`] and [`Self::server_proxy`].
+    pub fn auth_proxy(mut self, proxy: Proxy) -> Self {
+        self.connect_opts.auth_proxy = Some(proxy);
         self
     }
 }
