@@ -1634,6 +1634,8 @@ pub enum SwingAnimationKind {
 pub struct AttackRange {
     pub min_reach: f32,
     pub max_reach: f32,
+    pub min_creative_reach: f32,
+    pub max_creative_reach: f32,
     pub hitbox_margin: f32,
     pub mob_factor: f32,
 }
@@ -1642,6 +1644,8 @@ impl AttackRange {
         Self {
             min_reach: 0.,
             max_reach: 3.,
+            min_creative_reach: 0.,
+            max_creative_reach: 5.,
             hitbox_margin: 0.3,
             mob_factor: 1.,
         }
