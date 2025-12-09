@@ -25,6 +25,7 @@ is breaking anyways, semantic versioning is not followed.
 - Add `Client::open_container_at_with_timeout_ticks`, and `Client::open_container_at` now times out after 5 seconds.
 - Rename `ResourceLocation` to `Identifier` to match Minecraft's new internal naming.
 - Rename `azalea_protocol::resolver` to `resolve` and `ResolverError` to `ResolveError`.
+- Mojang's sessionserver is now requested using the SOCKS5 proxy given in `JoinOpts::proxy`.
 
 ### Fixed
 
