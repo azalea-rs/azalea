@@ -11,7 +11,7 @@ use azalea_protocol::{
         },
     },
 };
-use azalea_registry::builtin::Block;
+use azalea_registry::builtin::BlockKind;
 
 #[test]
 fn test_correct_movement() {
@@ -34,7 +34,7 @@ fn test_correct_movement() {
     ));
     simulation.receive_packet(ClientboundBlockUpdate {
         pos: BlockPos::new(31, 63, 370),
-        block_state: Block::Stone.into(),
+        block_state: BlockKind::Stone.into(),
     });
     simulation.receive_packet(ClientboundPlayerPosition {
         id: 1,

@@ -18,7 +18,7 @@ use azalea_entity::{
     Attributes, Jumping, LookDirection, OnClimbable, Physics, PlayerAbilities, Pose, Position,
     metadata::Sprinting,
 };
-use azalea_registry::builtin::Block;
+use azalea_registry::builtin::BlockKind;
 use azalea_world::{ChunkStorage, Instance};
 use bevy_ecs::{entity::Entity, world::Mut};
 pub use blocks::BlockWithShape;
@@ -484,10 +484,10 @@ pub fn legacy_blocks_motion(block: BlockState) -> bool {
         return false;
     }
 
-    let registry_block = Block::from(block);
+    let registry_block = BlockKind::from(block);
     legacy_calculate_solid(block)
-        && registry_block != Block::Cobweb
-        && registry_block != Block::BambooSapling
+        && registry_block != BlockKind::Cobweb
+        && registry_block != BlockKind::BambooSapling
 }
 
 pub fn legacy_calculate_solid(block: BlockState) -> bool {

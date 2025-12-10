@@ -13,7 +13,7 @@ use azalea::{
 };
 use azalea_core::position::{ChunkBlockPos, ChunkPos};
 use azalea_inventory::Menu;
-use azalea_registry::builtin::Block;
+use azalea_registry::builtin::BlockKind;
 use azalea_world::{Chunk, ChunkStorage, PartialChunkStorage};
 use criterion::{Bencher, Criterion, criterion_group, criterion_main};
 use parking_lot::RwLock;
@@ -45,13 +45,13 @@ fn generate_bedrock_world(
                 for z in 0..16_u8 {
                     chunk.set_block_state(
                         &ChunkBlockPos::new(x, 1, z),
-                        Block::Bedrock.into(),
+                        BlockKind::Bedrock.into(),
                         chunks.min_y,
                     );
                     if rng.random_bool(0.5) {
                         chunk.set_block_state(
                             &ChunkBlockPos::new(x, 2, z),
-                            Block::Bedrock.into(),
+                            BlockKind::Bedrock.into(),
                             chunks.min_y,
                         );
                     }
@@ -103,7 +103,7 @@ fn generate_mining_world(
                     for z in 0..16_u8 {
                         chunk.set_block_state(
                             &ChunkBlockPos::new(x, y, z),
-                            Block::Stone.into(),
+                            BlockKind::Stone.into(),
                             chunks.min_y,
                         );
                     }

@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use azalea_buf::AzBuf;
 use azalea_core::position::{BlockPos, Vec3};
-use azalea_registry::builtin::{Block, DebugSubscription, GameEvent, PointOfInterestKind};
+use azalea_registry::builtin::{BlockKind, DebugSubscription, GameEvent, PointOfInterestKind};
 
 // see DebugSubscriptions.java
 
@@ -119,7 +119,7 @@ pub enum DebugEntityBlockIntersection {
 
 #[derive(Clone, Debug, AzBuf, PartialEq)]
 pub struct DebugHiveInfo {
-    pub kind: Block,
+    pub kind: BlockKind,
     #[var]
     pub occupant_count: i32,
     #[var]

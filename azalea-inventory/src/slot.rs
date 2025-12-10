@@ -7,7 +7,7 @@ use std::{
 
 use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
 use azalea_core::codec_utils::is_default;
-use azalea_registry::builtin::{DataComponentKind, Item};
+use azalea_registry::builtin::{DataComponentKind, ItemKind};
 use indexmap::IndexMap;
 use serde::{Serialize, ser::SerializeMap};
 
@@ -25,11 +25,11 @@ pub enum ItemStack {
 }
 
 impl ItemStack {
-    /// Create a new [`ItemStack`] with the given number of [`Item`]s.
+    /// Create a new [`ItemStack`] with the given number of [`ItemKind`]s.
     ///
     /// If item is air or the count isn't positive, then it'll be set to an
     /// empty `ItemStack`.
-    pub fn new(item: Item, count: i32) -> Self {
+    pub fn new(item: ItemKind, count: i32) -> Self {
         let mut i = ItemStack::Present(ItemStackData::new(item, count));
         // set it to Empty if the item is air or if the count isn't positive
         i.update_empty();
@@ -79,10 +79,10 @@ impl ItemStack {
         }
     }
 
-    /// Get the `kind` of the item in this slot, or [`Item::Air`]
-    pub fn kind(&self) -> Item {
+    /// Get the `kind` of the item in this slot, or [`ItemKind::Air`]
+    pub fn kind(&self) -> ItemKind {
         match self {
-            ItemStack::Empty => Item::Air,
+            ItemStack::Empty => ItemKind::Air,
             ItemStack::Present(i) => i.kind,
         }
     }
@@ -147,11 +147,12 @@ impl Serialize for ItemStack {
 
 /// An item in an inventory, with a count and a set of data components.
 ///
-/// Usually you want [`ItemStack`] or [`azalea_registry::Item`] instead.
+/// Usually you want [`ItemStack`] or
+/// [`ItemKind`](azalea_registry::builtin::ItemKind) instead.
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct ItemStackData {
     #[serde(rename = "id")]
-    pub kind: Item,
+    pub kind: ItemKind,
     /// The amount of the item in this slot.
     ///
     /// The count can be zero or negative, but this is rare.
@@ -163,8 +164,8 @@ pub struct ItemStackData {
 }
 
 impl ItemStackData {
-    /// Create a new [`ItemStackData`] with the given number of [`Item`]s.
-    pub fn new(item: Item, count: i32) -> Self {
+    /// Create a new [`ItemStackData`] with the given number of [`ItemKind`]s.
+    pub fn new(item: ItemKind, count: i32) -> Self {
         ItemStackData {
             count,
             kind: item,
@@ -183,19 +184,19 @@ impl ItemStackData {
 
     /// Check if the count of the item is <= 0 or if the item is air.
     pub fn is_empty(&self) -> bool {
-        self.count <= 0 || self.kind == Item::Air
+        self.count <= 0 || self.kind == ItemKind::Air
     }
 
     /// Whether this item is the same as another item, ignoring the count.
     ///
     /// ```
     /// # use azalea_inventory::ItemStackData;
-    /// # use azalea_registry::Item;
-    /// let mut a = ItemStackData::from(Item::Stone);
-    /// let mut b = ItemStackData::new(Item::Stone, 2);
+    /// # use azalea_registry::builtin::ItemKind;
+    /// let mut a = ItemStackData::from(ItemKind::Stone);
+    /// let mut b = ItemStackData::new(ItemKind::Stone, 2);
     /// assert!(a.is_same_item_and_components(&b));
     ///
-    /// b.kind = Item::Dirt;
+    /// b.kind = ItemKind::Dirt;
     /// assert!(!a.is_same_item_and_components(&b));
     /// ```
     pub fn is_same_item_and_components(&self, other: &ItemStackData) -> bool {
@@ -221,7 +222,7 @@ impl AzaleaRead for ItemStack {
         if count <= 0 {
             Ok(ItemStack::Empty)
         } else {
-            let kind = Item::azalea_read(buf)?;
+            let kind = ItemKind::azalea_read(buf)?;
             let component_patch = DataComponentPatch::azalea_read(buf)?;
             Ok(ItemStack::Present(ItemStackData {
                 count,
@@ -255,23 +256,23 @@ impl From<ItemStackData> for ItemStack {
         }
     }
 }
-impl From<Item> for ItemStack {
-    fn from(item: Item) -> Self {
+impl From<ItemKind> for ItemStack {
+    fn from(item: ItemKind) -> Self {
         ItemStack::new(item, 1)
     }
 }
-impl From<(Item, i32)> for ItemStack {
-    fn from(item: (Item, i32)) -> Self {
+impl From<(ItemKind, i32)> for ItemStack {
+    fn from(item: (ItemKind, i32)) -> Self {
         ItemStack::new(item.0, item.1)
     }
 }
-impl From<Item> for ItemStackData {
-    fn from(item: Item) -> Self {
+impl From<ItemKind> for ItemStackData {
+    fn from(item: ItemKind) -> Self {
         ItemStackData::new(item, 1)
     }
 }
-impl From<(Item, i32)> for ItemStackData {
-    fn from(item: (Item, i32)) -> Self {
+impl From<(ItemKind, i32)> for ItemStackData {
+    fn from(item: (ItemKind, i32)) -> Self {
         ItemStackData::new(item.0, item.1)
     }
 }
@@ -291,7 +292,7 @@ impl DataComponentPatch {
     ///
     /// ```
     /// # use azalea_inventory::{ItemStackData, DataComponentPatch, components};
-    /// # use azalea_registry::Item;
+    /// # use azalea_registry::builtin::ItemKind;
     /// # fn example(item: &ItemStackData) -> Option<()> {
     /// let item_nutrition = item.component_patch.get::<components::Food>()?.nutrition;
     /// # Some(())
@@ -321,8 +322,8 @@ impl DataComponentPatch {
     ///
     /// ```
     /// # use azalea_inventory::{ItemStackData, DataComponentPatch, components};
-    /// # use azalea_registry::Item;
-    /// # let item = ItemStackData::from(Item::Stone);
+    /// # use azalea_registry::builtin::ItemKind;
+    /// # let item = ItemStackData::from(ItemKind::Stone);
     /// let is_edible = item.component_patch.has::<components::Food>();
     /// # assert!(!is_edible);
     /// ```
@@ -506,7 +507,7 @@ mod tests {
 
     #[test]
     fn test_get_component() {
-        let item = ItemStack::from(Item::Map).with_component(MapId { id: 1 });
+        let item = ItemStack::from(ItemKind::Map).with_component(MapId { id: 1 });
         let map_id = item.get_component::<MapId>().unwrap();
         assert_eq!(map_id.id, 1);
     }

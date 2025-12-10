@@ -5,7 +5,7 @@ use azalea_protocol::packets::{
     ConnectionProtocol, Packet,
     config::{ClientboundFinishConfiguration, ClientboundRegistryData},
 };
-use azalea_registry::{DataRegistry, DimensionType};
+use azalea_registry::{DataRegistry, data::DimensionType};
 use azalea_world::InstanceName;
 use simdnbt::owned::{NbtCompound, NbtTag};
 

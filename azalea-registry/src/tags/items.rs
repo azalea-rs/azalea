@@ -2,2399 +2,2435 @@
 
 use std::{collections::HashSet, sync::LazyLock};
 
-use crate::builtin::Item;
+use crate::builtin::ItemKind;
 
-pub static ACACIA_LOGS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::AcaciaLog,
-        Item::AcaciaWood,
-        Item::StrippedAcaciaLog,
-        Item::StrippedAcaciaWood,
-    ])
-});
-pub static ANVIL: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::Anvil, Item::ChippedAnvil, Item::DamagedAnvil]));
-pub static ARMADILLO_FOOD: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::SpiderEye]));
-pub static ARROWS: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::Arrow, Item::TippedArrow, Item::SpectralArrow]));
-pub static AXES: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::DiamondAxe,
-        Item::StoneAxe,
-        Item::GoldenAxe,
-        Item::NetheriteAxe,
-        Item::WoodenAxe,
-        Item::IronAxe,
-        Item::CopperAxe,
-    ])
-});
-pub static AXOLOTL_FOOD: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::TropicalFishBucket]));
-pub static BAMBOO_BLOCKS: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::BambooBlock, Item::StrippedBambooBlock]));
-pub static BANNERS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::WhiteBanner,
-        Item::OrangeBanner,
-        Item::MagentaBanner,
-        Item::LightBlueBanner,
-        Item::YellowBanner,
-        Item::LimeBanner,
-        Item::PinkBanner,
-        Item::GrayBanner,
-        Item::LightGrayBanner,
-        Item::CyanBanner,
-        Item::PurpleBanner,
-        Item::BlueBanner,
-        Item::BrownBanner,
-        Item::GreenBanner,
-        Item::RedBanner,
-        Item::BlackBanner,
-    ])
-});
-pub static BARS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::IronBars,
-        Item::CopperBars,
-        Item::WaxedCopperBars,
-        Item::ExposedCopperBars,
-        Item::WaxedExposedCopperBars,
-        Item::WeatheredCopperBars,
-        Item::WaxedWeatheredCopperBars,
-        Item::OxidizedCopperBars,
-        Item::WaxedOxidizedCopperBars,
-    ])
-});
-pub static BEACON_PAYMENT_ITEMS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::NetheriteIngot,
-        Item::Emerald,
-        Item::Diamond,
-        Item::GoldIngot,
-        Item::IronIngot,
-    ])
-});
-pub static BEDS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::RedBed,
-        Item::BlackBed,
-        Item::BlueBed,
-        Item::BrownBed,
-        Item::CyanBed,
-        Item::GrayBed,
-        Item::GreenBed,
-        Item::LightBlueBed,
-        Item::LightGrayBed,
-        Item::LimeBed,
-        Item::MagentaBed,
-        Item::OrangeBed,
-        Item::PinkBed,
-        Item::PurpleBed,
-        Item::WhiteBed,
-        Item::YellowBed,
-    ])
-});
-pub static BEE_FOOD: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::Dandelion,
-        Item::OpenEyeblossom,
-        Item::Poppy,
-        Item::BlueOrchid,
-        Item::Allium,
-        Item::AzureBluet,
-        Item::RedTulip,
-        Item::OrangeTulip,
-        Item::WhiteTulip,
-        Item::PinkTulip,
-        Item::OxeyeDaisy,
-        Item::Cornflower,
-        Item::LilyOfTheValley,
-        Item::WitherRose,
-        Item::Torchflower,
-        Item::Sunflower,
-        Item::Lilac,
-        Item::Peony,
-        Item::RoseBush,
-        Item::PitcherPlant,
-        Item::FloweringAzaleaLeaves,
-        Item::FloweringAzalea,
-        Item::MangrovePropagule,
-        Item::CherryLeaves,
-        Item::PinkPetals,
-        Item::Wildflowers,
-        Item::ChorusFlower,
-        Item::SporeBlossom,
-        Item::CactusFlower,
-    ])
-});
-pub static BIRCH_LOGS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::BirchLog,
-        Item::BirchWood,
-        Item::StrippedBirchLog,
-        Item::StrippedBirchWood,
-    ])
-});
-pub static BOATS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::OakBoat,
-        Item::SpruceBoat,
-        Item::BirchBoat,
-        Item::JungleBoat,
-        Item::AcaciaBoat,
-        Item::DarkOakBoat,
-        Item::PaleOakBoat,
-        Item::MangroveBoat,
-        Item::BambooRaft,
-        Item::CherryBoat,
-        Item::OakChestBoat,
-        Item::SpruceChestBoat,
-        Item::BirchChestBoat,
-        Item::JungleChestBoat,
-        Item::AcaciaChestBoat,
-        Item::DarkOakChestBoat,
-        Item::PaleOakChestBoat,
-        Item::MangroveChestBoat,
-        Item::BambooChestRaft,
-        Item::CherryChestBoat,
-    ])
-});
-pub static BOOK_CLONING_TARGET: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::WritableBook]));
-pub static BOOKSHELF_BOOKS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::Book,
-        Item::WrittenBook,
-        Item::EnchantedBook,
-        Item::WritableBook,
-        Item::KnowledgeBook,
-    ])
-});
-pub static BREAKS_DECORATED_POTS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::Trident,
-        Item::Mace,
-        Item::DiamondSword,
-        Item::StoneSword,
-        Item::GoldenSword,
-        Item::NetheriteSword,
-        Item::WoodenSword,
-        Item::IronSword,
-        Item::CopperSword,
-        Item::DiamondAxe,
-        Item::StoneAxe,
-        Item::GoldenAxe,
-        Item::NetheriteAxe,
-        Item::WoodenAxe,
-        Item::IronAxe,
-        Item::CopperAxe,
-        Item::DiamondPickaxe,
-        Item::StonePickaxe,
-        Item::GoldenPickaxe,
-        Item::NetheritePickaxe,
-        Item::WoodenPickaxe,
-        Item::IronPickaxe,
-        Item::CopperPickaxe,
-        Item::DiamondShovel,
-        Item::StoneShovel,
-        Item::GoldenShovel,
-        Item::NetheriteShovel,
-        Item::WoodenShovel,
-        Item::IronShovel,
-        Item::CopperShovel,
-        Item::DiamondHoe,
-        Item::StoneHoe,
-        Item::GoldenHoe,
-        Item::NetheriteHoe,
-        Item::WoodenHoe,
-        Item::IronHoe,
-        Item::CopperHoe,
-    ])
-});
-pub static BREWING_FUEL: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::BlazePowder]));
-pub static BUNDLES: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::Bundle,
-        Item::BlackBundle,
-        Item::BlueBundle,
-        Item::BrownBundle,
-        Item::CyanBundle,
-        Item::GrayBundle,
-        Item::GreenBundle,
-        Item::LightBlueBundle,
-        Item::LightGrayBundle,
-        Item::LimeBundle,
-        Item::MagentaBundle,
-        Item::OrangeBundle,
-        Item::PinkBundle,
-        Item::PurpleBundle,
-        Item::RedBundle,
-        Item::YellowBundle,
-        Item::WhiteBundle,
-    ])
-});
-pub static BUTTONS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::OakButton,
-        Item::SpruceButton,
-        Item::BirchButton,
-        Item::JungleButton,
-        Item::AcaciaButton,
-        Item::DarkOakButton,
-        Item::PaleOakButton,
-        Item::CrimsonButton,
-        Item::WarpedButton,
-        Item::MangroveButton,
-        Item::BambooButton,
-        Item::CherryButton,
-        Item::StoneButton,
-        Item::PolishedBlackstoneButton,
-    ])
-});
-pub static CAMEL_FOOD: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::Cactus]));
-pub static CAMEL_HUSK_FOOD: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::RabbitFoot]));
-pub static CANDLES: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::Candle,
-        Item::WhiteCandle,
-        Item::OrangeCandle,
-        Item::MagentaCandle,
-        Item::LightBlueCandle,
-        Item::YellowCandle,
-        Item::LimeCandle,
-        Item::PinkCandle,
-        Item::GrayCandle,
-        Item::LightGrayCandle,
-        Item::CyanCandle,
-        Item::PurpleCandle,
-        Item::BlueCandle,
-        Item::BrownCandle,
-        Item::GreenCandle,
-        Item::RedCandle,
-        Item::BlackCandle,
-    ])
-});
-pub static CAT_FOOD: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::Cod, Item::Salmon]));
-pub static CHAINS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::IronChain,
-        Item::CopperChain,
-        Item::WaxedCopperChain,
-        Item::ExposedCopperChain,
-        Item::WaxedExposedCopperChain,
-        Item::WeatheredCopperChain,
-        Item::WaxedWeatheredCopperChain,
-        Item::OxidizedCopperChain,
-        Item::WaxedOxidizedCopperChain,
-    ])
-});
-pub static CHERRY_LOGS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::CherryLog,
-        Item::CherryWood,
-        Item::StrippedCherryLog,
-        Item::StrippedCherryWood,
-    ])
-});
-pub static CHEST_ARMOR: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::LeatherChestplate,
-        Item::CopperChestplate,
-        Item::ChainmailChestplate,
-        Item::GoldenChestplate,
-        Item::IronChestplate,
-        Item::DiamondChestplate,
-        Item::NetheriteChestplate,
-    ])
-});
-pub static CHEST_BOATS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::OakChestBoat,
-        Item::SpruceChestBoat,
-        Item::BirchChestBoat,
-        Item::JungleChestBoat,
-        Item::AcaciaChestBoat,
-        Item::DarkOakChestBoat,
-        Item::PaleOakChestBoat,
-        Item::MangroveChestBoat,
-        Item::BambooChestRaft,
-        Item::CherryChestBoat,
-    ])
-});
-pub static CHICKEN_FOOD: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::WheatSeeds,
-        Item::MelonSeeds,
-        Item::PumpkinSeeds,
-        Item::BeetrootSeeds,
-        Item::TorchflowerSeeds,
-        Item::PitcherPod,
-    ])
-});
-pub static CLUSTER_MAX_HARVESTABLES: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::DiamondPickaxe,
-        Item::GoldenPickaxe,
-        Item::IronPickaxe,
-        Item::NetheritePickaxe,
-        Item::StonePickaxe,
-        Item::WoodenPickaxe,
-        Item::CopperPickaxe,
-    ])
-});
-pub static COAL_ORES: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::CoalOre, Item::DeepslateCoalOre]));
-pub static COALS: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::Coal, Item::Charcoal]));
-pub static COMPASSES: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::Compass, Item::RecoveryCompass]));
-pub static COMPLETES_FIND_TREE_TUTORIAL: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::JungleLeaves,
-        Item::OakLeaves,
-        Item::SpruceLeaves,
-        Item::PaleOakLeaves,
-        Item::DarkOakLeaves,
-        Item::AcaciaLeaves,
-        Item::BirchLeaves,
-        Item::AzaleaLeaves,
-        Item::FloweringAzaleaLeaves,
-        Item::MangroveLeaves,
-        Item::CherryLeaves,
-        Item::NetherWartBlock,
-        Item::WarpedWartBlock,
-        Item::CrimsonStem,
-        Item::StrippedCrimsonStem,
-        Item::CrimsonHyphae,
-        Item::StrippedCrimsonHyphae,
-        Item::WarpedStem,
-        Item::StrippedWarpedStem,
-        Item::WarpedHyphae,
-        Item::StrippedWarpedHyphae,
-        Item::DarkOakLog,
-        Item::DarkOakWood,
-        Item::StrippedDarkOakLog,
-        Item::StrippedDarkOakWood,
-        Item::PaleOakLog,
-        Item::PaleOakWood,
-        Item::StrippedPaleOakLog,
-        Item::StrippedPaleOakWood,
-        Item::OakLog,
-        Item::OakWood,
-        Item::StrippedOakLog,
-        Item::StrippedOakWood,
-        Item::AcaciaLog,
-        Item::AcaciaWood,
-        Item::StrippedAcaciaLog,
-        Item::StrippedAcaciaWood,
-        Item::BirchLog,
-        Item::BirchWood,
-        Item::StrippedBirchLog,
-        Item::StrippedBirchWood,
-        Item::JungleLog,
-        Item::JungleWood,
-        Item::StrippedJungleLog,
-        Item::StrippedJungleWood,
-        Item::SpruceLog,
-        Item::SpruceWood,
-        Item::StrippedSpruceLog,
-        Item::StrippedSpruceWood,
-        Item::MangroveLog,
-        Item::MangroveWood,
-        Item::StrippedMangroveLog,
-        Item::StrippedMangroveWood,
-        Item::CherryLog,
-        Item::CherryWood,
-        Item::StrippedCherryLog,
-        Item::StrippedCherryWood,
-    ])
-});
-pub static COPPER: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::CopperBlock,
-        Item::ExposedCopper,
-        Item::WeatheredCopper,
-        Item::OxidizedCopper,
-        Item::WaxedCopperBlock,
-        Item::WaxedExposedCopper,
-        Item::WaxedWeatheredCopper,
-        Item::WaxedOxidizedCopper,
-    ])
-});
-pub static COPPER_CHESTS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::CopperChest,
-        Item::ExposedCopperChest,
-        Item::WeatheredCopperChest,
-        Item::OxidizedCopperChest,
-        Item::WaxedCopperChest,
-        Item::WaxedExposedCopperChest,
-        Item::WaxedWeatheredCopperChest,
-        Item::WaxedOxidizedCopperChest,
-    ])
-});
-pub static COPPER_GOLEM_STATUES: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::CopperGolemStatue,
-        Item::ExposedCopperGolemStatue,
-        Item::WeatheredCopperGolemStatue,
-        Item::OxidizedCopperGolemStatue,
-        Item::WaxedCopperGolemStatue,
-        Item::WaxedExposedCopperGolemStatue,
-        Item::WaxedWeatheredCopperGolemStatue,
-        Item::WaxedOxidizedCopperGolemStatue,
-    ])
-});
-pub static COPPER_ORES: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::CopperOre, Item::DeepslateCopperOre]));
-pub static COPPER_TOOL_MATERIALS: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::CopperIngot]));
-pub static COW_FOOD: LazyLock<HashSet<Item>> = LazyLock::new(|| HashSet::from_iter([Item::Wheat]));
-pub static CREEPER_DROP_MUSIC_DISCS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::MusicDisc13,
-        Item::MusicDiscCat,
-        Item::MusicDiscBlocks,
-        Item::MusicDiscChirp,
-        Item::MusicDiscFar,
-        Item::MusicDiscMall,
-        Item::MusicDiscMellohi,
-        Item::MusicDiscStal,
-        Item::MusicDiscStrad,
-        Item::MusicDiscWard,
-        Item::MusicDisc11,
-        Item::MusicDiscWait,
-    ])
-});
-pub static CREEPER_IGNITERS: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::FlintAndSteel, Item::FireCharge]));
-pub static CRIMSON_STEMS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::CrimsonStem,
-        Item::StrippedCrimsonStem,
-        Item::CrimsonHyphae,
-        Item::StrippedCrimsonHyphae,
-    ])
-});
-pub static DAMPENS_VIBRATIONS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::WhiteWool,
-        Item::OrangeWool,
-        Item::MagentaWool,
-        Item::LightBlueWool,
-        Item::YellowWool,
-        Item::LimeWool,
-        Item::PinkWool,
-        Item::GrayWool,
-        Item::LightGrayWool,
-        Item::CyanWool,
-        Item::PurpleWool,
-        Item::BlueWool,
-        Item::BrownWool,
-        Item::GreenWool,
-        Item::RedWool,
-        Item::BlackWool,
-        Item::WhiteCarpet,
-        Item::OrangeCarpet,
-        Item::MagentaCarpet,
-        Item::LightBlueCarpet,
-        Item::YellowCarpet,
-        Item::LimeCarpet,
-        Item::PinkCarpet,
-        Item::GrayCarpet,
-        Item::LightGrayCarpet,
-        Item::CyanCarpet,
-        Item::PurpleCarpet,
-        Item::BlueCarpet,
-        Item::BrownCarpet,
-        Item::GreenCarpet,
-        Item::RedCarpet,
-        Item::BlackCarpet,
-    ])
-});
-pub static DARK_OAK_LOGS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::DarkOakLog,
-        Item::DarkOakWood,
-        Item::StrippedDarkOakLog,
-        Item::StrippedDarkOakWood,
-    ])
-});
-pub static DECORATED_POT_INGREDIENTS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::Brick,
-        Item::AnglerPotterySherd,
-        Item::ArcherPotterySherd,
-        Item::ArmsUpPotterySherd,
-        Item::BladePotterySherd,
-        Item::BrewerPotterySherd,
-        Item::BurnPotterySherd,
-        Item::DangerPotterySherd,
-        Item::ExplorerPotterySherd,
-        Item::FriendPotterySherd,
-        Item::HeartPotterySherd,
-        Item::HeartbreakPotterySherd,
-        Item::HowlPotterySherd,
-        Item::MinerPotterySherd,
-        Item::MournerPotterySherd,
-        Item::PlentyPotterySherd,
-        Item::PrizePotterySherd,
-        Item::SheafPotterySherd,
-        Item::ShelterPotterySherd,
-        Item::SkullPotterySherd,
-        Item::SnortPotterySherd,
-        Item::FlowPotterySherd,
-        Item::GusterPotterySherd,
-        Item::ScrapePotterySherd,
-    ])
-});
-pub static DECORATED_POT_SHERDS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::AnglerPotterySherd,
-        Item::ArcherPotterySherd,
-        Item::ArmsUpPotterySherd,
-        Item::BladePotterySherd,
-        Item::BrewerPotterySherd,
-        Item::BurnPotterySherd,
-        Item::DangerPotterySherd,
-        Item::ExplorerPotterySherd,
-        Item::FriendPotterySherd,
-        Item::HeartPotterySherd,
-        Item::HeartbreakPotterySherd,
-        Item::HowlPotterySherd,
-        Item::MinerPotterySherd,
-        Item::MournerPotterySherd,
-        Item::PlentyPotterySherd,
-        Item::PrizePotterySherd,
-        Item::SheafPotterySherd,
-        Item::ShelterPotterySherd,
-        Item::SkullPotterySherd,
-        Item::SnortPotterySherd,
-        Item::FlowPotterySherd,
-        Item::GusterPotterySherd,
-        Item::ScrapePotterySherd,
-    ])
-});
-pub static DIAMOND_ORES: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::DiamondOre, Item::DeepslateDiamondOre]));
-pub static DIAMOND_TOOL_MATERIALS: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::Diamond]));
-pub static DIRT: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::Dirt,
-        Item::GrassBlock,
-        Item::Podzol,
-        Item::CoarseDirt,
-        Item::Mycelium,
-        Item::RootedDirt,
-        Item::MossBlock,
-        Item::PaleMossBlock,
-        Item::Mud,
-        Item::MuddyMangroveRoots,
-    ])
-});
-pub static DOORS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::CopperDoor,
-        Item::ExposedCopperDoor,
-        Item::WeatheredCopperDoor,
-        Item::OxidizedCopperDoor,
-        Item::WaxedCopperDoor,
-        Item::WaxedExposedCopperDoor,
-        Item::WaxedWeatheredCopperDoor,
-        Item::WaxedOxidizedCopperDoor,
-        Item::IronDoor,
-        Item::OakDoor,
-        Item::SpruceDoor,
-        Item::BirchDoor,
-        Item::JungleDoor,
-        Item::AcaciaDoor,
-        Item::DarkOakDoor,
-        Item::PaleOakDoor,
-        Item::CrimsonDoor,
-        Item::WarpedDoor,
-        Item::MangroveDoor,
-        Item::BambooDoor,
-        Item::CherryDoor,
-    ])
-});
-pub static DROWNED_PREFERRED_WEAPONS: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::Trident]));
-pub static DUPLICATES_ALLAYS: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::AmethystShard]));
-pub static DYEABLE: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::LeatherHelmet,
-        Item::LeatherChestplate,
-        Item::LeatherLeggings,
-        Item::LeatherBoots,
-        Item::LeatherHorseArmor,
-        Item::WolfArmor,
-    ])
-});
-pub static EGGS: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::Egg, Item::BlueEgg, Item::BrownEgg]));
-pub static EMERALD_ORES: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::EmeraldOre, Item::DeepslateEmeraldOre]));
-pub static ENCHANTABLE_ARMOR: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::LeatherBoots,
-        Item::CopperBoots,
-        Item::ChainmailBoots,
-        Item::GoldenBoots,
-        Item::IronBoots,
-        Item::DiamondBoots,
-        Item::NetheriteBoots,
-        Item::LeatherLeggings,
-        Item::CopperLeggings,
-        Item::ChainmailLeggings,
-        Item::GoldenLeggings,
-        Item::IronLeggings,
-        Item::DiamondLeggings,
-        Item::NetheriteLeggings,
-        Item::LeatherChestplate,
-        Item::CopperChestplate,
-        Item::ChainmailChestplate,
-        Item::GoldenChestplate,
-        Item::IronChestplate,
-        Item::DiamondChestplate,
-        Item::NetheriteChestplate,
-        Item::LeatherHelmet,
-        Item::CopperHelmet,
-        Item::ChainmailHelmet,
-        Item::GoldenHelmet,
-        Item::IronHelmet,
-        Item::DiamondHelmet,
-        Item::NetheriteHelmet,
-        Item::TurtleHelmet,
-    ])
-});
-pub static ENCHANTABLE_BOW: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::Bow]));
-pub static ENCHANTABLE_CHEST_ARMOR: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::LeatherChestplate,
-        Item::CopperChestplate,
-        Item::ChainmailChestplate,
-        Item::GoldenChestplate,
-        Item::IronChestplate,
-        Item::DiamondChestplate,
-        Item::NetheriteChestplate,
-    ])
-});
-pub static ENCHANTABLE_CROSSBOW: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::Crossbow]));
-pub static ENCHANTABLE_DURABILITY: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::Elytra,
-        Item::Shield,
-        Item::Bow,
-        Item::Crossbow,
-        Item::Trident,
-        Item::FlintAndSteel,
-        Item::Shears,
-        Item::Brush,
-        Item::FishingRod,
-        Item::CarrotOnAStick,
-        Item::WarpedFungusOnAStick,
-        Item::Mace,
-        Item::LeatherBoots,
-        Item::CopperBoots,
-        Item::ChainmailBoots,
-        Item::GoldenBoots,
-        Item::IronBoots,
-        Item::DiamondBoots,
-        Item::NetheriteBoots,
-        Item::LeatherLeggings,
-        Item::CopperLeggings,
-        Item::ChainmailLeggings,
-        Item::GoldenLeggings,
-        Item::IronLeggings,
-        Item::DiamondLeggings,
-        Item::NetheriteLeggings,
-        Item::LeatherChestplate,
-        Item::CopperChestplate,
-        Item::ChainmailChestplate,
-        Item::GoldenChestplate,
-        Item::IronChestplate,
-        Item::DiamondChestplate,
-        Item::NetheriteChestplate,
-        Item::LeatherHelmet,
-        Item::CopperHelmet,
-        Item::ChainmailHelmet,
-        Item::GoldenHelmet,
-        Item::IronHelmet,
-        Item::DiamondHelmet,
-        Item::NetheriteHelmet,
-        Item::TurtleHelmet,
-        Item::DiamondSword,
-        Item::StoneSword,
-        Item::GoldenSword,
-        Item::NetheriteSword,
-        Item::WoodenSword,
-        Item::IronSword,
-        Item::CopperSword,
-        Item::DiamondAxe,
-        Item::StoneAxe,
-        Item::GoldenAxe,
-        Item::NetheriteAxe,
-        Item::WoodenAxe,
-        Item::IronAxe,
-        Item::CopperAxe,
-        Item::DiamondPickaxe,
-        Item::StonePickaxe,
-        Item::GoldenPickaxe,
-        Item::NetheritePickaxe,
-        Item::WoodenPickaxe,
-        Item::IronPickaxe,
-        Item::CopperPickaxe,
-        Item::DiamondShovel,
-        Item::StoneShovel,
-        Item::GoldenShovel,
-        Item::NetheriteShovel,
-        Item::WoodenShovel,
-        Item::IronShovel,
-        Item::CopperShovel,
-        Item::DiamondHoe,
-        Item::StoneHoe,
-        Item::GoldenHoe,
-        Item::NetheriteHoe,
-        Item::WoodenHoe,
-        Item::IronHoe,
-        Item::CopperHoe,
-        Item::DiamondSpear,
-        Item::StoneSpear,
-        Item::GoldenSpear,
-        Item::NetheriteSpear,
-        Item::WoodenSpear,
-        Item::IronSpear,
-        Item::CopperSpear,
-    ])
-});
-pub static ENCHANTABLE_EQUIPPABLE: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::Elytra,
-        Item::CarvedPumpkin,
-        Item::LeatherBoots,
-        Item::CopperBoots,
-        Item::ChainmailBoots,
-        Item::GoldenBoots,
-        Item::IronBoots,
-        Item::DiamondBoots,
-        Item::NetheriteBoots,
-        Item::LeatherLeggings,
-        Item::CopperLeggings,
-        Item::ChainmailLeggings,
-        Item::GoldenLeggings,
-        Item::IronLeggings,
-        Item::DiamondLeggings,
-        Item::NetheriteLeggings,
-        Item::LeatherChestplate,
-        Item::CopperChestplate,
-        Item::ChainmailChestplate,
-        Item::GoldenChestplate,
-        Item::IronChestplate,
-        Item::DiamondChestplate,
-        Item::NetheriteChestplate,
-        Item::LeatherHelmet,
-        Item::CopperHelmet,
-        Item::ChainmailHelmet,
-        Item::GoldenHelmet,
-        Item::IronHelmet,
-        Item::DiamondHelmet,
-        Item::NetheriteHelmet,
-        Item::TurtleHelmet,
-        Item::PlayerHead,
-        Item::CreeperHead,
-        Item::ZombieHead,
-        Item::SkeletonSkull,
-        Item::WitherSkeletonSkull,
-        Item::DragonHead,
-        Item::PiglinHead,
-    ])
-});
-pub static ENCHANTABLE_FIRE_ASPECT: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::Mace,
-        Item::DiamondSword,
-        Item::StoneSword,
-        Item::GoldenSword,
-        Item::NetheriteSword,
-        Item::WoodenSword,
-        Item::IronSword,
-        Item::CopperSword,
-        Item::DiamondSpear,
-        Item::StoneSpear,
-        Item::GoldenSpear,
-        Item::NetheriteSpear,
-        Item::WoodenSpear,
-        Item::IronSpear,
-        Item::CopperSpear,
-    ])
-});
-pub static ENCHANTABLE_FISHING: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::FishingRod]));
-pub static ENCHANTABLE_FOOT_ARMOR: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::LeatherBoots,
-        Item::CopperBoots,
-        Item::ChainmailBoots,
-        Item::GoldenBoots,
-        Item::IronBoots,
-        Item::DiamondBoots,
-        Item::NetheriteBoots,
-    ])
-});
-pub static ENCHANTABLE_HEAD_ARMOR: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::LeatherHelmet,
-        Item::CopperHelmet,
-        Item::ChainmailHelmet,
-        Item::GoldenHelmet,
-        Item::IronHelmet,
-        Item::DiamondHelmet,
-        Item::NetheriteHelmet,
-        Item::TurtleHelmet,
-    ])
-});
-pub static ENCHANTABLE_LEG_ARMOR: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::LeatherLeggings,
-        Item::CopperLeggings,
-        Item::ChainmailLeggings,
-        Item::GoldenLeggings,
-        Item::IronLeggings,
-        Item::DiamondLeggings,
-        Item::NetheriteLeggings,
-    ])
-});
-pub static ENCHANTABLE_LUNGE: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::DiamondSpear,
-        Item::StoneSpear,
-        Item::GoldenSpear,
-        Item::NetheriteSpear,
-        Item::WoodenSpear,
-        Item::IronSpear,
-        Item::CopperSpear,
-    ])
-});
-pub static ENCHANTABLE_MACE: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::Mace]));
-pub static ENCHANTABLE_MELEE_WEAPON: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::DiamondSword,
-        Item::StoneSword,
-        Item::GoldenSword,
-        Item::NetheriteSword,
-        Item::WoodenSword,
-        Item::IronSword,
-        Item::CopperSword,
-        Item::DiamondSpear,
-        Item::StoneSpear,
-        Item::GoldenSpear,
-        Item::NetheriteSpear,
-        Item::WoodenSpear,
-        Item::IronSpear,
-        Item::CopperSpear,
-    ])
-});
-pub static ENCHANTABLE_MINING: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::Shears,
-        Item::DiamondAxe,
-        Item::StoneAxe,
-        Item::GoldenAxe,
-        Item::NetheriteAxe,
-        Item::WoodenAxe,
-        Item::IronAxe,
-        Item::CopperAxe,
-        Item::DiamondPickaxe,
-        Item::StonePickaxe,
-        Item::GoldenPickaxe,
-        Item::NetheritePickaxe,
-        Item::WoodenPickaxe,
-        Item::IronPickaxe,
-        Item::CopperPickaxe,
-        Item::DiamondShovel,
-        Item::StoneShovel,
-        Item::GoldenShovel,
-        Item::NetheriteShovel,
-        Item::WoodenShovel,
-        Item::IronShovel,
-        Item::CopperShovel,
-        Item::DiamondHoe,
-        Item::StoneHoe,
-        Item::GoldenHoe,
-        Item::NetheriteHoe,
-        Item::WoodenHoe,
-        Item::IronHoe,
-        Item::CopperHoe,
-    ])
-});
-pub static ENCHANTABLE_MINING_LOOT: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::DiamondAxe,
-        Item::StoneAxe,
-        Item::GoldenAxe,
-        Item::NetheriteAxe,
-        Item::WoodenAxe,
-        Item::IronAxe,
-        Item::CopperAxe,
-        Item::DiamondPickaxe,
-        Item::StonePickaxe,
-        Item::GoldenPickaxe,
-        Item::NetheritePickaxe,
-        Item::WoodenPickaxe,
-        Item::IronPickaxe,
-        Item::CopperPickaxe,
-        Item::DiamondShovel,
-        Item::StoneShovel,
-        Item::GoldenShovel,
-        Item::NetheriteShovel,
-        Item::WoodenShovel,
-        Item::IronShovel,
-        Item::CopperShovel,
-        Item::DiamondHoe,
-        Item::StoneHoe,
-        Item::GoldenHoe,
-        Item::NetheriteHoe,
-        Item::WoodenHoe,
-        Item::IronHoe,
-        Item::CopperHoe,
-    ])
-});
-pub static ENCHANTABLE_SHARP_WEAPON: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::DiamondAxe,
-        Item::StoneAxe,
-        Item::GoldenAxe,
-        Item::NetheriteAxe,
-        Item::WoodenAxe,
-        Item::IronAxe,
-        Item::CopperAxe,
-        Item::DiamondSword,
-        Item::StoneSword,
-        Item::GoldenSword,
-        Item::NetheriteSword,
-        Item::WoodenSword,
-        Item::IronSword,
-        Item::CopperSword,
-        Item::DiamondSpear,
-        Item::StoneSpear,
-        Item::GoldenSpear,
-        Item::NetheriteSpear,
-        Item::WoodenSpear,
-        Item::IronSpear,
-        Item::CopperSpear,
-    ])
-});
-pub static ENCHANTABLE_SWEEPING: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::DiamondSword,
-        Item::StoneSword,
-        Item::GoldenSword,
-        Item::NetheriteSword,
-        Item::WoodenSword,
-        Item::IronSword,
-        Item::CopperSword,
-    ])
-});
-pub static ENCHANTABLE_TRIDENT: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::Trident]));
-pub static ENCHANTABLE_VANISHING: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::Compass,
-        Item::CarvedPumpkin,
-        Item::Elytra,
-        Item::Shield,
-        Item::Bow,
-        Item::Crossbow,
-        Item::Trident,
-        Item::FlintAndSteel,
-        Item::Shears,
-        Item::Brush,
-        Item::FishingRod,
-        Item::CarrotOnAStick,
-        Item::WarpedFungusOnAStick,
-        Item::Mace,
-        Item::PlayerHead,
-        Item::CreeperHead,
-        Item::ZombieHead,
-        Item::SkeletonSkull,
-        Item::WitherSkeletonSkull,
-        Item::DragonHead,
-        Item::PiglinHead,
-        Item::LeatherBoots,
-        Item::CopperBoots,
-        Item::ChainmailBoots,
-        Item::GoldenBoots,
-        Item::IronBoots,
-        Item::DiamondBoots,
-        Item::NetheriteBoots,
-        Item::LeatherLeggings,
-        Item::CopperLeggings,
-        Item::ChainmailLeggings,
-        Item::GoldenLeggings,
-        Item::IronLeggings,
-        Item::DiamondLeggings,
-        Item::NetheriteLeggings,
-        Item::LeatherChestplate,
-        Item::CopperChestplate,
-        Item::ChainmailChestplate,
-        Item::GoldenChestplate,
-        Item::IronChestplate,
-        Item::DiamondChestplate,
-        Item::NetheriteChestplate,
-        Item::LeatherHelmet,
-        Item::CopperHelmet,
-        Item::ChainmailHelmet,
-        Item::GoldenHelmet,
-        Item::IronHelmet,
-        Item::DiamondHelmet,
-        Item::NetheriteHelmet,
-        Item::TurtleHelmet,
-        Item::DiamondSword,
-        Item::StoneSword,
-        Item::GoldenSword,
-        Item::NetheriteSword,
-        Item::WoodenSword,
-        Item::IronSword,
-        Item::CopperSword,
-        Item::DiamondAxe,
-        Item::StoneAxe,
-        Item::GoldenAxe,
-        Item::NetheriteAxe,
-        Item::WoodenAxe,
-        Item::IronAxe,
-        Item::CopperAxe,
-        Item::DiamondPickaxe,
-        Item::StonePickaxe,
-        Item::GoldenPickaxe,
-        Item::NetheritePickaxe,
-        Item::WoodenPickaxe,
-        Item::IronPickaxe,
-        Item::CopperPickaxe,
-        Item::DiamondShovel,
-        Item::StoneShovel,
-        Item::GoldenShovel,
-        Item::NetheriteShovel,
-        Item::WoodenShovel,
-        Item::IronShovel,
-        Item::CopperShovel,
-        Item::DiamondHoe,
-        Item::StoneHoe,
-        Item::GoldenHoe,
-        Item::NetheriteHoe,
-        Item::WoodenHoe,
-        Item::IronHoe,
-        Item::CopperHoe,
-        Item::DiamondSpear,
-        Item::StoneSpear,
-        Item::GoldenSpear,
-        Item::NetheriteSpear,
-        Item::WoodenSpear,
-        Item::IronSpear,
-        Item::CopperSpear,
-    ])
-});
-pub static ENCHANTABLE_WEAPON: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::Mace,
-        Item::DiamondAxe,
-        Item::StoneAxe,
-        Item::GoldenAxe,
-        Item::NetheriteAxe,
-        Item::WoodenAxe,
-        Item::IronAxe,
-        Item::CopperAxe,
-        Item::DiamondSword,
-        Item::StoneSword,
-        Item::GoldenSword,
-        Item::NetheriteSword,
-        Item::WoodenSword,
-        Item::IronSword,
-        Item::CopperSword,
-        Item::DiamondSpear,
-        Item::StoneSpear,
-        Item::GoldenSpear,
-        Item::NetheriteSpear,
-        Item::WoodenSpear,
-        Item::IronSpear,
-        Item::CopperSpear,
-    ])
-});
-pub static FENCE_GATES: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::AcaciaFenceGate,
-        Item::BirchFenceGate,
-        Item::DarkOakFenceGate,
-        Item::PaleOakFenceGate,
-        Item::JungleFenceGate,
-        Item::OakFenceGate,
-        Item::SpruceFenceGate,
-        Item::CrimsonFenceGate,
-        Item::WarpedFenceGate,
-        Item::MangroveFenceGate,
-        Item::BambooFenceGate,
-        Item::CherryFenceGate,
-    ])
-});
-pub static FENCES: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::NetherBrickFence,
-        Item::OakFence,
-        Item::AcaciaFence,
-        Item::DarkOakFence,
-        Item::PaleOakFence,
-        Item::SpruceFence,
-        Item::BirchFence,
-        Item::JungleFence,
-        Item::CrimsonFence,
-        Item::WarpedFence,
-        Item::MangroveFence,
-        Item::BambooFence,
-        Item::CherryFence,
-    ])
-});
-pub static FISHES: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::Cod,
-        Item::CookedCod,
-        Item::Salmon,
-        Item::CookedSalmon,
-        Item::Pufferfish,
-        Item::TropicalFish,
-    ])
-});
-pub static FLOWERS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::Sunflower,
-        Item::Lilac,
-        Item::Peony,
-        Item::RoseBush,
-        Item::PitcherPlant,
-        Item::FloweringAzaleaLeaves,
-        Item::FloweringAzalea,
-        Item::MangrovePropagule,
-        Item::CherryLeaves,
-        Item::PinkPetals,
-        Item::Wildflowers,
-        Item::ChorusFlower,
-        Item::SporeBlossom,
-        Item::CactusFlower,
-        Item::Dandelion,
-        Item::OpenEyeblossom,
-        Item::Poppy,
-        Item::BlueOrchid,
-        Item::Allium,
-        Item::AzureBluet,
-        Item::RedTulip,
-        Item::OrangeTulip,
-        Item::WhiteTulip,
-        Item::PinkTulip,
-        Item::OxeyeDaisy,
-        Item::Cornflower,
-        Item::LilyOfTheValley,
-        Item::WitherRose,
-        Item::Torchflower,
-        Item::ClosedEyeblossom,
-    ])
-});
-pub static FOOT_ARMOR: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::LeatherBoots,
-        Item::CopperBoots,
-        Item::ChainmailBoots,
-        Item::GoldenBoots,
-        Item::IronBoots,
-        Item::DiamondBoots,
-        Item::NetheriteBoots,
-    ])
-});
-pub static FOX_FOOD: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::SweetBerries, Item::GlowBerries]));
-pub static FREEZE_IMMUNE_WEARABLES: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::LeatherBoots,
-        Item::LeatherLeggings,
-        Item::LeatherChestplate,
-        Item::LeatherHelmet,
-        Item::LeatherHorseArmor,
-    ])
-});
-pub static FROG_FOOD: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::SlimeBall]));
-pub static FURNACE_MINECART_FUEL: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::Coal, Item::Charcoal]));
-pub static GAZE_DISGUISE_EQUIPMENT: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::CarvedPumpkin]));
-pub static GOAT_FOOD: LazyLock<HashSet<Item>> = LazyLock::new(|| HashSet::from_iter([Item::Wheat]));
-pub static GOLD_ORES: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([Item::GoldOre, Item::NetherGoldOre, Item::DeepslateGoldOre])
-});
-pub static GOLD_TOOL_MATERIALS: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::GoldIngot]));
-pub static HANGING_SIGNS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::OakHangingSign,
-        Item::SpruceHangingSign,
-        Item::BirchHangingSign,
-        Item::AcaciaHangingSign,
-        Item::CherryHangingSign,
-        Item::JungleHangingSign,
-        Item::DarkOakHangingSign,
-        Item::PaleOakHangingSign,
-        Item::CrimsonHangingSign,
-        Item::WarpedHangingSign,
-        Item::MangroveHangingSign,
-        Item::BambooHangingSign,
-    ])
-});
-pub static HAPPY_GHAST_FOOD: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::Snowball]));
-pub static HAPPY_GHAST_TEMPT_ITEMS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::Snowball,
-        Item::WhiteHarness,
-        Item::OrangeHarness,
-        Item::MagentaHarness,
-        Item::LightBlueHarness,
-        Item::YellowHarness,
-        Item::LimeHarness,
-        Item::PinkHarness,
-        Item::GrayHarness,
-        Item::LightGrayHarness,
-        Item::CyanHarness,
-        Item::PurpleHarness,
-        Item::BlueHarness,
-        Item::BrownHarness,
-        Item::GreenHarness,
-        Item::RedHarness,
-        Item::BlackHarness,
-    ])
-});
-pub static HARNESSES: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::WhiteHarness,
-        Item::OrangeHarness,
-        Item::MagentaHarness,
-        Item::LightBlueHarness,
-        Item::YellowHarness,
-        Item::LimeHarness,
-        Item::PinkHarness,
-        Item::GrayHarness,
-        Item::LightGrayHarness,
-        Item::CyanHarness,
-        Item::PurpleHarness,
-        Item::BlueHarness,
-        Item::BrownHarness,
-        Item::GreenHarness,
-        Item::RedHarness,
-        Item::BlackHarness,
-    ])
-});
-pub static HEAD_ARMOR: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::LeatherHelmet,
-        Item::CopperHelmet,
-        Item::ChainmailHelmet,
-        Item::GoldenHelmet,
-        Item::IronHelmet,
-        Item::DiamondHelmet,
-        Item::NetheriteHelmet,
-        Item::TurtleHelmet,
-    ])
-});
-pub static HOES: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::DiamondHoe,
-        Item::StoneHoe,
-        Item::GoldenHoe,
-        Item::NetheriteHoe,
-        Item::WoodenHoe,
-        Item::IronHoe,
-        Item::CopperHoe,
-    ])
-});
-pub static HOGLIN_FOOD: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::CrimsonFungus]));
-pub static HORSE_FOOD: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::Wheat,
-        Item::Sugar,
-        Item::HayBlock,
-        Item::Apple,
-        Item::Carrot,
-        Item::GoldenCarrot,
-        Item::GoldenApple,
-        Item::EnchantedGoldenApple,
-    ])
-});
-pub static HORSE_TEMPT_ITEMS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::GoldenCarrot,
-        Item::GoldenApple,
-        Item::EnchantedGoldenApple,
-    ])
-});
-pub static IGNORED_BY_PIGLIN_BABIES: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::Leather]));
-pub static IRON_ORES: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::IronOre, Item::DeepslateIronOre]));
-pub static IRON_TOOL_MATERIALS: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::IronIngot]));
-pub static JUNGLE_LOGS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::JungleLog,
-        Item::JungleWood,
-        Item::StrippedJungleLog,
-        Item::StrippedJungleWood,
-    ])
-});
-pub static LANTERNS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::Lantern,
-        Item::SoulLantern,
-        Item::CopperLantern,
-        Item::WaxedCopperLantern,
-        Item::ExposedCopperLantern,
-        Item::WaxedExposedCopperLantern,
-        Item::WeatheredCopperLantern,
-        Item::WaxedWeatheredCopperLantern,
-        Item::OxidizedCopperLantern,
-        Item::WaxedOxidizedCopperLantern,
-    ])
-});
-pub static LAPIS_ORES: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::LapisOre, Item::DeepslateLapisOre]));
-pub static LEAVES: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::JungleLeaves,
-        Item::OakLeaves,
-        Item::SpruceLeaves,
-        Item::PaleOakLeaves,
-        Item::DarkOakLeaves,
-        Item::AcaciaLeaves,
-        Item::BirchLeaves,
-        Item::AzaleaLeaves,
-        Item::FloweringAzaleaLeaves,
-        Item::MangroveLeaves,
-        Item::CherryLeaves,
-    ])
-});
-pub static LECTERN_BOOKS: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::WrittenBook, Item::WritableBook]));
-pub static LEG_ARMOR: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::LeatherLeggings,
-        Item::CopperLeggings,
-        Item::ChainmailLeggings,
-        Item::GoldenLeggings,
-        Item::IronLeggings,
-        Item::DiamondLeggings,
-        Item::NetheriteLeggings,
-    ])
-});
-pub static LIGHTNING_RODS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::LightningRod,
-        Item::ExposedLightningRod,
-        Item::WeatheredLightningRod,
-        Item::OxidizedLightningRod,
-        Item::WaxedLightningRod,
-        Item::WaxedExposedLightningRod,
-        Item::WaxedWeatheredLightningRod,
-        Item::WaxedOxidizedLightningRod,
-    ])
-});
-pub static LLAMA_FOOD: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::Wheat, Item::HayBlock]));
-pub static LLAMA_TEMPT_ITEMS: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::HayBlock]));
-pub static LOGS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::CrimsonStem,
-        Item::StrippedCrimsonStem,
-        Item::CrimsonHyphae,
-        Item::StrippedCrimsonHyphae,
-        Item::WarpedStem,
-        Item::StrippedWarpedStem,
-        Item::WarpedHyphae,
-        Item::StrippedWarpedHyphae,
-        Item::DarkOakLog,
-        Item::DarkOakWood,
-        Item::StrippedDarkOakLog,
-        Item::StrippedDarkOakWood,
-        Item::PaleOakLog,
-        Item::PaleOakWood,
-        Item::StrippedPaleOakLog,
-        Item::StrippedPaleOakWood,
-        Item::OakLog,
-        Item::OakWood,
-        Item::StrippedOakLog,
-        Item::StrippedOakWood,
-        Item::AcaciaLog,
-        Item::AcaciaWood,
-        Item::StrippedAcaciaLog,
-        Item::StrippedAcaciaWood,
-        Item::BirchLog,
-        Item::BirchWood,
-        Item::StrippedBirchLog,
-        Item::StrippedBirchWood,
-        Item::JungleLog,
-        Item::JungleWood,
-        Item::StrippedJungleLog,
-        Item::StrippedJungleWood,
-        Item::SpruceLog,
-        Item::SpruceWood,
-        Item::StrippedSpruceLog,
-        Item::StrippedSpruceWood,
-        Item::MangroveLog,
-        Item::MangroveWood,
-        Item::StrippedMangroveLog,
-        Item::StrippedMangroveWood,
-        Item::CherryLog,
-        Item::CherryWood,
-        Item::StrippedCherryLog,
-        Item::StrippedCherryWood,
-    ])
-});
-pub static LOGS_THAT_BURN: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::DarkOakLog,
-        Item::DarkOakWood,
-        Item::StrippedDarkOakLog,
-        Item::StrippedDarkOakWood,
-        Item::PaleOakLog,
-        Item::PaleOakWood,
-        Item::StrippedPaleOakLog,
-        Item::StrippedPaleOakWood,
-        Item::OakLog,
-        Item::OakWood,
-        Item::StrippedOakLog,
-        Item::StrippedOakWood,
-        Item::AcaciaLog,
-        Item::AcaciaWood,
-        Item::StrippedAcaciaLog,
-        Item::StrippedAcaciaWood,
-        Item::BirchLog,
-        Item::BirchWood,
-        Item::StrippedBirchLog,
-        Item::StrippedBirchWood,
-        Item::JungleLog,
-        Item::JungleWood,
-        Item::StrippedJungleLog,
-        Item::StrippedJungleWood,
-        Item::SpruceLog,
-        Item::SpruceWood,
-        Item::StrippedSpruceLog,
-        Item::StrippedSpruceWood,
-        Item::MangroveLog,
-        Item::MangroveWood,
-        Item::StrippedMangroveLog,
-        Item::StrippedMangroveWood,
-        Item::CherryLog,
-        Item::CherryWood,
-        Item::StrippedCherryLog,
-        Item::StrippedCherryWood,
-    ])
-});
-pub static MANGROVE_LOGS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::MangroveLog,
-        Item::MangroveWood,
-        Item::StrippedMangroveLog,
-        Item::StrippedMangroveWood,
-    ])
-});
-pub static MAP_INVISIBILITY_EQUIPMENT: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::CarvedPumpkin]));
-pub static MEAT: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::Beef,
-        Item::Chicken,
-        Item::CookedBeef,
-        Item::CookedChicken,
-        Item::CookedMutton,
-        Item::CookedPorkchop,
-        Item::CookedRabbit,
-        Item::Mutton,
-        Item::Porkchop,
-        Item::Rabbit,
-        Item::RottenFlesh,
-    ])
-});
-pub static NAUTILUS_BUCKET_FOOD: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::PufferfishBucket,
-        Item::CodBucket,
-        Item::SalmonBucket,
-        Item::TropicalFishBucket,
-    ])
-});
-pub static NAUTILUS_FOOD: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::Cod,
-        Item::CookedCod,
-        Item::Salmon,
-        Item::CookedSalmon,
-        Item::Pufferfish,
-        Item::TropicalFish,
-        Item::PufferfishBucket,
-        Item::CodBucket,
-        Item::SalmonBucket,
-        Item::TropicalFishBucket,
-    ])
-});
-pub static NAUTILUS_TAMING_ITEMS: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::PufferfishBucket, Item::Pufferfish]));
-pub static NETHERITE_TOOL_MATERIALS: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::NetheriteIngot]));
-pub static NON_FLAMMABLE_WOOD: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::WarpedStem,
-        Item::StrippedWarpedStem,
-        Item::WarpedHyphae,
-        Item::StrippedWarpedHyphae,
-        Item::CrimsonStem,
-        Item::StrippedCrimsonStem,
-        Item::CrimsonHyphae,
-        Item::StrippedCrimsonHyphae,
-        Item::CrimsonPlanks,
-        Item::WarpedPlanks,
-        Item::CrimsonSlab,
-        Item::WarpedSlab,
-        Item::CrimsonPressurePlate,
-        Item::WarpedPressurePlate,
-        Item::CrimsonFence,
-        Item::WarpedFence,
-        Item::CrimsonTrapdoor,
-        Item::WarpedTrapdoor,
-        Item::CrimsonFenceGate,
-        Item::WarpedFenceGate,
-        Item::CrimsonStairs,
-        Item::WarpedStairs,
-        Item::CrimsonButton,
-        Item::WarpedButton,
-        Item::CrimsonDoor,
-        Item::WarpedDoor,
-        Item::CrimsonSign,
-        Item::WarpedSign,
-        Item::WarpedHangingSign,
-        Item::CrimsonHangingSign,
-        Item::WarpedShelf,
-        Item::CrimsonShelf,
-    ])
-});
-pub static NOTEBLOCK_TOP_INSTRUMENTS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::ZombieHead,
-        Item::SkeletonSkull,
-        Item::CreeperHead,
-        Item::DragonHead,
-        Item::WitherSkeletonSkull,
-        Item::PiglinHead,
-        Item::PlayerHead,
-    ])
-});
-pub static OAK_LOGS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::OakLog,
-        Item::OakWood,
-        Item::StrippedOakLog,
-        Item::StrippedOakWood,
-    ])
-});
-pub static OCELOT_FOOD: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::Cod, Item::Salmon]));
-pub static PALE_OAK_LOGS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::PaleOakLog,
-        Item::PaleOakWood,
-        Item::StrippedPaleOakLog,
-        Item::StrippedPaleOakWood,
-    ])
-});
-pub static PANDA_EATS_FROM_GROUND: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::Cake, Item::Bamboo]));
-pub static PANDA_FOOD: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::Bamboo]));
-pub static PARROT_FOOD: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::WheatSeeds,
-        Item::MelonSeeds,
-        Item::PumpkinSeeds,
-        Item::BeetrootSeeds,
-        Item::TorchflowerSeeds,
-        Item::PitcherPod,
-    ])
-});
-pub static PARROT_POISONOUS_FOOD: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::Cookie]));
-pub static PICKAXES: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::DiamondPickaxe,
-        Item::StonePickaxe,
-        Item::GoldenPickaxe,
-        Item::NetheritePickaxe,
-        Item::WoodenPickaxe,
-        Item::IronPickaxe,
-        Item::CopperPickaxe,
-    ])
-});
-pub static PIG_FOOD: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::Carrot, Item::Potato, Item::Beetroot]));
-pub static PIGLIN_FOOD: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::Porkchop, Item::CookedPorkchop]));
-pub static PIGLIN_LOVED: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::GoldBlock,
-        Item::GildedBlackstone,
-        Item::LightWeightedPressurePlate,
-        Item::GoldIngot,
-        Item::Bell,
-        Item::Clock,
-        Item::GoldenCarrot,
-        Item::GlisteringMelonSlice,
-        Item::GoldenApple,
-        Item::EnchantedGoldenApple,
-        Item::GoldenHelmet,
-        Item::GoldenChestplate,
-        Item::GoldenLeggings,
-        Item::GoldenBoots,
-        Item::GoldenHorseArmor,
-        Item::GoldenNautilusArmor,
-        Item::GoldenSword,
-        Item::GoldenSpear,
-        Item::GoldenPickaxe,
-        Item::GoldenShovel,
-        Item::GoldenAxe,
-        Item::GoldenHoe,
-        Item::RawGold,
-        Item::RawGoldBlock,
-        Item::GoldOre,
-        Item::NetherGoldOre,
-        Item::DeepslateGoldOre,
-    ])
-});
-pub static PIGLIN_PREFERRED_WEAPONS: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::Crossbow, Item::GoldenSpear]));
-pub static PIGLIN_REPELLENTS: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::SoulTorch, Item::SoulLantern, Item::SoulCampfire]));
-pub static PIGLIN_SAFE_ARMOR: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::GoldenHelmet,
-        Item::GoldenChestplate,
-        Item::GoldenLeggings,
-        Item::GoldenBoots,
-    ])
-});
-pub static PILLAGER_PREFERRED_WEAPONS: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::Crossbow]));
-pub static PLANKS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::OakPlanks,
-        Item::SprucePlanks,
-        Item::BirchPlanks,
-        Item::JunglePlanks,
-        Item::AcaciaPlanks,
-        Item::DarkOakPlanks,
-        Item::PaleOakPlanks,
-        Item::CrimsonPlanks,
-        Item::WarpedPlanks,
-        Item::MangrovePlanks,
-        Item::BambooPlanks,
-        Item::CherryPlanks,
-    ])
-});
-pub static RABBIT_FOOD: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::Carrot, Item::GoldenCarrot, Item::Dandelion]));
-pub static RAILS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::Rail,
-        Item::PoweredRail,
-        Item::DetectorRail,
-        Item::ActivatorRail,
-    ])
-});
-pub static REDSTONE_ORES: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::RedstoneOre, Item::DeepslateRedstoneOre]));
-pub static REPAIRS_CHAIN_ARMOR: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::IronIngot]));
-pub static REPAIRS_COPPER_ARMOR: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::CopperIngot]));
-pub static REPAIRS_DIAMOND_ARMOR: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::Diamond]));
-pub static REPAIRS_GOLD_ARMOR: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::GoldIngot]));
-pub static REPAIRS_IRON_ARMOR: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::IronIngot]));
-pub static REPAIRS_LEATHER_ARMOR: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::Leather]));
-pub static REPAIRS_NETHERITE_ARMOR: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::NetheriteIngot]));
-pub static REPAIRS_TURTLE_HELMET: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::TurtleScute]));
-pub static REPAIRS_WOLF_ARMOR: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::ArmadilloScute]));
-pub static SAND: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::Sand, Item::RedSand, Item::SuspiciousSand]));
-pub static SAPLINGS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::OakSapling,
-        Item::SpruceSapling,
-        Item::BirchSapling,
-        Item::JungleSapling,
-        Item::AcaciaSapling,
-        Item::DarkOakSapling,
-        Item::PaleOakSapling,
-        Item::Azalea,
-        Item::FloweringAzalea,
-        Item::MangrovePropagule,
-        Item::CherrySapling,
-    ])
-});
-pub static SHEARABLE_FROM_COPPER_GOLEM: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::Poppy]));
-pub static SHEEP_FOOD: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::Wheat]));
-pub static SHOVELS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::DiamondShovel,
-        Item::StoneShovel,
-        Item::GoldenShovel,
-        Item::NetheriteShovel,
-        Item::WoodenShovel,
-        Item::IronShovel,
-        Item::CopperShovel,
-    ])
-});
-pub static SHULKER_BOXES: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::ShulkerBox,
-        Item::BlackShulkerBox,
-        Item::BlueShulkerBox,
-        Item::BrownShulkerBox,
-        Item::CyanShulkerBox,
-        Item::GrayShulkerBox,
-        Item::GreenShulkerBox,
-        Item::LightBlueShulkerBox,
-        Item::LightGrayShulkerBox,
-        Item::LimeShulkerBox,
-        Item::MagentaShulkerBox,
-        Item::OrangeShulkerBox,
-        Item::PinkShulkerBox,
-        Item::PurpleShulkerBox,
-        Item::RedShulkerBox,
-        Item::WhiteShulkerBox,
-        Item::YellowShulkerBox,
-    ])
-});
-pub static SIGNS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::OakSign,
-        Item::SpruceSign,
-        Item::BirchSign,
-        Item::AcaciaSign,
-        Item::JungleSign,
-        Item::DarkOakSign,
-        Item::PaleOakSign,
-        Item::CrimsonSign,
-        Item::WarpedSign,
-        Item::MangroveSign,
-        Item::BambooSign,
-        Item::CherrySign,
-    ])
-});
-pub static SKELETON_PREFERRED_WEAPONS: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::Bow]));
-pub static SKULLS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::PlayerHead,
-        Item::CreeperHead,
-        Item::ZombieHead,
-        Item::SkeletonSkull,
-        Item::WitherSkeletonSkull,
-        Item::DragonHead,
-        Item::PiglinHead,
-    ])
-});
-pub static SLABS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::BambooMosaicSlab,
-        Item::StoneSlab,
-        Item::SmoothStoneSlab,
-        Item::StoneBrickSlab,
-        Item::SandstoneSlab,
-        Item::PurpurSlab,
-        Item::QuartzSlab,
-        Item::RedSandstoneSlab,
-        Item::BrickSlab,
-        Item::CobblestoneSlab,
-        Item::NetherBrickSlab,
-        Item::PetrifiedOakSlab,
-        Item::PrismarineSlab,
-        Item::PrismarineBrickSlab,
-        Item::DarkPrismarineSlab,
-        Item::PolishedGraniteSlab,
-        Item::SmoothRedSandstoneSlab,
-        Item::MossyStoneBrickSlab,
-        Item::PolishedDioriteSlab,
-        Item::MossyCobblestoneSlab,
-        Item::EndStoneBrickSlab,
-        Item::SmoothSandstoneSlab,
-        Item::SmoothQuartzSlab,
-        Item::GraniteSlab,
-        Item::AndesiteSlab,
-        Item::RedNetherBrickSlab,
-        Item::PolishedAndesiteSlab,
-        Item::DioriteSlab,
-        Item::CutSandstoneSlab,
-        Item::CutRedSandstoneSlab,
-        Item::BlackstoneSlab,
-        Item::PolishedBlackstoneBrickSlab,
-        Item::PolishedBlackstoneSlab,
-        Item::CobbledDeepslateSlab,
-        Item::PolishedDeepslateSlab,
-        Item::DeepslateTileSlab,
-        Item::DeepslateBrickSlab,
-        Item::WaxedWeatheredCutCopperSlab,
-        Item::WaxedExposedCutCopperSlab,
-        Item::WaxedCutCopperSlab,
-        Item::OxidizedCutCopperSlab,
-        Item::WeatheredCutCopperSlab,
-        Item::ExposedCutCopperSlab,
-        Item::CutCopperSlab,
-        Item::WaxedOxidizedCutCopperSlab,
-        Item::MudBrickSlab,
-        Item::TuffSlab,
-        Item::PolishedTuffSlab,
-        Item::TuffBrickSlab,
-        Item::ResinBrickSlab,
-        Item::OakSlab,
-        Item::SpruceSlab,
-        Item::BirchSlab,
-        Item::JungleSlab,
-        Item::AcaciaSlab,
-        Item::DarkOakSlab,
-        Item::PaleOakSlab,
-        Item::CrimsonSlab,
-        Item::WarpedSlab,
-        Item::MangroveSlab,
-        Item::BambooSlab,
-        Item::CherrySlab,
-    ])
-});
-pub static SMALL_FLOWERS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::Dandelion,
-        Item::OpenEyeblossom,
-        Item::Poppy,
-        Item::BlueOrchid,
-        Item::Allium,
-        Item::AzureBluet,
-        Item::RedTulip,
-        Item::OrangeTulip,
-        Item::WhiteTulip,
-        Item::PinkTulip,
-        Item::OxeyeDaisy,
-        Item::Cornflower,
-        Item::LilyOfTheValley,
-        Item::WitherRose,
-        Item::Torchflower,
-        Item::ClosedEyeblossom,
-    ])
-});
-pub static SMELTS_TO_GLASS: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::Sand, Item::RedSand]));
-pub static SNIFFER_FOOD: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::TorchflowerSeeds]));
-pub static SOUL_FIRE_BASE_BLOCKS: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::SoulSand, Item::SoulSoil]));
-pub static SPEARS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::DiamondSpear,
-        Item::StoneSpear,
-        Item::GoldenSpear,
-        Item::NetheriteSpear,
-        Item::WoodenSpear,
-        Item::IronSpear,
-        Item::CopperSpear,
-    ])
-});
-pub static SPRUCE_LOGS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::SpruceLog,
-        Item::SpruceWood,
-        Item::StrippedSpruceLog,
-        Item::StrippedSpruceWood,
-    ])
-});
-pub static STAIRS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::BambooMosaicStairs,
-        Item::CobblestoneStairs,
-        Item::SandstoneStairs,
-        Item::NetherBrickStairs,
-        Item::StoneBrickStairs,
-        Item::BrickStairs,
-        Item::PurpurStairs,
-        Item::QuartzStairs,
-        Item::RedSandstoneStairs,
-        Item::PrismarineBrickStairs,
-        Item::PrismarineStairs,
-        Item::DarkPrismarineStairs,
-        Item::PolishedGraniteStairs,
-        Item::SmoothRedSandstoneStairs,
-        Item::MossyStoneBrickStairs,
-        Item::PolishedDioriteStairs,
-        Item::MossyCobblestoneStairs,
-        Item::EndStoneBrickStairs,
-        Item::StoneStairs,
-        Item::SmoothSandstoneStairs,
-        Item::SmoothQuartzStairs,
-        Item::GraniteStairs,
-        Item::AndesiteStairs,
-        Item::RedNetherBrickStairs,
-        Item::PolishedAndesiteStairs,
-        Item::DioriteStairs,
-        Item::BlackstoneStairs,
-        Item::PolishedBlackstoneBrickStairs,
-        Item::PolishedBlackstoneStairs,
-        Item::CobbledDeepslateStairs,
-        Item::PolishedDeepslateStairs,
-        Item::DeepslateTileStairs,
-        Item::DeepslateBrickStairs,
-        Item::OxidizedCutCopperStairs,
-        Item::WeatheredCutCopperStairs,
-        Item::ExposedCutCopperStairs,
-        Item::CutCopperStairs,
-        Item::WaxedWeatheredCutCopperStairs,
-        Item::WaxedExposedCutCopperStairs,
-        Item::WaxedCutCopperStairs,
-        Item::WaxedOxidizedCutCopperStairs,
-        Item::MudBrickStairs,
-        Item::TuffStairs,
-        Item::PolishedTuffStairs,
-        Item::TuffBrickStairs,
-        Item::ResinBrickStairs,
-        Item::OakStairs,
-        Item::SpruceStairs,
-        Item::BirchStairs,
-        Item::JungleStairs,
-        Item::AcaciaStairs,
-        Item::DarkOakStairs,
-        Item::PaleOakStairs,
-        Item::CrimsonStairs,
-        Item::WarpedStairs,
-        Item::MangroveStairs,
-        Item::BambooStairs,
-        Item::CherryStairs,
-    ])
-});
-pub static STONE_BRICKS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::StoneBricks,
-        Item::MossyStoneBricks,
-        Item::CrackedStoneBricks,
-        Item::ChiseledStoneBricks,
-    ])
-});
-pub static STONE_BUTTONS: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::StoneButton, Item::PolishedBlackstoneButton]));
-pub static STONE_CRAFTING_MATERIALS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([Item::Cobblestone, Item::Blackstone, Item::CobbledDeepslate])
-});
-pub static STONE_TOOL_MATERIALS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([Item::Cobblestone, Item::Blackstone, Item::CobbledDeepslate])
-});
-pub static STRIDER_FOOD: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::WarpedFungus]));
-pub static STRIDER_TEMPT_ITEMS: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::WarpedFungusOnAStick, Item::WarpedFungus]));
-pub static SWORDS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::DiamondSword,
-        Item::StoneSword,
-        Item::GoldenSword,
-        Item::NetheriteSword,
-        Item::WoodenSword,
-        Item::IronSword,
-        Item::CopperSword,
-    ])
-});
-pub static TERRACOTTA: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::Terracotta,
-        Item::WhiteTerracotta,
-        Item::OrangeTerracotta,
-        Item::MagentaTerracotta,
-        Item::LightBlueTerracotta,
-        Item::YellowTerracotta,
-        Item::LimeTerracotta,
-        Item::PinkTerracotta,
-        Item::GrayTerracotta,
-        Item::LightGrayTerracotta,
-        Item::CyanTerracotta,
-        Item::PurpleTerracotta,
-        Item::BlueTerracotta,
-        Item::BrownTerracotta,
-        Item::GreenTerracotta,
-        Item::RedTerracotta,
-        Item::BlackTerracotta,
-    ])
-});
-pub static TRAPDOORS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::IronTrapdoor,
-        Item::CopperTrapdoor,
-        Item::ExposedCopperTrapdoor,
-        Item::WeatheredCopperTrapdoor,
-        Item::OxidizedCopperTrapdoor,
-        Item::WaxedCopperTrapdoor,
-        Item::WaxedExposedCopperTrapdoor,
-        Item::WaxedWeatheredCopperTrapdoor,
-        Item::WaxedOxidizedCopperTrapdoor,
-        Item::AcaciaTrapdoor,
-        Item::BirchTrapdoor,
-        Item::DarkOakTrapdoor,
-        Item::PaleOakTrapdoor,
-        Item::JungleTrapdoor,
-        Item::OakTrapdoor,
-        Item::SpruceTrapdoor,
-        Item::CrimsonTrapdoor,
-        Item::WarpedTrapdoor,
-        Item::MangroveTrapdoor,
-        Item::BambooTrapdoor,
-        Item::CherryTrapdoor,
-    ])
-});
-pub static TRIM_MATERIALS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::AmethystShard,
-        Item::CopperIngot,
-        Item::Diamond,
-        Item::Emerald,
-        Item::GoldIngot,
-        Item::IronIngot,
-        Item::LapisLazuli,
-        Item::NetheriteIngot,
-        Item::Quartz,
-        Item::Redstone,
-        Item::ResinBrick,
-    ])
-});
-pub static TRIMMABLE_ARMOR: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::LeatherBoots,
-        Item::CopperBoots,
-        Item::ChainmailBoots,
-        Item::GoldenBoots,
-        Item::IronBoots,
-        Item::DiamondBoots,
-        Item::NetheriteBoots,
-        Item::LeatherLeggings,
-        Item::CopperLeggings,
-        Item::ChainmailLeggings,
-        Item::GoldenLeggings,
-        Item::IronLeggings,
-        Item::DiamondLeggings,
-        Item::NetheriteLeggings,
-        Item::LeatherChestplate,
-        Item::CopperChestplate,
-        Item::ChainmailChestplate,
-        Item::GoldenChestplate,
-        Item::IronChestplate,
-        Item::DiamondChestplate,
-        Item::NetheriteChestplate,
-        Item::LeatherHelmet,
-        Item::CopperHelmet,
-        Item::ChainmailHelmet,
-        Item::GoldenHelmet,
-        Item::IronHelmet,
-        Item::DiamondHelmet,
-        Item::NetheriteHelmet,
-        Item::TurtleHelmet,
-    ])
-});
-pub static TURTLE_FOOD: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::Seagrass]));
-pub static VILLAGER_PICKS_UP: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::Bread,
-        Item::Wheat,
-        Item::Beetroot,
-        Item::WheatSeeds,
-        Item::Potato,
-        Item::Carrot,
-        Item::BeetrootSeeds,
-        Item::TorchflowerSeeds,
-        Item::PitcherPod,
-    ])
-});
-pub static VILLAGER_PLANTABLE_SEEDS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::WheatSeeds,
-        Item::Potato,
-        Item::Carrot,
-        Item::BeetrootSeeds,
-        Item::TorchflowerSeeds,
-        Item::PitcherPod,
-    ])
-});
-pub static WALLS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::CobblestoneWall,
-        Item::MossyCobblestoneWall,
-        Item::BrickWall,
-        Item::PrismarineWall,
-        Item::RedSandstoneWall,
-        Item::MossyStoneBrickWall,
-        Item::GraniteWall,
-        Item::StoneBrickWall,
-        Item::NetherBrickWall,
-        Item::AndesiteWall,
-        Item::RedNetherBrickWall,
-        Item::SandstoneWall,
-        Item::EndStoneBrickWall,
-        Item::DioriteWall,
-        Item::BlackstoneWall,
-        Item::PolishedBlackstoneBrickWall,
-        Item::PolishedBlackstoneWall,
-        Item::CobbledDeepslateWall,
-        Item::PolishedDeepslateWall,
-        Item::DeepslateTileWall,
-        Item::DeepslateBrickWall,
-        Item::MudBrickWall,
-        Item::TuffWall,
-        Item::PolishedTuffWall,
-        Item::TuffBrickWall,
-        Item::ResinBrickWall,
-    ])
-});
-pub static WARPED_STEMS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::WarpedStem,
-        Item::StrippedWarpedStem,
-        Item::WarpedHyphae,
-        Item::StrippedWarpedHyphae,
-    ])
-});
-pub static WART_BLOCKS: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::NetherWartBlock, Item::WarpedWartBlock]));
-pub static WITHER_SKELETON_DISLIKED_WEAPONS: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::Bow, Item::Crossbow]));
-pub static WOLF_FOOD: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::Cod,
-        Item::CookedCod,
-        Item::Salmon,
-        Item::CookedSalmon,
-        Item::TropicalFish,
-        Item::Pufferfish,
-        Item::RabbitStew,
-        Item::Beef,
-        Item::Chicken,
-        Item::CookedBeef,
-        Item::CookedChicken,
-        Item::CookedMutton,
-        Item::CookedPorkchop,
-        Item::CookedRabbit,
-        Item::Mutton,
-        Item::Porkchop,
-        Item::Rabbit,
-        Item::RottenFlesh,
-    ])
-});
-pub static WOODEN_BUTTONS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::OakButton,
-        Item::SpruceButton,
-        Item::BirchButton,
-        Item::JungleButton,
-        Item::AcaciaButton,
-        Item::DarkOakButton,
-        Item::PaleOakButton,
-        Item::CrimsonButton,
-        Item::WarpedButton,
-        Item::MangroveButton,
-        Item::BambooButton,
-        Item::CherryButton,
-    ])
-});
-pub static WOODEN_DOORS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::OakDoor,
-        Item::SpruceDoor,
-        Item::BirchDoor,
-        Item::JungleDoor,
-        Item::AcaciaDoor,
-        Item::DarkOakDoor,
-        Item::PaleOakDoor,
-        Item::CrimsonDoor,
-        Item::WarpedDoor,
-        Item::MangroveDoor,
-        Item::BambooDoor,
-        Item::CherryDoor,
-    ])
-});
-pub static WOODEN_FENCES: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::OakFence,
-        Item::AcaciaFence,
-        Item::DarkOakFence,
-        Item::PaleOakFence,
-        Item::SpruceFence,
-        Item::BirchFence,
-        Item::JungleFence,
-        Item::CrimsonFence,
-        Item::WarpedFence,
-        Item::MangroveFence,
-        Item::BambooFence,
-        Item::CherryFence,
-    ])
-});
-pub static WOODEN_PRESSURE_PLATES: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::OakPressurePlate,
-        Item::SprucePressurePlate,
-        Item::BirchPressurePlate,
-        Item::JunglePressurePlate,
-        Item::AcaciaPressurePlate,
-        Item::DarkOakPressurePlate,
-        Item::PaleOakPressurePlate,
-        Item::CrimsonPressurePlate,
-        Item::WarpedPressurePlate,
-        Item::MangrovePressurePlate,
-        Item::BambooPressurePlate,
-        Item::CherryPressurePlate,
-    ])
-});
-pub static WOODEN_SHELVES: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::AcaciaShelf,
-        Item::BambooShelf,
-        Item::BirchShelf,
-        Item::CherryShelf,
-        Item::CrimsonShelf,
-        Item::DarkOakShelf,
-        Item::JungleShelf,
-        Item::MangroveShelf,
-        Item::OakShelf,
-        Item::PaleOakShelf,
-        Item::SpruceShelf,
-        Item::WarpedShelf,
-    ])
-});
-pub static WOODEN_SLABS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::OakSlab,
-        Item::SpruceSlab,
-        Item::BirchSlab,
-        Item::JungleSlab,
-        Item::AcaciaSlab,
-        Item::DarkOakSlab,
-        Item::PaleOakSlab,
-        Item::CrimsonSlab,
-        Item::WarpedSlab,
-        Item::MangroveSlab,
-        Item::BambooSlab,
-        Item::CherrySlab,
-    ])
-});
-pub static WOODEN_STAIRS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::OakStairs,
-        Item::SpruceStairs,
-        Item::BirchStairs,
-        Item::JungleStairs,
-        Item::AcaciaStairs,
-        Item::DarkOakStairs,
-        Item::PaleOakStairs,
-        Item::CrimsonStairs,
-        Item::WarpedStairs,
-        Item::MangroveStairs,
-        Item::BambooStairs,
-        Item::CherryStairs,
-    ])
-});
-pub static WOODEN_TOOL_MATERIALS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::OakPlanks,
-        Item::SprucePlanks,
-        Item::BirchPlanks,
-        Item::JunglePlanks,
-        Item::AcaciaPlanks,
-        Item::DarkOakPlanks,
-        Item::PaleOakPlanks,
-        Item::CrimsonPlanks,
-        Item::WarpedPlanks,
-        Item::MangrovePlanks,
-        Item::BambooPlanks,
-        Item::CherryPlanks,
-    ])
-});
-pub static WOODEN_TRAPDOORS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::AcaciaTrapdoor,
-        Item::BirchTrapdoor,
-        Item::DarkOakTrapdoor,
-        Item::PaleOakTrapdoor,
-        Item::JungleTrapdoor,
-        Item::OakTrapdoor,
-        Item::SpruceTrapdoor,
-        Item::CrimsonTrapdoor,
-        Item::WarpedTrapdoor,
-        Item::MangroveTrapdoor,
-        Item::BambooTrapdoor,
-        Item::CherryTrapdoor,
-    ])
-});
-pub static WOOL: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::WhiteWool,
-        Item::OrangeWool,
-        Item::MagentaWool,
-        Item::LightBlueWool,
-        Item::YellowWool,
-        Item::LimeWool,
-        Item::PinkWool,
-        Item::GrayWool,
-        Item::LightGrayWool,
-        Item::CyanWool,
-        Item::PurpleWool,
-        Item::BlueWool,
-        Item::BrownWool,
-        Item::GreenWool,
-        Item::RedWool,
-        Item::BlackWool,
-    ])
-});
-pub static WOOL_CARPETS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter([
-        Item::WhiteCarpet,
-        Item::OrangeCarpet,
-        Item::MagentaCarpet,
-        Item::LightBlueCarpet,
-        Item::YellowCarpet,
-        Item::LimeCarpet,
-        Item::PinkCarpet,
-        Item::GrayCarpet,
-        Item::LightGrayCarpet,
-        Item::CyanCarpet,
-        Item::PurpleCarpet,
-        Item::BlueCarpet,
-        Item::BrownCarpet,
-        Item::GreenCarpet,
-        Item::RedCarpet,
-        Item::BlackCarpet,
-    ])
-});
-pub static ZOMBIE_HORSE_FOOD: LazyLock<HashSet<Item>> =
-    LazyLock::new(|| HashSet::from_iter([Item::RedMushroom]));
+pub static ACACIA_LOGS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::AcaciaLog,
+        ItemKind::AcaciaWood,
+        ItemKind::StrippedAcaciaLog,
+        ItemKind::StrippedAcaciaWood,
+    ])
+});
+pub static ANVIL: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::Anvil,
+        ItemKind::ChippedAnvil,
+        ItemKind::DamagedAnvil,
+    ])
+});
+pub static ARMADILLO_FOOD: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::SpiderEye]));
+pub static ARROWS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::Arrow,
+        ItemKind::TippedArrow,
+        ItemKind::SpectralArrow,
+    ])
+});
+pub static AXES: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::DiamondAxe,
+        ItemKind::StoneAxe,
+        ItemKind::GoldenAxe,
+        ItemKind::NetheriteAxe,
+        ItemKind::WoodenAxe,
+        ItemKind::IronAxe,
+        ItemKind::CopperAxe,
+    ])
+});
+pub static AXOLOTL_FOOD: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::TropicalFishBucket]));
+pub static BAMBOO_BLOCKS: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::BambooBlock, ItemKind::StrippedBambooBlock]));
+pub static BANNERS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::WhiteBanner,
+        ItemKind::OrangeBanner,
+        ItemKind::MagentaBanner,
+        ItemKind::LightBlueBanner,
+        ItemKind::YellowBanner,
+        ItemKind::LimeBanner,
+        ItemKind::PinkBanner,
+        ItemKind::GrayBanner,
+        ItemKind::LightGrayBanner,
+        ItemKind::CyanBanner,
+        ItemKind::PurpleBanner,
+        ItemKind::BlueBanner,
+        ItemKind::BrownBanner,
+        ItemKind::GreenBanner,
+        ItemKind::RedBanner,
+        ItemKind::BlackBanner,
+    ])
+});
+pub static BARS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::IronBars,
+        ItemKind::CopperBars,
+        ItemKind::WaxedCopperBars,
+        ItemKind::ExposedCopperBars,
+        ItemKind::WaxedExposedCopperBars,
+        ItemKind::WeatheredCopperBars,
+        ItemKind::WaxedWeatheredCopperBars,
+        ItemKind::OxidizedCopperBars,
+        ItemKind::WaxedOxidizedCopperBars,
+    ])
+});
+pub static BEACON_PAYMENT_ITEMS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::NetheriteIngot,
+        ItemKind::Emerald,
+        ItemKind::Diamond,
+        ItemKind::GoldIngot,
+        ItemKind::IronIngot,
+    ])
+});
+pub static BEDS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::RedBed,
+        ItemKind::BlackBed,
+        ItemKind::BlueBed,
+        ItemKind::BrownBed,
+        ItemKind::CyanBed,
+        ItemKind::GrayBed,
+        ItemKind::GreenBed,
+        ItemKind::LightBlueBed,
+        ItemKind::LightGrayBed,
+        ItemKind::LimeBed,
+        ItemKind::MagentaBed,
+        ItemKind::OrangeBed,
+        ItemKind::PinkBed,
+        ItemKind::PurpleBed,
+        ItemKind::WhiteBed,
+        ItemKind::YellowBed,
+    ])
+});
+pub static BEE_FOOD: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::Dandelion,
+        ItemKind::OpenEyeblossom,
+        ItemKind::Poppy,
+        ItemKind::BlueOrchid,
+        ItemKind::Allium,
+        ItemKind::AzureBluet,
+        ItemKind::RedTulip,
+        ItemKind::OrangeTulip,
+        ItemKind::WhiteTulip,
+        ItemKind::PinkTulip,
+        ItemKind::OxeyeDaisy,
+        ItemKind::Cornflower,
+        ItemKind::LilyOfTheValley,
+        ItemKind::WitherRose,
+        ItemKind::Torchflower,
+        ItemKind::Sunflower,
+        ItemKind::Lilac,
+        ItemKind::Peony,
+        ItemKind::RoseBush,
+        ItemKind::PitcherPlant,
+        ItemKind::FloweringAzaleaLeaves,
+        ItemKind::FloweringAzalea,
+        ItemKind::MangrovePropagule,
+        ItemKind::CherryLeaves,
+        ItemKind::PinkPetals,
+        ItemKind::Wildflowers,
+        ItemKind::ChorusFlower,
+        ItemKind::SporeBlossom,
+        ItemKind::CactusFlower,
+    ])
+});
+pub static BIRCH_LOGS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::BirchLog,
+        ItemKind::BirchWood,
+        ItemKind::StrippedBirchLog,
+        ItemKind::StrippedBirchWood,
+    ])
+});
+pub static BOATS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::OakBoat,
+        ItemKind::SpruceBoat,
+        ItemKind::BirchBoat,
+        ItemKind::JungleBoat,
+        ItemKind::AcaciaBoat,
+        ItemKind::DarkOakBoat,
+        ItemKind::PaleOakBoat,
+        ItemKind::MangroveBoat,
+        ItemKind::BambooRaft,
+        ItemKind::CherryBoat,
+        ItemKind::OakChestBoat,
+        ItemKind::SpruceChestBoat,
+        ItemKind::BirchChestBoat,
+        ItemKind::JungleChestBoat,
+        ItemKind::AcaciaChestBoat,
+        ItemKind::DarkOakChestBoat,
+        ItemKind::PaleOakChestBoat,
+        ItemKind::MangroveChestBoat,
+        ItemKind::BambooChestRaft,
+        ItemKind::CherryChestBoat,
+    ])
+});
+pub static BOOK_CLONING_TARGET: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::WritableBook]));
+pub static BOOKSHELF_BOOKS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::Book,
+        ItemKind::WrittenBook,
+        ItemKind::EnchantedBook,
+        ItemKind::WritableBook,
+        ItemKind::KnowledgeBook,
+    ])
+});
+pub static BREAKS_DECORATED_POTS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::Trident,
+        ItemKind::Mace,
+        ItemKind::DiamondSword,
+        ItemKind::StoneSword,
+        ItemKind::GoldenSword,
+        ItemKind::NetheriteSword,
+        ItemKind::WoodenSword,
+        ItemKind::IronSword,
+        ItemKind::CopperSword,
+        ItemKind::DiamondAxe,
+        ItemKind::StoneAxe,
+        ItemKind::GoldenAxe,
+        ItemKind::NetheriteAxe,
+        ItemKind::WoodenAxe,
+        ItemKind::IronAxe,
+        ItemKind::CopperAxe,
+        ItemKind::DiamondPickaxe,
+        ItemKind::StonePickaxe,
+        ItemKind::GoldenPickaxe,
+        ItemKind::NetheritePickaxe,
+        ItemKind::WoodenPickaxe,
+        ItemKind::IronPickaxe,
+        ItemKind::CopperPickaxe,
+        ItemKind::DiamondShovel,
+        ItemKind::StoneShovel,
+        ItemKind::GoldenShovel,
+        ItemKind::NetheriteShovel,
+        ItemKind::WoodenShovel,
+        ItemKind::IronShovel,
+        ItemKind::CopperShovel,
+        ItemKind::DiamondHoe,
+        ItemKind::StoneHoe,
+        ItemKind::GoldenHoe,
+        ItemKind::NetheriteHoe,
+        ItemKind::WoodenHoe,
+        ItemKind::IronHoe,
+        ItemKind::CopperHoe,
+    ])
+});
+pub static BREWING_FUEL: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::BlazePowder]));
+pub static BUNDLES: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::Bundle,
+        ItemKind::BlackBundle,
+        ItemKind::BlueBundle,
+        ItemKind::BrownBundle,
+        ItemKind::CyanBundle,
+        ItemKind::GrayBundle,
+        ItemKind::GreenBundle,
+        ItemKind::LightBlueBundle,
+        ItemKind::LightGrayBundle,
+        ItemKind::LimeBundle,
+        ItemKind::MagentaBundle,
+        ItemKind::OrangeBundle,
+        ItemKind::PinkBundle,
+        ItemKind::PurpleBundle,
+        ItemKind::RedBundle,
+        ItemKind::YellowBundle,
+        ItemKind::WhiteBundle,
+    ])
+});
+pub static BUTTONS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::OakButton,
+        ItemKind::SpruceButton,
+        ItemKind::BirchButton,
+        ItemKind::JungleButton,
+        ItemKind::AcaciaButton,
+        ItemKind::DarkOakButton,
+        ItemKind::PaleOakButton,
+        ItemKind::CrimsonButton,
+        ItemKind::WarpedButton,
+        ItemKind::MangroveButton,
+        ItemKind::BambooButton,
+        ItemKind::CherryButton,
+        ItemKind::StoneButton,
+        ItemKind::PolishedBlackstoneButton,
+    ])
+});
+pub static CAMEL_FOOD: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::Cactus]));
+pub static CAMEL_HUSK_FOOD: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::RabbitFoot]));
+pub static CANDLES: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::Candle,
+        ItemKind::WhiteCandle,
+        ItemKind::OrangeCandle,
+        ItemKind::MagentaCandle,
+        ItemKind::LightBlueCandle,
+        ItemKind::YellowCandle,
+        ItemKind::LimeCandle,
+        ItemKind::PinkCandle,
+        ItemKind::GrayCandle,
+        ItemKind::LightGrayCandle,
+        ItemKind::CyanCandle,
+        ItemKind::PurpleCandle,
+        ItemKind::BlueCandle,
+        ItemKind::BrownCandle,
+        ItemKind::GreenCandle,
+        ItemKind::RedCandle,
+        ItemKind::BlackCandle,
+    ])
+});
+pub static CAT_FOOD: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::Cod, ItemKind::Salmon]));
+pub static CHAINS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::IronChain,
+        ItemKind::CopperChain,
+        ItemKind::WaxedCopperChain,
+        ItemKind::ExposedCopperChain,
+        ItemKind::WaxedExposedCopperChain,
+        ItemKind::WeatheredCopperChain,
+        ItemKind::WaxedWeatheredCopperChain,
+        ItemKind::OxidizedCopperChain,
+        ItemKind::WaxedOxidizedCopperChain,
+    ])
+});
+pub static CHERRY_LOGS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::CherryLog,
+        ItemKind::CherryWood,
+        ItemKind::StrippedCherryLog,
+        ItemKind::StrippedCherryWood,
+    ])
+});
+pub static CHEST_ARMOR: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::LeatherChestplate,
+        ItemKind::CopperChestplate,
+        ItemKind::ChainmailChestplate,
+        ItemKind::GoldenChestplate,
+        ItemKind::IronChestplate,
+        ItemKind::DiamondChestplate,
+        ItemKind::NetheriteChestplate,
+    ])
+});
+pub static CHEST_BOATS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::OakChestBoat,
+        ItemKind::SpruceChestBoat,
+        ItemKind::BirchChestBoat,
+        ItemKind::JungleChestBoat,
+        ItemKind::AcaciaChestBoat,
+        ItemKind::DarkOakChestBoat,
+        ItemKind::PaleOakChestBoat,
+        ItemKind::MangroveChestBoat,
+        ItemKind::BambooChestRaft,
+        ItemKind::CherryChestBoat,
+    ])
+});
+pub static CHICKEN_FOOD: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::WheatSeeds,
+        ItemKind::MelonSeeds,
+        ItemKind::PumpkinSeeds,
+        ItemKind::BeetrootSeeds,
+        ItemKind::TorchflowerSeeds,
+        ItemKind::PitcherPod,
+    ])
+});
+pub static CLUSTER_MAX_HARVESTABLES: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::DiamondPickaxe,
+        ItemKind::GoldenPickaxe,
+        ItemKind::IronPickaxe,
+        ItemKind::NetheritePickaxe,
+        ItemKind::StonePickaxe,
+        ItemKind::WoodenPickaxe,
+        ItemKind::CopperPickaxe,
+    ])
+});
+pub static COAL_ORES: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::CoalOre, ItemKind::DeepslateCoalOre]));
+pub static COALS: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::Coal, ItemKind::Charcoal]));
+pub static COMPASSES: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::Compass, ItemKind::RecoveryCompass]));
+pub static COMPLETES_FIND_TREE_TUTORIAL: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::JungleLeaves,
+        ItemKind::OakLeaves,
+        ItemKind::SpruceLeaves,
+        ItemKind::PaleOakLeaves,
+        ItemKind::DarkOakLeaves,
+        ItemKind::AcaciaLeaves,
+        ItemKind::BirchLeaves,
+        ItemKind::AzaleaLeaves,
+        ItemKind::FloweringAzaleaLeaves,
+        ItemKind::MangroveLeaves,
+        ItemKind::CherryLeaves,
+        ItemKind::NetherWartBlock,
+        ItemKind::WarpedWartBlock,
+        ItemKind::CrimsonStem,
+        ItemKind::StrippedCrimsonStem,
+        ItemKind::CrimsonHyphae,
+        ItemKind::StrippedCrimsonHyphae,
+        ItemKind::WarpedStem,
+        ItemKind::StrippedWarpedStem,
+        ItemKind::WarpedHyphae,
+        ItemKind::StrippedWarpedHyphae,
+        ItemKind::DarkOakLog,
+        ItemKind::DarkOakWood,
+        ItemKind::StrippedDarkOakLog,
+        ItemKind::StrippedDarkOakWood,
+        ItemKind::PaleOakLog,
+        ItemKind::PaleOakWood,
+        ItemKind::StrippedPaleOakLog,
+        ItemKind::StrippedPaleOakWood,
+        ItemKind::OakLog,
+        ItemKind::OakWood,
+        ItemKind::StrippedOakLog,
+        ItemKind::StrippedOakWood,
+        ItemKind::AcaciaLog,
+        ItemKind::AcaciaWood,
+        ItemKind::StrippedAcaciaLog,
+        ItemKind::StrippedAcaciaWood,
+        ItemKind::BirchLog,
+        ItemKind::BirchWood,
+        ItemKind::StrippedBirchLog,
+        ItemKind::StrippedBirchWood,
+        ItemKind::JungleLog,
+        ItemKind::JungleWood,
+        ItemKind::StrippedJungleLog,
+        ItemKind::StrippedJungleWood,
+        ItemKind::SpruceLog,
+        ItemKind::SpruceWood,
+        ItemKind::StrippedSpruceLog,
+        ItemKind::StrippedSpruceWood,
+        ItemKind::MangroveLog,
+        ItemKind::MangroveWood,
+        ItemKind::StrippedMangroveLog,
+        ItemKind::StrippedMangroveWood,
+        ItemKind::CherryLog,
+        ItemKind::CherryWood,
+        ItemKind::StrippedCherryLog,
+        ItemKind::StrippedCherryWood,
+    ])
+});
+pub static COPPER: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::CopperBlock,
+        ItemKind::ExposedCopper,
+        ItemKind::WeatheredCopper,
+        ItemKind::OxidizedCopper,
+        ItemKind::WaxedCopperBlock,
+        ItemKind::WaxedExposedCopper,
+        ItemKind::WaxedWeatheredCopper,
+        ItemKind::WaxedOxidizedCopper,
+    ])
+});
+pub static COPPER_CHESTS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::CopperChest,
+        ItemKind::ExposedCopperChest,
+        ItemKind::WeatheredCopperChest,
+        ItemKind::OxidizedCopperChest,
+        ItemKind::WaxedCopperChest,
+        ItemKind::WaxedExposedCopperChest,
+        ItemKind::WaxedWeatheredCopperChest,
+        ItemKind::WaxedOxidizedCopperChest,
+    ])
+});
+pub static COPPER_GOLEM_STATUES: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::CopperGolemStatue,
+        ItemKind::ExposedCopperGolemStatue,
+        ItemKind::WeatheredCopperGolemStatue,
+        ItemKind::OxidizedCopperGolemStatue,
+        ItemKind::WaxedCopperGolemStatue,
+        ItemKind::WaxedExposedCopperGolemStatue,
+        ItemKind::WaxedWeatheredCopperGolemStatue,
+        ItemKind::WaxedOxidizedCopperGolemStatue,
+    ])
+});
+pub static COPPER_ORES: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::CopperOre, ItemKind::DeepslateCopperOre]));
+pub static COPPER_TOOL_MATERIALS: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::CopperIngot]));
+pub static COW_FOOD: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::Wheat]));
+pub static CREEPER_DROP_MUSIC_DISCS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::MusicDisc13,
+        ItemKind::MusicDiscCat,
+        ItemKind::MusicDiscBlocks,
+        ItemKind::MusicDiscChirp,
+        ItemKind::MusicDiscFar,
+        ItemKind::MusicDiscMall,
+        ItemKind::MusicDiscMellohi,
+        ItemKind::MusicDiscStal,
+        ItemKind::MusicDiscStrad,
+        ItemKind::MusicDiscWard,
+        ItemKind::MusicDisc11,
+        ItemKind::MusicDiscWait,
+    ])
+});
+pub static CREEPER_IGNITERS: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::FlintAndSteel, ItemKind::FireCharge]));
+pub static CRIMSON_STEMS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::CrimsonStem,
+        ItemKind::StrippedCrimsonStem,
+        ItemKind::CrimsonHyphae,
+        ItemKind::StrippedCrimsonHyphae,
+    ])
+});
+pub static DAMPENS_VIBRATIONS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::WhiteWool,
+        ItemKind::OrangeWool,
+        ItemKind::MagentaWool,
+        ItemKind::LightBlueWool,
+        ItemKind::YellowWool,
+        ItemKind::LimeWool,
+        ItemKind::PinkWool,
+        ItemKind::GrayWool,
+        ItemKind::LightGrayWool,
+        ItemKind::CyanWool,
+        ItemKind::PurpleWool,
+        ItemKind::BlueWool,
+        ItemKind::BrownWool,
+        ItemKind::GreenWool,
+        ItemKind::RedWool,
+        ItemKind::BlackWool,
+        ItemKind::WhiteCarpet,
+        ItemKind::OrangeCarpet,
+        ItemKind::MagentaCarpet,
+        ItemKind::LightBlueCarpet,
+        ItemKind::YellowCarpet,
+        ItemKind::LimeCarpet,
+        ItemKind::PinkCarpet,
+        ItemKind::GrayCarpet,
+        ItemKind::LightGrayCarpet,
+        ItemKind::CyanCarpet,
+        ItemKind::PurpleCarpet,
+        ItemKind::BlueCarpet,
+        ItemKind::BrownCarpet,
+        ItemKind::GreenCarpet,
+        ItemKind::RedCarpet,
+        ItemKind::BlackCarpet,
+    ])
+});
+pub static DARK_OAK_LOGS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::DarkOakLog,
+        ItemKind::DarkOakWood,
+        ItemKind::StrippedDarkOakLog,
+        ItemKind::StrippedDarkOakWood,
+    ])
+});
+pub static DECORATED_POT_INGREDIENTS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::Brick,
+        ItemKind::AnglerPotterySherd,
+        ItemKind::ArcherPotterySherd,
+        ItemKind::ArmsUpPotterySherd,
+        ItemKind::BladePotterySherd,
+        ItemKind::BrewerPotterySherd,
+        ItemKind::BurnPotterySherd,
+        ItemKind::DangerPotterySherd,
+        ItemKind::ExplorerPotterySherd,
+        ItemKind::FriendPotterySherd,
+        ItemKind::HeartPotterySherd,
+        ItemKind::HeartbreakPotterySherd,
+        ItemKind::HowlPotterySherd,
+        ItemKind::MinerPotterySherd,
+        ItemKind::MournerPotterySherd,
+        ItemKind::PlentyPotterySherd,
+        ItemKind::PrizePotterySherd,
+        ItemKind::SheafPotterySherd,
+        ItemKind::ShelterPotterySherd,
+        ItemKind::SkullPotterySherd,
+        ItemKind::SnortPotterySherd,
+        ItemKind::FlowPotterySherd,
+        ItemKind::GusterPotterySherd,
+        ItemKind::ScrapePotterySherd,
+    ])
+});
+pub static DECORATED_POT_SHERDS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::AnglerPotterySherd,
+        ItemKind::ArcherPotterySherd,
+        ItemKind::ArmsUpPotterySherd,
+        ItemKind::BladePotterySherd,
+        ItemKind::BrewerPotterySherd,
+        ItemKind::BurnPotterySherd,
+        ItemKind::DangerPotterySherd,
+        ItemKind::ExplorerPotterySherd,
+        ItemKind::FriendPotterySherd,
+        ItemKind::HeartPotterySherd,
+        ItemKind::HeartbreakPotterySherd,
+        ItemKind::HowlPotterySherd,
+        ItemKind::MinerPotterySherd,
+        ItemKind::MournerPotterySherd,
+        ItemKind::PlentyPotterySherd,
+        ItemKind::PrizePotterySherd,
+        ItemKind::SheafPotterySherd,
+        ItemKind::ShelterPotterySherd,
+        ItemKind::SkullPotterySherd,
+        ItemKind::SnortPotterySherd,
+        ItemKind::FlowPotterySherd,
+        ItemKind::GusterPotterySherd,
+        ItemKind::ScrapePotterySherd,
+    ])
+});
+pub static DIAMOND_ORES: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::DiamondOre, ItemKind::DeepslateDiamondOre]));
+pub static DIAMOND_TOOL_MATERIALS: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::Diamond]));
+pub static DIRT: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::Dirt,
+        ItemKind::GrassBlock,
+        ItemKind::Podzol,
+        ItemKind::CoarseDirt,
+        ItemKind::Mycelium,
+        ItemKind::RootedDirt,
+        ItemKind::MossBlock,
+        ItemKind::PaleMossBlock,
+        ItemKind::Mud,
+        ItemKind::MuddyMangroveRoots,
+    ])
+});
+pub static DOORS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::CopperDoor,
+        ItemKind::ExposedCopperDoor,
+        ItemKind::WeatheredCopperDoor,
+        ItemKind::OxidizedCopperDoor,
+        ItemKind::WaxedCopperDoor,
+        ItemKind::WaxedExposedCopperDoor,
+        ItemKind::WaxedWeatheredCopperDoor,
+        ItemKind::WaxedOxidizedCopperDoor,
+        ItemKind::IronDoor,
+        ItemKind::OakDoor,
+        ItemKind::SpruceDoor,
+        ItemKind::BirchDoor,
+        ItemKind::JungleDoor,
+        ItemKind::AcaciaDoor,
+        ItemKind::DarkOakDoor,
+        ItemKind::PaleOakDoor,
+        ItemKind::CrimsonDoor,
+        ItemKind::WarpedDoor,
+        ItemKind::MangroveDoor,
+        ItemKind::BambooDoor,
+        ItemKind::CherryDoor,
+    ])
+});
+pub static DROWNED_PREFERRED_WEAPONS: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::Trident]));
+pub static DUPLICATES_ALLAYS: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::AmethystShard]));
+pub static DYEABLE: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::LeatherHelmet,
+        ItemKind::LeatherChestplate,
+        ItemKind::LeatherLeggings,
+        ItemKind::LeatherBoots,
+        ItemKind::LeatherHorseArmor,
+        ItemKind::WolfArmor,
+    ])
+});
+pub static EGGS: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::Egg, ItemKind::BlueEgg, ItemKind::BrownEgg]));
+pub static EMERALD_ORES: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::EmeraldOre, ItemKind::DeepslateEmeraldOre]));
+pub static ENCHANTABLE_ARMOR: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::LeatherBoots,
+        ItemKind::CopperBoots,
+        ItemKind::ChainmailBoots,
+        ItemKind::GoldenBoots,
+        ItemKind::IronBoots,
+        ItemKind::DiamondBoots,
+        ItemKind::NetheriteBoots,
+        ItemKind::LeatherLeggings,
+        ItemKind::CopperLeggings,
+        ItemKind::ChainmailLeggings,
+        ItemKind::GoldenLeggings,
+        ItemKind::IronLeggings,
+        ItemKind::DiamondLeggings,
+        ItemKind::NetheriteLeggings,
+        ItemKind::LeatherChestplate,
+        ItemKind::CopperChestplate,
+        ItemKind::ChainmailChestplate,
+        ItemKind::GoldenChestplate,
+        ItemKind::IronChestplate,
+        ItemKind::DiamondChestplate,
+        ItemKind::NetheriteChestplate,
+        ItemKind::LeatherHelmet,
+        ItemKind::CopperHelmet,
+        ItemKind::ChainmailHelmet,
+        ItemKind::GoldenHelmet,
+        ItemKind::IronHelmet,
+        ItemKind::DiamondHelmet,
+        ItemKind::NetheriteHelmet,
+        ItemKind::TurtleHelmet,
+    ])
+});
+pub static ENCHANTABLE_BOW: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::Bow]));
+pub static ENCHANTABLE_CHEST_ARMOR: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::LeatherChestplate,
+        ItemKind::CopperChestplate,
+        ItemKind::ChainmailChestplate,
+        ItemKind::GoldenChestplate,
+        ItemKind::IronChestplate,
+        ItemKind::DiamondChestplate,
+        ItemKind::NetheriteChestplate,
+    ])
+});
+pub static ENCHANTABLE_CROSSBOW: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::Crossbow]));
+pub static ENCHANTABLE_DURABILITY: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::Elytra,
+        ItemKind::Shield,
+        ItemKind::Bow,
+        ItemKind::Crossbow,
+        ItemKind::Trident,
+        ItemKind::FlintAndSteel,
+        ItemKind::Shears,
+        ItemKind::Brush,
+        ItemKind::FishingRod,
+        ItemKind::CarrotOnAStick,
+        ItemKind::WarpedFungusOnAStick,
+        ItemKind::Mace,
+        ItemKind::LeatherBoots,
+        ItemKind::CopperBoots,
+        ItemKind::ChainmailBoots,
+        ItemKind::GoldenBoots,
+        ItemKind::IronBoots,
+        ItemKind::DiamondBoots,
+        ItemKind::NetheriteBoots,
+        ItemKind::LeatherLeggings,
+        ItemKind::CopperLeggings,
+        ItemKind::ChainmailLeggings,
+        ItemKind::GoldenLeggings,
+        ItemKind::IronLeggings,
+        ItemKind::DiamondLeggings,
+        ItemKind::NetheriteLeggings,
+        ItemKind::LeatherChestplate,
+        ItemKind::CopperChestplate,
+        ItemKind::ChainmailChestplate,
+        ItemKind::GoldenChestplate,
+        ItemKind::IronChestplate,
+        ItemKind::DiamondChestplate,
+        ItemKind::NetheriteChestplate,
+        ItemKind::LeatherHelmet,
+        ItemKind::CopperHelmet,
+        ItemKind::ChainmailHelmet,
+        ItemKind::GoldenHelmet,
+        ItemKind::IronHelmet,
+        ItemKind::DiamondHelmet,
+        ItemKind::NetheriteHelmet,
+        ItemKind::TurtleHelmet,
+        ItemKind::DiamondSword,
+        ItemKind::StoneSword,
+        ItemKind::GoldenSword,
+        ItemKind::NetheriteSword,
+        ItemKind::WoodenSword,
+        ItemKind::IronSword,
+        ItemKind::CopperSword,
+        ItemKind::DiamondAxe,
+        ItemKind::StoneAxe,
+        ItemKind::GoldenAxe,
+        ItemKind::NetheriteAxe,
+        ItemKind::WoodenAxe,
+        ItemKind::IronAxe,
+        ItemKind::CopperAxe,
+        ItemKind::DiamondPickaxe,
+        ItemKind::StonePickaxe,
+        ItemKind::GoldenPickaxe,
+        ItemKind::NetheritePickaxe,
+        ItemKind::WoodenPickaxe,
+        ItemKind::IronPickaxe,
+        ItemKind::CopperPickaxe,
+        ItemKind::DiamondShovel,
+        ItemKind::StoneShovel,
+        ItemKind::GoldenShovel,
+        ItemKind::NetheriteShovel,
+        ItemKind::WoodenShovel,
+        ItemKind::IronShovel,
+        ItemKind::CopperShovel,
+        ItemKind::DiamondHoe,
+        ItemKind::StoneHoe,
+        ItemKind::GoldenHoe,
+        ItemKind::NetheriteHoe,
+        ItemKind::WoodenHoe,
+        ItemKind::IronHoe,
+        ItemKind::CopperHoe,
+        ItemKind::DiamondSpear,
+        ItemKind::StoneSpear,
+        ItemKind::GoldenSpear,
+        ItemKind::NetheriteSpear,
+        ItemKind::WoodenSpear,
+        ItemKind::IronSpear,
+        ItemKind::CopperSpear,
+    ])
+});
+pub static ENCHANTABLE_EQUIPPABLE: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::Elytra,
+        ItemKind::CarvedPumpkin,
+        ItemKind::LeatherBoots,
+        ItemKind::CopperBoots,
+        ItemKind::ChainmailBoots,
+        ItemKind::GoldenBoots,
+        ItemKind::IronBoots,
+        ItemKind::DiamondBoots,
+        ItemKind::NetheriteBoots,
+        ItemKind::LeatherLeggings,
+        ItemKind::CopperLeggings,
+        ItemKind::ChainmailLeggings,
+        ItemKind::GoldenLeggings,
+        ItemKind::IronLeggings,
+        ItemKind::DiamondLeggings,
+        ItemKind::NetheriteLeggings,
+        ItemKind::LeatherChestplate,
+        ItemKind::CopperChestplate,
+        ItemKind::ChainmailChestplate,
+        ItemKind::GoldenChestplate,
+        ItemKind::IronChestplate,
+        ItemKind::DiamondChestplate,
+        ItemKind::NetheriteChestplate,
+        ItemKind::LeatherHelmet,
+        ItemKind::CopperHelmet,
+        ItemKind::ChainmailHelmet,
+        ItemKind::GoldenHelmet,
+        ItemKind::IronHelmet,
+        ItemKind::DiamondHelmet,
+        ItemKind::NetheriteHelmet,
+        ItemKind::TurtleHelmet,
+        ItemKind::PlayerHead,
+        ItemKind::CreeperHead,
+        ItemKind::ZombieHead,
+        ItemKind::SkeletonSkull,
+        ItemKind::WitherSkeletonSkull,
+        ItemKind::DragonHead,
+        ItemKind::PiglinHead,
+    ])
+});
+pub static ENCHANTABLE_FIRE_ASPECT: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::Mace,
+        ItemKind::DiamondSword,
+        ItemKind::StoneSword,
+        ItemKind::GoldenSword,
+        ItemKind::NetheriteSword,
+        ItemKind::WoodenSword,
+        ItemKind::IronSword,
+        ItemKind::CopperSword,
+        ItemKind::DiamondSpear,
+        ItemKind::StoneSpear,
+        ItemKind::GoldenSpear,
+        ItemKind::NetheriteSpear,
+        ItemKind::WoodenSpear,
+        ItemKind::IronSpear,
+        ItemKind::CopperSpear,
+    ])
+});
+pub static ENCHANTABLE_FISHING: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::FishingRod]));
+pub static ENCHANTABLE_FOOT_ARMOR: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::LeatherBoots,
+        ItemKind::CopperBoots,
+        ItemKind::ChainmailBoots,
+        ItemKind::GoldenBoots,
+        ItemKind::IronBoots,
+        ItemKind::DiamondBoots,
+        ItemKind::NetheriteBoots,
+    ])
+});
+pub static ENCHANTABLE_HEAD_ARMOR: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::LeatherHelmet,
+        ItemKind::CopperHelmet,
+        ItemKind::ChainmailHelmet,
+        ItemKind::GoldenHelmet,
+        ItemKind::IronHelmet,
+        ItemKind::DiamondHelmet,
+        ItemKind::NetheriteHelmet,
+        ItemKind::TurtleHelmet,
+    ])
+});
+pub static ENCHANTABLE_LEG_ARMOR: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::LeatherLeggings,
+        ItemKind::CopperLeggings,
+        ItemKind::ChainmailLeggings,
+        ItemKind::GoldenLeggings,
+        ItemKind::IronLeggings,
+        ItemKind::DiamondLeggings,
+        ItemKind::NetheriteLeggings,
+    ])
+});
+pub static ENCHANTABLE_LUNGE: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::DiamondSpear,
+        ItemKind::StoneSpear,
+        ItemKind::GoldenSpear,
+        ItemKind::NetheriteSpear,
+        ItemKind::WoodenSpear,
+        ItemKind::IronSpear,
+        ItemKind::CopperSpear,
+    ])
+});
+pub static ENCHANTABLE_MACE: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::Mace]));
+pub static ENCHANTABLE_MELEE_WEAPON: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::DiamondSword,
+        ItemKind::StoneSword,
+        ItemKind::GoldenSword,
+        ItemKind::NetheriteSword,
+        ItemKind::WoodenSword,
+        ItemKind::IronSword,
+        ItemKind::CopperSword,
+        ItemKind::DiamondSpear,
+        ItemKind::StoneSpear,
+        ItemKind::GoldenSpear,
+        ItemKind::NetheriteSpear,
+        ItemKind::WoodenSpear,
+        ItemKind::IronSpear,
+        ItemKind::CopperSpear,
+    ])
+});
+pub static ENCHANTABLE_MINING: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::Shears,
+        ItemKind::DiamondAxe,
+        ItemKind::StoneAxe,
+        ItemKind::GoldenAxe,
+        ItemKind::NetheriteAxe,
+        ItemKind::WoodenAxe,
+        ItemKind::IronAxe,
+        ItemKind::CopperAxe,
+        ItemKind::DiamondPickaxe,
+        ItemKind::StonePickaxe,
+        ItemKind::GoldenPickaxe,
+        ItemKind::NetheritePickaxe,
+        ItemKind::WoodenPickaxe,
+        ItemKind::IronPickaxe,
+        ItemKind::CopperPickaxe,
+        ItemKind::DiamondShovel,
+        ItemKind::StoneShovel,
+        ItemKind::GoldenShovel,
+        ItemKind::NetheriteShovel,
+        ItemKind::WoodenShovel,
+        ItemKind::IronShovel,
+        ItemKind::CopperShovel,
+        ItemKind::DiamondHoe,
+        ItemKind::StoneHoe,
+        ItemKind::GoldenHoe,
+        ItemKind::NetheriteHoe,
+        ItemKind::WoodenHoe,
+        ItemKind::IronHoe,
+        ItemKind::CopperHoe,
+    ])
+});
+pub static ENCHANTABLE_MINING_LOOT: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::DiamondAxe,
+        ItemKind::StoneAxe,
+        ItemKind::GoldenAxe,
+        ItemKind::NetheriteAxe,
+        ItemKind::WoodenAxe,
+        ItemKind::IronAxe,
+        ItemKind::CopperAxe,
+        ItemKind::DiamondPickaxe,
+        ItemKind::StonePickaxe,
+        ItemKind::GoldenPickaxe,
+        ItemKind::NetheritePickaxe,
+        ItemKind::WoodenPickaxe,
+        ItemKind::IronPickaxe,
+        ItemKind::CopperPickaxe,
+        ItemKind::DiamondShovel,
+        ItemKind::StoneShovel,
+        ItemKind::GoldenShovel,
+        ItemKind::NetheriteShovel,
+        ItemKind::WoodenShovel,
+        ItemKind::IronShovel,
+        ItemKind::CopperShovel,
+        ItemKind::DiamondHoe,
+        ItemKind::StoneHoe,
+        ItemKind::GoldenHoe,
+        ItemKind::NetheriteHoe,
+        ItemKind::WoodenHoe,
+        ItemKind::IronHoe,
+        ItemKind::CopperHoe,
+    ])
+});
+pub static ENCHANTABLE_SHARP_WEAPON: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::DiamondAxe,
+        ItemKind::StoneAxe,
+        ItemKind::GoldenAxe,
+        ItemKind::NetheriteAxe,
+        ItemKind::WoodenAxe,
+        ItemKind::IronAxe,
+        ItemKind::CopperAxe,
+        ItemKind::DiamondSword,
+        ItemKind::StoneSword,
+        ItemKind::GoldenSword,
+        ItemKind::NetheriteSword,
+        ItemKind::WoodenSword,
+        ItemKind::IronSword,
+        ItemKind::CopperSword,
+        ItemKind::DiamondSpear,
+        ItemKind::StoneSpear,
+        ItemKind::GoldenSpear,
+        ItemKind::NetheriteSpear,
+        ItemKind::WoodenSpear,
+        ItemKind::IronSpear,
+        ItemKind::CopperSpear,
+    ])
+});
+pub static ENCHANTABLE_SWEEPING: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::DiamondSword,
+        ItemKind::StoneSword,
+        ItemKind::GoldenSword,
+        ItemKind::NetheriteSword,
+        ItemKind::WoodenSword,
+        ItemKind::IronSword,
+        ItemKind::CopperSword,
+    ])
+});
+pub static ENCHANTABLE_TRIDENT: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::Trident]));
+pub static ENCHANTABLE_VANISHING: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::Compass,
+        ItemKind::CarvedPumpkin,
+        ItemKind::Elytra,
+        ItemKind::Shield,
+        ItemKind::Bow,
+        ItemKind::Crossbow,
+        ItemKind::Trident,
+        ItemKind::FlintAndSteel,
+        ItemKind::Shears,
+        ItemKind::Brush,
+        ItemKind::FishingRod,
+        ItemKind::CarrotOnAStick,
+        ItemKind::WarpedFungusOnAStick,
+        ItemKind::Mace,
+        ItemKind::PlayerHead,
+        ItemKind::CreeperHead,
+        ItemKind::ZombieHead,
+        ItemKind::SkeletonSkull,
+        ItemKind::WitherSkeletonSkull,
+        ItemKind::DragonHead,
+        ItemKind::PiglinHead,
+        ItemKind::LeatherBoots,
+        ItemKind::CopperBoots,
+        ItemKind::ChainmailBoots,
+        ItemKind::GoldenBoots,
+        ItemKind::IronBoots,
+        ItemKind::DiamondBoots,
+        ItemKind::NetheriteBoots,
+        ItemKind::LeatherLeggings,
+        ItemKind::CopperLeggings,
+        ItemKind::ChainmailLeggings,
+        ItemKind::GoldenLeggings,
+        ItemKind::IronLeggings,
+        ItemKind::DiamondLeggings,
+        ItemKind::NetheriteLeggings,
+        ItemKind::LeatherChestplate,
+        ItemKind::CopperChestplate,
+        ItemKind::ChainmailChestplate,
+        ItemKind::GoldenChestplate,
+        ItemKind::IronChestplate,
+        ItemKind::DiamondChestplate,
+        ItemKind::NetheriteChestplate,
+        ItemKind::LeatherHelmet,
+        ItemKind::CopperHelmet,
+        ItemKind::ChainmailHelmet,
+        ItemKind::GoldenHelmet,
+        ItemKind::IronHelmet,
+        ItemKind::DiamondHelmet,
+        ItemKind::NetheriteHelmet,
+        ItemKind::TurtleHelmet,
+        ItemKind::DiamondSword,
+        ItemKind::StoneSword,
+        ItemKind::GoldenSword,
+        ItemKind::NetheriteSword,
+        ItemKind::WoodenSword,
+        ItemKind::IronSword,
+        ItemKind::CopperSword,
+        ItemKind::DiamondAxe,
+        ItemKind::StoneAxe,
+        ItemKind::GoldenAxe,
+        ItemKind::NetheriteAxe,
+        ItemKind::WoodenAxe,
+        ItemKind::IronAxe,
+        ItemKind::CopperAxe,
+        ItemKind::DiamondPickaxe,
+        ItemKind::StonePickaxe,
+        ItemKind::GoldenPickaxe,
+        ItemKind::NetheritePickaxe,
+        ItemKind::WoodenPickaxe,
+        ItemKind::IronPickaxe,
+        ItemKind::CopperPickaxe,
+        ItemKind::DiamondShovel,
+        ItemKind::StoneShovel,
+        ItemKind::GoldenShovel,
+        ItemKind::NetheriteShovel,
+        ItemKind::WoodenShovel,
+        ItemKind::IronShovel,
+        ItemKind::CopperShovel,
+        ItemKind::DiamondHoe,
+        ItemKind::StoneHoe,
+        ItemKind::GoldenHoe,
+        ItemKind::NetheriteHoe,
+        ItemKind::WoodenHoe,
+        ItemKind::IronHoe,
+        ItemKind::CopperHoe,
+        ItemKind::DiamondSpear,
+        ItemKind::StoneSpear,
+        ItemKind::GoldenSpear,
+        ItemKind::NetheriteSpear,
+        ItemKind::WoodenSpear,
+        ItemKind::IronSpear,
+        ItemKind::CopperSpear,
+    ])
+});
+pub static ENCHANTABLE_WEAPON: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::Mace,
+        ItemKind::DiamondAxe,
+        ItemKind::StoneAxe,
+        ItemKind::GoldenAxe,
+        ItemKind::NetheriteAxe,
+        ItemKind::WoodenAxe,
+        ItemKind::IronAxe,
+        ItemKind::CopperAxe,
+        ItemKind::DiamondSword,
+        ItemKind::StoneSword,
+        ItemKind::GoldenSword,
+        ItemKind::NetheriteSword,
+        ItemKind::WoodenSword,
+        ItemKind::IronSword,
+        ItemKind::CopperSword,
+        ItemKind::DiamondSpear,
+        ItemKind::StoneSpear,
+        ItemKind::GoldenSpear,
+        ItemKind::NetheriteSpear,
+        ItemKind::WoodenSpear,
+        ItemKind::IronSpear,
+        ItemKind::CopperSpear,
+    ])
+});
+pub static FENCE_GATES: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::AcaciaFenceGate,
+        ItemKind::BirchFenceGate,
+        ItemKind::DarkOakFenceGate,
+        ItemKind::PaleOakFenceGate,
+        ItemKind::JungleFenceGate,
+        ItemKind::OakFenceGate,
+        ItemKind::SpruceFenceGate,
+        ItemKind::CrimsonFenceGate,
+        ItemKind::WarpedFenceGate,
+        ItemKind::MangroveFenceGate,
+        ItemKind::BambooFenceGate,
+        ItemKind::CherryFenceGate,
+    ])
+});
+pub static FENCES: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::NetherBrickFence,
+        ItemKind::OakFence,
+        ItemKind::AcaciaFence,
+        ItemKind::DarkOakFence,
+        ItemKind::PaleOakFence,
+        ItemKind::SpruceFence,
+        ItemKind::BirchFence,
+        ItemKind::JungleFence,
+        ItemKind::CrimsonFence,
+        ItemKind::WarpedFence,
+        ItemKind::MangroveFence,
+        ItemKind::BambooFence,
+        ItemKind::CherryFence,
+    ])
+});
+pub static FISHES: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::Cod,
+        ItemKind::CookedCod,
+        ItemKind::Salmon,
+        ItemKind::CookedSalmon,
+        ItemKind::Pufferfish,
+        ItemKind::TropicalFish,
+    ])
+});
+pub static FLOWERS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::Sunflower,
+        ItemKind::Lilac,
+        ItemKind::Peony,
+        ItemKind::RoseBush,
+        ItemKind::PitcherPlant,
+        ItemKind::FloweringAzaleaLeaves,
+        ItemKind::FloweringAzalea,
+        ItemKind::MangrovePropagule,
+        ItemKind::CherryLeaves,
+        ItemKind::PinkPetals,
+        ItemKind::Wildflowers,
+        ItemKind::ChorusFlower,
+        ItemKind::SporeBlossom,
+        ItemKind::CactusFlower,
+        ItemKind::Dandelion,
+        ItemKind::OpenEyeblossom,
+        ItemKind::Poppy,
+        ItemKind::BlueOrchid,
+        ItemKind::Allium,
+        ItemKind::AzureBluet,
+        ItemKind::RedTulip,
+        ItemKind::OrangeTulip,
+        ItemKind::WhiteTulip,
+        ItemKind::PinkTulip,
+        ItemKind::OxeyeDaisy,
+        ItemKind::Cornflower,
+        ItemKind::LilyOfTheValley,
+        ItemKind::WitherRose,
+        ItemKind::Torchflower,
+        ItemKind::ClosedEyeblossom,
+    ])
+});
+pub static FOOT_ARMOR: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::LeatherBoots,
+        ItemKind::CopperBoots,
+        ItemKind::ChainmailBoots,
+        ItemKind::GoldenBoots,
+        ItemKind::IronBoots,
+        ItemKind::DiamondBoots,
+        ItemKind::NetheriteBoots,
+    ])
+});
+pub static FOX_FOOD: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::SweetBerries, ItemKind::GlowBerries]));
+pub static FREEZE_IMMUNE_WEARABLES: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::LeatherBoots,
+        ItemKind::LeatherLeggings,
+        ItemKind::LeatherChestplate,
+        ItemKind::LeatherHelmet,
+        ItemKind::LeatherHorseArmor,
+    ])
+});
+pub static FROG_FOOD: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::SlimeBall]));
+pub static FURNACE_MINECART_FUEL: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::Coal, ItemKind::Charcoal]));
+pub static GAZE_DISGUISE_EQUIPMENT: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::CarvedPumpkin]));
+pub static GOAT_FOOD: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::Wheat]));
+pub static GOLD_ORES: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::GoldOre,
+        ItemKind::NetherGoldOre,
+        ItemKind::DeepslateGoldOre,
+    ])
+});
+pub static GOLD_TOOL_MATERIALS: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::GoldIngot]));
+pub static HANGING_SIGNS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::OakHangingSign,
+        ItemKind::SpruceHangingSign,
+        ItemKind::BirchHangingSign,
+        ItemKind::AcaciaHangingSign,
+        ItemKind::CherryHangingSign,
+        ItemKind::JungleHangingSign,
+        ItemKind::DarkOakHangingSign,
+        ItemKind::PaleOakHangingSign,
+        ItemKind::CrimsonHangingSign,
+        ItemKind::WarpedHangingSign,
+        ItemKind::MangroveHangingSign,
+        ItemKind::BambooHangingSign,
+    ])
+});
+pub static HAPPY_GHAST_FOOD: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::Snowball]));
+pub static HAPPY_GHAST_TEMPT_ITEMS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::Snowball,
+        ItemKind::WhiteHarness,
+        ItemKind::OrangeHarness,
+        ItemKind::MagentaHarness,
+        ItemKind::LightBlueHarness,
+        ItemKind::YellowHarness,
+        ItemKind::LimeHarness,
+        ItemKind::PinkHarness,
+        ItemKind::GrayHarness,
+        ItemKind::LightGrayHarness,
+        ItemKind::CyanHarness,
+        ItemKind::PurpleHarness,
+        ItemKind::BlueHarness,
+        ItemKind::BrownHarness,
+        ItemKind::GreenHarness,
+        ItemKind::RedHarness,
+        ItemKind::BlackHarness,
+    ])
+});
+pub static HARNESSES: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::WhiteHarness,
+        ItemKind::OrangeHarness,
+        ItemKind::MagentaHarness,
+        ItemKind::LightBlueHarness,
+        ItemKind::YellowHarness,
+        ItemKind::LimeHarness,
+        ItemKind::PinkHarness,
+        ItemKind::GrayHarness,
+        ItemKind::LightGrayHarness,
+        ItemKind::CyanHarness,
+        ItemKind::PurpleHarness,
+        ItemKind::BlueHarness,
+        ItemKind::BrownHarness,
+        ItemKind::GreenHarness,
+        ItemKind::RedHarness,
+        ItemKind::BlackHarness,
+    ])
+});
+pub static HEAD_ARMOR: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::LeatherHelmet,
+        ItemKind::CopperHelmet,
+        ItemKind::ChainmailHelmet,
+        ItemKind::GoldenHelmet,
+        ItemKind::IronHelmet,
+        ItemKind::DiamondHelmet,
+        ItemKind::NetheriteHelmet,
+        ItemKind::TurtleHelmet,
+    ])
+});
+pub static HOES: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::DiamondHoe,
+        ItemKind::StoneHoe,
+        ItemKind::GoldenHoe,
+        ItemKind::NetheriteHoe,
+        ItemKind::WoodenHoe,
+        ItemKind::IronHoe,
+        ItemKind::CopperHoe,
+    ])
+});
+pub static HOGLIN_FOOD: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::CrimsonFungus]));
+pub static HORSE_FOOD: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::Wheat,
+        ItemKind::Sugar,
+        ItemKind::HayBlock,
+        ItemKind::Apple,
+        ItemKind::Carrot,
+        ItemKind::GoldenCarrot,
+        ItemKind::GoldenApple,
+        ItemKind::EnchantedGoldenApple,
+    ])
+});
+pub static HORSE_TEMPT_ITEMS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::GoldenCarrot,
+        ItemKind::GoldenApple,
+        ItemKind::EnchantedGoldenApple,
+    ])
+});
+pub static IGNORED_BY_PIGLIN_BABIES: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::Leather]));
+pub static IRON_ORES: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::IronOre, ItemKind::DeepslateIronOre]));
+pub static IRON_TOOL_MATERIALS: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::IronIngot]));
+pub static JUNGLE_LOGS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::JungleLog,
+        ItemKind::JungleWood,
+        ItemKind::StrippedJungleLog,
+        ItemKind::StrippedJungleWood,
+    ])
+});
+pub static LANTERNS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::Lantern,
+        ItemKind::SoulLantern,
+        ItemKind::CopperLantern,
+        ItemKind::WaxedCopperLantern,
+        ItemKind::ExposedCopperLantern,
+        ItemKind::WaxedExposedCopperLantern,
+        ItemKind::WeatheredCopperLantern,
+        ItemKind::WaxedWeatheredCopperLantern,
+        ItemKind::OxidizedCopperLantern,
+        ItemKind::WaxedOxidizedCopperLantern,
+    ])
+});
+pub static LAPIS_ORES: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::LapisOre, ItemKind::DeepslateLapisOre]));
+pub static LEAVES: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::JungleLeaves,
+        ItemKind::OakLeaves,
+        ItemKind::SpruceLeaves,
+        ItemKind::PaleOakLeaves,
+        ItemKind::DarkOakLeaves,
+        ItemKind::AcaciaLeaves,
+        ItemKind::BirchLeaves,
+        ItemKind::AzaleaLeaves,
+        ItemKind::FloweringAzaleaLeaves,
+        ItemKind::MangroveLeaves,
+        ItemKind::CherryLeaves,
+    ])
+});
+pub static LECTERN_BOOKS: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::WrittenBook, ItemKind::WritableBook]));
+pub static LEG_ARMOR: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::LeatherLeggings,
+        ItemKind::CopperLeggings,
+        ItemKind::ChainmailLeggings,
+        ItemKind::GoldenLeggings,
+        ItemKind::IronLeggings,
+        ItemKind::DiamondLeggings,
+        ItemKind::NetheriteLeggings,
+    ])
+});
+pub static LIGHTNING_RODS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::LightningRod,
+        ItemKind::ExposedLightningRod,
+        ItemKind::WeatheredLightningRod,
+        ItemKind::OxidizedLightningRod,
+        ItemKind::WaxedLightningRod,
+        ItemKind::WaxedExposedLightningRod,
+        ItemKind::WaxedWeatheredLightningRod,
+        ItemKind::WaxedOxidizedLightningRod,
+    ])
+});
+pub static LLAMA_FOOD: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::Wheat, ItemKind::HayBlock]));
+pub static LLAMA_TEMPT_ITEMS: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::HayBlock]));
+pub static LOGS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::CrimsonStem,
+        ItemKind::StrippedCrimsonStem,
+        ItemKind::CrimsonHyphae,
+        ItemKind::StrippedCrimsonHyphae,
+        ItemKind::WarpedStem,
+        ItemKind::StrippedWarpedStem,
+        ItemKind::WarpedHyphae,
+        ItemKind::StrippedWarpedHyphae,
+        ItemKind::DarkOakLog,
+        ItemKind::DarkOakWood,
+        ItemKind::StrippedDarkOakLog,
+        ItemKind::StrippedDarkOakWood,
+        ItemKind::PaleOakLog,
+        ItemKind::PaleOakWood,
+        ItemKind::StrippedPaleOakLog,
+        ItemKind::StrippedPaleOakWood,
+        ItemKind::OakLog,
+        ItemKind::OakWood,
+        ItemKind::StrippedOakLog,
+        ItemKind::StrippedOakWood,
+        ItemKind::AcaciaLog,
+        ItemKind::AcaciaWood,
+        ItemKind::StrippedAcaciaLog,
+        ItemKind::StrippedAcaciaWood,
+        ItemKind::BirchLog,
+        ItemKind::BirchWood,
+        ItemKind::StrippedBirchLog,
+        ItemKind::StrippedBirchWood,
+        ItemKind::JungleLog,
+        ItemKind::JungleWood,
+        ItemKind::StrippedJungleLog,
+        ItemKind::StrippedJungleWood,
+        ItemKind::SpruceLog,
+        ItemKind::SpruceWood,
+        ItemKind::StrippedSpruceLog,
+        ItemKind::StrippedSpruceWood,
+        ItemKind::MangroveLog,
+        ItemKind::MangroveWood,
+        ItemKind::StrippedMangroveLog,
+        ItemKind::StrippedMangroveWood,
+        ItemKind::CherryLog,
+        ItemKind::CherryWood,
+        ItemKind::StrippedCherryLog,
+        ItemKind::StrippedCherryWood,
+    ])
+});
+pub static LOGS_THAT_BURN: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::DarkOakLog,
+        ItemKind::DarkOakWood,
+        ItemKind::StrippedDarkOakLog,
+        ItemKind::StrippedDarkOakWood,
+        ItemKind::PaleOakLog,
+        ItemKind::PaleOakWood,
+        ItemKind::StrippedPaleOakLog,
+        ItemKind::StrippedPaleOakWood,
+        ItemKind::OakLog,
+        ItemKind::OakWood,
+        ItemKind::StrippedOakLog,
+        ItemKind::StrippedOakWood,
+        ItemKind::AcaciaLog,
+        ItemKind::AcaciaWood,
+        ItemKind::StrippedAcaciaLog,
+        ItemKind::StrippedAcaciaWood,
+        ItemKind::BirchLog,
+        ItemKind::BirchWood,
+        ItemKind::StrippedBirchLog,
+        ItemKind::StrippedBirchWood,
+        ItemKind::JungleLog,
+        ItemKind::JungleWood,
+        ItemKind::StrippedJungleLog,
+        ItemKind::StrippedJungleWood,
+        ItemKind::SpruceLog,
+        ItemKind::SpruceWood,
+        ItemKind::StrippedSpruceLog,
+        ItemKind::StrippedSpruceWood,
+        ItemKind::MangroveLog,
+        ItemKind::MangroveWood,
+        ItemKind::StrippedMangroveLog,
+        ItemKind::StrippedMangroveWood,
+        ItemKind::CherryLog,
+        ItemKind::CherryWood,
+        ItemKind::StrippedCherryLog,
+        ItemKind::StrippedCherryWood,
+    ])
+});
+pub static MANGROVE_LOGS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::MangroveLog,
+        ItemKind::MangroveWood,
+        ItemKind::StrippedMangroveLog,
+        ItemKind::StrippedMangroveWood,
+    ])
+});
+pub static MAP_INVISIBILITY_EQUIPMENT: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::CarvedPumpkin]));
+pub static MEAT: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::Beef,
+        ItemKind::Chicken,
+        ItemKind::CookedBeef,
+        ItemKind::CookedChicken,
+        ItemKind::CookedMutton,
+        ItemKind::CookedPorkchop,
+        ItemKind::CookedRabbit,
+        ItemKind::Mutton,
+        ItemKind::Porkchop,
+        ItemKind::Rabbit,
+        ItemKind::RottenFlesh,
+    ])
+});
+pub static NAUTILUS_BUCKET_FOOD: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::PufferfishBucket,
+        ItemKind::CodBucket,
+        ItemKind::SalmonBucket,
+        ItemKind::TropicalFishBucket,
+    ])
+});
+pub static NAUTILUS_FOOD: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::Cod,
+        ItemKind::CookedCod,
+        ItemKind::Salmon,
+        ItemKind::CookedSalmon,
+        ItemKind::Pufferfish,
+        ItemKind::TropicalFish,
+        ItemKind::PufferfishBucket,
+        ItemKind::CodBucket,
+        ItemKind::SalmonBucket,
+        ItemKind::TropicalFishBucket,
+    ])
+});
+pub static NAUTILUS_TAMING_ITEMS: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::PufferfishBucket, ItemKind::Pufferfish]));
+pub static NETHERITE_TOOL_MATERIALS: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::NetheriteIngot]));
+pub static NON_FLAMMABLE_WOOD: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::WarpedStem,
+        ItemKind::StrippedWarpedStem,
+        ItemKind::WarpedHyphae,
+        ItemKind::StrippedWarpedHyphae,
+        ItemKind::CrimsonStem,
+        ItemKind::StrippedCrimsonStem,
+        ItemKind::CrimsonHyphae,
+        ItemKind::StrippedCrimsonHyphae,
+        ItemKind::CrimsonPlanks,
+        ItemKind::WarpedPlanks,
+        ItemKind::CrimsonSlab,
+        ItemKind::WarpedSlab,
+        ItemKind::CrimsonPressurePlate,
+        ItemKind::WarpedPressurePlate,
+        ItemKind::CrimsonFence,
+        ItemKind::WarpedFence,
+        ItemKind::CrimsonTrapdoor,
+        ItemKind::WarpedTrapdoor,
+        ItemKind::CrimsonFenceGate,
+        ItemKind::WarpedFenceGate,
+        ItemKind::CrimsonStairs,
+        ItemKind::WarpedStairs,
+        ItemKind::CrimsonButton,
+        ItemKind::WarpedButton,
+        ItemKind::CrimsonDoor,
+        ItemKind::WarpedDoor,
+        ItemKind::CrimsonSign,
+        ItemKind::WarpedSign,
+        ItemKind::WarpedHangingSign,
+        ItemKind::CrimsonHangingSign,
+        ItemKind::WarpedShelf,
+        ItemKind::CrimsonShelf,
+    ])
+});
+pub static NOTEBLOCK_TOP_INSTRUMENTS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::ZombieHead,
+        ItemKind::SkeletonSkull,
+        ItemKind::CreeperHead,
+        ItemKind::DragonHead,
+        ItemKind::WitherSkeletonSkull,
+        ItemKind::PiglinHead,
+        ItemKind::PlayerHead,
+    ])
+});
+pub static OAK_LOGS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::OakLog,
+        ItemKind::OakWood,
+        ItemKind::StrippedOakLog,
+        ItemKind::StrippedOakWood,
+    ])
+});
+pub static OCELOT_FOOD: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::Cod, ItemKind::Salmon]));
+pub static PALE_OAK_LOGS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::PaleOakLog,
+        ItemKind::PaleOakWood,
+        ItemKind::StrippedPaleOakLog,
+        ItemKind::StrippedPaleOakWood,
+    ])
+});
+pub static PANDA_EATS_FROM_GROUND: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::Cake, ItemKind::Bamboo]));
+pub static PANDA_FOOD: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::Bamboo]));
+pub static PARROT_FOOD: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::WheatSeeds,
+        ItemKind::MelonSeeds,
+        ItemKind::PumpkinSeeds,
+        ItemKind::BeetrootSeeds,
+        ItemKind::TorchflowerSeeds,
+        ItemKind::PitcherPod,
+    ])
+});
+pub static PARROT_POISONOUS_FOOD: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::Cookie]));
+pub static PICKAXES: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::DiamondPickaxe,
+        ItemKind::StonePickaxe,
+        ItemKind::GoldenPickaxe,
+        ItemKind::NetheritePickaxe,
+        ItemKind::WoodenPickaxe,
+        ItemKind::IronPickaxe,
+        ItemKind::CopperPickaxe,
+    ])
+});
+pub static PIG_FOOD: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::Carrot, ItemKind::Potato, ItemKind::Beetroot]));
+pub static PIGLIN_FOOD: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::Porkchop, ItemKind::CookedPorkchop]));
+pub static PIGLIN_LOVED: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::GoldBlock,
+        ItemKind::GildedBlackstone,
+        ItemKind::LightWeightedPressurePlate,
+        ItemKind::GoldIngot,
+        ItemKind::Bell,
+        ItemKind::Clock,
+        ItemKind::GoldenCarrot,
+        ItemKind::GlisteringMelonSlice,
+        ItemKind::GoldenApple,
+        ItemKind::EnchantedGoldenApple,
+        ItemKind::GoldenHelmet,
+        ItemKind::GoldenChestplate,
+        ItemKind::GoldenLeggings,
+        ItemKind::GoldenBoots,
+        ItemKind::GoldenHorseArmor,
+        ItemKind::GoldenNautilusArmor,
+        ItemKind::GoldenSword,
+        ItemKind::GoldenSpear,
+        ItemKind::GoldenPickaxe,
+        ItemKind::GoldenShovel,
+        ItemKind::GoldenAxe,
+        ItemKind::GoldenHoe,
+        ItemKind::RawGold,
+        ItemKind::RawGoldBlock,
+        ItemKind::GoldOre,
+        ItemKind::NetherGoldOre,
+        ItemKind::DeepslateGoldOre,
+    ])
+});
+pub static PIGLIN_PREFERRED_WEAPONS: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::Crossbow, ItemKind::GoldenSpear]));
+pub static PIGLIN_REPELLENTS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::SoulTorch,
+        ItemKind::SoulLantern,
+        ItemKind::SoulCampfire,
+    ])
+});
+pub static PIGLIN_SAFE_ARMOR: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::GoldenHelmet,
+        ItemKind::GoldenChestplate,
+        ItemKind::GoldenLeggings,
+        ItemKind::GoldenBoots,
+    ])
+});
+pub static PILLAGER_PREFERRED_WEAPONS: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::Crossbow]));
+pub static PLANKS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::OakPlanks,
+        ItemKind::SprucePlanks,
+        ItemKind::BirchPlanks,
+        ItemKind::JunglePlanks,
+        ItemKind::AcaciaPlanks,
+        ItemKind::DarkOakPlanks,
+        ItemKind::PaleOakPlanks,
+        ItemKind::CrimsonPlanks,
+        ItemKind::WarpedPlanks,
+        ItemKind::MangrovePlanks,
+        ItemKind::BambooPlanks,
+        ItemKind::CherryPlanks,
+    ])
+});
+pub static RABBIT_FOOD: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::Carrot,
+        ItemKind::GoldenCarrot,
+        ItemKind::Dandelion,
+    ])
+});
+pub static RAILS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::Rail,
+        ItemKind::PoweredRail,
+        ItemKind::DetectorRail,
+        ItemKind::ActivatorRail,
+    ])
+});
+pub static REDSTONE_ORES: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::RedstoneOre, ItemKind::DeepslateRedstoneOre]));
+pub static REPAIRS_CHAIN_ARMOR: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::IronIngot]));
+pub static REPAIRS_COPPER_ARMOR: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::CopperIngot]));
+pub static REPAIRS_DIAMOND_ARMOR: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::Diamond]));
+pub static REPAIRS_GOLD_ARMOR: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::GoldIngot]));
+pub static REPAIRS_IRON_ARMOR: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::IronIngot]));
+pub static REPAIRS_LEATHER_ARMOR: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::Leather]));
+pub static REPAIRS_NETHERITE_ARMOR: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::NetheriteIngot]));
+pub static REPAIRS_TURTLE_HELMET: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::TurtleScute]));
+pub static REPAIRS_WOLF_ARMOR: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::ArmadilloScute]));
+pub static SAND: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([ItemKind::Sand, ItemKind::RedSand, ItemKind::SuspiciousSand])
+});
+pub static SAPLINGS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::OakSapling,
+        ItemKind::SpruceSapling,
+        ItemKind::BirchSapling,
+        ItemKind::JungleSapling,
+        ItemKind::AcaciaSapling,
+        ItemKind::DarkOakSapling,
+        ItemKind::PaleOakSapling,
+        ItemKind::Azalea,
+        ItemKind::FloweringAzalea,
+        ItemKind::MangrovePropagule,
+        ItemKind::CherrySapling,
+    ])
+});
+pub static SHEARABLE_FROM_COPPER_GOLEM: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::Poppy]));
+pub static SHEEP_FOOD: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::Wheat]));
+pub static SHOVELS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::DiamondShovel,
+        ItemKind::StoneShovel,
+        ItemKind::GoldenShovel,
+        ItemKind::NetheriteShovel,
+        ItemKind::WoodenShovel,
+        ItemKind::IronShovel,
+        ItemKind::CopperShovel,
+    ])
+});
+pub static SHULKER_BOXES: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::ShulkerBox,
+        ItemKind::BlackShulkerBox,
+        ItemKind::BlueShulkerBox,
+        ItemKind::BrownShulkerBox,
+        ItemKind::CyanShulkerBox,
+        ItemKind::GrayShulkerBox,
+        ItemKind::GreenShulkerBox,
+        ItemKind::LightBlueShulkerBox,
+        ItemKind::LightGrayShulkerBox,
+        ItemKind::LimeShulkerBox,
+        ItemKind::MagentaShulkerBox,
+        ItemKind::OrangeShulkerBox,
+        ItemKind::PinkShulkerBox,
+        ItemKind::PurpleShulkerBox,
+        ItemKind::RedShulkerBox,
+        ItemKind::WhiteShulkerBox,
+        ItemKind::YellowShulkerBox,
+    ])
+});
+pub static SIGNS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::OakSign,
+        ItemKind::SpruceSign,
+        ItemKind::BirchSign,
+        ItemKind::AcaciaSign,
+        ItemKind::JungleSign,
+        ItemKind::DarkOakSign,
+        ItemKind::PaleOakSign,
+        ItemKind::CrimsonSign,
+        ItemKind::WarpedSign,
+        ItemKind::MangroveSign,
+        ItemKind::BambooSign,
+        ItemKind::CherrySign,
+    ])
+});
+pub static SKELETON_PREFERRED_WEAPONS: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::Bow]));
+pub static SKULLS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::PlayerHead,
+        ItemKind::CreeperHead,
+        ItemKind::ZombieHead,
+        ItemKind::SkeletonSkull,
+        ItemKind::WitherSkeletonSkull,
+        ItemKind::DragonHead,
+        ItemKind::PiglinHead,
+    ])
+});
+pub static SLABS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::BambooMosaicSlab,
+        ItemKind::StoneSlab,
+        ItemKind::SmoothStoneSlab,
+        ItemKind::StoneBrickSlab,
+        ItemKind::SandstoneSlab,
+        ItemKind::PurpurSlab,
+        ItemKind::QuartzSlab,
+        ItemKind::RedSandstoneSlab,
+        ItemKind::BrickSlab,
+        ItemKind::CobblestoneSlab,
+        ItemKind::NetherBrickSlab,
+        ItemKind::PetrifiedOakSlab,
+        ItemKind::PrismarineSlab,
+        ItemKind::PrismarineBrickSlab,
+        ItemKind::DarkPrismarineSlab,
+        ItemKind::PolishedGraniteSlab,
+        ItemKind::SmoothRedSandstoneSlab,
+        ItemKind::MossyStoneBrickSlab,
+        ItemKind::PolishedDioriteSlab,
+        ItemKind::MossyCobblestoneSlab,
+        ItemKind::EndStoneBrickSlab,
+        ItemKind::SmoothSandstoneSlab,
+        ItemKind::SmoothQuartzSlab,
+        ItemKind::GraniteSlab,
+        ItemKind::AndesiteSlab,
+        ItemKind::RedNetherBrickSlab,
+        ItemKind::PolishedAndesiteSlab,
+        ItemKind::DioriteSlab,
+        ItemKind::CutSandstoneSlab,
+        ItemKind::CutRedSandstoneSlab,
+        ItemKind::BlackstoneSlab,
+        ItemKind::PolishedBlackstoneBrickSlab,
+        ItemKind::PolishedBlackstoneSlab,
+        ItemKind::CobbledDeepslateSlab,
+        ItemKind::PolishedDeepslateSlab,
+        ItemKind::DeepslateTileSlab,
+        ItemKind::DeepslateBrickSlab,
+        ItemKind::WaxedWeatheredCutCopperSlab,
+        ItemKind::WaxedExposedCutCopperSlab,
+        ItemKind::WaxedCutCopperSlab,
+        ItemKind::OxidizedCutCopperSlab,
+        ItemKind::WeatheredCutCopperSlab,
+        ItemKind::ExposedCutCopperSlab,
+        ItemKind::CutCopperSlab,
+        ItemKind::WaxedOxidizedCutCopperSlab,
+        ItemKind::MudBrickSlab,
+        ItemKind::TuffSlab,
+        ItemKind::PolishedTuffSlab,
+        ItemKind::TuffBrickSlab,
+        ItemKind::ResinBrickSlab,
+        ItemKind::OakSlab,
+        ItemKind::SpruceSlab,
+        ItemKind::BirchSlab,
+        ItemKind::JungleSlab,
+        ItemKind::AcaciaSlab,
+        ItemKind::DarkOakSlab,
+        ItemKind::PaleOakSlab,
+        ItemKind::CrimsonSlab,
+        ItemKind::WarpedSlab,
+        ItemKind::MangroveSlab,
+        ItemKind::BambooSlab,
+        ItemKind::CherrySlab,
+    ])
+});
+pub static SMALL_FLOWERS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::Dandelion,
+        ItemKind::OpenEyeblossom,
+        ItemKind::Poppy,
+        ItemKind::BlueOrchid,
+        ItemKind::Allium,
+        ItemKind::AzureBluet,
+        ItemKind::RedTulip,
+        ItemKind::OrangeTulip,
+        ItemKind::WhiteTulip,
+        ItemKind::PinkTulip,
+        ItemKind::OxeyeDaisy,
+        ItemKind::Cornflower,
+        ItemKind::LilyOfTheValley,
+        ItemKind::WitherRose,
+        ItemKind::Torchflower,
+        ItemKind::ClosedEyeblossom,
+    ])
+});
+pub static SMELTS_TO_GLASS: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::Sand, ItemKind::RedSand]));
+pub static SNIFFER_FOOD: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::TorchflowerSeeds]));
+pub static SOUL_FIRE_BASE_BLOCKS: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::SoulSand, ItemKind::SoulSoil]));
+pub static SPEARS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::DiamondSpear,
+        ItemKind::StoneSpear,
+        ItemKind::GoldenSpear,
+        ItemKind::NetheriteSpear,
+        ItemKind::WoodenSpear,
+        ItemKind::IronSpear,
+        ItemKind::CopperSpear,
+    ])
+});
+pub static SPRUCE_LOGS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::SpruceLog,
+        ItemKind::SpruceWood,
+        ItemKind::StrippedSpruceLog,
+        ItemKind::StrippedSpruceWood,
+    ])
+});
+pub static STAIRS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::BambooMosaicStairs,
+        ItemKind::CobblestoneStairs,
+        ItemKind::SandstoneStairs,
+        ItemKind::NetherBrickStairs,
+        ItemKind::StoneBrickStairs,
+        ItemKind::BrickStairs,
+        ItemKind::PurpurStairs,
+        ItemKind::QuartzStairs,
+        ItemKind::RedSandstoneStairs,
+        ItemKind::PrismarineBrickStairs,
+        ItemKind::PrismarineStairs,
+        ItemKind::DarkPrismarineStairs,
+        ItemKind::PolishedGraniteStairs,
+        ItemKind::SmoothRedSandstoneStairs,
+        ItemKind::MossyStoneBrickStairs,
+        ItemKind::PolishedDioriteStairs,
+        ItemKind::MossyCobblestoneStairs,
+        ItemKind::EndStoneBrickStairs,
+        ItemKind::StoneStairs,
+        ItemKind::SmoothSandstoneStairs,
+        ItemKind::SmoothQuartzStairs,
+        ItemKind::GraniteStairs,
+        ItemKind::AndesiteStairs,
+        ItemKind::RedNetherBrickStairs,
+        ItemKind::PolishedAndesiteStairs,
+        ItemKind::DioriteStairs,
+        ItemKind::BlackstoneStairs,
+        ItemKind::PolishedBlackstoneBrickStairs,
+        ItemKind::PolishedBlackstoneStairs,
+        ItemKind::CobbledDeepslateStairs,
+        ItemKind::PolishedDeepslateStairs,
+        ItemKind::DeepslateTileStairs,
+        ItemKind::DeepslateBrickStairs,
+        ItemKind::OxidizedCutCopperStairs,
+        ItemKind::WeatheredCutCopperStairs,
+        ItemKind::ExposedCutCopperStairs,
+        ItemKind::CutCopperStairs,
+        ItemKind::WaxedWeatheredCutCopperStairs,
+        ItemKind::WaxedExposedCutCopperStairs,
+        ItemKind::WaxedCutCopperStairs,
+        ItemKind::WaxedOxidizedCutCopperStairs,
+        ItemKind::MudBrickStairs,
+        ItemKind::TuffStairs,
+        ItemKind::PolishedTuffStairs,
+        ItemKind::TuffBrickStairs,
+        ItemKind::ResinBrickStairs,
+        ItemKind::OakStairs,
+        ItemKind::SpruceStairs,
+        ItemKind::BirchStairs,
+        ItemKind::JungleStairs,
+        ItemKind::AcaciaStairs,
+        ItemKind::DarkOakStairs,
+        ItemKind::PaleOakStairs,
+        ItemKind::CrimsonStairs,
+        ItemKind::WarpedStairs,
+        ItemKind::MangroveStairs,
+        ItemKind::BambooStairs,
+        ItemKind::CherryStairs,
+    ])
+});
+pub static STONE_BRICKS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::StoneBricks,
+        ItemKind::MossyStoneBricks,
+        ItemKind::CrackedStoneBricks,
+        ItemKind::ChiseledStoneBricks,
+    ])
+});
+pub static STONE_BUTTONS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([ItemKind::StoneButton, ItemKind::PolishedBlackstoneButton])
+});
+pub static STONE_CRAFTING_MATERIALS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::Cobblestone,
+        ItemKind::Blackstone,
+        ItemKind::CobbledDeepslate,
+    ])
+});
+pub static STONE_TOOL_MATERIALS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::Cobblestone,
+        ItemKind::Blackstone,
+        ItemKind::CobbledDeepslate,
+    ])
+});
+pub static STRIDER_FOOD: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::WarpedFungus]));
+pub static STRIDER_TEMPT_ITEMS: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::WarpedFungusOnAStick, ItemKind::WarpedFungus]));
+pub static SWORDS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::DiamondSword,
+        ItemKind::StoneSword,
+        ItemKind::GoldenSword,
+        ItemKind::NetheriteSword,
+        ItemKind::WoodenSword,
+        ItemKind::IronSword,
+        ItemKind::CopperSword,
+    ])
+});
+pub static TERRACOTTA: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::Terracotta,
+        ItemKind::WhiteTerracotta,
+        ItemKind::OrangeTerracotta,
+        ItemKind::MagentaTerracotta,
+        ItemKind::LightBlueTerracotta,
+        ItemKind::YellowTerracotta,
+        ItemKind::LimeTerracotta,
+        ItemKind::PinkTerracotta,
+        ItemKind::GrayTerracotta,
+        ItemKind::LightGrayTerracotta,
+        ItemKind::CyanTerracotta,
+        ItemKind::PurpleTerracotta,
+        ItemKind::BlueTerracotta,
+        ItemKind::BrownTerracotta,
+        ItemKind::GreenTerracotta,
+        ItemKind::RedTerracotta,
+        ItemKind::BlackTerracotta,
+    ])
+});
+pub static TRAPDOORS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::IronTrapdoor,
+        ItemKind::CopperTrapdoor,
+        ItemKind::ExposedCopperTrapdoor,
+        ItemKind::WeatheredCopperTrapdoor,
+        ItemKind::OxidizedCopperTrapdoor,
+        ItemKind::WaxedCopperTrapdoor,
+        ItemKind::WaxedExposedCopperTrapdoor,
+        ItemKind::WaxedWeatheredCopperTrapdoor,
+        ItemKind::WaxedOxidizedCopperTrapdoor,
+        ItemKind::AcaciaTrapdoor,
+        ItemKind::BirchTrapdoor,
+        ItemKind::DarkOakTrapdoor,
+        ItemKind::PaleOakTrapdoor,
+        ItemKind::JungleTrapdoor,
+        ItemKind::OakTrapdoor,
+        ItemKind::SpruceTrapdoor,
+        ItemKind::CrimsonTrapdoor,
+        ItemKind::WarpedTrapdoor,
+        ItemKind::MangroveTrapdoor,
+        ItemKind::BambooTrapdoor,
+        ItemKind::CherryTrapdoor,
+    ])
+});
+pub static TRIM_MATERIALS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::AmethystShard,
+        ItemKind::CopperIngot,
+        ItemKind::Diamond,
+        ItemKind::Emerald,
+        ItemKind::GoldIngot,
+        ItemKind::IronIngot,
+        ItemKind::LapisLazuli,
+        ItemKind::NetheriteIngot,
+        ItemKind::Quartz,
+        ItemKind::Redstone,
+        ItemKind::ResinBrick,
+    ])
+});
+pub static TRIMMABLE_ARMOR: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::LeatherBoots,
+        ItemKind::CopperBoots,
+        ItemKind::ChainmailBoots,
+        ItemKind::GoldenBoots,
+        ItemKind::IronBoots,
+        ItemKind::DiamondBoots,
+        ItemKind::NetheriteBoots,
+        ItemKind::LeatherLeggings,
+        ItemKind::CopperLeggings,
+        ItemKind::ChainmailLeggings,
+        ItemKind::GoldenLeggings,
+        ItemKind::IronLeggings,
+        ItemKind::DiamondLeggings,
+        ItemKind::NetheriteLeggings,
+        ItemKind::LeatherChestplate,
+        ItemKind::CopperChestplate,
+        ItemKind::ChainmailChestplate,
+        ItemKind::GoldenChestplate,
+        ItemKind::IronChestplate,
+        ItemKind::DiamondChestplate,
+        ItemKind::NetheriteChestplate,
+        ItemKind::LeatherHelmet,
+        ItemKind::CopperHelmet,
+        ItemKind::ChainmailHelmet,
+        ItemKind::GoldenHelmet,
+        ItemKind::IronHelmet,
+        ItemKind::DiamondHelmet,
+        ItemKind::NetheriteHelmet,
+        ItemKind::TurtleHelmet,
+    ])
+});
+pub static TURTLE_FOOD: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::Seagrass]));
+pub static VILLAGER_PICKS_UP: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::Bread,
+        ItemKind::Wheat,
+        ItemKind::Beetroot,
+        ItemKind::WheatSeeds,
+        ItemKind::Potato,
+        ItemKind::Carrot,
+        ItemKind::BeetrootSeeds,
+        ItemKind::TorchflowerSeeds,
+        ItemKind::PitcherPod,
+    ])
+});
+pub static VILLAGER_PLANTABLE_SEEDS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::WheatSeeds,
+        ItemKind::Potato,
+        ItemKind::Carrot,
+        ItemKind::BeetrootSeeds,
+        ItemKind::TorchflowerSeeds,
+        ItemKind::PitcherPod,
+    ])
+});
+pub static WALLS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::CobblestoneWall,
+        ItemKind::MossyCobblestoneWall,
+        ItemKind::BrickWall,
+        ItemKind::PrismarineWall,
+        ItemKind::RedSandstoneWall,
+        ItemKind::MossyStoneBrickWall,
+        ItemKind::GraniteWall,
+        ItemKind::StoneBrickWall,
+        ItemKind::NetherBrickWall,
+        ItemKind::AndesiteWall,
+        ItemKind::RedNetherBrickWall,
+        ItemKind::SandstoneWall,
+        ItemKind::EndStoneBrickWall,
+        ItemKind::DioriteWall,
+        ItemKind::BlackstoneWall,
+        ItemKind::PolishedBlackstoneBrickWall,
+        ItemKind::PolishedBlackstoneWall,
+        ItemKind::CobbledDeepslateWall,
+        ItemKind::PolishedDeepslateWall,
+        ItemKind::DeepslateTileWall,
+        ItemKind::DeepslateBrickWall,
+        ItemKind::MudBrickWall,
+        ItemKind::TuffWall,
+        ItemKind::PolishedTuffWall,
+        ItemKind::TuffBrickWall,
+        ItemKind::ResinBrickWall,
+    ])
+});
+pub static WARPED_STEMS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::WarpedStem,
+        ItemKind::StrippedWarpedStem,
+        ItemKind::WarpedHyphae,
+        ItemKind::StrippedWarpedHyphae,
+    ])
+});
+pub static WART_BLOCKS: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::NetherWartBlock, ItemKind::WarpedWartBlock]));
+pub static WITHER_SKELETON_DISLIKED_WEAPONS: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::Bow, ItemKind::Crossbow]));
+pub static WOLF_FOOD: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::Cod,
+        ItemKind::CookedCod,
+        ItemKind::Salmon,
+        ItemKind::CookedSalmon,
+        ItemKind::TropicalFish,
+        ItemKind::Pufferfish,
+        ItemKind::RabbitStew,
+        ItemKind::Beef,
+        ItemKind::Chicken,
+        ItemKind::CookedBeef,
+        ItemKind::CookedChicken,
+        ItemKind::CookedMutton,
+        ItemKind::CookedPorkchop,
+        ItemKind::CookedRabbit,
+        ItemKind::Mutton,
+        ItemKind::Porkchop,
+        ItemKind::Rabbit,
+        ItemKind::RottenFlesh,
+    ])
+});
+pub static WOODEN_BUTTONS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::OakButton,
+        ItemKind::SpruceButton,
+        ItemKind::BirchButton,
+        ItemKind::JungleButton,
+        ItemKind::AcaciaButton,
+        ItemKind::DarkOakButton,
+        ItemKind::PaleOakButton,
+        ItemKind::CrimsonButton,
+        ItemKind::WarpedButton,
+        ItemKind::MangroveButton,
+        ItemKind::BambooButton,
+        ItemKind::CherryButton,
+    ])
+});
+pub static WOODEN_DOORS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::OakDoor,
+        ItemKind::SpruceDoor,
+        ItemKind::BirchDoor,
+        ItemKind::JungleDoor,
+        ItemKind::AcaciaDoor,
+        ItemKind::DarkOakDoor,
+        ItemKind::PaleOakDoor,
+        ItemKind::CrimsonDoor,
+        ItemKind::WarpedDoor,
+        ItemKind::MangroveDoor,
+        ItemKind::BambooDoor,
+        ItemKind::CherryDoor,
+    ])
+});
+pub static WOODEN_FENCES: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::OakFence,
+        ItemKind::AcaciaFence,
+        ItemKind::DarkOakFence,
+        ItemKind::PaleOakFence,
+        ItemKind::SpruceFence,
+        ItemKind::BirchFence,
+        ItemKind::JungleFence,
+        ItemKind::CrimsonFence,
+        ItemKind::WarpedFence,
+        ItemKind::MangroveFence,
+        ItemKind::BambooFence,
+        ItemKind::CherryFence,
+    ])
+});
+pub static WOODEN_PRESSURE_PLATES: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::OakPressurePlate,
+        ItemKind::SprucePressurePlate,
+        ItemKind::BirchPressurePlate,
+        ItemKind::JunglePressurePlate,
+        ItemKind::AcaciaPressurePlate,
+        ItemKind::DarkOakPressurePlate,
+        ItemKind::PaleOakPressurePlate,
+        ItemKind::CrimsonPressurePlate,
+        ItemKind::WarpedPressurePlate,
+        ItemKind::MangrovePressurePlate,
+        ItemKind::BambooPressurePlate,
+        ItemKind::CherryPressurePlate,
+    ])
+});
+pub static WOODEN_SHELVES: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::AcaciaShelf,
+        ItemKind::BambooShelf,
+        ItemKind::BirchShelf,
+        ItemKind::CherryShelf,
+        ItemKind::CrimsonShelf,
+        ItemKind::DarkOakShelf,
+        ItemKind::JungleShelf,
+        ItemKind::MangroveShelf,
+        ItemKind::OakShelf,
+        ItemKind::PaleOakShelf,
+        ItemKind::SpruceShelf,
+        ItemKind::WarpedShelf,
+    ])
+});
+pub static WOODEN_SLABS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::OakSlab,
+        ItemKind::SpruceSlab,
+        ItemKind::BirchSlab,
+        ItemKind::JungleSlab,
+        ItemKind::AcaciaSlab,
+        ItemKind::DarkOakSlab,
+        ItemKind::PaleOakSlab,
+        ItemKind::CrimsonSlab,
+        ItemKind::WarpedSlab,
+        ItemKind::MangroveSlab,
+        ItemKind::BambooSlab,
+        ItemKind::CherrySlab,
+    ])
+});
+pub static WOODEN_STAIRS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::OakStairs,
+        ItemKind::SpruceStairs,
+        ItemKind::BirchStairs,
+        ItemKind::JungleStairs,
+        ItemKind::AcaciaStairs,
+        ItemKind::DarkOakStairs,
+        ItemKind::PaleOakStairs,
+        ItemKind::CrimsonStairs,
+        ItemKind::WarpedStairs,
+        ItemKind::MangroveStairs,
+        ItemKind::BambooStairs,
+        ItemKind::CherryStairs,
+    ])
+});
+pub static WOODEN_TOOL_MATERIALS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::OakPlanks,
+        ItemKind::SprucePlanks,
+        ItemKind::BirchPlanks,
+        ItemKind::JunglePlanks,
+        ItemKind::AcaciaPlanks,
+        ItemKind::DarkOakPlanks,
+        ItemKind::PaleOakPlanks,
+        ItemKind::CrimsonPlanks,
+        ItemKind::WarpedPlanks,
+        ItemKind::MangrovePlanks,
+        ItemKind::BambooPlanks,
+        ItemKind::CherryPlanks,
+    ])
+});
+pub static WOODEN_TRAPDOORS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::AcaciaTrapdoor,
+        ItemKind::BirchTrapdoor,
+        ItemKind::DarkOakTrapdoor,
+        ItemKind::PaleOakTrapdoor,
+        ItemKind::JungleTrapdoor,
+        ItemKind::OakTrapdoor,
+        ItemKind::SpruceTrapdoor,
+        ItemKind::CrimsonTrapdoor,
+        ItemKind::WarpedTrapdoor,
+        ItemKind::MangroveTrapdoor,
+        ItemKind::BambooTrapdoor,
+        ItemKind::CherryTrapdoor,
+    ])
+});
+pub static WOOL: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::WhiteWool,
+        ItemKind::OrangeWool,
+        ItemKind::MagentaWool,
+        ItemKind::LightBlueWool,
+        ItemKind::YellowWool,
+        ItemKind::LimeWool,
+        ItemKind::PinkWool,
+        ItemKind::GrayWool,
+        ItemKind::LightGrayWool,
+        ItemKind::CyanWool,
+        ItemKind::PurpleWool,
+        ItemKind::BlueWool,
+        ItemKind::BrownWool,
+        ItemKind::GreenWool,
+        ItemKind::RedWool,
+        ItemKind::BlackWool,
+    ])
+});
+pub static WOOL_CARPETS: LazyLock<HashSet<ItemKind>> = LazyLock::new(|| {
+    HashSet::from_iter([
+        ItemKind::WhiteCarpet,
+        ItemKind::OrangeCarpet,
+        ItemKind::MagentaCarpet,
+        ItemKind::LightBlueCarpet,
+        ItemKind::YellowCarpet,
+        ItemKind::LimeCarpet,
+        ItemKind::PinkCarpet,
+        ItemKind::GrayCarpet,
+        ItemKind::LightGrayCarpet,
+        ItemKind::CyanCarpet,
+        ItemKind::PurpleCarpet,
+        ItemKind::BlueCarpet,
+        ItemKind::BrownCarpet,
+        ItemKind::GreenCarpet,
+        ItemKind::RedCarpet,
+        ItemKind::BlackCarpet,
+    ])
+});
+pub static ZOMBIE_HORSE_FOOD: LazyLock<HashSet<ItemKind>> =
+    LazyLock::new(|| HashSet::from_iter([ItemKind::RedMushroom]));

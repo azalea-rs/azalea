@@ -7,7 +7,7 @@ use std::{
 
 use azalea_block::BlockState;
 use azalea_core::position::{BlockPos, ChunkPos, Vec3};
-use azalea_registry::builtin::Block;
+use azalea_registry::builtin::BlockKind;
 use azalea_world::{Chunk, ChunkStorage, PartialChunkStorage};
 
 use super::{
@@ -67,7 +67,7 @@ fn setup_simulation_world(
         partial_chunks.set(&chunk_pos, Some(Chunk::default()), &mut chunks);
     }
     for block_pos in solid_blocks {
-        chunks.set_block_state(*block_pos, Block::Stone.into());
+        chunks.set_block_state(*block_pos, BlockKind::Stone.into());
     }
     for (block_pos, block_state) in extra_blocks {
         chunks.set_block_state(*block_pos, *block_state);
@@ -286,11 +286,11 @@ fn test_mine_through_non_colliding_block() {
         BlockPos::new(0, 72, 1),
         &[BlockPos::new(0, 71, 1)],
         &[
-            (BlockPos::new(0, 71, 0), Block::SculkVein.into()),
-            (BlockPos::new(0, 70, 0), Block::GrassBlock.into()),
+            (BlockPos::new(0, 71, 0), BlockKind::SculkVein.into()),
+            (BlockPos::new(0, 70, 0), BlockKind::GrassBlock.into()),
             // this is an extra check to make sure that we don't accidentally break the block
             // below (since tnt will break instantly)
-            (BlockPos::new(0, 69, 0), Block::Tnt.into()),
+            (BlockPos::new(0, 69, 0), BlockKind::Tnt.into()),
         ],
     );
 

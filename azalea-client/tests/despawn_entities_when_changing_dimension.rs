@@ -5,7 +5,7 @@ use azalea_protocol::packets::{
     ConnectionProtocol,
     config::{ClientboundFinishConfiguration, ClientboundRegistryData},
 };
-use azalea_registry::{DataRegistry, DimensionType, EntityKind};
+use azalea_registry::{DataRegistry, builtin::EntityKind, data::DimensionType};
 use bevy_ecs::query::With;
 use simdnbt::owned::{NbtCompound, NbtTag};
 

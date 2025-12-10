@@ -8,7 +8,7 @@ use azalea_protocol::packets::{
     config::{ClientboundFinishConfiguration, ClientboundRegistryData},
     game::ClientboundStartConfiguration,
 };
-use azalea_registry::{DataRegistry, DimensionType};
+use azalea_registry::{DataRegistry, data::DimensionType};
 use azalea_world::InstanceName;
 use simdnbt::owned::{NbtCompound, NbtTag};
 

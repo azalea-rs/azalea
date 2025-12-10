@@ -3,7 +3,7 @@ use std::{
     ops::{Add, RangeInclusive},
 };
 
-use azalea_registry::builtin::Block;
+use azalea_registry::builtin::BlockKind;
 
 use crate::{BlockState, block_state::BlockStateIntegerRepr};
 
@@ -47,14 +47,14 @@ impl Add for BlockStates {
     }
 }
 
-impl From<HashSet<Block>> for BlockStates {
-    fn from(set: HashSet<Block>) -> Self {
+impl From<HashSet<BlockKind>> for BlockStates {
+    fn from(set: HashSet<BlockKind>) -> Self {
         Self::from(&set)
     }
 }
 
-impl From<&HashSet<Block>> for BlockStates {
-    fn from(set: &HashSet<Block>) -> Self {
+impl From<&HashSet<BlockKind>> for BlockStates {
+    fn from(set: &HashSet<BlockKind>) -> Self {
         let mut block_states = HashSet::with_capacity(set.len());
         for &block in set {
             block_states.extend(BlockStates::from(block));
@@ -63,13 +63,13 @@ impl From<&HashSet<Block>> for BlockStates {
     }
 }
 
-impl<const N: usize> From<[Block; N]> for BlockStates {
-    fn from(arr: [Block; N]) -> Self {
+impl<const N: usize> From<[BlockKind; N]> for BlockStates {
+    fn from(arr: [BlockKind; N]) -> Self {
         Self::from(&arr[..])
     }
 }
-impl From<&[Block]> for BlockStates {
-    fn from(arr: &[Block]) -> Self {
+impl From<&[BlockKind]> for BlockStates {
+    fn from(arr: &[BlockKind]) -> Self {
         let mut block_states = HashSet::with_capacity(arr.len());
         for &block in arr {
             block_states.extend(BlockStates::from(block));

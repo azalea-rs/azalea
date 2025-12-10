@@ -11,7 +11,7 @@ pub struct ClientboundContainerSetSlot {
     pub state_id: u32,
     /// The slot index.
     ///
-    /// See https://minecraft.wiki/w/Java_Edition_protocol/Inventory.
+    /// See <https://minecraft.wiki/w/Java_Edition_protocol/Inventory>.
     pub slot: u16,
     pub item_stack: ItemStack,
 }

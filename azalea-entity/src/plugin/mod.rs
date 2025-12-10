@@ -8,7 +8,7 @@ use azalea_core::{
     position::{BlockPos, ChunkPos, Vec3},
     tick::GameTick,
 };
-use azalea_registry::{builtin::Block, tags};
+use azalea_registry::{builtin::BlockKind, tags};
 use azalea_world::{InstanceContainer, InstanceName, MinecraftEntityId};
 use bevy_app::{App, Plugin, PostUpdate, Update};
 use bevy_ecs::prelude::*;
@@ -171,7 +171,7 @@ fn is_trapdoor_useable_as_ladder(
         .get_block_state(block_pos.down(1))
         .unwrap_or_default();
     let registry_block_below = Box::<dyn BlockTrait>::from(block_below).as_registry_block();
-    if registry_block_below != Block::Ladder {
+    if registry_block_below != BlockKind::Ladder {
         return false;
     }
     // and the ladder must be facing the same direction as the trapdoor
@@ -292,7 +292,7 @@ mod tests {
         properties::{FacingCardinal, TopBottom},
     };
     use azalea_core::position::{BlockPos, ChunkPos};
-    use azalea_registry::builtin::Block;
+    use azalea_registry::builtin::BlockKind;
     use azalea_world::{Chunk, ChunkStorage, Instance, PartialInstance};
 
     use super::is_trapdoor_useable_as_ladder;
@@ -308,7 +308,7 @@ mod tests {
         );
         partial_instance.chunks.set_block_state(
             BlockPos::new(0, 0, 0),
-            Block::Stone.into(),
+            BlockKind::Stone.into(),
             &chunks,
         );
 

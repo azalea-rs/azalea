@@ -34,7 +34,7 @@ impl Parse for RegistryItem {
 
 impl Parse for Registry {
     fn parse(input: ParseStream) -> Result<Self> {
-        // enum Block {
+        // enum BlockKind {
         //     Air => "minecraft:air",
         //     Stone => "minecraft:stone"
         // }
@@ -63,7 +63,7 @@ pub fn registry(input: TokenStream) -> TokenStream {
     let name = input.name;
     let mut generated = quote! {};
 
-    // enum Block {
+    // enum BlockKind {
     //     Air = 0,
     //     Stone,
     // }

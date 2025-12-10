@@ -681,13 +681,13 @@ impl Default for Inventory {
 #[cfg(test)]
 mod tests {
     use azalea_inventory::SlotList;
-    use azalea_registry::Item;
+    use azalea_registry::builtin::ItemKind;
 
     use super::*;
 
     #[test]
     fn test_simulate_shift_click_in_crafting_table() {
-        let spruce_planks = ItemStack::new(Item::SprucePlanks, 4);
+        let spruce_planks = ItemStack::new(ItemKind::SprucePlanks, 4);
 
         let mut inventory = Inventory {
             inventory_menu: Menu::Player(azalea_inventory::Player::default()),

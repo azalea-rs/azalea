@@ -10,12 +10,12 @@ impl Instance {
     /// performance purposes.
     ///
     /// ```
-    /// # use azalea_registry::builtin::Block;
+    /// # use azalea_registry::builtin::BlockKind;
     /// # fn example(client: &azalea_client::Client) {
     /// client
     ///     .world()
     ///     .read()
-    ///     .find_block(client.position(), &Block::Chest.into());
+    ///     .find_block(client.position(), &BlockKind::Chest.into());
     /// # }
     /// ```
     pub fn find_block(
@@ -250,7 +250,7 @@ fn palette_maybe_has_block(palette: &Palette<BlockState>, block_states: &BlockSt
 
 #[cfg(test)]
 mod tests {
-    use azalea_registry::builtin::Block;
+    use azalea_registry::builtin::BlockKind;
 
     use super::*;
     use crate::{Chunk, PartialChunkStorage};
@@ -275,10 +275,10 @@ mod tests {
             chunk_storage,
         );
 
-        chunk_storage.set_block_state(BlockPos { x: 17, y: 0, z: 0 }, Block::Stone.into());
-        chunk_storage.set_block_state(BlockPos { x: 0, y: 18, z: 0 }, Block::Stone.into());
+        chunk_storage.set_block_state(BlockPos { x: 17, y: 0, z: 0 }, BlockKind::Stone.into());
+        chunk_storage.set_block_state(BlockPos { x: 0, y: 18, z: 0 }, BlockKind::Stone.into());
 
-        let pos = instance.find_block(BlockPos { x: 0, y: 0, z: 0 }, &Block::Stone.into());
+        let pos = instance.find_block(BlockPos { x: 0, y: 0, z: 0 }, &BlockKind::Stone.into());
         assert_eq!(pos, Some(BlockPos { x: 17, y: 0, z: 0 }));
     }
 
@@ -302,10 +302,10 @@ mod tests {
             chunk_storage,
         );
 
-        chunk_storage.set_block_state(BlockPos { x: -1, y: 0, z: 0 }, Block::Stone.into());
-        chunk_storage.set_block_state(BlockPos { x: 15, y: 0, z: 0 }, Block::Stone.into());
+        chunk_storage.set_block_state(BlockPos { x: -1, y: 0, z: 0 }, BlockKind::Stone.into());
+        chunk_storage.set_block_state(BlockPos { x: 15, y: 0, z: 0 }, BlockKind::Stone.into());
 
-        let pos = instance.find_block(BlockPos { x: 0, y: 0, z: 0 }, &Block::Stone.into());
+        let pos = instance.find_block(BlockPos { x: 0, y: 0, z: 0 }, &BlockKind::Stone.into());
         assert_eq!(pos, Some(BlockPos { x: -1, y: 0, z: 0 }));
     }
 }

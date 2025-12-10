@@ -20,8 +20,8 @@ let block_state: BlockState = azalea_block::blocks::CobblestoneWall {
 ```
 ```
 # use azalea_block::BlockState;
-# use azalea_registry::builtin::Block;
-let block_state: BlockState = Block::Jukebox.into();
+# use azalea_registry::builtin::BlockKind;
+let block_state: BlockState = BlockKind::Jukebox.into();
 ```
 
 ## `BlockTrait`
@@ -31,19 +31,19 @@ If for some reason you don't want `BlockTrait`, set `default-features = false`.
 
 ```
 # use azalea_block::{BlockTrait, BlockState};
-# let block_state = BlockState::from(azalea_registry::builtin::Block::Jukebox);
+# let block_state = BlockState::from(azalea_registry::builtin::BlockKind::Jukebox);
 let block = Box::<dyn BlockTrait>::from(block_state);
 ```
 ```
 # use azalea_block::{BlockTrait, BlockState};
-# let block_state: BlockState = azalea_registry::builtin::Block::Jukebox.into();
+# let block_state: BlockState = azalea_registry::builtin::BlockKind::Jukebox.into();
 if let Some(jukebox) = Box::<dyn BlockTrait>::from(block_state).downcast_ref::<azalea_block::blocks::Jukebox>() {
     // ...
 }
 ```
 
 
-## `azalea_registry::builtin::Block` enum
+## `azalea_registry::builtin::BlockKind` enum
 
-This one isn't from the `azalea-block` crate, but it's still very relevant. It's an enum that contains every block type as a variant *without* containing any state data (unlike `BlockState` and the `Block` trait). Converting this into any other block type will use the default state for that block.
+This one isn't from the `azalea-block` crate, but it's still very relevant. It's an enum that contains every block type as a variant *without* containing any state data (unlike `BlockState` and `BlockTrait`). Converting this into any other block type will use the default state for that block.
 

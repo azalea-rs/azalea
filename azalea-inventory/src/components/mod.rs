@@ -24,8 +24,8 @@ use azalea_core::{
 use azalea_registry::{
     Holder, HolderSet,
     builtin::{
-        Attribute, Block, DataComponentKind, EntityKind, Item, MobEffect, Potion, SoundEvent,
-        VillagerKind,
+        Attribute, BlockKind, DataComponentKind, EntityKind, ItemKind, MobEffect, Potion,
+        SoundEvent, VillagerKind,
     },
     data::{self, DamageKind, Enchantment},
     extra::{self, JukeboxSong, TrimMaterial, TrimPattern},
@@ -388,7 +388,7 @@ pub struct BlockStatePropertyMatcher {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct BlockPredicate {
     #[serde(skip_serializing_if = "is_default")]
-    pub blocks: Option<HolderSet<Block, Identifier>>,
+    pub blocks: Option<HolderSet<BlockKind, Identifier>>,
     #[serde(skip_serializing_if = "is_default")]
     pub properties: Option<Vec<BlockStatePropertyMatcher>>,
     #[serde(skip_serializing_if = "is_default")]
@@ -566,7 +566,7 @@ impl Food {
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct ToolRule {
-    pub blocks: HolderSet<Block, Identifier>,
+    pub blocks: HolderSet<BlockKind, Identifier>,
     #[serde(skip_serializing_if = "is_default")]
     pub speed: Option<f32>,
     #[serde(skip_serializing_if = "is_default")]
@@ -894,7 +894,7 @@ pub struct BaseColor {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct PotDecorations {
-    pub items: Vec<Item>,
+    pub items: Vec<ItemKind>,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -995,7 +995,7 @@ pub enum ItemUseAnimation {
     None,
     Eat,
     Drink,
-    Block,
+    BlockKind,
     Bow,
     Spear,
     Crossbow,
@@ -1039,7 +1039,7 @@ pub struct Enchantable {
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct Repairable {
-    pub items: HolderSet<Item, Identifier>,
+    pub items: HolderSet<ItemKind, Identifier>,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]

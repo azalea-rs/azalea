@@ -2,7 +2,7 @@ use azalea_buf::AzBuf;
 use azalea_core::{checksum::Checksum, registry_holder::RegistryHolder};
 use azalea_inventory::{ItemStack, operations::ClickType};
 use azalea_protocol_macros::ServerboundGamePacket;
-use azalea_registry::builtin::{DataComponentKind, Item};
+use azalea_registry::builtin::{DataComponentKind, ItemKind};
 use indexmap::IndexMap;
 
 #[derive(Clone, Debug, AzBuf, PartialEq, ServerboundGamePacket)]
@@ -25,7 +25,7 @@ pub struct HashedStack(pub Option<HashedActualItem>);
 
 #[derive(Clone, Debug, AzBuf, PartialEq)]
 pub struct HashedActualItem {
-    pub kind: Item,
+    pub kind: ItemKind,
     #[var]
     pub count: i32,
     pub components: HashedPatchMap,

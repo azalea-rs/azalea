@@ -1,16 +1,17 @@
 from lib.utils import get_dir_location, to_camel_case
 
-REGISTRIES_DIR = get_dir_location("../azalea-registry/src/builtin.rs")
+BUILTIN_REGISTRIES_DIR = get_dir_location("../azalea-registry/src/builtin.rs")
+DATA_REGISTRIES_DIR = get_dir_location("../azalea-registry/src/data.rs")
 
 
-def generate_registries(registries: dict):
-    with open(REGISTRIES_DIR, "r") as f:
+def generate_builtin_registries(registries: dict):
+    with open(BUILTIN_REGISTRIES_DIR, "r") as f:
         code = f.read().split("\n")
 
     existing_registry_enum_names = set()
 
     for registry_name, registry in registries.items():
-        # registry!(Block, {
+        # registry!(BlockKind, {
         #     Air => "minecraft:air",
         #     Stone => "minecraft:stone"
         # });
@@ -68,18 +69,21 @@ def generate_registries(registries: dict):
         else:
             i += 1
 
-    with open(REGISTRIES_DIR, "w") as f:
+    with open(BUILTIN_REGISTRIES_DIR, "w") as f:
         f.write("\n".join(code))
 
 
 def registry_name_to_enum_name(registry_name: str) -> str:
     registry_name = registry_name.split(":")[-1]
 
-    if registry_name.endswith("_type"):
+    if registry_name == "block_type":
+        # avoid conflicting with BlockKind
+        registry_name = "abstract_block_kind"
+    elif registry_name.endswith("_type"):
         # change _type to _kind because that's Rustier (and because _type
         # is a reserved keyword)
         registry_name = registry_name[:-5] + "_kind"
-    elif registry_name in {"menu"}:
+    elif registry_name in {"menu", "block", "item"}:
         registry_name += "_kind"
 
     return to_camel_case(registry_name)

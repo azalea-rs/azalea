@@ -7,7 +7,7 @@ use azalea_core::{
     position::{BlockPos, Vec3},
 };
 use azalea_entity::{HasClientLoaded, LocalEntity, Physics, Position};
-use azalea_registry::builtin::Block;
+use azalea_registry::builtin::BlockKind;
 use azalea_world::{Instance, InstanceContainer, InstanceName};
 use bevy_ecs::prelude::*;
 
@@ -256,11 +256,11 @@ fn is_solid_face(
     if direction == Direction::Up {
         return true;
     }
-    let registry_block = Block::from(block_state);
+    let registry_block = BlockKind::from(block_state);
     if matches!(
         registry_block,
         // frosted ice is from frost walker
-        Block::Ice | Block::FrostedIce
+        BlockKind::Ice | BlockKind::FrostedIce
     ) {
         return false;
     }

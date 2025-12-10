@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use azalea_buf::AzBuf;
 use azalea_core::identifier::Identifier;
 use azalea_protocol_macros::ClientboundGamePacket;
-use azalea_registry::builtin::Item;
+use azalea_registry::builtin::ItemKind;
 
 use crate::common::recipe::{Ingredient, SlotDisplayData};
 
@@ -25,5 +25,5 @@ pub struct SelectableRecipe {
 
 #[derive(Clone, Debug, PartialEq, AzBuf)]
 pub struct RecipePropertySet {
-    pub items: Vec<Item>,
+    pub items: Vec<ItemKind>,
 }

@@ -37,12 +37,12 @@ pub trait ContainerClientExt {
     /// configure this.
     ///
     /// ```
-    /// # use azalea::{prelude::*, registry::Block};
+    /// # use azalea::{prelude::*, registry::builtin::BlockKind};
     /// # async fn example(mut bot: azalea::Client) {
     /// let target_pos = bot
     ///     .world()
     ///     .read()
-    ///     .find_block(bot.position(), &Block::Chest.into());
+    ///     .find_block(bot.position(), &BlockKind::Chest.into());
     /// let Some(target_pos) = target_pos else {
     ///     bot.chat("no chest found");
     ///     return;

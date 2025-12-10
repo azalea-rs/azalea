@@ -3,7 +3,7 @@ use azalea::{
     pathfinder::simulation::{SimulatedPlayerBundle, SimulationSet},
 };
 use azalea_core::position::{ChunkBlockPos, ChunkPos};
-use azalea_registry::builtin::Block;
+use azalea_registry::builtin::BlockKind;
 use azalea_world::{Chunk, ChunkStorage, PartialChunkStorage};
 use criterion::{Bencher, Criterion, criterion_group, criterion_main};
 
@@ -28,7 +28,7 @@ fn generate_world(partial_chunks: &mut PartialChunkStorage, size: u32) -> ChunkS
                 for z in 0..16_u8 {
                     chunk.set_block_state(
                         &ChunkBlockPos::new(x, 1, z),
-                        Block::OakFence.into(),
+                        BlockKind::OakFence.into(),
                         chunks.min_y,
                     );
                 }

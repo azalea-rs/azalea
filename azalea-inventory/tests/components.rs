@@ -17,7 +17,7 @@ use azalea_inventory::{
         PotDecorations, Rarity,
     },
 };
-use azalea_registry::{Attribute, Block, Item};
+use azalea_registry::builtin::{Attribute, BlockKind, ItemKind};
 use simdnbt::owned::{BaseNbt, Nbt, NbtCompound, NbtList, NbtTag};
 
 #[test]
@@ -79,7 +79,7 @@ fn test_can_place_on_checksum() {
     let c = CanPlaceOn {
         predicate: AdventureModePredicate {
             predicates: vec![BlockPredicate {
-                blocks: Some(vec![Block::GrassBlock].into()),
+                blocks: Some(vec![BlockKind::GrassBlock].into()),
                 properties: None,
                 nbt: None,
             }],
@@ -150,7 +150,7 @@ fn test_firework_explosion_checksum() {
 #[test]
 fn test_charged_projectile_checksum() {
     let c = ChargedProjectiles {
-        items: vec![ItemStack::from(Item::MusicDiscCat)],
+        items: vec![ItemStack::from(ItemKind::MusicDiscCat)],
     };
 
     assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 3435761017);
@@ -160,10 +160,10 @@ fn test_charged_projectile_checksum() {
 fn test_charged_projectile_with_components_checksum() {
     let c = ChargedProjectiles {
         items: vec![
-            ItemStack::from(Item::MusicDiscCat)
+            ItemStack::from(ItemKind::MusicDiscCat)
                 .with_component::<JukeboxPlayable>(None)
                 .with_component(ChargedProjectiles {
-                    items: vec![ItemStack::from(Item::MusicDiscCat)],
+                    items: vec![ItemStack::from(ItemKind::MusicDiscCat)],
                 }),
         ],
     };
@@ -187,7 +187,12 @@ fn test_lodestone_tracker_checksum() {
 #[test]
 fn test_pot_decorations_checksum() {
     let c = PotDecorations {
-        items: vec![Item::Stick, Item::Brick, Item::Brick, Item::Brick],
+        items: vec![
+            ItemKind::Stick,
+            ItemKind::Brick,
+            ItemKind::Brick,
+            ItemKind::Brick,
+        ],
     };
 
     assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 1951715383);

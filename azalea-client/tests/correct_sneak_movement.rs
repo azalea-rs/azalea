@@ -11,7 +11,7 @@ use azalea_protocol::{
         },
     },
 };
-use azalea_registry::builtin::Block;
+use azalea_registry::builtin::BlockKind;
 
 #[test]
 fn test_correct_sneak_movement() {
@@ -29,11 +29,11 @@ fn test_correct_sneak_movement() {
     simulation.receive_packet(make_basic_empty_chunk(ChunkPos::new(0, 0), (384 + 64) / 16));
     simulation.receive_packet(ClientboundBlockUpdate {
         pos: BlockPos::new(0, 119, 0),
-        block_state: Block::Stone.into(),
+        block_state: BlockKind::Stone.into(),
     });
     simulation.receive_packet(ClientboundBlockUpdate {
         pos: BlockPos::new(0, 119, 1),
-        block_state: Block::Stone.into(),
+        block_state: BlockKind::Stone.into(),
     });
     simulation.receive_packet(ClientboundPlayerPosition {
         id: 1,

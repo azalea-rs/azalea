@@ -11,7 +11,7 @@ use azalea_core::{
     math::{self, EPSILON, lerp},
     position::{BlockPos, Vec3},
 };
-use azalea_registry::{builtin::Block, tags};
+use azalea_registry::{builtin::BlockKind, tags};
 use azalea_world::ChunkStorage;
 
 use crate::collision::{BlockWithShape, EMPTY_SHAPE, VoxelShape};
@@ -35,7 +35,7 @@ impl ClipContext {
             BlockShapeType::Outline => block_state.outline_shape(),
             BlockShapeType::Visual => block_state.collision_shape(),
             BlockShapeType::FallDamageResetting => {
-                if tags::blocks::FALL_DAMAGE_RESETTING.contains(&Block::from(block_state)) {
+                if tags::blocks::FALL_DAMAGE_RESETTING.contains(&BlockKind::from(block_state)) {
                     block_state.collision_shape()
                 } else {
                     &EMPTY_SHAPE

@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use azalea_buf::AzBuf;
 use azalea_protocol_macros::ClientboundGamePacket;
-use azalea_registry::builtin::{Block, CustomStat, EntityKind, Item};
+use azalea_registry::builtin::{BlockKind, CustomStat, EntityKind, ItemKind};
 
 #[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundAwardStats {
@@ -12,12 +12,12 @@ pub struct ClientboundAwardStats {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, AzBuf)]
 pub enum Stat {
-    Mined(Block),
-    Crafted(Item),
-    Used(Item),
-    Broken(Item),
-    PickedUp(Item),
-    Dropped(Item),
+    Mined(BlockKind),
+    Crafted(ItemKind),
+    Used(ItemKind),
+    Broken(ItemKind),
+    PickedUp(ItemKind),
+    Dropped(ItemKind),
     Killed(EntityKind),
     KilledBy(EntityKind),
     Custom(CustomStat),

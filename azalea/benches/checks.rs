@@ -1,23 +1,23 @@
 use std::hint::black_box;
 
 use azalea::pathfinder::mining::MiningCache;
-pub use azalea_registry as registry;
+use azalea_registry::builtin::BlockKind;
 use criterion::{Criterion, criterion_group, criterion_main};
 
 fn benchmark(c: &mut Criterion) {
     let mining_cache = MiningCache::new(None);
 
-    let stone = registry::Block::Stone.into();
+    let stone = BlockKind::Stone.into();
     c.bench_function("is_liquid stone", |b| {
         b.iter(|| mining_cache.is_liquid(black_box(stone)));
     });
 
-    let water = registry::Block::Water.into();
+    let water = BlockKind::Water.into();
     c.bench_function("is_liquid water", |b| {
         b.iter(|| mining_cache.is_liquid(black_box(water)));
     });
 
-    let lava = registry::Block::Lava.into();
+    let lava = BlockKind::Lava.into();
     c.bench_function("is_liquid lava", |b| {
         b.iter(|| mining_cache.is_liquid(black_box(lava)));
     });

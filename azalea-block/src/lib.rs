@@ -9,7 +9,7 @@ mod range;
 use core::fmt::Debug;
 use std::{any::Any, collections::HashMap};
 
-use azalea_registry::builtin::Block;
+use azalea_registry::builtin::BlockKind;
 pub use behavior::BlockBehavior;
 // re-exported for convenience
 pub use block_state::BlockState;
@@ -27,11 +27,11 @@ pub trait BlockTrait: Debug + Any {
     /// This is a lossless conversion, as [`BlockState`] also contains state
     /// data.
     fn as_block_state(&self) -> BlockState;
-    /// Convert the block struct to a [`Block`].
+    /// Convert the block struct to a [`BlockKind`].
     ///
-    /// This is a lossy conversion, as [`Block`] doesn't contain any state
+    /// This is a lossy conversion, as [`BlockKind`] doesn't contain any state
     /// data.
-    fn as_registry_block(&self) -> Block;
+    fn as_registry_block(&self) -> BlockKind;
 
     /// Returns a map of property names on this block to their values as
     /// strings.

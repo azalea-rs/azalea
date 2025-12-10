@@ -4,7 +4,7 @@ use azalea_block::{
     BlockState, BlockStates, block_state::BlockStateIntegerRepr, properties::Waterlogged,
 };
 use azalea_inventory::Menu;
-use azalea_registry::builtin::Block;
+use azalea_registry::builtin::BlockKind;
 use nohash_hasher::IntMap;
 
 use super::costs::BLOCK_BREAK_ADDITIONAL_PENALTY;
@@ -22,8 +22,8 @@ pub struct MiningCache {
 
 impl MiningCache {
     pub fn new(inventory_menu: Option<Menu>) -> Self {
-        let water_block_states = BlockStates::from(Block::Water);
-        let lava_block_states = BlockStates::from(Block::Lava);
+        let water_block_states = BlockStates::from(BlockKind::Water);
+        let lava_block_states = BlockStates::from(BlockKind::Lava);
 
         let mut water_block_state_range_min = BlockStateIntegerRepr::MAX;
         let mut water_block_state_range_max = BlockStateIntegerRepr::MIN;
@@ -42,29 +42,29 @@ impl MiningCache {
         let lava_block_state_range = lava_block_state_range_min..=lava_block_state_range_max;
 
         let mut falling_blocks: Vec<BlockState> = vec![
-            Block::Sand.into(),
-            Block::RedSand.into(),
-            Block::Gravel.into(),
-            Block::Anvil.into(),
-            Block::ChippedAnvil.into(),
-            Block::DamagedAnvil.into(),
+            BlockKind::Sand.into(),
+            BlockKind::RedSand.into(),
+            BlockKind::Gravel.into(),
+            BlockKind::Anvil.into(),
+            BlockKind::ChippedAnvil.into(),
+            BlockKind::DamagedAnvil.into(),
             // concrete powders
-            Block::WhiteConcretePowder.into(),
-            Block::OrangeConcretePowder.into(),
-            Block::MagentaConcretePowder.into(),
-            Block::LightBlueConcretePowder.into(),
-            Block::YellowConcretePowder.into(),
-            Block::LimeConcretePowder.into(),
-            Block::PinkConcretePowder.into(),
-            Block::GrayConcretePowder.into(),
-            Block::LightGrayConcretePowder.into(),
-            Block::CyanConcretePowder.into(),
-            Block::PurpleConcretePowder.into(),
-            Block::BlueConcretePowder.into(),
-            Block::BrownConcretePowder.into(),
-            Block::GreenConcretePowder.into(),
-            Block::RedConcretePowder.into(),
-            Block::BlackConcretePowder.into(),
+            BlockKind::WhiteConcretePowder.into(),
+            BlockKind::OrangeConcretePowder.into(),
+            BlockKind::MagentaConcretePowder.into(),
+            BlockKind::LightBlueConcretePowder.into(),
+            BlockKind::YellowConcretePowder.into(),
+            BlockKind::LimeConcretePowder.into(),
+            BlockKind::PinkConcretePowder.into(),
+            BlockKind::GrayConcretePowder.into(),
+            BlockKind::LightGrayConcretePowder.into(),
+            BlockKind::CyanConcretePowder.into(),
+            BlockKind::PurpleConcretePowder.into(),
+            BlockKind::BlueConcretePowder.into(),
+            BlockKind::BrownConcretePowder.into(),
+            BlockKind::GreenConcretePowder.into(),
+            BlockKind::RedConcretePowder.into(),
+            BlockKind::BlackConcretePowder.into(),
         ];
         falling_blocks.sort_unstable_by_key(|block| block.id());
 

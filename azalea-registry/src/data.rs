@@ -1,5 +1,5 @@
 //! Definitions for data-driven registries that implement
-//! [`DataRegistry`](crate::DataRegistry).
+//! [`DataRegistry`].
 //!
 //! These registries are sent to us by the server on join.
 
@@ -43,6 +43,13 @@ macro_rules! data_registry {
 // DamageType`
 
 data_registry! {Enchantment, "enchantment"}
+// data_registry! {
+//     "enchantment",
+//     Enchantment {
+//         AquaAffinity => "minecraft:aqua_affinity"
+//     }
+// }
+
 data_registry! {DimensionType, "dimension_type"}
 data_registry! {DamageKind, "damage_kind"}
 data_registry! {Dialog, "dialog"}

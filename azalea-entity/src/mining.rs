@@ -1,7 +1,7 @@
 use azalea_block::{BlockBehavior, BlockTrait};
 use azalea_core::tier::get_item_tier;
 use azalea_registry::{
-    builtin::{Block, Item, MobEffect},
+    builtin::{BlockKind, ItemKind, MobEffect},
     tags,
 };
 
@@ -19,7 +19,7 @@ use crate::{ActiveEffects, Attributes, FluidOnEyes, Physics};
 /// to your mining speed.
 pub fn get_mine_progress(
     block: &dyn BlockTrait,
-    held_item: Item,
+    held_item: ItemKind,
     fluid_on_eyes: &FluidOnEyes,
     physics: &Physics,
     attributes: &Attributes,
@@ -48,18 +48,18 @@ pub fn get_mine_progress(
     (base_destroy_speed / destroy_time) / divisor as f32
 }
 
-fn has_correct_tool_for_drops(block: &dyn BlockTrait, tool: Item) -> bool {
+fn has_correct_tool_for_drops(block: &dyn BlockTrait, tool: ItemKind) -> bool {
     if !block.behavior().requires_correct_tool_for_drops {
         return true;
     }
     let registry_block = block.as_registry_block();
-    if tool == Item::Shears {
+    if tool == ItemKind::Shears {
         matches!(
             registry_block,
-            Block::Cobweb | Block::RedstoneWire | Block::Tripwire
+            BlockKind::Cobweb | BlockKind::RedstoneWire | BlockKind::Tripwire
         )
     } else if tags::items::SWORDS.contains(&tool) {
-        registry_block == Block::Cobweb
+        registry_block == BlockKind::Cobweb
     } else if tags::items::PICKAXES.contains(&tool)
         || tags::items::SHOVELS.contains(&tool)
         || tags::items::HOES.contains(&tool)
@@ -78,10 +78,11 @@ fn has_correct_tool_for_drops(block: &dyn BlockTrait, tool: Item) -> bool {
 /// Returns the destroy speed of the given block with the given tool, taking
 /// enchantments and effects into account.
 ///
-/// If the player is not holding anything, then `tool` should be `Item::Air`.
+/// If the player is not holding anything, then `tool` should be
+/// `ItemKind::Air`.
 fn destroy_speed(
-    block: Block,
-    tool: Item,
+    block: BlockKind,
+    tool: ItemKind,
     _fluid_on_eyes: &FluidOnEyes,
     physics: &Physics,
     attributes: &Attributes,
@@ -123,19 +124,19 @@ fn destroy_speed(
     base_destroy_speed
 }
 
-fn base_destroy_speed(block: Block, tool: Item) -> f32 {
-    if tool == Item::Shears {
-        if block == Block::Cobweb || tags::blocks::LEAVES.contains(&block) {
+fn base_destroy_speed(block: BlockKind, tool: ItemKind) -> f32 {
+    if tool == ItemKind::Shears {
+        if block == BlockKind::Cobweb || tags::blocks::LEAVES.contains(&block) {
             15.
         } else if tags::blocks::WOOL.contains(&block) {
             5.
-        } else if matches!(block, Block::Vine | Block::GlowLichen) {
+        } else if matches!(block, BlockKind::Vine | BlockKind::GlowLichen) {
             2.
         } else {
             1.
         }
     } else if tags::items::SWORDS.contains(&tool) {
-        if block == Block::Cobweb {
+        if block == BlockKind::Cobweb {
             15.
         } else if tags::blocks::SWORD_EFFICIENT.contains(&block) {
             1.5
