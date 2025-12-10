@@ -1,5 +1,7 @@
-pub fn get_item_tier(item: azalea_registry::Item) -> Option<Tier> {
-    use azalea_registry::Item::*;
+use azalea_registry::builtin::Item;
+
+pub fn get_item_tier(item: Item) -> Option<Tier> {
+    use Item::*;
     Some(match item {
         WoodenPickaxe | WoodenShovel | WoodenAxe | WoodenHoe | WoodenSword => Tier::Wood,
         StonePickaxe | StoneShovel | StoneAxe | StoneHoe | StoneSword => Tier::Stone,

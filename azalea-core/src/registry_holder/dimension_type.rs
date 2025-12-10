@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use azalea_buf::AzBuf;
+use azalea_registry::builtin::SoundEvent;
 use simdnbt::{
     Deserialize, FromNbtTag, Serialize, ToNbtTag,
     owned::{NbtCompound, NbtTag},
@@ -208,7 +209,7 @@ pub struct BiomeMusic {
     pub replace_current_music: bool,
     pub max_delay: u32,
     pub min_delay: u32,
-    pub sound: azalea_registry::SoundEvent,
+    pub sound: SoundEvent,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -217,14 +218,14 @@ pub struct BiomeMoodSound {
     pub tick_delay: u32,
     pub block_search_extent: u32,
     pub offset: f32,
-    pub sound: azalea_registry::SoundEvent,
+    pub sound: SoundEvent,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
 pub struct AdditionsSound {
     pub tick_chance: f32,
-    pub sound: azalea_registry::SoundEvent,
+    pub sound: SoundEvent,
 }
 
 /// Biome particles.

@@ -1,7 +1,10 @@
 use std::{collections::HashMap, str::FromStr};
 
 use azalea_registry::{
-    EnchantmentEntityEffectKind as EntityEffectKind, GameEvent, Holder, ParticleKind, SoundEvent,
+    Holder,
+    builtin::{
+        EnchantmentEntityEffectKind as EntityEffectKind, GameEvent, ParticleKind, SoundEvent,
+    },
 };
 use simdnbt::{
     Deserialize, DeserializeError,
@@ -179,7 +182,7 @@ impl Deserialize for PlaySound {
             // strings.
             list.strings()
                 .ok_or(DeserializeError::MissingField)?
-                .into_iter()
+                .iter()
                 .map(|s| {
                     SoundEvent::from_str(&s.to_str())
                         .map(Holder::Reference)

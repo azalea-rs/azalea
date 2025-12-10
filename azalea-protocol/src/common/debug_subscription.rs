@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use azalea_buf::AzBuf;
 use azalea_core::position::{BlockPos, Vec3};
-use azalea_registry::{Block, DebugSubscription, GameEvent, PointOfInterestKind};
+use azalea_registry::builtin::{Block, DebugSubscription, GameEvent, PointOfInterestKind};
 
 // see DebugSubscriptions.java
 

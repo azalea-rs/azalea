@@ -2,6 +2,7 @@ use azalea_buf::AzBuf;
 use azalea_core::{checksum::Checksum, registry_holder::RegistryHolder};
 use azalea_inventory::{ItemStack, operations::ClickType};
 use azalea_protocol_macros::ServerboundGamePacket;
+use azalea_registry::builtin::{DataComponentKind, Item};
 use indexmap::IndexMap;
 
 #[derive(Clone, Debug, AzBuf, PartialEq, ServerboundGamePacket)]
@@ -24,7 +25,7 @@ pub struct HashedStack(pub Option<HashedActualItem>);
 
 #[derive(Clone, Debug, AzBuf, PartialEq)]
 pub struct HashedActualItem {
-    pub kind: azalea_registry::Item,
+    pub kind: Item,
     #[var]
     pub count: i32,
     pub components: HashedPatchMap,
@@ -33,9 +34,9 @@ pub struct HashedActualItem {
 #[derive(Clone, Debug, AzBuf, PartialEq)]
 pub struct HashedPatchMap {
     #[limit(256)]
-    pub added_components: Vec<(azalea_registry::DataComponentKind, Checksum)>,
+    pub added_components: Vec<(DataComponentKind, Checksum)>,
     #[limit(256)]
-    pub removed_components: Vec<azalea_registry::DataComponentKind>,
+    pub removed_components: Vec<DataComponentKind>,
 }
 
 impl HashedStack {

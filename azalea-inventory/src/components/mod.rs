@@ -22,8 +22,13 @@ use azalea_core::{
     sound::CustomSound,
 };
 use azalea_registry::{
-    self as registry, Attribute, Block, DamageKind, DataComponentKind, Enchantment, EntityKind,
-    Holder, HolderSet, Item, MobEffect, Potion, SoundEvent, TrimMaterial, TrimPattern,
+    Holder, HolderSet,
+    builtin::{
+        Attribute, Block, DataComponentKind, EntityKind, Item, MobEffect, Potion, SoundEvent,
+        VillagerKind,
+    },
+    data::{self, DamageKind, Enchantment},
+    extra::{self, JukeboxSong, TrimMaterial, TrimPattern},
 };
 pub use profile::*;
 use serde::{Serialize, ser::SerializeMap};
@@ -760,8 +765,8 @@ pub struct BlockEntityData {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(untagged)]
 pub enum Instrument {
-    Registry(registry::Instrument),
-    Holder(Holder<registry::Instrument, InstrumentData>),
+    Registry(extra::Instrument),
+    Holder(Holder<extra::Instrument, InstrumentData>),
 }
 
 #[derive(Clone, PartialEq, Debug, AzBuf, Serialize)]
@@ -934,7 +939,7 @@ pub struct ContainerLoot {
 #[serde(untagged)]
 pub enum JukeboxPlayable {
     Referenced(Identifier),
-    Direct(Holder<registry::JukeboxSong, JukeboxSongData>),
+    Direct(Holder<JukeboxSong, JukeboxSongData>),
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -1212,13 +1217,13 @@ pub struct PotionDurationScale {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct VillagerVariant {
-    pub variant: registry::VillagerKind,
+    pub variant: VillagerKind,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct WolfVariant {
-    pub variant: registry::WolfVariant,
+    pub variant: data::WolfVariant,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -1230,7 +1235,7 @@ pub struct WolfCollar {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct FoxVariant {
-    pub variant: registry::FoxVariant,
+    pub variant: extra::FoxVariant,
 }
 
 #[derive(Clone, Copy, PartialEq, AzBuf, Debug, Serialize)]
@@ -1244,7 +1249,7 @@ pub enum SalmonSize {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct ParrotVariant {
-    pub variant: registry::ParrotVariant,
+    pub variant: extra::ParrotVariant,
 }
 
 #[derive(Clone, Copy, PartialEq, AzBuf, Debug, Serialize)]
@@ -1279,37 +1284,37 @@ pub struct TropicalFishPatternColor {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct MooshroomVariant {
-    pub variant: registry::MooshroomVariant,
+    pub variant: extra::MooshroomVariant,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct RabbitVariant {
-    pub variant: registry::RabbitVariant,
+    pub variant: extra::RabbitVariant,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct PigVariant {
-    pub variant: registry::PigVariant,
+    pub variant: data::PigVariant,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct FrogVariant {
-    pub variant: registry::FrogVariant,
+    pub variant: data::FrogVariant,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct HorseVariant {
-    pub variant: registry::HorseVariant,
+    pub variant: extra::HorseVariant,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct PaintingVariant {
-    pub variant: Holder<registry::PaintingVariant, PaintingVariantData>,
+    pub variant: Holder<data::PaintingVariant, PaintingVariantData>,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -1328,19 +1333,19 @@ pub struct PaintingVariantData {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct LlamaVariant {
-    pub variant: registry::LlamaVariant,
+    pub variant: extra::LlamaVariant,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct AxolotlVariant {
-    pub variant: registry::AxolotlVariant,
+    pub variant: extra::AxolotlVariant,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct CatVariant {
-    pub variant: registry::CatVariant,
+    pub variant: data::CatVariant,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -1495,13 +1500,13 @@ pub struct BreakSound {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct WolfSoundVariant {
-    pub variant: azalea_registry::WolfSoundVariant,
+    pub variant: azalea_registry::data::WolfSoundVariant,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct CowVariant {
-    pub variant: azalea_registry::CowVariant,
+    pub variant: azalea_registry::data::CowVariant,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -1513,7 +1518,7 @@ pub enum ChickenVariant {
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct ChickenVariantData {
-    pub registry: azalea_registry::ChickenVariant,
+    pub registry: azalea_registry::data::ChickenVariant,
 }
 
 // TODO: check in-game if this is correct
@@ -1525,7 +1530,7 @@ pub enum ZombieNautilusVariant {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct ZombieNautilusVariantData {
-    pub value: azalea_registry::ZombieNautilusVariant,
+    pub value: azalea_registry::data::ZombieNautilusVariant,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -1559,8 +1564,8 @@ pub struct MinimumAttackCharge {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(untagged)]
 pub enum DamageType {
-    Registry(registry::DamageKind),
-    Holder(Holder<registry::DamageKind, DamageTypeElement>),
+    Registry(DamageKind),
+    Holder(Holder<DamageKind, DamageTypeElement>),
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]

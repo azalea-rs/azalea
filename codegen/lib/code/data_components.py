@@ -430,7 +430,7 @@ use crate::{
             elif target_rust_type == "DamageType":
                 # TODO: this is intentionally incorrect, see the comment in
                 # azalea-registry/src/data.rs to see how to fix this properly
-                return "DamageType::Registry(azalea_registry::DamageKind::new_raw(0))"
+                return "DamageType::Registry(azalea_registry::data::DamageKind::new_raw(0))"
             else:
                 # enum variant
                 return f"{target_rust_type}::{lib.utils.to_camel_case(python_value.split(':')[-1])}"

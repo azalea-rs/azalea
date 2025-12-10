@@ -6,11 +6,12 @@ use azalea_core::{
     position::GlobalPos,
     registry_holder::{RegistryHolder, dimension_type::DimensionTypeElement},
 };
+use azalea_registry::data::DimensionType;
 use tracing::error;
 
 #[derive(Clone, Debug, AzBuf, PartialEq)]
 pub struct CommonPlayerSpawnInfo {
-    pub dimension_type: azalea_registry::DimensionType,
+    pub dimension_type: DimensionType,
     pub dimension: Identifier,
     pub seed: i64,
     pub game_type: GameMode,

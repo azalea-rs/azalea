@@ -11,7 +11,7 @@ use azalea_protocol::{
         },
     },
 };
-use azalea_registry::Block;
+use azalea_registry::builtin::Block;
 
 #[test]
 fn test_correct_movement() {

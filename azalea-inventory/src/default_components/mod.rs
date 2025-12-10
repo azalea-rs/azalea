@@ -1,6 +1,6 @@
 pub mod generated;
 
-use azalea_registry::Item;
+use azalea_registry::builtin::Item;
 
 use crate::components::DataComponentTrait;
 

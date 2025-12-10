@@ -9,7 +9,7 @@ use azalea_core::{
     position::{BlockPos, ChunkPos, ChunkSectionBlockPos, ChunkSectionPos},
 };
 use azalea_physics::collision::BlockWithShape;
-use azalea_registry::{Block, tags};
+use azalea_registry::{builtin::Block, tags};
 use azalea_world::{Instance, palette::PalettedContainer};
 use parking_lot::RwLock;
 

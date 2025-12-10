@@ -8,7 +8,7 @@ use azalea_chat::{
 use azalea_core::bitset::BitSet;
 use azalea_crypto::signing::MessageSignature;
 use azalea_protocol_macros::ClientboundGamePacket;
-use azalea_registry::Holder;
+use azalea_registry::{Holder, extra::ChatType};
 use simdnbt::owned::NbtCompound;
 use uuid::Uuid;
 
@@ -57,7 +57,7 @@ pub enum FilterMask {
 
 #[derive(Clone, Debug, PartialEq, AzBuf)]
 pub struct ChatTypeBound {
-    pub chat_type: Holder<azalea_registry::ChatType, DirectChatType>,
+    pub chat_type: Holder<ChatType, DirectChatType>,
     pub name: FormattedText,
     pub target_name: Option<FormattedText>,
 }

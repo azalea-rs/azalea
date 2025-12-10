@@ -6,7 +6,7 @@ use azalea_core::{
     attribute_modifier_operation::AttributeModifierOperation, identifier::Identifier,
 };
 use azalea_inventory::components::AttributeModifier;
-use azalea_registry::Attribute;
+use azalea_registry::builtin::Attribute;
 use bevy_ecs::component::Component;
 use thiserror::Error;
 

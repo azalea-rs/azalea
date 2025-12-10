@@ -1,4 +1,7 @@
-use azalea_registry::DataRegistry;
+use azalea_registry::{
+    DataRegistry,
+    data::{self},
+};
 use simdnbt::owned::NbtCompound;
 
 use crate::{
@@ -42,20 +45,20 @@ macro_rules! define_default_deserializes_to {
 }
 
 define_deserializes_to! {
-    azalea_registry::DimensionType => registry_holder::dimension_type::DimensionTypeElement,
-    azalea_registry::Enchantment => registry_holder::enchantment::EnchantmentData,
+    data::DimensionType => registry_holder::dimension_type::DimensionTypeElement,
+    data::Enchantment => registry_holder::enchantment::EnchantmentData,
 }
 
 define_default_deserializes_to! {
-    azalea_registry::DamageKind,
-    azalea_registry::Dialog,
-    azalea_registry::WolfSoundVariant,
-    azalea_registry::CowVariant,
-    azalea_registry::ChickenVariant,
-    azalea_registry::FrogVariant,
-    azalea_registry::CatVariant,
-    azalea_registry::PigVariant,
-    azalea_registry::PaintingVariant,
-    azalea_registry::WolfVariant,
-    azalea_registry::Biome,
+    data::DamageKind,
+    data::Dialog,
+    data::WolfSoundVariant,
+    data::CowVariant,
+    data::ChickenVariant,
+    data::FrogVariant,
+    data::CatVariant,
+    data::PigVariant,
+    data::PaintingVariant,
+    data::WolfVariant,
+    data::Biome,
 }

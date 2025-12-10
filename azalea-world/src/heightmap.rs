@@ -3,7 +3,7 @@ use std::{
     str::FromStr,
 };
 
-use azalea_block::BlockState;
+use azalea_block::{BlockState, BlockTrait};
 use azalea_buf::AzBuf;
 use azalea_core::{math, position::ChunkBlockPos};
 use azalea_registry::tags::blocks::LEAVES;
@@ -45,7 +45,7 @@ fn motion_blocking(block_state: BlockState) -> bool {
 
 impl HeightmapKind {
     pub fn is_opaque(self, block_state: BlockState) -> bool {
-        let block = Box::<dyn azalea_block::BlockTrait>::from(block_state);
+        let block = Box::<dyn BlockTrait>::from(block_state);
         let registry_block = block.as_registry_block();
         match self {
             HeightmapKind::WorldSurfaceWg => !block_state.is_air(),

@@ -1,7 +1,7 @@
 use azalea_buf::AzBuf;
 use azalea_core::position::BlockPos;
 use azalea_protocol_macros::ClientboundGamePacket;
-use azalea_registry::Block;
+use azalea_registry::builtin::Block;
 
 #[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundBlockEvent {

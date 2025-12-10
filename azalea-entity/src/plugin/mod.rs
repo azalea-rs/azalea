@@ -3,11 +3,12 @@ mod relative_updates;
 
 use std::collections::HashSet;
 
-use azalea_block::{BlockState, fluid_state::FluidKind};
+use azalea_block::{BlockState, BlockTrait, fluid_state::FluidKind, properties};
 use azalea_core::{
     position::{BlockPos, ChunkPos, Vec3},
     tick::GameTick,
 };
+use azalea_registry::{builtin::Block, tags};
 use azalea_world::{InstanceContainer, InstanceName, MinecraftEntityId};
 use bevy_app::{App, Plugin, PostUpdate, Update};
 use bevy_ecs::prelude::*;
@@ -143,11 +144,11 @@ pub fn update_on_climbable(
 
         let block_pos = BlockPos::from(position);
         let block_state_at_feet = instance.get_block_state(block_pos).unwrap_or_default();
-        let block_at_feet = Box::<dyn azalea_block::BlockTrait>::from(block_state_at_feet);
+        let block_at_feet = Box::<dyn BlockTrait>::from(block_state_at_feet);
         let registry_block_at_feet = block_at_feet.as_registry_block();
 
-        **on_climbable = azalea_registry::tags::blocks::CLIMBABLE.contains(&registry_block_at_feet)
-            || (azalea_registry::tags::blocks::TRAPDOORS.contains(&registry_block_at_feet)
+        **on_climbable = tags::blocks::CLIMBABLE.contains(&registry_block_at_feet)
+            || (tags::blocks::TRAPDOORS.contains(&registry_block_at_feet)
                 && is_trapdoor_useable_as_ladder(block_state_at_feet, block_pos, &instance));
     }
 }
@@ -159,7 +160,7 @@ fn is_trapdoor_useable_as_ladder(
 ) -> bool {
     // trapdoor must be open
     if !block_state
-        .property::<azalea_block::properties::Open>()
+        .property::<properties::Open>()
         .unwrap_or_default()
     {
         return false;
@@ -169,17 +170,16 @@ fn is_trapdoor_useable_as_ladder(
     let block_below = instance
         .get_block_state(block_pos.down(1))
         .unwrap_or_default();
-    let registry_block_below =
-        Box::<dyn azalea_block::BlockTrait>::from(block_below).as_registry_block();
-    if registry_block_below != azalea_registry::Block::Ladder {
+    let registry_block_below = Box::<dyn BlockTrait>::from(block_below).as_registry_block();
+    if registry_block_below != Block::Ladder {
         return false;
     }
     // and the ladder must be facing the same direction as the trapdoor
     let ladder_facing = block_below
-        .property::<azalea_block::properties::FacingCardinal>()
+        .property::<properties::FacingCardinal>()
         .expect("ladder block must have facing property");
     let trapdoor_facing = block_state
-        .property::<azalea_block::properties::FacingCardinal>()
+        .property::<properties::FacingCardinal>()
         .expect("trapdoor block must have facing property");
     if ladder_facing != trapdoor_facing {
         return false;
@@ -292,6 +292,7 @@ mod tests {
         properties::{FacingCardinal, TopBottom},
     };
     use azalea_core::position::{BlockPos, ChunkPos};
+    use azalea_registry::builtin::Block;
     use azalea_world::{Chunk, ChunkStorage, Instance, PartialInstance};
 
     use super::is_trapdoor_useable_as_ladder;
@@ -307,7 +308,7 @@ mod tests {
         );
         partial_instance.chunks.set_block_state(
             BlockPos::new(0, 0, 0),
-            azalea_registry::Block::Stone.into(),
+            Block::Stone.into(),
             &chunks,
         );
 

@@ -1,6 +1,6 @@
 use std::{any::Any, fmt::Debug, str::FromStr};
 
-use azalea_registry::EnchantmentEffectComponentKind;
+use azalea_registry::builtin::EnchantmentEffectComponentKind;
 use indexmap::IndexMap;
 use simdnbt::{DeserializeError, borrow::NbtCompound};
 

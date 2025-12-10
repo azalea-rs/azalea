@@ -1,4 +1,4 @@
-use azalea_registry::{
+use azalea_registry::builtin::{
     Attribute, EnchantmentLevelBasedValueKind as LevelBasedValueKind,
     EnchantmentValueEffectKind as ValueEffectKind,
 };

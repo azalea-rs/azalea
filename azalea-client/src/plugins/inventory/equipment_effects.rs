@@ -147,7 +147,7 @@ fn collect_attribute_modifiers_from_item(
     slot: EquipmentSlot,
     item: &ItemStack,
     instance_holder: &InstanceHolder,
-) -> Vec<(azalea_registry::Attribute, AttributeModifier)> {
+) -> Vec<(azalea_registry::builtin::Attribute, AttributeModifier)> {
     let mut modifiers = Vec::new();
 
     // handle the attribute_modifiers component first

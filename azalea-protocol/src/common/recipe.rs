@@ -1,7 +1,7 @@
 use azalea_buf::AzBuf;
 use azalea_core::identifier::Identifier;
 use azalea_inventory::ItemStack;
-use azalea_registry::HolderSet;
+use azalea_registry::{HolderSet, builtin::Item};
 
 /// [`azalea_registry::RecipeDisplay`]
 #[derive(Clone, Debug, AzBuf, PartialEq)]
@@ -56,7 +56,7 @@ pub struct SmithingRecipeDisplay {
 
 #[derive(Clone, Debug, PartialEq, AzBuf)]
 pub struct Ingredient {
-    pub allowed: HolderSet<azalea_registry::Item, Identifier>,
+    pub allowed: HolderSet<Item, Identifier>,
 }
 
 /// [`azalea_registry::SlotDisplay`]
@@ -74,7 +74,7 @@ pub enum SlotDisplayData {
 
 #[derive(Clone, Debug, PartialEq, AzBuf)]
 pub struct ItemStackDisplay {
-    pub item: azalea_registry::Item,
+    pub item: Item,
 }
 #[derive(Clone, Debug, PartialEq, AzBuf)]
 pub struct ItemStackSlotDisplay {
@@ -82,7 +82,7 @@ pub struct ItemStackSlotDisplay {
 }
 #[derive(Clone, Debug, PartialEq, AzBuf)]
 pub struct TagSlotDisplay {
-    pub tag: azalea_registry::Item,
+    pub tag: Item,
 }
 #[derive(Clone, Debug, PartialEq, AzBuf)]
 pub struct SmithingTrimDemoSlotDisplay {

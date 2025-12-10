@@ -29,7 +29,7 @@ use azalea_protocol::{
         },
     },
 };
-use azalea_registry::EntityKind;
+use azalea_registry::builtin::EntityKind;
 use azalea_world::{Instance, MinecraftEntityId};
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;

@@ -1,6 +1,6 @@
 use std::ops::Range;
 
-use azalea_registry::FloatProviderKind;
+use azalea_registry::builtin::FloatProviderKind;
 use simdnbt::{
     DeserializeError, FromNbtTag,
     borrow::{NbtCompound, NbtTag},

@@ -7,6 +7,7 @@ use azalea_entity::{
 use azalea_inventory::ItemStack;
 use azalea_physics::{PhysicsSystems, collision::BlockWithShape};
 use azalea_protocol::packets::game::s_player_action::{self, ServerboundPlayerAction};
+use azalea_registry::builtin::{Block, Item};
 use azalea_world::{InstanceContainer, InstanceName};
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
@@ -525,10 +526,8 @@ pub fn handle_finish_mining_block_observer(
 
     if game_mode.current == GameMode::Creative {
         let held_item = inventory.held_item().kind();
-        if matches!(
-            held_item,
-            azalea_registry::Item::Trident | azalea_registry::Item::DebugStick
-        ) || azalea_registry::tags::items::SWORDS.contains(&held_item)
+        if matches!(held_item, Item::Trident | Item::DebugStick)
+            || azalea_registry::tags::items::SWORDS.contains(&held_item)
         {
             return;
         }
@@ -538,13 +537,9 @@ pub fn handle_finish_mining_block_observer(
         return;
     };
 
-    let registry_block: azalea_registry::Block =
-        Box::<dyn BlockTrait>::from(block_state).as_registry_block();
+    let registry_block = Box::<dyn BlockTrait>::from(block_state).as_registry_block();
     if !can_use_game_master_blocks(abilities, permission_level)
-        && matches!(
-            registry_block,
-            azalea_registry::Block::CommandBlock | azalea_registry::Block::StructureBlock
-        )
+        && matches!(registry_block, Block::CommandBlock | Block::StructureBlock)
     {
         return;
     }

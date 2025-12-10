@@ -1,6 +1,7 @@
 use std::hint::black_box;
 
 use azalea_core::position::ChunkBlockPos;
+use azalea_registry::builtin::Block;
 use azalea_world::{BitStorage, Chunk};
 use criterion::{Criterion, criterion_group, criterion_main};
 
@@ -11,11 +12,7 @@ fn bench_chunks(c: &mut Criterion) {
 
             for x in 0..16 {
                 for z in 0..16 {
-                    chunk.set_block_state(
-                        &ChunkBlockPos::new(x, 1, z),
-                        azalea_registry::Block::Bedrock.into(),
-                        0,
-                    );
+                    chunk.set_block_state(&ChunkBlockPos::new(x, 1, z), Block::Bedrock.into(), 0);
                 }
             }
 

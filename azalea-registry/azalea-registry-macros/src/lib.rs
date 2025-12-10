@@ -108,7 +108,7 @@ pub fn registry(input: TokenStream) -> TokenStream {
                 id <= #max_id
             }
         }
-        impl Registry for #name {
+        impl crate::Registry for #name {
             fn from_u32(value: u32) -> Option<Self> {
                 if Self::is_valid_id(value) {
                     Some(unsafe { Self::from_u32_unchecked(value) })
@@ -130,7 +130,7 @@ pub fn registry(input: TokenStream) -> TokenStream {
 
             #[doc = #doc_0]
             fn try_from(id: u32) -> Result<Self, Self::Error> {
-                if let Some(value) = Self::from_u32(id) {
+                if let Some(value) = crate::Registry::from_u32(id) {
                     Ok(value)
                 } else {
                     Err(())

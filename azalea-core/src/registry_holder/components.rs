@@ -1,6 +1,6 @@
 use std::{any::Any, fmt::Debug, mem::ManuallyDrop, str::FromStr};
 
-use azalea_registry::{EnchantmentEffectComponentKind, SoundEvent};
+use azalea_registry::builtin::{EnchantmentEffectComponentKind, SoundEvent};
 use simdnbt::{
     DeserializeError,
     borrow::{NbtCompound, NbtList, NbtTag},

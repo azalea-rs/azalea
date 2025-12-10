@@ -2,7 +2,7 @@
 
 use std::{collections::HashSet, sync::LazyLock};
 
-use crate::Fluid;
+use crate::builtin::Fluid;
 
 pub static LAVA: LazyLock<HashSet<Fluid>> =
     LazyLock::new(|| HashSet::from_iter([Fluid::Lava, Fluid::FlowingLava]));

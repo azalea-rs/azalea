@@ -9,6 +9,7 @@ mod range;
 use core::fmt::Debug;
 use std::{any::Any, collections::HashMap};
 
+use azalea_registry::builtin::Block;
 pub use behavior::BlockBehavior;
 // re-exported for convenience
 pub use block_state::BlockState;
@@ -21,16 +22,16 @@ pub trait BlockTrait: Debug + Any {
     ///
     /// For example, `stone` or `grass_block`.
     fn id(&self) -> &'static str;
-    /// Convert the block to a block state.
+    /// Convert the block struct to a [`BlockState`].
     ///
     /// This is a lossless conversion, as [`BlockState`] also contains state
     /// data.
     fn as_block_state(&self) -> BlockState;
-    /// Convert the block to an [`azalea_registry::Block`].
+    /// Convert the block struct to a [`Block`].
     ///
-    /// This is a lossy conversion, as [`azalea_registry::Block`] doesn't
-    /// contain any state data.
-    fn as_registry_block(&self) -> azalea_registry::Block;
+    /// This is a lossy conversion, as [`Block`] doesn't contain any state
+    /// data.
+    fn as_registry_block(&self) -> Block;
 
     /// Returns a map of property names on this block to their values as
     /// strings.

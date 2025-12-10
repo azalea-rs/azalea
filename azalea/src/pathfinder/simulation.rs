@@ -11,7 +11,7 @@ use azalea_entity::{
     Attributes, LookDirection, Physics, Position, dimensions::EntityDimensions,
     inventory::Inventory,
 };
-use azalea_registry::EntityKind;
+use azalea_registry::builtin::EntityKind;
 use azalea_world::{ChunkStorage, Instance, InstanceContainer, MinecraftEntityId, PartialInstance};
 use bevy_app::App;
 use bevy_ecs::prelude::*;
@@ -97,7 +97,7 @@ fn create_simulation_player_complete_bundle(
         azalea_entity::EntityBundle::new(
             Uuid::nil(),
             *player.position,
-            azalea_registry::EntityKind::Player,
+            EntityKind::Player,
             instance_name,
         ),
         azalea_client::local_player::InstanceHolder {

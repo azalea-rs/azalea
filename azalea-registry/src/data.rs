@@ -1,27 +1,11 @@
-use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite};
+//! Definitions for data-driven registries that implement
+//! [`DataRegistry`](crate::DataRegistry).
+//!
+//! These registries are sent to us by the server on join.
 
-use crate::Registry;
+use azalea_buf::AzBuf;
 
-/// A registry which has its values decided by the server in the
-/// `ClientboundRegistryData` packet.
-///
-/// These can be resolved into their actual values with
-/// `ResolvableDataRegistry` from azalea-core.
-pub trait DataRegistry: AzaleaRead + AzaleaWrite {
-    const NAME: &'static str;
-
-    fn protocol_id(&self) -> u32;
-    fn new_raw(id: u32) -> Self;
-}
-impl<T: DataRegistry> Registry for T {
-    fn from_u32(value: u32) -> Option<Self> {
-        Some(Self::new_raw(value))
-    }
-
-    fn to_u32(&self) -> u32 {
-        self.protocol_id()
-    }
-}
+use crate::DataRegistry;
 
 macro_rules! data_registry {
     ($(#[$doc:meta])* $name:ident, $registry_name:expr) => {
@@ -31,7 +15,7 @@ macro_rules! data_registry {
             #[var]
             id: u32,
         }
-        impl DataRegistry for $name {
+        impl crate::DataRegistry for $name {
             const NAME: &'static str = $registry_name;
             fn protocol_id(&self) -> u32 {
                 self.id

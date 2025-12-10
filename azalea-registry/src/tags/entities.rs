@@ -2,7 +2,7 @@
 
 use std::{collections::HashSet, sync::LazyLock};
 
-use crate::EntityKind;
+use crate::builtin::EntityKind;
 
 pub static ACCEPTS_IRON_GOLEM_GIFT: LazyLock<HashSet<EntityKind>> =
     LazyLock::new(|| HashSet::from_iter([EntityKind::CopperGolem]));

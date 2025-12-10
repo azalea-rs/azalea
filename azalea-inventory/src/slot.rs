@@ -7,7 +7,7 @@ use std::{
 
 use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
 use azalea_core::codec_utils::is_default;
-use azalea_registry::{DataComponentKind, Item};
+use azalea_registry::builtin::{DataComponentKind, Item};
 use indexmap::IndexMap;
 use serde::{Serialize, ser::SerializeMap};
 

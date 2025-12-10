@@ -11,7 +11,7 @@ def generate_tags(registries: dict, file_name: str, struct_name: str):
 use std::{{collections::HashSet, sync::LazyLock}};
 
 
-use crate::{struct_name};
+use crate::builtin::{struct_name};
 
 """
 

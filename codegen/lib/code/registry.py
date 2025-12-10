@@ -1,6 +1,6 @@
 from lib.utils import get_dir_location, to_camel_case
 
-REGISTRIES_DIR = get_dir_location("../azalea-registry/src/lib.rs")
+REGISTRIES_DIR = get_dir_location("../azalea-registry/src/builtin.rs")
 
 
 def generate_registries(registries: dict):

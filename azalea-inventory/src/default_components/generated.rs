@@ -8,7 +8,9 @@ use std::collections::HashMap;
 use azalea_chat::translatable_component::TranslatableComponent;
 use azalea_core::attribute_modifier_operation::AttributeModifierOperation;
 use azalea_registry::{
-    Attribute, Block, DataRegistry, EntityKind, HolderSet, Item, MobEffect, SoundEvent,
+    DataRegistry, HolderSet,
+    builtin::{Attribute, Block, EntityKind, Item, MobEffect, SoundEvent},
+    extra,
 };
 use simdnbt::owned::NbtCompound;
 
@@ -5898,13 +5900,23 @@ impl DefaultableComponent for AttackRange {
 impl DefaultableComponent for DamageType {
     fn default_for_item(item: Item) -> Option<Self> {
         let value = match item {
-            Item::CopperSpear => DamageType::Registry(azalea_registry::DamageKind::new_raw(0)),
-            Item::DiamondSpear => DamageType::Registry(azalea_registry::DamageKind::new_raw(0)),
-            Item::GoldenSpear => DamageType::Registry(azalea_registry::DamageKind::new_raw(0)),
-            Item::IronSpear => DamageType::Registry(azalea_registry::DamageKind::new_raw(0)),
-            Item::NetheriteSpear => DamageType::Registry(azalea_registry::DamageKind::new_raw(0)),
-            Item::StoneSpear => DamageType::Registry(azalea_registry::DamageKind::new_raw(0)),
-            Item::WoodenSpear => DamageType::Registry(azalea_registry::DamageKind::new_raw(0)),
+            Item::CopperSpear => {
+                DamageType::Registry(azalea_registry::data::DamageKind::new_raw(0))
+            }
+            Item::DiamondSpear => {
+                DamageType::Registry(azalea_registry::data::DamageKind::new_raw(0))
+            }
+            Item::GoldenSpear => {
+                DamageType::Registry(azalea_registry::data::DamageKind::new_raw(0))
+            }
+            Item::IronSpear => DamageType::Registry(azalea_registry::data::DamageKind::new_raw(0)),
+            Item::NetheriteSpear => {
+                DamageType::Registry(azalea_registry::data::DamageKind::new_raw(0))
+            }
+            Item::StoneSpear => DamageType::Registry(azalea_registry::data::DamageKind::new_raw(0)),
+            Item::WoodenSpear => {
+                DamageType::Registry(azalea_registry::data::DamageKind::new_raw(0))
+            }
             _ => return None,
         };
         Some(value)
@@ -6252,7 +6264,7 @@ impl DefaultableComponent for Fireworks {
 impl DefaultableComponent for Instrument {
     fn default_for_item(item: Item) -> Option<Self> {
         let value = match item {
-            Item::GoatHorn => Instrument::Registry(azalea_registry::Instrument::PonderGoatHorn),
+            Item::GoatHorn => Instrument::Registry(extra::Instrument::PonderGoatHorn),
             _ => return None,
         };
         Some(value)

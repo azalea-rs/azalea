@@ -4,7 +4,7 @@ use azalea_protocol::packets::{
     ConnectionProtocol,
     game::{ClientboundBlockChangedAck, ClientboundBlockUpdate},
 };
-use azalea_registry::Block;
+use azalea_registry::builtin::Block;
 
 #[test]
 fn test_mine_block_without_rollback() {

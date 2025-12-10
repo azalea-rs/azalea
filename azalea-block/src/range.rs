@@ -3,7 +3,7 @@ use std::{
     ops::{Add, RangeInclusive},
 };
 
-use azalea_registry::Block;
+use azalea_registry::builtin::Block;
 
 use crate::{BlockState, block_state::BlockStateIntegerRepr};
 

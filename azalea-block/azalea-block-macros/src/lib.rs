@@ -424,13 +424,13 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         });
 
         from_registry_block_to_block_match.extend(quote! {
-            azalea_registry::Block::#block_name_pascal_case => Box::new(#block_struct_name::default()),
+            Block::#block_name_pascal_case => Box::new(#block_struct_name::default()),
         });
         from_registry_block_to_blockstate_match.extend(quote! {
-            azalea_registry::Block::#block_name_pascal_case => BlockState::new_const(#default_state_id),
+            Block::#block_name_pascal_case => BlockState::new_const(#default_state_id),
         });
         from_registry_block_to_blockstates_match.extend(quote! {
-            azalea_registry::Block::#block_name_pascal_case => BlockStates::from(#first_state_id..=#last_state_id),
+            Block::#block_name_pascal_case => BlockStates::from(#first_state_id..=#last_state_id),
         });
 
         let mut property_map_inner = quote! {};
@@ -491,8 +491,8 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 fn as_block_state(&self) -> BlockState {
                     #as_block_state
                 }
-                fn as_registry_block(&self) -> azalea_registry::Block {
-                    azalea_registry::Block::#block_name_pascal_case
+                fn as_registry_block(&self) -> Block {
+                    Block::#block_name_pascal_case
                 }
 
                 fn property_map(&self) -> std::collections::HashMap<&'static str, &'static str> {
@@ -557,6 +557,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
 
         pub mod blocks {
             use super::*;
+            use azalea_registry::builtin::Block;
 
             #block_structs
 
@@ -569,27 +570,27 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                     }
                 }
             }
-            impl From<azalea_registry::Block> for Box<dyn BlockTrait> {
-                fn from(block: azalea_registry::Block) -> Self {
+            impl From<Block> for Box<dyn BlockTrait> {
+                fn from(block: Block) -> Self {
                     match block {
                         #from_registry_block_to_block_match
-                        _ => unreachable!("There should always be a block struct for every azalea_registry::Block variant")
+                        _ => unreachable!("There should always be a block struct for every Block variant")
                     }
                 }
             }
-            impl From<azalea_registry::Block> for BlockState {
-                fn from(block: azalea_registry::Block) -> Self {
+            impl From<Block> for BlockState {
+                fn from(block: Block) -> Self {
                     match block {
                         #from_registry_block_to_blockstate_match
-                        _ => unreachable!("There should always be a block state for every azalea_registry::Block variant")
+                        _ => unreachable!("There should always be a block state for every Block variant")
                     }
                 }
             }
-            impl From<azalea_registry::Block> for BlockStates {
-                fn from(block: azalea_registry::Block) -> Self {
+            impl From<Block> for BlockStates {
+                fn from(block: Block) -> Self {
                     match block {
                         #from_registry_block_to_blockstates_match
-                        _ => unreachable!("There should always be a block state for every azalea_registry::Block variant")
+                        _ => unreachable!("There should always be a block state for every Block variant")
                     }
                 }
             }

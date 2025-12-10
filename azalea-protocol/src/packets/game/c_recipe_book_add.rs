@@ -1,5 +1,6 @@
 use azalea_buf::AzBuf;
 use azalea_protocol_macros::ClientboundGamePacket;
+use azalea_registry::builtin::RecipeBookCategory;
 
 use crate::common::recipe::{Ingredient, RecipeDisplayData};
 
@@ -23,6 +24,6 @@ pub struct RecipeDisplayEntry {
     // optional varint
     #[var]
     pub group: u32,
-    pub category: azalea_registry::RecipeBookCategory,
+    pub category: RecipeBookCategory,
     pub crafting_requirements: Option<Vec<Ingredient>>,
 }

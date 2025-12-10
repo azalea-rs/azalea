@@ -2,7 +2,7 @@ Representation of Minecraft block states.
 
 There's three block types, used for different things. You can (mostly) convert between them with `.into()`.
 
-## BlockState struct
+## `BlockState` struct
 
 [`BlockState`] is a struct containing the numerical protocol ID of a block state. This is how blocks are stored in the world.
 
@@ -20,29 +20,30 @@ let block_state: BlockState = azalea_block::blocks::CobblestoneWall {
 ```
 ```
 # use azalea_block::BlockState;
-let block_state: BlockState = azalea_registry::Block::Jukebox.into();
+# use azalea_registry::builtin::Block;
+let block_state: BlockState = Block::Jukebox.into();
 ```
 
-## BlockTrait
+## `BlockTrait`
 
 The [`BlockTrait`] trait represents a type of a block. With [`BlockTrait`], you can get some extra things like the string block ID and some information about the block's behavior. Also, the structs that implement the trait contain the block attributes as fields so it's more convenient to get them. Note that this is often used as `Box<dyn BlockTrait>`.
 If for some reason you don't want `BlockTrait`, set `default-features = false`.
 
 ```
 # use azalea_block::{BlockTrait, BlockState};
-# let block_state = BlockState::from(azalea_registry::Block::Jukebox);
+# let block_state = BlockState::from(azalea_registry::builtin::Block::Jukebox);
 let block = Box::<dyn BlockTrait>::from(block_state);
 ```
 ```
 # use azalea_block::{BlockTrait, BlockState};
-# let block_state: BlockState = azalea_registry::Block::Jukebox.into();
+# let block_state: BlockState = azalea_registry::builtin::Block::Jukebox.into();
 if let Some(jukebox) = Box::<dyn BlockTrait>::from(block_state).downcast_ref::<azalea_block::blocks::Jukebox>() {
     // ...
 }
 ```
 
 
-## azalea_registry::Block enum
+## `azalea_registry::builtin::Block` enum
 
-This one technically isn't from the `azalea-block` crate, but it's still very relevant. It's an enum that contains every block type as a variant *without* containing any state data (unlike `BlockState` and the `Block` trait). Converting this into any other block type will use the default state for that block.
+This one isn't from the `azalea-block` crate, but it's still very relevant. It's an enum that contains every block type as a variant *without* containing any state data (unlike `BlockState` and the `Block` trait). Converting this into any other block type will use the default state for that block.
 

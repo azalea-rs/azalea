@@ -4,7 +4,7 @@ use azalea_protocol::packets::{
     ConnectionProtocol,
     game::{ClientboundAddEntity, ClientboundStartConfiguration},
 };
-use azalea_registry::EntityKind;
+use azalea_registry::builtin::EntityKind;
 use azalea_world::InstanceName;
 use uuid::Uuid;
 

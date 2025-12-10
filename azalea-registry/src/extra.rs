@@ -2,9 +2,9 @@
 //! you should be relying on those if possible, but these are provided for your
 //! convenience anyways.
 
-use azalea_registry_macros::registry;
+// TODO: move these all into data.rs and have it be auto-generated
 
-use crate::Registry;
+use azalea_registry_macros::registry;
 
 registry! {
 #[derive(Default)]

@@ -10,7 +10,7 @@ use azalea_inventory::{
     components::{self, DataComponentUnion},
 };
 use azalea_protocol_macros::ClientboundGamePacket;
-use azalea_registry::{DataComponentKind, Item};
+use azalea_registry::builtin::{DataComponentKind, Item};
 
 #[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundMerchantOffers {

@@ -2,7 +2,7 @@
 
 use std::{collections::HashSet, sync::LazyLock};
 
-use crate::Block;
+use crate::builtin::Block;
 
 pub static ACACIA_LOGS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     HashSet::from_iter([

@@ -10,11 +10,12 @@ impl Instance {
     /// performance purposes.
     ///
     /// ```
+    /// # use azalea_registry::builtin::Block;
     /// # fn example(client: &azalea_client::Client) {
     /// client
     ///     .world()
     ///     .read()
-    ///     .find_block(client.position(), &azalea_registry::Block::Chest.into());
+    ///     .find_block(client.position(), &Block::Chest.into());
     /// # }
     /// ```
     pub fn find_block(
@@ -249,7 +250,7 @@ fn palette_maybe_has_block(palette: &Palette<BlockState>, block_states: &BlockSt
 
 #[cfg(test)]
 mod tests {
-    use azalea_registry::Block;
+    use azalea_registry::builtin::Block;
 
     use super::*;
     use crate::{Chunk, PartialChunkStorage};
