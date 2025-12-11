@@ -17,7 +17,7 @@ use bevy_ecs::{
     system::Query,
 };
 
-#[tokio::main(flavor = "current_thread")]
+#[tokio::main]
 async fn main() {
     let account = Account::offline("bot");
 

@@ -42,7 +42,7 @@ use std::sync::Arc;
 use azalea::prelude::*;
 use parking_lot::Mutex;
 
-#[tokio::main(flavor = "current_thread")]
+#[tokio::main]
 async fn main() {
     let account = Account::offline("bot");
     // or Account::microsoft("example@example.com").await.unwrap();
