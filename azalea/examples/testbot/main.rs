@@ -32,7 +32,7 @@ use azalea::{
 use commands::{CommandSource, register_commands};
 use parking_lot::Mutex;
 
-#[tokio::main(flavor = "current_thread")]
+#[tokio::main]
 async fn main() {
     let args = parse_args();
 
