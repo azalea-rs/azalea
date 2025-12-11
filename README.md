@@ -46,8 +46,8 @@ If you'd like to chat about Azalea, you can join the Matrix space at [#azalea:ma
 ## Non-goals
 
 - Supporting several versions of Minecraft on the same branch[\*](https://github.com/azalea-rs/azalea-viaversion).
+- Graphics[\*](https://github.com/urisinger/azalea-graphics).
 - Bedrock edition.
-- Graphics.
 
 ## Real-world bots using Azalea
 
