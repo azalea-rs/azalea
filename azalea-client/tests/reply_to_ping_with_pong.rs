@@ -4,7 +4,7 @@ use azalea_client::{
     packet::{config::SendConfigPacketEvent, game::SendGamePacketEvent},
     test_utils::prelude::*,
 };
-use azalea_core::identifier::Identifier;
+use azalea_registry::identifier::Identifier;
 use azalea_protocol::packets::{
     ConnectionProtocol,
     config::{

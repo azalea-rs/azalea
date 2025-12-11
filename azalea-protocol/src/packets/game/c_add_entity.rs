@@ -1,8 +1,8 @@
 use azalea_buf::AzBuf;
-use azalea_core::{delta::LpVec3, identifier::Identifier, position::Vec3};
+use azalea_core::{delta::LpVec3, position::Vec3};
 use azalea_entity::{EntityBundle, metadata::apply_default_metadata};
 use azalea_protocol_macros::ClientboundGamePacket;
-use azalea_registry::builtin::EntityKind;
+use azalea_registry::{builtin::EntityKind, identifier::Identifier};
 use azalea_world::MinecraftEntityId;
 use uuid::Uuid;
 

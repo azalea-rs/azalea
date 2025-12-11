@@ -7,7 +7,7 @@
 
 pub mod builtin;
 pub mod data;
-pub mod extra;
+pub mod identifier;
 pub mod tags;
 
 use std::{
@@ -19,6 +19,8 @@ use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufRead
 #[cfg(feature = "serde")]
 use serde::Serialize;
 use simdnbt::{FromNbtTag, borrow::NbtTag};
+
+use crate::identifier::Identifier;
 
 // TODO: remove this next update
 macro_rules! define_deprecated_builtin {
@@ -38,12 +40,14 @@ macro_rules! define_deprecated_data {
         )*
     };
 }
-define_deprecated_data!(Enchantment DimensionType DamageKind Dialog WolfSoundVariant CowVariant ChickenVariant FrogVariant CatVariant PigVariant PaintingVariant WolfVariant ZombieNautilusVariant Biome);
+define_deprecated_data!(Enchantment DamageKind Dialog WolfSoundVariant CowVariant ChickenVariant FrogVariant CatVariant PigVariant PaintingVariant WolfVariant ZombieNautilusVariant Biome);
 
 #[deprecated = "renamed to `azalea_registry::builtin::ItemKind`"]
 pub type Item = builtin::ItemKind;
 #[deprecated = "renamed to `azalea_registry::builtin::BlockKind`"]
 pub type Block = builtin::BlockKind;
+#[deprecated = "renamed to `azalea_registry::data::DimensionKind`"]
+pub type DimensionType = data::DimensionKind;
 
 pub trait Registry: AzaleaRead + AzaleaWrite
 where
@@ -301,9 +305,22 @@ impl<
 /// `ResolvableDataRegistry` from azalea-core.
 pub trait DataRegistry: AzaleaRead + AzaleaWrite {
     const NAME: &'static str;
+    type Key: DataRegistryKey;
 
     fn protocol_id(&self) -> u32;
     fn new_raw(id: u32) -> Self;
+}
+pub trait DataRegistryKey {
+    type Borrow<'a>: DataRegistryKeyRef<'a>;
+
+    fn into_ident(self) -> Identifier;
+}
+pub trait DataRegistryKeyRef<'a> {
+    type Owned: DataRegistryKey;
+
+    fn to_owned(self) -> Self::Owned;
+    fn from_ident(ident: &'a Identifier) -> Self;
+    fn into_ident(self) -> Identifier;
 }
 impl<T: DataRegistry> Registry for T {
     fn from_u32(value: u32) -> Option<Self> {

@@ -1,11 +1,11 @@
 use azalea_client::{InConfigState, test_utils::prelude::*};
-use azalea_core::identifier::Identifier;
 use azalea_entity::{LocalEntity, metadata::Health};
 use azalea_protocol::packets::{
     ConnectionProtocol,
     config::{ClientboundFinishConfiguration, ClientboundRegistryData},
     game::ClientboundSetHealth,
 };
+use azalea_registry::identifier::Identifier;
 use simdnbt::owned::{NbtCompound, NbtTag};
 
 #[test]

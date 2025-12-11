@@ -1,19 +1,29 @@
 use azalea_registry::{
-    DataRegistry,
+    DataRegistry, DataRegistryKey, DataRegistryKeyRef,
     data::{self},
+    identifier::Identifier,
 };
 use simdnbt::owned::NbtCompound;
 
-use crate::{
-    identifier::Identifier,
-    registry_holder::{self, RegistryDeserializesTo, RegistryHolder},
-};
+use crate::registry_holder::{self, RegistryDeserializesTo, RegistryHolder};
+
+pub trait DataRegistryWithKey: DataRegistry {
+    fn key<'s, 'a: 's>(
+        &'s self,
+        registries: &'a RegistryHolder,
+    ) -> Option<<Self::Key as DataRegistryKey>::Borrow<'s>> {
+        registries
+            .protocol_id_to_identifier(Identifier::from(Self::NAME), self.protocol_id())
+            .map(DataRegistryKeyRef::from_ident)
+    }
+}
+impl<R: DataRegistry> DataRegistryWithKey for R {}
 
 pub trait ResolvableDataRegistry: DataRegistry {
     type DeserializesTo: RegistryDeserializesTo;
 
+    #[deprecated = "use `DataRegistryWithKey::key` instead."]
     fn resolve_name<'a>(&self, registries: &'a RegistryHolder) -> Option<&'a Identifier> {
-        // self.resolve(registries).map(|(name, _)| name.clone())
         registries.protocol_id_to_identifier(Identifier::from(Self::NAME), self.protocol_id())
     }
 
@@ -45,7 +55,7 @@ macro_rules! define_default_deserializes_to {
 }
 
 define_deserializes_to! {
-    data::DimensionType => registry_holder::dimension_type::DimensionTypeElement,
+    data::DimensionKind => registry_holder::dimension_type::DimensionKindElement,
     data::Enchantment => registry_holder::enchantment::EnchantmentData,
 }
 

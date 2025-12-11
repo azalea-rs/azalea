@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use azalea_buf::AzBuf;
-use azalea_core::identifier::Identifier;
+use azalea_registry::identifier::Identifier;
 use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_registry::builtin::ItemKind;
 

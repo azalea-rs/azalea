@@ -13,10 +13,11 @@ use std::{
 };
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
+use azalea_registry::identifier::Identifier;
 use serde::{Serialize, Serializer};
 use simdnbt::borrow::NbtTag;
 
-use crate::{codec_utils::IntArray, direction::Direction, identifier::Identifier, math};
+use crate::{codec_utils::IntArray, direction::Direction, math};
 
 macro_rules! vec3_impl {
     ($name:ident, $type:ty) => {

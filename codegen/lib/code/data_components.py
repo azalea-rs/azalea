@@ -47,7 +47,7 @@ def generate(version_id: str):
 
 def get_expected_variants(version_id: str):
     expected_variants = []
-    registries = lib.extract.get_registries_report(version_id)
+    registries = lib.extract.get_builtin_registries_report(version_id)
 
     registry = registries["minecraft:data_component_type"]
     registry_entries = sorted(
@@ -207,7 +207,7 @@ use crate::{
                 component_value
             )
 
-    registries = lib.extract.get_registries_report(version_id)
+    registries = lib.extract.get_builtin_registries_report(version_id)
     item_resource_id_to_protocol_id = {}
     item_resource_ids = [None] * len(registries["minecraft:item"]["entries"])
     for item_resource_id, item_data in registries["minecraft:item"]["entries"].items():

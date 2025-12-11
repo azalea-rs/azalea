@@ -1,13 +1,13 @@
 use std::collections::HashMap;
 
 use azalea_buf::AzBuf;
-use azalea_registry::builtin::SoundEvent;
+use azalea_registry::{builtin::SoundEvent, identifier::Identifier};
 use simdnbt::{
     Deserialize, FromNbtTag, Serialize, ToNbtTag,
     owned::{NbtCompound, NbtTag},
 };
 
-use crate::{codec_utils::*, identifier::Identifier};
+use crate::codec_utils::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
@@ -52,7 +52,7 @@ pub struct ChatTypeStyle {
 #[cfg(feature = "strict_registry")]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[simdnbt(deny_unknown_fields)]
-pub struct DimensionTypeElement {
+pub struct DimensionKindElement {
     pub ambient_light: f32,
     pub bed_works: bool,
     pub coordinate_scale: f32,
@@ -76,7 +76,7 @@ pub struct DimensionTypeElement {
 /// Dimension attributes.
 #[cfg(not(feature = "strict_registry"))]
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DimensionTypeElement {
+pub struct DimensionKindElement {
     pub height: u32,
     pub min_y: i32,
     pub ultrawarm: Option<bool>,

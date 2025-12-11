@@ -5,6 +5,7 @@ use azalea_registry::{
     builtin::{
         EnchantmentEntityEffectKind as EntityEffectKind, GameEvent, ParticleKind, SoundEvent,
     },
+    identifier::Identifier,
 };
 use simdnbt::{
     Deserialize, DeserializeError,
@@ -12,7 +13,6 @@ use simdnbt::{
 };
 
 use crate::{
-    identifier::Identifier,
     position::{Vec3, Vec3i},
     registry_holder::{
         block_predicate::BlockPredicate, block_state_provider::BlockStateProvider,

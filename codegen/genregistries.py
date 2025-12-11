@@ -7,10 +7,12 @@ import lib.extract
 
 
 def generate(version_id: str):
-    registries = lib.extract.get_registries_report(version_id)
+    builtin_registries = lib.extract.get_builtin_registries_report(version_id)
+    data_registries = lib.extract.get_data_registries(version_id)
 
-    lib.code.registry.generate_builtin_registries(registries)
-    lib.code.inventory.update_menus(registries["minecraft:menu"]["entries"])
+    lib.code.registry.generate_builtin_registries(builtin_registries)
+    lib.code.registry.generate_data_registries(data_registries)
+    lib.code.inventory.update_menus(builtin_registries["minecraft:menu"]["entries"])
 
     block_tags = lib.extract.get_registry_tags(version_id, "block")
     item_tags = lib.extract.get_registry_tags(version_id, "item")

@@ -16,7 +16,6 @@ use azalea_core::{
     checksum::{Checksum, get_checksum},
     codec_utils::*,
     filterable::Filterable,
-    identifier::Identifier,
     position::GlobalPos,
     registry_holder::{RegistryHolder, dimension_type::DamageTypeElement},
     sound::CustomSound,
@@ -27,11 +26,11 @@ use azalea_registry::{
         Attribute, BlockKind, DataComponentKind, EntityKind, ItemKind, MobEffect, Potion,
         SoundEvent, VillagerKind,
     },
-    data::{self, DamageKind, Enchantment},
-    extra::{self, JukeboxSong, TrimMaterial, TrimPattern},
+    data::{self, DamageKind, Enchantment, JukeboxSong, TrimMaterial, TrimPattern},
+    identifier::Identifier,
 };
 pub use profile::*;
-use serde::{Serialize, ser::SerializeMap};
+use serde::{Serialize, Serializer, ser::SerializeMap};
 use simdnbt::owned::{Nbt, NbtCompound};
 use tracing::trace;
 
@@ -765,8 +764,8 @@ pub struct BlockEntityData {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(untagged)]
 pub enum Instrument {
-    Registry(extra::Instrument),
-    Holder(Holder<extra::Instrument, InstrumentData>),
+    Registry(data::Instrument),
+    Holder(Holder<data::Instrument, InstrumentData>),
 }
 
 #[derive(Clone, PartialEq, Debug, AzBuf, Serialize)]
@@ -1235,7 +1234,30 @@ pub struct WolfCollar {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct FoxVariant {
-    pub variant: extra::FoxVariant,
+    pub variant: FoxVariantKind,
+}
+
+#[derive(Default, AzBuf, Clone, Copy, Debug, PartialEq)]
+pub enum FoxVariantKind {
+    #[default]
+    Red,
+    Snow,
+}
+impl Display for FoxVariantKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Red => write!(f, "minecraft:red"),
+            Self::Snow => write!(f, "minecraft:snow"),
+        }
+    }
+}
+impl Serialize for FoxVariantKind {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
 }
 
 #[derive(Clone, Copy, PartialEq, AzBuf, Debug, Serialize)]
@@ -1249,7 +1271,34 @@ pub enum SalmonSize {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct ParrotVariant {
-    pub variant: extra::ParrotVariant,
+    pub variant: ParrotVariantKind,
+}
+#[derive(AzBuf, Clone, Copy, Debug, PartialEq)]
+pub enum ParrotVariantKind {
+    RedBlue,
+    Blue,
+    Green,
+    YellowBlue,
+    Gray,
+}
+impl Display for ParrotVariantKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::RedBlue => write!(f, "minecraft:red_blue"),
+            Self::Blue => write!(f, "minecraft:blue"),
+            Self::Green => write!(f, "minecraft:green"),
+            Self::YellowBlue => write!(f, "minecraft:yellow_blue"),
+            Self::Gray => write!(f, "minecraft:gray"),
+        }
+    }
+}
+impl Serialize for ParrotVariantKind {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
 }
 
 #[derive(Clone, Copy, PartialEq, AzBuf, Debug, Serialize)]
@@ -1284,13 +1333,67 @@ pub struct TropicalFishPatternColor {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct MooshroomVariant {
-    pub variant: extra::MooshroomVariant,
+    pub variant: MooshroomVariantKind,
+}
+#[derive(Default, AzBuf, Clone, Copy, Debug, PartialEq)]
+pub enum MooshroomVariantKind {
+    #[default]
+    Red,
+    Brown,
+}
+impl Display for MooshroomVariantKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Red => write!(f, "minecraft:red"),
+            Self::Brown => write!(f, "minecraft:brown"),
+        }
+    }
+}
+impl Serialize for MooshroomVariantKind {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct RabbitVariant {
-    pub variant: extra::RabbitVariant,
+    pub variant: RabbitVariantKind,
+}
+#[derive(Default, AzBuf, Clone, Copy, Debug, PartialEq)]
+pub enum RabbitVariantKind {
+    #[default]
+    Brown,
+    White,
+    Black,
+    WhiteSplotched,
+    Gold,
+    Salt,
+    Evil,
+}
+impl Display for RabbitVariantKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Brown => write!(f, "minecraft:brown"),
+            Self::White => write!(f, "minecraft:white"),
+            Self::Black => write!(f, "minecraft:black"),
+            Self::WhiteSplotched => write!(f, "minecraft:white_splotched"),
+            Self::Gold => write!(f, "minecraft:gold"),
+            Self::Salt => write!(f, "minecraft:salt"),
+            Self::Evil => write!(f, "minecraft:evil"),
+        }
+    }
+}
+impl Serialize for RabbitVariantKind {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -1308,7 +1411,39 @@ pub struct FrogVariant {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct HorseVariant {
-    pub variant: extra::HorseVariant,
+    pub variant: HorseVariantKind,
+}
+#[derive(Default, AzBuf, Clone, Copy, Debug, PartialEq)]
+pub enum HorseVariantKind {
+    #[default]
+    White,
+    Creamy,
+    Chestnut,
+    Brown,
+    Black,
+    Gray,
+    DarkBrown,
+}
+impl Display for HorseVariantKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::White => write!(f, "minecraft:white"),
+            Self::Creamy => write!(f, "minecraft:creamy"),
+            Self::Chestnut => write!(f, "minecraft:chestnut"),
+            Self::Brown => write!(f, "minecraft:brown"),
+            Self::Black => write!(f, "minecraft:black"),
+            Self::Gray => write!(f, "minecraft:gray"),
+            Self::DarkBrown => write!(f, "minecraft:dark_brown"),
+        }
+    }
+}
+impl Serialize for HorseVariantKind {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -1333,13 +1468,67 @@ pub struct PaintingVariantData {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct LlamaVariant {
-    pub variant: extra::LlamaVariant,
+    pub variant: LlamaVariantKind,
+}
+#[derive(Default, AzBuf, Clone, Copy, Debug, PartialEq)]
+pub enum LlamaVariantKind {
+    #[default]
+    Creamy,
+    White,
+    Brown,
+    Gray,
+}
+impl Display for LlamaVariantKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Creamy => write!(f, "minecraft:creamy"),
+            Self::White => write!(f, "minecraft:white"),
+            Self::Brown => write!(f, "minecraft:brown"),
+            Self::Gray => write!(f, "minecraft:gray"),
+        }
+    }
+}
+impl Serialize for LlamaVariantKind {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct AxolotlVariant {
-    pub variant: extra::AxolotlVariant,
+    pub variant: AxolotlVariantKind,
+}
+#[derive(Default, AzBuf, Clone, Copy, Debug, PartialEq)]
+pub enum AxolotlVariantKind {
+    #[default]
+    Lucy,
+    Wild,
+    Gold,
+    Cyan,
+    Blue,
+}
+impl Display for AxolotlVariantKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Lucy => write!(f, "minecraft:lucy"),
+            Self::Wild => write!(f, "minecraft:wild"),
+            Self::Gold => write!(f, "minecraft:gold"),
+            Self::Cyan => write!(f, "minecraft:cyan"),
+            Self::Blue => write!(f, "minecraft:blue"),
+        }
+    }
+}
+impl Serialize for AxolotlVariantKind {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]

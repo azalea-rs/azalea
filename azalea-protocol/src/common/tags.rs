@@ -4,7 +4,7 @@ use std::{
 };
 
 use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
-use azalea_core::identifier::Identifier;
+use azalea_registry::identifier::Identifier;
 use indexmap::IndexMap;
 
 #[derive(Clone, Debug, PartialEq)]

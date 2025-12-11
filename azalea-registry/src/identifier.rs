@@ -13,6 +13,8 @@ use simdnbt::{FromNbtTag, ToNbtTag, owned::NbtTag};
 
 /// An identifier, like `minecraft:stone` or `brigadier:number`.
 ///
+/// All registry variants can be converted to an identifier.
+///
 /// This was formerly called a `ResourceLocation`.
 #[doc(alias = "ResourceLocation")]
 #[derive(Hash, Clone, PartialEq, Eq, Default)]

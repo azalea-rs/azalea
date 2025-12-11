@@ -15,24 +15,31 @@ use std::{net::SocketAddr, time::Duration};
 
 use app::Plugins;
 pub use azalea_auth as auth;
-pub use azalea_block as blocks;
+pub use azalea_block as block;
+#[deprecated = "moved to `azalea::blocks`"]
+pub mod blocks {
+    pub type BlockStates = azalea_block::BlockStates;
+    pub type BlockState = azalea_block::BlockState;
+    pub trait BlockTrait: azalea_block::BlockTrait {}
+    // azalea_block has more items but rust doesn't mark them deprecated if we
+    // `use azalea_block::*`, so hopefully the three types above are enough for
+    // most users :(
+}
+
 pub use azalea_brigadier as brigadier;
 pub use azalea_buf as buf;
 pub use azalea_chat::FormattedText;
 pub use azalea_client::*;
 pub use azalea_core as core;
-#[deprecated(note = "renamed to `Identifier`.")]
-#[expect(deprecated)]
-pub use azalea_core::resource_location::ResourceLocation;
 // these are re-exported on this level because they're very common
-pub use azalea_core::{
-    identifier::Identifier,
-    position::{BlockPos, Vec3},
-};
+pub use azalea_core::position::{BlockPos, Vec3};
 pub use azalea_entity as entity;
 pub use azalea_physics as physics;
 pub use azalea_protocol as protocol;
 pub use azalea_registry as registry;
+#[deprecated(note = "renamed to `Identifier`.")]
+pub use azalea_registry::identifier::Identifier as ResourceLocation;
+pub use azalea_registry::identifier::Identifier;
 pub use azalea_world as world;
 pub use bevy_app as app;
 use bevy_app::AppExit;

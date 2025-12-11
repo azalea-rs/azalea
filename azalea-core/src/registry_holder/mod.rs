@@ -16,12 +16,11 @@ pub mod value;
 
 use std::{collections::HashMap, io::Cursor};
 
+use azalea_registry::identifier::Identifier;
 use indexmap::IndexMap;
 use simdnbt::{DeserializeError, FromNbtTag, borrow, owned::NbtCompound};
 use thiserror::Error;
 use tracing::error;
-
-use crate::identifier::Identifier;
 
 /// The base of the registry.
 ///
@@ -39,7 +38,7 @@ pub struct RegistryHolder {
     #[rustfmt::skip] // allow empty line
 
     /// Attributes about the dimension.
-    pub dimension_type: RegistryType<dimension_type::DimensionTypeElement>,
+    pub dimension_type: RegistryType<dimension_type::DimensionKindElement>,
 
     pub enchantment: RegistryType<enchantment::EnchantmentData>,
 
@@ -92,7 +91,6 @@ macro_rules! registry_holder {
                 protocol_id: u32,
             ) -> Option<&Identifier> {
                 let index = protocol_id as usize;
-
 
                 if registry.namespace() == "minecraft" {
                     match registry.path() {
@@ -189,7 +187,7 @@ impl RegistryDeserializesTo for NbtCompound {
             .get_index(protocol_id as usize)
     }
 }
-impl RegistryDeserializesTo for dimension_type::DimensionTypeElement {
+impl RegistryDeserializesTo for dimension_type::DimensionKindElement {
     fn get_for_registry<'a>(
         registries: &'a RegistryHolder,
         registry_name: &'static str,

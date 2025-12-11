@@ -1,7 +1,6 @@
 use azalea_buf::AzBuf;
-use azalea_core::identifier::Identifier;
 use azalea_inventory::ItemStack;
-use azalea_registry::{HolderSet, builtin::ItemKind};
+use azalea_registry::{HolderSet, builtin::ItemKind, identifier::Identifier};
 
 /// [`azalea_registry::RecipeDisplay`]
 #[derive(Clone, Debug, AzBuf, PartialEq)]

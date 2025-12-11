@@ -1,8 +1,9 @@
 use azalea_buf::AzBuf;
-use azalea_core::{codec_utils::is_default, identifier::Identifier};
+use azalea_core::codec_utils::is_default;
 use azalea_registry::{
     HolderSet,
     builtin::{ConsumeEffectKind, MobEffect, SoundEvent},
+    identifier::Identifier,
 };
 use serde::Serialize;
 

@@ -10,7 +10,7 @@ use azalea_core::attribute_modifier_operation::AttributeModifierOperation;
 use azalea_registry::{
     DataRegistry, HolderSet,
     builtin::{Attribute, BlockKind, EntityKind, ItemKind, MobEffect, SoundEvent},
-    extra,
+    data,
 };
 use simdnbt::owned::NbtCompound;
 
@@ -6281,7 +6281,7 @@ impl DefaultableComponent for Fireworks {
 impl DefaultableComponent for Instrument {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::GoatHorn => Instrument::Registry(extra::Instrument::PonderGoatHorn),
+            ItemKind::GoatHorn => Instrument::Registry(data::Instrument::new_raw(0)),
             _ => return None,
         };
         Some(value)

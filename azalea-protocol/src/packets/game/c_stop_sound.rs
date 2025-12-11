@@ -1,8 +1,9 @@
 use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
-use azalea_core::{bitset::FixedBitSet, identifier::Identifier};
+use azalea_core::bitset::FixedBitSet;
 use azalea_protocol_macros::ClientboundGamePacket;
+use azalea_registry::identifier::Identifier;
 
 use super::c_sound::SoundSource;
 

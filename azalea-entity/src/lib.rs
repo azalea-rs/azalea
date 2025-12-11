@@ -22,11 +22,10 @@ use azalea_block::{BlockState, fluid_state::FluidKind};
 use azalea_buf::AzBuf;
 use azalea_core::{
     aabb::Aabb,
-    identifier::Identifier,
     math,
     position::{BlockPos, ChunkPos, Vec3},
 };
-use azalea_registry::builtin::EntityKind;
+use azalea_registry::{builtin::EntityKind, identifier::Identifier};
 use azalea_world::{ChunkStorage, InstanceName};
 use bevy_ecs::{bundle::Bundle, component::Component};
 pub use data::*;

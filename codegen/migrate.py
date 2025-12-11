@@ -43,7 +43,7 @@ print("Generating blocks and shapes...")
 new_pumpkin_block_datas = lib.extract.get_pumpkin_data(new_version_id, "blocks")
 
 new_block_states_report = lib.extract.get_block_states_report(new_version_id)
-new_registries = lib.extract.get_registries_report(new_version_id)
+new_registries = lib.extract.get_builtin_registries_report(new_version_id)
 new_ordered_blocks = lib.code.blocks.get_ordered_blocks(new_registries)
 
 lib.code.blocks.generate_blocks(

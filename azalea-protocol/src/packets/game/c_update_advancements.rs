@@ -5,7 +5,7 @@ use std::{
 
 use azalea_buf::AzBuf;
 use azalea_chat::FormattedText;
-use azalea_core::identifier::Identifier;
+use azalea_registry::identifier::Identifier;
 use azalea_inventory::ItemStack;
 use azalea_protocol_macros::ClientboundGamePacket;
 use indexmap::IndexMap;
