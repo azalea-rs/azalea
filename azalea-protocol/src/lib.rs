@@ -27,6 +27,7 @@ pub mod read;
 pub mod resolve;
 pub mod write;
 
+#[doc(hidden)]
 #[deprecated(note = "Renamed to resolve")]
 pub mod resolver {
     pub use super::resolve::*;

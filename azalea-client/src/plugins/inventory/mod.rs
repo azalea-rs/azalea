@@ -25,6 +25,7 @@ use crate::{
 
 // TODO: when this is removed, remove the Inv alias above (which just exists to
 // avoid conflicting with this pub deprecated type)
+#[doc(hidden)]
 #[deprecated = "moved to `azalea_entity::inventory::Inventory`."]
 pub type Inventory = azalea_entity::inventory::Inventory;
 

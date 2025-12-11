@@ -22,6 +22,7 @@ impl<R: DataRegistry> DataRegistryWithKey for R {}
 pub trait ResolvableDataRegistry: DataRegistry {
     type DeserializesTo: RegistryDeserializesTo;
 
+    #[doc(hidden)]
     #[deprecated = "use `DataRegistryWithKey::key` instead."]
     fn resolve_name<'a>(&self, registries: &'a RegistryHolder) -> Option<&'a Identifier> {
         registries.protocol_id_to_identifier(Identifier::from(Self::NAME), self.protocol_id())

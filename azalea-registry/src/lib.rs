@@ -26,6 +26,7 @@ use crate::identifier::Identifier;
 macro_rules! define_deprecated_builtin {
     ($($r:ident) *) => {
         $(
+            #[doc(hidden)]
             #[deprecated = concat!("moved to `azalea_registry::builtin::", stringify!($r), "`")]
             pub type $r = builtin::$r;
         )*
@@ -35,6 +36,7 @@ define_deprecated_builtin!(Activity Attribute BlockEntityKind BlockPredicateKind
 macro_rules! define_deprecated_data {
     ($($r:ident) *) => {
         $(
+            #[doc(hidden)]
             #[deprecated = concat!("moved to `azalea_registry::data::", stringify!($r), "`")]
             pub type $r = data::$r;
         )*
@@ -42,10 +44,13 @@ macro_rules! define_deprecated_data {
 }
 define_deprecated_data!(Enchantment DamageKind Dialog WolfSoundVariant CowVariant ChickenVariant FrogVariant CatVariant PigVariant PaintingVariant WolfVariant ZombieNautilusVariant Biome);
 
+#[doc(hidden)]
 #[deprecated = "renamed to `azalea_registry::builtin::ItemKind`"]
 pub type Item = builtin::ItemKind;
+#[doc(hidden)]
 #[deprecated = "renamed to `azalea_registry::builtin::BlockKind`"]
 pub type Block = builtin::BlockKind;
+#[doc(hidden)]
 #[deprecated = "renamed to `azalea_registry::data::DimensionKind`"]
 pub type DimensionType = data::DimensionKind;
 

@@ -16,7 +16,8 @@ use std::{net::SocketAddr, time::Duration};
 use app::Plugins;
 pub use azalea_auth as auth;
 pub use azalea_block as block;
-#[deprecated = "moved to `azalea::blocks`"]
+#[doc(hidden)]
+#[deprecated = "moved to `azalea::block`"]
 pub mod blocks {
     pub type BlockStates = azalea_block::BlockStates;
     pub type BlockState = azalea_block::BlockState;
@@ -37,6 +38,7 @@ pub use azalea_entity as entity;
 pub use azalea_physics as physics;
 pub use azalea_protocol as protocol;
 pub use azalea_registry as registry;
+#[doc(hidden)]
 #[deprecated(note = "renamed to `Identifier`.")]
 pub use azalea_registry::identifier::Identifier as ResourceLocation;
 pub use azalea_registry::identifier::Identifier;
