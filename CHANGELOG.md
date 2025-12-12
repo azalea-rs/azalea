@@ -27,9 +27,9 @@ is breaking anyways, semantic versioning is not followed.
 - Moved `azalea_client::inventory::Inventory` to `azalea_entity::inventory::Inventory`.
 - Add `Client::open_container_at_with_timeout_ticks`, and `Client::open_container_at` now times out after 5 seconds.
 - Rename `ResourceLocation` to `Identifier` to match Minecraft's new internal naming.
-- Rename `azalea_protocol::resolver` to `resolve` and `ResolverError` to `ResolveError`.
 - Refactor `RegistryHolder` to pre-deserialize some registries.
 - The handler function is now automatically single-threaded, making `#[tokio::main(flavor = "current_thread")]` unnecessary.
+- Improve APIs related to resolving server addresses.
 - Mojang's sessionserver is now requested using the SOCKS5 proxy given in `JoinOpts::proxy`.
 - Refactor `azalea-registry`. Notably, `Item` and `Block` are now named `ItemKind` and `BlockKind`.
 

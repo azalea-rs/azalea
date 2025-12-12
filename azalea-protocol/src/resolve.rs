@@ -8,7 +8,7 @@ use std::{
 pub use hickory_resolver::ResolveError;
 use hickory_resolver::{Name, TokioResolver, name_server::TokioConnectionProvider};
 
-use crate::ServerAddress;
+use crate::address::ServerAddr;
 
 #[doc(hidden)]
 #[deprecated(note = "Renamed to ResolveError")]
@@ -23,7 +23,7 @@ static RESOLVER: LazyLock<TokioResolver> = LazyLock::new(|| {
 /// Resolve a Minecraft server address into an IP address and port.
 ///
 /// If it's already an IP address, it's returned as-is.
-pub async fn resolve_address(mut address: &ServerAddress) -> Result<SocketAddr, ResolveError> {
+pub async fn resolve_address(mut address: &ServerAddr) -> Result<SocketAddr, ResolveError> {
     let redirect = resolve_srv_redirect(address).await;
     if let Ok(redirect_target) = &redirect {
         address = redirect_target;
@@ -32,7 +32,7 @@ pub async fn resolve_address(mut address: &ServerAddress) -> Result<SocketAddr, 
     resolve_ip_without_redirects(address).await
 }
 
-async fn resolve_ip_without_redirects(address: &ServerAddress) -> Result<SocketAddr, ResolveError> {
+async fn resolve_ip_without_redirects(address: &ServerAddr) -> Result<SocketAddr, ResolveError> {
     if let Ok(ip) = address.host.parse::<IpAddr>() {
         // no need to do a lookup
         return Ok(SocketAddr::new(ip, address.port));
@@ -51,7 +51,7 @@ async fn resolve_ip_without_redirects(address: &ServerAddress) -> Result<SocketA
     Ok(SocketAddr::new(ip, address.port))
 }
 
-async fn resolve_srv_redirect(address: &ServerAddress) -> Result<ServerAddress, ResolveError> {
+async fn resolve_srv_redirect(address: &ServerAddr) -> Result<ServerAddr, ResolveError> {
     if address.port != 25565 {
         return Err(ResolveError::from("Port must be 25565 to do a SRV lookup"));
     }
@@ -63,7 +63,7 @@ async fn resolve_srv_redirect(address: &ServerAddress) -> Result<ServerAddress, 
         .iter()
         .next()
         .ok_or(ResolveError::from("No SRV record found"))?;
-    Ok(ServerAddress {
+    Ok(ServerAddr {
         host: srv.target().to_ascii(),
         port: srv.port(),
     })

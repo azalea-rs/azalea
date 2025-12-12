@@ -3,6 +3,7 @@
 
 pub use azalea_client::{Account, Client, Event};
 pub use azalea_core::tick::GameTick;
+pub use bevy_app::AppExit;
 
 // this is necessary to make the macros that reference bevy_ecs work
 pub use crate::ecs as bevy_ecs;

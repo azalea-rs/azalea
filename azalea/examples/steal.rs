@@ -8,7 +8,7 @@ use azalea_registry::builtin::{BlockKind, ItemKind};
 use parking_lot::Mutex;
 
 #[tokio::main]
-async fn main() {
+async fn main() -> AppExit {
     let account = Account::offline("bot");
     // or let bot = Account::microsoft("email").await.unwrap();
 
@@ -16,7 +16,6 @@ async fn main() {
         .set_handler(handle)
         .start(account, "localhost")
         .await
-        .unwrap();
 }
 
 #[derive(Default, Clone, Component)]

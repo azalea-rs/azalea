@@ -2,6 +2,7 @@ use azalea::{
     ClientBuilder,
     bot::{Bot, LookAtEvent},
     nearest_entity::EntityFinder,
+    prelude::*,
 };
 use azalea_client::Account;
 use azalea_core::tick::GameTick;
@@ -18,14 +19,13 @@ use bevy_ecs::{
 };
 
 #[tokio::main]
-async fn main() {
+async fn main() -> AppExit {
     let account = Account::offline("bot");
 
     ClientBuilder::new()
         .add_plugins(LookAtStuffPlugin)
         .start(account, "localhost")
         .await
-        .unwrap();
 }
 
 pub struct LookAtStuffPlugin;

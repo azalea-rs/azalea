@@ -2,7 +2,6 @@ use std::{
     collections::HashMap,
     fmt::Debug,
     mem,
-    net::SocketAddr,
     sync::Arc,
     thread,
     time::{Duration, Instant},
@@ -23,10 +22,10 @@ use azalea_entity::{
 };
 use azalea_physics::local_player::PhysicsState;
 use azalea_protocol::{
-    ServerAddress,
+    address::{ResolvableAddr, ResolvedAddr},
     connect::Proxy,
     packets::{Packet, game::ServerboundGamePacket},
-    resolve,
+    resolve::ResolveError,
 };
 use azalea_registry::{DataRegistryKeyRef, identifier::Identifier};
 use azalea_world::{Instance, InstanceContainer, InstanceName, MinecraftEntityId, PartialInstance};
@@ -37,7 +36,6 @@ use bevy_ecs::{
     schedule::{InternedScheduleLabel, LogLevel, ScheduleBuildSettings},
 };
 use parking_lot::{Mutex, RwLock};
-use thiserror::Error;
 use tokio::{
     sync::{
         mpsc::{self},
@@ -87,15 +85,6 @@ pub struct Client {
     pub ecs: Arc<Mutex<World>>,
 }
 
-/// An error that happened while joining the server.
-#[derive(Error, Debug)]
-pub enum JoinError {
-    #[error(transparent)]
-    Resolver(#[from] resolve::ResolveError),
-    #[error("The given address could not be parsed into a ServerAddress")]
-    InvalidAddress,
-}
-
 pub struct StartClientOpts {
     pub ecs_lock: Arc<Mutex<World>>,
     pub account: Account,
@@ -106,8 +95,7 @@ pub struct StartClientOpts {
 impl StartClientOpts {
     pub fn new(
         account: Account,
-        address: ServerAddress,
-        resolved_address: SocketAddr,
+        address: ResolvedAddr,
         event_sender: Option<mpsc::UnboundedSender<Event>>,
     ) -> StartClientOpts {
         let mut app = App::new();
@@ -123,7 +111,6 @@ impl StartClientOpts {
             account,
             connect_opts: ConnectOpts {
                 address,
-                resolved_address,
                 server_proxy: None,
                 sessionserver_proxy: None,
             },
@@ -197,35 +184,25 @@ impl Client {
     /// ```
     pub async fn join(
         account: Account,
-        address: impl TryInto<ServerAddress>,
-    ) -> Result<(Self, mpsc::UnboundedReceiver<Event>), JoinError> {
-        let address: ServerAddress = address.try_into().map_err(|_| JoinError::InvalidAddress)?;
-        let resolved_address = resolve::resolve_address(&address).await?;
+        address: impl ResolvableAddr,
+    ) -> Result<(Self, mpsc::UnboundedReceiver<Event>), ResolveError> {
+        let address = address.resolve().await?;
         let (tx, rx) = mpsc::unbounded_channel();
 
-        let client = Self::start_client(StartClientOpts::new(
-            account,
-            address,
-            resolved_address,
-            Some(tx),
-        ))
-        .await;
+        let client = Self::start_client(StartClientOpts::new(account, address, Some(tx))).await;
         Ok((client, rx))
     }
 
     pub async fn join_with_proxy(
         account: Account,
-        address: impl TryInto<ServerAddress>,
+        address: impl ResolvableAddr,
         proxy: Proxy,
-    ) -> Result<(Self, mpsc::UnboundedReceiver<Event>), JoinError> {
-        let address: ServerAddress = address.try_into().map_err(|_| JoinError::InvalidAddress)?;
-        let resolved_address = resolve::resolve_address(&address).await?;
+    ) -> Result<(Self, mpsc::UnboundedReceiver<Event>), ResolveError> {
+        let address = address.resolve().await?;
         let (tx, rx) = mpsc::unbounded_channel();
 
-        let client = Self::start_client(
-            StartClientOpts::new(account, address, resolved_address, Some(tx)).proxy(proxy),
-        )
-        .await;
+        let client =
+            Self::start_client(StartClientOpts::new(account, address, Some(tx)).proxy(proxy)).await;
         Ok((client, rx))
     }
 

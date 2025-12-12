@@ -1,7 +1,7 @@
 use azalea::{prelude::*, swarm::prelude::*};
 
 #[tokio::main]
-async fn main() {
+async fn main() -> AppExit {
     let mut accounts = Vec::new();
     let mut states = Vec::new();
 
@@ -16,7 +16,6 @@ async fn main() {
         .set_swarm_handler(swarm_handle)
         .start("localhost")
         .await
-        .unwrap();
 }
 
 #[derive(Default, Clone, Component)]

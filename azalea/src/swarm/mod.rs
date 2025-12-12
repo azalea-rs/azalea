@@ -10,7 +10,6 @@ use std::{
     collections::{HashMap, hash_map},
     future::Future,
     mem,
-    net::SocketAddr,
     sync::{
         Arc,
         atomic::{self, AtomicBool},
@@ -19,14 +18,14 @@ use std::{
 };
 
 use azalea_client::{
-    Account, Client, DefaultPlugins, Event, JoinError, StartClientOpts,
+    Account, Client, DefaultPlugins, Event, StartClientOpts,
     auto_reconnect::{AutoReconnectDelay, DEFAULT_RECONNECT_DELAY},
     chat::ChatPacket,
     join::ConnectOpts,
     start_ecs_runner,
 };
 use azalea_entity::LocalEntity;
-use azalea_protocol::{ServerAddress, resolve};
+use azalea_protocol::address::{ResolvableAddr, ResolvedAddr};
 use azalea_world::InstanceContainer;
 use bevy_app::{App, AppExit, PluginGroup, PluginGroupBuilder, Plugins, SubApp};
 use bevy_ecs::prelude::*;
@@ -35,7 +34,7 @@ use parking_lot::{Mutex, RwLock};
 use tokio::{sync::mpsc, task};
 use tracing::{debug, error, warn};
 
-use crate::{BoxHandleFn, DefaultBotPlugins, HandleFn, JoinOpts, NoState, StartError};
+use crate::{BoxHandleFn, DefaultBotPlugins, HandleFn, JoinOpts, NoState};
 
 /// A swarm is a way to conveniently control many bots at once, while also
 /// being able to control bots at an individual level when desired.
@@ -51,8 +50,7 @@ pub struct Swarm {
     pub ecs_lock: Arc<Mutex<World>>,
 
     // the address is public and mutable so plugins can change it
-    pub resolved_address: Arc<RwLock<SocketAddr>>,
-    pub address: Arc<RwLock<ServerAddress>>,
+    pub address: Arc<RwLock<ResolvedAddr>>,
 
     pub instance_container: Arc<RwLock<InstanceContainer>>,
 
@@ -405,28 +403,31 @@ where
     /// Build this `SwarmBuilder` into an actual [`Swarm`] and join the given
     /// server.
     ///
-    /// The `address` argument can be a `&str`, [`ServerAddress`], or anything
-    /// that implements `TryInto<ServerAddress>`.
+    /// The `address` argument can be a `&str`, [`ServerAddr`],
+    /// [`ResolvedAddr`], or anything else that implements [`ResolvableAddr`].
     ///
-    /// [`ServerAddress`]: azalea_protocol::ServerAddress
-    pub async fn start(self, address: impl TryInto<ServerAddress>) -> Result<AppExit, StartError> {
-        // convert the TryInto<ServerAddress> into a ServerAddress
-        let address: ServerAddress = match address.try_into() {
-            Ok(address) => address,
-            Err(_) => return Err(StartError::InvalidAddress),
-        };
+    /// [`ServerAddr`]: azalea_protocol::address::ServerAddr
+    pub async fn start(self, address: impl ResolvableAddr) -> AppExit {
+        self.start_with_opts(address, JoinOpts::default()).await
+    }
 
-        self.start_with_default_opts(address, JoinOpts::default())
-            .await
+    #[doc(hidden)]
+    #[deprecated = "renamed to `start_with_opts`."]
+    pub async fn start_with_default_opts(
+        self,
+        address: impl ResolvableAddr,
+        default_join_opts: JoinOpts,
+    ) -> AppExit {
+        self.start_with_opts(address, default_join_opts).await
     }
 
     /// Do the same as [`Self::start`], but allow passing in default join
     /// options for the bots.
-    pub async fn start_with_default_opts(
+    pub async fn start_with_opts(
         mut self,
-        address: impl TryInto<ServerAddress>,
-        default_join_opts: JoinOpts,
-    ) -> Result<AppExit, StartError> {
+        address: impl ResolvableAddr,
+        join_opts: JoinOpts,
+    ) -> AppExit {
         assert_eq!(
             self.accounts.len(),
             self.states.len(),
@@ -435,17 +436,32 @@ where
 
         debug!("Starting Azalea {}", env!("CARGO_PKG_VERSION"));
 
-        // convert the TryInto<ServerAddress> into a ServerAddress
-        let address = match address.try_into() {
-            Ok(address) => address,
-            Err(_) => return Err(StartError::InvalidAddress),
-        };
+        let address = if let Some(socket_addr) = join_opts.custom_socket_addr.clone() {
+            let server_addr = if let Some(server_addr) = join_opts
+                .custom_server_addr
+                .clone()
+                .or_else(|| address.clone().server_addr().ok())
+            {
+                server_addr
+            } else {
+                error!(
+                    "Failed to parse address: {address:?}. If this was expected, consider passing in a `ServerAddr` instead."
+                );
+                return AppExit::error();
+            };
 
-        let address: ServerAddress = default_join_opts.custom_address.clone().unwrap_or(address);
-        let resolved_address = if let Some(a) = default_join_opts.custom_resolved_address {
-            a
+            ResolvedAddr {
+                server: server_addr,
+                socket: socket_addr,
+            }
         } else {
-            resolve::resolve_address(&address).await?
+            let Ok(addr) = address.clone().resolve().await else {
+                error!(
+                    "Failed to resolve address: {address:?}. If this was expected, consider resolving the address earlier with `ResolvableAddr::resolve`."
+                );
+                return AppExit::error();
+            };
+            addr
         };
 
         let instance_container = Arc::new(RwLock::new(InstanceContainer::default()));
@@ -460,14 +476,13 @@ where
 
         let local_set = task::LocalSet::new();
 
-        let appexit = local_set.run_until(async move {
+        let app_exit = local_set.run_until(async move {
             // start_ecs_runner must be run inside of the LocalSet
             let (ecs_lock, start_running_systems, appexit_rx) = start_ecs_runner(&mut self.app);
 
             let swarm = Swarm {
                 ecs_lock: ecs_lock.clone(),
 
-                resolved_address: Arc::new(RwLock::new(resolved_address)),
                 address: Arc::new(RwLock::new(address)),
                 instance_container,
 
@@ -507,7 +522,7 @@ where
                 if let Some(join_delay) = join_delay {
                     // if there's a join delay, then join one by one
                     for ((account, bot_join_opts), state) in accounts.iter().zip(states) {
-                        let mut join_opts = default_join_opts.clone();
+                        let mut join_opts = join_opts.clone();
                         join_opts.update(bot_join_opts);
                         let _ = swarm_clone.add_with_opts(account, state, &join_opts).await;
                         tokio::time::sleep(join_delay).await;
@@ -517,7 +532,7 @@ where
                     let swarm_borrow = &swarm_clone;
                     join_all(accounts.iter().zip(states).map(
                         |((account, bot_join_opts), state)| async {
-                            let mut join_opts = default_join_opts.clone();
+                            let mut join_opts = join_opts.clone();
                             join_opts.update(bot_join_opts);
                             let _ = swarm_borrow
                                 .clone()
@@ -603,17 +618,17 @@ where
                 }
             });
 
-            let appexit = appexit_rx
+            let app_exit = appexit_rx
                 .await
                 .expect("appexit_tx shouldn't be dropped by the ECS runner before sending");
 
             swarm_handler_task.abort();
             client_handler_task.abort();
 
-            appexit
+            app_exit
         }).await;
 
-        Ok(appexit)
+        app_exit
     }
 }
 
@@ -667,7 +682,7 @@ pub type BoxSwarmHandleFn<SS, R> =
 /// struct SwarmState {}
 ///
 /// #[tokio::main]
-/// async fn main() {
+/// async fn main() -> AppExit {
 ///     let mut accounts = Vec::new();
 ///     let mut states = Vec::new();
 ///
@@ -683,7 +698,6 @@ pub type BoxSwarmHandleFn<SS, R> =
 ///         .join_delay(Duration::from_millis(1000))
 ///         .start("localhost")
 ///         .await
-///         .unwrap();
 /// }
 ///
 /// async fn handle(bot: Client, event: Event, _state: State) -> anyhow::Result<()> {
@@ -714,11 +728,7 @@ impl Swarm {
     /// # Errors
     ///
     /// Returns an error if the server's address could not be resolved.
-    pub async fn add<S: Component + Clone>(
-        &self,
-        account: &Account,
-        state: S,
-    ) -> Result<Client, JoinError> {
+    pub async fn add<S: Component + Clone>(&self, account: &Account, state: S) -> Client {
         self.add_with_opts(account, state, &JoinOpts::default())
             .await
     }
@@ -735,19 +745,19 @@ impl Swarm {
         account: &Account,
         state: S,
         join_opts: &JoinOpts,
-    ) -> Result<Client, JoinError> {
+    ) -> Client {
         debug!(
             "add_with_opts called for account {} with opts {join_opts:?}",
             account.username
         );
 
-        let address = join_opts
-            .custom_address
-            .clone()
-            .unwrap_or_else(|| self.address.read().clone());
-        let resolved_address = join_opts
-            .custom_resolved_address
-            .unwrap_or_else(|| *self.resolved_address.read());
+        let mut address = self.address.read().clone();
+        if let Some(custom_server_addr) = join_opts.custom_server_addr.clone() {
+            address.server = custom_server_addr;
+        }
+        if let Some(custom_socket_addr) = join_opts.custom_socket_addr.clone() {
+            address.socket = custom_socket_addr;
+        }
         let server_proxy = join_opts.server_proxy.clone();
         let sessionserver_proxy = join_opts.sessionserver_proxy.clone();
 
@@ -758,7 +768,6 @@ impl Swarm {
             account: account.clone(),
             connect_opts: ConnectOpts {
                 address,
-                resolved_address,
                 server_proxy,
                 sessionserver_proxy,
             },
@@ -780,7 +789,7 @@ impl Swarm {
             rx, swarm_tx, bots_tx, cloned_bot, join_opts,
         ));
 
-        Ok(client)
+        client
     }
 
     /// Copy the events from a client's receiver into bots_tx, until the bot is

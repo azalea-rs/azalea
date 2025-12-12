@@ -43,7 +43,7 @@ use azalea::prelude::*;
 use parking_lot::Mutex;
 
 #[tokio::main]
-async fn main() {
+async fn main() -> AppExit {
     let account = Account::offline("bot");
     // or Account::microsoft("example@example.com").await.unwrap();
 
@@ -51,7 +51,6 @@ async fn main() {
         .set_handler(handle)
         .start(account, "localhost")
         .await
-        .unwrap();
 }
 
 #[derive(Default, Clone, Component)]
