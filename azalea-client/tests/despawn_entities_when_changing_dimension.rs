@@ -1,11 +1,13 @@
 use azalea_client::test_utils::prelude::*;
-use azalea_core::{identifier::Identifier, position::ChunkPos};
+use azalea_core::position::ChunkPos;
 use azalea_entity::metadata::Cow;
 use azalea_protocol::packets::{
     ConnectionProtocol,
     config::{ClientboundFinishConfiguration, ClientboundRegistryData},
 };
-use azalea_registry::{DataRegistry, DimensionType, EntityKind};
+use azalea_registry::{
+    DataRegistry, builtin::EntityKind, data::DimensionKind, identifier::Identifier,
+};
 use bevy_ecs::query::With;
 use simdnbt::owned::{NbtCompound, NbtTag};
 
@@ -44,7 +46,7 @@ fn test_despawn_entities_when_changing_dimension() {
     //
 
     simulation.receive_packet(make_basic_login_packet(
-        DimensionType::new_raw(0), // overworld
+        DimensionKind::new_raw(0), // overworld
         Identifier::new("azalea:a"),
     ));
     simulation.tick();
@@ -64,7 +66,7 @@ fn test_despawn_entities_when_changing_dimension() {
     //
 
     simulation.receive_packet(make_basic_respawn_packet(
-        DimensionType::new_raw(1), // nether
+        DimensionKind::new_raw(1), // nether
         Identifier::new("azalea:b"),
     ));
     simulation.tick();

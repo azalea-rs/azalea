@@ -30,6 +30,8 @@ is breaking anyways, semantic versioning is not followed.
 - Refactor `RegistryHolder` to pre-deserialize some registries.
 - The handler function is now automatically single-threaded, making `#[tokio::main(flavor = "current_thread")]` unnecessary.
 - Improve APIs related to resolving server addresses.
+- Mojang's sessionserver is now requested using the SOCKS5 proxy given in `JoinOpts::proxy`.
+- Refactor `azalea-registry`. Notably, `Item` and `Block` are now named `ItemKind` and `BlockKind`.
 
 ### Fixed
 

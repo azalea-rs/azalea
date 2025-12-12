@@ -7,7 +7,7 @@ pub mod world_collisions;
 
 use std::{ops::Add, sync::LazyLock};
 
-use azalea_block::{BlockState, fluid_state::FluidState};
+use azalea_block::{BlockState, BlockTrait, fluid_state::FluidState};
 use azalea_core::{
     aabb::Aabb,
     direction::Axis,
@@ -18,6 +18,7 @@ use azalea_entity::{
     Attributes, Jumping, LookDirection, OnClimbable, Physics, PlayerAbilities, Pose, Position,
     metadata::Sprinting,
 };
+use azalea_registry::builtin::BlockKind;
 use azalea_world::{ChunkStorage, Instance};
 use bevy_ecs::{entity::Entity, world::Mut};
 pub use blocks::BlockWithShape;
@@ -483,15 +484,15 @@ pub fn legacy_blocks_motion(block: BlockState) -> bool {
         return false;
     }
 
-    let registry_block = azalea_registry::Block::from(block);
+    let registry_block = BlockKind::from(block);
     legacy_calculate_solid(block)
-        && registry_block != azalea_registry::Block::Cobweb
-        && registry_block != azalea_registry::Block::BambooSapling
+        && registry_block != BlockKind::Cobweb
+        && registry_block != BlockKind::BambooSapling
 }
 
 pub fn legacy_calculate_solid(block: BlockState) -> bool {
     // force_solid has to be checked before anything else
-    let block_trait = Box::<dyn azalea_block::BlockTrait>::from(block);
+    let block_trait = Box::<dyn BlockTrait>::from(block);
     if let Some(solid) = block_trait.behavior().force_solid {
         return solid;
     }

@@ -17,6 +17,7 @@ use azalea_protocol::{
     common::movements::MoveFlags,
     packets::{ConnectionProtocol, game::*},
 };
+use azalea_registry::builtin::EntityKind;
 use azalea_world::{InstanceContainer, InstanceName, MinecraftEntityId, PartialInstance};
 use bevy_ecs::{prelude::*, system::SystemState};
 pub use events::*;
@@ -292,7 +293,7 @@ impl GamePacketHandler<'_> {
                 let entity_bundle = EntityBundle::new(
                     game_profile.uuid,
                     Vec3::ZERO,
-                    azalea_registry::EntityKind::Player,
+                    EntityKind::Player,
                     new_instance_name,
                 );
                 let entity_id = p.player_id;
@@ -1478,7 +1479,7 @@ impl GamePacketHandler<'_> {
                 let entity_bundle = EntityBundle::new(
                     game_profile.uuid,
                     Vec3::ZERO,
-                    azalea_registry::EntityKind::Player,
+                    EntityKind::Player,
                     new_instance_name,
                 );
                 // update the local gamemode and metadata things

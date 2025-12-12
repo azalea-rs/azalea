@@ -4,8 +4,9 @@ use std::{
 };
 
 use azalea_buf::{AzBuf, AzaleaRead};
-use azalea_core::{identifier::Identifier, position::BlockPos};
+use azalea_core::position::BlockPos;
 use azalea_protocol_macros::ServerboundGamePacket;
+use azalea_registry::identifier::Identifier;
 
 use crate::packets::{AzaleaWrite, BufReadError};
 

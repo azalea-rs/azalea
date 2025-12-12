@@ -138,7 +138,7 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
                 }
             }
 
-            pub fn from_kind(kind: azalea_registry::MenuKind) -> Self {
+            pub fn from_kind(kind: azalea_registry::builtin::MenuKind) -> Self {
                 match kind {
                     #kind_match_variants
                 }
@@ -275,8 +275,8 @@ pub fn generate_match_variant_for_len(menu: &Menu) -> TokenStream {
 }
 
 pub fn generate_match_variant_for_kind(menu: &Menu) -> TokenStream {
-    // azalea_registry::MenuKind::Generic9x3 => Menu::Generic9x3 { contents:
-    // Default::default(), player: Default::default() },
+    // azalea_registry::builtin::MenuKind::Generic9x3 => Menu::Generic9x3 {
+    // contents: Default::default(), player: Default::default() },
 
     let menu_name = &menu.name;
     let menu_field_names = if menu.name == "Player" {
@@ -292,7 +292,7 @@ pub fn generate_match_variant_for_kind(menu: &Menu) -> TokenStream {
     };
 
     quote! {
-        azalea_registry::MenuKind::#menu_name => Menu::#menu_name #menu_field_names,
+        azalea_registry::builtin::MenuKind::#menu_name => Menu::#menu_name #menu_field_names,
     }
 }
 

@@ -1,7 +1,7 @@
 use azalea_buf::AzBuf;
 use azalea_inventory::components::AttributeModifier;
 use azalea_protocol_macros::ClientboundGamePacket;
-use azalea_registry::Attribute;
+use azalea_registry::builtin::Attribute;
 use azalea_world::MinecraftEntityId;
 
 #[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]

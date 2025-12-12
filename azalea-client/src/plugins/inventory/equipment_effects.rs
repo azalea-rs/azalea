@@ -2,15 +2,13 @@
 
 use std::collections::HashMap;
 
-use azalea_core::{
-    data_registry::ResolvableDataRegistry, identifier::Identifier,
-    registry_holder::value::AttributeEffect,
-};
+use azalea_core::{data_registry::ResolvableDataRegistry, registry_holder::value::AttributeEffect};
 use azalea_entity::{Attributes, inventory::Inventory};
 use azalea_inventory::{
     ItemStack,
     components::{self, AttributeModifier, EquipmentSlot},
 };
+use azalea_registry::identifier::Identifier;
 use bevy_ecs::{
     component::Component,
     entity::Entity,
@@ -147,7 +145,7 @@ fn collect_attribute_modifiers_from_item(
     slot: EquipmentSlot,
     item: &ItemStack,
     instance_holder: &InstanceHolder,
-) -> Vec<(azalea_registry::Attribute, AttributeModifier)> {
+) -> Vec<(azalea_registry::builtin::Attribute, AttributeModifier)> {
     let mut modifiers = Vec::new();
 
     // handle the attribute_modifiers component first

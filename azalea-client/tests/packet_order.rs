@@ -11,7 +11,7 @@ use azalea_protocol::{
         },
     },
 };
-use azalea_registry::Block;
+use azalea_registry::builtin::BlockKind;
 
 #[test]
 fn test_packet_order() {
@@ -30,7 +30,7 @@ fn test_packet_order() {
     simulation.receive_packet(make_basic_empty_chunk(ChunkPos::new(0, 0), (384 + 64) / 16));
     simulation.receive_packet(ClientboundBlockUpdate {
         pos: BlockPos::new(1, 1, 3),
-        block_state: Block::Stone.into(),
+        block_state: BlockKind::Stone.into(),
     });
     simulation.receive_packet(ClientboundPlayerPosition {
         id: 1,
@@ -44,7 +44,7 @@ fn test_packet_order() {
     simulation.tick();
     assert_eq!(
         simulation.get_block_state(BlockPos::new(1, 1, 3)),
-        Some(Block::Stone.into())
+        Some(BlockKind::Stone.into())
     );
     sent_packets.expect("AcceptTeleportation", |p| {
         matches!(

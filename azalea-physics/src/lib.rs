@@ -20,7 +20,7 @@ use azalea_entity::{
     LookDirection, OnClimbable, Physics, Pose, Position, dimensions::EntityDimensions,
     metadata::Sprinting, move_relative,
 };
-use azalea_registry::{Block, EntityKind, MobEffect};
+use azalea_registry::builtin::{BlockKind, EntityKind, MobEffect};
 use azalea_world::{Instance, InstanceContainer, InstanceName};
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
@@ -296,10 +296,10 @@ fn handle_entity_inside_block(
     block_pos: BlockPos,
     physics: &mut Physics,
 ) {
-    let registry_block = azalea_registry::Block::from(block);
+    let registry_block = BlockKind::from(block);
     #[allow(clippy::single_match)]
     match registry_block {
-        azalea_registry::Block::BubbleColumn => {
+        BlockKind::BubbleColumn => {
             let block_above = world.get_block_state(block_pos.up(1)).unwrap_or_default();
             let is_block_above_empty =
                 block_above.is_collision_shape_empty() && FluidState::from(block_above).is_empty();
@@ -417,14 +417,14 @@ fn handle_relative_friction_and_calculate_movement(ctx: &mut MoveCtx, block_fric
     // Vec3(var3.x, 0.2D, var3.z);   }
 
     if ctx.physics.horizontal_collision || *ctx.jumping {
-        let block_at_feet: Block = ctx
+        let block_at_feet: BlockKind = ctx
             .world
             .chunks
             .get_block_state(BlockPos::from(*ctx.position))
             .unwrap_or_default()
             .into();
 
-        if *ctx.on_climbable || block_at_feet == Block::PowderSnow {
+        if *ctx.on_climbable || block_at_feet == BlockKind::PowderSnow {
             ctx.physics.velocity.y = 0.2;
         }
     }
@@ -454,12 +454,12 @@ fn handle_on_climbable(
     // sneaking on ladders/vines
     if y < 0.0
         && pose == Some(Pose::Crouching)
-        && azalea_registry::Block::from(
+        && BlockKind::from(
             world
                 .chunks
                 .get_block_state(position.into())
                 .unwrap_or_default(),
-        ) != azalea_registry::Block::Scaffolding
+        ) != BlockKind::Scaffolding
     {
         y = 0.;
     }

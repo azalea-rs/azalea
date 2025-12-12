@@ -1,3 +1,5 @@
+use azalea_registry::builtin::BlockKind;
+
 use crate::block_state::{BlockState, BlockStateIntegerRepr};
 
 #[derive(Clone, Debug)]
@@ -80,9 +82,9 @@ impl From<BlockState> for FluidState {
             };
         }
 
-        let registry_block = azalea_registry::Block::from(state);
+        let registry_block = BlockKind::from(state);
         match registry_block {
-            azalea_registry::Block::Water => {
+            BlockKind::Water => {
                 let level = state
                     .property::<crate::properties::WaterLevel>()
                     .expect("water block should always have WaterLevel");
@@ -92,7 +94,7 @@ impl From<BlockState> for FluidState {
                     falling: false,
                 };
             }
-            azalea_registry::Block::Lava => {
+            BlockKind::Lava => {
                 let level = state
                     .property::<crate::properties::LavaLevel>()
                     .expect("lava block should always have LavaLevel");
@@ -102,7 +104,7 @@ impl From<BlockState> for FluidState {
                     falling: false,
                 };
             }
-            azalea_registry::Block::BubbleColumn => {
+            BlockKind::BubbleColumn => {
                 return Self::new_source_block(FluidKind::Water, false);
             }
             _ => {}

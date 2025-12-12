@@ -30,7 +30,7 @@ use azalea_protocol::packets::game::{
     s_swing::ServerboundSwing,
     s_use_item_on::ServerboundUseItemOn,
 };
-use azalea_registry::Item;
+use azalea_registry::builtin::ItemKind;
 use azalea_world::Instance;
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
@@ -527,45 +527,45 @@ fn update_attributes_for_held_item(
     }
 }
 
-fn added_attack_speed_for_item(item: Item) -> f64 {
+fn added_attack_speed_for_item(item: ItemKind) -> f64 {
     match item {
-        Item::WoodenSword => -2.4,
-        Item::WoodenShovel => -3.0,
-        Item::WoodenPickaxe => -2.8,
-        Item::WoodenAxe => -3.2,
-        Item::WoodenHoe => -3.0,
+        ItemKind::WoodenSword => -2.4,
+        ItemKind::WoodenShovel => -3.0,
+        ItemKind::WoodenPickaxe => -2.8,
+        ItemKind::WoodenAxe => -3.2,
+        ItemKind::WoodenHoe => -3.0,
 
-        Item::StoneSword => -2.4,
-        Item::StoneShovel => -3.0,
-        Item::StonePickaxe => -2.8,
-        Item::StoneAxe => -3.2,
-        Item::StoneHoe => -2.0,
+        ItemKind::StoneSword => -2.4,
+        ItemKind::StoneShovel => -3.0,
+        ItemKind::StonePickaxe => -2.8,
+        ItemKind::StoneAxe => -3.2,
+        ItemKind::StoneHoe => -2.0,
 
-        Item::GoldenSword => -2.4,
-        Item::GoldenShovel => -3.0,
-        Item::GoldenPickaxe => -2.8,
-        Item::GoldenAxe => -3.0,
-        Item::GoldenHoe => -3.0,
+        ItemKind::GoldenSword => -2.4,
+        ItemKind::GoldenShovel => -3.0,
+        ItemKind::GoldenPickaxe => -2.8,
+        ItemKind::GoldenAxe => -3.0,
+        ItemKind::GoldenHoe => -3.0,
 
-        Item::IronSword => -2.4,
-        Item::IronShovel => -3.0,
-        Item::IronPickaxe => -2.8,
-        Item::IronAxe => -3.1,
-        Item::IronHoe => -1.0,
+        ItemKind::IronSword => -2.4,
+        ItemKind::IronShovel => -3.0,
+        ItemKind::IronPickaxe => -2.8,
+        ItemKind::IronAxe => -3.1,
+        ItemKind::IronHoe => -1.0,
 
-        Item::DiamondSword => -2.4,
-        Item::DiamondShovel => -3.0,
-        Item::DiamondPickaxe => -2.8,
-        Item::DiamondAxe => -3.0,
-        Item::DiamondHoe => 0.0,
+        ItemKind::DiamondSword => -2.4,
+        ItemKind::DiamondShovel => -3.0,
+        ItemKind::DiamondPickaxe => -2.8,
+        ItemKind::DiamondAxe => -3.0,
+        ItemKind::DiamondHoe => 0.0,
 
-        Item::NetheriteSword => -2.4,
-        Item::NetheriteShovel => -3.0,
-        Item::NetheritePickaxe => -2.8,
-        Item::NetheriteAxe => -3.0,
-        Item::NetheriteHoe => 0.0,
+        ItemKind::NetheriteSword => -2.4,
+        ItemKind::NetheriteShovel => -3.0,
+        ItemKind::NetheritePickaxe => -2.8,
+        ItemKind::NetheriteAxe => -3.0,
+        ItemKind::NetheriteHoe => 0.0,
 
-        Item::Trident => -2.9,
+        ItemKind::Trident => -2.9,
         _ => 0.,
     }
 }

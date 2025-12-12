@@ -15,7 +15,7 @@ use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
 use azalea_core::position::{
     BlockPos, ChunkBiomePos, ChunkBlockPos, ChunkPos, ChunkSectionBiomePos, ChunkSectionBlockPos,
 };
-use azalea_registry::Biome;
+use azalea_registry::data::Biome;
 use nohash_hasher::IntMap;
 use parking_lot::RwLock;
 use tracing::{debug, trace, warn};

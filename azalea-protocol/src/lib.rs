@@ -16,7 +16,6 @@ pub mod address;
 pub mod common;
 #[cfg(feature = "connecting")]
 pub mod connect;
-#[cfg(feature = "packets")]
 pub mod packets;
 pub mod read;
 pub mod resolve;

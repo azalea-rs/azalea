@@ -15,25 +15,34 @@ use std::{net::SocketAddr, time::Duration};
 
 use app::Plugins;
 pub use azalea_auth as auth;
-pub use azalea_block as blocks;
+pub use azalea_block as block;
+#[doc(hidden)]
+#[deprecated = "moved to `azalea::block`"]
+pub mod blocks {
+    pub type BlockStates = azalea_block::BlockStates;
+    pub type BlockState = azalea_block::BlockState;
+    pub trait BlockTrait: azalea_block::BlockTrait {}
+    // azalea_block has more items but rust doesn't mark them deprecated if we
+    // `use azalea_block::*`, so hopefully the three types above are enough for
+    // most users :(
+}
+
 pub use azalea_brigadier as brigadier;
 pub use azalea_buf as buf;
 pub use azalea_chat::FormattedText;
 pub use azalea_client::*;
 pub use azalea_core as core;
-#[deprecated(note = "renamed to `Identifier`.")]
-#[expect(deprecated)]
-pub use azalea_core::resource_location::ResourceLocation;
 // these are re-exported on this level because they're very common
-pub use azalea_core::{
-    identifier::Identifier,
-    position::{BlockPos, Vec3},
-};
+pub use azalea_core::position::{BlockPos, Vec3};
 pub use azalea_entity as entity;
 pub use azalea_physics as physics;
 pub use azalea_protocol as protocol;
 use azalea_protocol::address::{ResolvableAddr, ServerAddr};
 pub use azalea_registry as registry;
+#[doc(hidden)]
+#[deprecated(note = "renamed to `Identifier`.")]
+pub use azalea_registry::identifier::Identifier as ResourceLocation;
+pub use azalea_registry::identifier::Identifier;
 pub use azalea_world as world;
 pub use bevy_app as app;
 use bevy_app::AppExit;
@@ -252,8 +261,18 @@ pub struct NoState;
 #[derive(Clone, Debug, Default)]
 #[non_exhaustive]
 pub struct JoinOpts {
-    /// The Socks5 proxy that this bot will use.
-    pub proxy: Option<Proxy>,
+    /// The SOCKS5 proxy that this bot will use for connecting to the Minecraft
+    /// server.
+    pub server_proxy: Option<Proxy>,
+    /// The SOCKS5 proxy that will be used when authenticating the bot's join
+    /// with Mojang.
+    ///
+    /// This should typically be either the same as [`Self::server_proxy`] or
+    /// `None`.
+    ///
+    /// This is useful to set if a server has `prevent-proxy-connections`
+    /// enabled.
+    pub sessionserver_proxy: Option<Proxy>,
     /// Override the server address that this specific bot will send in the
     /// handshake packet.
     #[doc(alias = "custom_address")]
@@ -270,8 +289,11 @@ impl JoinOpts {
     }
 
     pub fn update(&mut self, other: &Self) {
-        if let Some(proxy) = other.proxy.clone() {
-            self.proxy = Some(proxy);
+        if let Some(proxy) = other.server_proxy.clone() {
+            self.server_proxy = Some(proxy);
+        }
+        if let Some(proxy) = other.sessionserver_proxy.clone() {
+            self.sessionserver_proxy = Some(proxy);
         }
         if let Some(custom_server_addr) = other.custom_server_addr.clone() {
             self.custom_server_addr = Some(custom_server_addr);
@@ -281,12 +303,38 @@ impl JoinOpts {
         }
     }
 
-    /// Set the proxy that this bot will use.
+    /// Configure the SOCKS5 proxy used for connecting to the server and for
+    /// authenticating with Mojang.
+    ///
+    /// To configure these separately, for example to only use the proxy for the
+    /// Minecraft server and not for authentication, you may use
+    /// [`Self::server_proxy`] and [`Self::sessionserver_proxy`] individually.
     #[must_use]
-    pub fn proxy(mut self, proxy: Proxy) -> Self {
-        self.proxy = Some(proxy);
+    pub fn proxy(self, proxy: Proxy) -> Self {
+        self.server_proxy(proxy.clone()).sessionserver_proxy(proxy)
+    }
+    /// Configure the SOCKS5 proxy that will be used for connecting to the
+    /// Minecraft server.
+    ///
+    /// To avoid errors on servers with the "prevent-proxy-connections" option
+    /// set, you should usually use [`Self::proxy`] instead.
+    ///
+    /// Also see [`Self::sessionserver_proxy`].
+    #[must_use]
+    pub fn server_proxy(mut self, proxy: Proxy) -> Self {
+        self.server_proxy = Some(proxy);
         self
     }
+    /// Configure the SOCKS5 proxy that this bot will use for authenticating the
+    /// server join with Mojang's API.
+    ///
+    /// Also see [`Self::proxy`] and [`Self::server_proxy`].
+    #[must_use]
+    pub fn sessionserver_proxy(mut self, proxy: Proxy) -> Self {
+        self.sessionserver_proxy = Some(proxy);
+        self
+    }
+
     /// Set the custom address that this bot will send in the handshake packet.
     #[must_use]
     pub fn custom_server_addr(mut self, server_addr: ServerAddr) -> Self {

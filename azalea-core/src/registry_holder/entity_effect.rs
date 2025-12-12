@@ -1,7 +1,12 @@
 use std::{collections::HashMap, str::FromStr};
 
 use azalea_registry::{
-    EnchantmentEntityEffectKind as EntityEffectKind, GameEvent, Holder, ParticleKind, SoundEvent,
+    Holder,
+    builtin::{
+        EnchantmentEntityEffectKind as EntityEffectKind, GameEvent, ParticleKind, SoundEvent,
+    },
+    data::DamageKindKey,
+    identifier::Identifier,
 };
 use simdnbt::{
     Deserialize, DeserializeError,
@@ -9,7 +14,6 @@ use simdnbt::{
 };
 
 use crate::{
-    identifier::Identifier,
     position::{Vec3, Vec3i},
     registry_holder::{
         block_predicate::BlockPredicate, block_state_provider::BlockStateProvider,
@@ -129,17 +133,15 @@ pub struct ChangeItemDamage {
 pub struct DamageEntity {
     pub min_damage: LevelBasedValue,
     pub max_damage: LevelBasedValue,
-    // TODO: convert to a DamageKind after azalea-registry refactor
     #[simdnbt(rename = "damage_type")]
-    pub damage_kind: Identifier,
+    pub damage_kind: DamageKindKey,
 }
 
 #[derive(Debug, Clone, simdnbt::Deserialize)]
 pub struct Explode {
     pub attribute_to_user: Option<bool>,
-    // TODO: convert to a DamageKind after azalea-registry refactor
     #[simdnbt(rename = "damage_type")]
-    pub damage_kind: Option<Identifier>,
+    pub damage_kind: Option<DamageKindKey>,
     pub knockback_multiplier: Option<LevelBasedValue>,
     pub immune_blocks: Option<HomogeneousList>,
     pub offset: Option<Vec3>,
@@ -179,7 +181,7 @@ impl Deserialize for PlaySound {
             // strings.
             list.strings()
                 .ok_or(DeserializeError::MissingField)?
-                .into_iter()
+                .iter()
                 .map(|s| {
                     SoundEvent::from_str(&s.to_str())
                         .map(Holder::Reference)

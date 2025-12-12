@@ -114,7 +114,7 @@ use azalea_core::{
     position::{BlockPos, Vec3f32},
 };
 use azalea_inventory::{ItemStack, components};
-use azalea_registry::DataRegistry;
+use azalea_registry::{DataRegistry, builtin::EntityKind};
 use bevy_ecs::{bundle::Bundle, component::Component};
 use derive_more::{Deref, DerefMut};
 use thiserror::Error;
@@ -456,15 +456,15 @@ impl From<EntityDataValue> for UpdateMetadataError {
                             default = "simdnbt::owned::NbtCompound::default()"
                         # elif type_name == 'CatVariant':
                         #     # TODO: the default should be Tabby but we don't have a way to get that from here
-                        #     default = 'azalea_registry::CatVariant::new_raw(0)'
+                        #     default = 'azalea_registry::data::CatVariant::new_raw(0)'
                         # elif type_name == 'PaintingVariant':
-                        #     default = 'azalea_registry::PaintingVariant::Kebab'
+                        #     default = 'azalea_registry::data::PaintingVariant::Kebab'
                         # elif type_name == 'FrogVariant':
-                        #     default = 'azalea_registry::FrogVariant::Temperate'
+                        #     default = 'azalea_registry::data::FrogVariant::Temperate'
                         elif type_name.endswith("Variant"):
-                            default = f"azalea_registry::{type_name}::new_raw(0)"
+                            default = f"azalea_registry::data::{type_name}::new_raw(0)"
                         elif type_name == "VillagerData":
-                            default = "VillagerData { kind: azalea_registry::VillagerKind::Plains, profession: azalea_registry::VillagerProfession::None, level: 0 }"
+                            default = "VillagerData { kind: azalea_registry::builtin::VillagerKind::Plains, profession: azalea_registry::builtin::VillagerProfession::None, level: 0 }"
                         else:
                             default = (
                                 f"{type_name}::default()"
@@ -581,7 +581,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
     code.append(
         """pub fn apply_metadata(
     entity: &mut bevy_ecs::system::EntityCommands,
-    entity_kind: azalea_registry::EntityKind,
+    entity_kind: EntityKind,
     items: Vec<EntityDataItem>,
 ) -> Result<(), UpdateMetadataError> {
     match entity_kind {"""
@@ -591,7 +591,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
             # not actually an entity
             continue
         struct_name: str = upper_first_letter(to_camel_case(entity_id))
-        code.append(f"        azalea_registry::EntityKind::{struct_name} => {{")
+        code.append(f"        EntityKind::{struct_name} => {{")
         code.append("            for d in items {")
         code.append(f"                {struct_name}::apply_metadata(entity, d)?;")
         code.append("            }")
@@ -601,15 +601,15 @@ impl From<EntityDataValue> for UpdateMetadataError {
     code.append("}")
     code.append("")
 
-    # pub fn apply_default_metadata(entity: &mut bevy_ecs::system::EntityCommands, kind: azalea_registry::EntityKind) {
+    # pub fn apply_default_metadata(entity: &mut bevy_ecs::system::EntityCommands, kind: EntityKind) {
     #     match kind {
-    #         azalea_registry::EntityKind::AreaEffectCloud => {
+    #         EntityKind::AreaEffectCloud => {
     #             entity.insert(AreaEffectCloudMetadataBundle::default());
     #         }
     #     }
     # }
     code.append(
-        "pub fn apply_default_metadata(entity: &mut bevy_ecs::system::EntityCommands, kind: azalea_registry::EntityKind) {"
+        "pub fn apply_default_metadata(entity: &mut bevy_ecs::system::EntityCommands, kind: EntityKind) {"
     )
     code.append("    match kind {")
     for entity_id in burger_entity_metadata:
@@ -617,7 +617,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
             # not actually an entity
             continue
         struct_name: str = upper_first_letter(to_camel_case(entity_id))
-        code.append(f"        azalea_registry::EntityKind::{struct_name} => {{")
+        code.append(f"        EntityKind::{struct_name} => {{")
         code.append(
             f"            entity.insert({struct_name}MetadataBundle::default());"
         )

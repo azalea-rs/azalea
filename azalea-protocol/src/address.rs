@@ -144,7 +144,7 @@ pub struct ResolvedAddr {
     /// This is necessary because clients send this to the server when they
     /// connect.
     pub server: ServerAddr,
-    /// The IP and port that the address resolves to.
+    /// The IP and port that we will actually connect to.
     pub socket: SocketAddr,
 }
 

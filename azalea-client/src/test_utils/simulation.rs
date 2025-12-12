@@ -6,7 +6,6 @@ use azalea_buf::AzaleaWrite;
 use azalea_core::{
     delta::LpVec3,
     game_type::{GameMode, OptionalGameType},
-    identifier::Identifier,
     position::{BlockPos, ChunkPos, Vec3},
     tick::GameTick,
 };
@@ -25,7 +24,12 @@ use azalea_protocol::{
         },
     },
 };
-use azalea_registry::{Biome, DataRegistry, DimensionType, EntityKind};
+use azalea_registry::{
+    DataRegistry,
+    builtin::EntityKind,
+    data::{Biome, DimensionKind},
+    identifier::Identifier,
+};
 use azalea_world::{Chunk, Instance, MinecraftEntityId, Section, palette::PalettedContainer};
 use bevy_app::App;
 use bevy_ecs::{
@@ -139,9 +143,9 @@ impl Simulation {
         f(self.app.world().entity(self.entity).get::<T>().unwrap());
     }
     pub fn query_self<D: QueryData, R>(&mut self, f: impl FnOnce(QueryItem<D>) -> R) -> R {
-        let mut ecs = self.app.world_mut();
+        let ecs = self.app.world_mut();
         let mut qs = ecs.query::<D>();
-        let res = qs.get_mut(&mut ecs, self.entity).unwrap_or_else(|_| {
+        let res = qs.get_mut(ecs, self.entity).unwrap_or_else(|_| {
             panic!(
                 "Our client is missing a required component {:?}",
                 any::type_name::<D>()
@@ -318,13 +322,13 @@ fn tick_app(app: &mut App) {
 
 pub fn default_login_packet() -> ClientboundLogin {
     make_basic_login_packet(
-        DimensionType::new_raw(0), // overworld
+        DimensionKind::new_raw(0), // overworld
         Identifier::new("minecraft:overworld"),
     )
 }
 
 pub fn make_basic_login_packet(
-    dimension_type: DimensionType,
+    dimension_type: DimensionKind,
     dimension: Identifier,
 ) -> ClientboundLogin {
     ClientboundLogin {
@@ -354,7 +358,7 @@ pub fn make_basic_login_packet(
 }
 
 pub fn make_basic_respawn_packet(
-    dimension_type: DimensionType,
+    dimension_type: DimensionKind,
     dimension: Identifier,
 ) -> ClientboundRespawn {
     ClientboundRespawn {

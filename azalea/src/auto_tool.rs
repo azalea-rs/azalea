@@ -3,7 +3,7 @@ use azalea_client::Client;
 use azalea_core::position::BlockPos;
 use azalea_entity::{ActiveEffects, Attributes, FluidOnEyes, Physics, inventory::Inventory};
 use azalea_inventory::{ItemStack, Menu, components};
-use azalea_registry::EntityKind;
+use azalea_registry::builtin::{BlockKind, EntityKind, ItemKind};
 
 use crate::bot::BotClientExt;
 
@@ -89,10 +89,7 @@ pub fn accurate_best_tool_in_hotbar_for_block(
     let block = Box::<dyn BlockTrait>::from(block);
     let registry_block = block.as_registry_block();
 
-    if matches!(
-        registry_block,
-        azalea_registry::Block::Water | azalea_registry::Block::Lava
-    ) {
+    if matches!(registry_block, BlockKind::Water | BlockKind::Lava) {
         // can't mine fluids
         return BestToolResult {
             index: 0,
@@ -107,7 +104,7 @@ pub fn accurate_best_tool_in_hotbar_for_block(
             ItemStack::Empty => {
                 this_item_speed = Some(azalea_entity::mining::get_mine_progress(
                     block.as_ref(),
-                    azalea_registry::Item::Air,
+                    ItemKind::Air,
                     fluid_on_eyes,
                     physics,
                     attributes,

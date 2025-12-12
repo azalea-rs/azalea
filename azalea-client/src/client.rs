@@ -9,7 +9,9 @@ use std::{
 
 use azalea_auth::game_profile::GameProfile;
 use azalea_core::{
-    data_registry::ResolvableDataRegistry, identifier::Identifier, position::Vec3, tick::GameTick,
+    data_registry::{DataRegistryWithKey, ResolvableDataRegistry},
+    position::Vec3,
+    tick::GameTick,
 };
 use azalea_entity::{
     Attributes, EntityUpdateSystems, PlayerAbilities, Position,
@@ -25,6 +27,7 @@ use azalea_protocol::{
     packets::{Packet, game::ServerboundGamePacket},
     resolve::ResolveError,
 };
+use azalea_registry::{DataRegistryKeyRef, identifier::Identifier};
 use azalea_world::{Instance, InstanceContainer, InstanceName, MinecraftEntityId, PartialInstance};
 use bevy_app::{App, AppExit, Plugin, PluginsState, SubApp, Update};
 use bevy_ecs::{
@@ -108,14 +111,39 @@ impl StartClientOpts {
             account,
             connect_opts: ConnectOpts {
                 address,
-                proxy: None,
+                server_proxy: None,
+                sessionserver_proxy: None,
             },
             event_sender,
         }
     }
 
-    pub fn proxy(mut self, proxy: Proxy) -> Self {
-        self.connect_opts.proxy = Some(proxy);
+    /// Configure the SOCKS5 proxy used for connecting to the server and for
+    /// authenticating with Mojang.
+    ///
+    /// To configure these separately, for example to only use the proxy for the
+    /// Minecraft server and not for authentication, you may use
+    /// [`Self::server_proxy`] and [`Self::sessionserver_proxy`] individually.
+    pub fn proxy(self, proxy: Proxy) -> Self {
+        self.server_proxy(proxy.clone()).sessionserver_proxy(proxy)
+    }
+    /// Configure the SOCKS5 proxy that will be used for connecting to the
+    /// Minecraft server.
+    ///
+    /// To avoid errors on servers with the "prevent-proxy-connections" option
+    /// set, you should usually use [`Self::proxy`] instead.
+    ///
+    /// Also see [`Self::sessionserver_proxy`].
+    pub fn server_proxy(mut self, proxy: Proxy) -> Self {
+        self.connect_opts.server_proxy = Some(proxy);
+        self
+    }
+    /// Configure the SOCKS5 proxy that this bot will use for authenticating the
+    /// server join with Mojang's API.
+    ///
+    /// Also see [`Self::proxy`] and [`Self::server_proxy`].
+    pub fn sessionserver_proxy(mut self, proxy: Proxy) -> Self {
+        self.connect_opts.sessionserver_proxy = Some(proxy);
         self
     }
 }
@@ -469,7 +497,7 @@ impl Client {
         &self,
         registry: &impl ResolvableDataRegistry,
     ) -> Option<Identifier> {
-        self.with_registry_holder(|registries| registry.resolve_name(registries).cloned())
+        self.with_registry_holder(|registries| registry.key(registries).map(|r| r.into_ident()))
     }
     /// Resolve the given registry to its name and data and call the given
     /// function with it.

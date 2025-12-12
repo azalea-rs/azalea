@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use azalea_buf::AzBuf;
 use azalea_protocol_macros::ClientboundGamePacket;
+use azalea_registry::builtin::BlockEntityKind;
 use azalea_world::heightmap::HeightmapKind;
 use simdnbt::owned::Nbt;
 
@@ -34,6 +35,6 @@ pub struct ClientboundLevelChunkPacketData {
 pub struct BlockEntity {
     pub packed_xz: u8,
     pub y: u16,
-    pub kind: azalea_registry::BlockEntityKind,
+    pub kind: BlockEntityKind,
     pub data: Nbt,
 }

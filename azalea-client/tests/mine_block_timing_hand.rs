@@ -15,7 +15,7 @@ use azalea_protocol::{
         },
     },
 };
-use azalea_registry::Block;
+use azalea_registry::builtin::BlockKind;
 
 #[test]
 fn test_mine_block_timing_hand() {
@@ -31,7 +31,7 @@ fn test_mine_block_timing_hand() {
     let pos = BlockPos::new(0, 2, 0);
     simulation.receive_packet(ClientboundBlockUpdate {
         pos,
-        block_state: Block::Stone.into(),
+        block_state: BlockKind::Stone.into(),
     });
     simulation.receive_packet(ClientboundPlayerPosition {
         id: 1,
@@ -43,7 +43,10 @@ fn test_mine_block_timing_hand() {
         relative: RelativeMovements::all_absolute(),
     });
     simulation.tick();
-    assert_eq!(simulation.get_block_state(pos), Some(Block::Stone.into()));
+    assert_eq!(
+        simulation.get_block_state(pos),
+        Some(BlockKind::Stone.into())
+    );
     println!("set serverside stone");
     simulation.with_component_mut::<LookDirection>(|look| {
         // look down

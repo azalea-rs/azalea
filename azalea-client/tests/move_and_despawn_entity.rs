@@ -7,7 +7,7 @@ use azalea_protocol::{
         game::{ClientboundRemoveEntities, ClientboundTeleportEntity},
     },
 };
-use azalea_registry::EntityKind;
+use azalea_registry::builtin::EntityKind;
 use azalea_world::MinecraftEntityId;
 
 #[test]

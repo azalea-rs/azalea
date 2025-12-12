@@ -657,7 +657,7 @@ pub enum SwarmEvent {
     /// from this event.
     ///
     /// [`SwarmBuilder::reconnect_delay`]: crate::swarm::SwarmBuilder::reconnect_after
-    Disconnect(Box<Account>, JoinOpts),
+    Disconnect(Box<Account>, Box<JoinOpts>),
     /// At least one bot received a chat message.
     Chat(ChatPacket),
 }
@@ -758,14 +758,19 @@ impl Swarm {
         if let Some(custom_socket_addr) = join_opts.custom_socket_addr.clone() {
             address.socket = custom_socket_addr;
         }
-        let proxy = join_opts.proxy.clone();
+        let server_proxy = join_opts.server_proxy.clone();
+        let sessionserver_proxy = join_opts.sessionserver_proxy.clone();
 
         let (tx, rx) = mpsc::unbounded_channel();
 
         let client = Client::start_client(StartClientOpts {
             ecs_lock: self.ecs_lock.clone(),
             account: account.clone(),
-            connect_opts: ConnectOpts { address, proxy },
+            connect_opts: ConnectOpts {
+                address,
+                server_proxy,
+                sessionserver_proxy,
+            },
             event_sender: Some(tx),
         })
         .await;
@@ -838,7 +843,10 @@ impl Swarm {
                     .get_component::<Account>()
                     .expect("bot is missing required Account component");
                 swarm_tx
-                    .send(SwarmEvent::Disconnect(Box::new(account), join_opts.clone()))
+                    .send(SwarmEvent::Disconnect(
+                        Box::new(account),
+                        Box::new(join_opts.clone()),
+                    ))
                     .unwrap();
             }
 

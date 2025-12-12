@@ -6,7 +6,7 @@ use azalea_protocol::packets::{
     ConnectionProtocol,
     game::{ClientboundContainerClose, ClientboundOpenScreen, ClientboundSetChunkCacheCenter},
 };
-use azalea_registry::MenuKind;
+use azalea_registry::builtin::MenuKind;
 
 #[test]
 fn test_close_open_container() {

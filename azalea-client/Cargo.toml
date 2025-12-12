@@ -17,7 +17,7 @@ azalea-crypto.workspace = true
 azalea-entity.workspace = true
 azalea-inventory.workspace = true
 azalea-physics.workspace = true
-azalea-protocol = { workspace = true, features = ["packets", "connecting"] }
+azalea-protocol = { workspace = true, features = ["connecting"] }
 azalea-registry.workspace = true
 azalea-world.workspace = true
 bevy_app.workspace = true
@@ -32,7 +32,7 @@ minecraft_folder_path.workspace = true
 parking_lot.workspace = true
 pastey.workspace = true
 regex.workspace = true
-reqwest = { workspace = true, optional = true }
+reqwest = { workspace = true, optional = true, features = ["socks"] }
 simdnbt.workspace = true
 thiserror.workspace = true
 tokio = { workspace = true, features = ["sync"] }
