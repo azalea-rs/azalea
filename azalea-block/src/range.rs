@@ -1,9 +1,10 @@
 use std::{
     collections::{HashSet, hash_set},
     ops::{Add, RangeInclusive},
+    sync::LazyLock,
 };
 
-use azalea_registry::builtin::BlockKind;
+use azalea_registry::{builtin::BlockKind, tags::RegistryTag};
 
 use crate::{BlockState, block_state::BlockStateIntegerRepr};
 
@@ -63,11 +64,6 @@ impl From<&HashSet<BlockKind>> for BlockStates {
     }
 }
 
-impl<const N: usize> From<[BlockKind; N]> for BlockStates {
-    fn from(arr: [BlockKind; N]) -> Self {
-        Self::from(&arr[..])
-    }
-}
 impl From<&[BlockKind]> for BlockStates {
     fn from(arr: &[BlockKind]) -> Self {
         let mut block_states = HashSet::with_capacity(arr.len());
@@ -75,5 +71,22 @@ impl From<&[BlockKind]> for BlockStates {
             block_states.extend(BlockStates::from(block));
         }
         Self { set: block_states }
+    }
+}
+impl<const N: usize> From<[BlockKind; N]> for BlockStates {
+    fn from(arr: [BlockKind; N]) -> Self {
+        Self::from(&arr[..])
+    }
+}
+impl From<&RegistryTag<BlockKind>> for BlockStates {
+    fn from(tag: &RegistryTag<BlockKind>) -> Self {
+        Self::from(&**tag)
+    }
+}
+// allows users to do like `BlockStates::from(&tags::blocks::LOGS)` instead of
+// `BlockStates::from(&&tags::blocks::LOGS)`
+impl From<&LazyLock<RegistryTag<BlockKind>>> for BlockStates {
+    fn from(tag: &LazyLock<RegistryTag<BlockKind>>) -> Self {
+        Self::from(&**tag)
     }
 }

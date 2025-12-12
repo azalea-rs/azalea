@@ -1,11 +1,11 @@
 use std::sync::{Arc, Weak};
 
 use azalea_chat::FormattedText;
-use azalea_registry::identifier::Identifier;
 use azalea_protocol::packets::{
     Packet,
     game::{ClientboundGamePacket, ClientboundPlayerCombatKill, ServerboundGamePacket},
 };
+use azalea_registry::identifier::Identifier;
 use azalea_world::Instance;
 use bevy_ecs::prelude::*;
 use parking_lot::RwLock;

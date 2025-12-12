@@ -4,7 +4,6 @@ use azalea_client::{
     packet::{config::SendConfigPacketEvent, game::SendGamePacketEvent},
     test_utils::prelude::*,
 };
-use azalea_registry::identifier::Identifier;
 use azalea_protocol::packets::{
     ConnectionProtocol,
     config::{
@@ -12,6 +11,7 @@ use azalea_protocol::packets::{
     },
     game::{self, ServerboundGamePacket},
 };
+use azalea_registry::identifier::Identifier;
 use bevy_ecs::observer::On;
 use parking_lot::Mutex;
 use simdnbt::owned::{NbtCompound, NbtTag};

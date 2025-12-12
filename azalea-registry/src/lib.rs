@@ -12,6 +12,7 @@ pub mod tags;
 
 use std::{
     fmt::{self, Debug},
+    hash::Hash,
     io::{self, Cursor, Write},
 };
 
@@ -54,7 +55,7 @@ pub type Block = builtin::BlockKind;
 #[deprecated = "renamed to `azalea_registry::data::DimensionKind`"]
 pub type DimensionType = data::DimensionKind;
 
-pub trait Registry: AzaleaRead + AzaleaWrite
+pub trait Registry: AzaleaRead + AzaleaWrite + PartialEq + PartialOrd + Ord + Copy + Hash
 where
     Self: Sized,
 {
@@ -308,7 +309,9 @@ impl<
 ///
 /// These can be resolved into their actual values with
 /// `ResolvableDataRegistry` from azalea-core.
-pub trait DataRegistry: AzaleaRead + AzaleaWrite {
+pub trait DataRegistry:
+    AzaleaRead + AzaleaWrite + PartialEq + PartialOrd + Ord + Copy + Hash
+{
     const NAME: &'static str;
     type Key: DataRegistryKey;
 

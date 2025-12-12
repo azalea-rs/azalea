@@ -16,7 +16,7 @@ macro_rules! data_registry {
         }
     ) => {
         $(#[$doc])*
-        #[derive(Debug, Clone, Copy, AzBuf, PartialEq, Eq, Hash)]
+        #[derive(Debug, Clone, Copy, AzBuf, PartialEq, Eq, Hash, PartialOrd, Ord)]
         pub struct $registry {
             #[var]
             id: u32,
