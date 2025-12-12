@@ -3,7 +3,7 @@ use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_world::MinecraftEntityId;
 
 #[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
-pub struct ClientboundHorseScreenOpen {
+pub struct ClientboundMountScreenOpen {
     #[var]
     pub container_id: i32,
     #[var]

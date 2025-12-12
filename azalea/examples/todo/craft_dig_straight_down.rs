@@ -8,7 +8,7 @@ struct State {
     pub started: Arc<Mutex<bool>>,
 }
 
-#[tokio::main(flavor = "current_thread")]
+#[tokio::main]
 async fn main() {
     let account = Account::offline("bot");
     // or let bot = Account::microsoft("email").await;

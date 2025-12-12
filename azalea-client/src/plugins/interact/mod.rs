@@ -17,6 +17,7 @@ use azalea_entity::{
     },
     clamp_look_direction,
     indexing::EntityIdIndex,
+    inventory::Inventory,
 };
 use azalea_inventory::{ItemStack, ItemStackData, components};
 use azalea_physics::{
@@ -29,6 +30,7 @@ use azalea_protocol::packets::game::{
     s_swing::ServerboundSwing,
     s_use_item_on::ServerboundUseItemOn,
 };
+use azalea_registry::Item;
 use azalea_world::Instance;
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
@@ -39,7 +41,7 @@ use crate::{
     Client,
     attack::handle_attack_event,
     interact::pick::{HitResultComponent, update_hit_result_component},
-    inventory::{Inventory, InventorySystems},
+    inventory::InventorySystems,
     local_player::{LocalGameMode, PermissionLevel},
     movement::MoveEventsSystems,
     packet::game::SendGamePacketEvent,
@@ -516,52 +518,55 @@ fn update_attributes_for_held_item(
     for (mut attributes, inventory) in &mut query {
         let held_item = inventory.held_item();
 
-        use azalea_registry::Item;
-        let added_attack_speed = match held_item.kind() {
-            Item::WoodenSword => -2.4,
-            Item::WoodenShovel => -3.0,
-            Item::WoodenPickaxe => -2.8,
-            Item::WoodenAxe => -3.2,
-            Item::WoodenHoe => -3.0,
-
-            Item::StoneSword => -2.4,
-            Item::StoneShovel => -3.0,
-            Item::StonePickaxe => -2.8,
-            Item::StoneAxe => -3.2,
-            Item::StoneHoe => -2.0,
-
-            Item::GoldenSword => -2.4,
-            Item::GoldenShovel => -3.0,
-            Item::GoldenPickaxe => -2.8,
-            Item::GoldenAxe => -3.0,
-            Item::GoldenHoe => -3.0,
-
-            Item::IronSword => -2.4,
-            Item::IronShovel => -3.0,
-            Item::IronPickaxe => -2.8,
-            Item::IronAxe => -3.1,
-            Item::IronHoe => -1.0,
-
-            Item::DiamondSword => -2.4,
-            Item::DiamondShovel => -3.0,
-            Item::DiamondPickaxe => -2.8,
-            Item::DiamondAxe => -3.0,
-            Item::DiamondHoe => 0.0,
-
-            Item::NetheriteSword => -2.4,
-            Item::NetheriteShovel => -3.0,
-            Item::NetheritePickaxe => -2.8,
-            Item::NetheriteAxe => -3.0,
-            Item::NetheriteHoe => 0.0,
-
-            Item::Trident => -2.9,
-            _ => 0.,
-        };
+        let added_attack_speed = added_attack_speed_for_item(held_item.kind());
         attributes
             .attack_speed
             .insert(azalea_entity::attributes::base_attack_speed_modifier(
                 added_attack_speed,
             ));
+    }
+}
+
+fn added_attack_speed_for_item(item: Item) -> f64 {
+    match item {
+        Item::WoodenSword => -2.4,
+        Item::WoodenShovel => -3.0,
+        Item::WoodenPickaxe => -2.8,
+        Item::WoodenAxe => -3.2,
+        Item::WoodenHoe => -3.0,
+
+        Item::StoneSword => -2.4,
+        Item::StoneShovel => -3.0,
+        Item::StonePickaxe => -2.8,
+        Item::StoneAxe => -3.2,
+        Item::StoneHoe => -2.0,
+
+        Item::GoldenSword => -2.4,
+        Item::GoldenShovel => -3.0,
+        Item::GoldenPickaxe => -2.8,
+        Item::GoldenAxe => -3.0,
+        Item::GoldenHoe => -3.0,
+
+        Item::IronSword => -2.4,
+        Item::IronShovel => -3.0,
+        Item::IronPickaxe => -2.8,
+        Item::IronAxe => -3.1,
+        Item::IronHoe => -1.0,
+
+        Item::DiamondSword => -2.4,
+        Item::DiamondShovel => -3.0,
+        Item::DiamondPickaxe => -2.8,
+        Item::DiamondAxe => -3.0,
+        Item::DiamondHoe => 0.0,
+
+        Item::NetheriteSword => -2.4,
+        Item::NetheriteShovel => -3.0,
+        Item::NetheritePickaxe => -2.8,
+        Item::NetheriteAxe => -3.0,
+        Item::NetheriteHoe => 0.0,
+
+        Item::Trident => -2.9,
+        _ => 0.,
     }
 }
 

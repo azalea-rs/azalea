@@ -3,12 +3,13 @@
 use std::sync::Arc;
 
 use azalea_client::{
-    PhysicsState, interact::BlockStatePredictionHandler, inventory::Inventory,
-    local_player::LocalGameMode, mining::MineBundle,
+    PhysicsState, interact::BlockStatePredictionHandler, local_player::LocalGameMode,
+    mining::MineBundle,
 };
 use azalea_core::{game_type::GameMode, identifier::Identifier, position::Vec3, tick::GameTick};
 use azalea_entity::{
-    Attributes, LookDirection, Physics, Position, default_attributes, dimensions::EntityDimensions,
+    Attributes, LookDirection, Physics, Position, dimensions::EntityDimensions,
+    inventory::Inventory,
 };
 use azalea_registry::EntityKind;
 use azalea_world::{ChunkStorage, Instance, InstanceContainer, MinecraftEntityId, PartialInstance};
@@ -36,7 +37,7 @@ impl SimulatedPlayerBundle {
             physics: Physics::new(&dimensions, position),
             physics_state: PhysicsState::default(),
             look_direction: LookDirection::default(),
-            attributes: default_attributes(EntityKind::Player),
+            attributes: Attributes::new(EntityKind::Player),
             inventory: Inventory::default(),
         }
     }

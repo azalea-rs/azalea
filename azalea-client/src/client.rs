@@ -13,9 +13,10 @@ use azalea_core::{
     data_registry::ResolvableDataRegistry, identifier::Identifier, position::Vec3, tick::GameTick,
 };
 use azalea_entity::{
-    EntityUpdateSystems, PlayerAbilities, Position,
+    Attributes, EntityUpdateSystems, PlayerAbilities, Position,
     dimensions::EntityDimensions,
     indexing::{EntityIdIndex, EntityUuidIndex},
+    inventory::Inventory,
     metadata::Health,
 };
 use azalea_physics::local_player::PhysicsState;
@@ -33,7 +34,6 @@ use bevy_ecs::{
     schedule::{InternedScheduleLabel, LogLevel, ScheduleBuildSettings},
 };
 use parking_lot::{Mutex, RwLock};
-use simdnbt::owned::NbtCompound;
 use thiserror::Error;
 use tokio::{
     sync::{
@@ -54,7 +54,6 @@ use crate::{
     disconnect::DisconnectEvent,
     events::Event,
     interact::BlockStatePredictionHandler,
-    inventory::Inventory,
     join::{ConnectOpts, StartJoinServerEvent},
     local_player::{Hunger, InstanceHolder, PermissionLevel, TabList},
     mining::{self},
@@ -184,7 +183,7 @@ impl Client {
     /// ```rust,no_run
     /// use azalea_client::{Account, Client};
     ///
-    /// #[tokio::main(flavor = "current_thread")]
+    /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     ///     let account = Account::offline("bot");
     ///     let (client, rx) = Client::join(account, "localhost").await?;
@@ -456,6 +455,12 @@ impl Client {
         (*self.component::<GameProfileComponent>()).clone()
     }
 
+    /// Returns the attribute values of our player, which can be used to
+    /// determine things like our movement speed.
+    pub fn attributes(&self) -> Attributes {
+        self.component::<Attributes>()
+    }
+
     /// A convenience function to get the Minecraft Uuid of a player by their
     /// username, if they're present in the tab list.
     ///
@@ -512,7 +517,7 @@ impl Client {
         &self,
         registry: &impl ResolvableDataRegistry,
     ) -> Option<Identifier> {
-        self.with_registry_holder(|registries| registry.resolve_name(registries))
+        self.with_registry_holder(|registries| registry.resolve_name(registries).cloned())
     }
     /// Resolve the given registry to its name and data and call the given
     /// function with it.
@@ -523,11 +528,11 @@ impl Client {
     /// instead.
     ///
     /// [`Enchantment`]: azalea_registry::Enchantment
-    pub fn with_resolved_registry<R>(
+    pub fn with_resolved_registry<R: ResolvableDataRegistry, Ret>(
         &self,
-        registry: impl ResolvableDataRegistry,
-        f: impl FnOnce(&Identifier, &NbtCompound) -> R,
-    ) -> Option<R> {
+        registry: R,
+        f: impl FnOnce(&Identifier, &R::DeserializesTo) -> Ret,
+    ) -> Option<Ret> {
         self.with_registry_holder(|registries| {
             registry
                 .resolve(registries)
@@ -607,6 +612,12 @@ impl Plugin for AzaleaPlugin {
 ///
 /// You can create your app with `App::new()`, but don't forget to add
 /// [`DefaultPlugins`].
+///
+/// # Panics
+///
+/// This function panics if it's called outside of a Tokio `LocalSet` (or
+/// `LocalRuntime`). This exists so Azalea doesn't unexpectedly run game ticks
+/// in the middle of blocking user code.
 #[doc(hidden)]
 pub fn start_ecs_runner(
     app: &mut SubApp,
@@ -635,7 +646,7 @@ pub fn start_ecs_runner(
 
     let (appexit_tx, appexit_rx) = oneshot::channel();
     let start_running_systems = move || {
-        tokio::spawn(async move {
+        tokio::task::spawn_local(async move {
             let appexit = run_schedule_loop(ecs_clone, outer_schedule_label).await;
             appexit_tx.send(appexit)
         });

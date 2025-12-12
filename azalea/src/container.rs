@@ -2,10 +2,11 @@ use std::{fmt, fmt::Debug};
 
 use azalea_client::{
     Client,
-    inventory::{CloseContainerEvent, ContainerClickEvent, Inventory},
+    inventory::{CloseContainerEvent, ContainerClickEvent},
     packet::game::ReceiveGamePacketEvent,
 };
 use azalea_core::position::BlockPos;
+use azalea_entity::inventory::Inventory;
 use azalea_inventory::{
     ItemStack, Menu,
     operations::{ClickOperation, PickupClick, QuickMoveClick},
@@ -185,7 +186,7 @@ impl ContainerClientExt for Client {
     }
 
     fn get_held_item(&self) -> ItemStack {
-        self.query_self::<&Inventory, _>(|inv| inv.held_item())
+        self.query_self::<&Inventory, _>(|inv| inv.held_item().clone())
     }
 }
 

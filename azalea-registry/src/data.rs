@@ -54,6 +54,10 @@ macro_rules! data_registry {
     };
 }
 
+// TODO: these should be represented as an enum with like a "Custom(u32)"
+// variant, this is necessary to have a correct `impl DefaultableComponent for
+// DamageType`
+
 data_registry! {Enchantment, "enchantment"}
 data_registry! {DimensionType, "dimension_type"}
 data_registry! {DamageKind, "damage_kind"}
@@ -68,6 +72,7 @@ data_registry! {CatVariant, "cat_variant"}
 data_registry! {PigVariant, "pig_variant"}
 data_registry! {PaintingVariant, "painting_variant"}
 data_registry! {WolfVariant, "wolf_variant"}
+data_registry! {ZombieNautilusVariant, "zombie_nautilus_variant"}
 
 data_registry! {
     /// An opaque biome identifier.

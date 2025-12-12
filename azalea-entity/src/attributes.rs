@@ -2,22 +2,49 @@
 
 use std::collections::{HashMap, hash_map};
 
-use azalea_buf::AzBuf;
-use azalea_core::identifier::Identifier;
+use azalea_core::{
+    attribute_modifier_operation::AttributeModifierOperation, identifier::Identifier,
+};
+use azalea_inventory::components::AttributeModifier;
+use azalea_registry::Attribute;
 use bevy_ecs::component::Component;
 use thiserror::Error;
 
+/// A component that contains the current attribute values for an entity.
+///
+/// Each attribute can have multiple modifiers, and these modifiers are the
+/// result of things like sprinting or enchantments.
 #[derive(Clone, Debug, Component)]
 pub struct Attributes {
     pub movement_speed: AttributeInstance,
     pub sneaking_speed: AttributeInstance,
     pub attack_speed: AttributeInstance,
     pub water_movement_efficiency: AttributeInstance,
+    pub mining_efficiency: AttributeInstance,
 
     pub block_interaction_range: AttributeInstance,
     pub entity_interaction_range: AttributeInstance,
 
     pub step_height: AttributeInstance,
+}
+
+impl Attributes {
+    /// Returns a mutable reference to the [`AttributeInstance`] for the given
+    /// attribute, or `None` if the attribute isn't implemented.
+    pub fn get_mut(&mut self, attribute: Attribute) -> Option<&mut AttributeInstance> {
+        let value = match attribute {
+            Attribute::MovementSpeed => &mut self.movement_speed,
+            Attribute::SneakingSpeed => &mut self.sneaking_speed,
+            Attribute::AttackSpeed => &mut self.attack_speed,
+            Attribute::WaterMovementEfficiency => &mut self.water_movement_efficiency,
+            Attribute::MiningEfficiency => &mut self.mining_efficiency,
+            Attribute::BlockInteractionRange => &mut self.block_interaction_range,
+            Attribute::EntityInteractionRange => &mut self.entity_interaction_range,
+            Attribute::StepHeight => &mut self.step_height,
+            _ => return None,
+        };
+        Some(value)
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -76,20 +103,6 @@ impl AttributeInstance {
     pub fn remove(&mut self, id: &Identifier) -> Option<AttributeModifier> {
         self.modifiers_by_id.remove(id)
     }
-}
-
-#[derive(Clone, Debug, AzBuf, PartialEq)]
-pub struct AttributeModifier {
-    pub id: Identifier,
-    pub amount: f64,
-    pub operation: AttributeModifierOperation,
-}
-
-#[derive(Clone, Debug, Copy, AzBuf, PartialEq)]
-pub enum AttributeModifierOperation {
-    AddValue,
-    AddMultipliedBase,
-    AddMultipliedTotal,
 }
 
 pub fn sprinting_modifier() -> AttributeModifier {

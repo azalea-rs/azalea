@@ -3,8 +3,8 @@ use serde::Serialize;
 
 use crate::identifier::Identifier;
 
-#[derive(Clone, Debug, PartialEq, AzBuf, Serialize)]
+#[derive(Clone, Debug, PartialEq, AzBuf, Serialize, simdnbt::Deserialize)]
 pub struct CustomSound {
-    pub location: Identifier,
-    pub fixed_range: Option<f32>,
+    pub sound_id: Identifier,
+    pub range: Option<f32>,
 }

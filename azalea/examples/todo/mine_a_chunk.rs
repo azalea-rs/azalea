@@ -1,6 +1,6 @@
 use azalea::{prelude::*, swarm::prelude::*};
 
-#[tokio::main(flavor = "current_thread")]
+#[tokio::main]
 async fn main() {
     let mut accounts = Vec::new();
     let mut states = Vec::new();
