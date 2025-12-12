@@ -40,7 +40,7 @@ fn handle_receive_hello_event(
     // configurable. that component should've definitely been inserted by now, but
     // if it somehow wasn't then we should let the user know.
     let connect_opts = if let Ok(opts) = query.get(client) {
-        opts.auth_proxy.clone()
+        opts.sessionserver_proxy.clone()
     } else {
         warn!("ConnectOpts component missing on a client ({client}) that got ReceiveHelloEvent");
         None

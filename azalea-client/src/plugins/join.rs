@@ -79,7 +79,7 @@ pub struct ConnectOpts {
     ///
     /// This is useful to set if a server has `prevent-proxy-connections`
     /// enabled.
-    pub auth_proxy: Option<Proxy>,
+    pub sessionserver_proxy: Option<Proxy>,
 }
 
 /// An event that's sent when creating the TCP connection and sending the first

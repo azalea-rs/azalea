@@ -471,7 +471,7 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
         uuid: &Uuid,
         private_key: [u8; 16],
         packet: &ClientboundHello,
-        auth_proxy: Option<Proxy>,
+        sessionserver_proxy: Option<Proxy>,
     ) -> Result<(), ClientSessionServerError> {
         use azalea_auth::sessionserver::{self, SessionServerJoinOpts};
 
@@ -481,7 +481,7 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
             private_key: &private_key,
             uuid,
             server_id: &packet.server_id,
-            proxy: auth_proxy.map(Proxy::into),
+            proxy: sessionserver_proxy.map(Proxy::into),
         })
         .await
     }

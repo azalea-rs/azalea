@@ -749,7 +749,7 @@ impl Swarm {
             .custom_resolved_address
             .unwrap_or_else(|| *self.resolved_address.read());
         let server_proxy = join_opts.server_proxy.clone();
-        let auth_proxy = join_opts.auth_proxy.clone();
+        let sessionserver_proxy = join_opts.sessionserver_proxy.clone();
 
         let (tx, rx) = mpsc::unbounded_channel();
 
@@ -760,7 +760,7 @@ impl Swarm {
                 address,
                 resolved_address,
                 server_proxy,
-                auth_proxy,
+                sessionserver_proxy,
             },
             event_sender: Some(tx),
         })

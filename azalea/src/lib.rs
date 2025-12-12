@@ -275,7 +275,7 @@ pub struct JoinOpts {
     ///
     /// This is useful to set if a server has `prevent-proxy-connections`
     /// enabled.
-    pub auth_proxy: Option<Proxy>,
+    pub sessionserver_proxy: Option<Proxy>,
     /// Override the server address that this specific bot will send in the
     /// handshake packet.
     pub custom_address: Option<ServerAddress>,
@@ -293,8 +293,8 @@ impl JoinOpts {
         if let Some(proxy) = other.server_proxy.clone() {
             self.server_proxy = Some(proxy);
         }
-        if let Some(proxy) = other.auth_proxy.clone() {
-            self.auth_proxy = Some(proxy);
+        if let Some(proxy) = other.sessionserver_proxy.clone() {
+            self.sessionserver_proxy = Some(proxy);
         }
         if let Some(custom_address) = other.custom_address.clone() {
             self.custom_address = Some(custom_address);
@@ -309,10 +309,10 @@ impl JoinOpts {
     ///
     /// To configure these separately, for example to only use the proxy for the
     /// Minecraft server and not for authentication, you may use
-    /// [`Self::server_proxy`] and [`Self::auth_proxy`] individually.
+    /// [`Self::server_proxy`] and [`Self::sessionserver_proxy`] individually.
     #[must_use]
     pub fn proxy(self, proxy: Proxy) -> Self {
-        self.server_proxy(proxy.clone()).auth_proxy(proxy)
+        self.server_proxy(proxy.clone()).sessionserver_proxy(proxy)
     }
     /// Configure the SOCKS5 proxy that will be used for connecting to the
     /// Minecraft server.
@@ -320,7 +320,7 @@ impl JoinOpts {
     /// To avoid errors on servers with the "prevent-proxy-connections" option
     /// set, you should usually use [`Self::proxy`] instead.
     ///
-    /// Also see [`Self::auth_proxy`].
+    /// Also see [`Self::sessionserver_proxy`].
     #[must_use]
     pub fn server_proxy(mut self, proxy: Proxy) -> Self {
         self.server_proxy = Some(proxy);
@@ -331,8 +331,8 @@ impl JoinOpts {
     ///
     /// Also see [`Self::proxy`] and [`Self::server_proxy`].
     #[must_use]
-    pub fn auth_proxy(mut self, proxy: Proxy) -> Self {
-        self.auth_proxy = Some(proxy);
+    pub fn sessionserver_proxy(mut self, proxy: Proxy) -> Self {
+        self.sessionserver_proxy = Some(proxy);
         self
     }
 
