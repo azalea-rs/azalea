@@ -1,3 +1,4 @@
+#![doc = include_str!("../README.md")]
 #![allow(clippy::derived_hash_with_manual_eq)]
 
 pub mod attributes;

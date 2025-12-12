@@ -1,14 +1,4 @@
-//! A low-level crate to send and receive Minecraft packets.
-//!
-//! You should probably use [`azalea`] or [`azalea_client`] instead, as
-//! `azalea_protocol` delegates much of the work, such as auth, to the user of
-//! the crate.
-//!
-//! [`azalea`]: https://crates.io/crates/azalea
-//! [`azalea_client`]: https://crates.io/crates/azalea-client
-//!
-//! See [`crate::connect::Connection`] for an example.
-
+#![doc = include_str!("../README.md")]
 // this is necessary for thiserror backtraces
 #![feature(error_generic_member_access)]
 

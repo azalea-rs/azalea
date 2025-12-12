@@ -1,1 +1,3 @@
-The Minecraft world representation used in Azalea.
+# `azalea-world`
+
+The Minecraft world representation used by Azalea.

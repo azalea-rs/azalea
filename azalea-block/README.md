@@ -1,6 +1,8 @@
+# `azalea-block`
+
 Representation of Minecraft block states.
 
-There's three block types, used for different things. You can (mostly) convert between them with `.into()`.
+There are three block types, used for different things. You can (mostly) convert between them with `.into()`.
 
 ## `BlockState` struct
 
@@ -43,7 +45,7 @@ if let Some(jukebox) = Box::<dyn BlockTrait>::from(block_state).downcast_ref::<a
 ```
 
 
-## `azalea_registry::builtin::BlockKind` enum
+## `azalea_registry::builtin::BlockKind`
 
 This one isn't from the `azalea-block` crate, but it's still very relevant. It's an enum that contains every block type as a variant *without* containing any state data (unlike `BlockState` and `BlockTrait`). Converting this into any other block type will use the default state for that block.
 

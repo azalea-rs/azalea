@@ -1,5 +1,4 @@
-//! Representations of various inventory data structures in Minecraft.
-
+#![doc = include_str!("../README.md")]
 #![feature(min_specialization)]
 
 pub mod components;
