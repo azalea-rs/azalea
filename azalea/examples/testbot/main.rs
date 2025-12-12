@@ -33,7 +33,7 @@ use commands::{CommandSource, register_commands};
 use parking_lot::Mutex;
 
 #[tokio::main]
-async fn main() {
+async fn main() -> AppExit {
     let args = parse_args();
 
     thread::spawn(deadlock_detection_thread);
@@ -65,7 +65,6 @@ async fn main() {
         })
         .start(join_address)
         .await
-        .unwrap();
 }
 
 /// Runs a loop that checks for deadlocks every 10 seconds.

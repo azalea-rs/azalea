@@ -9,7 +9,7 @@ struct State {
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() -> AppExit {
     let account = Account::offline("bot");
     // or let bot = Account::microsoft("email").await;
 
@@ -17,7 +17,6 @@ async fn main() {
         .set_handler(handle)
         .start(account, "localhost")
         .await
-        .unwrap();
 }
 
 async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {

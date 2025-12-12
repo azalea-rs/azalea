@@ -1,8 +1,8 @@
-use std::{net::SocketAddr, sync::Arc};
+use std::sync::Arc;
 
 use azalea_entity::{LocalEntity, indexing::EntityUuidIndex};
 use azalea_protocol::{
-    ServerAddress,
+    address::ResolvedAddr,
     common::client_information::ClientInformation,
     connect::{Connection, ConnectionError, Proxy},
     packets::{
@@ -59,13 +59,11 @@ pub struct StartJoinServerEvent {
 
 /// Options for how the connection to the server will be made.
 ///
-/// These are persisted on reconnects.
-///
-/// This is inserted as a component on clients to make auto-reconnecting work.
+/// These are persisted on reconnects. This is inserted as a component on
+/// clients to make auto-reconnecting work.
 #[derive(Debug, Clone, Component)]
 pub struct ConnectOpts {
-    pub address: ServerAddress,
-    pub resolved_address: SocketAddr,
+    pub address: ResolvedAddr,
     pub proxy: Option<Proxy>,
 }
 
@@ -159,15 +157,15 @@ async fn create_conn_and_send_intention_packet(
     opts: ConnectOpts,
 ) -> Result<LoginConn, ConnectionError> {
     let mut conn = if let Some(proxy) = opts.proxy {
-        Connection::new_with_proxy(&opts.resolved_address, proxy).await?
+        Connection::new_with_proxy(&opts.address.socket, proxy).await?
     } else {
-        Connection::new(&opts.resolved_address).await?
+        Connection::new(&opts.address.socket).await?
     };
 
     conn.write(ServerboundIntention {
         protocol_version: PROTOCOL_VERSION,
-        hostname: opts.address.host.clone(),
-        port: opts.address.port,
+        hostname: opts.address.server.host.clone(),
+        port: opts.address.server.port,
         intention: ClientIntention::Login,
     })
     .await?;

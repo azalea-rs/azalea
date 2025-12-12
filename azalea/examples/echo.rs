@@ -3,7 +3,7 @@
 use azalea::prelude::*;
 
 #[tokio::main]
-async fn main() {
+async fn main() -> AppExit {
     let account = Account::offline("bot");
     // or let account = Account::microsoft("email").await.unwrap();
 
@@ -11,7 +11,6 @@ async fn main() {
         .set_handler(handle)
         .start(account, "localhost")
         .await
-        .unwrap();
 }
 
 #[derive(Default, Clone, Component)]

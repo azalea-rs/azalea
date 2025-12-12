@@ -32,6 +32,7 @@ pub use azalea_core::{
 pub use azalea_entity as entity;
 pub use azalea_physics as physics;
 pub use azalea_protocol as protocol;
+use azalea_protocol::address::{ResolvableAddr, ServerAddr};
 pub use azalea_registry as registry;
 pub use azalea_world as world;
 pub use bevy_app as app;
@@ -39,24 +40,14 @@ use bevy_app::AppExit;
 pub use bevy_ecs as ecs;
 use ecs::component::Component;
 use futures::{Future, future::BoxFuture};
-use protocol::{ServerAddress, connect::Proxy, resolve::ResolveError};
+use protocol::connect::Proxy;
 use swarm::SwarmBuilder;
-use thiserror::Error;
 
 use crate::bot::DefaultBotPlugins;
 
 pub type BoxHandleFn<S, R> =
     Box<dyn Fn(Client, azalea_client::Event, S) -> BoxFuture<'static, R> + Send>;
 pub type HandleFn<S, Fut> = fn(Client, azalea_client::Event, S) -> Fut;
-
-/// An error related to resolving the server address when starting a client.
-#[derive(Error, Debug)]
-pub enum StartError {
-    #[error("Invalid address")]
-    InvalidAddress,
-    #[error(transparent)]
-    ResolveAddress(#[from] ResolveError),
-}
 
 /// A builder for creating new [`Client`]s. This is the recommended way of
 /// making a bot.
@@ -208,20 +199,17 @@ where
     ///
     /// If the client can't join, it'll keep retrying forever until it can.
     ///
-    /// The `address` argument can be a `&str`, [`ServerAddress`], or anything
-    /// that implements `TryInto<ServerAddress>`.
+    /// The `address` argument can be a `&str`, [`ServerAddr`],
+    /// [`ResolvedAddr`], or anything else that implements [`ResolvableAddr`].
     ///
     /// # Errors
     ///
     /// This will error if the given address is invalid or couldn't be resolved
     /// to a Minecraft server.
     ///
-    /// [`ServerAddress`]: azalea_protocol::ServerAddress
-    pub async fn start(
-        mut self,
-        account: Account,
-        address: impl TryInto<ServerAddress>,
-    ) -> Result<AppExit, StartError> {
+    /// [`ServerAddr`]: azalea_protocol::address::ServerAddr
+    /// [`ResolvedAddr`]: azalea_protocol::address::ResolvedAddr
+    pub async fn start(mut self, account: Account, address: impl ResolvableAddr) -> AppExit {
         self.swarm.accounts = vec![(account, JoinOpts::default())];
         if self.swarm.states.is_empty() {
             self.swarm.states = vec![S::default()];
@@ -234,14 +222,14 @@ where
     pub async fn start_with_opts(
         mut self,
         account: Account,
-        address: impl TryInto<ServerAddress>,
+        address: impl ResolvableAddr,
         opts: JoinOpts,
-    ) -> Result<AppExit, StartError> {
+    ) -> AppExit {
         self.swarm.accounts = vec![(account, opts.clone())];
         if self.swarm.states.is_empty() {
             self.swarm.states = vec![S::default()];
         }
-        self.swarm.start_with_default_opts(address, opts).await
+        self.swarm.start_with_opts(address, opts).await
     }
 }
 impl Default for ClientBuilder<NoState, ()> {
@@ -268,10 +256,12 @@ pub struct JoinOpts {
     pub proxy: Option<Proxy>,
     /// Override the server address that this specific bot will send in the
     /// handshake packet.
-    pub custom_address: Option<ServerAddress>,
-    /// Override the socket address that this specific bot will use to connect
+    #[doc(alias = "custom_address")]
+    pub custom_server_addr: Option<ServerAddr>,
+    /// Override the IP and port that this specific bot will use to connect
     /// to the server.
-    pub custom_resolved_address: Option<SocketAddr>,
+    #[doc(alias = "custom_resolved_address")]
+    pub custom_socket_addr: Option<SocketAddr>,
 }
 
 impl JoinOpts {
@@ -283,11 +273,11 @@ impl JoinOpts {
         if let Some(proxy) = other.proxy.clone() {
             self.proxy = Some(proxy);
         }
-        if let Some(custom_address) = other.custom_address.clone() {
-            self.custom_address = Some(custom_address);
+        if let Some(custom_server_addr) = other.custom_server_addr.clone() {
+            self.custom_server_addr = Some(custom_server_addr);
         }
-        if let Some(custom_resolved_address) = other.custom_resolved_address {
-            self.custom_resolved_address = Some(custom_resolved_address);
+        if let Some(custom_socket_addr) = other.custom_socket_addr {
+            self.custom_socket_addr = Some(custom_socket_addr);
         }
     }
 
@@ -299,15 +289,26 @@ impl JoinOpts {
     }
     /// Set the custom address that this bot will send in the handshake packet.
     #[must_use]
-    pub fn custom_address(mut self, custom_address: ServerAddress) -> Self {
-        self.custom_address = Some(custom_address);
+    pub fn custom_server_addr(mut self, server_addr: ServerAddr) -> Self {
+        self.custom_server_addr = Some(server_addr);
         self
     }
     /// Set the custom resolved address that this bot will use to connect to the
     /// server.
     #[must_use]
-    pub fn custom_resolved_address(mut self, custom_resolved_address: SocketAddr) -> Self {
-        self.custom_resolved_address = Some(custom_resolved_address);
+    pub fn custom_socket_addr(mut self, socket_addr: SocketAddr) -> Self {
+        self.custom_socket_addr = Some(socket_addr);
         self
+    }
+
+    #[doc(hidden)]
+    #[deprecated = "renamed to `custom_server_addr`."]
+    pub fn custom_address(self, server_addr: ServerAddr) -> Self {
+        self.custom_server_addr(server_addr)
+    }
+    #[doc(hidden)]
+    #[deprecated = "renamed to `custom_socket_addr`."]
+    pub fn custom_resolved_address(self, socket_addr: SocketAddr) -> Self {
+        self.custom_socket_addr(socket_addr)
     }
 }

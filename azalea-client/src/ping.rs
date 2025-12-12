@@ -3,7 +3,7 @@
 use std::io;
 
 use azalea_protocol::{
-    ServerAddress,
+    address::{ResolvableAddr, ServerAddr},
     connect::{Connection, ConnectionError, Proxy},
     packets::{
         ClientIntention, PROTOCOL_VERSION,
@@ -23,7 +23,7 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum PingError {
     #[error("{0}")]
-    Resolver(#[from] resolve::ResolveError),
+    Resolve(#[from] resolve::ResolveError),
     #[error("{0}")]
     Connection(#[from] ConnectionError),
     #[error("{0}")]
@@ -48,23 +48,21 @@ pub enum PingError {
 /// }
 /// ```
 pub async fn ping_server(
-    address: impl TryInto<ServerAddress>,
+    address: impl ResolvableAddr,
 ) -> Result<ClientboundStatusResponse, PingError> {
-    let address: ServerAddress = address.try_into().map_err(|_| PingError::InvalidAddress)?;
-    let resolved_address = resolve::resolve_address(&address).await?;
-    let conn = Connection::new(&resolved_address).await?;
-    ping_server_with_connection(address, conn).await
+    let address = address.resolve().await?;
+    let conn = Connection::new(&address.socket).await?;
+    ping_server_with_connection(address.server, conn).await
 }
 
 /// Ping a Minecraft server through a Socks5 proxy.
 pub async fn ping_server_with_proxy(
-    address: impl TryInto<ServerAddress>,
+    address: impl ResolvableAddr,
     proxy: Proxy,
 ) -> Result<ClientboundStatusResponse, PingError> {
-    let address: ServerAddress = address.try_into().map_err(|_| PingError::InvalidAddress)?;
-    let resolved_address = resolve::resolve_address(&address).await?;
-    let conn = Connection::new_with_proxy(&resolved_address, proxy).await?;
-    ping_server_with_connection(address, conn).await
+    let address = address.resolve().await?;
+    let conn = Connection::new_with_proxy(&address.socket, proxy).await?;
+    ping_server_with_connection(address.server, conn).await
 }
 
 /// Ping a Minecraft server after we've already created a [`Connection`].
@@ -72,7 +70,7 @@ pub async fn ping_server_with_proxy(
 /// The `Connection` must still be in the handshake state (which is the state
 /// it's in immediately after it's created).
 pub async fn ping_server_with_connection(
-    address: ServerAddress,
+    address: ServerAddr,
     mut conn: Connection<ClientboundHandshakePacket, ServerboundHandshakePacket>,
 ) -> Result<ClientboundStatusResponse, PingError> {
     // send the client intention packet and switch to the status state
