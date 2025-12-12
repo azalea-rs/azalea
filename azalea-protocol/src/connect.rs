@@ -299,6 +299,7 @@ impl Display for Proxy {
     }
 }
 
+#[cfg(feature = "online-mode")]
 impl From<Proxy> for reqwest::Proxy {
     fn from(proxy: Proxy) -> Self {
         reqwest::Proxy::all(proxy.to_string())

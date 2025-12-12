@@ -17,7 +17,7 @@ azalea-block.workspace = true
 azalea-brigadier = { workspace = true, features = ["azalea-buf"] }
 azalea-buf.workspace = true
 azalea-chat = { workspace = true, features = ["numbers", "azalea-buf"] }
-azalea-core = { workspace = true, optional = true }
+azalea-core.workspace = true
 azalea-crypto = { workspace = true, features = ["signing"] }
 azalea-entity.workspace = true
 azalea-inventory.workspace = true
@@ -44,9 +44,8 @@ indexmap.workspace = true
 reqwest = { workspace = true, optional = true, features = ["socks"] }
 
 [features]
-default = ["packets", "online-mode"]
+default = ["online-mode"]
 connecting = []
-packets = ["connecting", "dep:azalea-core"]
 online-mode = ["azalea-auth/online-mode", "dep:reqwest"]
 
 [lints]

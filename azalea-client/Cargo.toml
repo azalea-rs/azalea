@@ -17,7 +17,7 @@ azalea-crypto.workspace = true
 azalea-entity.workspace = true
 azalea-inventory.workspace = true
 azalea-physics.workspace = true
-azalea-protocol = { workspace = true, features = ["packets", "connecting"] }
+azalea-protocol = { workspace = true, features = ["connecting"] }
 azalea-registry.workspace = true
 azalea-world.workspace = true
 bevy_app.workspace = true

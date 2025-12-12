@@ -119,7 +119,7 @@ pub async fn auth_with_account(
     let private_key = encrypt_res.secret_key;
 
     #[cfg(not(feature = "online-mode"))]
-    let _ = account;
+    let _ = (account, proxy);
 
     #[cfg(feature = "online-mode")]
     if packet.should_authenticate {
