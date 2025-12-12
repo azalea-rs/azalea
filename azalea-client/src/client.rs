@@ -124,14 +124,39 @@ impl StartClientOpts {
             connect_opts: ConnectOpts {
                 address,
                 resolved_address,
-                proxy: None,
+                server_proxy: None,
+                sessionserver_proxy: None,
             },
             event_sender,
         }
     }
 
-    pub fn proxy(mut self, proxy: Proxy) -> Self {
-        self.connect_opts.proxy = Some(proxy);
+    /// Configure the SOCKS5 proxy used for connecting to the server and for
+    /// authenticating with Mojang.
+    ///
+    /// To configure these separately, for example to only use the proxy for the
+    /// Minecraft server and not for authentication, you may use
+    /// [`Self::server_proxy`] and [`Self::sessionserver_proxy`] individually.
+    pub fn proxy(self, proxy: Proxy) -> Self {
+        self.server_proxy(proxy.clone()).sessionserver_proxy(proxy)
+    }
+    /// Configure the SOCKS5 proxy that will be used for connecting to the
+    /// Minecraft server.
+    ///
+    /// To avoid errors on servers with the "prevent-proxy-connections" option
+    /// set, you should usually use [`Self::proxy`] instead.
+    ///
+    /// Also see [`Self::sessionserver_proxy`].
+    pub fn server_proxy(mut self, proxy: Proxy) -> Self {
+        self.connect_opts.server_proxy = Some(proxy);
+        self
+    }
+    /// Configure the SOCKS5 proxy that this bot will use for authenticating the
+    /// server join with Mojang's API.
+    ///
+    /// Also see [`Self::proxy`] and [`Self::server_proxy`].
+    pub fn sessionserver_proxy(mut self, proxy: Proxy) -> Self {
+        self.connect_opts.sessionserver_proxy = Some(proxy);
         self
     }
 }
@@ -161,7 +186,7 @@ impl Client {
     /// ```rust,no_run
     /// use azalea_client::{Account, Client};
     ///
-    /// #[tokio::main(flavor = "current_thread")]
+    /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     ///     let account = Account::offline("bot");
     ///     let (client, rx) = Client::join(account, "localhost").await?;
@@ -590,6 +615,12 @@ impl Plugin for AzaleaPlugin {
 ///
 /// You can create your app with `App::new()`, but don't forget to add
 /// [`DefaultPlugins`].
+///
+/// # Panics
+///
+/// This function panics if it's called outside of a Tokio `LocalSet` (or
+/// `LocalRuntime`). This exists so Azalea doesn't unexpectedly run game ticks
+/// in the middle of blocking user code.
 #[doc(hidden)]
 pub fn start_ecs_runner(
     app: &mut SubApp,
@@ -618,7 +649,7 @@ pub fn start_ecs_runner(
 
     let (appexit_tx, appexit_rx) = oneshot::channel();
     let start_running_systems = move || {
-        tokio::spawn(async move {
+        tokio::task::spawn_local(async move {
             let appexit = run_schedule_loop(ecs_clone, outer_schedule_label).await;
             appexit_tx.send(appexit)
         });
