@@ -139,9 +139,9 @@ impl Simulation {
         f(self.app.world().entity(self.entity).get::<T>().unwrap());
     }
     pub fn query_self<D: QueryData, R>(&mut self, f: impl FnOnce(QueryItem<D>) -> R) -> R {
-        let mut ecs = self.app.world_mut();
+        let ecs = self.app.world_mut();
         let mut qs = ecs.query::<D>();
-        let res = qs.get_mut(&mut ecs, self.entity).unwrap_or_else(|_| {
+        let res = qs.get_mut(ecs, self.entity).unwrap_or_else(|_| {
             panic!(
                 "Our client is missing a required component {:?}",
                 any::type_name::<D>()

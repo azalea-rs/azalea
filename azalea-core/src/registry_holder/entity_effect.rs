@@ -179,7 +179,7 @@ impl Deserialize for PlaySound {
             // strings.
             list.strings()
                 .ok_or(DeserializeError::MissingField)?
-                .into_iter()
+                .iter()
                 .map(|s| {
                     SoundEvent::from_str(&s.to_str())
                         .map(Holder::Reference)

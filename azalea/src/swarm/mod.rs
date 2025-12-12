@@ -642,7 +642,7 @@ pub enum SwarmEvent {
     /// from this event.
     ///
     /// [`SwarmBuilder::reconnect_delay`]: crate::swarm::SwarmBuilder::reconnect_after
-    Disconnect(Box<Account>, JoinOpts),
+    Disconnect(Box<Account>, Box<JoinOpts>),
     /// At least one bot received a chat message.
     Chat(ChatPacket),
 }
@@ -834,7 +834,10 @@ impl Swarm {
                     .get_component::<Account>()
                     .expect("bot is missing required Account component");
                 swarm_tx
-                    .send(SwarmEvent::Disconnect(Box::new(account), join_opts.clone()))
+                    .send(SwarmEvent::Disconnect(
+                        Box::new(account),
+                        Box::new(join_opts.clone()),
+                    ))
                     .unwrap();
             }
 
