@@ -6,7 +6,7 @@ use azalea::{BlockPos, pathfinder::goals::RadiusGoal, prelude::*};
 use azalea_inventory::{ItemStack, operations::QuickMoveClick};
 use parking_lot::Mutex;
 
-#[tokio::main(flavor = "current_thread")]
+#[tokio::main]
 async fn main() {
     let account = Account::offline("bot");
     // or let bot = Account::microsoft("email").await.unwrap();

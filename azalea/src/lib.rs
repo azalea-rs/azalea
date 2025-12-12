@@ -63,7 +63,7 @@ pub enum StartError {
 ///
 /// ```no_run
 /// # use azalea::prelude::*;
-/// # #[tokio::main(flavor = "current_thread")]
+/// # #[tokio::main]
 /// # async fn main() {
 /// ClientBuilder::new()
 ///     .set_handler(handle)

@@ -158,7 +158,7 @@ impl Client {
     /// ```rust,no_run
     /// use azalea_client::{Account, Client};
     ///
-    /// #[tokio::main(flavor = "current_thread")]
+    /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     ///     let account = Account::offline("bot");
     ///     let (client, rx) = Client::join(account, "localhost").await?;
@@ -587,6 +587,12 @@ impl Plugin for AzaleaPlugin {
 ///
 /// You can create your app with `App::new()`, but don't forget to add
 /// [`DefaultPlugins`].
+///
+/// # Panics
+///
+/// This function panics if it's called outside of a Tokio `LocalSet` (or
+/// `LocalRuntime`). This exists so Azalea doesn't unexpectedly run game ticks
+/// in the middle of blocking user code.
 #[doc(hidden)]
 pub fn start_ecs_runner(
     app: &mut SubApp,
@@ -615,7 +621,7 @@ pub fn start_ecs_runner(
 
     let (appexit_tx, appexit_rx) = oneshot::channel();
     let start_running_systems = move || {
-        tokio::spawn(async move {
+        tokio::task::spawn_local(async move {
             let appexit = run_schedule_loop(ecs_clone, outer_schedule_label).await;
             appexit_tx.send(appexit)
         });
