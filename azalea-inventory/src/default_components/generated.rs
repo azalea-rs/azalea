@@ -10,7 +10,6 @@ use azalea_core::attribute_modifier_operation::AttributeModifierOperation;
 use azalea_registry::{
     DataRegistry, HolderSet,
     builtin::{Attribute, BlockKind, EntityKind, ItemKind, MobEffect, SoundEvent},
-    data,
 };
 use simdnbt::owned::NbtCompound;
 
@@ -2989,33 +2988,33 @@ impl DefaultableComponent for Bees {
 impl DefaultableComponent for BlockState {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::BeeNest => HashMap::from_iter([("honey_level".to_string(), "0".to_string())]),
-            ItemKind::Beehive => HashMap::from_iter([("honey_level".to_string(), "0".to_string())]),
+            ItemKind::BeeNest => HashMap::from_iter([("honey_level".to_owned(), "0".to_owned())]),
+            ItemKind::Beehive => HashMap::from_iter([("honey_level".to_owned(), "0".to_owned())]),
             ItemKind::CopperGolemStatue => {
-                HashMap::from_iter([("copper_golem_pose".to_string(), "standing".to_string())])
+                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
             }
             ItemKind::ExposedCopperGolemStatue => {
-                HashMap::from_iter([("copper_golem_pose".to_string(), "standing".to_string())])
+                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
             }
-            ItemKind::Light => HashMap::from_iter([("level".to_string(), "15".to_string())]),
+            ItemKind::Light => HashMap::from_iter([("level".to_owned(), "15".to_owned())]),
             ItemKind::OxidizedCopperGolemStatue => {
-                HashMap::from_iter([("copper_golem_pose".to_string(), "standing".to_string())])
+                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
             }
-            ItemKind::TestBlock => HashMap::from_iter([("mode".to_string(), "start".to_string())]),
+            ItemKind::TestBlock => HashMap::from_iter([("mode".to_owned(), "start".to_owned())]),
             ItemKind::WaxedCopperGolemStatue => {
-                HashMap::from_iter([("copper_golem_pose".to_string(), "standing".to_string())])
+                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
             }
             ItemKind::WaxedExposedCopperGolemStatue => {
-                HashMap::from_iter([("copper_golem_pose".to_string(), "standing".to_string())])
+                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
             }
             ItemKind::WaxedOxidizedCopperGolemStatue => {
-                HashMap::from_iter([("copper_golem_pose".to_string(), "standing".to_string())])
+                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
             }
             ItemKind::WaxedWeatheredCopperGolemStatue => {
-                HashMap::from_iter([("copper_golem_pose".to_string(), "standing".to_string())])
+                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
             }
             ItemKind::WeatheredCopperGolemStatue => {
-                HashMap::from_iter([("copper_golem_pose".to_string(), "standing".to_string())])
+                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
             }
             _ => return None,
         };
@@ -6281,7 +6280,9 @@ impl DefaultableComponent for Fireworks {
 impl DefaultableComponent for Instrument {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::GoatHorn => Instrument::Registry(data::Instrument::new_raw(0)),
+            ItemKind::GoatHorn => {
+                Instrument::Registry(azalea_registry::data::Instrument::new_raw(0))
+            }
             _ => return None,
         };
         Some(value)

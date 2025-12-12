@@ -182,7 +182,8 @@ use std::collections::HashMap;
 use azalea_chat::translatable_component::TranslatableComponent;
 use azalea_core::attribute_modifier_operation::AttributeModifierOperation;
 use azalea_registry::{
-    Attribute, BlockKind, DataRegistry, EntityKind, HolderSet, ItemKind, MobEffect, SoundEvent,
+    DataRegistry, HolderSet,
+    builtin::{Attribute, BlockKind, EntityKind, ItemKind, MobEffect, SoundEvent},
 };
 use simdnbt::owned::NbtCompound;
 
@@ -298,14 +299,14 @@ use crate::{
             hashmap_key = hashmap_key.strip()
             hashmap_value = hashmap_value.strip()
 
-            # HashMap::from_iter([("honey_level".to_string(), "0".to_string())])
+            # HashMap::from_iter([("honey_level".to_owned(), "0".to_owned())])
             t = "HashMap::from_iter(["
             for k, v in python_value.items():
                 t += f"({python_to_rust_value(k, hashmap_key)}, {python_to_rust_value(v, hashmap_value)}),"
             t = t.rstrip(",") + "])"
             return t
         elif target_rust_type == "String":
-            return f'"{python_value}".to_string()'
+            return f'"{python_value}".to_owned()'
         elif target_rust_type == "&str":
             if isinstance(python_value, dict):
                 return python_to_rust_value(
@@ -410,8 +411,9 @@ use crate::{
             fields_for_rust_type = enum_and_struct_fields.get(target_rust_type, [])
             if "Referenced(Identifier)" in fields_for_rust_type:
                 return f"{target_rust_type}::Referenced({python_to_rust_value(python_value, 'Identifier')})"
-            elif "Registry(registry::Instrument)" in fields_for_rust_type:
-                return f"{target_rust_type}::Registry({python_to_rust_value(python_value, 'azalea_registry::Instrument')})"
+            elif "Registry(data::Instrument)" in fields_for_rust_type:
+                # TODO
+                return f"{target_rust_type}::Registry(azalea_registry::data::Instrument::new_raw(0))"
             elif target_rust_type.startswith("HolderSet<"):
                 holderset_type = target_rust_type.split("<", 1)[1].split(",", 1)[0]
                 main_vec = python_to_rust_value(
