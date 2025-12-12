@@ -5,7 +5,7 @@ use std::collections::HashSet;
 
 use azalea_block::{BlockState, BlockTrait, fluid_state::FluidKind, properties};
 use azalea_core::{
-    position::{BlockPos, ChunkPos, Vec3},
+    position::{BlockPos, ChunkPos},
     tick::GameTick,
 };
 use azalea_registry::{builtin::BlockKind, tags};
@@ -60,12 +60,12 @@ impl Plugin for EntityPlugin {
                     add_dead,
                     clamp_look_direction,
                     update_on_climbable,
-                    (update_dimensions, update_bounding_box, update_fluid_on_eyes).chain(),
+                    (update_dimensions, update_bounding_box).chain(),
                     update_crouching,
                 ),
             ),
         )
-        .add_systems(GameTick, update_in_loaded_chunk)
+        .add_systems(GameTick, (update_in_loaded_chunk, update_fluid_on_eyes))
         .init_resource::<EntityUuidIndex>();
     }
 }
@@ -109,7 +109,7 @@ pub fn update_fluid_on_eyes(
         };
 
         let adjusted_eye_y = position.y + (dimensions.eye_height as f64) - 0.1111111119389534;
-        let eye_block_pos = BlockPos::from(Vec3::new(position.x, adjusted_eye_y, position.z));
+        let eye_block_pos = BlockPos::from(position.with_y(adjusted_eye_y));
         let fluid_at_eye = instance
             .read()
             .get_fluid_state(eye_block_pos)

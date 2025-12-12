@@ -347,6 +347,7 @@ dependencies = [
  "bevy_log",
  "bevy_tasks",
  "bevy_time",
+ "bevy_utils",
  "chrono",
  "derive_more",
  "indexmap",

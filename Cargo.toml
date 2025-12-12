@@ -35,6 +35,7 @@ async-compat = "0.2.5"
 base64 = "0.22.1"
 bevy_app = "0.17.2"
 bevy_ecs = { version = "0.17.2", default-features = false }
+bevy_utils = { version = "0.17.2", default-features = false }
 bevy_log = "0.17.2"
 bevy_tasks = "0.17.2"
 bevy_time = "0.17.2"

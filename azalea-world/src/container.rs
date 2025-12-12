@@ -40,8 +40,9 @@ impl InstanceContainer {
         InstanceContainer::default()
     }
 
-    /// Get a world from the container. Returns `None` if none of the clients
-    /// are in this world.
+    /// Get an instance (aka world) from the container.
+    ///
+    /// Returns `None` if none of the clients are in this instance.
     pub fn get(&self, name: &InstanceName) -> Option<Arc<RwLock<Instance>>> {
         self.instances.get(name).and_then(|world| world.upgrade())
     }
@@ -92,6 +93,6 @@ impl InstanceContainer {
 ///
 /// If two entities share the same instance name, we assume they're in the
 /// same instance.
-#[derive(Component, Clone, Debug, PartialEq, Deref, DerefMut)]
+#[derive(Component, Clone, Debug, PartialEq, Deref, DerefMut, Hash, Eq)]
 #[doc(alias("worldname", "world name"))]
 pub struct InstanceName(pub Identifier);
