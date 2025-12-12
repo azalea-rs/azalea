@@ -30,6 +30,7 @@ is breaking anyways, semantic versioning is not followed.
 - Rename `azalea_protocol::resolver` to `resolve` and `ResolverError` to `ResolveError`.
 - Refactor `RegistryHolder` to pre-deserialize some registries.
 - The handler function is now automatically single-threaded, making `#[tokio::main(flavor = "current_thread")]` unnecessary.
+- Mojang's sessionserver is now requested using the SOCKS5 proxy given in `JoinOpts::proxy`.
 
 ### Fixed
 

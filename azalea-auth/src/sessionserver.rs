@@ -51,28 +51,40 @@ pub struct ForbiddenError {
     pub path: String,
 }
 
-static REQWEST_CLIENT: LazyLock<reqwest::Client> = LazyLock::new(reqwest::Client::new);
+pub struct SessionServerJoinOpts<'a> {
+    pub access_token: &'a str,
+    /// Given to us by the
+    pub public_key: &'a [u8],
+    pub private_key: &'a [u8],
+    pub uuid: &'a Uuid,
+    /// This is given to us by the server, but it's typically an empty string.
+    pub server_id: &'a str,
+
+    pub proxy: Option<reqwest::Proxy>,
+}
 
 /// Tell Mojang's servers that you are going to join a multiplayer server,
 /// which is required to join online-mode servers.
-///
-/// The server ID should typically be an empty string.
-pub async fn join(
-    access_token: &str,
-    public_key: &[u8],
-    private_key: &[u8],
-    uuid: &Uuid,
-    server_id: &str,
-) -> Result<(), ClientSessionServerError> {
-    let client = REQWEST_CLIENT.clone();
+pub async fn join(opts: SessionServerJoinOpts<'_>) -> Result<(), ClientSessionServerError> {
+    let client = if let Some(proxy) = opts.proxy {
+        // reusing the client is too complicated if we're using proxies, so don't bother
+        reqwest::ClientBuilder::new().proxy(proxy).build()?
+    } else {
+        // no_proxy so we don't check reqwest's proxy env variables (because azalea
+        // doesn't handle them when connecting to servers anyways)
+        static REQWEST_CLIENT: LazyLock<reqwest::Client> =
+            LazyLock::new(|| reqwest::ClientBuilder::new().no_proxy().build().unwrap());
+
+        REQWEST_CLIENT.clone()
+    };
 
     let server_hash = azalea_crypto::hex_digest(&azalea_crypto::digest_data(
-        server_id.as_bytes(),
-        public_key,
-        private_key,
+        opts.server_id.as_bytes(),
+        opts.public_key,
+        opts.private_key,
     ));
 
-    join_with_server_id_hash(&client, access_token, uuid, &server_hash).await
+    join_with_server_id_hash(&client, opts.access_token, opts.uuid, &server_hash).await
 }
 
 pub async fn join_with_server_id_hash(

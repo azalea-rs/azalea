@@ -64,9 +64,22 @@ pub struct StartJoinServerEvent {
 /// This is inserted as a component on clients to make auto-reconnecting work.
 #[derive(Debug, Clone, Component)]
 pub struct ConnectOpts {
+    /// The unresolved address that we're going to tell the server that we used
+    /// to connect.
     pub address: ServerAddress,
+    /// The actual IP and port that we're going to make a connection to.
     pub resolved_address: SocketAddr,
-    pub proxy: Option<Proxy>,
+    /// The SOCKS5 proxy used for connecting to the Minecraft server.
+    pub server_proxy: Option<Proxy>,
+    /// The SOCKS5 proxy that will be used when authenticating our server join
+    /// with Mojang.
+    ///
+    /// This should typically be either the same as [`Self::server_proxy`], or
+    /// `None`.
+    ///
+    /// This is useful to set if a server has `prevent-proxy-connections`
+    /// enabled.
+    pub sessionserver_proxy: Option<Proxy>,
 }
 
 /// An event that's sent when creating the TCP connection and sending the first
@@ -158,7 +171,7 @@ pub fn handle_start_join_server_event(
 async fn create_conn_and_send_intention_packet(
     opts: ConnectOpts,
 ) -> Result<LoginConn, ConnectionError> {
-    let mut conn = if let Some(proxy) = opts.proxy {
+    let mut conn = if let Some(proxy) = opts.server_proxy {
         Connection::new_with_proxy(&opts.resolved_address, proxy).await?
     } else {
         Connection::new(&opts.resolved_address).await?

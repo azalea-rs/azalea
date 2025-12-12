@@ -32,7 +32,7 @@ minecraft_folder_path.workspace = true
 parking_lot.workspace = true
 pastey.workspace = true
 regex.workspace = true
-reqwest = { workspace = true, optional = true }
+reqwest = { workspace = true, optional = true, features = ["socks"] }
 simdnbt.workspace = true
 thiserror.workspace = true
 tokio = { workspace = true, features = ["sync"] }
