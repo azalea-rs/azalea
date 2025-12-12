@@ -255,7 +255,7 @@ impl<R: Registry + Debug, Direct: AzaleaRead + AzaleaWrite + Debug> Debug for Ho
 impl<R: Registry + Clone, Direct: AzaleaRead + AzaleaWrite + Clone> Clone for Holder<R, Direct> {
     fn clone(&self) -> Self {
         match self {
-            Self::Reference(value) => Self::Reference(value.clone()),
+            Self::Reference(value) => Self::Reference(*value),
             Self::Direct(value) => Self::Direct(value.clone()),
         }
     }

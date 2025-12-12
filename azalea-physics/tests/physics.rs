@@ -5,14 +5,16 @@ use azalea_block::{
     properties::WaterLevel,
 };
 use azalea_core::{
-    identifier::Identifier,
     position::{BlockPos, ChunkPos, Vec3},
     registry_holder::RegistryHolder,
     tick::GameTick,
 };
 use azalea_entity::{EntityBundle, EntityPlugin, HasClientLoaded, LocalEntity, Physics, Position};
 use azalea_physics::PhysicsPlugin;
-use azalea_registry::builtin::{BlockKind, EntityKind};
+use azalea_registry::{
+    builtin::{BlockKind, EntityKind},
+    identifier::Identifier,
+};
 use azalea_world::{Chunk, Instance, InstanceContainer, MinecraftEntityId, PartialInstance};
 use bevy_app::App;
 use parking_lot::RwLock;

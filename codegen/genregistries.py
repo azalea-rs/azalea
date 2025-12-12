@@ -19,10 +19,12 @@ def generate(version_id: str):
     fluid_tags = lib.extract.get_registry_tags(version_id, "fluid")
     entity_tags = lib.extract.get_registry_tags(version_id, "entity_type")
 
-    lib.code.tags.generate_tags(block_tags, "blocks", "BlockKind")
-    lib.code.tags.generate_tags(item_tags, "items", "ItemKind")
-    lib.code.tags.generate_tags(fluid_tags, "fluids", "Fluid")
-    lib.code.tags.generate_tags(entity_tags, "entities", "EntityKind")
+    lib.code.tags.generate_tags(builtin_registries, block_tags, "blocks", "block")
+    lib.code.tags.generate_tags(builtin_registries, item_tags, "items", "item")
+    lib.code.tags.generate_tags(builtin_registries, fluid_tags, "fluids", "fluid")
+    lib.code.tags.generate_tags(
+        builtin_registries, entity_tags, "entities", "entity_type"
+    )
 
     lib.code.utils.fmt()
 

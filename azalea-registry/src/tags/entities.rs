@@ -162,13 +162,13 @@ pub static CANNOT_BE_PUSHED_ONTO_BOATS: LazyLock<RegistryTag<EntityKind>> = Lazy
         EntityKind::ElderGuardian,
         EntityKind::GlowSquid,
         EntityKind::Nautilus,
-        EntityKind::Player,
         EntityKind::Pufferfish,
         EntityKind::Salmon,
         EntityKind::Squid,
         EntityKind::Tadpole,
         EntityKind::TropicalFish,
         EntityKind::ZombieNautilus,
+        EntityKind::Player,
     ])
 });
 pub static DEFLECTS_PROJECTILES: LazyLock<RegistryTag<EntityKind>> =
@@ -222,8 +222,8 @@ pub static FOLLOWABLE_FRIENDLY_MOBS: LazyLock<RegistryTag<EntityKind>> = LazyLoc
         EntityKind::Cow,
         EntityKind::Donkey,
         EntityKind::Fox,
-        EntityKind::Goat,
         EntityKind::HappyGhast,
+        EntityKind::Goat,
         EntityKind::Horse,
         EntityKind::Llama,
         EntityKind::Mule,
