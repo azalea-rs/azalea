@@ -5,6 +5,7 @@ use azalea_registry::{
     builtin::{
         EnchantmentEntityEffectKind as EntityEffectKind, GameEvent, ParticleKind, SoundEvent,
     },
+    data::DamageKindKey,
     identifier::Identifier,
 };
 use simdnbt::{
@@ -132,17 +133,15 @@ pub struct ChangeItemDamage {
 pub struct DamageEntity {
     pub min_damage: LevelBasedValue,
     pub max_damage: LevelBasedValue,
-    // TODO: convert to a DamageKind after azalea-registry refactor
     #[simdnbt(rename = "damage_type")]
-    pub damage_kind: Identifier,
+    pub damage_kind: DamageKindKey,
 }
 
 #[derive(Debug, Clone, simdnbt::Deserialize)]
 pub struct Explode {
     pub attribute_to_user: Option<bool>,
-    // TODO: convert to a DamageKind after azalea-registry refactor
     #[simdnbt(rename = "damage_type")]
-    pub damage_kind: Option<Identifier>,
+    pub damage_kind: Option<DamageKindKey>,
     pub knockback_multiplier: Option<LevelBasedValue>,
     pub immune_blocks: Option<HomogeneousList>,
     pub offset: Option<Vec3>,

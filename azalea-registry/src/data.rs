@@ -112,6 +112,11 @@ macro_rules! data_registry {
                 crate::DataRegistryKeyRef::into_ident(registry)
             }
         }
+        impl simdnbt::FromNbtTag for $enum_name {
+            fn from_nbt_tag(tag: simdnbt::borrow::NbtTag) -> Option<Self> {
+                simdnbt::FromNbtTag::from_nbt_tag(tag).map(Identifier::into)
+            }
+        }
     };
 }
 
