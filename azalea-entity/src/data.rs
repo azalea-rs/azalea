@@ -12,6 +12,7 @@ use azalea_core::{
     position::{BlockPos, GlobalPos, Vec3f32},
 };
 use azalea_inventory::{ItemStack, components};
+use azalea_registry::builtin::{VillagerKind, VillagerProfession};
 use bevy_ecs::component::Component;
 use derive_more::Deref;
 use enum_as_inner::EnumAsInner;
@@ -83,16 +84,16 @@ pub enum EntityDataValue {
     // 0 for absent; 1 + actual value otherwise. Used for entity IDs.
     OptionalUnsignedInt(OptionalUnsignedInt),
     Pose(Pose),
-    CatVariant(azalea_registry::CatVariant),
-    ChickenVariant(azalea_registry::ChickenVariant),
-    CowVariant(azalea_registry::CowVariant),
-    WolfVariant(azalea_registry::WolfVariant),
-    WolfSoundVariant(azalea_registry::WolfSoundVariant),
-    FrogVariant(azalea_registry::FrogVariant),
-    PigVariant(azalea_registry::PigVariant),
-    ZombieNautilusVariant(azalea_registry::ZombieNautilusVariant),
+    CatVariant(azalea_registry::data::CatVariant),
+    ChickenVariant(azalea_registry::data::ChickenVariant),
+    CowVariant(azalea_registry::data::CowVariant),
+    WolfVariant(azalea_registry::data::WolfVariant),
+    WolfSoundVariant(azalea_registry::data::WolfSoundVariant),
+    FrogVariant(azalea_registry::data::FrogVariant),
+    PigVariant(azalea_registry::data::PigVariant),
+    ZombieNautilusVariant(azalea_registry::data::ZombieNautilusVariant),
     OptionalGlobalPos(Option<GlobalPos>),
-    PaintingVariant(azalea_registry::PaintingVariant),
+    PaintingVariant(azalea_registry::data::PaintingVariant),
     SnifferState(SnifferStateKind),
     ArmadilloState(ArmadilloStateKind),
     CopperGolemState(CopperGolemStateKind),
@@ -176,8 +177,8 @@ pub enum Pose {
 
 #[derive(Debug, Clone, AzBuf, PartialEq)]
 pub struct VillagerData {
-    pub kind: azalea_registry::VillagerKind,
-    pub profession: azalea_registry::VillagerProfession,
+    pub kind: VillagerKind,
+    pub profession: VillagerProfession,
     #[var]
     pub level: u32,
 }

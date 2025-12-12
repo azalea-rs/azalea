@@ -5,7 +5,7 @@ use std::io::{self, Cursor, Write};
 
 #[cfg(feature = "azalea-buf")]
 use azalea_buf::{AzaleaRead, AzaleaWrite};
-use azalea_registry::NumberFormatKind;
+use azalea_registry::builtin::NumberFormatKind;
 use simdnbt::owned::Nbt;
 
 use crate::FormattedText;

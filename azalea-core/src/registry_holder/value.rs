@@ -1,6 +1,9 @@
 use azalea_registry::{
-    Attribute, EnchantmentLevelBasedValueKind as LevelBasedValueKind,
-    EnchantmentValueEffectKind as ValueEffectKind,
+    builtin::{
+        Attribute, EnchantmentLevelBasedValueKind as LevelBasedValueKind,
+        EnchantmentValueEffectKind as ValueEffectKind,
+    },
+    identifier::Identifier,
 };
 use simdnbt::{
     DeserializeError, FromNbtTag,
@@ -9,7 +12,6 @@ use simdnbt::{
 
 use crate::{
     attribute_modifier_operation::AttributeModifierOperation,
-    identifier::Identifier,
     registry_holder::{components::impl_from_effect_nbt_tag, get_in_compound},
 };
 

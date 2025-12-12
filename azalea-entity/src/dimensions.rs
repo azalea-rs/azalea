@@ -1,5 +1,5 @@
 use azalea_core::{aabb::Aabb, position::Vec3};
-use azalea_registry::EntityKind;
+use azalea_registry::builtin::EntityKind;
 use bevy_ecs::component::Component;
 
 use crate::Pose;

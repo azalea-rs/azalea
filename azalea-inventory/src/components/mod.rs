@@ -16,17 +16,21 @@ use azalea_core::{
     checksum::{Checksum, get_checksum},
     codec_utils::*,
     filterable::Filterable,
-    identifier::Identifier,
     position::GlobalPos,
     registry_holder::{RegistryHolder, dimension_type::DamageTypeElement},
     sound::CustomSound,
 };
 use azalea_registry::{
-    self as registry, Attribute, Block, DamageKind, DataComponentKind, Enchantment, EntityKind,
-    Holder, HolderSet, Item, MobEffect, Potion, SoundEvent, TrimMaterial, TrimPattern,
+    Holder, HolderSet,
+    builtin::{
+        Attribute, BlockKind, DataComponentKind, EntityKind, ItemKind, MobEffect, Potion,
+        SoundEvent, VillagerKind,
+    },
+    data::{self, DamageKind, Enchantment, JukeboxSong, TrimMaterial, TrimPattern},
+    identifier::Identifier,
 };
 pub use profile::*;
-use serde::{Serialize, ser::SerializeMap};
+use serde::{Serialize, Serializer, ser::SerializeMap};
 use simdnbt::owned::{Nbt, NbtCompound};
 use tracing::trace;
 
@@ -383,7 +387,7 @@ pub struct BlockStatePropertyMatcher {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct BlockPredicate {
     #[serde(skip_serializing_if = "is_default")]
-    pub blocks: Option<HolderSet<Block, Identifier>>,
+    pub blocks: Option<HolderSet<BlockKind, Identifier>>,
     #[serde(skip_serializing_if = "is_default")]
     pub properties: Option<Vec<BlockStatePropertyMatcher>>,
     #[serde(skip_serializing_if = "is_default")]
@@ -561,7 +565,7 @@ impl Food {
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct ToolRule {
-    pub blocks: HolderSet<Block, Identifier>,
+    pub blocks: HolderSet<BlockKind, Identifier>,
     #[serde(skip_serializing_if = "is_default")]
     pub speed: Option<f32>,
     #[serde(skip_serializing_if = "is_default")]
@@ -760,8 +764,8 @@ pub struct BlockEntityData {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(untagged)]
 pub enum Instrument {
-    Registry(registry::Instrument),
-    Holder(Holder<registry::Instrument, InstrumentData>),
+    Registry(data::Instrument),
+    Holder(Holder<data::Instrument, InstrumentData>),
 }
 
 #[derive(Clone, PartialEq, Debug, AzBuf, Serialize)]
@@ -889,7 +893,7 @@ pub struct BaseColor {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct PotDecorations {
-    pub items: Vec<Item>,
+    pub items: Vec<ItemKind>,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -934,7 +938,7 @@ pub struct ContainerLoot {
 #[serde(untagged)]
 pub enum JukeboxPlayable {
     Referenced(Identifier),
-    Direct(Holder<registry::JukeboxSong, JukeboxSongData>),
+    Direct(Holder<JukeboxSong, JukeboxSongData>),
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -990,7 +994,7 @@ pub enum ItemUseAnimation {
     None,
     Eat,
     Drink,
-    Block,
+    BlockKind,
     Bow,
     Spear,
     Crossbow,
@@ -1034,7 +1038,7 @@ pub struct Enchantable {
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct Repairable {
-    pub items: HolderSet<Item, Identifier>,
+    pub items: HolderSet<ItemKind, Identifier>,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -1212,13 +1216,13 @@ pub struct PotionDurationScale {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct VillagerVariant {
-    pub variant: registry::VillagerKind,
+    pub variant: VillagerKind,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct WolfVariant {
-    pub variant: registry::WolfVariant,
+    pub variant: data::WolfVariant,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -1230,7 +1234,30 @@ pub struct WolfCollar {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct FoxVariant {
-    pub variant: registry::FoxVariant,
+    pub variant: FoxVariantKind,
+}
+
+#[derive(Default, AzBuf, Clone, Copy, Debug, PartialEq)]
+pub enum FoxVariantKind {
+    #[default]
+    Red,
+    Snow,
+}
+impl Display for FoxVariantKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Red => write!(f, "minecraft:red"),
+            Self::Snow => write!(f, "minecraft:snow"),
+        }
+    }
+}
+impl Serialize for FoxVariantKind {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
 }
 
 #[derive(Clone, Copy, PartialEq, AzBuf, Debug, Serialize)]
@@ -1244,7 +1271,34 @@ pub enum SalmonSize {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct ParrotVariant {
-    pub variant: registry::ParrotVariant,
+    pub variant: ParrotVariantKind,
+}
+#[derive(AzBuf, Clone, Copy, Debug, PartialEq)]
+pub enum ParrotVariantKind {
+    RedBlue,
+    Blue,
+    Green,
+    YellowBlue,
+    Gray,
+}
+impl Display for ParrotVariantKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::RedBlue => write!(f, "minecraft:red_blue"),
+            Self::Blue => write!(f, "minecraft:blue"),
+            Self::Green => write!(f, "minecraft:green"),
+            Self::YellowBlue => write!(f, "minecraft:yellow_blue"),
+            Self::Gray => write!(f, "minecraft:gray"),
+        }
+    }
+}
+impl Serialize for ParrotVariantKind {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
 }
 
 #[derive(Clone, Copy, PartialEq, AzBuf, Debug, Serialize)]
@@ -1279,37 +1333,123 @@ pub struct TropicalFishPatternColor {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct MooshroomVariant {
-    pub variant: registry::MooshroomVariant,
+    pub variant: MooshroomVariantKind,
+}
+#[derive(Default, AzBuf, Clone, Copy, Debug, PartialEq)]
+pub enum MooshroomVariantKind {
+    #[default]
+    Red,
+    Brown,
+}
+impl Display for MooshroomVariantKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Red => write!(f, "minecraft:red"),
+            Self::Brown => write!(f, "minecraft:brown"),
+        }
+    }
+}
+impl Serialize for MooshroomVariantKind {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct RabbitVariant {
-    pub variant: registry::RabbitVariant,
+    pub variant: RabbitVariantKind,
+}
+#[derive(Default, AzBuf, Clone, Copy, Debug, PartialEq)]
+pub enum RabbitVariantKind {
+    #[default]
+    Brown,
+    White,
+    Black,
+    WhiteSplotched,
+    Gold,
+    Salt,
+    Evil,
+}
+impl Display for RabbitVariantKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Brown => write!(f, "minecraft:brown"),
+            Self::White => write!(f, "minecraft:white"),
+            Self::Black => write!(f, "minecraft:black"),
+            Self::WhiteSplotched => write!(f, "minecraft:white_splotched"),
+            Self::Gold => write!(f, "minecraft:gold"),
+            Self::Salt => write!(f, "minecraft:salt"),
+            Self::Evil => write!(f, "minecraft:evil"),
+        }
+    }
+}
+impl Serialize for RabbitVariantKind {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct PigVariant {
-    pub variant: registry::PigVariant,
+    pub variant: data::PigVariant,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct FrogVariant {
-    pub variant: registry::FrogVariant,
+    pub variant: data::FrogVariant,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct HorseVariant {
-    pub variant: registry::HorseVariant,
+    pub variant: HorseVariantKind,
+}
+#[derive(Default, AzBuf, Clone, Copy, Debug, PartialEq)]
+pub enum HorseVariantKind {
+    #[default]
+    White,
+    Creamy,
+    Chestnut,
+    Brown,
+    Black,
+    Gray,
+    DarkBrown,
+}
+impl Display for HorseVariantKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::White => write!(f, "minecraft:white"),
+            Self::Creamy => write!(f, "minecraft:creamy"),
+            Self::Chestnut => write!(f, "minecraft:chestnut"),
+            Self::Brown => write!(f, "minecraft:brown"),
+            Self::Black => write!(f, "minecraft:black"),
+            Self::Gray => write!(f, "minecraft:gray"),
+            Self::DarkBrown => write!(f, "minecraft:dark_brown"),
+        }
+    }
+}
+impl Serialize for HorseVariantKind {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct PaintingVariant {
-    pub variant: Holder<registry::PaintingVariant, PaintingVariantData>,
+    pub variant: Holder<data::PaintingVariant, PaintingVariantData>,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -1328,19 +1468,73 @@ pub struct PaintingVariantData {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct LlamaVariant {
-    pub variant: registry::LlamaVariant,
+    pub variant: LlamaVariantKind,
+}
+#[derive(Default, AzBuf, Clone, Copy, Debug, PartialEq)]
+pub enum LlamaVariantKind {
+    #[default]
+    Creamy,
+    White,
+    Brown,
+    Gray,
+}
+impl Display for LlamaVariantKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Creamy => write!(f, "minecraft:creamy"),
+            Self::White => write!(f, "minecraft:white"),
+            Self::Brown => write!(f, "minecraft:brown"),
+            Self::Gray => write!(f, "minecraft:gray"),
+        }
+    }
+}
+impl Serialize for LlamaVariantKind {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct AxolotlVariant {
-    pub variant: registry::AxolotlVariant,
+    pub variant: AxolotlVariantKind,
+}
+#[derive(Default, AzBuf, Clone, Copy, Debug, PartialEq)]
+pub enum AxolotlVariantKind {
+    #[default]
+    Lucy,
+    Wild,
+    Gold,
+    Cyan,
+    Blue,
+}
+impl Display for AxolotlVariantKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Lucy => write!(f, "minecraft:lucy"),
+            Self::Wild => write!(f, "minecraft:wild"),
+            Self::Gold => write!(f, "minecraft:gold"),
+            Self::Cyan => write!(f, "minecraft:cyan"),
+            Self::Blue => write!(f, "minecraft:blue"),
+        }
+    }
+}
+impl Serialize for AxolotlVariantKind {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct CatVariant {
-    pub variant: registry::CatVariant,
+    pub variant: data::CatVariant,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -1495,13 +1689,13 @@ pub struct BreakSound {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct WolfSoundVariant {
-    pub variant: azalea_registry::WolfSoundVariant,
+    pub variant: azalea_registry::data::WolfSoundVariant,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct CowVariant {
-    pub variant: azalea_registry::CowVariant,
+    pub variant: azalea_registry::data::CowVariant,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -1513,7 +1707,7 @@ pub enum ChickenVariant {
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct ChickenVariantData {
-    pub registry: azalea_registry::ChickenVariant,
+    pub registry: azalea_registry::data::ChickenVariant,
 }
 
 // TODO: check in-game if this is correct
@@ -1525,7 +1719,7 @@ pub enum ZombieNautilusVariant {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct ZombieNautilusVariantData {
-    pub value: azalea_registry::ZombieNautilusVariant,
+    pub value: azalea_registry::data::ZombieNautilusVariant,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -1559,8 +1753,8 @@ pub struct MinimumAttackCharge {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(untagged)]
 pub enum DamageType {
-    Registry(registry::DamageKind),
-    Holder(Holder<registry::DamageKind, DamageTypeElement>),
+    Registry(DamageKind),
+    Holder(Holder<DamageKind, DamageTypeElement>),
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]

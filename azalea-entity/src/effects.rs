@@ -5,7 +5,7 @@ use std::{
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
 use azalea_core::bitset::FixedBitSet;
-use azalea_registry::MobEffect;
+use azalea_registry::builtin::MobEffect;
 use bevy_ecs::component::Component;
 
 /// Data about an active mob effect.

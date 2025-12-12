@@ -10,7 +10,7 @@ use azalea_protocol::packets::game::{
     s_container_close::ServerboundContainerClose,
     s_set_carried_item::ServerboundSetCarriedItem,
 };
-use azalea_registry::MenuKind;
+use azalea_registry::builtin::MenuKind;
 use azalea_world::{InstanceContainer, InstanceName};
 use bevy_app::{App, Plugin};
 use bevy_ecs::prelude::*;
@@ -25,6 +25,7 @@ use crate::{
 
 // TODO: when this is removed, remove the Inv alias above (which just exists to
 // avoid conflicting with this pub deprecated type)
+#[doc(hidden)]
 #[deprecated = "moved to `azalea_entity::inventory::Inventory`."]
 pub type Inventory = azalea_entity::inventory::Inventory;
 

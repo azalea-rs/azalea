@@ -47,7 +47,7 @@ def generate(version_id: str):
 
 def get_expected_variants(version_id: str):
     expected_variants = []
-    registries = lib.extract.get_registries_report(version_id)
+    registries = lib.extract.get_builtin_registries_report(version_id)
 
     registry = registries["minecraft:data_component_type"]
     registry_entries = sorted(
@@ -182,7 +182,7 @@ use std::collections::HashMap;
 use azalea_chat::translatable_component::TranslatableComponent;
 use azalea_core::attribute_modifier_operation::AttributeModifierOperation;
 use azalea_registry::{
-    Attribute, Block, DataRegistry, EntityKind, HolderSet, Item, MobEffect, SoundEvent,
+    Attribute, BlockKind, DataRegistry, EntityKind, HolderSet, ItemKind, MobEffect, SoundEvent,
 };
 use simdnbt::owned::NbtCompound;
 
@@ -207,7 +207,7 @@ use crate::{
                 component_value
             )
 
-    registries = lib.extract.get_registries_report(version_id)
+    registries = lib.extract.get_builtin_registries_report(version_id)
     item_resource_id_to_protocol_id = {}
     item_resource_ids = [None] * len(registries["minecraft:item"]["entries"])
     for item_resource_id, item_data in registries["minecraft:item"]["entries"].items():
@@ -358,7 +358,7 @@ use crate::{
                     list(python_value.values())[0], target_rust_type
                 )
             elif target_rust_type == "ItemStack":
-                item_rust_value = python_to_rust_value(python_value["id"], "Item")
+                item_rust_value = python_to_rust_value(python_value["id"], "ItemKind")
                 count = python_value["count"]
                 if count == 1:
                     return f"ItemStack::from({item_rust_value})"
@@ -430,7 +430,7 @@ use crate::{
             elif target_rust_type == "DamageType":
                 # TODO: this is intentionally incorrect, see the comment in
                 # azalea-registry/src/data.rs to see how to fix this properly
-                return "DamageType::Registry(azalea_registry::DamageKind::new_raw(0))"
+                return "DamageType::Registry(azalea_registry::data::DamageKind::new_raw(0))"
             else:
                 # enum variant
                 return f"{target_rust_type}::{lib.utils.to_camel_case(python_value.split(':')[-1])}"
@@ -464,9 +464,9 @@ use crate::{
                     tag_name = lib.utils.to_snake_case(v.split(":")[-1]).upper()
                     if inner_type == "EntityKind":
                         tag_module = "entities"
-                    elif inner_type == "Item":
+                    elif inner_type == "ItemKind":
                         tag_module = "items"
-                    elif inner_type == "Block":
+                    elif inner_type == "BlockKind":
                         tag_module = "blocks"
                     else:
                         tag_module = "FIXME_UNKNOWN_MODULE"
@@ -561,7 +561,9 @@ use crate::{
             if len(values_set) == 1:
                 # always returns the same value
                 code.append(f"impl DefaultableComponent for {component_struct_name} {{")
-                code.append("    fn default_for_item(_item: Item) -> Option<Self> {")
+                code.append(
+                    "    fn default_for_item(_item: ItemKind) -> Option<Self> {"
+                )
                 value = next(iter(values_set))
                 code.append(f"        Some({transform_value_fn(value)})")
                 code.append("    }")
@@ -587,7 +589,7 @@ use crate::{
             code.append(static_def_line)
 
             code.append(f"impl DefaultableComponent for {component_struct_name} {{")
-            code.append("    fn default_for_item(item: Item) -> Option<Self> {")
+            code.append("    fn default_for_item(item: ItemKind) -> Option<Self> {")
             code.append(f"        let value = {static_values_name}[item as usize];")
             if none_value_is_used:
                 code.append(f"        if value == {none_value} {{")
@@ -599,18 +601,22 @@ use crate::{
         elif includes_every_item_but_mostly_same_values:
             code.append(f"impl DefaultableComponent for {component_struct_name} {{")
             if default_values_count_except_most_common > 0:
-                code.append("    fn default_for_item(item: Item) -> Option<Self> {")
+                code.append("    fn default_for_item(item: ItemKind) -> Option<Self> {")
                 code.append("        let value = match item {")
                 for item_resource_id, value in item_defaults.items():
                     if value == most_common_default_value:
                         continue
                     item_variant_name = lib.utils.to_camel_case(item_resource_id)
-                    code.append(f"            Item::{item_variant_name} => {value},")
+                    code.append(
+                        f"            ItemKind::{item_variant_name} => {value},"
+                    )
                 code.append(f"            _ => {most_common_default_value},")
                 code.append("        };")
                 code.append(f"        Some({transform_value_fn('value')})")
             else:
-                code.append("    fn default_for_item(_item: Item) -> Option<Self> {")
+                code.append(
+                    "    fn default_for_item(_item: ItemKind) -> Option<Self> {"
+                )
                 code.append(
                     f"        Some({transform_value_fn(most_common_default_value)})"
                 )
@@ -618,11 +624,11 @@ use crate::{
             code.append("}")
         else:
             code.append(f"impl DefaultableComponent for {component_struct_name} {{")
-            code.append("    fn default_for_item(item: Item) -> Option<Self> {")
+            code.append("    fn default_for_item(item: ItemKind) -> Option<Self> {")
             code.append("        let value = match item {")
             for item_resource_id, value in item_defaults.items():
                 item_variant_name = lib.utils.to_camel_case(item_resource_id)
-                code.append(f"            Item::{item_variant_name} => {value},")
+                code.append(f"            ItemKind::{item_variant_name} => {value},")
             code.append("            _ => return None,")
             code.append("        };")
             code.append(f"        Some({transform_value_fn('value')})")

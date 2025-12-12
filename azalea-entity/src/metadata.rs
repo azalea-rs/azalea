@@ -9,7 +9,7 @@ use azalea_core::{
     position::{BlockPos, Vec3f32},
 };
 use azalea_inventory::{ItemStack, components};
-use azalea_registry::DataRegistry;
+use azalea_registry::{DataRegistry, builtin::EntityKind};
 use bevy_ecs::{bundle::Bundle, component::Component};
 use derive_more::{Deref, DerefMut};
 use thiserror::Error;
@@ -1692,7 +1692,7 @@ pub struct InSittingPose(pub bool);
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Owneruuid(pub Option<Uuid>);
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct CatVariant(pub azalea_registry::CatVariant);
+pub struct CatVariant(pub azalea_registry::data::CatVariant);
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct IsLying(pub bool);
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
@@ -1791,7 +1791,7 @@ impl Default for CatMetadataBundle {
                 in_sitting_pose: InSittingPose(false),
                 owneruuid: Owneruuid(None),
             },
-            cat_variant: CatVariant(azalea_registry::CatVariant::new_raw(0)),
+            cat_variant: CatVariant(azalea_registry::data::CatVariant::new_raw(0)),
             is_lying: IsLying(false),
             relax_state_one: RelaxStateOne(false),
             cat_collar_color: CatCollarColor(Default::default()),
@@ -2050,7 +2050,7 @@ impl Default for ChestMinecartMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct ChickenVariant(pub azalea_registry::PigVariant);
+pub struct ChickenVariant(pub azalea_registry::data::PigVariant);
 #[derive(Component)]
 pub struct Chicken;
 impl Chicken {
@@ -2125,7 +2125,7 @@ impl Default for ChickenMetadataBundle {
                     abstract_ageable_baby: AbstractAgeableBaby(false),
                 },
             },
-            chicken_variant: ChickenVariant(azalea_registry::PigVariant::new_raw(0)),
+            chicken_variant: ChickenVariant(azalea_registry::data::PigVariant::new_raw(0)),
         }
     }
 }
@@ -2351,7 +2351,7 @@ impl Default for CopperGolemMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct CowVariant(pub azalea_registry::ChickenVariant);
+pub struct CowVariant(pub azalea_registry::data::ChickenVariant);
 #[derive(Component)]
 pub struct Cow;
 impl Cow {
@@ -2426,7 +2426,7 @@ impl Default for CowMetadataBundle {
                     abstract_ageable_baby: AbstractAgeableBaby(false),
                 },
             },
-            cow_variant: CowVariant(azalea_registry::ChickenVariant::new_raw(0)),
+            cow_variant: CowVariant(azalea_registry::data::ChickenVariant::new_raw(0)),
         }
     }
 }
@@ -4141,7 +4141,7 @@ impl Default for FoxMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct FrogVariant(pub azalea_registry::WolfSoundVariant);
+pub struct FrogVariant(pub azalea_registry::data::WolfSoundVariant);
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct TongueTarget(pub OptionalUnsignedInt);
 #[derive(Component)]
@@ -4222,7 +4222,7 @@ impl Default for FrogMetadataBundle {
                     abstract_ageable_baby: AbstractAgeableBaby(false),
                 },
             },
-            frog_variant: FrogVariant(azalea_registry::WolfSoundVariant::new_raw(0)),
+            frog_variant: FrogVariant(azalea_registry::data::WolfSoundVariant::new_raw(0)),
             tongue_target: TongueTarget(OptionalUnsignedInt(None)),
         }
     }
@@ -6826,7 +6826,7 @@ impl Default for OminousItemSpawnerMetadataBundle {
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct PaintingDirection(pub Direction);
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct PaintingVariant(pub azalea_registry::PaintingVariant);
+pub struct PaintingVariant(pub azalea_registry::data::PaintingVariant);
 #[derive(Component)]
 pub struct Painting;
 impl Painting {
@@ -6877,7 +6877,7 @@ impl Default for PaintingMetadataBundle {
                 ticks_frozen: TicksFrozen(Default::default()),
             },
             painting_direction: PaintingDirection(Default::default()),
-            painting_variant: PaintingVariant(azalea_registry::PaintingVariant::new_raw(0)),
+            painting_variant: PaintingVariant(azalea_registry::data::PaintingVariant::new_raw(0)),
         }
     }
 }
@@ -7355,7 +7355,7 @@ impl Default for PhantomMetadataBundle {
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct PigBoostTime(pub i32);
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct PigVariant(pub azalea_registry::FrogVariant);
+pub struct PigVariant(pub azalea_registry::data::FrogVariant);
 #[derive(Component)]
 pub struct Pig;
 impl Pig {
@@ -7435,7 +7435,7 @@ impl Default for PigMetadataBundle {
                 },
             },
             pig_boost_time: PigBoostTime(0),
-            pig_variant: PigVariant(azalea_registry::FrogVariant::new_raw(0)),
+            pig_variant: PigVariant(azalea_registry::data::FrogVariant::new_raw(0)),
         }
     }
 }
@@ -10294,8 +10294,8 @@ impl Default for VillagerMetadataBundle {
                 abstract_villager_unhappy_counter: AbstractVillagerUnhappyCounter(0),
             },
             villager_villager_data: VillagerVillagerData(VillagerData {
-                kind: azalea_registry::VillagerKind::Plains,
-                profession: azalea_registry::VillagerProfession::None,
+                kind: azalea_registry::builtin::VillagerKind::Plains,
+                profession: azalea_registry::builtin::VillagerProfession::None,
                 level: 0,
             }),
         }
@@ -10875,9 +10875,9 @@ pub struct WolfCollarColor(pub i32);
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct WolfAngerEndTime(pub i64);
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct WolfVariant(pub azalea_registry::CowVariant);
+pub struct WolfVariant(pub azalea_registry::data::CowVariant);
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct SoundVariant(pub azalea_registry::WolfVariant);
+pub struct SoundVariant(pub azalea_registry::data::WolfVariant);
 #[derive(Component)]
 pub struct Wolf;
 impl Wolf {
@@ -10977,8 +10977,8 @@ impl Default for WolfMetadataBundle {
             wolf_interested: WolfInterested(false),
             wolf_collar_color: WolfCollarColor(Default::default()),
             wolf_anger_end_time: WolfAngerEndTime(-1),
-            wolf_variant: WolfVariant(azalea_registry::CowVariant::new_raw(0)),
-            sound_variant: SoundVariant(azalea_registry::WolfVariant::new_raw(0)),
+            wolf_variant: WolfVariant(azalea_registry::data::CowVariant::new_raw(0)),
+            sound_variant: SoundVariant(azalea_registry::data::WolfVariant::new_raw(0)),
         }
     }
 }
@@ -11225,7 +11225,7 @@ impl Default for ZombieHorseMetadataBundle {
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct ZombieNautilusDash(pub bool);
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct ZombieNautilusVariant(pub azalea_registry::ZombieNautilusVariant);
+pub struct ZombieNautilusVariant(pub azalea_registry::data::ZombieNautilusVariant);
 #[derive(Component)]
 pub struct ZombieNautilus;
 impl ZombieNautilus {
@@ -11314,7 +11314,7 @@ impl Default for ZombieNautilusMetadataBundle {
             },
             zombie_nautilus_dash: ZombieNautilusDash(false),
             zombie_nautilus_variant: ZombieNautilusVariant(
-                azalea_registry::ZombieNautilusVariant::new_raw(0),
+                azalea_registry::data::ZombieNautilusVariant::new_raw(0),
             ),
         }
     }
@@ -11406,8 +11406,8 @@ impl Default for ZombieVillagerMetadataBundle {
             },
             converting: Converting(false),
             zombie_villager_villager_data: ZombieVillagerVillagerData(VillagerData {
-                kind: azalea_registry::VillagerKind::Plains,
-                profession: azalea_registry::VillagerProfession::None,
+                kind: azalea_registry::builtin::VillagerKind::Plains,
+                profession: azalea_registry::builtin::VillagerProfession::None,
                 level: 0,
             }),
         }
@@ -13139,791 +13139,791 @@ impl Default for AbstractVillagerMetadataBundle {
 
 pub fn apply_metadata(
     entity: &mut bevy_ecs::system::EntityCommands,
-    entity_kind: azalea_registry::EntityKind,
+    entity_kind: EntityKind,
     items: Vec<EntityDataItem>,
 ) -> Result<(), UpdateMetadataError> {
     match entity_kind {
-        azalea_registry::EntityKind::AcaciaBoat => {
+        EntityKind::AcaciaBoat => {
             for d in items {
                 AcaciaBoat::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::AcaciaChestBoat => {
+        EntityKind::AcaciaChestBoat => {
             for d in items {
                 AcaciaChestBoat::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Allay => {
+        EntityKind::Allay => {
             for d in items {
                 Allay::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::AreaEffectCloud => {
+        EntityKind::AreaEffectCloud => {
             for d in items {
                 AreaEffectCloud::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Armadillo => {
+        EntityKind::Armadillo => {
             for d in items {
                 Armadillo::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::ArmorStand => {
+        EntityKind::ArmorStand => {
             for d in items {
                 ArmorStand::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Arrow => {
+        EntityKind::Arrow => {
             for d in items {
                 Arrow::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Axolotl => {
+        EntityKind::Axolotl => {
             for d in items {
                 Axolotl::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::BambooChestRaft => {
+        EntityKind::BambooChestRaft => {
             for d in items {
                 BambooChestRaft::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::BambooRaft => {
+        EntityKind::BambooRaft => {
             for d in items {
                 BambooRaft::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Bat => {
+        EntityKind::Bat => {
             for d in items {
                 Bat::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Bee => {
+        EntityKind::Bee => {
             for d in items {
                 Bee::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::BirchBoat => {
+        EntityKind::BirchBoat => {
             for d in items {
                 BirchBoat::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::BirchChestBoat => {
+        EntityKind::BirchChestBoat => {
             for d in items {
                 BirchChestBoat::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Blaze => {
+        EntityKind::Blaze => {
             for d in items {
                 Blaze::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::BlockDisplay => {
+        EntityKind::BlockDisplay => {
             for d in items {
                 BlockDisplay::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Bogged => {
+        EntityKind::Bogged => {
             for d in items {
                 Bogged::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Breeze => {
+        EntityKind::Breeze => {
             for d in items {
                 Breeze::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::BreezeWindCharge => {
+        EntityKind::BreezeWindCharge => {
             for d in items {
                 BreezeWindCharge::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Camel => {
+        EntityKind::Camel => {
             for d in items {
                 Camel::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::CamelHusk => {
+        EntityKind::CamelHusk => {
             for d in items {
                 CamelHusk::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Cat => {
+        EntityKind::Cat => {
             for d in items {
                 Cat::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::CaveSpider => {
+        EntityKind::CaveSpider => {
             for d in items {
                 CaveSpider::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::CherryBoat => {
+        EntityKind::CherryBoat => {
             for d in items {
                 CherryBoat::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::CherryChestBoat => {
+        EntityKind::CherryChestBoat => {
             for d in items {
                 CherryChestBoat::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::ChestMinecart => {
+        EntityKind::ChestMinecart => {
             for d in items {
                 ChestMinecart::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Chicken => {
+        EntityKind::Chicken => {
             for d in items {
                 Chicken::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Cod => {
+        EntityKind::Cod => {
             for d in items {
                 Cod::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::CommandBlockMinecart => {
+        EntityKind::CommandBlockMinecart => {
             for d in items {
                 CommandBlockMinecart::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::CopperGolem => {
+        EntityKind::CopperGolem => {
             for d in items {
                 CopperGolem::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Cow => {
+        EntityKind::Cow => {
             for d in items {
                 Cow::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Creaking => {
+        EntityKind::Creaking => {
             for d in items {
                 Creaking::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Creeper => {
+        EntityKind::Creeper => {
             for d in items {
                 Creeper::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::DarkOakBoat => {
+        EntityKind::DarkOakBoat => {
             for d in items {
                 DarkOakBoat::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::DarkOakChestBoat => {
+        EntityKind::DarkOakChestBoat => {
             for d in items {
                 DarkOakChestBoat::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Dolphin => {
+        EntityKind::Dolphin => {
             for d in items {
                 Dolphin::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Donkey => {
+        EntityKind::Donkey => {
             for d in items {
                 Donkey::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::DragonFireball => {
+        EntityKind::DragonFireball => {
             for d in items {
                 DragonFireball::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Drowned => {
+        EntityKind::Drowned => {
             for d in items {
                 Drowned::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Egg => {
+        EntityKind::Egg => {
             for d in items {
                 Egg::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::ElderGuardian => {
+        EntityKind::ElderGuardian => {
             for d in items {
                 ElderGuardian::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::EndCrystal => {
+        EntityKind::EndCrystal => {
             for d in items {
                 EndCrystal::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::EnderDragon => {
+        EntityKind::EnderDragon => {
             for d in items {
                 EnderDragon::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::EnderPearl => {
+        EntityKind::EnderPearl => {
             for d in items {
                 EnderPearl::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Enderman => {
+        EntityKind::Enderman => {
             for d in items {
                 Enderman::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Endermite => {
+        EntityKind::Endermite => {
             for d in items {
                 Endermite::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Evoker => {
+        EntityKind::Evoker => {
             for d in items {
                 Evoker::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::EvokerFangs => {
+        EntityKind::EvokerFangs => {
             for d in items {
                 EvokerFangs::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::ExperienceBottle => {
+        EntityKind::ExperienceBottle => {
             for d in items {
                 ExperienceBottle::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::ExperienceOrb => {
+        EntityKind::ExperienceOrb => {
             for d in items {
                 ExperienceOrb::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::EyeOfEnder => {
+        EntityKind::EyeOfEnder => {
             for d in items {
                 EyeOfEnder::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::FallingBlock => {
+        EntityKind::FallingBlock => {
             for d in items {
                 FallingBlock::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Fireball => {
+        EntityKind::Fireball => {
             for d in items {
                 Fireball::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::FireworkRocket => {
+        EntityKind::FireworkRocket => {
             for d in items {
                 FireworkRocket::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::FishingBobber => {
+        EntityKind::FishingBobber => {
             for d in items {
                 FishingBobber::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Fox => {
+        EntityKind::Fox => {
             for d in items {
                 Fox::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Frog => {
+        EntityKind::Frog => {
             for d in items {
                 Frog::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::FurnaceMinecart => {
+        EntityKind::FurnaceMinecart => {
             for d in items {
                 FurnaceMinecart::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Ghast => {
+        EntityKind::Ghast => {
             for d in items {
                 Ghast::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Giant => {
+        EntityKind::Giant => {
             for d in items {
                 Giant::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::GlowItemFrame => {
+        EntityKind::GlowItemFrame => {
             for d in items {
                 GlowItemFrame::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::GlowSquid => {
+        EntityKind::GlowSquid => {
             for d in items {
                 GlowSquid::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Goat => {
+        EntityKind::Goat => {
             for d in items {
                 Goat::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Guardian => {
+        EntityKind::Guardian => {
             for d in items {
                 Guardian::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::HappyGhast => {
+        EntityKind::HappyGhast => {
             for d in items {
                 HappyGhast::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Hoglin => {
+        EntityKind::Hoglin => {
             for d in items {
                 Hoglin::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::HopperMinecart => {
+        EntityKind::HopperMinecart => {
             for d in items {
                 HopperMinecart::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Horse => {
+        EntityKind::Horse => {
             for d in items {
                 Horse::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Husk => {
+        EntityKind::Husk => {
             for d in items {
                 Husk::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Illusioner => {
+        EntityKind::Illusioner => {
             for d in items {
                 Illusioner::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Interaction => {
+        EntityKind::Interaction => {
             for d in items {
                 Interaction::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::IronGolem => {
+        EntityKind::IronGolem => {
             for d in items {
                 IronGolem::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Item => {
+        EntityKind::Item => {
             for d in items {
                 Item::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::ItemDisplay => {
+        EntityKind::ItemDisplay => {
             for d in items {
                 ItemDisplay::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::ItemFrame => {
+        EntityKind::ItemFrame => {
             for d in items {
                 ItemFrame::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::JungleBoat => {
+        EntityKind::JungleBoat => {
             for d in items {
                 JungleBoat::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::JungleChestBoat => {
+        EntityKind::JungleChestBoat => {
             for d in items {
                 JungleChestBoat::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::LeashKnot => {
+        EntityKind::LeashKnot => {
             for d in items {
                 LeashKnot::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::LightningBolt => {
+        EntityKind::LightningBolt => {
             for d in items {
                 LightningBolt::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::LingeringPotion => {
+        EntityKind::LingeringPotion => {
             for d in items {
                 LingeringPotion::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Llama => {
+        EntityKind::Llama => {
             for d in items {
                 Llama::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::LlamaSpit => {
+        EntityKind::LlamaSpit => {
             for d in items {
                 LlamaSpit::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::MagmaCube => {
+        EntityKind::MagmaCube => {
             for d in items {
                 MagmaCube::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::MangroveBoat => {
+        EntityKind::MangroveBoat => {
             for d in items {
                 MangroveBoat::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::MangroveChestBoat => {
+        EntityKind::MangroveChestBoat => {
             for d in items {
                 MangroveChestBoat::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Mannequin => {
+        EntityKind::Mannequin => {
             for d in items {
                 Mannequin::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Marker => {
+        EntityKind::Marker => {
             for d in items {
                 Marker::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Minecart => {
+        EntityKind::Minecart => {
             for d in items {
                 Minecart::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Mooshroom => {
+        EntityKind::Mooshroom => {
             for d in items {
                 Mooshroom::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Mule => {
+        EntityKind::Mule => {
             for d in items {
                 Mule::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Nautilus => {
+        EntityKind::Nautilus => {
             for d in items {
                 Nautilus::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::OakBoat => {
+        EntityKind::OakBoat => {
             for d in items {
                 OakBoat::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::OakChestBoat => {
+        EntityKind::OakChestBoat => {
             for d in items {
                 OakChestBoat::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Ocelot => {
+        EntityKind::Ocelot => {
             for d in items {
                 Ocelot::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::OminousItemSpawner => {
+        EntityKind::OminousItemSpawner => {
             for d in items {
                 OminousItemSpawner::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Painting => {
+        EntityKind::Painting => {
             for d in items {
                 Painting::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::PaleOakBoat => {
+        EntityKind::PaleOakBoat => {
             for d in items {
                 PaleOakBoat::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::PaleOakChestBoat => {
+        EntityKind::PaleOakChestBoat => {
             for d in items {
                 PaleOakChestBoat::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Panda => {
+        EntityKind::Panda => {
             for d in items {
                 Panda::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Parched => {
+        EntityKind::Parched => {
             for d in items {
                 Parched::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Parrot => {
+        EntityKind::Parrot => {
             for d in items {
                 Parrot::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Phantom => {
+        EntityKind::Phantom => {
             for d in items {
                 Phantom::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Pig => {
+        EntityKind::Pig => {
             for d in items {
                 Pig::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Piglin => {
+        EntityKind::Piglin => {
             for d in items {
                 Piglin::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::PiglinBrute => {
+        EntityKind::PiglinBrute => {
             for d in items {
                 PiglinBrute::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Pillager => {
+        EntityKind::Pillager => {
             for d in items {
                 Pillager::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Player => {
+        EntityKind::Player => {
             for d in items {
                 Player::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::PolarBear => {
+        EntityKind::PolarBear => {
             for d in items {
                 PolarBear::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Pufferfish => {
+        EntityKind::Pufferfish => {
             for d in items {
                 Pufferfish::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Rabbit => {
+        EntityKind::Rabbit => {
             for d in items {
                 Rabbit::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Ravager => {
+        EntityKind::Ravager => {
             for d in items {
                 Ravager::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Salmon => {
+        EntityKind::Salmon => {
             for d in items {
                 Salmon::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Sheep => {
+        EntityKind::Sheep => {
             for d in items {
                 Sheep::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Shulker => {
+        EntityKind::Shulker => {
             for d in items {
                 Shulker::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::ShulkerBullet => {
+        EntityKind::ShulkerBullet => {
             for d in items {
                 ShulkerBullet::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Silverfish => {
+        EntityKind::Silverfish => {
             for d in items {
                 Silverfish::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Skeleton => {
+        EntityKind::Skeleton => {
             for d in items {
                 Skeleton::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::SkeletonHorse => {
+        EntityKind::SkeletonHorse => {
             for d in items {
                 SkeletonHorse::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Slime => {
+        EntityKind::Slime => {
             for d in items {
                 Slime::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::SmallFireball => {
+        EntityKind::SmallFireball => {
             for d in items {
                 SmallFireball::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Sniffer => {
+        EntityKind::Sniffer => {
             for d in items {
                 Sniffer::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::SnowGolem => {
+        EntityKind::SnowGolem => {
             for d in items {
                 SnowGolem::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Snowball => {
+        EntityKind::Snowball => {
             for d in items {
                 Snowball::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::SpawnerMinecart => {
+        EntityKind::SpawnerMinecart => {
             for d in items {
                 SpawnerMinecart::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::SpectralArrow => {
+        EntityKind::SpectralArrow => {
             for d in items {
                 SpectralArrow::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Spider => {
+        EntityKind::Spider => {
             for d in items {
                 Spider::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::SplashPotion => {
+        EntityKind::SplashPotion => {
             for d in items {
                 SplashPotion::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::SpruceBoat => {
+        EntityKind::SpruceBoat => {
             for d in items {
                 SpruceBoat::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::SpruceChestBoat => {
+        EntityKind::SpruceChestBoat => {
             for d in items {
                 SpruceChestBoat::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Squid => {
+        EntityKind::Squid => {
             for d in items {
                 Squid::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Stray => {
+        EntityKind::Stray => {
             for d in items {
                 Stray::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Strider => {
+        EntityKind::Strider => {
             for d in items {
                 Strider::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Tadpole => {
+        EntityKind::Tadpole => {
             for d in items {
                 Tadpole::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::TextDisplay => {
+        EntityKind::TextDisplay => {
             for d in items {
                 TextDisplay::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Tnt => {
+        EntityKind::Tnt => {
             for d in items {
                 Tnt::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::TntMinecart => {
+        EntityKind::TntMinecart => {
             for d in items {
                 TntMinecart::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::TraderLlama => {
+        EntityKind::TraderLlama => {
             for d in items {
                 TraderLlama::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Trident => {
+        EntityKind::Trident => {
             for d in items {
                 Trident::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::TropicalFish => {
+        EntityKind::TropicalFish => {
             for d in items {
                 TropicalFish::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Turtle => {
+        EntityKind::Turtle => {
             for d in items {
                 Turtle::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Vex => {
+        EntityKind::Vex => {
             for d in items {
                 Vex::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Villager => {
+        EntityKind::Villager => {
             for d in items {
                 Villager::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Vindicator => {
+        EntityKind::Vindicator => {
             for d in items {
                 Vindicator::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::WanderingTrader => {
+        EntityKind::WanderingTrader => {
             for d in items {
                 WanderingTrader::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Warden => {
+        EntityKind::Warden => {
             for d in items {
                 Warden::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::WindCharge => {
+        EntityKind::WindCharge => {
             for d in items {
                 WindCharge::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Witch => {
+        EntityKind::Witch => {
             for d in items {
                 Witch::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Wither => {
+        EntityKind::Wither => {
             for d in items {
                 Wither::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::WitherSkeleton => {
+        EntityKind::WitherSkeleton => {
             for d in items {
                 WitherSkeleton::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::WitherSkull => {
+        EntityKind::WitherSkull => {
             for d in items {
                 WitherSkull::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Wolf => {
+        EntityKind::Wolf => {
             for d in items {
                 Wolf::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Zoglin => {
+        EntityKind::Zoglin => {
             for d in items {
                 Zoglin::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Zombie => {
+        EntityKind::Zombie => {
             for d in items {
                 Zombie::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::ZombieHorse => {
+        EntityKind::ZombieHorse => {
             for d in items {
                 ZombieHorse::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::ZombieNautilus => {
+        EntityKind::ZombieNautilus => {
             for d in items {
                 ZombieNautilus::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::ZombieVillager => {
+        EntityKind::ZombieVillager => {
             for d in items {
                 ZombieVillager::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::ZombifiedPiglin => {
+        EntityKind::ZombifiedPiglin => {
             for d in items {
                 ZombifiedPiglin::apply_metadata(entity, d)?;
             }
@@ -13932,480 +13932,477 @@ pub fn apply_metadata(
     Ok(())
 }
 
-pub fn apply_default_metadata(
-    entity: &mut bevy_ecs::system::EntityCommands,
-    kind: azalea_registry::EntityKind,
-) {
+pub fn apply_default_metadata(entity: &mut bevy_ecs::system::EntityCommands, kind: EntityKind) {
     match kind {
-        azalea_registry::EntityKind::AcaciaBoat => {
+        EntityKind::AcaciaBoat => {
             entity.insert(AcaciaBoatMetadataBundle::default());
         }
-        azalea_registry::EntityKind::AcaciaChestBoat => {
+        EntityKind::AcaciaChestBoat => {
             entity.insert(AcaciaChestBoatMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Allay => {
+        EntityKind::Allay => {
             entity.insert(AllayMetadataBundle::default());
         }
-        azalea_registry::EntityKind::AreaEffectCloud => {
+        EntityKind::AreaEffectCloud => {
             entity.insert(AreaEffectCloudMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Armadillo => {
+        EntityKind::Armadillo => {
             entity.insert(ArmadilloMetadataBundle::default());
         }
-        azalea_registry::EntityKind::ArmorStand => {
+        EntityKind::ArmorStand => {
             entity.insert(ArmorStandMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Arrow => {
+        EntityKind::Arrow => {
             entity.insert(ArrowMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Axolotl => {
+        EntityKind::Axolotl => {
             entity.insert(AxolotlMetadataBundle::default());
         }
-        azalea_registry::EntityKind::BambooChestRaft => {
+        EntityKind::BambooChestRaft => {
             entity.insert(BambooChestRaftMetadataBundle::default());
         }
-        azalea_registry::EntityKind::BambooRaft => {
+        EntityKind::BambooRaft => {
             entity.insert(BambooRaftMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Bat => {
+        EntityKind::Bat => {
             entity.insert(BatMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Bee => {
+        EntityKind::Bee => {
             entity.insert(BeeMetadataBundle::default());
         }
-        azalea_registry::EntityKind::BirchBoat => {
+        EntityKind::BirchBoat => {
             entity.insert(BirchBoatMetadataBundle::default());
         }
-        azalea_registry::EntityKind::BirchChestBoat => {
+        EntityKind::BirchChestBoat => {
             entity.insert(BirchChestBoatMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Blaze => {
+        EntityKind::Blaze => {
             entity.insert(BlazeMetadataBundle::default());
         }
-        azalea_registry::EntityKind::BlockDisplay => {
+        EntityKind::BlockDisplay => {
             entity.insert(BlockDisplayMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Bogged => {
+        EntityKind::Bogged => {
             entity.insert(BoggedMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Breeze => {
+        EntityKind::Breeze => {
             entity.insert(BreezeMetadataBundle::default());
         }
-        azalea_registry::EntityKind::BreezeWindCharge => {
+        EntityKind::BreezeWindCharge => {
             entity.insert(BreezeWindChargeMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Camel => {
+        EntityKind::Camel => {
             entity.insert(CamelMetadataBundle::default());
         }
-        azalea_registry::EntityKind::CamelHusk => {
+        EntityKind::CamelHusk => {
             entity.insert(CamelHuskMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Cat => {
+        EntityKind::Cat => {
             entity.insert(CatMetadataBundle::default());
         }
-        azalea_registry::EntityKind::CaveSpider => {
+        EntityKind::CaveSpider => {
             entity.insert(CaveSpiderMetadataBundle::default());
         }
-        azalea_registry::EntityKind::CherryBoat => {
+        EntityKind::CherryBoat => {
             entity.insert(CherryBoatMetadataBundle::default());
         }
-        azalea_registry::EntityKind::CherryChestBoat => {
+        EntityKind::CherryChestBoat => {
             entity.insert(CherryChestBoatMetadataBundle::default());
         }
-        azalea_registry::EntityKind::ChestMinecart => {
+        EntityKind::ChestMinecart => {
             entity.insert(ChestMinecartMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Chicken => {
+        EntityKind::Chicken => {
             entity.insert(ChickenMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Cod => {
+        EntityKind::Cod => {
             entity.insert(CodMetadataBundle::default());
         }
-        azalea_registry::EntityKind::CommandBlockMinecart => {
+        EntityKind::CommandBlockMinecart => {
             entity.insert(CommandBlockMinecartMetadataBundle::default());
         }
-        azalea_registry::EntityKind::CopperGolem => {
+        EntityKind::CopperGolem => {
             entity.insert(CopperGolemMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Cow => {
+        EntityKind::Cow => {
             entity.insert(CowMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Creaking => {
+        EntityKind::Creaking => {
             entity.insert(CreakingMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Creeper => {
+        EntityKind::Creeper => {
             entity.insert(CreeperMetadataBundle::default());
         }
-        azalea_registry::EntityKind::DarkOakBoat => {
+        EntityKind::DarkOakBoat => {
             entity.insert(DarkOakBoatMetadataBundle::default());
         }
-        azalea_registry::EntityKind::DarkOakChestBoat => {
+        EntityKind::DarkOakChestBoat => {
             entity.insert(DarkOakChestBoatMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Dolphin => {
+        EntityKind::Dolphin => {
             entity.insert(DolphinMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Donkey => {
+        EntityKind::Donkey => {
             entity.insert(DonkeyMetadataBundle::default());
         }
-        azalea_registry::EntityKind::DragonFireball => {
+        EntityKind::DragonFireball => {
             entity.insert(DragonFireballMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Drowned => {
+        EntityKind::Drowned => {
             entity.insert(DrownedMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Egg => {
+        EntityKind::Egg => {
             entity.insert(EggMetadataBundle::default());
         }
-        azalea_registry::EntityKind::ElderGuardian => {
+        EntityKind::ElderGuardian => {
             entity.insert(ElderGuardianMetadataBundle::default());
         }
-        azalea_registry::EntityKind::EndCrystal => {
+        EntityKind::EndCrystal => {
             entity.insert(EndCrystalMetadataBundle::default());
         }
-        azalea_registry::EntityKind::EnderDragon => {
+        EntityKind::EnderDragon => {
             entity.insert(EnderDragonMetadataBundle::default());
         }
-        azalea_registry::EntityKind::EnderPearl => {
+        EntityKind::EnderPearl => {
             entity.insert(EnderPearlMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Enderman => {
+        EntityKind::Enderman => {
             entity.insert(EndermanMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Endermite => {
+        EntityKind::Endermite => {
             entity.insert(EndermiteMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Evoker => {
+        EntityKind::Evoker => {
             entity.insert(EvokerMetadataBundle::default());
         }
-        azalea_registry::EntityKind::EvokerFangs => {
+        EntityKind::EvokerFangs => {
             entity.insert(EvokerFangsMetadataBundle::default());
         }
-        azalea_registry::EntityKind::ExperienceBottle => {
+        EntityKind::ExperienceBottle => {
             entity.insert(ExperienceBottleMetadataBundle::default());
         }
-        azalea_registry::EntityKind::ExperienceOrb => {
+        EntityKind::ExperienceOrb => {
             entity.insert(ExperienceOrbMetadataBundle::default());
         }
-        azalea_registry::EntityKind::EyeOfEnder => {
+        EntityKind::EyeOfEnder => {
             entity.insert(EyeOfEnderMetadataBundle::default());
         }
-        azalea_registry::EntityKind::FallingBlock => {
+        EntityKind::FallingBlock => {
             entity.insert(FallingBlockMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Fireball => {
+        EntityKind::Fireball => {
             entity.insert(FireballMetadataBundle::default());
         }
-        azalea_registry::EntityKind::FireworkRocket => {
+        EntityKind::FireworkRocket => {
             entity.insert(FireworkRocketMetadataBundle::default());
         }
-        azalea_registry::EntityKind::FishingBobber => {
+        EntityKind::FishingBobber => {
             entity.insert(FishingBobberMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Fox => {
+        EntityKind::Fox => {
             entity.insert(FoxMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Frog => {
+        EntityKind::Frog => {
             entity.insert(FrogMetadataBundle::default());
         }
-        azalea_registry::EntityKind::FurnaceMinecart => {
+        EntityKind::FurnaceMinecart => {
             entity.insert(FurnaceMinecartMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Ghast => {
+        EntityKind::Ghast => {
             entity.insert(GhastMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Giant => {
+        EntityKind::Giant => {
             entity.insert(GiantMetadataBundle::default());
         }
-        azalea_registry::EntityKind::GlowItemFrame => {
+        EntityKind::GlowItemFrame => {
             entity.insert(GlowItemFrameMetadataBundle::default());
         }
-        azalea_registry::EntityKind::GlowSquid => {
+        EntityKind::GlowSquid => {
             entity.insert(GlowSquidMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Goat => {
+        EntityKind::Goat => {
             entity.insert(GoatMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Guardian => {
+        EntityKind::Guardian => {
             entity.insert(GuardianMetadataBundle::default());
         }
-        azalea_registry::EntityKind::HappyGhast => {
+        EntityKind::HappyGhast => {
             entity.insert(HappyGhastMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Hoglin => {
+        EntityKind::Hoglin => {
             entity.insert(HoglinMetadataBundle::default());
         }
-        azalea_registry::EntityKind::HopperMinecart => {
+        EntityKind::HopperMinecart => {
             entity.insert(HopperMinecartMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Horse => {
+        EntityKind::Horse => {
             entity.insert(HorseMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Husk => {
+        EntityKind::Husk => {
             entity.insert(HuskMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Illusioner => {
+        EntityKind::Illusioner => {
             entity.insert(IllusionerMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Interaction => {
+        EntityKind::Interaction => {
             entity.insert(InteractionMetadataBundle::default());
         }
-        azalea_registry::EntityKind::IronGolem => {
+        EntityKind::IronGolem => {
             entity.insert(IronGolemMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Item => {
+        EntityKind::Item => {
             entity.insert(ItemMetadataBundle::default());
         }
-        azalea_registry::EntityKind::ItemDisplay => {
+        EntityKind::ItemDisplay => {
             entity.insert(ItemDisplayMetadataBundle::default());
         }
-        azalea_registry::EntityKind::ItemFrame => {
+        EntityKind::ItemFrame => {
             entity.insert(ItemFrameMetadataBundle::default());
         }
-        azalea_registry::EntityKind::JungleBoat => {
+        EntityKind::JungleBoat => {
             entity.insert(JungleBoatMetadataBundle::default());
         }
-        azalea_registry::EntityKind::JungleChestBoat => {
+        EntityKind::JungleChestBoat => {
             entity.insert(JungleChestBoatMetadataBundle::default());
         }
-        azalea_registry::EntityKind::LeashKnot => {
+        EntityKind::LeashKnot => {
             entity.insert(LeashKnotMetadataBundle::default());
         }
-        azalea_registry::EntityKind::LightningBolt => {
+        EntityKind::LightningBolt => {
             entity.insert(LightningBoltMetadataBundle::default());
         }
-        azalea_registry::EntityKind::LingeringPotion => {
+        EntityKind::LingeringPotion => {
             entity.insert(LingeringPotionMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Llama => {
+        EntityKind::Llama => {
             entity.insert(LlamaMetadataBundle::default());
         }
-        azalea_registry::EntityKind::LlamaSpit => {
+        EntityKind::LlamaSpit => {
             entity.insert(LlamaSpitMetadataBundle::default());
         }
-        azalea_registry::EntityKind::MagmaCube => {
+        EntityKind::MagmaCube => {
             entity.insert(MagmaCubeMetadataBundle::default());
         }
-        azalea_registry::EntityKind::MangroveBoat => {
+        EntityKind::MangroveBoat => {
             entity.insert(MangroveBoatMetadataBundle::default());
         }
-        azalea_registry::EntityKind::MangroveChestBoat => {
+        EntityKind::MangroveChestBoat => {
             entity.insert(MangroveChestBoatMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Mannequin => {
+        EntityKind::Mannequin => {
             entity.insert(MannequinMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Marker => {
+        EntityKind::Marker => {
             entity.insert(MarkerMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Minecart => {
+        EntityKind::Minecart => {
             entity.insert(MinecartMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Mooshroom => {
+        EntityKind::Mooshroom => {
             entity.insert(MooshroomMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Mule => {
+        EntityKind::Mule => {
             entity.insert(MuleMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Nautilus => {
+        EntityKind::Nautilus => {
             entity.insert(NautilusMetadataBundle::default());
         }
-        azalea_registry::EntityKind::OakBoat => {
+        EntityKind::OakBoat => {
             entity.insert(OakBoatMetadataBundle::default());
         }
-        azalea_registry::EntityKind::OakChestBoat => {
+        EntityKind::OakChestBoat => {
             entity.insert(OakChestBoatMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Ocelot => {
+        EntityKind::Ocelot => {
             entity.insert(OcelotMetadataBundle::default());
         }
-        azalea_registry::EntityKind::OminousItemSpawner => {
+        EntityKind::OminousItemSpawner => {
             entity.insert(OminousItemSpawnerMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Painting => {
+        EntityKind::Painting => {
             entity.insert(PaintingMetadataBundle::default());
         }
-        azalea_registry::EntityKind::PaleOakBoat => {
+        EntityKind::PaleOakBoat => {
             entity.insert(PaleOakBoatMetadataBundle::default());
         }
-        azalea_registry::EntityKind::PaleOakChestBoat => {
+        EntityKind::PaleOakChestBoat => {
             entity.insert(PaleOakChestBoatMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Panda => {
+        EntityKind::Panda => {
             entity.insert(PandaMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Parched => {
+        EntityKind::Parched => {
             entity.insert(ParchedMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Parrot => {
+        EntityKind::Parrot => {
             entity.insert(ParrotMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Phantom => {
+        EntityKind::Phantom => {
             entity.insert(PhantomMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Pig => {
+        EntityKind::Pig => {
             entity.insert(PigMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Piglin => {
+        EntityKind::Piglin => {
             entity.insert(PiglinMetadataBundle::default());
         }
-        azalea_registry::EntityKind::PiglinBrute => {
+        EntityKind::PiglinBrute => {
             entity.insert(PiglinBruteMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Pillager => {
+        EntityKind::Pillager => {
             entity.insert(PillagerMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Player => {
+        EntityKind::Player => {
             entity.insert(PlayerMetadataBundle::default());
         }
-        azalea_registry::EntityKind::PolarBear => {
+        EntityKind::PolarBear => {
             entity.insert(PolarBearMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Pufferfish => {
+        EntityKind::Pufferfish => {
             entity.insert(PufferfishMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Rabbit => {
+        EntityKind::Rabbit => {
             entity.insert(RabbitMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Ravager => {
+        EntityKind::Ravager => {
             entity.insert(RavagerMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Salmon => {
+        EntityKind::Salmon => {
             entity.insert(SalmonMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Sheep => {
+        EntityKind::Sheep => {
             entity.insert(SheepMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Shulker => {
+        EntityKind::Shulker => {
             entity.insert(ShulkerMetadataBundle::default());
         }
-        azalea_registry::EntityKind::ShulkerBullet => {
+        EntityKind::ShulkerBullet => {
             entity.insert(ShulkerBulletMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Silverfish => {
+        EntityKind::Silverfish => {
             entity.insert(SilverfishMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Skeleton => {
+        EntityKind::Skeleton => {
             entity.insert(SkeletonMetadataBundle::default());
         }
-        azalea_registry::EntityKind::SkeletonHorse => {
+        EntityKind::SkeletonHorse => {
             entity.insert(SkeletonHorseMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Slime => {
+        EntityKind::Slime => {
             entity.insert(SlimeMetadataBundle::default());
         }
-        azalea_registry::EntityKind::SmallFireball => {
+        EntityKind::SmallFireball => {
             entity.insert(SmallFireballMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Sniffer => {
+        EntityKind::Sniffer => {
             entity.insert(SnifferMetadataBundle::default());
         }
-        azalea_registry::EntityKind::SnowGolem => {
+        EntityKind::SnowGolem => {
             entity.insert(SnowGolemMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Snowball => {
+        EntityKind::Snowball => {
             entity.insert(SnowballMetadataBundle::default());
         }
-        azalea_registry::EntityKind::SpawnerMinecart => {
+        EntityKind::SpawnerMinecart => {
             entity.insert(SpawnerMinecartMetadataBundle::default());
         }
-        azalea_registry::EntityKind::SpectralArrow => {
+        EntityKind::SpectralArrow => {
             entity.insert(SpectralArrowMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Spider => {
+        EntityKind::Spider => {
             entity.insert(SpiderMetadataBundle::default());
         }
-        azalea_registry::EntityKind::SplashPotion => {
+        EntityKind::SplashPotion => {
             entity.insert(SplashPotionMetadataBundle::default());
         }
-        azalea_registry::EntityKind::SpruceBoat => {
+        EntityKind::SpruceBoat => {
             entity.insert(SpruceBoatMetadataBundle::default());
         }
-        azalea_registry::EntityKind::SpruceChestBoat => {
+        EntityKind::SpruceChestBoat => {
             entity.insert(SpruceChestBoatMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Squid => {
+        EntityKind::Squid => {
             entity.insert(SquidMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Stray => {
+        EntityKind::Stray => {
             entity.insert(StrayMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Strider => {
+        EntityKind::Strider => {
             entity.insert(StriderMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Tadpole => {
+        EntityKind::Tadpole => {
             entity.insert(TadpoleMetadataBundle::default());
         }
-        azalea_registry::EntityKind::TextDisplay => {
+        EntityKind::TextDisplay => {
             entity.insert(TextDisplayMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Tnt => {
+        EntityKind::Tnt => {
             entity.insert(TntMetadataBundle::default());
         }
-        azalea_registry::EntityKind::TntMinecart => {
+        EntityKind::TntMinecart => {
             entity.insert(TntMinecartMetadataBundle::default());
         }
-        azalea_registry::EntityKind::TraderLlama => {
+        EntityKind::TraderLlama => {
             entity.insert(TraderLlamaMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Trident => {
+        EntityKind::Trident => {
             entity.insert(TridentMetadataBundle::default());
         }
-        azalea_registry::EntityKind::TropicalFish => {
+        EntityKind::TropicalFish => {
             entity.insert(TropicalFishMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Turtle => {
+        EntityKind::Turtle => {
             entity.insert(TurtleMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Vex => {
+        EntityKind::Vex => {
             entity.insert(VexMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Villager => {
+        EntityKind::Villager => {
             entity.insert(VillagerMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Vindicator => {
+        EntityKind::Vindicator => {
             entity.insert(VindicatorMetadataBundle::default());
         }
-        azalea_registry::EntityKind::WanderingTrader => {
+        EntityKind::WanderingTrader => {
             entity.insert(WanderingTraderMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Warden => {
+        EntityKind::Warden => {
             entity.insert(WardenMetadataBundle::default());
         }
-        azalea_registry::EntityKind::WindCharge => {
+        EntityKind::WindCharge => {
             entity.insert(WindChargeMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Witch => {
+        EntityKind::Witch => {
             entity.insert(WitchMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Wither => {
+        EntityKind::Wither => {
             entity.insert(WitherMetadataBundle::default());
         }
-        azalea_registry::EntityKind::WitherSkeleton => {
+        EntityKind::WitherSkeleton => {
             entity.insert(WitherSkeletonMetadataBundle::default());
         }
-        azalea_registry::EntityKind::WitherSkull => {
+        EntityKind::WitherSkull => {
             entity.insert(WitherSkullMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Wolf => {
+        EntityKind::Wolf => {
             entity.insert(WolfMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Zoglin => {
+        EntityKind::Zoglin => {
             entity.insert(ZoglinMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Zombie => {
+        EntityKind::Zombie => {
             entity.insert(ZombieMetadataBundle::default());
         }
-        azalea_registry::EntityKind::ZombieHorse => {
+        EntityKind::ZombieHorse => {
             entity.insert(ZombieHorseMetadataBundle::default());
         }
-        azalea_registry::EntityKind::ZombieNautilus => {
+        EntityKind::ZombieNautilus => {
             entity.insert(ZombieNautilusMetadataBundle::default());
         }
-        azalea_registry::EntityKind::ZombieVillager => {
+        EntityKind::ZombieVillager => {
             entity.insert(ZombieVillagerMetadataBundle::default());
         }
-        azalea_registry::EntityKind::ZombifiedPiglin => {
+        EntityKind::ZombifiedPiglin => {
             entity.insert(ZombifiedPiglinMetadataBundle::default());
         }
     }

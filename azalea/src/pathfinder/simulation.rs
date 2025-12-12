@@ -6,12 +6,12 @@ use azalea_client::{
     PhysicsState, interact::BlockStatePredictionHandler, local_player::LocalGameMode,
     mining::MineBundle,
 };
-use azalea_core::{game_type::GameMode, identifier::Identifier, position::Vec3, tick::GameTick};
+use azalea_core::{game_type::GameMode, position::Vec3, tick::GameTick};
 use azalea_entity::{
     Attributes, LookDirection, Physics, Position, dimensions::EntityDimensions,
     inventory::Inventory,
 };
-use azalea_registry::EntityKind;
+use azalea_registry::{builtin::EntityKind, identifier::Identifier};
 use azalea_world::{ChunkStorage, Instance, InstanceContainer, MinecraftEntityId, PartialInstance};
 use bevy_app::App;
 use bevy_ecs::prelude::*;
@@ -97,7 +97,7 @@ fn create_simulation_player_complete_bundle(
         azalea_entity::EntityBundle::new(
             Uuid::nil(),
             *player.position,
-            azalea_registry::EntityKind::Player,
+            EntityKind::Player,
             instance_name,
         ),
         azalea_client::local_player::InstanceHolder {

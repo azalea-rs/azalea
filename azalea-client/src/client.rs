@@ -10,7 +10,9 @@ use std::{
 
 use azalea_auth::game_profile::GameProfile;
 use azalea_core::{
-    data_registry::ResolvableDataRegistry, identifier::Identifier, position::Vec3, tick::GameTick,
+    data_registry::{DataRegistryWithKey, ResolvableDataRegistry},
+    position::Vec3,
+    tick::GameTick,
 };
 use azalea_entity::{
     Attributes, EntityUpdateSystems, PlayerAbilities, Position,
@@ -26,6 +28,7 @@ use azalea_protocol::{
     packets::{Packet, game::ServerboundGamePacket},
     resolve,
 };
+use azalea_registry::{DataRegistryKeyRef, identifier::Identifier};
 use azalea_world::{Instance, InstanceContainer, InstanceName, MinecraftEntityId, PartialInstance};
 use bevy_app::{App, AppExit, Plugin, PluginsState, SubApp, Update};
 use bevy_ecs::{
@@ -517,7 +520,7 @@ impl Client {
         &self,
         registry: &impl ResolvableDataRegistry,
     ) -> Option<Identifier> {
-        self.with_registry_holder(|registries| registry.resolve_name(registries).cloned())
+        self.with_registry_holder(|registries| registry.key(registries).map(|r| r.into_ident()))
     }
     /// Resolve the given registry to its name and data and call the given
     /// function with it.

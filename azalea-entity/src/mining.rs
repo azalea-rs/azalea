@@ -1,6 +1,9 @@
 use azalea_block::{BlockBehavior, BlockTrait};
 use azalea_core::tier::get_item_tier;
-use azalea_registry::{self as registry, MobEffect};
+use azalea_registry::{
+    builtin::{BlockKind, ItemKind, MobEffect},
+    tags,
+};
 
 use crate::{ActiveEffects, Attributes, FluidOnEyes, Physics};
 
@@ -16,7 +19,7 @@ use crate::{ActiveEffects, Attributes, FluidOnEyes, Physics};
 /// to your mining speed.
 pub fn get_mine_progress(
     block: &dyn BlockTrait,
-    held_item: registry::Item,
+    held_item: ItemKind,
     fluid_on_eyes: &FluidOnEyes,
     physics: &Physics,
     attributes: &Attributes,
@@ -45,30 +48,28 @@ pub fn get_mine_progress(
     (base_destroy_speed / destroy_time) / divisor as f32
 }
 
-fn has_correct_tool_for_drops(block: &dyn BlockTrait, tool: registry::Item) -> bool {
+fn has_correct_tool_for_drops(block: &dyn BlockTrait, tool: ItemKind) -> bool {
     if !block.behavior().requires_correct_tool_for_drops {
         return true;
     }
     let registry_block = block.as_registry_block();
-    if tool == registry::Item::Shears {
+    if tool == ItemKind::Shears {
         matches!(
             registry_block,
-            registry::Block::Cobweb | registry::Block::RedstoneWire | registry::Block::Tripwire
+            BlockKind::Cobweb | BlockKind::RedstoneWire | BlockKind::Tripwire
         )
-    } else if registry::tags::items::SWORDS.contains(&tool) {
-        registry_block == registry::Block::Cobweb
-    } else if registry::tags::items::PICKAXES.contains(&tool)
-        || registry::tags::items::SHOVELS.contains(&tool)
-        || registry::tags::items::HOES.contains(&tool)
-        || registry::tags::items::AXES.contains(&tool)
+    } else if tags::items::SWORDS.contains(&tool) {
+        registry_block == BlockKind::Cobweb
+    } else if tags::items::PICKAXES.contains(&tool)
+        || tags::items::SHOVELS.contains(&tool)
+        || tags::items::HOES.contains(&tool)
+        || tags::items::AXES.contains(&tool)
     {
         let tier = get_item_tier(tool).expect("all pickaxes and shovels should be matched");
         let tier_level = tier.level();
-        !((tier_level < 3 && registry::tags::blocks::NEEDS_DIAMOND_TOOL.contains(&registry_block))
-            || (tier_level < 2
-                && registry::tags::blocks::NEEDS_IRON_TOOL.contains(&registry_block))
-            || (tier_level < 1
-                && registry::tags::blocks::NEEDS_STONE_TOOL.contains(&registry_block)))
+        !((tier_level < 3 && tags::blocks::NEEDS_DIAMOND_TOOL.contains(&registry_block))
+            || (tier_level < 2 && tags::blocks::NEEDS_IRON_TOOL.contains(&registry_block))
+            || (tier_level < 1 && tags::blocks::NEEDS_STONE_TOOL.contains(&registry_block)))
     } else {
         false
     }
@@ -77,10 +78,11 @@ fn has_correct_tool_for_drops(block: &dyn BlockTrait, tool: registry::Item) -> b
 /// Returns the destroy speed of the given block with the given tool, taking
 /// enchantments and effects into account.
 ///
-/// If the player is not holding anything, then `tool` should be `Item::Air`.
+/// If the player is not holding anything, then `tool` should be
+/// `ItemKind::Air`.
 fn destroy_speed(
-    block: registry::Block,
-    tool: registry::Item,
+    block: BlockKind,
+    tool: ItemKind,
     _fluid_on_eyes: &FluidOnEyes,
     physics: &Physics,
     attributes: &Attributes,
@@ -122,45 +124,45 @@ fn destroy_speed(
     base_destroy_speed
 }
 
-fn base_destroy_speed(block: registry::Block, tool: registry::Item) -> f32 {
-    if tool == registry::Item::Shears {
-        if block == registry::Block::Cobweb || registry::tags::blocks::LEAVES.contains(&block) {
+fn base_destroy_speed(block: BlockKind, tool: ItemKind) -> f32 {
+    if tool == ItemKind::Shears {
+        if block == BlockKind::Cobweb || tags::blocks::LEAVES.contains(&block) {
             15.
-        } else if registry::tags::blocks::WOOL.contains(&block) {
+        } else if tags::blocks::WOOL.contains(&block) {
             5.
-        } else if matches!(block, registry::Block::Vine | registry::Block::GlowLichen) {
+        } else if matches!(block, BlockKind::Vine | BlockKind::GlowLichen) {
             2.
         } else {
             1.
         }
-    } else if registry::tags::items::SWORDS.contains(&tool) {
-        if block == registry::Block::Cobweb {
+    } else if tags::items::SWORDS.contains(&tool) {
+        if block == BlockKind::Cobweb {
             15.
-        } else if registry::tags::blocks::SWORD_EFFICIENT.contains(&block) {
+        } else if tags::blocks::SWORD_EFFICIENT.contains(&block) {
             1.5
         } else {
             1.
         }
-    } else if registry::tags::items::PICKAXES.contains(&tool) {
-        if registry::tags::blocks::MINEABLE_PICKAXE.contains(&block) {
+    } else if tags::items::PICKAXES.contains(&tool) {
+        if tags::blocks::MINEABLE_PICKAXE.contains(&block) {
             get_item_tier(tool).unwrap().speed()
         } else {
             1.
         }
-    } else if registry::tags::items::SHOVELS.contains(&tool) {
-        if registry::tags::blocks::MINEABLE_SHOVEL.contains(&block) {
+    } else if tags::items::SHOVELS.contains(&tool) {
+        if tags::blocks::MINEABLE_SHOVEL.contains(&block) {
             get_item_tier(tool).unwrap().speed()
         } else {
             1.
         }
-    } else if registry::tags::items::HOES.contains(&tool) {
-        if registry::tags::blocks::MINEABLE_HOE.contains(&block) {
+    } else if tags::items::HOES.contains(&tool) {
+        if tags::blocks::MINEABLE_HOE.contains(&block) {
             get_item_tier(tool).unwrap().speed()
         } else {
             1.
         }
-    } else if registry::tags::items::AXES.contains(&tool) {
-        if registry::tags::blocks::MINEABLE_AXE.contains(&block) {
+    } else if tags::items::AXES.contains(&tool) {
+        if tags::blocks::MINEABLE_AXE.contains(&block) {
             get_item_tier(tool).unwrap().speed()
         } else {
             1.

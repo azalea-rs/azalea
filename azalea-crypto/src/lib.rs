@@ -12,14 +12,17 @@ use rand::{TryRngCore, rngs::OsRng};
 use sha1::{Digest, Sha1};
 
 #[cfg(feature = "signing")]
+#[doc(hidden)]
 #[deprecated = "moved to `signing::MessageSignature`."]
 pub type MessageSignature = signing::MessageSignature;
 
 #[cfg(feature = "signing")]
+#[doc(hidden)]
 #[deprecated = "moved to `signing::SignChatMessageOptions`."]
 pub type SignChatMessageOptions = signing::SignChatMessageOptions;
 
 #[cfg(feature = "signing")]
+#[doc(hidden)]
 #[deprecated = "moved to `signing::make_salt`."]
 pub fn make_salt() -> u64 {
     signing::make_salt()

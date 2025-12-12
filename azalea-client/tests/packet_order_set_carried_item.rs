@@ -17,7 +17,7 @@ use azalea_protocol::{
         },
     },
 };
-use azalea_registry::Block;
+use azalea_registry::builtin::BlockKind;
 
 #[test]
 fn test_packet_order_set_carried_item() {
@@ -33,7 +33,7 @@ fn test_packet_order_set_carried_item() {
     let pos = BlockPos::new(0, 2, 0);
     simulation.receive_packet(ClientboundBlockUpdate {
         pos,
-        block_state: Block::Stone.into(),
+        block_state: BlockKind::Stone.into(),
     });
     simulation.receive_packet(ClientboundPlayerPosition {
         id: 1,
@@ -45,7 +45,10 @@ fn test_packet_order_set_carried_item() {
         relative: RelativeMovements::all_absolute(),
     });
     simulation.tick();
-    assert_eq!(simulation.get_block_state(pos), Some(Block::Stone.into()));
+    assert_eq!(
+        simulation.get_block_state(pos),
+        Some(BlockKind::Stone.into())
+    );
     simulation.with_component_mut::<LookDirection>(|look| {
         // look down
         look.update_x_rot(90.);

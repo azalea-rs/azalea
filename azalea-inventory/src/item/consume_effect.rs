@@ -1,6 +1,10 @@
 use azalea_buf::AzBuf;
-use azalea_core::{codec_utils::is_default, identifier::Identifier};
-use azalea_registry::{HolderSet, MobEffect, SoundEvent};
+use azalea_core::codec_utils::is_default;
+use azalea_registry::{
+    HolderSet,
+    builtin::{ConsumeEffectKind, MobEffect, SoundEvent},
+    identifier::Identifier,
+};
 use serde::Serialize;
 
 use crate::components::MobEffectInstance;
@@ -28,18 +32,14 @@ pub enum ConsumeEffect {
     },
 }
 
-impl From<ConsumeEffect> for azalea_registry::ConsumeEffectKind {
+impl From<ConsumeEffect> for ConsumeEffectKind {
     fn from(effect: ConsumeEffect) -> Self {
         match effect {
-            ConsumeEffect::ApplyEffects { .. } => azalea_registry::ConsumeEffectKind::ApplyEffects,
-            ConsumeEffect::RemoveEffects { .. } => {
-                azalea_registry::ConsumeEffectKind::RemoveEffects
-            }
-            ConsumeEffect::ClearAllEffects => azalea_registry::ConsumeEffectKind::ClearAllEffects,
-            ConsumeEffect::TeleportRandomly { .. } => {
-                azalea_registry::ConsumeEffectKind::TeleportRandomly
-            }
-            ConsumeEffect::PlaySound { .. } => azalea_registry::ConsumeEffectKind::PlaySound,
+            ConsumeEffect::ApplyEffects { .. } => ConsumeEffectKind::ApplyEffects,
+            ConsumeEffect::RemoveEffects { .. } => ConsumeEffectKind::RemoveEffects,
+            ConsumeEffect::ClearAllEffects => ConsumeEffectKind::ClearAllEffects,
+            ConsumeEffect::TeleportRandomly { .. } => ConsumeEffectKind::TeleportRandomly,
+            ConsumeEffect::PlaySound { .. } => ConsumeEffectKind::PlaySound,
         }
     }
 }

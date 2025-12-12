@@ -142,7 +142,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
             println!("getblock xyz {x} {y} {z}");
             let block_pos = BlockPos::new(x, y, z);
             let block = source.bot.world().read().get_block_state(block_pos);
-            source.reply(format!("Block at {block_pos} is {block:?}"));
+            source.reply(format!("BlockKind at {block_pos} is {block:?}"));
             1
         })),
     )));

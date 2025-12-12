@@ -6,7 +6,7 @@ BLOCKS_RS_DIR = get_dir_location("../azalea-block/src/generated.rs")
 # - Property: A property of a block, like "direction"
 # - Variant: A potential state of a property, like "up"
 # - State: A possible state of a block, a combination of variants
-# - Block: Has properties and states.
+# - BlockKind: Has properties and states.
 
 
 def generate_blocks(
@@ -85,7 +85,7 @@ def generate_blocks(
 
     new_make_block_states_macro_code.append("    },")
 
-    # Block codegen
+    # BlockKind codegen
     new_make_block_states_macro_code.append("    Blocks => {")
     for block_id in ordered_blocks:
         block_data_report = blocks_report["minecraft:" + block_id]

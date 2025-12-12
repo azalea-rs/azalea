@@ -1,5 +1,8 @@
-# Azalea Registry
+# `azalea-registry`
 
-Minecraft has a concept called "registries", which are primarily used to determine IDs in the protocol.
+Minecraft's registries are a system that give identifiers to certain enums the game.
 
-The contents of this crate are automatically generated using Minecraft's built-in data generator.
+Some registries, defined in [`crate::builtin`], are static for the client and server. This includes blocks and items.
+
+Other registries, defined in [`crate::data`], are sent to us by the server. This includes things such as enchantments and biomes.
+

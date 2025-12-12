@@ -11,7 +11,7 @@ use azalea_core::{
     position::{BlockPos, ChunkPos},
     registry_holder::RegistryHolder,
 };
-use azalea_registry::Biome;
+use azalea_registry::data::Biome;
 use bevy_ecs::{component::Component, entity::Entity};
 use derive_more::{Deref, DerefMut};
 use nohash_hasher::IntMap;

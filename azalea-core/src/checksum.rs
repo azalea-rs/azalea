@@ -1,12 +1,13 @@
 use std::{cmp::Ordering, fmt, hash::Hasher};
 
 use azalea_buf::AzBuf;
+use azalea_registry::identifier::Identifier;
 use crc32c::Crc32cHasher;
 use serde::{Serialize, ser};
 use thiserror::Error;
 use tracing::error;
 
-use crate::{identifier::Identifier, registry_holder::RegistryHolder};
+use crate::registry_holder::RegistryHolder;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, AzBuf)]
 pub struct Checksum(pub u32);

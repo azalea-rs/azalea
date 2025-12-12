@@ -4,6 +4,7 @@ use std::{
 };
 
 use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
+use azalea_registry::builtin::BlockKind;
 
 use crate::BlockTrait;
 
@@ -129,7 +130,7 @@ impl Debug for BlockState {
     }
 }
 
-impl From<BlockState> for azalea_registry::Block {
+impl From<BlockState> for BlockKind {
     fn from(value: BlockState) -> Self {
         Box::<dyn BlockTrait>::from(value).as_registry_block()
     }
@@ -156,22 +157,16 @@ mod tests {
         assert_eq!(block.id(), "air");
 
         let block: Box<dyn BlockTrait> =
-            Box::<dyn BlockTrait>::from(BlockState::from(azalea_registry::Block::FloweringAzalea));
+            Box::<dyn BlockTrait>::from(BlockState::from(BlockKind::FloweringAzalea));
         assert_eq!(block.id(), "flowering_azalea");
     }
 
     #[test]
     fn test_debug_blockstate() {
-        let formatted = format!(
-            "{:?}",
-            BlockState::from(azalea_registry::Block::FloweringAzalea)
-        );
+        let formatted = format!("{:?}", BlockState::from(BlockKind::FloweringAzalea));
         assert!(formatted.ends_with(", FloweringAzalea)"), "{}", formatted);
 
-        let formatted = format!(
-            "{:?}",
-            BlockState::from(azalea_registry::Block::BigDripleafStem)
-        );
+        let formatted = format!("{:?}", BlockState::from(BlockKind::BigDripleafStem));
         assert!(
             formatted.ends_with(", BigDripleafStem { facing: North, waterlogged: false })"),
             "{}",

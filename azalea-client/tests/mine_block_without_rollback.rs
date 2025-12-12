@@ -4,7 +4,7 @@ use azalea_protocol::packets::{
     ConnectionProtocol,
     game::{ClientboundBlockChangedAck, ClientboundBlockUpdate},
 };
-use azalea_registry::Block;
+use azalea_registry::builtin::BlockKind;
 
 #[test]
 fn test_mine_block_without_rollback() {
@@ -21,10 +21,10 @@ fn test_mine_block_without_rollback() {
         pos,
         // tnt is used for this test because it's insta-mineable so we don't have to waste ticks
         // waiting
-        block_state: Block::Tnt.into(),
+        block_state: BlockKind::Tnt.into(),
     });
     simulation.tick();
-    assert_eq!(simulation.get_block_state(pos), Some(Block::Tnt.into()));
+    assert_eq!(simulation.get_block_state(pos), Some(BlockKind::Tnt.into()));
 
     simulation.write_message(StartMiningBlockEvent {
         entity: simulation.entity,
@@ -32,15 +32,15 @@ fn test_mine_block_without_rollback() {
         force: true,
     });
     simulation.tick();
-    assert_eq!(simulation.get_block_state(pos), Some(Block::Air.into()));
+    assert_eq!(simulation.get_block_state(pos), Some(BlockKind::Air.into()));
 
     // server acknowledged our change by sending a BlockUpdate + BlockChangedAck, so
     // no rollback
     simulation.receive_packet(ClientboundBlockUpdate {
         pos,
-        block_state: Block::Air.into(),
+        block_state: BlockKind::Air.into(),
     });
     simulation.receive_packet(ClientboundBlockChangedAck { seq: 1 });
     simulation.tick();
-    assert_eq!(simulation.get_block_state(pos), Some(Block::Air.into()));
+    assert_eq!(simulation.get_block_state(pos), Some(BlockKind::Air.into()));
 }

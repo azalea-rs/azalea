@@ -1,14 +1,14 @@
 use azalea_client::{
     InConfigState, InGameState, local_player::InstanceHolder, test_utils::prelude::*,
 };
-use azalea_core::{identifier::Identifier, position::ChunkPos};
+use azalea_core::position::ChunkPos;
 use azalea_entity::LocalEntity;
 use azalea_protocol::packets::{
     ConnectionProtocol, Packet,
     config::{ClientboundFinishConfiguration, ClientboundRegistryData},
     game::ClientboundStartConfiguration,
 };
-use azalea_registry::{DataRegistry, DimensionType};
+use azalea_registry::{DataRegistry, data::DimensionKind, identifier::Identifier};
 use azalea_world::InstanceName;
 use simdnbt::owned::{NbtCompound, NbtTag};
 
@@ -22,11 +22,11 @@ fn test_login_to_dimension_with_same_name() {
 
 fn generic_test_login_to_dimension_with_same_name(using_respawn: bool) {
     let make_basic_login_or_respawn_packet = if using_respawn {
-        |dimension: DimensionType, instance_name: Identifier| {
+        |dimension: DimensionKind, instance_name: Identifier| {
             make_basic_respawn_packet(dimension, instance_name).into_variant()
         }
     } else {
-        |dimension: DimensionType, instance_name: Identifier| {
+        |dimension: DimensionKind, instance_name: Identifier| {
             make_basic_login_packet(dimension, instance_name).into_variant()
         }
     };
@@ -60,7 +60,7 @@ fn generic_test_login_to_dimension_with_same_name(using_respawn: bool) {
     //
 
     simulation.receive_packet(make_basic_login_packet(
-        DimensionType::new_raw(0), // overworld
+        DimensionKind::new_raw(0), // overworld
         Identifier::new("azalea:overworld"),
     ));
     simulation.tick();
@@ -97,7 +97,7 @@ fn generic_test_login_to_dimension_with_same_name(using_respawn: bool) {
     });
     simulation.receive_packet(ClientboundFinishConfiguration);
     simulation.receive_packet(make_basic_login_or_respawn_packet(
-        DimensionType::new_raw(0),
+        DimensionKind::new_raw(0),
         Identifier::new("azalea:overworld"),
     ));
     simulation.tick();

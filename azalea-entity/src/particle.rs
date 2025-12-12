@@ -2,7 +2,7 @@ use azalea_block::BlockState;
 use azalea_buf::AzBuf;
 use azalea_core::{color::RgbColor, position::BlockPos};
 use azalea_inventory::ItemStack;
-use azalea_registry::ParticleKind;
+use azalea_registry::builtin::ParticleKind;
 use azalea_world::MinecraftEntityId;
 use bevy_ecs::component::Component;
 

@@ -1,5 +1,4 @@
 use azalea_client::test_utils::prelude::*;
-use azalea_core::identifier::Identifier;
 use azalea_entity::Attributes;
 use azalea_inventory::{ItemStack, components::Enchantments};
 use azalea_protocol::packets::{
@@ -7,7 +6,7 @@ use azalea_protocol::packets::{
     config::{ClientboundFinishConfiguration, ClientboundRegistryData},
     game::ClientboundContainerSetSlot,
 };
-use azalea_registry::{Enchantment, Item, Registry};
+use azalea_registry::{Registry, builtin::ItemKind, data::Enchantment, identifier::Identifier};
 use simdnbt::owned::{NbtCompound, NbtTag};
 
 #[test]
@@ -92,7 +91,7 @@ fn test_enchantments() {
         container_id: 0,
         state_id: 1,
         slot: *azalea_inventory::Player::HOTBAR_SLOTS.start() as u16,
-        item_stack: Item::DiamondPickaxe.into(),
+        item_stack: ItemKind::DiamondPickaxe.into(),
     });
     s.tick();
 
@@ -103,7 +102,7 @@ fn test_enchantments() {
         container_id: 0,
         state_id: 2,
         slot: *azalea_inventory::Player::HOTBAR_SLOTS.start() as u16,
-        item_stack: ItemStack::from(Item::DiamondPickaxe).with_component(Enchantments {
+        item_stack: ItemStack::from(ItemKind::DiamondPickaxe).with_component(Enchantments {
             levels: [(Enchantment::from_u32(0).unwrap(), 1)].into(),
         }),
     });
@@ -116,7 +115,7 @@ fn test_enchantments() {
         container_id: 0,
         state_id: 1,
         slot: *azalea_inventory::Player::HOTBAR_SLOTS.start() as u16,
-        item_stack: Item::DiamondPickaxe.into(),
+        item_stack: ItemKind::DiamondPickaxe.into(),
     });
     s.tick();
 

@@ -10,7 +10,7 @@ use azalea_inventory::{
     components::{self, DataComponentUnion},
 };
 use azalea_protocol_macros::ClientboundGamePacket;
-use azalea_registry::{DataComponentKind, Item};
+use azalea_registry::builtin::{DataComponentKind, ItemKind};
 
 #[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundMerchantOffers {
@@ -45,7 +45,7 @@ pub struct MerchantOffer {
 /// [`Self::into_item_stack`].
 #[derive(Clone, Debug, AzBuf, PartialEq)]
 pub struct ItemCost {
-    pub item: Item,
+    pub item: ItemKind,
     #[var]
     pub count: i32,
     pub components: DataComponentExactPredicate,

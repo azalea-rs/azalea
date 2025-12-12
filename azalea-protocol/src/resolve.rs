@@ -10,6 +10,7 @@ use hickory_resolver::{Name, TokioResolver, name_server::TokioConnectionProvider
 
 use crate::ServerAddress;
 
+#[doc(hidden)]
 #[deprecated(note = "Renamed to ResolveError")]
 pub type ResolverError = ResolveError;
 
