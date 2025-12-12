@@ -436,7 +436,7 @@ where
 
         debug!("Starting Azalea {}", env!("CARGO_PKG_VERSION"));
 
-        let address = if let Some(socket_addr) = join_opts.custom_socket_addr.clone() {
+        let address = if let Some(socket_addr) = join_opts.custom_socket_addr {
             let server_addr = if let Some(server_addr) = join_opts
                 .custom_server_addr
                 .clone()
@@ -476,7 +476,7 @@ where
 
         let local_set = task::LocalSet::new();
 
-        let app_exit = local_set.run_until(async move {
+        local_set.run_until(async move {
             // start_ecs_runner must be run inside of the LocalSet
             let (ecs_lock, start_running_systems, appexit_rx) = start_ecs_runner(&mut self.app);
 
@@ -626,9 +626,7 @@ where
             client_handler_task.abort();
 
             app_exit
-        }).await;
-
-        app_exit
+        }).await
     }
 }
 
@@ -755,7 +753,7 @@ impl Swarm {
         if let Some(custom_server_addr) = join_opts.custom_server_addr.clone() {
             address.server = custom_server_addr;
         }
-        if let Some(custom_socket_addr) = join_opts.custom_socket_addr.clone() {
+        if let Some(custom_socket_addr) = join_opts.custom_socket_addr {
             address.socket = custom_socket_addr;
         }
         let server_proxy = join_opts.server_proxy.clone();
