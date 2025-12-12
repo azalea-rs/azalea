@@ -43,7 +43,7 @@ impl ArgumentType for Long {
     fn examples(&self) -> Vec<String> {
         vec!["0", "123", "-123"]
             .into_iter()
-            .map(|s| s.to_string())
+            .map(|s| s.to_owned())
             .collect()
     }
 }

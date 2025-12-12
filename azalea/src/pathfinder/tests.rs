@@ -30,7 +30,7 @@ fn setup_blockposgoal_simulation(
     // you can uncomment this while debugging tests to get trace logs
     // simulation.app.add_plugins(bevy_log::LogPlugin {
     //     level: bevy_log::Level::TRACE,
-    //     filter: "".to_string(),
+    //     filter: "".to_owned(),
     //     ..Default::default()
     // });
 

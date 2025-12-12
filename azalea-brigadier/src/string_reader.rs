@@ -20,7 +20,7 @@ impl From<String> for StringReader {
 impl From<&str> for StringReader {
     fn from(string: &str) -> Self {
         Self {
-            string: string.to_string(),
+            string: string.to_owned(),
             cursor: 0,
         }
     }
@@ -104,7 +104,7 @@ impl StringReader {
         if result.is_err() {
             self.cursor = start;
             return Err(BuiltInError::ReaderInvalidInt {
-                value: number.to_string(),
+                value: number.to_owned(),
             }
             .create_with_context(self));
         }
@@ -125,7 +125,7 @@ impl StringReader {
         if result.is_err() {
             self.cursor = start;
             return Err(BuiltInError::ReaderInvalidLong {
-                value: number.to_string(),
+                value: number.to_owned(),
             }
             .create_with_context(self));
         }
@@ -146,7 +146,7 @@ impl StringReader {
         if result.is_err() {
             self.cursor = start;
             return Err(BuiltInError::ReaderInvalidDouble {
-                value: number.to_string(),
+                value: number.to_owned(),
             }
             .create_with_context(self));
         }
@@ -167,7 +167,7 @@ impl StringReader {
         if result.is_err() {
             self.cursor = start;
             return Err(BuiltInError::ReaderInvalidFloat {
-                value: number.to_string(),
+                value: number.to_owned(),
             }
             .create_with_context(self));
         }
@@ -240,7 +240,7 @@ impl StringReader {
             self.skip();
             return self.read_string_until(next);
         }
-        Ok(self.read_unquoted_string().to_string())
+        Ok(self.read_unquoted_string().to_owned())
     }
 
     pub fn read_boolean(&mut self) -> Result<bool, CommandSyntaxError> {

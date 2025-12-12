@@ -162,7 +162,7 @@ impl ClientboundPlayerChat {
 
         // TODO: implement chat type registry and apply the styles from it here
         let translation_key = self.chat_type.translation_key(registries);
-        let component = TranslatableComponent::new(translation_key.to_string(), args);
+        let component = TranslatableComponent::new(translation_key.to_owned(), args);
 
         FormattedText::Translatable(component)
     }

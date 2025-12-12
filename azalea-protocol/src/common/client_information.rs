@@ -11,7 +11,7 @@ use bevy_ecs::component::Component;
 /// This is only present on local players.
 #[derive(Clone, Debug, AzBuf, PartialEq, Eq, Component)]
 pub struct ClientInformation {
-    /// The locale of the client.
+    /// The locale of the client, formatted like "en_us".
     pub language: String,
     /// The view distance of the client in chunks, same as the render distance
     /// in-game.
@@ -36,7 +36,7 @@ pub struct ClientInformation {
 impl Default for ClientInformation {
     fn default() -> Self {
         Self {
-            language: "en_us".to_string(),
+            language: "en_us".to_owned(),
             view_distance: 8,
             chat_visibility: ChatVisibility::default(),
             chat_colors: true,
@@ -158,7 +158,7 @@ mod tests {
         }
 
         let data = ClientInformation {
-            language: "en_gb".to_string(),
+            language: "en_gb".to_owned(),
             view_distance: 24,
             chat_visibility: ChatVisibility::Hidden,
             chat_colors: false,

@@ -198,7 +198,7 @@ impl Client {
     pub fn write_chat_packet(&self, message: &str) {
         self.ecs.lock().write_message(SendChatKindEvent {
             entity: self.entity,
-            content: message.to_string(),
+            content: message.to_owned(),
             kind: ChatKind::Message,
         });
     }
@@ -211,7 +211,7 @@ impl Client {
     pub fn write_command_packet(&self, command: &str) {
         self.ecs.lock().write_message(SendChatKindEvent {
             entity: self.entity,
-            content: command.to_string(),
+            content: command.to_owned(),
             kind: ChatKind::Command,
         });
     }

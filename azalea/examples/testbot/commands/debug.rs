@@ -184,7 +184,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
             if let Some(queued) = executing_path.queued_path {
                 queued.len().to_string()
             } else {
-                "n/a".to_string()
+                "n/a".to_owned()
             },
         ));
         1

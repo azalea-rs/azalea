@@ -95,7 +95,7 @@ pub fn legacy_color_code_to_text_component(legacy_color_code: &str) -> TextCompo
                 if !cur_component.text.is_empty() {
                     // we need to split this into a new component
                     components.push(cur_component.clone());
-                    cur_component.text = "".to_string();
+                    cur_component.text = "".to_owned();
                 };
                 cur_component.base.style.color = TextColor::parse(&color);
 
@@ -104,7 +104,7 @@ pub fn legacy_color_code_to_text_component(legacy_color_code: &str) -> TextCompo
                 if !cur_component.text.is_empty() || formatter == ChatFormatting::Reset {
                     // we need to split this into a new component
                     components.push(cur_component.clone());
-                    cur_component.text = "".to_string();
+                    cur_component.text = "".to_owned();
                 };
                 cur_component.base.style.apply_formatting(&formatter);
             }
@@ -175,7 +175,7 @@ mod tests {
     #[test]
     fn test_hypixel_motd_ansi() {
         let component =
-            TextComponent::new("§aHypixel Network  §c[1.8-1.18]\n§b§lHAPPY HOLIDAYS".to_string())
+            TextComponent::new("§aHypixel Network  §c[1.8-1.18]\n§b§lHAPPY HOLIDAYS".to_owned())
                 .get();
         assert_eq!(
             component.to_ansi(),
@@ -193,7 +193,7 @@ mod tests {
     #[test]
     fn test_hypixel_motd_html() {
         let component =
-            TextComponent::new("§aHypixel Network  §c[1.8-1.18]\n§b§lHAPPY HOLIDAYS".to_string())
+            TextComponent::new("§aHypixel Network  §c[1.8-1.18]\n§b§lHAPPY HOLIDAYS".to_owned())
                 .get();
 
         assert_eq!(
@@ -210,7 +210,7 @@ mod tests {
 
     #[test]
     fn test_xss_html() {
-        let component = TextComponent::new("§a<b>&\n§b</b>".to_string()).get();
+        let component = TextComponent::new("§a<b>&\n§b</b>".to_owned()).get();
 
         assert_eq!(
             component.to_html(),
@@ -225,7 +225,7 @@ mod tests {
 
     #[test]
     fn test_legacy_color_code_to_component() {
-        let component = TextComponent::new("§lHello §r§1w§2o§3r§4l§5d".to_string()).get();
+        let component = TextComponent::new("§lHello §r§1w§2o§3r§4l§5d".to_owned()).get();
         assert_eq!(
             component.to_ansi(),
             format!(
@@ -244,7 +244,7 @@ mod tests {
 
     #[test]
     fn test_legacy_color_code_with_rgb() {
-        let component = TextComponent::new("§#Ff0000This is a test message".to_string()).get();
+        let component = TextComponent::new("§#Ff0000This is a test message".to_owned()).get();
         assert_eq!(
             component.to_ansi(),
             format!(

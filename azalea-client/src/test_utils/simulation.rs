@@ -71,10 +71,7 @@ impl Simulation {
         // start in the config state
         app.world_mut().entity_mut(entity).insert((
             InConfigState,
-            GameProfileComponent(GameProfile::new(
-                Uuid::from_u128(1234),
-                "azalea".to_string(),
-            )),
+            GameProfileComponent(GameProfile::new(Uuid::from_u128(1234), "azalea".to_owned())),
         ));
         tick_app(&mut app);
 

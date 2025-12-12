@@ -41,7 +41,7 @@ impl Suggestion {
     pub fn new(range: StringRange, text: &str) -> Suggestion {
         Suggestion {
             range,
-            value: SuggestionValue::Text(text.to_string()),
+            value: SuggestionValue::Text(text.to_owned()),
             tooltip: None,
         }
     }
@@ -49,7 +49,7 @@ impl Suggestion {
     pub fn new_with_tooltip(range: StringRange, text: &str, tooltip: String) -> Self {
         Self {
             range,
-            value: SuggestionValue::Text(text.to_string()),
+            value: SuggestionValue::Text(text.to_owned()),
             tooltip: Some(tooltip),
         }
     }

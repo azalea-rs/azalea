@@ -99,7 +99,7 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///
 ///     // login
 ///     conn.write(ServerboundHello {
-///         name: "bot".to_string(),
+///         name: "bot".to_owned(),
 ///         profile_id: uuid::Uuid::nil(),
 ///     })
 ///     .await?;

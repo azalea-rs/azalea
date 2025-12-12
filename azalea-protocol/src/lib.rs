@@ -40,7 +40,7 @@ mod tests {
     #[tokio::test]
     async fn test_hello_packet() {
         let packet = ServerboundHello {
-            name: "test".to_string(),
+            name: "test".to_owned(),
             profile_id: Uuid::nil(),
         };
         let mut stream = Vec::new();
@@ -70,7 +70,7 @@ mod tests {
     #[tokio::test]
     async fn test_double_hello_packet() {
         let packet = ServerboundHello {
-            name: "test".to_string(),
+            name: "test".to_owned(),
             profile_id: Uuid::nil(),
         }
         .into_variant();

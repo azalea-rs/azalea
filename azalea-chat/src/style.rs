@@ -62,7 +62,7 @@ static LEGACY_FORMAT_TO_COLOR: LazyLock<HashMap<&'static ChatFormatting, TextCol
                     formatter,
                     TextColor {
                         value: formatter.color().unwrap(),
-                        name: Some(formatter.name().to_string()),
+                        name: Some(formatter.name().to_owned()),
                     },
                 );
             }
@@ -300,7 +300,7 @@ impl TryFrom<ChatFormatting> for TextColor {
             return Err(format!("{} is not a color", formatter.name()));
         }
         let color = formatter.color().unwrap_or(0);
-        Ok(Self::new(color, Some(formatter.name().to_string())))
+        Ok(Self::new(color, Some(formatter.name().to_owned())))
     }
 }
 
@@ -412,11 +412,8 @@ impl Style {
             insertion: j
                 .get("insertion")
                 .and_then(|v| v.as_str())
-                .map(|s| s.to_string()),
-            font: j
-                .get("font")
-                .and_then(|v| v.as_str())
-                .map(|s| s.to_string()),
+                .map(|s| s.to_owned()),
+            font: j.get("font").and_then(|v| v.as_str()).map(|s| s.to_owned()),
         }
     }
 

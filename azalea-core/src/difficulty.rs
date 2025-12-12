@@ -7,61 +7,56 @@ use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
 
 #[derive(Hash, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Difficulty {
-    PEACEFUL = 0,
-    EASY = 1,
-    NORMAL = 2,
-    HARD = 3,
+    Peaceful = 0,
+    Easy = 1,
+    Normal = 2,
+    Hard = 3,
 }
 
-pub enum Err {
-    InvalidDifficulty(String),
-}
+pub struct InvalidDifficultyError(pub String);
 
-impl Debug for Err {
+impl Debug for InvalidDifficultyError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Err::InvalidDifficulty(s) => write!(f, "Invalid difficulty: {s}"),
-        }
+        write!(f, "Invalid difficulty: {}", self.0)
     }
 }
 
 impl Difficulty {
     pub fn name(&self) -> &'static str {
         match self {
-            Difficulty::PEACEFUL => "peaceful",
-            Difficulty::EASY => "easy",
-            Difficulty::NORMAL => "normal",
-            Difficulty::HARD => "hard",
+            Difficulty::Peaceful => "peaceful",
+            Difficulty::Easy => "easy",
+            Difficulty::Normal => "normal",
+            Difficulty::Hard => "hard",
         }
     }
 
-    pub fn from_name(name: &str) -> Result<Difficulty, Err> {
-        match name {
-            "peaceful" => Ok(Difficulty::PEACEFUL),
-            "easy" => Ok(Difficulty::EASY),
-            "normal" => Ok(Difficulty::NORMAL),
-            "hard" => Ok(Difficulty::HARD),
-            _ => Err(Err::InvalidDifficulty(name.to_string())),
-        }
+    pub fn from_name(name: &str) -> Result<Difficulty, InvalidDifficultyError> {
+        Ok(match name {
+            "peaceful" => Difficulty::Peaceful,
+            "easy" => Difficulty::Easy,
+            "normal" => Difficulty::Normal,
+            "hard" => Difficulty::Hard,
+            _ => return Err(InvalidDifficultyError(name.to_owned())),
+        })
     }
 
     pub fn by_id(id: u8) -> Difficulty {
         match id % 4 {
-            0 => Difficulty::PEACEFUL,
-            1 => Difficulty::EASY,
-            2 => Difficulty::NORMAL,
-            3 => Difficulty::HARD,
-            // this shouldn't be possible because of the modulo, so panicking is fine
-            _ => panic!("Unknown difficulty id: {id}"),
+            0 => Difficulty::Peaceful,
+            1 => Difficulty::Easy,
+            2 => Difficulty::Normal,
+            3 => Difficulty::Hard,
+            _ => unreachable!(),
         }
     }
 
     pub fn id(&self) -> u8 {
         match self {
-            Difficulty::PEACEFUL => 0,
-            Difficulty::EASY => 1,
-            Difficulty::NORMAL => 2,
-            Difficulty::HARD => 3,
+            Difficulty::Peaceful => 0,
+            Difficulty::Easy => 1,
+            Difficulty::Normal => 2,
+            Difficulty::Hard => 3,
         }
     }
 }
@@ -85,28 +80,28 @@ mod tests {
     #[test]
     fn test_difficulty_from_name() {
         assert_eq!(
-            Difficulty::PEACEFUL,
+            Difficulty::Peaceful,
             Difficulty::from_name("peaceful").unwrap()
         );
-        assert_eq!(Difficulty::EASY, Difficulty::from_name("easy").unwrap());
-        assert_eq!(Difficulty::NORMAL, Difficulty::from_name("normal").unwrap());
-        assert_eq!(Difficulty::HARD, Difficulty::from_name("hard").unwrap());
+        assert_eq!(Difficulty::Easy, Difficulty::from_name("easy").unwrap());
+        assert_eq!(Difficulty::Normal, Difficulty::from_name("normal").unwrap());
+        assert_eq!(Difficulty::Hard, Difficulty::from_name("hard").unwrap());
         assert!(Difficulty::from_name("invalid").is_err());
     }
 
     #[test]
     fn test_difficulty_id() {
-        assert_eq!(0, Difficulty::PEACEFUL.id());
-        assert_eq!(1, Difficulty::EASY.id());
-        assert_eq!(2, Difficulty::NORMAL.id());
-        assert_eq!(3, Difficulty::HARD.id());
+        assert_eq!(0, Difficulty::Peaceful.id());
+        assert_eq!(1, Difficulty::Easy.id());
+        assert_eq!(2, Difficulty::Normal.id());
+        assert_eq!(3, Difficulty::Hard.id());
     }
 
     #[test]
     fn test_difficulty_name() {
-        assert_eq!("peaceful", Difficulty::PEACEFUL.name());
-        assert_eq!("easy", Difficulty::EASY.name());
-        assert_eq!("normal", Difficulty::NORMAL.name());
-        assert_eq!("hard", Difficulty::HARD.name());
+        assert_eq!("peaceful", Difficulty::Peaceful.name());
+        assert_eq!("easy", Difficulty::Easy.name());
+        assert_eq!("normal", Difficulty::Normal.name());
+        assert_eq!("hard", Difficulty::Hard.name());
     }
 }

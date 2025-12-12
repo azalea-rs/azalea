@@ -94,7 +94,7 @@ pub fn remove_components_from_disconnected_players(
             if let Some(reason) = reason {
                 format!(": {reason}")
             } else {
-                "".to_string()
+                "".to_owned()
             }
         );
         commands

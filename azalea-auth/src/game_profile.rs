@@ -202,14 +202,14 @@ mod tests {
             profile,
             GameProfile {
                 uuid: Uuid::parse_str("f1a2b3c4-d5e6-f7a8-b9c0-d1e2f3a4b5c6").unwrap(),
-                name: "Notch".to_string(),
+                name: "Notch".to_owned(),
                 properties: {
                     let mut map = IndexMap::new();
                     map.insert(
-                        "qwer".to_string(),
+                        "qwer".to_owned(),
                         ProfilePropertyValue {
-                            value: "asdf".to_string(),
-                            signature: Some("zxcv".to_string()),
+                            value: "asdf".to_owned(),
+                            signature: Some("zxcv".to_owned()),
                         },
                     );
                     GameProfileProperties { map }.into()

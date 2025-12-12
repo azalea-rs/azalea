@@ -126,7 +126,7 @@ impl<S> CommandNode<S> {
             }
         } else {
             self.children
-                .insert(node.read().name().to_string(), node.clone());
+                .insert(node.read().name().to_owned(), node.clone());
             match &node.read().value {
                 ArgumentBuilderType::Literal(literal) => {
                     self.literals.insert(literal.value.clone(), node.clone());

@@ -5,9 +5,9 @@ use std::{
 
 use azalea_buf::AzBuf;
 use azalea_chat::FormattedText;
-use azalea_registry::identifier::Identifier;
 use azalea_inventory::ItemStack;
 use azalea_protocol_macros::ClientboundGamePacket;
+use azalea_registry::identifier::Identifier;
 use indexmap::IndexMap;
 
 #[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
@@ -135,8 +135,8 @@ mod tests {
                 value: Advancement {
                     parent_id: None,
                     display: Some(DisplayInfo {
-                        title: FormattedText::from("title".to_string()),
-                        description: FormattedText::from("description".to_string()),
+                        title: FormattedText::from("title".to_owned()),
+                        description: FormattedText::from("description".to_owned()),
                         icon: ItemStack::Empty,
                         frame: FrameType::Task,
                         show_toast: true,
@@ -155,7 +155,7 @@ mod tests {
             progress: [(
                 Identifier::new("minecraft:test3"),
                 [(
-                    "minecraft:test4".to_string(),
+                    "minecraft:test4".to_owned(),
                     CriterionProgress {
                         date: Some(123456789),
                     },

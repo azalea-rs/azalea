@@ -20,7 +20,7 @@ impl CommandSyntaxError {
         Self {
             kind,
             message,
-            input: Some(input.to_string()),
+            input: Some(input.to_owned()),
             cursor: Some(cursor),
         }
     }

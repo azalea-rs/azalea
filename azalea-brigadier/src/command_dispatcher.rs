@@ -214,7 +214,7 @@ impl<S> CommandDispatcher<S> {
                 let mut result: Vec<String> = Vec::with_capacity(list.len());
                 for node in list {
                     if !Arc::ptr_eq(&node, &self.root) {
-                        result.push(node.read().name().to_string());
+                        result.push(node.read().name().to_owned());
                     }
                 }
                 return result;
@@ -289,7 +289,7 @@ impl<S> CommandDispatcher<S> {
         match &node.redirect {
             Some(redirect) => {
                 let redirect = if ptr::eq(redirect.data_ptr(), self.root.data_ptr()) {
-                    "...".to_string()
+                    "...".to_owned()
                 } else {
                     format!("-> {}", redirect.read().usage_text())
                 };
@@ -367,7 +367,7 @@ impl<S> CommandDispatcher<S> {
 
         if let Some(redirect) = &node.redirect {
             let redirect = if ptr::eq(redirect.data_ptr(), self.root.data_ptr()) {
-                "...".to_string()
+                "...".to_owned()
             } else {
                 format!("-> {}", redirect.read().usage_text())
             };

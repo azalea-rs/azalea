@@ -337,7 +337,7 @@ fn get_path() {
 
     assert_eq!(
         subject.get_path(bar),
-        vec!["foo".to_string(), "bar".to_string()]
+        vec!["foo".to_owned(), "bar".to_owned()]
     );
 }
 

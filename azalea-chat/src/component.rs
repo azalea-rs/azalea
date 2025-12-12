@@ -100,13 +100,13 @@ impl FormattedText {
     /// })).unwrap();
     ///
     /// let ansi = component.to_custom_format(
-    ///     |running, new| (running.compare_ansi(new), "".to_string()),
+    ///     |running, new| (running.compare_ansi(new), "".to_owned()),
     ///     |text| text.to_string(),
     ///     |style| {
     ///         if !style.is_empty() {
-    ///             "\u{1b}[m".to_string()
+    ///             "\u{1b}[m".to_owned()
     ///         } else {
-    ///             "".to_string()
+    ///             "".to_owned()
     ///         }
     ///     },
     ///     &DEFAULT_STYLE,
@@ -207,8 +207,8 @@ impl FormattedText {
     pub fn to_ansi_with_custom_style(&self, default_style: &Style) -> String {
         self.to_custom_format(
             |running, new| (running.compare_ansi(new), "".to_owned()),
-            |text| text.to_string(),
-            |style| if !style.is_empty() { "\u{1b}[m" } else { "" }.to_string(),
+            |text| text.to_owned(),
+            |style| if !style.is_empty() { "\u{1b}[m" } else { "" }.to_owned(),
             default_style,
         )
     }
@@ -260,7 +260,7 @@ impl FormattedText {
                     .replace(">", "&gt;")
                     .replace("\n", "<br>")
             },
-            |_| "".to_string(),
+            |_| "".to_owned(),
             &DEFAULT_STYLE,
         )
     }
@@ -297,13 +297,13 @@ impl<'de> Deserialize<'de> for FormattedText {
         // if it's primitive, make it a text component
         if !json.is_array() && !json.is_object() {
             return Ok(FormattedText::Text(TextComponent::new(
-                json.as_str().unwrap_or("").to_string(),
+                json.as_str().unwrap_or("").to_owned(),
             )));
         }
         // if it's an object, do things with { text } and stuff
         else if json.is_object() {
             if let Some(text) = json.get("text") {
-                let text = text.as_str().unwrap_or("").to_string();
+                let text = text.as_str().unwrap_or("").to_owned();
                 component = FormattedText::Text(TextComponent::new(text));
             } else if let Some(translate) = json.get("translate") {
                 let translate = translate
@@ -315,7 +315,7 @@ impl<'de> Deserialize<'de> for FormattedText {
                         fallback
                             .as_str()
                             .ok_or_else(|| de::Error::custom("\"fallback\" must be a string"))?
-                            .to_string(),
+                            .to_owned(),
                     )
                 } else {
                     None
@@ -530,7 +530,7 @@ impl FormattedText {
                                 warn!(
                                     "couldn't parse {item:?} as FormattedText because it has a disallowed primitive"
                                 );
-                                with_array.push(PrimitiveOrComponent::String("?".to_string()));
+                                with_array.push(PrimitiveOrComponent::String("?".to_owned()));
                             }
                         } else if let Some(c) = FormattedText::from_nbt_compound(item) {
                             if let FormattedText::Text(text_component) = c
@@ -545,7 +545,7 @@ impl FormattedText {
                             ));
                         } else {
                             warn!("couldn't parse {item:?} as FormattedText");
-                            with_array.push(PrimitiveOrComponent::String("?".to_string()));
+                            with_array.push(PrimitiveOrComponent::String("?".to_owned()));
                         }
                     }
                 } else {
@@ -672,7 +672,7 @@ impl From<String> for FormattedText {
 }
 impl From<&str> for FormattedText {
     fn from(s: &str) -> Self {
-        Self::from(s.to_string())
+        Self::from(s.to_owned())
     }
 }
 impl From<TranslatableComponent> for FormattedText {
@@ -721,10 +721,10 @@ mod tests {
         assert_eq!(
             component,
             FormattedText::Translatable(TranslatableComponent::new(
-                "translation.test.args".to_string(),
+                "translation.test.args".to_owned(),
                 vec![
-                    PrimitiveOrComponent::String("a".to_string()),
-                    PrimitiveOrComponent::String("b".to_string())
+                    PrimitiveOrComponent::String("a".to_owned()),
+                    PrimitiveOrComponent::String("b".to_owned())
                 ]
             ))
         );
@@ -744,9 +744,9 @@ mod tests {
         assert_eq!(
             component,
             FormattedText::Translatable(TranslatableComponent::with_fallback(
-                "translation.test.undefined".to_string(),
-                Some("fallback: %s".to_string()),
-                vec![PrimitiveOrComponent::String("a".to_string())]
+                "translation.test.undefined".to_owned(),
+                Some("fallback: %s".to_owned()),
+                vec![PrimitiveOrComponent::String("a".to_owned())]
             ))
         );
     }
@@ -768,11 +768,11 @@ mod tests {
         assert_eq!(
             FormattedText::deserialize(&j).unwrap(),
             FormattedText::Translatable(TranslatableComponent::new(
-                "commands.list.players".to_string(),
+                "commands.list.players".to_owned(),
                 vec![
                     PrimitiveOrComponent::Short(1),
                     PrimitiveOrComponent::Integer(65536),
-                    PrimitiveOrComponent::String("<players>".to_string()),
+                    PrimitiveOrComponent::String("<players>".to_owned()),
                     PrimitiveOrComponent::FormattedText(FormattedText::Text(
                         TextComponent::new("unused")
                             .with_style(Style::new().color(Some(TextColor::parse("red").unwrap())))

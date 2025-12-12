@@ -360,7 +360,7 @@ mod tests {
             children: vec![],
             redirect_node: None,
             node_type: NodeType::Literal {
-                name: "String".to_string(),
+                name: "String".to_owned(),
             },
             is_restricted: false,
         };
@@ -378,7 +378,7 @@ mod tests {
             children: vec![6, 9],
             redirect_node: Some(5),
             node_type: NodeType::Argument {
-                name: "position".to_string(),
+                name: "position".to_owned(),
                 parser: BrigadierParser::Vec3,
                 suggestions_type: Some(Identifier::new("minecraft:test_suggestion")),
             },

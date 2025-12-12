@@ -28,7 +28,7 @@ impl<S> Argument<S> {
         custom_suggestions: Option<Arc<dyn SuggestionProvider<S> + Send + Sync>>,
     ) -> Self {
         Self {
-            name: name.to_string(),
+            name: name.to_owned(),
             parser,
             custom_suggestions,
         }

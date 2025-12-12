@@ -43,8 +43,8 @@ impl AzaleaRead for JointType {
 impl AzaleaWrite for JointType {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         match self {
-            JointType::Rollable => "rollable".to_string().azalea_write(buf)?,
-            JointType::Aligned => "aligned".to_string().azalea_write(buf)?,
+            JointType::Rollable => "rollable".to_owned().azalea_write(buf)?,
+            JointType::Aligned => "aligned".to_owned().azalea_write(buf)?,
         };
         Ok(())
     }

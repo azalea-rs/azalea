@@ -213,9 +213,9 @@ pub struct Args {
 }
 
 fn parse_args() -> Args {
-    let mut owner_username = "admin".to_string();
+    let mut owner_username = "admin".to_owned();
     let mut accounts = Vec::new();
-    let mut server = "localhost".to_string();
+    let mut server = "localhost".to_owned();
     let mut pathfinder_debug_particles = false;
 
     let mut args = env::args().skip(1);
@@ -243,7 +243,7 @@ fn parse_args() -> Args {
     }
 
     if accounts.is_empty() {
-        accounts.push("azalea".to_string());
+        accounts.push("azalea".to_owned());
     }
 
     Args {

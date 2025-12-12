@@ -25,7 +25,7 @@ mod tests {
             vec![Suggestion::new_with_tooltip(
                 StringRange::new(1, 4),
                 "foo",
-                "bar".to_string(),
+                "bar".to_owned(),
             )],
         );
         let mut buf = Vec::new();

@@ -21,10 +21,10 @@ impl SuggestionsBuilder {
     pub fn new_with_lowercase(input: &str, input_lowercase: &str, start: usize) -> Self {
         Self {
             start,
-            input: input.to_string(),
-            input_lowercase: input_lowercase.to_string(),
-            remaining: input[start..].to_string(),
-            remaining_lowercase: input_lowercase[start..].to_string(),
+            input: input.to_owned(),
+            input_lowercase: input_lowercase.to_owned(),
+            remaining: input[start..].to_owned(),
+            remaining_lowercase: input_lowercase[start..].to_owned(),
             result: HashSet::new(),
         }
     }
@@ -57,7 +57,7 @@ impl SuggestionsBuilder {
         }
         self.result.insert(Suggestion {
             range: StringRange::between(self.start, self.input.len()),
-            value: SuggestionValue::Text(text.to_string()),
+            value: SuggestionValue::Text(text.to_owned()),
             tooltip: None,
         });
         self
@@ -69,7 +69,7 @@ impl SuggestionsBuilder {
         }
         self.result.insert(Suggestion {
             range: StringRange::between(self.start, self.input.len()),
-            value: SuggestionValue::Text(text.to_string()),
+            value: SuggestionValue::Text(text.to_owned()),
             tooltip: Some(tooltip),
         });
         self

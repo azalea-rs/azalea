@@ -77,7 +77,7 @@ impl<'a, S> CommandContextBuilder<'a, S> {
         self
     }
     pub fn with_argument(&mut self, name: &str, argument: ParsedArgument) -> &Self {
-        self.arguments.insert(name.to_string(), argument);
+        self.arguments.insert(name.to_owned(), argument);
         self
     }
     pub fn with_node(&mut self, node: Arc<RwLock<CommandNode<S>>>, range: StringRange) -> &Self {
@@ -102,7 +102,7 @@ impl<'a, S> CommandContextBuilder<'a, S> {
             range: self.range,
             forks: self.forks,
             modifier: self.modifier.clone(),
-            input: input.to_string(),
+            input: input.to_owned(),
         }
     }
 

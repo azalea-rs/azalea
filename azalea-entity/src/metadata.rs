@@ -2265,7 +2265,7 @@ impl Default for CommandBlockMinecartMetadataBundle {
                 custom_display_block: CustomDisplayBlock(azalea_block::BlockState::AIR),
                 display_offset: DisplayOffset(Default::default()),
             },
-            command_name: CommandName("".to_string()),
+            command_name: CommandName("".to_owned()),
             last_output: LastOutput(Default::default()),
         }
     }

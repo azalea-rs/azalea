@@ -111,6 +111,8 @@ azalea-registry = { path = "azalea-registry", version = "0.14.0" }
 azalea-world = { path = "azalea-world", version = "0.14.0" }
 
 [workspace.lints.clippy]
+# https://users.rust-lang.org/t/to-string-vs-to-owned-for-string-literals/1441
+str_to_string = "warn"
 
 # --- Profile Settings ---
 

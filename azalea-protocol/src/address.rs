@@ -75,7 +75,7 @@ impl TryFrom<&str> for ServerAddr {
             return Err(ServerAddrParseError);
         }
         let mut parts = string.split(':');
-        let host = parts.next().ok_or(ServerAddrParseError)?.to_string();
+        let host = parts.next().ok_or(ServerAddrParseError)?.to_owned();
         // default the port to 25565
         let port = parts.next().unwrap_or("25565");
         let port = u16::from_str(port).ok().ok_or(ServerAddrParseError)?;

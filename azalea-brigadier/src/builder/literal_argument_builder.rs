@@ -7,7 +7,7 @@ pub struct Literal {
 impl Literal {
     pub fn new(value: &str) -> Self {
         Self {
-            value: value.to_string(),
+            value: value.to_owned(),
         }
     }
 }

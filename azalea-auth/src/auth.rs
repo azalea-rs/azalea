@@ -142,7 +142,7 @@ pub async fn auth(cache_key: &str, opts: AuthOpts<'_>) -> Result<AuthResult, Aut
                 &cache_file,
                 cache_key,
                 CachedAccount {
-                    cache_key: cache_key.to_string(),
+                    cache_key: cache_key.to_owned(),
                     mca: res.mca,
                     msa,
                     xbl: res.xbl,
@@ -527,7 +527,7 @@ async fn obtain_xsts_for_minecraft(
         .json(&json!({
             "Properties": {
                 "SandboxId": "RETAIL",
-                "UserTokens": [xbl_auth_token.to_string()]
+                "UserTokens": [xbl_auth_token.to_owned()]
             },
             "RelyingParty": "rp://api.minecraftservices.com/",
             "TokenType": "JWT"

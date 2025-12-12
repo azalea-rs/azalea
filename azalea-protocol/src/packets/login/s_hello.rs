@@ -20,7 +20,7 @@ mod tests {
     #[test]
     fn test_read_write() {
         let packet = ServerboundHello {
-            name: "test".to_string(),
+            name: "test".to_owned(),
             profile_id: Uuid::nil(),
         };
         let mut buf: Vec<u8> = Vec::new();

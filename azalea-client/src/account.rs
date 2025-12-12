@@ -85,11 +85,11 @@ impl Account {
     /// This is useful for testing in LAN worlds.
     pub fn offline(username: &str) -> Self {
         Self {
-            username: username.to_string(),
+            username: username.to_owned(),
             access_token: None,
             uuid: None,
             account_opts: AccountOpts::Offline {
-                username: username.to_string(),
+                username: username.to_owned(),
             },
             #[cfg(feature = "online-mode")]
             certs: Arc::new(Mutex::new(None)),
@@ -137,7 +137,7 @@ impl Account {
             access_token: Some(Arc::new(Mutex::new(auth_result.access_token))),
             uuid: Some(auth_result.profile.id),
             account_opts: AccountOpts::Microsoft {
-                email: cache_key.to_string(),
+                email: cache_key.to_owned(),
             },
             // we don't do chat signing by default unless the user asks for it
             certs: Arc::new(Mutex::new(None)),
