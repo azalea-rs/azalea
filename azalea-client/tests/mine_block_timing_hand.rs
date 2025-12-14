@@ -29,8 +29,13 @@ fn test_mine_block_timing_hand() {
     simulation.tick();
 
     let pos = BlockPos::new(0, 2, 0);
+    let pos2 = BlockPos::new(0, 1, 0);
     simulation.receive_packet(ClientboundBlockUpdate {
         pos,
+        block_state: BlockKind::Stone.into(),
+    });
+    simulation.receive_packet(ClientboundBlockUpdate {
+        pos: pos2,
         block_state: BlockKind::Stone.into(),
     });
     simulation.receive_packet(ClientboundPlayerPosition {
@@ -64,7 +69,7 @@ fn test_mine_block_timing_hand() {
     });
     sent_packets.clear();
     simulation.tick();
-    sent_packets.expect("ServerboundPlayerAction", |p| {
+    sent_packets.expect("PlayerAction", |p| {
         p == &ServerboundPlayerAction {
             action: s_player_action::Action::StartDestroyBlock,
             pos,
@@ -119,10 +124,32 @@ fn test_mine_block_timing_hand() {
         .into_variant()
     });
 
-    for _ in 0..3 {
-        sent_packets.maybe_expect(|p| matches!(p, ServerboundGamePacket::MovePlayerPos(_)));
+    for _ in 0..5 {
+        sent_packets.expect("MovePlayerPos", |p| {
+            matches!(p, ServerboundGamePacket::MovePlayerPos(_))
+        });
         sent_packets.expect_tick_end();
         sent_packets.expect_empty();
         simulation.tick();
     }
+
+    // mine the block again to make sure that it takes the same number of ticks
+    simulation.write_message(StartMiningBlockEvent {
+        entity: simulation.entity,
+        position: pos2,
+        force: false,
+    });
+    for _ in 0..150 {
+        simulation.tick();
+    }
+    sent_packets.clear();
+    simulation.tick();
+
+    sent_packets.expect("PlayerAction { action: StopDestroyBlock }", |p| {
+        matches!(
+            p,
+            ServerboundGamePacket::PlayerAction(p)
+            if p.action == s_player_action::Action::StopDestroyBlock
+        )
+    });
 }

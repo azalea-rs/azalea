@@ -40,6 +40,7 @@ impl Plugin for MiningPlugin {
                     update_mining_component,
                     handle_auto_mine,
                     handle_mining_queued,
+                    decrement_mine_delay,
                     continue_mining_block,
                 )
                     .chain()
@@ -594,6 +595,14 @@ pub fn handle_stop_mining_block_event(
     }
 }
 
+pub fn decrement_mine_delay(mut query: Query<&mut MineDelay>) {
+    for mut mine_delay in &mut query {
+        if **mine_delay > 0 {
+            **mine_delay -= 1;
+        }
+    }
+}
+
 #[allow(clippy::too_many_arguments, clippy::type_complexity)]
 pub fn continue_mining_block(
     mut query: Query<(
@@ -635,11 +644,6 @@ pub fn continue_mining_block(
         mut prediction_handler,
     ) in query.iter_mut()
     {
-        if **mine_delay > 0 {
-            **mine_delay -= 1;
-            continue;
-        }
-
         if game_mode.current == GameMode::Creative {
             // TODO: worldborder check
             **mine_delay = 5;
