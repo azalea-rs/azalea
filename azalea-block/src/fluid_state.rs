@@ -22,7 +22,7 @@ pub struct FluidState {
     /// set (see FlowingFluid.getFlowing)
     pub falling: bool,
 }
-#[derive(Default, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub enum FluidKind {
     #[default]
     Empty,

@@ -8,11 +8,11 @@ use azalea_registry::builtin::{BlockKind, DebugSubscription, GameEvent, PointOfI
 
 macro_rules! debug_subscription_enum {
     ($($variant:ident($ty:ty),)*) => {
-        #[derive(Clone, Debug, AzBuf, PartialEq)]
+        #[derive(AzBuf, Clone, Debug, PartialEq)]
         pub enum DebugSubscriptionEvent {
             $( $variant($ty), )*
         }
-        #[derive(Clone, Debug, AzBuf, PartialEq)]
+        #[derive(AzBuf, Clone, Debug, PartialEq)]
         pub enum DebugSubscriptionUpdate {
             $( $variant(Option<$ty>), )*
         }
@@ -62,7 +62,7 @@ debug_subscription_enum! {
     GameEvents(DebugGameEventInfo),
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct DebugBeeInfo {
     pub hive_pos: Option<BlockPos>,
     pub flower_pos: Option<BlockPos>,
@@ -70,7 +70,7 @@ pub struct DebugBeeInfo {
     pub travel_ticks: i32,
     pub blacklisted_hives: Vec<BlockPos>,
 }
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct DebugBrainDump {
     pub name: String,
     pub profession: String,
@@ -88,14 +88,14 @@ pub struct DebugBrainDump {
     pub potential_pois: Vec<BlockPos>,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct DebugBreezeInfo {
     #[var]
     pub attack_target: Option<i32>,
     pub jump_target: Option<BlockPos>,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct DebugGoalInfo {
     #[var]
     pub priority: i32,
@@ -104,20 +104,20 @@ pub struct DebugGoalInfo {
     pub name: String,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct DebugPathInfo {
     pub path: MinecraftPath,
     pub max_node_distance: f32,
 }
 
-#[derive(Clone, Copy, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Copy, Debug, PartialEq)]
 pub enum DebugEntityBlockIntersection {
     InBlock,
     InFluid,
     InAir,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct DebugHiveInfo {
     pub kind: BlockKind,
     #[var]
@@ -127,7 +127,7 @@ pub struct DebugHiveInfo {
     pub sedated: bool,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct DebugPoiInfo {
     pub pos: BlockPos,
     pub poi_kind: PointOfInterestKind,
@@ -135,43 +135,43 @@ pub struct DebugPoiInfo {
     pub free_ticket_count: i32,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct DebugRedstoneOrientation {
     #[var]
     pub id: u32,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct DebugStructureInfo {
     pub bounding_box: StructureBoundingBox,
     pub pieces: Vec<StructurePiece>,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct DebugGameEventListenerInfo {
     #[var]
     pub listener_radius: i32,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct DebugGameEventInfo {
     pub event: GameEvent,
     pub pos: Vec3,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct StructureBoundingBox {
     pub min: BlockPos,
     pub max: BlockPos,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct StructurePiece {
     pub bounding_box: StructureBoundingBox,
     pub is_start: bool,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct MinecraftPath {
     pub reached: bool,
     pub next_node_index: i32,
@@ -180,7 +180,7 @@ pub struct MinecraftPath {
     pub debug_data: MinecraftPathDebugData,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct MinecraftPathNode {
     pub x: i32,
     pub y: i32,
@@ -188,7 +188,7 @@ pub struct MinecraftPathNode {
     pub contents: MinecraftPathNodeContents,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct MinecraftPathNodeContents {
     pub walked_distance: f32,
     pub cost_malus: f32,
@@ -198,7 +198,7 @@ pub struct MinecraftPathNodeContents {
 }
 
 // PathType.java
-#[derive(Clone, Copy, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Copy, Debug, PartialEq)]
 pub enum MinecraftPathNodeKind {
     Blocked,
     Open,
@@ -228,7 +228,7 @@ pub enum MinecraftPathNodeKind {
     DangerTrapdoor,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct MinecraftPathDebugData {
     pub target_nodes: Vec<MinecraftPathNode>,
     pub open_set: Vec<MinecraftPathNode>,

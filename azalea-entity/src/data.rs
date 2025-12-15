@@ -59,7 +59,7 @@ impl AzaleaWrite for EntityMetadataItems {
 
 // Note: This enum is partially generated and parsed by
 // codegen/lib/code/entity.py
-#[derive(Clone, Debug, EnumAsInner, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, EnumAsInner, PartialEq)]
 pub enum EntityDataValue {
     Byte(u8),
     Int(#[var] i32),
@@ -107,7 +107,7 @@ pub enum EntityDataValue {
 #[derive(Clone, Debug, PartialEq)]
 pub struct OptionalUnsignedInt(pub Option<u32>);
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct Quaternion {
     pub x: f32,
     pub y: f32,
@@ -117,7 +117,7 @@ pub struct Quaternion {
 
 // mojang just calls this ArmadilloState but i added "Kind" since otherwise it
 // collides with a name in metadata.rs
-#[derive(Clone, Debug, Copy, Default, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Copy, Debug, Default, PartialEq)]
 pub enum ArmadilloStateKind {
     #[default]
     Idle,
@@ -145,14 +145,14 @@ impl AzaleaWrite for OptionalUnsignedInt {
 }
 
 /// A set of x, y, and z rotations. This is used for armor stands.
-#[derive(Clone, Debug, AzBuf, Default, PartialEq)]
+#[derive(AzBuf, Clone, Debug, Default, PartialEq)]
 pub struct Rotations {
     pub x: f32,
     pub y: f32,
     pub z: f32,
 }
 
-#[derive(Clone, Debug, Copy, AzBuf, Default, Component, Eq, PartialEq)]
+#[derive(AzBuf, Clone, Component, Copy, Debug, Default, Eq, PartialEq)]
 pub enum Pose {
     #[default]
     Standing = 0,
@@ -175,7 +175,7 @@ pub enum Pose {
     Inhaling,
 }
 
-#[derive(Debug, Clone, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct VillagerData {
     pub kind: VillagerKind,
     pub profession: VillagerProfession,
@@ -183,7 +183,7 @@ pub struct VillagerData {
     pub level: u32,
 }
 
-#[derive(Debug, Copy, Clone, AzBuf, Default, PartialEq)]
+#[derive(AzBuf, Clone, Copy, Debug, Default, PartialEq)]
 pub enum SnifferStateKind {
     #[default]
     Idling,
@@ -195,7 +195,7 @@ pub enum SnifferStateKind {
     Rising,
 }
 
-#[derive(Debug, Copy, Clone, AzBuf, Default, PartialEq)]
+#[derive(AzBuf, Clone, Copy, Debug, Default, PartialEq)]
 pub enum CopperGolemStateKind {
     #[default]
     Idle,
@@ -204,7 +204,7 @@ pub enum CopperGolemStateKind {
     DroppingItem,
     DroppingNoItem,
 }
-#[derive(Debug, Copy, Clone, AzBuf, Default, PartialEq)]
+#[derive(AzBuf, Clone, Copy, Debug, Default, PartialEq)]
 pub enum WeatheringCopperStateKind {
     #[default]
     Unaffected,
@@ -213,7 +213,7 @@ pub enum WeatheringCopperStateKind {
     Oxidized,
 }
 
-#[derive(AzBuf, Clone, Copy, Debug, PartialEq, Eq, Default)]
+#[derive(AzBuf, Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub enum HumanoidArm {
     Left = 0,
     #[default]

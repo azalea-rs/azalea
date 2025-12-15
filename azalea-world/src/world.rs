@@ -66,7 +66,7 @@ impl PartialInstance {
 /// `#[var]` attribute.
 ///
 /// [`Entity`]: bevy_ecs::entity::Entity
-#[derive(Component, Copy, Clone, Debug, Default, PartialEq, Eq, Deref, DerefMut)]
+#[derive(Clone, Component, Copy, Debug, Default, Deref, DerefMut, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct MinecraftEntityId(pub i32);
 
@@ -150,7 +150,7 @@ impl PartialEntityInfos {
 ///
 /// This is sometimes interchangeably called a "world". However, this type is
 /// called `Instance` to avoid colliding with the `World` type from Bevy ECS.
-#[derive(Default, Debug)]
+#[derive(Debug, Default)]
 pub struct Instance {
     pub chunks: ChunkStorage,
 

@@ -10,7 +10,7 @@ use bevy_ecs::component::Component;
 // we get errors parsing particles.
 
 /// A [`ParticleKind`] with data potentially attached to it.
-#[derive(Component, Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Component, Debug, PartialEq)]
 pub enum Particle {
     AngryVillager,
     Block(BlockParticle),
@@ -265,18 +265,18 @@ impl Default for Particle {
     }
 }
 
-#[derive(Debug, Clone, AzBuf, Default, PartialEq)]
+#[derive(AzBuf, Clone, Debug, Default, PartialEq)]
 pub struct BlockParticle {
     pub block_state: BlockState,
 }
-#[derive(Debug, Clone, AzBuf, Default, PartialEq)]
+#[derive(AzBuf, Clone, Debug, Default, PartialEq)]
 pub struct DustParticle {
     pub color: RgbColor,
     /// The scale, will be clamped between 0.01 and 4.
     pub scale: f32,
 }
 
-#[derive(Debug, Clone, AzBuf, Default, PartialEq)]
+#[derive(AzBuf, Clone, Debug, Default, PartialEq)]
 pub struct DustColorTransitionParticle {
     pub from: RgbColor,
     pub to: RgbColor,
@@ -284,24 +284,24 @@ pub struct DustColorTransitionParticle {
     pub scale: f32,
 }
 
-#[derive(Debug, Clone, AzBuf, Default, PartialEq)]
+#[derive(AzBuf, Clone, Debug, Default, PartialEq)]
 pub struct ColorParticle {
     pub color: RgbColor,
 }
 
-#[derive(Debug, Clone, AzBuf, Default, PartialEq)]
+#[derive(AzBuf, Clone, Debug, Default, PartialEq)]
 pub struct ItemParticle {
     pub item: ItemStack,
 }
 
-#[derive(Debug, Clone, AzBuf, Default, PartialEq)]
+#[derive(AzBuf, Clone, Debug, Default, PartialEq)]
 pub struct VibrationParticle {
     pub position: PositionSource,
     #[var]
     pub ticks: u32,
 }
 
-#[derive(Debug, Clone, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub enum PositionSource {
     Block(BlockPos),
     Entity {
@@ -317,12 +317,12 @@ impl Default for PositionSource {
     }
 }
 
-#[derive(Debug, Clone, AzBuf, Default, PartialEq)]
+#[derive(AzBuf, Clone, Debug, Default, PartialEq)]
 pub struct SculkChargeParticle {
     pub roll: f32,
 }
 
-#[derive(Debug, Clone, AzBuf, Default, PartialEq)]
+#[derive(AzBuf, Clone, Debug, Default, PartialEq)]
 pub struct ShriekParticle {
     #[var]
     pub delay: i32, // The time in ticks before the particle is displayed

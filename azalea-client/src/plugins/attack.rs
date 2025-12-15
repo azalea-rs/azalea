@@ -87,7 +87,7 @@ impl Client {
 
 /// A component that indicates that this client will be attacking the given
 /// entity next tick.
-#[derive(Component, Clone, Debug)]
+#[derive(Clone, Component, Debug)]
 pub struct AttackQueued {
     pub target: Entity,
 }
@@ -166,13 +166,13 @@ pub fn handle_attack_event(mut events: MessageReader<AttackEvent>, mut commands:
     }
 }
 
-#[derive(Default, Bundle)]
+#[derive(Bundle, Default)]
 pub struct AttackBundle {
     pub ticks_since_last_attack: TicksSinceLastAttack,
     pub attack_strength_scale: AttackStrengthScale,
 }
 
-#[derive(Default, Component, Clone, Deref, DerefMut)]
+#[derive(Clone, Component, Default, Deref, DerefMut)]
 pub struct TicksSinceLastAttack(pub u32);
 pub fn increment_ticks_since_last_attack(mut query: Query<&mut TicksSinceLastAttack>) {
     for mut ticks_since_last_attack in query.iter_mut() {
@@ -180,7 +180,7 @@ pub fn increment_ticks_since_last_attack(mut query: Query<&mut TicksSinceLastAtt
     }
 }
 
-#[derive(Default, Component, Clone, Deref, DerefMut)]
+#[derive(Clone, Component, Default, Deref, DerefMut)]
 pub struct AttackStrengthScale(pub f32);
 pub fn update_attack_strength_scale(
     mut query: Query<(&TicksSinceLastAttack, &Attributes, &mut AttackStrengthScale)>,

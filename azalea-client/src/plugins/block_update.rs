@@ -26,7 +26,7 @@ impl Plugin for BlockUpdatePlugin {
 /// [`handle_block_update_event`] (`Update`).
 ///
 /// This is a component instead of an ECS event for performance reasons.
-#[derive(Component, Debug, Clone, Default)]
+#[derive(Clone, Component, Debug, Default)]
 pub struct QueuedServerBlockUpdates {
     pub list: Vec<(BlockPos, BlockState)>,
 }

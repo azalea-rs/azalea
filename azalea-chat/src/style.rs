@@ -9,7 +9,7 @@ use simdnbt::owned::{NbtCompound, NbtTag};
 
 use crate::{click_event::ClickEvent, hover_event::HoverEvent};
 
-#[derive(Clone, PartialEq, Eq, Debug, Hash)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct TextColor {
     pub value: u32,
     pub name: Option<String>,
@@ -97,7 +97,7 @@ impl Ansi {
     }
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[cfg_attr(feature = "azalea-buf", derive(AzBuf))]
 pub enum ChatFormatting {
     Black,

@@ -12,7 +12,7 @@ use tracing::{debug, error};
 use super::InLoginState;
 use crate::{Account, connection::RawConnection};
 
-#[derive(Message, Debug, Clone)]
+#[derive(Clone, Debug, Message)]
 pub struct ReceiveLoginPacketEvent {
     /// The client entity that received the packet.
     pub entity: Entity,
@@ -20,14 +20,14 @@ pub struct ReceiveLoginPacketEvent {
     pub packet: Arc<ClientboundLoginPacket>,
 }
 
-#[derive(EntityEvent, Debug, Clone)]
+#[derive(Clone, Debug, EntityEvent)]
 pub struct ReceiveHelloEvent {
     pub entity: Entity,
     pub account: Account,
     pub packet: ClientboundHello,
 }
 
-#[derive(Message, Debug, Clone)]
+#[derive(Clone, Debug, Message)]
 pub struct ReceiveCustomQueryEvent {
     /// The client entity that received the packet.
     pub entity: Entity,
@@ -41,7 +41,7 @@ pub struct ReceiveCustomQueryEvent {
 }
 
 /// Event for sending a login packet to the server.
-#[derive(EntityEvent, Debug, Clone)]
+#[derive(Clone, Debug, EntityEvent)]
 pub struct SendLoginPacketEvent {
     #[event_target]
     pub sent_by: Entity,

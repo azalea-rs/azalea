@@ -68,7 +68,7 @@ impl Plugin for MiningPlugin {
 }
 
 /// The Bevy system set for things related to mining.
-#[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq, SystemSet)]
 pub struct MiningSystems;
 
 impl Client {
@@ -155,7 +155,7 @@ fn handle_auto_mine(
 /// Information about the block we're currently mining.
 ///
 /// This is only present if we're currently mining a block.
-#[derive(Component, Debug, Clone)]
+#[derive(Clone, Component, Debug)]
 pub struct Mining {
     pub pos: BlockPos,
     pub dir: Direction,
@@ -167,7 +167,7 @@ pub struct Mining {
 ///
 /// If we're looking at the block then the correct direction will be used,
 /// otherwise it'll be [`Direction::Down`].
-#[derive(Message, Debug)]
+#[derive(Debug, Message)]
 pub struct StartMiningBlockEvent {
     pub entity: Entity,
     pub position: BlockPos,
@@ -230,7 +230,7 @@ fn handle_start_mining_block_event(
 }
 
 /// Present on entities when they're going to start mining a block next tick.
-#[derive(Component, Debug, Clone)]
+#[derive(Clone, Component, Debug)]
 pub struct MiningQueued {
     pub position: BlockPos,
     pub direction: Direction,
@@ -443,7 +443,7 @@ fn is_same_mining_target(
 }
 
 /// A component bundle for players that can mine blocks.
-#[derive(Bundle, Default, Clone)]
+#[derive(Bundle, Clone, Default)]
 pub struct MineBundle {
     pub delay: MineDelay,
     pub progress: MineProgress,
@@ -453,13 +453,13 @@ pub struct MineBundle {
 }
 
 /// A component that counts down until we start mining the next block.
-#[derive(Component, Debug, Default, Deref, DerefMut, Clone)]
+#[derive(Clone, Component, Debug, Default, Deref, DerefMut)]
 pub struct MineDelay(pub u32);
 
 /// A component that stores the progress of the current mining operation.
 ///
 /// This is a value between 0 and 1.
-#[derive(Component, Debug, Default, Deref, DerefMut, Clone)]
+#[derive(Clone, Component, Debug, Default, Deref, DerefMut)]
 pub struct MineProgress(pub f32);
 
 impl MineProgress {
@@ -476,16 +476,16 @@ impl MineProgress {
 /// block for.
 ///
 /// This is a float despite the fact that it should only ever be a round number.
-#[derive(Component, Clone, Debug, Default, Deref, DerefMut)]
+#[derive(Clone, Component, Debug, Default, Deref, DerefMut)]
 pub struct MineTicks(pub f32);
 
 /// A component that stores the position of the block we're currently mining.
-#[derive(Component, Clone, Debug, Default, Deref, DerefMut)]
+#[derive(Clone, Component, Debug, Default, Deref, DerefMut)]
 pub struct MineBlockPos(pub Option<BlockPos>);
 
 /// A component that contains the item we're currently using to mine, or
 /// [`ItemStack::Empty`] if nothing is being mined.
-#[derive(Component, Clone, Debug, Default, Deref, DerefMut)]
+#[derive(Clone, Component, Debug, Default, Deref, DerefMut)]
 pub struct MineItem(pub ItemStack);
 
 /// A trigger that's sent when we completed mining a block.

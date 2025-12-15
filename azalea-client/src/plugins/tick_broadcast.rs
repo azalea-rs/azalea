@@ -22,13 +22,13 @@ use tokio::sync::broadcast;
 /// }
 /// # }
 /// ```
-#[derive(Resource, Deref)]
+#[derive(Deref, Resource)]
 pub struct TickBroadcast(broadcast::Sender<()>);
 /// A resource that contains a [`broadcast::Sender`] that will be sent every
 /// Azalea ECS Update.
 ///
 /// Also see [`TickBroadcast`].
-#[derive(Resource, Deref)]
+#[derive(Deref, Resource)]
 pub struct UpdateBroadcast(broadcast::Sender<()>);
 
 pub fn send_tick_broadcast(tick_broadcast: ResMut<TickBroadcast>) {

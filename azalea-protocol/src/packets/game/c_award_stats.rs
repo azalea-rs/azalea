@@ -4,13 +4,13 @@ use azalea_buf::AzBuf;
 use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_registry::builtin::{BlockKind, CustomStat, EntityKind, ItemKind};
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
+#[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundAwardStats {
     #[var]
     pub stats: HashMap<Stat, i32>,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, AzBuf)]
+#[derive(AzBuf, Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Stat {
     Mined(BlockKind),
     Crafted(ItemKind),

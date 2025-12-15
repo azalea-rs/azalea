@@ -126,7 +126,7 @@ pub fn rejoin_after_delay(
 /// You can also remove this resource from the ECS to disable the default
 /// auto-reconnecting behavior. Inserting the resource/component again will not
 /// make clients that were already disconnected automatically reconnect.
-#[derive(Resource, Component, Debug, Clone)]
+#[derive(Clone, Component, Debug, Resource)]
 pub struct AutoReconnectDelay {
     pub delay: Duration,
 }
@@ -139,7 +139,7 @@ impl AutoReconnectDelay {
 /// This is inserted when we're disconnected and indicates when we'll reconnect.
 ///
 /// This is set based on [`AutoReconnectDelay`].
-#[derive(Component, Debug, Clone)]
+#[derive(Clone, Component, Debug)]
 pub struct InternalReconnectAfter {
     pub instant: Instant,
 }

@@ -4,7 +4,7 @@ use azalea_world::MinecraftEntityId;
 
 use crate::common::debug_subscription::DebugSubscriptionUpdate;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
+#[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundDebugEntityValue {
     pub entity_id: MinecraftEntityId,
     pub update: DebugSubscriptionUpdate,

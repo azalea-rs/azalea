@@ -8,7 +8,7 @@ use azalea_registry::{builtin::BlockKind, tags::RegistryTag};
 
 use crate::{BlockState, block_state::BlockStateIntegerRepr};
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct BlockStates {
     pub set: HashSet<BlockState>,
 }

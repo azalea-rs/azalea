@@ -24,7 +24,7 @@ pub type BlockStateIntegerRepr = u16;
 ///
 /// Note that this type is internally either a `u16` or `u32`, depending on
 /// [`BlockStateIntegerRepr`].
-#[derive(Copy, Clone, PartialEq, Eq, Default, Hash)]
+#[derive(Clone, Copy, Default, Eq, Hash, PartialEq)]
 pub struct BlockState {
     id: BlockStateIntegerRepr,
 }

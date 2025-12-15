@@ -4,7 +4,7 @@ use azalea_protocol_macros::ServerboundGamePacket;
 
 use crate::common::movements::MoveFlags;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ServerboundGamePacket)]
+#[derive(AzBuf, Clone, Debug, PartialEq, ServerboundGamePacket)]
 pub struct ServerboundMovePlayerRot {
     pub look_direction: LookDirection,
     pub flags: MoveFlags,

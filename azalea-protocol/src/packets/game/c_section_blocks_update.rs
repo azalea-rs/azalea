@@ -5,7 +5,7 @@ use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, 
 use azalea_core::position::{ChunkSectionBlockPos, ChunkSectionPos};
 use azalea_protocol_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
+#[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundSectionBlocksUpdate {
     pub section_pos: ChunkSectionPos,
     pub states: Vec<BlockStateWithPosition>,

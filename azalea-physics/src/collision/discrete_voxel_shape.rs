@@ -10,7 +10,7 @@ use super::mergers::IndexMerger;
 
 pub trait IntLineConsumer = FnMut(u32, u32, u32, u32, u32, u32);
 
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum DiscreteVoxelShape {
     BitSet(BitSetDiscreteVoxelShape),
 }
@@ -77,7 +77,7 @@ impl DiscreteVoxelShape {
     }
 }
 
-#[derive(Default, Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct BitSetDiscreteVoxelShape {
     x_size: u32,
     y_size: u32,

@@ -13,7 +13,7 @@ use crate::packets::game::c_player_chat::GUESSED_DEFAULT_REGISTRIES_FOR_CHAT;
 /// without chat signing.
 ///
 /// Vanilla servers use this packet when messages are sent from the console.
-#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
+#[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundDisguisedChat {
     pub message: FormattedText,
     pub chat_type: ChatTypeBound,

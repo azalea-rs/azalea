@@ -15,7 +15,7 @@ use bevy_ecs::prelude::*;
 use crate::PlayerAbilities;
 
 /// A component present on all local players that have an inventory.
-#[derive(Component, Debug, Clone)]
+#[derive(Clone, Component, Debug)]
 pub struct Inventory {
     /// The player's inventory menu. This is guaranteed to be a `Menu::Player`.
     ///

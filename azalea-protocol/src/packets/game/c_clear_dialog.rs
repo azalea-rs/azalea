@@ -1,5 +1,5 @@
 use azalea_buf::AzBuf;
 use azalea_protocol_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
+#[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundClearDialog;

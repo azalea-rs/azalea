@@ -2,7 +2,7 @@ use azalea_buf::AzBuf;
 use azalea_protocol_macros::ServerboundLoginPacket;
 use uuid::Uuid;
 
-#[derive(Clone, Debug, Eq, AzBuf, PartialEq, ServerboundLoginPacket)]
+#[derive(AzBuf, Clone, Debug, Eq, PartialEq, ServerboundLoginPacket)]
 pub struct ServerboundHello {
     #[limit(16)]
     pub name: String,

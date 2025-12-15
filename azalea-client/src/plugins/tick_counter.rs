@@ -8,7 +8,7 @@ use crate::{mining::MiningSystems, movement::send_position, tick_broadcast::send
 
 /// Counts the number of game ticks elapsed on the **local client** since the
 /// `login` packet was received.
-#[derive(Component, Clone, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Component, Debug, Default, Eq, PartialEq)]
 pub struct TicksConnected(pub u64);
 
 /// Inserts the counter-increment system into the `GameTick` schedule **before**

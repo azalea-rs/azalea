@@ -18,7 +18,7 @@ async fn main() -> AppExit {
         .await
 }
 
-#[derive(Default, Clone, Component)]
+#[derive(Clone, Component, Default)]
 struct State {
     pub is_stealing: Arc<Mutex<bool>>,
     pub checked_chests: Arc<Mutex<Vec<BlockPos>>>,

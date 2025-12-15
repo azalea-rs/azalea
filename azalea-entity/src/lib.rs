@@ -130,7 +130,7 @@ pub fn on_pos(offset: f32, chunk_storage: &ChunkStorage, pos: Position) -> Block
 ///
 /// For players, this is their actual player UUID, and for other entities it's
 /// just random.
-#[derive(Component, Deref, DerefMut, Clone, Copy, Default, PartialEq)]
+#[derive(Clone, Component, Copy, Default, Deref, DerefMut, PartialEq)]
 pub struct EntityUuid(Uuid);
 impl EntityUuid {
     pub fn new(uuid: Uuid) -> Self {
@@ -150,7 +150,7 @@ impl Debug for EntityUuid {
 ///
 /// Its value is set to a default of [`Vec3::ZERO`] when it receives the login
 /// packet, its true position may be set ticks later.
-#[derive(Component, Clone, Copy, Debug, Default, PartialEq, Deref, DerefMut)]
+#[derive(Clone, Component, Copy, Debug, Default, Deref, DerefMut, PartialEq)]
 pub struct Position(Vec3);
 impl Position {
     pub fn new(pos: Vec3) -> Self {
@@ -187,7 +187,7 @@ impl From<&Position> for BlockPos {
 /// network.
 ///
 /// This is currently only updated for our own local player entities.
-#[derive(Component, Clone, Copy, Debug, Default, PartialEq, Deref, DerefMut)]
+#[derive(Clone, Component, Copy, Debug, Default, Deref, DerefMut, PartialEq)]
 pub struct LastSentPosition(Vec3);
 impl From<&LastSentPosition> for Vec3 {
     fn from(value: &LastSentPosition) -> Self {
@@ -219,14 +219,14 @@ impl From<&LastSentPosition> for BlockPos {
 ///
 /// If this is true, the entity will try to jump every tick. It's equivalent to
 /// the space key being held in vanilla.
-#[derive(Debug, Component, Copy, Clone, Deref, DerefMut, Default, PartialEq, Eq)]
+#[derive(Clone, Component, Copy, Debug, Default, Deref, DerefMut, Eq, PartialEq)]
 pub struct Jumping(pub bool);
 
 /// A component that contains the direction an entity is looking, in degrees.
 ///
 /// To avoid flagging anticheats, consider using [`Self::update`] when updating
 /// the values of this struct.
-#[derive(Debug, Component, Copy, Clone, Default, PartialEq, AzBuf)]
+#[derive(AzBuf, Clone, Component, Copy, Debug, Default, PartialEq)]
 pub struct LookDirection {
     /// Left and right. AKA yaw. In degrees.
     y_rot: f32,
@@ -326,7 +326,7 @@ impl Eq for LookDirection {}
 
 /// The physics data relating to the entity, such as position, velocity, and
 /// bounding box.
-#[derive(Debug, Component, Clone, Default)]
+#[derive(Clone, Component, Debug, Default)]
 pub struct Physics {
     /// How fast the entity is moving. Sometimes referred to as the delta
     /// movement.
@@ -457,14 +457,14 @@ impl Physics {
 /// Marker component for entities that are dead.
 ///
 /// "Dead" means that the entity has 0 health.
-#[derive(Component, Copy, Clone, Default)]
+#[derive(Clone, Component, Copy, Default)]
 pub struct Dead;
 
 /// A component NewType for [`EntityKind`].
 ///
 /// Most of the time, you should be using `azalea_registry::EntityKind`
 /// directly instead.
-#[derive(Component, Clone, Copy, Debug, PartialEq, Deref)]
+#[derive(Clone, Component, Copy, Debug, Deref, PartialEq)]
 pub struct EntityKindComponent(pub EntityKind);
 
 /// A bundle of components that every entity has.
@@ -540,10 +540,10 @@ impl Attributes {
 /// If this is for a client then all of our clients will have this.
 ///
 /// This component is not removed from clients when they disconnect.
-#[derive(Component, Clone, Copy, Debug, Default)]
+#[derive(Clone, Component, Copy, Debug, Default)]
 pub struct LocalEntity;
 
-#[derive(Component, Clone, Copy, Debug, PartialEq, Deref, DerefMut)]
+#[derive(Clone, Component, Copy, Debug, Deref, DerefMut, PartialEq)]
 pub struct FluidOnEyes(FluidKind);
 
 impl FluidOnEyes {
@@ -552,7 +552,7 @@ impl FluidOnEyes {
     }
 }
 
-#[derive(Component, Clone, Copy, Debug, PartialEq, Deref, DerefMut)]
+#[derive(Clone, Component, Copy, Debug, Deref, DerefMut, PartialEq)]
 pub struct OnClimbable(bool);
 
 /// A component that indicates whether the player is currently sneaking.
@@ -563,14 +563,14 @@ pub struct OnClimbable(bool);
 /// If you need to modify this value, use
 /// `azalea_client::PhysicsState::trying_to_crouch` or `Client::set_crouching`
 /// instead.
-#[derive(Component, Clone, Copy, Deref, DerefMut, Default)]
+#[derive(Clone, Component, Copy, Default, Deref, DerefMut)]
 pub struct Crouching(bool);
 
 /// A component that contains the abilities the player has, like flying
 /// or instantly breaking blocks.
 ///
 /// This is only present on local players.
-#[derive(Clone, Debug, Component, Default)]
+#[derive(Clone, Component, Debug, Default)]
 pub struct PlayerAbilities {
     pub invulnerable: bool,
     pub flying: bool,

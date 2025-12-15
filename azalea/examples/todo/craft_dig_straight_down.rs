@@ -3,7 +3,7 @@ use std::sync::Arc;
 use azalea::{pathfinder, prelude::*};
 use parking_lot::Mutex;
 
-#[derive(Default, Clone, Component)]
+#[derive(Clone, Component, Default)]
 struct State {
     pub started: Arc<Mutex<bool>>,
 }

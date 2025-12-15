@@ -301,56 +301,56 @@ define_data_components!(
     AttackRange,
 );
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct CustomData {
     pub nbt: Nbt,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct MaxStackSize {
     #[var]
     pub count: i32,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct MaxDamage {
     #[var]
     pub amount: i32,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct Damage {
     #[var]
     pub amount: i32,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct Unbreakable;
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct CustomName {
     pub name: FormattedText,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct ItemName {
     pub name: FormattedText,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct Lore {
     pub lines: Vec<FormattedText>,
     // vanilla also has styled_lines here but it doesn't appear to be used for the protocol
 }
 
-#[derive(Clone, Copy, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Copy, Debug, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Rarity {
     Common,
@@ -359,7 +359,7 @@ pub enum Rarity {
     Epic,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Serialize, Default)]
+#[derive(AzBuf, Clone, Default, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct Enchantments {
     /// Enchantment levels here are 1-indexed, level 0 does not exist.
@@ -367,7 +367,7 @@ pub struct Enchantments {
     pub levels: HashMap<Enchantment, i32>,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub enum BlockStateValueMatcher {
     Exact {
         value: String,
@@ -378,13 +378,13 @@ pub enum BlockStateValueMatcher {
     },
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct BlockStatePropertyMatcher {
     pub name: String,
     pub value_matcher: BlockStateValueMatcher,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct BlockPredicate {
     #[serde(skip_serializing_if = "is_default")]
     pub blocks: Option<HolderSet<BlockKind, Identifier>>,
@@ -394,26 +394,26 @@ pub struct BlockPredicate {
     pub nbt: Option<NbtCompound>,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct AdventureModePredicate {
     #[serde(serialize_with = "flatten_array")]
     pub predicates: Vec<BlockPredicate>,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct CanPlaceOn {
     pub predicate: AdventureModePredicate,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct CanBreak {
     pub predicate: AdventureModePredicate,
 }
 
-#[derive(Clone, Copy, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Copy, Debug, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum EquipmentSlotGroup {
     Any,
@@ -431,14 +431,14 @@ pub enum EquipmentSlotGroup {
 // this is duplicated in azalea-entity, BUT the one there has a different
 // protocol format (and we can't use it anyways because it would cause a
 // circular dependency)
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct AttributeModifier {
     pub id: Identifier,
     pub amount: f64,
     pub operation: AttributeModifierOperation,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct AttributeModifiersEntry {
     #[serde(rename = "type")]
     pub kind: Attribute,
@@ -449,13 +449,13 @@ pub struct AttributeModifiersEntry {
     pub display: AttributeModifierDisplay,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize, Default)]
+#[derive(AzBuf, Clone, Debug, Default, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct AttributeModifiers {
     pub modifiers: Vec<AttributeModifiersEntry>,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Default, Serialize)]
+#[derive(AzBuf, Clone, Debug, Default, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum AttributeModifierDisplay {
     #[default]
@@ -466,7 +466,7 @@ pub enum AttributeModifierDisplay {
     },
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct CustomModelData {
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub floats: Vec<f32>,
@@ -478,26 +478,26 @@ pub struct CustomModelData {
     pub colors: Vec<i32>,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct RepairCost {
     #[var]
     pub cost: u32,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct CreativeSlotLock;
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct EnchantmentGlintOverride {
     pub show_glint: bool,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct IntangibleProjectile;
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct MobEffectDetails {
     #[var]
     #[serde(skip_serializing_if = "is_default")]
@@ -531,20 +531,20 @@ impl Default for MobEffectDetails {
     }
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct MobEffectInstance {
     pub id: MobEffect,
     #[serde(flatten)]
     pub details: MobEffectDetails,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct PossibleEffect {
     pub effect: MobEffectInstance,
     pub probability: f32,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Default, Serialize)]
+#[derive(AzBuf, Clone, Debug, Default, PartialEq, Serialize)]
 pub struct Food {
     #[var]
     pub nutrition: i32,
@@ -563,7 +563,7 @@ impl Food {
     }
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct ToolRule {
     pub blocks: HolderSet<BlockKind, Identifier>,
     #[serde(skip_serializing_if = "is_default")]
@@ -586,7 +586,7 @@ impl Default for ToolRule {
     }
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct Tool {
     #[serde(serialize_with = "flatten_array")]
     pub rules: Vec<ToolRule>,
@@ -615,57 +615,57 @@ impl Default for Tool {
     }
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct StoredEnchantments {
     #[var]
     pub enchantments: HashMap<Enchantment, i32>,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct DyedColor {
     pub rgb: i32,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct MapColor {
     pub color: i32,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct MapId {
     #[var]
     pub id: i32,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct MapDecorations {
     pub decorations: NbtCompound,
 }
 
-#[derive(Clone, Copy, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Copy, Debug, PartialEq, Serialize)]
 pub enum MapPostProcessing {
     Lock,
     Scale,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct ChargedProjectiles {
     pub items: Vec<ItemStack>,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct BundleContents {
     pub items: Vec<ItemStack>,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct PotionContents {
     #[serde(skip_serializing_if = "is_default")]
     pub potion: Option<Potion>,
@@ -693,7 +693,7 @@ impl Default for PotionContents {
     }
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct SuspiciousStewEffect {
     #[serde(rename = "id")]
     pub effect: MobEffect,
@@ -702,18 +702,18 @@ pub struct SuspiciousStewEffect {
     pub duration: i32,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct SuspiciousStewEffects {
     pub effects: Vec<SuspiciousStewEffect>,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct WritableBookContent {
     pub pages: Vec<Filterable<String>>,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Serialize)]
+#[derive(AzBuf, Clone, PartialEq, Serialize)]
 pub struct WrittenBookContent {
     #[limit(32)]
     pub title: Filterable<String>,
@@ -727,19 +727,19 @@ pub struct WrittenBookContent {
     pub resolved: bool,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct Trim {
     pub material: TrimMaterial,
     pub pattern: TrimPattern,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct DebugStickState {
     pub properties: NbtCompound,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct EntityData {
     #[serde(rename = "id")]
     pub kind: EntityKind,
@@ -747,13 +747,13 @@ pub struct EntityData {
     pub data: NbtCompound,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct BucketEntityData {
     pub entity: NbtCompound,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct BlockEntityData {
     #[serde(rename = "id")]
     pub kind: EntityKind,
@@ -761,14 +761,14 @@ pub struct BlockEntityData {
     pub data: NbtCompound,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum Instrument {
     Registry(data::Instrument),
     Holder(Holder<data::Instrument, InstrumentData>),
 }
 
-#[derive(Clone, PartialEq, Debug, AzBuf, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct InstrumentData {
     pub sound_event: Holder<SoundEvent, azalea_core::sound::CustomSound>,
     pub use_duration: f32,
@@ -776,20 +776,20 @@ pub struct InstrumentData {
     pub description: FormattedText,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct OminousBottleAmplifier {
     #[var]
     pub amplifier: i32,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct Recipes {
     pub recipes: Vec<Identifier>,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct LodestoneTracker {
     #[serde(skip_serializing_if = "is_default")]
     pub target: Option<GlobalPos>,
@@ -797,7 +797,7 @@ pub struct LodestoneTracker {
     pub tracked: bool,
 }
 
-#[derive(Clone, Copy, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Copy, Debug, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum FireworkExplosionShape {
     SmallBall,
@@ -807,7 +807,7 @@ pub enum FireworkExplosionShape {
     Burst,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct FireworkExplosion {
     pub shape: FireworkExplosionShape,
     #[serde(skip_serializing_if = "is_default")]
@@ -820,7 +820,7 @@ pub struct FireworkExplosion {
     pub has_twinkle: bool,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct Fireworks {
     #[var]
     #[serde(skip_serializing_if = "is_default")]
@@ -843,13 +843,13 @@ impl Default for Fireworks {
     }
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct NoteBlockSound {
     pub sound: Identifier,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct BannerPattern {
     #[var]
     pub pattern: i32,
@@ -857,13 +857,13 @@ pub struct BannerPattern {
     pub color: i32,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct BannerPatterns {
     pub patterns: Vec<BannerPattern>,
 }
 
-#[derive(Clone, Copy, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Copy, Debug, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum DyeColor {
     White,
@@ -884,31 +884,31 @@ pub enum DyeColor {
     Black,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct BaseColor {
     pub color: DyeColor,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct PotDecorations {
     pub items: Vec<ItemKind>,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct Container {
     pub items: Vec<ItemStack>,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct BlockState {
     pub properties: HashMap<String, String>,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct BeehiveOccupant {
     #[serde(skip_serializing_if = "is_default")]
     pub entity_data: NbtCompound,
@@ -918,30 +918,30 @@ pub struct BeehiveOccupant {
     pub min_ticks_in_hive: i32,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct Bees {
     pub occupants: Vec<BeehiveOccupant>,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct Lock {
     pub key: String,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct ContainerLoot {
     pub loot_table: NbtCompound,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum JukeboxPlayable {
     Referenced(Identifier),
     Direct(Holder<JukeboxSong, JukeboxSongData>),
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct JukeboxSongData {
     pub sound_event: Holder<SoundEvent, CustomSound>,
     pub description: FormattedText,
@@ -950,7 +950,7 @@ pub struct JukeboxSongData {
     pub comparator_output: i32,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct Consumable {
     #[serde(skip_serializing_if = "is_default")]
     pub consume_seconds: f32,
@@ -987,7 +987,7 @@ impl Default for Consumable {
     }
 }
 
-#[derive(Clone, Copy, PartialEq, AzBuf, Debug, Default, Serialize)]
+#[derive(AzBuf, Clone, Copy, Debug, Default, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ItemUseAnimation {
     #[default]
@@ -1003,13 +1003,13 @@ pub enum ItemUseAnimation {
     Brush,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct UseRemainder {
     pub convert_into: ItemStack,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct UseCooldown {
     pub seconds: f32,
     #[serde(skip_serializing_if = "is_default")]
@@ -1030,30 +1030,30 @@ impl Default for UseCooldown {
     }
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct Enchantable {
     #[var]
     pub value: u32,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct Repairable {
     pub items: HolderSet<ItemKind, Identifier>,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct ItemModel {
     pub resource_location: Identifier,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct DamageResistant {
     /// In vanilla this only allows tag keys, i.e. it must start with '#'
     pub types: Identifier,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct Equippable {
     pub slot: EquipmentSlot,
     #[serde(skip_serializing_if = "is_default_equip_sound")]
@@ -1108,7 +1108,7 @@ impl Default for Equippable {
 }
 
 /// An enum that represents inventory slots that can hold items.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, AzBuf, Serialize)]
+#[derive(AzBuf, Clone, Copy, Debug, Eq, Hash, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum EquipmentSlot {
     Mainhand,
@@ -1167,21 +1167,21 @@ impl Display for EquipmentSlot {
     }
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct Glider;
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct TooltipStyle {
     pub resource_location: Identifier,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct DeathProtection {
     pub death_effects: Vec<ConsumeEffect>,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct Weapon {
     #[var]
     #[serde(skip_serializing_if = "is_default_item_damage_per_attack")]
@@ -1207,37 +1207,37 @@ impl Default for Weapon {
     }
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct PotionDurationScale {
     pub value: f32,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct VillagerVariant {
     pub variant: VillagerKind,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct WolfVariant {
     pub variant: data::WolfVariant,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct WolfCollar {
     pub color: DyeColor,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct FoxVariant {
     pub variant: FoxVariantKind,
 }
 
-#[derive(Default, AzBuf, Clone, Copy, Debug, PartialEq)]
+#[derive(AzBuf, Clone, Copy, Debug, Default, PartialEq)]
 pub enum FoxVariantKind {
     #[default]
     Red,
@@ -1260,7 +1260,7 @@ impl Serialize for FoxVariantKind {
     }
 }
 
-#[derive(Clone, Copy, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Copy, Debug, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum SalmonSize {
     Small,
@@ -1268,7 +1268,7 @@ pub enum SalmonSize {
     Large,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct ParrotVariant {
     pub variant: ParrotVariantKind,
@@ -1301,7 +1301,7 @@ impl Serialize for ParrotVariantKind {
     }
 }
 
-#[derive(Clone, Copy, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Copy, Debug, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum TropicalFishPattern {
     Kob,
@@ -1318,24 +1318,24 @@ pub enum TropicalFishPattern {
     Clayfish,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct TropicalFishBaseColor {
     pub color: DyeColor,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct TropicalFishPatternColor {
     pub color: DyeColor,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct MooshroomVariant {
     pub variant: MooshroomVariantKind,
 }
-#[derive(Default, AzBuf, Clone, Copy, Debug, PartialEq)]
+#[derive(AzBuf, Clone, Copy, Debug, Default, PartialEq)]
 pub enum MooshroomVariantKind {
     #[default]
     Red,
@@ -1358,12 +1358,12 @@ impl Serialize for MooshroomVariantKind {
     }
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct RabbitVariant {
     pub variant: RabbitVariantKind,
 }
-#[derive(Default, AzBuf, Clone, Copy, Debug, PartialEq)]
+#[derive(AzBuf, Clone, Copy, Debug, Default, PartialEq)]
 pub enum RabbitVariantKind {
     #[default]
     Brown,
@@ -1396,24 +1396,24 @@ impl Serialize for RabbitVariantKind {
     }
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct PigVariant {
     pub variant: data::PigVariant,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct FrogVariant {
     pub variant: data::FrogVariant,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct HorseVariant {
     pub variant: HorseVariantKind,
 }
-#[derive(Default, AzBuf, Clone, Copy, Debug, PartialEq)]
+#[derive(AzBuf, Clone, Copy, Debug, Default, PartialEq)]
 pub enum HorseVariantKind {
     #[default]
     White,
@@ -1446,13 +1446,13 @@ impl Serialize for HorseVariantKind {
     }
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct PaintingVariant {
     pub variant: Holder<data::PaintingVariant, PaintingVariantData>,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct PaintingVariantData {
     #[var]
     pub width: i32,
@@ -1465,12 +1465,12 @@ pub struct PaintingVariantData {
     pub author: Option<FormattedText>,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct LlamaVariant {
     pub variant: LlamaVariantKind,
 }
-#[derive(Default, AzBuf, Clone, Copy, Debug, PartialEq)]
+#[derive(AzBuf, Clone, Copy, Debug, Default, PartialEq)]
 pub enum LlamaVariantKind {
     #[default]
     Creamy,
@@ -1497,12 +1497,12 @@ impl Serialize for LlamaVariantKind {
     }
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct AxolotlVariant {
     pub variant: AxolotlVariantKind,
 }
-#[derive(Default, AzBuf, Clone, Copy, Debug, PartialEq)]
+#[derive(AzBuf, Clone, Copy, Debug, Default, PartialEq)]
 pub enum AxolotlVariantKind {
     #[default]
     Lucy,
@@ -1531,31 +1531,31 @@ impl Serialize for AxolotlVariantKind {
     }
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct CatVariant {
     pub variant: data::CatVariant,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct CatCollar {
     pub color: DyeColor,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct SheepColor {
     pub color: DyeColor,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct ShulkerColor {
     pub color: DyeColor,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct TooltipDisplay {
     #[serde(skip_serializing_if = "is_default")]
     pub hide_tooltip: bool,
@@ -1577,7 +1577,7 @@ impl Default for TooltipDisplay {
     }
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct BlocksAttacks {
     #[serde(skip_serializing_if = "is_default")]
     pub block_delay_seconds: f32,
@@ -1622,7 +1622,7 @@ impl Default for BlocksAttacks {
     }
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct DamageReduction {
     #[serde(skip_serializing_if = "is_default_horizontal_blocking_angle")]
     pub horizontal_blocking_angle: f32,
@@ -1634,7 +1634,7 @@ pub struct DamageReduction {
 fn is_default_horizontal_blocking_angle(value: &f32) -> bool {
     *value == 90.
 }
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct ItemDamageFunction {
     pub threshold: f32,
     pub base: f32,
@@ -1650,79 +1650,79 @@ impl Default for ItemDamageFunction {
     }
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum ProvidesTrimMaterial {
     Referenced(Identifier),
     Direct(Holder<TrimMaterial, DirectTrimMaterial>),
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct DirectTrimMaterial {
     pub assets: MaterialAssetGroup,
     pub description: FormattedText,
 }
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct MaterialAssetGroup {
     pub base: AssetInfo,
     #[serde(skip_serializing_if = "is_default")]
     pub overrides: Vec<(Identifier, AssetInfo)>,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct AssetInfo {
     pub suffix: String,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct ProvidesBannerPatterns {
     pub key: Identifier,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct BreakSound {
     pub sound: azalea_registry::Holder<SoundEvent, CustomSound>,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct WolfSoundVariant {
     pub variant: azalea_registry::data::WolfSoundVariant,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct CowVariant {
     pub variant: azalea_registry::data::CowVariant,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum ChickenVariant {
     Referenced(Identifier),
     Direct(ChickenVariantData),
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct ChickenVariantData {
     pub registry: azalea_registry::data::ChickenVariant,
 }
 
 // TODO: check in-game if this is correct
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub enum ZombieNautilusVariant {
     Referenced(Identifier),
     Direct(ZombieNautilusVariantData),
 }
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct ZombieNautilusVariantData {
     pub value: azalea_registry::data::ZombieNautilusVariant,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct UseEffects {
     pub can_sprint: bool,
     pub interact_vibrations: bool,
@@ -1743,21 +1743,21 @@ impl Default for UseEffects {
     }
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct MinimumAttackCharge {
     pub value: f32,
 }
 
 // TODO: this is probably wrong, check in-game
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum DamageType {
     Registry(DamageKind),
     Holder(Holder<DamageKind, DamageTypeElement>),
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct PiercingWeapon {
     pub deals_knockback: bool,
     pub dismounts: bool,
@@ -1780,7 +1780,7 @@ impl Default for PiercingWeapon {
     }
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct KineticWeapon {
     #[var]
     pub contact_cooldown_ticks: i32,
@@ -1815,7 +1815,7 @@ impl Default for KineticWeapon {
     }
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct KineticWeaponCondition {
     #[var]
     pub max_duration_ticks: i32,
@@ -1837,7 +1837,7 @@ impl Default for KineticWeaponCondition {
     }
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct SwingAnimation {
     #[serde(rename = "type")]
     pub kind: SwingAnimationKind,
@@ -1858,7 +1858,7 @@ impl Default for SwingAnimation {
     }
 }
 
-#[derive(Clone, Copy, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Copy, Debug, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum SwingAnimationKind {
     None,
@@ -1866,7 +1866,7 @@ pub enum SwingAnimationKind {
     Stab,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct AttackRange {
     pub min_reach: f32,
     pub max_reach: f32,

@@ -80,7 +80,7 @@ pub fn registry(input: TokenStream) -> TokenStream {
     let attributes = input.attrs;
     generated.extend(quote! {
         #(#attributes)*
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, azalea_buf::AzBuf)]
+        #[derive(azalea_buf::AzBuf, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
         #[repr(u32)]
         pub enum #name {
             #enum_items

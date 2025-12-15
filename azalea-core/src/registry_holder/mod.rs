@@ -30,7 +30,7 @@ use tracing::error;
 /// per-client like you might expect. This is an optimization for swarms to
 /// reduce memory usage, since registries are expected to be the same for every
 /// client in a world.
-#[derive(Default, Debug, Clone)]
+#[derive(Clone, Debug, Default)]
 pub struct RegistryHolder {
     // if you add new fields here, don't forget to also update `RegistryHolder::append`,
     // `protocol_id_to_identifier`, and `define_default_deserializes_to!` in
@@ -124,7 +124,7 @@ fn nbt_to_serializable_type<T: simdnbt::Deserialize>(
     T::from_compound((&nbt_borrow_compound).into()).map_err(Into::into)
 }
 
-#[derive(Error, Debug)]
+#[derive(Debug, Error)]
 enum NbtToSerializableTypeError {
     #[error(transparent)]
     NbtError(#[from] simdnbt::Error),
@@ -133,7 +133,7 @@ enum NbtToSerializableTypeError {
 }
 
 /// A collection of values for a certain type of registry data.
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct RegistryType<T: simdnbt::Deserialize> {
     pub map: IndexMap<Identifier, T>,
 }

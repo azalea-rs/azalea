@@ -32,7 +32,7 @@ use crate::{
     collision::entity_collisions::AabbQuery, local_player::PhysicsState, travel::no_collision,
 };
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum MoverType {
     Own,
     Player,

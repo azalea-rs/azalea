@@ -12,7 +12,7 @@ use thiserror::Error;
 ///
 /// Each attribute can have multiple modifiers, and these modifiers are the
 /// result of things like sprinting or enchantments.
-#[derive(Clone, Debug, Component)]
+#[derive(Clone, Component, Debug)]
 pub struct Attributes {
     pub movement_speed: AttributeInstance,
     pub sneaking_speed: AttributeInstance,

@@ -78,7 +78,7 @@ pub fn collect_equipment_changes(
     }
 }
 
-#[derive(EntityEvent, Debug)]
+#[derive(Debug, EntityEvent)]
 pub struct EquipmentChangesEvent {
     pub entity: Entity,
     pub map: HashMap<EquipmentSlot, EquipmentChange>,

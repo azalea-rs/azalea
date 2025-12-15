@@ -16,7 +16,7 @@ use uuid::Uuid;
 use super::LoadedBy;
 use crate::{EntityUuid, LocalEntity, Position};
 
-#[derive(Resource, Default)]
+#[derive(Default, Resource)]
 pub struct EntityUuidIndex {
     /// An index of entities by their UUIDs
     entity_by_uuid: HashMap<Uuid, Entity>,

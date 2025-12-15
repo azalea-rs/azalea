@@ -15,7 +15,7 @@ use crate::{
     registry_holder::{components::impl_from_effect_nbt_tag, get_in_compound},
 };
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub enum ValueEffect {
     Set {
         value: LevelBasedValue,
@@ -73,7 +73,7 @@ impl simdnbt::Deserialize for ValueEffect {
 }
 impl_from_effect_nbt_tag!(ValueEffect);
 
-#[derive(Debug, Clone, simdnbt::Deserialize)]
+#[derive(Clone, Debug, simdnbt::Deserialize)]
 pub struct AttributeEffect {
     pub id: Identifier,
     pub attribute: Attribute,
@@ -82,7 +82,7 @@ pub struct AttributeEffect {
 }
 impl_from_effect_nbt_tag!(AttributeEffect);
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub enum LevelBasedValue {
     Constant(f32),
     Exponent {

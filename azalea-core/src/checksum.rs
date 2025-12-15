@@ -9,7 +9,7 @@ use tracing::error;
 
 use crate::registry_holder::RegistryHolder;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, AzBuf)]
+#[derive(AzBuf, Clone, Copy, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Checksum(pub u32);
 
 pub struct ChecksumSerializer<'a, 'r> {
@@ -335,7 +335,7 @@ impl<'a, 'r> ser::SerializeSeq for ChecksumListSerializer<'a, 'r> {
 /// keep track of that when serializing the arrays.
 ///
 /// Byte arrays aren't included here as they're handled with `serialize_bytes`.
-#[derive(Default, PartialEq, Eq)]
+#[derive(Default, Eq, PartialEq)]
 enum ListKind {
     #[default]
     Normal,
@@ -617,7 +617,7 @@ impl<'a> ser::Serializer for IntOrLongArrayChecksumSerializer<'a> {
     }
 }
 
-#[derive(Error, Debug)]
+#[derive(Debug, Error)]
 #[error("Checksum serialization error")]
 pub struct ChecksumError;
 impl ser::Error for ChecksumError {

@@ -3,7 +3,7 @@ use azalea_protocol_macros::ClientboundGamePacket;
 
 use crate::common::movements::{PositionMoveRotation, RelativeMovements};
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
+#[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundPlayerPosition {
     /// The teleport ID.
     #[var]

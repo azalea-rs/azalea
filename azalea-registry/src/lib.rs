@@ -66,7 +66,7 @@ where
 /// A registry that might not be present.
 ///
 /// This is transmitted as a single varint in the protocol.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct OptionalRegistry<T: Registry>(pub Option<T>);
 
 impl<T: Registry> AzaleaRead for OptionalRegistry<T> {
@@ -90,7 +90,7 @@ impl<T: Registry> AzaleaWrite for OptionalRegistry<T> {
 }
 
 /// A registry that will either take an ID or a resource location.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum CustomRegistry<D: Registry, C: AzaleaRead + AzaleaWrite> {
     Direct(D),
     Custom(C),

@@ -24,7 +24,7 @@ use crate::{ClientInformation, events::Event as AzaleaEvent, player::PlayerInfo}
 ///
 /// [`InstanceContainer`]: azalea_world::InstanceContainer
 /// [`InstanceName`]: azalea_world::InstanceName
-#[derive(Component, Clone)]
+#[derive(Clone, Component)]
 pub struct InstanceHolder {
     /// The partial instance is the world this client currently has loaded.
     ///
@@ -40,7 +40,7 @@ pub struct InstanceHolder {
 
 /// The gamemode of a local player. For a non-local player, you can look up the
 /// player in the [`TabList`].
-#[derive(Component, Clone, Debug, Copy)]
+#[derive(Clone, Component, Copy, Debug)]
 pub struct LocalGameMode {
     pub current: GameMode,
     pub previous: Option<GameMode>,
@@ -55,7 +55,7 @@ impl From<GameMode> for LocalGameMode {
 }
 
 /// Level must be 0..=4
-#[derive(Component, Clone, Default, Deref, DerefMut)]
+#[derive(Clone, Component, Default, Deref, DerefMut)]
 pub struct PermissionLevel(pub u8);
 
 /// A component that contains a map of player UUIDs to their information in the
@@ -77,10 +77,10 @@ pub struct PermissionLevel(pub u8);
 /// was updated.
 /// This means you should avoid using `TabList` as a resource unless you know
 /// all of your clients will have the same tab list.
-#[derive(Component, Resource, Clone, Debug, Deref, DerefMut, Default)]
+#[derive(Clone, Component, Debug, Default, Deref, DerefMut, Resource)]
 pub struct TabList(HashMap<Uuid, PlayerInfo>);
 
-#[derive(Component, Clone)]
+#[derive(Clone, Component)]
 pub struct Hunger {
     /// The main hunger bar. This is typically in the range `0..=20`.
     pub food: u32,
@@ -147,7 +147,7 @@ impl InstanceHolder {
     }
 }
 
-#[derive(Error, Debug)]
+#[derive(Debug, Error)]
 pub enum HandlePacketError {
     #[error("{0}")]
     Poison(String),

@@ -122,7 +122,7 @@ struct PropertyVariantData {
     pub index: usize,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum PropertyKind {
     Enum,
     Bool,
@@ -471,7 +471,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         let as_block_state = quote! { BlockState::new_const(#as_block_state_inner) };
 
         let mut block_struct = quote! {
-            #[derive(Debug, Copy, Clone, PartialEq)]
+            #[derive(Clone, Copy, Debug, PartialEq)]
             pub struct #block_struct_name
         };
         if block_struct_fields.is_empty() {

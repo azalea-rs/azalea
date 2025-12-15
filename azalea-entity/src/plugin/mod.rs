@@ -25,7 +25,7 @@ use crate::{
 };
 
 /// A Bevy [`SystemSet`] for various types of entity updates.
-#[derive(SystemSet, Debug, Hash, Eq, PartialEq, Clone)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq, SystemSet)]
 pub enum EntityUpdateSystems {
     /// Create search indexes for entities.
     Index,
@@ -192,7 +192,7 @@ fn is_trapdoor_useable_as_ladder(
 /// loaded.
 ///
 /// If this is empty, the entity will be removed from the ECS.
-#[derive(Component, Clone, Deref, DerefMut)]
+#[derive(Clone, Component, Deref, DerefMut)]
 pub struct LoadedBy(pub HashSet<Entity>);
 
 pub fn clamp_look_direction(mut query: Query<&mut LookDirection>) {
@@ -254,7 +254,7 @@ pub fn update_crouching(query: Query<(&mut Crouching, &Pose), Without<LocalEntit
 ///
 /// Internally, this is only used for player physics. Not to be confused with
 /// the somewhat similarly named [`LoadedBy`].
-#[derive(Component, Clone, Debug, Copy)]
+#[derive(Clone, Component, Copy, Debug)]
 pub struct InLoadedChunk;
 
 /// Update the [`InLoadedChunk`] component for all entities in the world.

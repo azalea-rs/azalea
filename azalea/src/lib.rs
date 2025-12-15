@@ -70,7 +70,7 @@ pub type HandleFn<S, Fut> = fn(Client, azalea_client::Event, S) -> Fut;
 ///     .start(Account::offline("bot"), "localhost")
 ///     .await;
 /// # }
-/// # #[derive(Component, Clone, Default)]
+/// # #[derive(Clone, Component, Default)]
 /// # pub struct State;
 /// # async fn handle(mut bot: Client, event: Event, state: State) -> anyhow::Result<()> {
 /// #     Ok(())
@@ -118,7 +118,7 @@ impl ClientBuilder<NoState, ()> {
     ///     )
     ///     .add_plugins(azalea::bot::DefaultBotPlugins);
     /// # client_builder.set_handler(handle);
-    /// # #[derive(Component, Clone, Default)]
+    /// # #[derive(Clone, Component, Default)]
     /// # pub struct State;
     /// # async fn handle(mut bot: Client, event: Event, state: State) -> anyhow::Result<()> {
     /// #     Ok(())
@@ -146,7 +146,7 @@ impl ClientBuilder<NoState, ()> {
     /// # let client_builder = azalea::ClientBuilder::new();
     /// client_builder.set_handler(handle);
     ///
-    /// # #[derive(Component, Clone, Default)]
+    /// # #[derive(Clone, Component, Default)]
     /// # pub struct State;
     /// async fn handle(mut bot: Client, event: Event, state: State) -> anyhow::Result<()> {
     ///     Ok(())
@@ -254,7 +254,7 @@ impl Default for ClientBuilder<NoState, ()> {
 /// it for you.
 ///
 /// [`SwarmBuilder`]: swarm::SwarmBuilder
-#[derive(Component, Clone, Default)]
+#[derive(Clone, Component, Default)]
 pub struct NoState;
 
 /// Optional settings when adding an account to a swarm or client.

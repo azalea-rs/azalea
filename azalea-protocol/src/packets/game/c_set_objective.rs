@@ -5,13 +5,13 @@ use azalea_chat::{FormattedText, numbers::NumberFormat};
 use azalea_core::objectives::ObjectiveCriteria;
 use azalea_protocol_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
+#[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundSetObjective {
     pub objective_name: String,
     pub method: Method,
 }
 
-#[derive(Clone, Copy, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Copy, Debug, PartialEq)]
 pub enum MethodKind {
     Add,
     Remove,

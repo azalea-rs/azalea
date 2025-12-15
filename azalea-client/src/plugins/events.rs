@@ -50,7 +50,7 @@ use crate::{
 ///
 /// Note: Events are sent before they're processed, so for example game ticks
 /// happen at the beginning of a tick before anything has happened.
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 #[non_exhaustive]
 pub enum Event {
     /// Happens right after the bot switches into the Game state, but before

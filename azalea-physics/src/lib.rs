@@ -30,7 +30,7 @@ use collision::{BLOCK_SHAPE, BlockWithShape, VoxelShape, move_colliding};
 use crate::collision::{MoveCtx, entity_collisions::update_last_bounding_box};
 
 /// A Bevy [`SystemSet`] for running physics that makes entities do things.
-#[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq, SystemSet)]
 pub struct PhysicsSystems;
 
 pub struct PhysicsPlugin;

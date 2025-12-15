@@ -9,7 +9,7 @@ use crate::packets::common::CommonPlayerSpawnInfo;
 ///
 /// This packet contains information about the state of the player, the
 /// world, and the registry.
-#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
+#[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundLogin {
     pub player_id: MinecraftEntityId,
     pub hardcore: bool,

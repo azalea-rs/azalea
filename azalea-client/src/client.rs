@@ -562,11 +562,11 @@ pub struct JoinedClientBundle {
 
 /// A marker component for local players that are currently in the
 /// `game` state.
-#[derive(Component, Clone, Debug, Default)]
+#[derive(Clone, Component, Debug, Default)]
 pub struct InGameState;
 /// A marker component for local players that are currently in the
 /// `configuration` state.
-#[derive(Component, Clone, Debug, Default)]
+#[derive(Clone, Component, Debug, Default)]
 pub struct InConfigState;
 
 pub struct AzaleaPlugin;

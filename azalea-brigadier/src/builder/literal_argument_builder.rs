@@ -1,6 +1,6 @@
 use super::argument_builder::{ArgumentBuilder, ArgumentBuilderType};
 
-#[derive(Debug, Clone, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct Literal {
     pub value: String,
 }

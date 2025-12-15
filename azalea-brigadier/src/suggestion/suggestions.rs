@@ -12,7 +12,7 @@ use crate::context::StringRange;
 #[cfg(feature = "azalea-buf")]
 use crate::suggestion::SuggestionValue;
 
-#[derive(Debug, Clone, Eq, PartialEq, Hash, Default)]
+#[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
 pub struct Suggestions {
     range: StringRange,
     suggestions: Vec<Suggestion>,

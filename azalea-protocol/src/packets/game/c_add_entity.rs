@@ -6,7 +6,7 @@ use azalea_registry::{builtin::EntityKind, identifier::Identifier};
 use azalea_world::MinecraftEntityId;
 use uuid::Uuid;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
+#[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundAddEntity {
     /// The numeric ID of the entity being added to the world.
     #[var]

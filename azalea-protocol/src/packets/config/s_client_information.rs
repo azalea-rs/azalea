@@ -3,7 +3,7 @@ use azalea_protocol_macros::ServerboundConfigPacket;
 
 use crate::common::client_information::ClientInformation;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, Eq, ServerboundConfigPacket)]
+#[derive(AzBuf, Clone, Debug, Eq, PartialEq, ServerboundConfigPacket)]
 pub struct ServerboundClientInformation {
     pub information: ClientInformation,
 }

@@ -8,7 +8,7 @@ use azalea_core::{
 use azalea_registry::{data::DimensionKind, identifier::Identifier};
 use tracing::error;
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct CommonPlayerSpawnInfo {
     pub dimension_type: DimensionKind,
     pub dimension: Identifier,

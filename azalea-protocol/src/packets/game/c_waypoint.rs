@@ -6,13 +6,13 @@ use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_registry::identifier::Identifier;
 use uuid::Uuid;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
+#[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundWaypoint {
     pub operation: WaypointOperation,
     pub waypoint: TrackedWaypoint,
 }
 
-#[derive(AzBuf, Copy, Clone, Debug, PartialEq)]
+#[derive(AzBuf, Clone, Copy, Debug, PartialEq)]
 pub enum WaypointOperation {
     Track,
     Untrack,

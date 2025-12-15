@@ -3,7 +3,7 @@ use azalea_chat::FormattedText;
 use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_registry::builtin::MenuKind;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
+#[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundOpenScreen {
     #[var]
     pub container_id: i32,

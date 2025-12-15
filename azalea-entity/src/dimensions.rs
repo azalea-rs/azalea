@@ -5,7 +5,7 @@ use bevy_ecs::component::Component;
 use crate::Pose;
 
 /// A component that contains the size of an entity and their eye height.
-#[derive(Component, Debug, Default, Clone)]
+#[derive(Clone, Component, Debug, Default)]
 pub struct EntityDimensions {
     pub width: f32,
     pub height: f32,

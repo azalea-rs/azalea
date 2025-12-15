@@ -20,7 +20,7 @@ use azalea_protocol::{
 };
 use thiserror::Error;
 
-#[derive(Error, Debug)]
+#[derive(Debug, Error)]
 pub enum PingError {
     #[error("{0}")]
     Resolve(#[from] resolve::ResolveError),

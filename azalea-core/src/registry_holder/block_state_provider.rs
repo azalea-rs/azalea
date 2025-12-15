@@ -1,3 +1,3 @@
 /// TODO: unimplemented
-#[derive(Debug, Clone, simdnbt::Deserialize)]
+#[derive(Clone, Debug, simdnbt::Deserialize)]
 pub struct BlockStateProvider {}

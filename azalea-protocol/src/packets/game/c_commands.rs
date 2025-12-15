@@ -6,14 +6,14 @@ use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_registry::identifier::Identifier;
 use tracing::warn;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
+#[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundCommands {
     pub entries: Vec<BrigadierNodeStub>,
     #[var]
     pub root_index: u32,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct BrigadierNodeStub {
     pub is_executable: bool,
     pub children: Vec<u32>,
@@ -22,7 +22,7 @@ pub struct BrigadierNodeStub {
     pub is_restricted: bool,
 }
 
-#[derive(Debug, Clone, Eq)]
+#[derive(Clone, Debug, Eq)]
 pub struct BrigadierNumber<T> {
     pub min: Option<T>,
     pub max: Option<T>,
@@ -82,7 +82,7 @@ impl<T: AzaleaWrite> AzaleaWrite for BrigadierNumber<T> {
     }
 }
 
-#[derive(Debug, Clone, Copy, AzBuf, PartialEq, Eq)]
+#[derive(AzBuf, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum BrigadierString {
     /// Reads a single word
     SingleWord = 0,
@@ -94,7 +94,7 @@ pub enum BrigadierString {
 }
 
 // see ArgumentTypeInfos.java
-#[derive(Debug, Clone, PartialEq, AzBuf)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub enum BrigadierParser {
     Bool,
     Float(BrigadierNumber<f32>),
@@ -155,7 +155,7 @@ pub enum BrigadierParser {
     Uuid,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct EntityParser {
     pub single: bool,
     pub players_only: bool,
@@ -310,7 +310,7 @@ impl AzaleaWrite for BrigadierNodeStub {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum NodeType {
     Root,
     Literal {

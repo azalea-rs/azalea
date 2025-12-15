@@ -121,7 +121,7 @@ impl Plugin for PathfinderPlugin {
 }
 
 /// A component that makes this client able to pathfind.
-#[derive(Component, Default, Clone)]
+#[derive(Clone, Component, Default)]
 #[non_exhaustive]
 pub struct Pathfinder {
     pub goal: Option<Arc<dyn Goal>>,
@@ -132,7 +132,7 @@ pub struct Pathfinder {
 
 /// A component that's present on clients that are actively following a
 /// pathfinder path.
-#[derive(Component, Clone)]
+#[derive(Clone, Component)]
 pub struct ExecutingPath {
     pub path: VecDeque<astar::Edge<BlockPos, moves::MoveData>>,
     pub queued_path: Option<VecDeque<astar::Edge<BlockPos, moves::MoveData>>>,
@@ -141,7 +141,7 @@ pub struct ExecutingPath {
     pub is_path_partial: bool,
 }
 
-#[derive(Message, Clone, Debug)]
+#[derive(Clone, Debug, Message)]
 #[non_exhaustive]
 pub struct PathFoundEvent {
     pub entity: Entity,

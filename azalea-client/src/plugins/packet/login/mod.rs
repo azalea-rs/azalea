@@ -41,7 +41,7 @@ pub fn process_packet(ecs: &mut World, player: Entity, packet: &ClientboundLogin
 
 /// A marker component for local players that are currently in the
 /// `login` state.
-#[derive(Component, Clone, Debug)]
+#[derive(Clone, Component, Debug)]
 pub struct InLoginState;
 
 pub struct LoginPacketHandler<'a> {

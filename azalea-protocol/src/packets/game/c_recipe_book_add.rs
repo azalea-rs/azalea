@@ -4,19 +4,19 @@ use azalea_registry::builtin::RecipeBookCategory;
 
 use crate::common::recipe::{Ingredient, RecipeDisplayData};
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
+#[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundRecipeBookAdd {
     pub entries: Vec<Entry>,
     pub replace: bool,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct Entry {
     pub contents: RecipeDisplayEntry,
     pub flags: u8,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct RecipeDisplayEntry {
     #[var]
     pub id: u32,

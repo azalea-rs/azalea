@@ -269,7 +269,7 @@ where
     }
 }
 
-#[derive(Error, Debug)]
+#[derive(Debug, Error)]
 pub enum ConnectionError {
     #[error("{0}")]
     Io(#[from] io::Error),
@@ -278,7 +278,7 @@ pub enum ConnectionError {
 use socks5_impl::protocol::UserKey;
 
 /// An address and authentication method for connecting to a SOCKS5 proxy.
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct Proxy {
     pub addr: SocketAddr,
     pub auth: Option<UserKey>,

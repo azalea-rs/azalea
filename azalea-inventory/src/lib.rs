@@ -17,7 +17,7 @@ pub use slot::{DataComponentPatch, ItemStack, ItemStackData};
 // https://github.com/rust-lang/rust/issues/61415
 
 /// A fixed-size list of [`ItemStack`]s.
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct SlotList<const N: usize>([ItemStack; N]);
 impl<const N: usize> Deref for SlotList<N> {
     type Target = [ItemStack; N];

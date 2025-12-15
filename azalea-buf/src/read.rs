@@ -13,7 +13,7 @@ use tracing::warn;
 
 use super::{MAX_STRING_LENGTH, UnsizedByteArray};
 
-#[derive(Error, Debug)]
+#[derive(Debug, Error)]
 pub enum BufReadError {
     #[error("Invalid VarInt")]
     InvalidVarInt,

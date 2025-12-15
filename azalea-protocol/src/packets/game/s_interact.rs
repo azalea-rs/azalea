@@ -7,7 +7,7 @@ use azalea_world::MinecraftEntityId;
 
 use crate::packets::BufReadError;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ServerboundGamePacket)]
+#[derive(AzBuf, Clone, Debug, PartialEq, ServerboundGamePacket)]
 pub struct ServerboundInteract {
     #[var]
     pub entity_id: MinecraftEntityId,

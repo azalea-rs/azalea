@@ -91,13 +91,13 @@ fn deadlock_detection_thread() {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub enum BotTask {
     #[default]
     None,
 }
 
-#[derive(Component, Clone, Default)]
+#[derive(Clone, Component, Default)]
 pub struct State {
     pub killaura: bool,
     pub task: Arc<Mutex<BotTask>>,
@@ -112,7 +112,7 @@ impl State {
     }
 }
 
-#[derive(Resource, Default, Clone)]
+#[derive(Clone, Default, Resource)]
 struct SwarmState {
     pub args: Args,
     pub commands: Arc<CommandDispatcher<Mutex<CommandSource>>>,
@@ -204,7 +204,7 @@ async fn swarm_handle(_swarm: Swarm, event: SwarmEvent, _state: SwarmState) -> a
     Ok(())
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct Args {
     pub owner_username: String,
     pub accounts: Vec<String>,

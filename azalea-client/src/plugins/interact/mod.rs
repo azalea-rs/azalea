@@ -82,7 +82,7 @@ impl Plugin for InteractPlugin {
     }
 }
 
-#[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq, SystemSet)]
 pub struct UpdateAttributesSystems;
 
 impl Client {
@@ -133,7 +133,7 @@ impl Client {
 
 /// A component that contains information about our local block state
 /// predictions.
-#[derive(Component, Clone, Debug, Default)]
+#[derive(Clone, Component, Debug, Default)]
 pub struct BlockStatePredictionHandler {
     /// The total number of changes that this client has made to blocks.
     seq: u32,
@@ -351,7 +351,7 @@ pub fn handle_start_use_item_queued(
 
 /// An ECS `Event` that makes the client tell the server that we right-clicked
 /// an entity.
-#[derive(EntityEvent, Clone, Debug)]
+#[derive(Clone, Debug, EntityEvent)]
 pub struct EntityInteractEvent {
     #[event_target]
     pub client: Entity,
@@ -498,7 +498,7 @@ pub fn can_use_game_master_blocks(
 ///
 /// This is purely a visual effect and won't interact with anything in the
 /// world.
-#[derive(EntityEvent, Clone, Debug)]
+#[derive(Clone, Debug, EntityEvent)]
 pub struct SwingArmEvent {
     pub entity: Entity,
 }

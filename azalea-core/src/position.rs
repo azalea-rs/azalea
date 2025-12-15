@@ -305,7 +305,7 @@ macro_rules! vec3_impl {
 /// Used to represent an exact position in the world where an entity could be.
 ///
 /// For blocks, [`BlockPos`] is used instead.
-#[derive(Clone, Copy, Debug, Default, PartialEq, AzBuf, serde::Deserialize, serde::Serialize)]
+#[derive(AzBuf, Clone, Copy, Debug, Default, serde::Deserialize, PartialEq, serde::Serialize)]
 pub struct Vec3 {
     pub x: f64,
     pub y: f64,
@@ -373,7 +373,7 @@ impl Vec3 {
 }
 
 /// A lower precision [`Vec3`], used for some fields in entity metadata.
-#[derive(Clone, Copy, Debug, Default, PartialEq, AzBuf)]
+#[derive(AzBuf, Clone, Copy, Debug, Default, PartialEq)]
 pub struct Vec3f32 {
     pub x: f32,
     pub y: f32,
@@ -401,7 +401,7 @@ impl From<Vec3> for Vec3f32 {
 /// The coordinates of a block in the world.
 ///
 /// For entities (if the coordinates are floating-point), use [`Vec3`] instead.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
 pub struct BlockPos {
     pub x: i32,
     pub y: i32,
@@ -487,7 +487,7 @@ impl<'de> serde::Deserialize<'de> for BlockPos {
 ///
 /// This is similar to [`BlockPos`], but isn't limited to representing block
 /// positions and can represent a larger range of numbers.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, AzBuf)]
+#[derive(AzBuf, Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
 pub struct Vec3i {
     #[var]
     pub x: i32,
@@ -508,7 +508,7 @@ impl simdnbt::FromNbtTag for Vec3i {
 /// Chunk coordinates are used to represent where a chunk is in the world.
 ///
 /// You can convert the x and z to block coordinates by multiplying them by 16.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct ChunkPos {
     pub x: i32,
     pub z: i32,
@@ -583,7 +583,7 @@ impl Hash for ChunkPos {
 impl nohash_hasher::IsEnabled for ChunkPos {}
 
 /// The coordinates of a chunk section in the world.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
 pub struct ChunkSectionPos {
     pub x: i32,
     pub y: i32,
@@ -598,7 +598,7 @@ impl ChunkSectionPos {
 }
 
 /// The coordinates of a block inside a chunk.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct ChunkBlockPos {
     pub x: u8,
     pub y: i32,
@@ -637,7 +637,7 @@ impl nohash_hasher::IsEnabled for ChunkBlockPos {}
 /// The coordinates of a block inside of a chunk section.
 ///
 /// Each coordinate should be in the range 0..=15.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct ChunkSectionBlockPos {
     pub x: u8,
     pub y: u8,
@@ -648,7 +648,7 @@ vec3_impl!(ChunkSectionBlockPos, u8);
 /// The coordinates of a biome inside of a chunk section.
 ///
 /// Each coordinate should be in the range 0..=3.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct ChunkSectionBiomePos {
     pub x: u8,
     pub y: u8,
@@ -675,7 +675,7 @@ vec3_impl!(ChunkSectionBiomePos, u8);
 /// The coordinates of a biome inside a chunk.
 ///
 /// Biomes are 4x4 blocks.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct ChunkBiomePos {
     pub x: u8,
     pub y: i32,
@@ -733,7 +733,7 @@ impl From<ChunkSectionBlockPos> for u16 {
 impl nohash_hasher::IsEnabled for ChunkSectionBlockPos {}
 
 /// A block pos with an attached world
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct GlobalPos {
     // this is actually a ResourceKey in Minecraft, but i don't think it matters?
     pub dimension: Identifier,
@@ -891,7 +891,7 @@ impl fmt::Display for Vec3 {
 }
 
 /// A 2D vector.
-#[derive(Clone, Copy, Debug, Default, PartialEq, AzBuf, simdnbt::Deserialize, Serialize)]
+#[derive(AzBuf, Clone, Copy, Debug, Default, simdnbt::Deserialize, PartialEq, Serialize)]
 pub struct Vec2 {
     pub x: f32,
     pub y: f32,

@@ -224,7 +224,7 @@ pub struct DeviceCodeResponse {
     pub interval: u64,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct AccessTokenResponse {
     pub token_type: String,
     pub expires_in: u64,
@@ -244,7 +244,7 @@ pub struct XboxLiveAuthResponse {
 }
 
 /// Just the important data
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct XboxLiveAuth {
     pub token: String,
     pub user_hash: String,
@@ -273,7 +273,7 @@ pub struct GameOwnershipItem {
     pub signature: String,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ProfileResponse {
     pub id: Uuid,
     pub name: String,

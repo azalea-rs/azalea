@@ -47,7 +47,7 @@ pub struct PartialChunkStorage {
 ///
 /// This is relatively cheap to clone since it's just an `IntMap` with `Weak`
 /// pointers.
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct ChunkStorage {
     pub height: u32,
     pub min_y: i32,

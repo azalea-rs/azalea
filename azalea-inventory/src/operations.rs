@@ -14,7 +14,7 @@ use crate::{
 };
 
 /// A type of click in a Minecraft inventory.
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub enum ClickOperation {
     Pickup(PickupClick),
     QuickMove(QuickMoveClick),
@@ -25,7 +25,7 @@ pub enum ClickOperation {
     PickupAll(PickupAllClick),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub enum PickupClick {
     /// Left mouse click.
     ///
@@ -47,7 +47,7 @@ impl From<PickupClick> for ClickOperation {
 }
 
 /// Shift click
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub enum QuickMoveClick {
     /// Shift + left mouse click
     Left { slot: u16 },
@@ -61,7 +61,7 @@ impl From<QuickMoveClick> for ClickOperation {
 }
 
 /// Used when you press number keys or F in an inventory.
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct SwapClick {
     pub source_slot: u16,
     /// 0-8 for hotbar slots, 40 for offhand, everything else is treated as a
@@ -76,7 +76,7 @@ impl From<SwapClick> for ClickOperation {
 }
 /// Middle click, only defined for creative players in non-player
 /// inventories.
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct CloneClick {
     pub slot: u16,
 }
@@ -85,7 +85,7 @@ impl From<CloneClick> for ClickOperation {
         ClickOperation::Clone(click)
     }
 }
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub enum ThrowClick {
     /// Drop key (Q)
     Single { slot: u16 },
@@ -97,18 +97,18 @@ impl From<ThrowClick> for ClickOperation {
         ClickOperation::Throw(click)
     }
 }
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct QuickCraftClick {
     pub kind: QuickCraftKind,
     pub status: QuickCraftStatus,
 }
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum QuickCraftKind {
     Left,
     Right,
     Middle,
 }
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum QuickCraftStatusKind {
     /// Starting drag
     Start,
@@ -117,7 +117,7 @@ pub enum QuickCraftStatusKind {
     /// Ending drag
     End,
 }
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum QuickCraftStatus {
     /// Starting drag
     Start,
@@ -137,7 +137,7 @@ impl From<QuickCraftStatus> for QuickCraftStatusKind {
 }
 
 /// Double click.
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct PickupAllClick {
     /// The slot that we're double clicking on.
     ///

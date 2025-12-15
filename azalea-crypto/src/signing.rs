@@ -8,18 +8,18 @@ use rsa::{
 use sha2::Sha256;
 use uuid::Uuid;
 
-#[derive(Debug, Clone, AzBuf)]
+#[derive(AzBuf, Clone, Debug)]
 pub struct SaltSignaturePair {
     pub salt: u64,
     pub signature: Vec<u8>,
 }
 
-#[derive(Clone, Debug, PartialEq, AzBuf)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct MessageSignature {
     pub bytes: [u8; 256],
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct SignedMessageHeader {
     pub previous_signature: Option<MessageSignature>,
     pub sender: Uuid,

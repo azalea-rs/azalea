@@ -22,7 +22,7 @@ use crate::{
     sound::CustomSound,
 };
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub enum EntityEffect {
     AllOf(AllOf),
     ApplyMobEffect(ApplyMobEffect),
@@ -82,12 +82,12 @@ impl Deserialize for EntityEffect {
     }
 }
 
-#[derive(Debug, Clone, simdnbt::Deserialize)]
+#[derive(Clone, Debug, simdnbt::Deserialize)]
 pub struct AllOf {
     pub effects: Vec<EntityEffect>,
 }
 
-#[derive(Debug, Clone, simdnbt::Deserialize)]
+#[derive(Clone, Debug, simdnbt::Deserialize)]
 pub struct ApplyMobEffect {
     /// IDs of mob effects.
     pub to_apply: HomogeneousList,
@@ -99,7 +99,7 @@ pub struct ApplyMobEffect {
 
 // TODO: in vanilla this is just a HolderSetCodec using a RegistryFixedCodec,
 // azalea registries should probably be refactored first tho
-#[derive(Debug, Clone, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct HomogeneousList {
     pub ids: Vec<Identifier>,
 }
@@ -124,12 +124,12 @@ impl simdnbt::FromNbtTag for HomogeneousList {
     }
 }
 
-#[derive(Debug, Clone, simdnbt::Deserialize)]
+#[derive(Clone, Debug, simdnbt::Deserialize)]
 pub struct ChangeItemDamage {
     pub amount: LevelBasedValue,
 }
 
-#[derive(Debug, Clone, simdnbt::Deserialize)]
+#[derive(Clone, Debug, simdnbt::Deserialize)]
 pub struct DamageEntity {
     pub min_damage: LevelBasedValue,
     pub max_damage: LevelBasedValue,
@@ -137,7 +137,7 @@ pub struct DamageEntity {
     pub damage_kind: DamageKindKey,
 }
 
-#[derive(Debug, Clone, simdnbt::Deserialize)]
+#[derive(Clone, Debug, simdnbt::Deserialize)]
 pub struct Explode {
     pub attribute_to_user: Option<bool>,
     #[simdnbt(rename = "damage_type")]
@@ -147,24 +147,24 @@ pub struct Explode {
     pub offset: Option<Vec3>,
 }
 
-#[derive(Debug, Clone, simdnbt::Deserialize)]
+#[derive(Clone, Debug, simdnbt::Deserialize)]
 pub struct Ignite {
     pub duration: LevelBasedValue,
 }
 
-#[derive(Debug, Clone, simdnbt::Deserialize)]
+#[derive(Clone, Debug, simdnbt::Deserialize)]
 pub struct ApplyEntityImpulse {
     pub direction: Vec3,
     pub coordinate_scale: Vec3,
     pub magnitude: LevelBasedValue,
 }
 
-#[derive(Debug, Clone, simdnbt::Deserialize)]
+#[derive(Clone, Debug, simdnbt::Deserialize)]
 pub struct ApplyExhaustion {
     pub amount: LevelBasedValue,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct PlaySound {
     // #[simdnbt(compact)]
     pub sound: Vec<Holder<SoundEvent, CustomSound>>,
@@ -204,7 +204,7 @@ impl Deserialize for PlaySound {
     }
 }
 
-#[derive(Debug, Clone, simdnbt::Deserialize)]
+#[derive(Clone, Debug, simdnbt::Deserialize)]
 pub struct ReplaceBlock {
     pub offset: Option<Vec3i>,
     pub predicate: Option<BlockPredicate>,
@@ -212,7 +212,7 @@ pub struct ReplaceBlock {
     pub trigger_game_event: Option<GameEvent>,
 }
 
-#[derive(Debug, Clone, simdnbt::Deserialize)]
+#[derive(Clone, Debug, simdnbt::Deserialize)]
 pub struct ReplaceDisk {
     pub radius: LevelBasedValue,
     pub height: LevelBasedValue,
@@ -222,19 +222,19 @@ pub struct ReplaceDisk {
     pub trigger_game_event: Option<GameEvent>,
 }
 
-#[derive(Debug, Clone, simdnbt::Deserialize)]
+#[derive(Clone, Debug, simdnbt::Deserialize)]
 pub struct RunFunction {
     pub function: Identifier,
 }
 
-#[derive(Debug, Clone, simdnbt::Deserialize)]
+#[derive(Clone, Debug, simdnbt::Deserialize)]
 pub struct SetBlockProperties {
     pub properties: HashMap<String, String>,
     pub offset: Option<Vec3i>,
     pub trigger_game_event: Option<GameEvent>,
 }
 
-#[derive(Debug, Clone, simdnbt::Deserialize)]
+#[derive(Clone, Debug, simdnbt::Deserialize)]
 pub struct SpawnParticles {
     pub particle: ParticleKindCodec,
     pub horizontal_position: SpawnParticlesPosition,
@@ -244,13 +244,13 @@ pub struct SpawnParticles {
     pub speed: Option<FloatProvider>,
 }
 
-#[derive(Debug, Clone, simdnbt::Deserialize)]
+#[derive(Clone, Debug, simdnbt::Deserialize)]
 pub struct ParticleKindCodec {
     #[simdnbt(rename = "type")]
     pub kind: ParticleKind,
 }
 
-#[derive(Debug, Clone, simdnbt::Deserialize)]
+#[derive(Clone, Debug, simdnbt::Deserialize)]
 pub struct SpawnParticlesPosition {
     #[simdnbt(rename = "type")]
     pub kind: Identifier,
@@ -258,13 +258,13 @@ pub struct SpawnParticlesPosition {
     pub scale: Option<f32>,
 }
 
-#[derive(Debug, Clone, simdnbt::Deserialize)]
+#[derive(Clone, Debug, simdnbt::Deserialize)]
 pub struct SpawnParticlesVelocity {
     pub movement_scale: Option<f32>,
     pub base: Option<FloatProvider>,
 }
 
-#[derive(Debug, Clone, simdnbt::Deserialize)]
+#[derive(Clone, Debug, simdnbt::Deserialize)]
 pub struct SummonEntity {
     pub entity: HomogeneousList,
     pub join_team: Option<bool>,

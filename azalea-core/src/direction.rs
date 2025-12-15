@@ -91,7 +91,7 @@ impl Direction {
 ///
 /// Note that azalea_block has a similar enum named `FacingCardinal` that is
 /// used for block states.
-#[derive(Clone, Copy, Debug, AzBuf, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[derive(AzBuf, Clone, Copy, Debug, serde::Deserialize, Eq, Hash, PartialEq, serde::Serialize)]
 pub enum CardinalDirection {
     North,
     South,

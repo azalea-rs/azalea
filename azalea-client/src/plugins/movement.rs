@@ -74,7 +74,7 @@ impl Plugin for MovementPlugin {
     }
 }
 
-#[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq, SystemSet)]
 pub struct MoveEventsSystems;
 
 impl Client {
@@ -128,7 +128,7 @@ impl Client {
 
 /// A component that contains the look direction that was last sent over the
 /// network.
-#[derive(Debug, Component, Clone, Default)]
+#[derive(Clone, Component, Debug, Default)]
 pub struct LastSentLookDirection {
     pub x_rot: f32,
     pub y_rot: f32,
@@ -242,7 +242,7 @@ pub fn send_position(
     }
 }
 
-#[derive(Debug, Default, Component, Clone, PartialEq, Eq)]
+#[derive(Clone, Component, Debug, Default, Eq, PartialEq)]
 pub struct LastSentInput(pub ServerboundPlayerInput);
 pub fn send_player_input_packet(
     mut query: Query<(Entity, &PhysicsState, &Jumping, Option<&LastSentInput>)>,
@@ -571,7 +571,7 @@ impl Client {
 /// This does not get sent for non-local entities.
 ///
 /// To stop walking or sprinting, send this event with `WalkDirection::None`.
-#[derive(Message, Debug)]
+#[derive(Debug, Message)]
 pub struct StartWalkEvent {
     pub entity: Entity,
     pub direction: WalkDirection,

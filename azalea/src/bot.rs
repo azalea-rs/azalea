@@ -61,7 +61,7 @@ impl Plugin for BotPlugin {
 ///
 /// If you just want to check if an entity is one of our bots, you should use
 /// [`LocalEntity`].
-#[derive(Default, Component)]
+#[derive(Component, Default)]
 pub struct Bot {
     jumping_once: bool,
 }

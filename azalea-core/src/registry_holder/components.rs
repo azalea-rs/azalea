@@ -125,7 +125,7 @@ impl<T: EffectComponentTrait> ResolvedEffectComponent for T {}
 /// just use `from_nbt_tag`, because `borrow::NbtTag` can't be constructed on
 /// its own. To work around this, we have this `EffectNbtTag` struct that we
 /// *can* construct that we use when deserializing.
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum EffectNbtTag<'a, 'tape> {
     Compound(NbtCompound<'a, 'tape>),
     List(NbtList<'a, 'tape>),
@@ -167,12 +167,12 @@ macro_rules! impl_from_effect_nbt_tag {
 }
 pub(crate) use impl_from_effect_nbt_tag;
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct ConditionalEffect<T: simdnbt::Deserialize + Debug + Clone> {
     pub effect: T,
     // pub requirements
 }
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct TargetedConditionalEffect<T: simdnbt::Deserialize + Debug + Clone> {
     pub effect: T,
     // pub enchanted

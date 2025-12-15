@@ -51,7 +51,7 @@ impl ResolvableAddr for &ResolvedAddr {
 /// assert_eq!(addr.host, "localhost");
 /// assert_eq!(addr.port, 25565);
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct ServerAddr {
     pub host: String,
     pub port: u16,
@@ -137,7 +137,7 @@ impl serde::Serialize for ServerAddr {
 }
 
 /// An address that may be used to connect to a Minecraft server.
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct ResolvedAddr {
     /// The initial address that we passed when trying to connect.
     ///

@@ -9,7 +9,7 @@ use serde::Serialize;
 
 use crate::components::MobEffectInstance;
 
-#[derive(Clone, PartialEq, Debug, AzBuf, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case", tag = "type")]
 pub enum ConsumeEffect {
     ApplyEffects {

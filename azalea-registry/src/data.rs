@@ -16,7 +16,7 @@ macro_rules! data_registry {
         }
     ) => {
         $(#[$doc])*
-        #[derive(Debug, Clone, Copy, AzBuf, PartialEq, Eq, Hash, PartialOrd, Ord)]
+        #[derive(AzBuf, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
         pub struct $registry {
             #[var]
             id: u32,
@@ -44,7 +44,7 @@ macro_rules! data_registry {
             }
         }
 
-        #[derive(Debug, PartialEq, Eq, Hash, Clone)]
+        #[derive(Clone, Debug, Eq, Hash, PartialEq)]
         pub enum $enum_name<Other = Identifier> {
             $($variant),*,
             Other(Other)

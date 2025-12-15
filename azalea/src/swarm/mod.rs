@@ -131,7 +131,7 @@ impl SwarmBuilder<NoState, NoSwarmState, (), ()> {
     ///     .add_plugins(azalea::bot::DefaultBotPlugins)
     ///     .add_plugins(azalea::swarm::DefaultSwarmPlugins);
     /// # swarm_builder.set_handler(handle).set_swarm_handler(swarm_handle);
-    /// # #[derive(Component, Resource, Clone, Default)]
+    /// # #[derive(Clone, Component, Default, Resource)]
     /// # pub struct State;
     /// # async fn handle(mut bot: Client, event: Event, state: State) -> anyhow::Result<()> {
     /// #     Ok(())
@@ -183,13 +183,13 @@ where
     /// # let swarm_builder = SwarmBuilder::new().set_swarm_handler(swarm_handle);
     /// swarm_builder.set_handler(handle);
     ///
-    /// #[derive(Component, Default, Clone)]
+    /// #[derive(Clone, Component, Default)]
     /// struct State {}
     /// async fn handle(mut bot: Client, event: Event, state: State) -> anyhow::Result<()> {
     ///     Ok(())
     /// }
     ///
-    /// # #[derive(Resource, Default, Clone)]
+    /// # #[derive(Clone, Default, Resource)]
     /// # struct SwarmState {}
     /// # async fn swarm_handle(
     /// #     mut swarm: Swarm,
@@ -239,14 +239,14 @@ where
     /// # let swarm_builder = SwarmBuilder::new().set_handler(handle);
     /// swarm_builder.set_swarm_handler(swarm_handle);
     ///
-    /// # #[derive(Component, Default, Clone)]
+    /// # #[derive(Clone, Component, Default)]
     /// # struct State {}
     ///
     /// # async fn handle(mut bot: Client, event: Event, state: State) -> anyhow::Result<()> {
     /// #     Ok(())
     /// # }
     ///
-    /// #[derive(Resource, Default, Clone)]
+    /// #[derive(Clone, Default, Resource)]
     /// struct SwarmState {}
     /// async fn swarm_handle(
     ///     mut swarm: Swarm,
@@ -673,10 +673,10 @@ pub type BoxSwarmHandleFn<SS, R> =
 /// use azalea::{prelude::*, swarm::prelude::*};
 /// use std::time::Duration;
 ///
-/// #[derive(Default, Clone, Component)]
+/// #[derive(Clone, Component, Default)]
 /// struct State {}
 ///
-/// #[derive(Default, Clone, Resource)]
+/// #[derive(Clone, Default, Resource)]
 /// struct SwarmState {}
 ///
 /// #[tokio::main]
@@ -884,7 +884,7 @@ impl IntoIterator for Swarm {
     ///
     /// ```rust,no_run
     /// # use azalea::{prelude::*, swarm::prelude::*};
-    /// #[derive(Component, Clone)]
+    /// #[derive(Clone, Component)]
     /// # pub struct State;
     /// # fn example(swarm: Swarm) {
     /// for bot in swarm {
@@ -920,5 +920,5 @@ impl PluginGroup for DefaultSwarmPlugins {
 ///
 /// You probably don't need to use this manually since the compiler will infer
 /// it for you.
-#[derive(Resource, Clone, Default)]
+#[derive(Clone, Default, Resource)]
 pub struct NoSwarmState;

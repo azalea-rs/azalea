@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use super::{Suggestion, SuggestionValue, Suggestions};
 use crate::context::StringRange;
 
-#[derive(PartialEq, Debug)]
+#[derive(Debug, PartialEq)]
 pub struct SuggestionsBuilder {
     input: String,
     input_lowercase: String,

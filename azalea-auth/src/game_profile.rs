@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize, Serializer};
 use uuid::Uuid;
 
 /// Information about the player that's usually stored on Mojang's servers.
-#[derive(Debug, Clone, Default, Eq, PartialEq, AzBuf)]
+#[derive(AzBuf, Clone, Debug, Default, Eq, PartialEq)]
 pub struct GameProfile {
     /// The UUID of the player.
     ///
@@ -49,7 +49,7 @@ impl From<SerializableGameProfile> for GameProfile {
 }
 
 /// The properties of the player, including their in-game skin and cape.
-#[derive(Debug, Clone, Default, Eq, PartialEq)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct GameProfileProperties {
     pub map: IndexMap<String, ProfilePropertyValue>,
 }
@@ -82,7 +82,7 @@ impl AzaleaWrite for GameProfileProperties {
     }
 }
 
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ProfilePropertyValue {
     pub value: String,
     pub signature: Option<String>,
@@ -102,7 +102,7 @@ impl AzaleaWrite for ProfilePropertyValue {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct SerializableGameProfile {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -125,7 +125,7 @@ impl From<GameProfile> for SerializableGameProfile {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[serde(transparent)]
 pub struct SerializableProfileProperties {
     pub list: Vec<SerializableProfilePropertyValue>,
@@ -135,7 +135,7 @@ impl SerializableProfileProperties {
         self.list.is_empty()
     }
 }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct SerializableProfilePropertyValue {
     pub name: String,
     pub value: String,

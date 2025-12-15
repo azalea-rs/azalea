@@ -18,10 +18,10 @@ async fn main() -> AppExit {
         .await
 }
 
-#[derive(Default, Clone, Component)]
+#[derive(Clone, Component, Default)]
 struct State {}
 
-#[derive(Default, Clone, Resource)]
+#[derive(Clone, Default, Resource)]
 struct SwarmState {}
 
 async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {

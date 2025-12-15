@@ -30,7 +30,7 @@ impl Plugin for ChatPlugin {
 }
 
 /// A chat packet, either a system message or a chat message.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum ChatPacket {
     System(Arc<ClientboundSystemChat>),
     Player(Arc<ClientboundPlayerChat>),
@@ -234,7 +234,7 @@ impl Client {
 }
 
 /// A client received a chat message packet.
-#[derive(Message, Debug, Clone)]
+#[derive(Clone, Debug, Message)]
 pub struct ChatReceivedEvent {
     pub entity: Entity,
     pub packet: ChatPacket,

@@ -112,7 +112,7 @@ pub fn remove_components_from_disconnected_players(
     }
 }
 
-#[derive(Component, Clone, Copy, Debug, Deref)]
+#[derive(Clone, Component, Copy, Debug, Deref)]
 pub struct IsConnectionAlive(bool);
 
 fn update_read_packets_task_running_component(

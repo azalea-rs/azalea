@@ -53,7 +53,7 @@ impl Plugin for InventoryPlugin {
     }
 }
 
-#[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq, SystemSet)]
 pub struct InventorySystems;
 
 impl Client {
@@ -102,7 +102,7 @@ impl Client {
 /// To watch for the menu being closed, you could use
 /// [`ClientsideCloseContainerEvent`]. To close it manually, use
 /// [`CloseContainerEvent`].
-#[derive(EntityEvent, Debug, Clone)]
+#[derive(Clone, Debug, EntityEvent)]
 pub struct MenuOpenedEvent {
     pub entity: Entity,
     pub window_id: i32,
@@ -162,7 +162,7 @@ fn handle_container_close_event(
 ///
 /// If you want to watch for a container being opened, you should use
 /// [`MenuOpenedEvent`].
-#[derive(EntityEvent, Clone)]
+#[derive(Clone, EntityEvent)]
 pub struct ClientsideCloseContainerEvent {
     pub entity: Entity,
 }
@@ -199,7 +199,7 @@ pub fn handle_client_side_close_container_trigger(
     inventory.container_menu_title = None;
 }
 
-#[derive(EntityEvent, Debug)]
+#[derive(Debug, EntityEvent)]
 pub struct ContainerClickEvent {
     pub entity: Entity,
     pub window_id: i32,

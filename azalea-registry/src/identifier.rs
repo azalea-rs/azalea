@@ -17,7 +17,7 @@ use simdnbt::{FromNbtTag, ToNbtTag, owned::NbtTag};
 ///
 /// This was formerly called a `ResourceLocation`.
 #[doc(alias = "ResourceLocation")]
-#[derive(Hash, Clone, PartialEq, Eq, Default)]
+#[derive(Clone, Default, Eq, Hash, PartialEq)]
 pub struct Identifier {
     // empty namespaces aren't allowed so NonZero is fine.
     colon_index: Option<NonZeroUsize>,

@@ -10,7 +10,7 @@ use azalea_registry::identifier::Identifier;
 
 use crate::packets::{AzaleaWrite, BufReadError};
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ServerboundGamePacket)]
+#[derive(AzBuf, Clone, Debug, PartialEq, ServerboundGamePacket)]
 pub struct ServerboundSetJigsawBlock {
     pub pos: BlockPos,
     pub name: Identifier,

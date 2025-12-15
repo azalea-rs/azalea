@@ -9,7 +9,7 @@ use simdnbt::{
 
 use crate::codec_utils::*;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
 pub struct TrimMaterialElement {
     pub asset_name: String,
@@ -20,7 +20,7 @@ pub struct TrimMaterialElement {
 }
 
 /// Data about a kind of chat message
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
 pub struct ChatTypeElement {
     pub chat: ChatTypeData,
@@ -28,7 +28,7 @@ pub struct ChatTypeElement {
 }
 
 /// Data about a chat message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
 pub struct ChatTypeData {
     pub translation_key: String,
@@ -37,7 +37,7 @@ pub struct ChatTypeData {
 }
 
 /// The style of a chat message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
 pub struct ChatTypeStyle {
     pub color: Option<String>,
@@ -50,7 +50,7 @@ pub struct ChatTypeStyle {
 
 /// Dimension attributes.
 #[cfg(feature = "strict_registry")]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[simdnbt(deny_unknown_fields)]
 pub struct DimensionKindElement {
     pub ambient_light: f32,
@@ -75,7 +75,7 @@ pub struct DimensionKindElement {
 
 /// Dimension attributes.
 #[cfg(not(feature = "strict_registry"))]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct DimensionKindElement {
     pub height: u32,
     pub min_y: i32,
@@ -88,7 +88,7 @@ pub struct DimensionKindElement {
 ///
 /// This can be either a single minimum value, or a formula with a min and
 /// max.
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 // #[serde(untagged)]
 pub enum MonsterSpawnLightLevel {
     /// A simple minimum value.
@@ -132,7 +132,7 @@ impl ToNbtTag for MonsterSpawnLightLevel {
 /// The min and max light levels at which monsters can spawn.
 ///
 /// Values are inclusive.
-#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 #[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
 pub struct MonsterSpawnLightLevelValues {
     #[simdnbt(rename = "min_inclusive")]
@@ -142,7 +142,7 @@ pub struct MonsterSpawnLightLevelValues {
 }
 
 /// Biome attributes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
 pub struct WorldTypeElement {
     pub has_precipitation: bool,
@@ -153,7 +153,7 @@ pub struct WorldTypeElement {
 }
 
 /// The precipitation of a biome.
-#[derive(Debug, PartialEq, Eq, Copy, Clone)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum BiomePrecipitation {
     None,
     Rain,
@@ -183,7 +183,7 @@ impl ToNbtTag for BiomePrecipitation {
 ///
 /// This includes the sky, fog, water, and grass color,
 /// as well as music and other sound effects.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
 pub struct BiomeEffects {
     pub sky_color: u32,
@@ -203,7 +203,7 @@ pub struct BiomeEffects {
 /// The music of the biome.
 ///
 /// Some biomes have unique music that only play when inside them.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
 pub struct BiomeMusic {
     pub replace_current_music: bool,
@@ -212,7 +212,7 @@ pub struct BiomeMusic {
     pub sound: SoundEvent,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
 pub struct BiomeMoodSound {
     pub tick_delay: u32,
@@ -221,7 +221,7 @@ pub struct BiomeMoodSound {
     pub sound: SoundEvent,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
 pub struct AdditionsSound {
     pub tick_chance: f32,
@@ -231,14 +231,14 @@ pub struct AdditionsSound {
 /// Biome particles.
 ///
 /// Some biomes have particles that spawn in the air.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
 pub struct BiomeParticle {
     pub probability: f32,
     pub options: HashMap<String, String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
 pub struct TrimPatternElement {
     #[simdnbt(flatten)]

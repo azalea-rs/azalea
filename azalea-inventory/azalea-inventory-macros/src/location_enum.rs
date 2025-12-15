@@ -40,7 +40,7 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
             });
         }
         enums.extend(quote! {
-            #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+            #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
             pub enum #enum_name {
                 #individual_menu_location_variants
             }

@@ -6,7 +6,7 @@ use bevy_ecs::component::Component;
 /// Usually only present for [`LocalEntity`]s.
 ///
 /// [`LocalEntity`]: azalea_entity::LocalEntity
-#[derive(Default, Component, Clone)]
+#[derive(Clone, Component, Default)]
 pub struct PhysicsState {
     /// Minecraft only sends a movement packet either after 20 ticks or if the
     /// player moved enough. This is that tick counter.
@@ -35,7 +35,7 @@ pub struct PhysicsState {
 /// A direction that a player can walk in, including none.
 ///
 /// Superset of [`SprintDirection`].
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub enum WalkDirection {
     #[default]
     None,

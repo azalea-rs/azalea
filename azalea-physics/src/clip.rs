@@ -16,7 +16,7 @@ use azalea_world::ChunkStorage;
 
 use crate::collision::{BlockWithShape, EMPTY_SHAPE, VoxelShape};
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct ClipContext {
     pub from: Vec3,
     pub to: Vec3,
@@ -58,7 +58,7 @@ impl ClipContext {
     }
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Clone, Copy, Debug)]
 pub enum BlockShapeType {
     /// The shape that's used for collision.
     Collider,
@@ -71,7 +71,7 @@ pub enum BlockShapeType {
     Visual,
     FallDamageResetting,
 }
-#[derive(Debug, Copy, Clone)]
+#[derive(Clone, Copy, Debug)]
 pub enum FluidPickType {
     None,
     SourceOnly,

@@ -14,7 +14,7 @@ use crate::read::ReadPacketError;
 pub const PROTOCOL_VERSION: i32 = 774;
 pub const VERSION_NAME: &str = "1.21.11";
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum ConnectionProtocol {
     Handshake = -1,
     Game = 0,
@@ -60,7 +60,7 @@ pub trait Packet<Protocol> {
     fn into_variant(self) -> Protocol;
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum ClientIntention {
     Status = 1,
     Login = 2,

@@ -3,7 +3,7 @@ use azalea_protocol_macros::ClientboundGamePacket;
 
 use crate::packets::common::CommonPlayerSpawnInfo;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
+#[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundRespawn {
     pub common: CommonPlayerSpawnInfo,
     pub data_to_keep: u8,

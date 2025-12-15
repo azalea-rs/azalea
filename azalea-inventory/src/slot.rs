@@ -17,7 +17,7 @@ use crate::{
 };
 
 /// Either an item in an inventory or nothing.
-#[derive(Debug, Clone, Default, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub enum ItemStack {
     #[default]
     Empty,
@@ -149,7 +149,7 @@ impl Serialize for ItemStack {
 ///
 /// Usually you want [`ItemStack`] or
 /// [`ItemKind`](azalea_registry::builtin::ItemKind) instead.
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct ItemStackData {
     #[serde(rename = "id")]
     pub kind: ItemKind,

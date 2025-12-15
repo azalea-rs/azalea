@@ -3,7 +3,7 @@ use azalea_core::sound::CustomSound;
 use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_registry::builtin::SoundEvent;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
+#[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundSound {
     pub sound: azalea_registry::Holder<SoundEvent, CustomSound>,
     pub source: SoundSource,

@@ -13,7 +13,7 @@ async fn main() -> AppExit {
         .await
 }
 
-#[derive(Default, Clone, Component)]
+#[derive(Clone, Component, Default)]
 pub struct State {}
 
 async fn handle(bot: Client, event: Event, _state: State) -> anyhow::Result<()> {

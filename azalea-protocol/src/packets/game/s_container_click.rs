@@ -5,7 +5,7 @@ use azalea_protocol_macros::ServerboundGamePacket;
 use azalea_registry::builtin::{DataComponentKind, ItemKind};
 use indexmap::IndexMap;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ServerboundGamePacket)]
+#[derive(AzBuf, Clone, Debug, PartialEq, ServerboundGamePacket)]
 pub struct ServerboundContainerClick {
     #[var]
     pub container_id: i32,
@@ -20,10 +20,10 @@ pub struct ServerboundContainerClick {
 
 /// Similar to an [`ItemStack`] but only carrying a CRC32 hash of the value of
 /// added data components instead of their entire contents.
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct HashedStack(pub Option<HashedActualItem>);
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct HashedActualItem {
     pub kind: ItemKind,
     #[var]
@@ -31,7 +31,7 @@ pub struct HashedActualItem {
     pub components: HashedPatchMap,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct HashedPatchMap {
     #[limit(256)]
     pub added_components: Vec<(DataComponentKind, Checksum)>,

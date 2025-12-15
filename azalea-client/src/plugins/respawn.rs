@@ -5,7 +5,7 @@ use bevy_ecs::prelude::*;
 use crate::packet::game::SendGamePacketEvent;
 
 /// Tell the server that we're respawning.
-#[derive(Message, Debug, Clone)]
+#[derive(Clone, Debug, Message)]
 pub struct PerformRespawnEvent {
     pub entity: Entity,
 }

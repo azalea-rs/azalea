@@ -9,7 +9,7 @@ use bevy_ecs::component::Component;
 /// sent to the server, such as render distance.
 ///
 /// This is only present on local players.
-#[derive(Clone, Debug, AzBuf, PartialEq, Eq, Component)]
+#[derive(AzBuf, Clone, Component, Debug, Eq, PartialEq)]
 pub struct ClientInformation {
     /// The locale of the client, formatted like "en_us".
     pub language: String,
@@ -49,7 +49,7 @@ impl Default for ClientInformation {
     }
 }
 
-#[derive(AzBuf, Clone, Copy, Debug, PartialEq, Eq, Default)]
+#[derive(AzBuf, Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub enum ChatVisibility {
     /// All chat messages should be sent to the client.
     #[default]
@@ -61,7 +61,7 @@ pub enum ChatVisibility {
     Hidden = 2,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ModelCustomization {
     pub cape: bool,
     pub jacket: bool,
@@ -72,7 +72,7 @@ pub struct ModelCustomization {
     pub hat: bool,
 }
 
-#[derive(AzBuf, Clone, Copy, Debug, PartialEq, Eq, Default)]
+#[derive(AzBuf, Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub enum ParticleStatus {
     #[default]
     All,

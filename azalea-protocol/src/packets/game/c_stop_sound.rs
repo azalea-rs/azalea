@@ -7,7 +7,7 @@ use azalea_registry::identifier::Identifier;
 
 use super::c_sound::SoundSource;
 
-#[derive(Clone, Debug, PartialEq, ClientboundGamePacket)]
+#[derive(ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundStopSound {
     pub source: Option<SoundSource>,
     pub name: Option<Identifier>,

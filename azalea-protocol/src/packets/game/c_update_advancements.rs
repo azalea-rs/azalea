@@ -10,7 +10,7 @@ use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_registry::identifier::Identifier;
 use indexmap::IndexMap;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
+#[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundUpdateAdvancements {
     pub reset: bool,
     pub added: Vec<AdvancementHolder>,
@@ -19,7 +19,7 @@ pub struct ClientboundUpdateAdvancements {
     pub show_advancements: bool,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct Advancement {
     pub parent_id: Option<Identifier>,
     pub display: Option<DisplayInfo>,
@@ -100,7 +100,7 @@ impl azalea_buf::AzaleaRead for DisplayInfo {
     }
 }
 
-#[derive(Clone, Debug, Copy, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Copy, Debug, PartialEq)]
 pub enum FrameType {
     Task = 0,
     Challenge = 1,
@@ -109,12 +109,12 @@ pub enum FrameType {
 
 pub type AdvancementProgress = HashMap<String, CriterionProgress>;
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct CriterionProgress {
     pub date: Option<u64>,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct AdvancementHolder {
     pub id: Identifier,
     pub value: Advancement,

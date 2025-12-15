@@ -6,7 +6,7 @@ use azalea_protocol_macros::ServerboundGamePacket;
 
 use crate::packets::BufReadError;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ServerboundGamePacket)]
+#[derive(AzBuf, Clone, Debug, PartialEq, ServerboundGamePacket)]
 pub struct ServerboundSetStructureBlock {
     pub pos: BlockPos,
     pub update_type: UpdateType,
@@ -23,7 +23,7 @@ pub struct ServerboundSetStructureBlock {
     pub flags: Flags,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct BytePosition {
     pub x: u8,
     pub y: u8,
@@ -63,7 +63,7 @@ pub enum Rotation {
     Counterclockwise90 = 3,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Flags {
     pub ignore_entities: bool,
     pub show_air: bool,

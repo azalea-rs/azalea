@@ -177,7 +177,7 @@ impl WorldAccessor {
 }
 
 /// A marker [`Component`] used to test spawning entities from the dispatcher.
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash, Component)]
+#[derive(Clone, Component, Copy, Debug, Default, Eq, Hash, PartialEq)]
 struct SpawnedEntity;
 
 /// Implemented for convenience.

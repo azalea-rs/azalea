@@ -4,7 +4,7 @@ use azalea_buf::AzBuf;
 use serde::Serialize;
 use simdnbt::{FromNbtTag, borrow::NbtTag};
 
-#[derive(Clone, Copy, PartialEq, AzBuf, Debug, Serialize)]
+#[derive(AzBuf, Clone, Copy, Debug, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum AttributeModifierOperation {
     AddValue,

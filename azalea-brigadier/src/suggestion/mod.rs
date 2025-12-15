@@ -24,14 +24,14 @@ use crate::context::StringRange;
 ///
 /// The `M` generic is the type of the tooltip, so for example a `String` or
 /// just `()` if you don't care about it.
-#[derive(Debug, Clone, Hash, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Suggestion {
     pub range: StringRange,
     value: SuggestionValue,
     pub tooltip: Option<String>,
 }
 
-#[derive(Debug, Clone, Hash, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum SuggestionValue {
     Integer(i32),
     Text(String),

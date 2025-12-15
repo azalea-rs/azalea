@@ -9,7 +9,7 @@ use simdnbt::{
 
 use crate::{FormattedText, base_component::BaseComponent, text_component::TextComponent};
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum PrimitiveOrComponent {
     Boolean(bool),

@@ -319,7 +319,7 @@ impl Shapes {
     }
 }
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum VoxelShape {
     Array(ArrayVoxelShape),
     Cube(CubeVoxelShape),
@@ -587,7 +587,7 @@ impl From<Aabb> for VoxelShape {
     }
 }
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct ArrayVoxelShape {
     shape: DiscreteVoxelShape,
     // TODO: check where faces is used in minecraft
@@ -599,7 +599,7 @@ pub struct ArrayVoxelShape {
     pub zs: Vec<f64>,
 }
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct CubeVoxelShape {
     shape: DiscreteVoxelShape,
     // TODO: check where faces is used in minecraft

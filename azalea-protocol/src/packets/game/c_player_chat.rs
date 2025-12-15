@@ -23,7 +23,7 @@ use azalea_registry::{
 use simdnbt::owned::NbtCompound;
 use uuid::Uuid;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
+#[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundPlayerChat {
     #[var]
     pub global_index: u32,
@@ -37,7 +37,7 @@ pub struct ClientboundPlayerChat {
     pub chat_type: ChatTypeBound,
 }
 
-#[derive(Clone, Debug, PartialEq, AzBuf)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct PackedSignedMessageBody {
     // the error is here, for some reason it skipped a byte earlier and here
     // it's reading `0` when it should be `11`
@@ -47,7 +47,7 @@ pub struct PackedSignedMessageBody {
     pub last_seen: PackedLastSeenMessages,
 }
 
-#[derive(Clone, Debug, PartialEq, AzBuf)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct PackedLastSeenMessages {
     pub entries: Vec<PackedMessageSignature>,
 }
@@ -59,33 +59,33 @@ pub enum PackedMessageSignature {
     Id(u32),
 }
 
-#[derive(Clone, Debug, PartialEq, AzBuf)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub enum FilterMask {
     PassThrough,
     FullyFiltered,
     PartiallyFiltered(BitSet),
 }
 
-#[derive(Clone, Debug, PartialEq, AzBuf)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct ChatTypeBound {
     pub chat_type: Holder<ChatKind, DirectChatType>,
     pub name: FormattedText,
     pub target_name: Option<FormattedText>,
 }
 
-#[derive(Clone, Debug, PartialEq, AzBuf)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct DirectChatType {
     pub chat: ChatTypeDecoration,
     pub narration: ChatTypeDecoration,
 }
-#[derive(Clone, Debug, PartialEq, AzBuf)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct ChatTypeDecoration {
     pub translation_key: String,
     pub parameters: Vec<ChatTypeDecorationParameter>,
     pub style: NbtCompound,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, AzBuf)]
+#[derive(AzBuf, Clone, Copy, Debug, PartialEq)]
 pub enum ChatTypeDecorationParameter {
     Sender = 0,
     Target = 1,

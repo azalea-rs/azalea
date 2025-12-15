@@ -7,7 +7,7 @@ use crate::{
 ///
 /// If there's nothing, it'll be a [`BlockHitResult`] with `miss` set to true.
 #[cfg(feature = "bevy_ecs")]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum HitResult {
     Block(BlockHitResult),
     Entity(EntityHitResult),
@@ -65,7 +65,7 @@ impl HitResult {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct BlockHitResult {
     pub location: Vec3,
     pub miss: bool,
@@ -103,7 +103,7 @@ impl From<BlockHitResult> for HitResult {
 }
 
 #[cfg(feature = "bevy_ecs")]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct EntityHitResult {
     pub location: Vec3,
     pub entity: bevy_ecs::entity::Entity,

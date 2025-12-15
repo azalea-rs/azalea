@@ -47,7 +47,7 @@ impl Plugin for JoinPlugin {
 ///
 /// This won't do anything if a client with the Account UUID is already
 /// connected to the server.
-#[derive(Message, Debug)]
+#[derive(Debug, Message)]
 pub struct StartJoinServerEvent {
     pub account: Account,
     pub connect_opts: ConnectOpts,
@@ -61,7 +61,7 @@ pub struct StartJoinServerEvent {
 ///
 /// These are persisted on reconnects. This is inserted as a component on
 /// clients to make auto-reconnecting work.
-#[derive(Debug, Clone, Component)]
+#[derive(Clone, Component, Debug)]
 pub struct ConnectOpts {
     pub address: ResolvedAddr,
     /// The SOCKS5 proxy used for connecting to the Minecraft server.

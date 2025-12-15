@@ -33,7 +33,7 @@ use uuid::Uuid;
 ///
 /// [`Client::join`]: crate::Client::join
 /// [`azalea::ClientBuilder`]: https://docs.rs/azalea/latest/azalea/struct.ClientBuilder.html
-#[derive(Clone, Debug, Component)]
+#[derive(Clone, Component, Debug)]
 pub struct Account {
     /// The Minecraft username of the account.
     pub username: String,
@@ -269,7 +269,7 @@ impl Account {
 }
 
 #[cfg(feature = "online-mode")]
-#[derive(Error, Debug)]
+#[derive(Debug, Error)]
 pub enum RequestCertError {
     #[error("Failed to fetch certificates")]
     FetchCertificates(#[from] FetchCertificatesError),

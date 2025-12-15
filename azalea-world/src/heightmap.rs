@@ -13,7 +13,7 @@ use crate::{BitStorage, Section, chunk_storage::get_block_state_from_sections};
 
 // (wg stands for worldgen)
 
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, AzBuf)]
+#[derive(AzBuf, Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum HeightmapKind {
     WorldSurfaceWg,
     WorldSurface,
