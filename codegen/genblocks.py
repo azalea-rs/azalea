@@ -9,7 +9,7 @@ import lib.utils
 
 
 def generate(version_id):
-    pumpkin_block_datas = lib.extract.get_pumpkin_data(version_id, "blocks")
+    pumpkin_blocks_data = lib.extract.get_pumpkin_data(version_id, "blocks")
     burger_data = lib.extract.get_burger_data_for_version(version_id)
 
     block_states_report = lib.extract.get_block_states_report(version_id)
@@ -17,9 +17,9 @@ def generate(version_id):
     ordered_blocks = lib.code.blocks.get_ordered_blocks(registries)
 
     lib.code.blocks.generate_blocks(
-        block_states_report, pumpkin_block_datas, ordered_blocks, burger_data
+        block_states_report, pumpkin_blocks_data, ordered_blocks, burger_data
     )
-    lib.code.shapes.generate_block_shapes(pumpkin_block_datas, block_states_report)
+    lib.code.shapes.generate_block_shapes(pumpkin_blocks_data, block_states_report)
 
     lib.code.utils.fmt()
 

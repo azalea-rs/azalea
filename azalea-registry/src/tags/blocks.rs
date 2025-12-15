@@ -704,7 +704,7 @@ pub static CONCRETE_POWDER: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| 
         BlockKind::BlackConcretePowder,
     ])
 });
-pub static CONVERTABLE_TO_MUD: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
+pub static CONVERTIBLE_TO_MUD: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
     RegistryTag::new(vec![
         BlockKind::Dirt,
         BlockKind::CoarseDirt,

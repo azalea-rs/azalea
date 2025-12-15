@@ -34,6 +34,10 @@ use crate::{{builtin::{struct_name}, tags::RegistryTag}};
 
         tag_name = tag_name.replace("/", "_")
         static_set_name = to_snake_case(tag_name).upper()
+
+        # fix mojang typo :)
+        static_set_name = static_set_name.replace("CONVERTABLE", "CONVERTIBLE")
+
         generated += f"pub static {static_set_name}: LazyLock<RegistryTag<{struct_name}>> = LazyLock::new(|| RegistryTag::new(vec!["
 
         # this is important because we binary search registries in some cases

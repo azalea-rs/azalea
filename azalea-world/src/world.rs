@@ -52,7 +52,7 @@ impl PartialInstance {
 
 /// An entity ID used by Minecraft.
 ///
-/// These IDs are picked by the server. Some server softwares (like Bungeecord)
+/// These IDs are picked by the server. Some server software (like Bungeecord)
 /// may pick entity IDs per-player, so you should avoid relying on them for
 /// identifying IDs (especially if you're using a shared world -- i.e. a swarm).
 ///

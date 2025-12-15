@@ -3,8 +3,8 @@ from lib.utils import get_dir_location
 COLLISION_BLOCKS_RS_DIR = get_dir_location("../azalea-physics/src/collision/blocks.rs")
 
 
-def generate_block_shapes(pumpkin_block_datas: dict, block_states_report):
-    blocks, shapes = simplify_shapes(pumpkin_block_datas)
+def generate_block_shapes(pumpkin_blocks_data: dict, block_states_report):
+    blocks, shapes = simplify_shapes(pumpkin_blocks_data)
 
     code = generate_block_shapes_code(blocks, shapes, block_states_report)
     with open(COLLISION_BLOCKS_RS_DIR, "w") as f:
@@ -79,9 +79,9 @@ def generate_block_shapes_code(blocks: dict, shapes: dict, block_states_report):
     collision_shapes_map = []
     outline_shapes_map = []
 
-    for block_id, shape_datas in blocks.items():
-        collision_shapes = shape_datas["collision"]
-        outline_shapes = shape_datas["outline"]
+    for block_id, shapes_data in blocks.items():
+        collision_shapes = shapes_data["collision"]
+        outline_shapes = shapes_data["outline"]
 
         if isinstance(collision_shapes, int):
             collision_shapes = [collision_shapes]
