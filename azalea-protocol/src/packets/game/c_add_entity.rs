@@ -20,14 +20,14 @@ pub struct ClientboundAddEntity {
     pub y_head_rot: i8,
     /// The entity's "object data". This is unused for most entities.
     ///
-    /// Projectiles and fishing hooks treat this as an entity ID, which you're
-    /// encouraged to use [`MinecraftEntityId::from`] for. Other entities may
-    /// treat it as a block state or enum variant.
+    /// Projectiles and fishing hooks treat this like a [`MinecraftEntityId`].
+    /// Falling blocks treat it as a [`BlockState`](azalea_block::BlockState).
+    /// Other entities may treat it as another enum variant.
     ///
     /// See [the wiki](https://minecraft.wiki/w/Java_Edition_protocol/Object_data)
     /// for more information about this field.
     #[var]
-    pub data: u32,
+    pub data: i32,
 }
 
 impl ClientboundAddEntity {

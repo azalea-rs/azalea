@@ -85,6 +85,14 @@ impl TryFrom<u32> for BlockState {
         }
     }
 }
+impl TryFrom<i32> for BlockState {
+    type Error = ();
+
+    fn try_from(state_id: i32) -> Result<Self, Self::Error> {
+        Self::try_from(state_id as u32)
+    }
+}
+
 impl TryFrom<u16> for BlockState {
     type Error = ();
 
