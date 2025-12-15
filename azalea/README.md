@@ -1,35 +1,6 @@
 Azalea is a framework for creating Minecraft bots.
 
-Also see the project [README](https://github.com/azalea-rs/azalea) for a higher-level overview of Azalea.
-
-# Installation
-
-First, install Rust nightly with `rustup install nightly` and `rustup default nightly`.
-
-Then, use one of the following commands to add Azalea to your project:
-
--   Latest bleeding-edge version (recommended): `cargo add azalea --git=https://github.com/azalea-rs/azalea`
--   Latest "stable" release: `cargo add azalea`
-
-## Optimization
-
-For faster compile times, create a `.cargo/config.toml` file in your project and copy
-[this file](https://github.com/azalea-rs/azalea/blob/main/.cargo/config_fast_builds.toml)
-into it. You may have to install the LLD linker.
-
-For faster performance in debug mode, add the following code to your
-Cargo.toml:
-
-```toml
-[profile.dev]
-opt-level = 1
-[profile.dev.package."*"]
-opt-level = 3
-```
-
-# Documentation
-
-The documentation for the latest Azalea crates.io release is available at [docs.rs/azalea](https://docs.rs/azalea/latest/azalea/) and the docs for the latest bleeding-edge (git) version are at [azalea.matdoes.dev](https://azalea.matdoes.dev/azalea/).
+See the project [README](https://github.com/azalea-rs/azalea) for a higher-level overview of Azalea.
 
 # Examples
 
@@ -81,6 +52,35 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
 There are more examples in the [examples directory](https://github.com/azalea-rs/azalea/tree/main/azalea/examples).
 You may also find it helpful to read the code for [other people's Azalea bots](https://github.com/azalea-rs/azalea#real-world-bots-using-azalea).
 
+# Installation
+
+First, install Rust nightly with `rustup install nightly` and `rustup default nightly`.
+
+Then, use one of the following commands to add Azalea to your project:
+
+-   Latest bleeding-edge version (recommended): `cargo add azalea --git=https://github.com/azalea-rs/azalea`
+-   Latest "stable" release: `cargo add azalea`
+
+## Optimization
+
+For faster compile times, create a `.cargo/config.toml` file in your project and copy
+[this file](https://github.com/azalea-rs/azalea/blob/main/.cargo/config_fast_builds.toml)
+into it. You may have to install the LLD linker.
+
+For faster performance in debug mode, add the following code to your
+Cargo.toml:
+
+```toml
+[profile.dev]
+opt-level = 1
+[profile.dev.package."*"]
+opt-level = 3
+```
+
+# Documentation
+
+The documentation for the latest Azalea crates.io release is available at [docs.rs/azalea](https://docs.rs/azalea/latest/azalea/) and the docs for the latest bleeding-edge (git) version are at [azalea.matdoes.dev](https://azalea.matdoes.dev/azalea/).
+
 # Swarms
 
 Azalea lets you create "swarms", which are a group of bots in the same world that can perform actions together. See [testbot](https://github.com/azalea-rs/azalea/blob/main/azalea/examples/testbot/main.rs) for an example. Also, if you're using swarms, you should also `use` both `azalea::prelude::*` and `azalea::swarm::prelude::*`.
@@ -89,7 +89,7 @@ Azalea lets you create "swarms", which are a group of bots in the same world tha
 
 Azalea uses [Bevy ECS](https://docs.rs/bevy_ecs) internally to store information about the world and clients. Bevy plugins are more powerful than async handler functions, but more difficult to use. See [pathfinder](https://github.com/azalea-rs/azalea/blob/main/azalea/src/pathfinder/mod.rs) as an example of how to make a plugin. You can then enable a plugin by adding `.add_plugin(ExamplePlugin)` in your client/swarm builder.
 
-Everything in Azalea is implemented as a Bevy plugin, which means you can disable default behaviors (like, physics or chat signing) by disabling built-in plugins. See [`SwarmBuilder::new_without_plugins`] to learn how to do that.
+Everything in Azalea is implemented as a Bevy plugin, which means you can disable default behaviors (like, physics or chat signing) by disabling built-in plugins. See [`SwarmBuilder::new_without_plugins`](swarm::SwarmBuilder::new_without_plugins) to learn how to do that.
 
 Also note that just because something is an entity in the ECS doesn't mean that it's a Minecraft entity. You can filter for that by having `With<MinecraftEntityId>` as a filter.
 

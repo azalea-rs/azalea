@@ -59,6 +59,12 @@ serde = ["dep:serde", "azalea-registry/serde", "azalea-world/serde"]
 packet-event = ["azalea-client/packet-event"]
 online-mode = ["azalea-client/online-mode"]
 
+[[example]]
+name = "testbot"
+# setting this to true for one example makes it work for all of them.
+# see https://doc.rust-lang.org/nightly/cargo/reference/unstable.html#scrape-examples
+doc-scrape-examples = true
+
 [[bench]]
 name = "pathfinder"
 harness = false

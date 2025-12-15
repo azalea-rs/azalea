@@ -115,6 +115,19 @@ azalea-world = { path = "azalea-world", version = "0.14.0" }
 # https://users.rust-lang.org/t/to-string-vs-to-owned-for-string-literals/1441
 str_to_string = "warn"
 
+[workspace.lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(docsrs_dep)'] }
+
+[workspace.metadata.docs.rs]
+rustc-args = ["--cfg", "docsrs_dep"]
+rustdoc-args = [
+    "--cfg",
+    "docsrs_dep",
+    "--html-after-content",
+    "docs-rs/trait-tags.html",
+]
+cargo-args = ["-Zunstable-options", "-Zrustdoc-scrape-examples"]
+
 # --- Profile Settings ---
 
 [profile.release]

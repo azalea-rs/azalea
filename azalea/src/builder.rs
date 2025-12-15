@@ -11,8 +11,8 @@ use crate::{
     swarm::{self, SwarmBuilder},
 };
 
-/// A builder for creating new [`Client`]s. This is the recommended way of
-/// making a bot.
+/// A builder for creating new [`Client`](crate::Client)s. This is the
+/// recommended way of making a bot.
 ///
 /// ```no_run
 /// # use azalea::prelude::*;
@@ -84,8 +84,9 @@ impl ClientBuilder<NoState, ()> {
         }
     }
 
-    /// Set the function that's called every time a bot receives an [`Event`].
-    /// This is the way to handle normal per-bot events.
+    /// Set the function that's called every time a bot receives an
+    /// [`Event`](crate::Client). This is the way to handle normal per-bot
+    /// events.
     ///
     /// Currently, you can have up to one client handler.
     ///
@@ -156,8 +157,8 @@ where
         self
     }
 
-    /// Build this `ClientBuilder` into an actual [`Client`] and join the given
-    /// server.
+    /// Build this `ClientBuilder` into an actual [`Client`](crate::Client) and
+    /// join the given server.
     ///
     /// If the client can't join, it'll keep retrying forever until it can.
     ///
