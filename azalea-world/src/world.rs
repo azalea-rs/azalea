@@ -169,10 +169,14 @@ pub struct Instance {
 }
 
 impl Instance {
+    /// Get the block at the given position, or `None` if it's outside of the
+    /// world that we have loaded.
     pub fn get_block_state(&self, pos: BlockPos) -> Option<BlockState> {
         self.chunks.get_block_state(pos)
     }
 
+    /// Similar to [`Self::get_block_state`], but returns data about the fluid
+    /// at the position, including for waterlogged blocks.
     pub fn get_fluid_state(&self, pos: BlockPos) -> Option<FluidState> {
         self.chunks.get_block_state(pos).map(FluidState::from)
     }

@@ -65,24 +65,33 @@ impl HitResult {
     }
 }
 
+/// The result of raycasting on the blocks in the world.
+///
+/// Also see [`HitResult`].
 #[derive(Clone, Debug, PartialEq)]
 pub struct BlockHitResult {
+    /// The exact position that the raycast ended at.
     pub location: Vec3,
     pub miss: bool,
 
     pub direction: Direction,
+    /// The block position that was hit.
+    ///
+    /// If [`Self::miss`] is true, then this will be the position that the
+    /// raycast ended at.
     pub block_pos: BlockPos,
     pub inside: bool,
     pub world_border: bool,
 }
 impl BlockHitResult {
-    pub fn miss(location: Vec3, direction: Direction, block_pos: BlockPos) -> Self {
+    /// Create a new [`BlockHitResult`] for when nothing was hit.
+    pub fn miss(location: Vec3, direction: Direction) -> Self {
         Self {
             location,
             miss: true,
 
             direction,
-            block_pos,
+            block_pos: BlockPos::from(location),
             inside: false,
             world_border: false,
         }

@@ -401,6 +401,7 @@ impl From<Vec3> for Vec3f32 {
 /// The coordinates of a block in the world.
 ///
 /// For entities (if the coordinates are floating-point), use [`Vec3`] instead.
+/// To convert a `BlockPos` to a `Vec3`, you'll usually want [`Self::center`].
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
 pub struct BlockPos {
     pub x: i32,
@@ -444,6 +445,17 @@ impl BlockPos {
         (self.x.abs() + self.y.abs() + self.z.abs()) as u32
     }
 
+    /// Add or subtract `1` to one of this position's coordinates, depending on
+    /// the direction.
+    ///
+    /// ```
+    /// # use azalea_core::{position::BlockPos, direction::Direction};
+    /// let pos = BlockPos::new(10, 10, 10);
+    /// assert_eq!(
+    ///     pos.offset_with_direction(Direction::North),
+    ///     BlockPos::new(10, 10, 9)
+    /// );
+    /// ```
     pub fn offset_with_direction(self, direction: Direction) -> Self {
         self + direction.normal()
     }

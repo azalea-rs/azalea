@@ -1,4 +1,6 @@
-//! See <https://minecraft.wiki/w/Attribute>.
+//! Attributes and modifiers for entities.
+//!
+//! Also see <https://minecraft.wiki/w/Attribute>.
 
 use std::collections::{HashMap, hash_map};
 
@@ -45,6 +47,8 @@ impl Attributes {
     }
 }
 
+/// An individual attribute for an entity, which may have any number of
+/// modifiers attached to it.
 #[derive(Clone, Debug)]
 pub struct AttributeInstance {
     pub base: f64,
@@ -52,6 +56,8 @@ pub struct AttributeInstance {
     // TODO: add cache
 }
 
+/// An error for when we try to call [`AttributeInstance::try_insert`] when the
+/// modifier is already present.
 #[derive(Clone, Debug, Error)]
 #[error("A modifier with this ID is already present.")]
 pub struct AlreadyPresentError;

@@ -16,6 +16,9 @@ static STORAGE: LazyLock<Box<[(CompactString, CompactString)]>> = LazyLock::new(
     json.into_boxed_slice()
 });
 
+/// Get the string for the given translation ID.
+///
+/// This just does a lookup in Minecraft's `en_us.json` file.
 pub fn get(key: &str) -> Option<&str> {
     let key = CompactString::from(key);
     let storage = &*STORAGE;

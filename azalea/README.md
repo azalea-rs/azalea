@@ -89,7 +89,7 @@ Azalea lets you create "swarms", which are a group of bots in the same world tha
 
 Azalea uses [Bevy ECS](https://docs.rs/bevy_ecs) internally to store information about the world and clients. Bevy plugins are more powerful than async handler functions, but more difficult to use. See [pathfinder](https://github.com/azalea-rs/azalea/blob/main/azalea/src/pathfinder/mod.rs) as an example of how to make a plugin. You can then enable a plugin by adding `.add_plugin(ExamplePlugin)` in your client/swarm builder.
 
-Everything in Azalea is implemented as a Bevy plugin, which means you can disable default behaviors (like, physics or chat signing) by disabling built-in plugins. See [`SwarmBuilder::new_without_plugins`](swarm::SwarmBuilder::new_without_plugins) to learn how to do that.
+Everything inside of Azalea is implemented as a Bevy plugin, which means you can disable default behaviors (like, physics or chat signing) by disabling built-in plugins. See [`SwarmBuilder::new_without_plugins`](swarm::SwarmBuilder::new_without_plugins) to learn how to do that.
 
 Also note that just because something is an entity in the ECS doesn't mean that it's a Minecraft entity. You can filter for that by having `With<MinecraftEntityId>` as a filter.
 

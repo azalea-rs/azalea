@@ -142,11 +142,19 @@ use crate::collision::{{self, Shapes}};
 use azalea_block::*;
 
 pub trait BlockWithShape {{
+    /// The hitbox for blocks that's used when simulating physics.
     fn collision_shape(&self) -> &'static VoxelShape;
+    /// The hitbox for blocks that's used for determining whether we're looking
+    /// at it.
+    ///
+    /// This is often but not always the same as the collision shape. For
+    /// example, tall grass has a normal outline shape but an empty collision
+    /// shape.
     fn outline_shape(&self) -> &'static VoxelShape;
     /// Tells you whether the block has an empty shape.
     ///
-    /// This is slightly more efficient than calling `shape()` and comparing against `EMPTY_SHAPE`.
+    /// This is slightly more efficient than calling `shape()` and comparing
+    /// against `EMPTY_SHAPE`.
     fn is_collision_shape_empty(&self) -> bool;
     fn is_collision_shape_full(&self) -> bool;
 }}

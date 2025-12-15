@@ -126,11 +126,7 @@ pub fn clip(chunk_storage: &ChunkStorage, context: ClipContext) -> BlockHitResul
         },
         |context| {
             let vec = context.from - context.to;
-            BlockHitResult::miss(
-                context.to,
-                Direction::nearest(vec),
-                BlockPos::from(context.to),
-            )
+            BlockHitResult::miss(context.to, Direction::nearest(vec))
         },
     )
 }

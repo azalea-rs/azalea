@@ -1,4 +1,4 @@
-# Azalea Chat
+# `azalea-chat`
 
 Things for working with Minecraft formatted text components.
 

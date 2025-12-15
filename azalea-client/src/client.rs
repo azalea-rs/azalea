@@ -492,7 +492,7 @@ impl Client {
     ///
     /// This is necessary for data-driven registries like [`Enchantment`].
     ///
-    /// [`Enchantment`]: azalea_registry::Enchantment
+    /// [`Enchantment`]: azalea_registry::data::Enchantment
     pub fn resolve_registry_name(
         &self,
         registry: &impl ResolvableDataRegistry,
@@ -507,7 +507,7 @@ impl Client {
     /// If you just want the value name, use [`Self::resolve_registry_name`]
     /// instead.
     ///
-    /// [`Enchantment`]: azalea_registry::Enchantment
+    /// [`Enchantment`]: azalea_registry::data::Enchantment
     pub fn with_resolved_registry<R: ResolvableDataRegistry, Ret>(
         &self,
         registry: R,

@@ -1,3 +1,5 @@
+//! Chat signing, used in Minecraft to allow for messages to be reported.
+
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use azalea_buf::{AzBuf, AzaleaWrite};

@@ -1,6 +1,9 @@
+//! Offline-mode UUID generation.
+
 use md5::{Digest, Md5};
 use uuid::Uuid;
 
+/// Return what the offline-mode UUIDv3 for the given username would be.
 pub fn generate_uuid(username: &str) -> Uuid {
     uuid::Builder::from_md5_bytes(hash(format!("OfflinePlayer:{username}").as_bytes())).into_uuid()
 }

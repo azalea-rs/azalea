@@ -49,7 +49,16 @@ pub struct PartialChunkStorage {
 /// pointers.
 #[derive(Clone, Debug)]
 pub struct ChunkStorage {
+    /// The height of the world.
+    ///
+    /// To get the maximum y position (exclusive), you have to combine this with
+    /// [`Self::min_y`].
     pub height: u32,
+    /// The lowest y position in the world that can still have blocks placed on
+    /// it.
+    ///
+    /// This exists because in modern Minecraft versions, worlds can extend
+    /// below y=0.
     pub min_y: i32,
     pub map: IntMap<ChunkPos, Weak<RwLock<Chunk>>>,
 }

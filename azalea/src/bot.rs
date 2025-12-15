@@ -86,10 +86,14 @@ fn stop_jumping(mut query: Query<(&mut Jumping, &mut Bot)>) {
     }
 }
 
+/// A trait that adds a few additional functions to [`Client`] that help with
+/// making bots.
 pub trait BotClientExt {
     /// Queue a jump for the next tick.
     fn jump(&self);
     /// Turn the bot's head to look at the coordinate in the world.
+    ///
+    /// To look at the center of a block, you should call [`BlockPos::center`].
     fn look_at(&self, pos: Vec3);
     /// Get a receiver that will receive a message every tick.
     fn get_tick_broadcaster(&self) -> tokio::sync::broadcast::Receiver<()>;

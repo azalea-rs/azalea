@@ -1,10 +1,4 @@
-//! Significantly abstract [`azalea_protocol`] so it's actually useable for
-//! real clients. If you want to make bots, you should use the
-//! [`azalea`] crate instead.
-//!
-//! [`azalea_protocol`]: https://docs.rs/azalea-protocol
-//! [`azalea`]: https://docs.rs/azalea
-
+#![doc = include_str!("../README.md")]
 #![feature(error_generic_member_access)]
 #![feature(never_type)]
 
