@@ -1,0 +1,11 @@
+[build]
+rustflags = ["--cfg", "docsrs_dep"]
+rustdocflags = [
+    "--html-after-content",
+    "docs-rs/trait-tags.html",
+    "--cfg",
+    "docsrs_dep",
+]
+
+[unstable]
+rustdoc-scrape-examples = true
