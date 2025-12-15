@@ -16,6 +16,8 @@ is breaking anyways, semantic versioning is not followed.
 - Implement mob effects, including jump boost, haste, conduit power, and mining fatigue. (@ShayBox)
 - Support for the efficiency enchantment.
 - Support for items with attribute modifiers.
+- More documentation, including auto-generated docs for entity metadata types.
+- The documentation now shows scraped examples and tags for Bevy traits like `Component`.
 
 ### Changed
 
@@ -32,6 +34,7 @@ is breaking anyways, semantic versioning is not followed.
 - Improve APIs related to resolving server addresses.
 - Mojang's sessionserver is now requested using the SOCKS5 proxy given in `JoinOpts::proxy`.
 - Refactor `azalea-registry`. Notably, `Item` and `Block` are now named `ItemKind` and `BlockKind`.
+- `ClientBuilder::start` and `SwarmBuilder::start` now return just `AppExit` instead of `Result<AppExit>`.
 
 ### Fixed
 
@@ -47,6 +50,7 @@ is breaking anyways, semantic versioning is not followed.
 - The 'with' field in formatted text didn't correctly support mixed types. (@Tert0)
 - The WritableBookContent and ResolvableProfile data components had the wrong protocol implementations.
 - Resolving server addresses shouldn't be recursive.
+- A 5 tick mining delay was always being applied after we mined for the first time.
 
 ## [0.14.0+mc1.21.8] - 2025-09-28
 
