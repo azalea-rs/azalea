@@ -95,7 +95,6 @@ pub fn handle_request_cookie(
 }
 pub fn handle_store_cookie(
     store_cookie: On<StoreCookieEvent>,
-    mut commands: Commands,
     mut query: Query<&mut ServerCookies>,
 ) {
     if let Ok(mut server_cookies) = query.get_mut(store_cookie.entity) {
@@ -103,10 +102,6 @@ pub fn handle_store_cookie(
             .map
             .insert(store_cookie.key.clone(), store_cookie.payload.clone());
     } else {
-        commands.entity(store_cookie.entity).insert(ServerCookies {
-            map: [(store_cookie.key.clone(), store_cookie.payload.clone())]
-                .into_iter()
-                .collect(),
-        });
+        warn!("got StoreCookieEvent for a client without ServerCookies")
     }
 }
