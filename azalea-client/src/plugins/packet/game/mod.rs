@@ -29,6 +29,7 @@ use crate::{
     chat::{ChatPacket, ChatReceivedEvent},
     chunks,
     connection::RawConnection,
+    cookies::{RequestCookieEvent, StoreCookieEvent},
     disconnect::DisconnectEvent,
     interact::BlockStatePredictionHandler,
     inventory::{ClientsideCloseContainerEvent, MenuOpenedEvent, SetContainerContentEvent},
@@ -1599,10 +1600,27 @@ impl GamePacketHandler<'_> {
     pub fn ticking_state(&mut self, _p: &ClientboundTickingState) {}
     pub fn ticking_step(&mut self, _p: &ClientboundTickingStep) {}
     pub fn reset_score(&mut self, _p: &ClientboundResetScore) {}
-    pub fn cookie_request(&mut self, _p: &ClientboundCookieRequest) {}
+    pub fn cookie_request(&mut self, p: &ClientboundCookieRequest) {
+        debug!("Got cookie request packet {p:?}");
+        as_system::<Commands>(self.ecs, |mut commands| {
+            commands.trigger(RequestCookieEvent {
+                entity: self.player,
+                key: p.key.clone(),
+            });
+        });
+    }
+    pub fn store_cookie(&mut self, p: &ClientboundStoreCookie) {
+        debug!("Got store cookie packet {p:?}");
+        as_system::<Commands>(self.ecs, |mut commands| {
+            commands.trigger(StoreCookieEvent {
+                entity: self.player,
+                key: p.key.clone(),
+                payload: p.payload.clone(),
+            });
+        });
+    }
     pub fn debug_sample(&mut self, _p: &ClientboundDebugSample) {}
     pub fn pong_response(&mut self, _p: &ClientboundPongResponse) {}
-    pub fn store_cookie(&mut self, _p: &ClientboundStoreCookie) {}
     pub fn transfer(&mut self, _p: &ClientboundTransfer) {}
     pub fn move_minecart_along_track(&mut self, _p: &ClientboundMoveMinecartAlongTrack) {}
     pub fn set_held_slot(&mut self, p: &ClientboundSetHeldSlot) {

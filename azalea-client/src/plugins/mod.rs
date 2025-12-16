@@ -10,6 +10,7 @@ pub mod chat_signing;
 pub mod chunks;
 pub mod client_information;
 pub mod connection;
+pub mod cookies;
 pub mod disconnect;
 pub mod events;
 pub mod interact;
@@ -63,7 +64,8 @@ impl PluginGroup for DefaultPlugins {
             .add(connection::ConnectionPlugin)
             .add(login::LoginPlugin)
             .add(join::JoinPlugin)
-            .add(auto_reconnect::AutoReconnectPlugin);
+            .add(auto_reconnect::AutoReconnectPlugin)
+            .add(cookies::CookiesPlugin);
         #[cfg(feature = "online-mode")]
         {
             group = group.add(chat_signing::ChatSigningPlugin);

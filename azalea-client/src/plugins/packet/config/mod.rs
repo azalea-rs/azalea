@@ -15,6 +15,7 @@ use super::{as_system, declare_packet_handlers};
 use crate::{
     client::InConfigState,
     connection::RawConnection,
+    cookies::{RequestCookieEvent, StoreCookieEvent},
     disconnect::DisconnectEvent,
     local_player::InstanceHolder,
     packet::game::{KeepAliveEvent, ResourcePackEvent},
@@ -179,25 +180,26 @@ impl ConfigPacketHandler<'_> {
 
     pub fn cookie_request(&mut self, p: &ClientboundCookieRequest) {
         debug!("Got cookie request packet {p:?}");
-
         as_system::<Commands>(self.ecs, |mut commands| {
-            commands.trigger(SendConfigPacketEvent::new(
-                self.player,
-                ServerboundCookieResponse {
-                    key: p.key.clone(),
-                    // cookies aren't implemented
-                    payload: None,
-                },
-            ));
+            commands.trigger(RequestCookieEvent {
+                entity: self.player,
+                key: p.key.clone(),
+            });
+        });
+    }
+    pub fn store_cookie(&mut self, p: &ClientboundStoreCookie) {
+        debug!("Got store cookie packet {p:?}");
+        as_system::<Commands>(self.ecs, |mut commands| {
+            commands.trigger(StoreCookieEvent {
+                entity: self.player,
+                key: p.key.clone(),
+                payload: p.payload.clone(),
+            });
         });
     }
 
     pub fn reset_chat(&mut self, p: &ClientboundResetChat) {
         debug!("Got reset chat packet {p:?}");
-    }
-
-    pub fn store_cookie(&mut self, p: &ClientboundStoreCookie) {
-        debug!("Got store cookie packet {p:?}");
     }
 
     pub fn transfer(&mut self, p: &ClientboundTransfer) {

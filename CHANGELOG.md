@@ -18,6 +18,7 @@ is breaking anyways, semantic versioning is not followed.
 - Support for items with attribute modifiers.
 - More documentation, including auto-generated docs for entity metadata types.
 - The documentation now shows scraped examples and tags for Bevy traits like `Component`.
+- Support for cookie packets (required by a certain anticheat).
 
 ### Changed
 

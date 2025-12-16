@@ -52,6 +52,7 @@ use crate::{
     block_update::QueuedServerBlockUpdates,
     chunks::ChunkBatchInfo,
     connection::RawConnection,
+    cookies::ServerCookies,
     disconnect::DisconnectEvent,
     events::Event,
     interact::BlockStatePredictionHandler,
@@ -537,6 +538,8 @@ pub struct LocalPlayerBundle {
 /// A bundle for the components that are present on a local player that is
 /// currently in the `game` protocol state.
 ///
+/// All of these components are also removed when the client disconnects.
+///
 /// If you want to filter for this, use [`InGameState`].
 #[derive(Bundle, Default)]
 pub struct JoinedClientBundle {
@@ -551,6 +554,7 @@ pub struct JoinedClientBundle {
     pub permission_level: PermissionLevel,
     pub chunk_batch_info: ChunkBatchInfo,
     pub hunger: Hunger,
+    pub cookies: ServerCookies,
 
     pub entity_id_index: EntityIdIndex,
 

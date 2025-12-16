@@ -8,7 +8,7 @@ use azalea_protocol::packets::{
     login::{
         ClientboundCookieRequest, ClientboundCustomQuery, ClientboundHello,
         ClientboundLoginCompression, ClientboundLoginDisconnect, ClientboundLoginFinished,
-        ClientboundLoginPacket, ServerboundCookieResponse, ServerboundLoginAcknowledged,
+        ClientboundLoginPacket, ServerboundLoginAcknowledged,
     },
 };
 use bevy_ecs::prelude::*;
@@ -17,8 +17,8 @@ use tracing::{debug, error};
 
 use super::as_system;
 use crate::{
-    Account, InConfigState, connection::RawConnection, disconnect::DisconnectEvent,
-    packet::declare_packet_handlers, player::GameProfileComponent,
+    Account, InConfigState, connection::RawConnection, cookies::RequestCookieEvent,
+    disconnect::DisconnectEvent, packet::declare_packet_handlers, player::GameProfileComponent,
 };
 
 pub fn process_packet(ecs: &mut World, player: Entity, packet: &ClientboundLoginPacket) {
@@ -127,17 +127,12 @@ impl LoginPacketHandler<'_> {
         });
     }
     pub fn cookie_request(&mut self, p: &ClientboundCookieRequest) {
-        debug!("Got cookie request {p:?}");
-
+        debug!("Got cookie request packet {p:?}");
         as_system::<Commands>(self.ecs, |mut commands| {
-            commands.trigger(SendLoginPacketEvent::new(
-                self.player,
-                ServerboundCookieResponse {
-                    key: p.key.clone(),
-                    // cookies aren't implemented
-                    payload: None,
-                },
-            ));
+            commands.trigger(RequestCookieEvent {
+                entity: self.player,
+                key: p.key.clone(),
+            });
         });
     }
 }
