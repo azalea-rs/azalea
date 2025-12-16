@@ -1,8 +1,14 @@
 use proc_macro2::Span;
 use quote::{ToTokens, quote};
-use syn::{Data, Field, FieldsNamed, Ident, punctuated::Punctuated, token::Comma};
+use syn::{Data, Field, FieldsNamed, Generics, Ident, punctuated::Punctuated, token::Comma};
 
-pub fn create_impl_azaleawrite(ident: &Ident, data: &Data) -> proc_macro2::TokenStream {
+pub fn create_impl_azaleawrite(
+    ident: &Ident,
+    generics: &Generics,
+    data: &Data,
+) -> proc_macro2::TokenStream {
+    let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+
     match data {
         syn::Data::Struct(syn::DataStruct { fields, .. }) => match fields {
             syn::Fields::Named(FieldsNamed { named, .. }) => {
@@ -10,7 +16,7 @@ pub fn create_impl_azaleawrite(ident: &Ident, data: &Data) -> proc_macro2::Token
                     write_named_fields(named, Some(&Ident::new("self", Span::call_site())));
 
                 quote! {
-                    impl azalea_buf::AzaleaWrite for #ident {
+                    impl #impl_generics azalea_buf::AzaleaWrite for #ident #ty_generics #where_clause {
                         fn azalea_write(&self, buf: &mut impl std::io::Write) -> std::result::Result<(), std::io::Error> {
                             #write_fields
                             Ok(())
@@ -20,7 +26,7 @@ pub fn create_impl_azaleawrite(ident: &Ident, data: &Data) -> proc_macro2::Token
             }
             syn::Fields::Unit => {
                 quote! {
-                    impl azalea_buf::AzaleaWrite for #ident {
+                    impl #impl_generics azalea_buf::AzaleaWrite for #ident #ty_generics #where_clause {
                         fn azalea_write(&self, buf: &mut impl std::io::Write) -> std::result::Result<(), std::io::Error> {
                             Ok(())
                         }
@@ -31,7 +37,7 @@ pub fn create_impl_azaleawrite(ident: &Ident, data: &Data) -> proc_macro2::Token
                 let write_fields = write_unnamed_fields(&fields.unnamed);
 
                 quote! {
-                    impl azalea_buf::AzaleaWrite for #ident {
+                    impl #impl_generics azalea_buf::AzaleaWrite for #ident #ty_generics #where_clause {
                         fn azalea_write(&self, buf: &mut impl std::io::Write) -> std::result::Result<(), std::io::Error> {
                             #write_fields
                             Ok(())
@@ -143,7 +149,7 @@ pub fn create_impl_azaleawrite(ident: &Ident, data: &Data) -> proc_macro2::Token
             }
             if is_data_enum {
                 quote! {
-                    impl azalea_buf::AzaleaWrite for #ident {
+                    impl #impl_generics azalea_buf::AzaleaWrite for #ident #ty_generics #where_clause {
                         fn azalea_write(&self, buf: &mut impl std::io::Write) -> std::result::Result<(), std::io::Error> {
                             match self {
                                 #match_arms
@@ -151,7 +157,7 @@ pub fn create_impl_azaleawrite(ident: &Ident, data: &Data) -> proc_macro2::Token
                             Ok(())
                         }
                     }
-                    impl #ident {
+                    impl #impl_generics #ident #ty_generics #where_clause {
                         pub fn write_without_id(&self, buf: &mut impl std::io::Write) -> std::result::Result<(), std::io::Error> {
                             match self {
                                 #match_arms_without_id
@@ -163,7 +169,7 @@ pub fn create_impl_azaleawrite(ident: &Ident, data: &Data) -> proc_macro2::Token
             } else {
                 // optimization: if it doesn't have data we can just do `as u32`
                 quote! {
-                    impl azalea_buf::AzaleaWrite for #ident {
+                    impl #impl_generics azalea_buf::AzaleaWrite for #ident #ty_generics #where_clause {
                         fn azalea_write(&self, buf: &mut impl std::io::Write) -> std::result::Result<(), std::io::Error> {
                             azalea_buf::AzaleaWriteVar::azalea_write_var(&(*self as u32), buf)
                         }

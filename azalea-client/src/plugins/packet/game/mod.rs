@@ -34,7 +34,7 @@ use crate::{
     interact::BlockStatePredictionHandler,
     inventory::{ClientsideCloseContainerEvent, MenuOpenedEvent, SetContainerContentEvent},
     local_player::{Hunger, InstanceHolder, LocalGameMode, TabList},
-    movement::{KnockbackEvent, KnockbackType},
+    movement::{KnockbackData, KnockbackEvent},
     packet::{as_system, declare_packet_handlers},
     player::{GameProfileComponent, PlayerInfo},
     tick_counter::TicksConnected,
@@ -738,14 +738,13 @@ impl GamePacketHandler<'_> {
                 // this is to make sure the same entity velocity update doesn't get sent
                 // multiple times when in swarms
 
-                let knockback = KnockbackType::Set(p.delta.to_vec3());
+                let data = KnockbackData::Set(p.delta.to_vec3());
 
                 commands.entity(entity).queue(RelativeEntityUpdate::new(
                     instance_holder.partial_instance.clone(),
                     move |entity_mut| {
-                        entity_mut.world_scope(|world| {
-                            world.write_message(KnockbackEvent { entity, knockback })
-                        });
+                        entity_mut
+                            .world_scope(|world| world.trigger(KnockbackEvent { entity, data }));
                     },
                 ));
             },
@@ -1262,13 +1261,13 @@ impl GamePacketHandler<'_> {
     pub fn delete_chat(&mut self, _p: &ClientboundDeleteChat) {}
 
     pub fn explode(&mut self, p: &ClientboundExplode) {
-        trace!("Got explode packet {p:?}");
+        println!("Got explode packet {p:?}");
 
-        as_system::<MessageWriter<_>>(self.ecs, |mut knockback_events| {
+        as_system::<Commands>(self.ecs, |mut knockback_events| {
             if let Some(knockback) = p.player_knockback {
-                knockback_events.write(KnockbackEvent {
+                knockback_events.trigger(KnockbackEvent {
                     entity: self.player,
-                    knockback: KnockbackType::Set(knockback),
+                    data: KnockbackData::Set(knockback),
                 });
             }
         });

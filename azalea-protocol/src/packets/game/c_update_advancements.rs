@@ -3,7 +3,7 @@ use std::{
     io::{self, Cursor, Write},
 };
 
-use azalea_buf::AzBuf;
+use azalea_buf::{AzBuf, AzaleaWrite};
 use azalea_chat::FormattedText;
 use azalea_inventory::ItemStack;
 use azalea_protocol_macros::ClientboundGamePacket;
@@ -40,7 +40,7 @@ pub struct DisplayInfo {
     pub y: f32,
 }
 
-impl azalea_buf::AzaleaWrite for DisplayInfo {
+impl AzaleaWrite for DisplayInfo {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         self.title.azalea_write(buf)?;
         self.description.azalea_write(buf)?;

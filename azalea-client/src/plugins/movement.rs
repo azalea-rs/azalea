@@ -46,10 +46,9 @@ impl Plugin for MovementPlugin {
     fn build(&self, app: &mut App) {
         app.add_message::<StartWalkEvent>()
             .add_message::<StartSprintEvent>()
-            .add_message::<KnockbackEvent>()
             .add_systems(
                 Update,
-                (handle_sprint, handle_walk, handle_knockback)
+                (handle_sprint, handle_walk)
                     .chain()
                     .in_set(MoveEventsSystems)
                     .after(update_bounding_box)
@@ -70,7 +69,8 @@ impl Plugin for MovementPlugin {
                     send_position.after(PhysicsSystems),
                 )
                     .chain(),
-            );
+            )
+            .add_observer(handle_knockback);
     }
 }
 
@@ -655,27 +655,26 @@ fn has_enough_impulse_to_start_sprinting(physics_state: &PhysicsState) -> bool {
 /// Usually `KnockbackKind::Set` is used for normal knockback and
 /// `KnockbackKind::Add` is used for explosions, but some servers (notably
 /// Hypixel) use explosions for knockback.
-#[derive(Message)]
+#[derive(EntityEvent, Debug, Clone)]
 pub struct KnockbackEvent {
     pub entity: Entity,
-    pub knockback: KnockbackType,
+    pub data: KnockbackData,
 }
 
-pub enum KnockbackType {
+#[derive(Debug, Clone)]
+pub enum KnockbackData {
     Set(Vec3),
     Add(Vec3),
 }
 
-pub fn handle_knockback(mut query: Query<&mut Physics>, mut events: MessageReader<KnockbackEvent>) {
-    for event in events.read() {
-        if let Ok(mut physics) = query.get_mut(event.entity) {
-            match event.knockback {
-                KnockbackType::Set(velocity) => {
-                    physics.velocity = velocity;
-                }
-                KnockbackType::Add(velocity) => {
-                    physics.velocity += velocity;
-                }
+pub fn handle_knockback(knockback: On<KnockbackEvent>, mut query: Query<&mut Physics>) {
+    if let Ok(mut physics) = query.get_mut(knockback.entity) {
+        match knockback.data {
+            KnockbackData::Set(velocity) => {
+                physics.velocity = velocity;
+            }
+            KnockbackData::Add(velocity) => {
+                physics.velocity += velocity;
             }
         }
     }
