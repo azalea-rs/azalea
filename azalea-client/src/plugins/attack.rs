@@ -32,9 +32,10 @@ impl Plugin for AttackPlugin {
                 (
                     increment_ticks_since_last_attack,
                     update_attack_strength_scale.after(PhysicsSystems),
+                    // in vanilla, handle_attack_queued is part of `handleKeybinds`
                     handle_attack_queued
+                        .before(super::movement::send_sprinting_if_needed)
                         .before(super::tick_end::game_tick_packet)
-                        .after(super::movement::send_sprinting_if_needed)
                         .before(super::movement::send_position),
                 )
                     .chain(),

@@ -25,7 +25,7 @@ use azalea_protocol::{
             s_move_player_pos::ServerboundMovePlayerPos,
             s_move_player_pos_rot::ServerboundMovePlayerPosRot,
             s_move_player_rot::ServerboundMovePlayerRot,
-            s_move_player_status_only::ServerboundMovePlayerStatusOnly,
+            s_move_player_status_only::ServerboundMovePlayerStatusOnly, s_player_command,
         },
     },
 };
@@ -283,9 +283,9 @@ pub fn send_sprinting_if_needed(
         let was_sprinting = physics_state.was_sprinting;
         if **sprinting != was_sprinting {
             let sprinting_action = if **sprinting {
-                azalea_protocol::packets::game::s_player_command::Action::StartSprinting
+                s_player_command::Action::StartSprinting
             } else {
-                azalea_protocol::packets::game::s_player_command::Action::StopSprinting
+                s_player_command::Action::StopSprinting
             };
             commands.trigger(SendGamePacketEvent::new(
                 entity,
