@@ -160,14 +160,21 @@ pub fn registry(input: TokenStream) -> TokenStream {
                 }
             }
         }
+        impl<'a> TryFrom<&'a crate::Identifier> for #name {
+            type Error = ();
+            fn try_from(ident: &'a crate::Identifier) -> Result<Self, Self::Error> {
+                if ident.namespace() != "minecraft" { return Err(()) }
+                match ident.path() {
+                    #from_str_items
+                    _ => return Err(()),
+                }
+            }
+        }
         impl std::str::FromStr for #name {
-            type Err = String;
+            type Err = ();
 
             fn from_str(s: &str) -> Result<Self, Self::Err> {
-                match s {
-                    #from_str_items
-                    _ => Err(format!("{s:?} is not a valid {name}", s = s, name = stringify!(#name))),
-                }
+                Self::try_from(&crate::Identifier::new(s))
             }
         }
 
@@ -187,7 +194,9 @@ pub fn registry(input: TokenStream) -> TokenStream {
                 D: serde::Deserializer<'de>,
             {
                 let s = String::deserialize(deserializer)?;
-                s.parse().map_err(serde::de::Error::custom)
+                s.parse().map_err(|_| serde::de::Error::custom(
+                    format!("{s:?} is not a valid {name}", s = s, name = stringify!(#name))
+                ))
             }
         }
 
