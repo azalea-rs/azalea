@@ -4,9 +4,7 @@ from typing import Optional
 import re
 
 METADATA_RS_DIR = get_dir_location("../azalea-entity/src/metadata.rs")
-
 DATA_RS_DIR = get_dir_location("../azalea-entity/src/data.rs")
-
 DIMENSIONS_RS_DIR = get_dir_location("../azalea-entity/src/dimensions.rs")
 
 
@@ -513,13 +511,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
                 this_entity_parent_ids[1] if len(this_entity_parent_ids) > 1 else None
             )
             if this_entity_parent_id:
-                bundle_struct_name = (
-                    upper_first_letter(to_camel_case(this_entity_parent_id.lstrip("~")))
-                    + "MetadataBundle"
-                )
-                code.append(f"            parent: {bundle_struct_name} {{")
-                generate_fields(this_entity_parent_id)
-                code.append("            },")
+                code.append("            parent: Default::default(),")
 
             for index, name_or_bitfield in get_entity_metadata_names(
                 this_entity_id, burger_entity_metadata, mappings

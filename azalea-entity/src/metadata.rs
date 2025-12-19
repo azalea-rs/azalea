@@ -622,23 +622,7 @@ impl Default for AreaEffectCloudMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AreaEffectCloud,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             radius: Radius(3.0),
             waiting: Waiting(false),
             particle: Particle::default(),
@@ -690,23 +674,7 @@ impl Default for BreezeWindChargeMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: BreezeWindCharge,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -755,23 +723,7 @@ impl Default for DragonFireballMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: DragonFireball,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -838,23 +790,7 @@ impl Default for EndCrystalMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: EndCrystal,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             beam_target: BeamTarget(None),
             show_bottom: ShowBottom(true),
         }
@@ -905,23 +841,7 @@ impl Default for EvokerFangsMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: EvokerFangs,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -980,23 +900,7 @@ impl Default for ExperienceOrbMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: ExperienceOrb,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             value: Value(0),
         }
     }
@@ -1056,23 +960,7 @@ impl Default for EyeOfEnderMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: EyeOfEnder,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             eye_of_ender_item_stack: EyeOfEnderItemStack(Default::default()),
         }
     }
@@ -1132,23 +1020,7 @@ impl Default for FallingBlockMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: FallingBlock,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             start_pos: StartPos(BlockPos::new(0, 0, 0)),
         }
     }
@@ -1208,23 +1080,7 @@ impl Default for FireballMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Fireball,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             fireball_item_stack: FireballItemStack(Default::default()),
         }
     }
@@ -1300,23 +1156,7 @@ impl Default for FireworkRocketMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: FireworkRocket,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             fireworks_item: FireworksItem(Default::default()),
             attached_to_target: AttachedToTarget(OptionalUnsignedInt(None)),
             shot_at_angle: ShotAtAngle(false),
@@ -1386,23 +1226,7 @@ impl Default for FishingBobberMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: FishingBobber,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             hooked_entity: HookedEntity(0),
             biting: Biting(false),
         }
@@ -1479,23 +1303,7 @@ impl Default for InteractionMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Interaction,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             interaction_width: InteractionWidth(1.0),
             interaction_height: InteractionHeight(1.0),
             response: Response(false),
@@ -1556,23 +1364,7 @@ impl Default for ItemMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Item,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             item_item: ItemItem(Default::default()),
         }
     }
@@ -1648,23 +1440,7 @@ impl Default for ItemFrameMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: ItemFrame,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             item_frame_direction: ItemFrameDirection(Default::default()),
             item_frame_item: ItemFrameItem(Default::default()),
             rotation: Rotation(0),
@@ -1717,29 +1493,7 @@ impl Default for GlowItemFrameMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: GlowItemFrame,
-            parent: ItemFrameMetadataBundle {
-                _marker: ItemFrame,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
-                },
-                item_frame_direction: ItemFrameDirection(Default::default()),
-                item_frame_item: ItemFrameItem(Default::default()),
-                rotation: Rotation(0),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -1788,23 +1542,7 @@ impl Default for LeashKnotMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: LeashKnot,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -1853,23 +1591,7 @@ impl Default for LightningBoltMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: LightningBolt,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -1918,23 +1640,7 @@ impl Default for LlamaSpitMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: LlamaSpit,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -1983,23 +1689,7 @@ impl Default for MarkerMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Marker,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -2058,23 +1748,7 @@ impl Default for OminousItemSpawnerMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: OminousItemSpawner,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             ominous_item_spawner_item: OminousItemSpawnerItem(Default::default()),
         }
     }
@@ -2142,23 +1816,7 @@ impl Default for PaintingMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Painting,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             painting_direction: PaintingDirection(Default::default()),
             painting_variant: PaintingVariant(azalea_registry::data::PaintingVariant::new_raw(0)),
         }
@@ -2209,23 +1867,7 @@ impl Default for ShulkerBulletMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: ShulkerBullet,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -2284,23 +1926,7 @@ impl Default for SmallFireballMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: SmallFireball,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             small_fireball_item_stack: SmallFireballItemStack(Default::default()),
         }
     }
@@ -2367,23 +1993,7 @@ impl Default for TntMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Tnt,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             fuse: Fuse(80),
             tnt_block_state: TntBlockState(Default::default()),
         }
@@ -2434,23 +2044,7 @@ impl Default for WindChargeMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: WindCharge,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -2509,23 +2103,7 @@ impl Default for WitherSkullMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: WitherSkull,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             dangerous: Dangerous(false),
         }
     }
@@ -2610,23 +2188,7 @@ impl Default for AbstractArrowMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractArrow,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             crit_arrow: CritArrow(false),
             no_physics: NoPhysics(false),
             pierce_level: PierceLevel(0),
@@ -2689,30 +2251,7 @@ impl Default for ArrowMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Arrow,
-            parent: AbstractArrowMetadataBundle {
-                _marker: AbstractArrow,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
-                },
-                crit_arrow: CritArrow(false),
-                no_physics: NoPhysics(false),
-                pierce_level: PierceLevel(0),
-                in_ground: InGround(false),
-            },
+            parent: Default::default(),
             effect_color: EffectColor(-1),
         }
     }
@@ -2763,30 +2302,7 @@ impl Default for SpectralArrowMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: SpectralArrow,
-            parent: AbstractArrowMetadataBundle {
-                _marker: AbstractArrow,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
-                },
-                crit_arrow: CritArrow(false),
-                no_physics: NoPhysics(false),
-                pierce_level: PierceLevel(0),
-                in_ground: InGround(false),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -2853,30 +2369,7 @@ impl Default for TridentMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Trident,
-            parent: AbstractArrowMetadataBundle {
-                _marker: AbstractArrow,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
-                },
-                crit_arrow: CritArrow(false),
-                no_physics: NoPhysics(false),
-                pierce_level: PierceLevel(0),
-                in_ground: InGround(false),
-            },
+            parent: Default::default(),
             loyalty: Loyalty(0),
             foil: Foil(false),
         }
@@ -3053,23 +2546,7 @@ impl Default for AbstractDisplayMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractDisplay,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             transformation_interpolation_start_delta_ticks:
                 TransformationInterpolationStartDeltaTicks(0),
             transformation_interpolation_duration: TransformationInterpolationDuration(0),
@@ -3163,60 +2640,7 @@ impl Default for BlockDisplayMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: BlockDisplay,
-            parent: AbstractDisplayMetadataBundle {
-                _marker: AbstractDisplay,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
-                },
-                transformation_interpolation_start_delta_ticks:
-                    TransformationInterpolationStartDeltaTicks(0),
-                transformation_interpolation_duration: TransformationInterpolationDuration(0),
-                pos_rot_interpolation_duration: PosRotInterpolationDuration(0),
-                translation: Translation(Vec3f32 {
-                    x: 0.0,
-                    y: 0.0,
-                    z: 0.0,
-                }),
-                scale: Scale(Vec3f32 {
-                    x: 1.0,
-                    y: 1.0,
-                    z: 1.0,
-                }),
-                left_rotation: LeftRotation(Quaternion {
-                    x: 0.0,
-                    y: 0.0,
-                    z: 0.0,
-                    w: 1.0,
-                }),
-                right_rotation: RightRotation(Quaternion {
-                    x: 0.0,
-                    y: 0.0,
-                    z: 0.0,
-                    w: 1.0,
-                }),
-                billboard_render_constraints: BillboardRenderConstraints(Default::default()),
-                brightness_override: BrightnessOverride(-1),
-                view_range: ViewRange(1.0),
-                shadow_radius: ShadowRadius(0.0),
-                shadow_strength: ShadowStrength(1.0),
-                abstract_display_width: AbstractDisplayWidth(0.0),
-                abstract_display_height: AbstractDisplayHeight(0.0),
-                glow_color_override: GlowColorOverride(-1),
-            },
+            parent: Default::default(),
             block_display_block_state: BlockDisplayBlockState(Default::default()),
         }
     }
@@ -3285,60 +2709,7 @@ impl Default for ItemDisplayMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: ItemDisplay,
-            parent: AbstractDisplayMetadataBundle {
-                _marker: AbstractDisplay,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
-                },
-                transformation_interpolation_start_delta_ticks:
-                    TransformationInterpolationStartDeltaTicks(0),
-                transformation_interpolation_duration: TransformationInterpolationDuration(0),
-                pos_rot_interpolation_duration: PosRotInterpolationDuration(0),
-                translation: Translation(Vec3f32 {
-                    x: 0.0,
-                    y: 0.0,
-                    z: 0.0,
-                }),
-                scale: Scale(Vec3f32 {
-                    x: 1.0,
-                    y: 1.0,
-                    z: 1.0,
-                }),
-                left_rotation: LeftRotation(Quaternion {
-                    x: 0.0,
-                    y: 0.0,
-                    z: 0.0,
-                    w: 1.0,
-                }),
-                right_rotation: RightRotation(Quaternion {
-                    x: 0.0,
-                    y: 0.0,
-                    z: 0.0,
-                    w: 1.0,
-                }),
-                billboard_render_constraints: BillboardRenderConstraints(Default::default()),
-                brightness_override: BrightnessOverride(-1),
-                view_range: ViewRange(1.0),
-                shadow_radius: ShadowRadius(0.0),
-                shadow_strength: ShadowStrength(1.0),
-                abstract_display_width: AbstractDisplayWidth(0.0),
-                abstract_display_height: AbstractDisplayHeight(0.0),
-                glow_color_override: GlowColorOverride(-1),
-            },
+            parent: Default::default(),
             item_display_item_stack: ItemDisplayItemStack(Default::default()),
             item_display_item_display: ItemDisplayItemDisplay(Default::default()),
         }
@@ -3432,60 +2803,7 @@ impl Default for TextDisplayMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: TextDisplay,
-            parent: AbstractDisplayMetadataBundle {
-                _marker: AbstractDisplay,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
-                },
-                transformation_interpolation_start_delta_ticks:
-                    TransformationInterpolationStartDeltaTicks(0),
-                transformation_interpolation_duration: TransformationInterpolationDuration(0),
-                pos_rot_interpolation_duration: PosRotInterpolationDuration(0),
-                translation: Translation(Vec3f32 {
-                    x: 0.0,
-                    y: 0.0,
-                    z: 0.0,
-                }),
-                scale: Scale(Vec3f32 {
-                    x: 1.0,
-                    y: 1.0,
-                    z: 1.0,
-                }),
-                left_rotation: LeftRotation(Quaternion {
-                    x: 0.0,
-                    y: 0.0,
-                    z: 0.0,
-                    w: 1.0,
-                }),
-                right_rotation: RightRotation(Quaternion {
-                    x: 0.0,
-                    y: 0.0,
-                    z: 0.0,
-                    w: 1.0,
-                }),
-                billboard_render_constraints: BillboardRenderConstraints(Default::default()),
-                brightness_override: BrightnessOverride(-1),
-                view_range: ViewRange(1.0),
-                shadow_radius: ShadowRadius(0.0),
-                shadow_strength: ShadowStrength(1.0),
-                abstract_display_width: AbstractDisplayWidth(0.0),
-                abstract_display_height: AbstractDisplayHeight(0.0),
-                glow_color_override: GlowColorOverride(-1),
-            },
+            parent: Default::default(),
             text: Text(Default::default()),
             line_width: LineWidth(200),
             background_color: BackgroundColor(1073741824),
@@ -3709,23 +3027,7 @@ impl Default for AbstractLivingMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractLiving,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             auto_spin_attack: AutoSpinAttack(false),
             abstract_living_using_item: AbstractLivingUsingItem(false),
             health: Health(1.0),
@@ -3860,34 +3162,7 @@ impl Default for ArmorStandMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: ArmorStand,
-            parent: AbstractLivingMetadataBundle {
-                _marker: AbstractLiving,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
-                },
-                auto_spin_attack: AutoSpinAttack(false),
-                abstract_living_using_item: AbstractLivingUsingItem(false),
-                health: Health(1.0),
-                effect_particles: EffectParticles(Default::default()),
-                effect_ambience: EffectAmbience(false),
-                arrow_count: ArrowCount(0),
-                stinger_count: StingerCount(0),
-                sleeping_pos: SleepingPos(None),
-            },
+            parent: Default::default(),
             small: Small(false),
             show_arms: ShowArms(false),
             show_base_plate: ShowBasePlate(false),
@@ -3966,34 +3241,7 @@ impl Default for AbstractAvatarMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractAvatar,
-            parent: AbstractLivingMetadataBundle {
-                _marker: AbstractLiving,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
-                },
-                auto_spin_attack: AutoSpinAttack(false),
-                abstract_living_using_item: AbstractLivingUsingItem(false),
-                health: Health(1.0),
-                effect_particles: EffectParticles(Default::default()),
-                effect_ambience: EffectAmbience(false),
-                arrow_count: ArrowCount(0),
-                stinger_count: StingerCount(0),
-                sleeping_pos: SleepingPos(None),
-            },
+            parent: Default::default(),
             player_main_hand: PlayerMainHand(Default::default()),
             player_mode_customisation: PlayerModeCustomisation(0),
         }
@@ -4072,39 +3320,7 @@ impl Default for MannequinMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Mannequin,
-            parent: AbstractAvatarMetadataBundle {
-                _marker: AbstractAvatar,
-                parent: AbstractLivingMetadataBundle {
-                    _marker: AbstractLiving,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    auto_spin_attack: AutoSpinAttack(false),
-                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                    health: Health(1.0),
-                    effect_particles: EffectParticles(Default::default()),
-                    effect_ambience: EffectAmbience(false),
-                    arrow_count: ArrowCount(0),
-                    stinger_count: StingerCount(0),
-                    sleeping_pos: SleepingPos(None),
-                },
-                player_main_hand: PlayerMainHand(Default::default()),
-                player_mode_customisation: PlayerModeCustomisation(0),
-            },
+            parent: Default::default(),
             profile: Profile(Default::default()),
             immovable: Immovable(false),
             description: Description(Default::default()),
@@ -4191,39 +3407,7 @@ impl Default for PlayerMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Player,
-            parent: AbstractAvatarMetadataBundle {
-                _marker: AbstractAvatar,
-                parent: AbstractLivingMetadataBundle {
-                    _marker: AbstractLiving,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    auto_spin_attack: AutoSpinAttack(false),
-                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                    health: Health(1.0),
-                    effect_particles: EffectParticles(Default::default()),
-                    effect_ambience: EffectAmbience(false),
-                    arrow_count: ArrowCount(0),
-                    stinger_count: StingerCount(0),
-                    sleeping_pos: SleepingPos(None),
-                },
-                player_main_hand: PlayerMainHand(Default::default()),
-                player_mode_customisation: PlayerModeCustomisation(0),
-            },
+            parent: Default::default(),
             player_absorption: PlayerAbsorption(0.0),
             score: Score(0),
             shoulder_parrot_left: ShoulderParrotLeft(OptionalUnsignedInt(None)),
@@ -4400,34 +3584,7 @@ impl Default for AbstractInsentientMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractInsentient,
-            parent: AbstractLivingMetadataBundle {
-                _marker: AbstractLiving,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
-                },
-                auto_spin_attack: AutoSpinAttack(false),
-                abstract_living_using_item: AbstractLivingUsingItem(false),
-                health: Health(1.0),
-                effect_particles: EffectParticles(Default::default()),
-                effect_ambience: EffectAmbience(false),
-                arrow_count: ArrowCount(0),
-                stinger_count: StingerCount(0),
-                sleeping_pos: SleepingPos(None),
-            },
+            parent: Default::default(),
             no_ai: NoAi(false),
             left_handed: LeftHanded(false),
             aggressive: Aggressive(false),
@@ -4491,40 +3648,7 @@ impl Default for BatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Bat,
-            parent: AbstractInsentientMetadataBundle {
-                _marker: AbstractInsentient,
-                parent: AbstractLivingMetadataBundle {
-                    _marker: AbstractLiving,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    auto_spin_attack: AutoSpinAttack(false),
-                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                    health: Health(1.0),
-                    effect_particles: EffectParticles(Default::default()),
-                    effect_ambience: EffectAmbience(false),
-                    arrow_count: ArrowCount(0),
-                    stinger_count: StingerCount(0),
-                    sleeping_pos: SleepingPos(None),
-                },
-                no_ai: NoAi(false),
-                left_handed: LeftHanded(false),
-                aggressive: Aggressive(false),
-            },
+            parent: Default::default(),
             resting: Resting(false),
         }
     }
@@ -4586,40 +3710,7 @@ impl Default for EnderDragonMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: EnderDragon,
-            parent: AbstractInsentientMetadataBundle {
-                _marker: AbstractInsentient,
-                parent: AbstractLivingMetadataBundle {
-                    _marker: AbstractLiving,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    auto_spin_attack: AutoSpinAttack(false),
-                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                    health: Health(1.0),
-                    effect_particles: EffectParticles(Default::default()),
-                    effect_ambience: EffectAmbience(false),
-                    arrow_count: ArrowCount(0),
-                    stinger_count: StingerCount(0),
-                    sleeping_pos: SleepingPos(None),
-                },
-                no_ai: NoAi(false),
-                left_handed: LeftHanded(false),
-                aggressive: Aggressive(false),
-            },
+            parent: Default::default(),
             phase: Phase(Default::default()),
         }
     }
@@ -4680,40 +3771,7 @@ impl Default for GhastMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Ghast,
-            parent: AbstractInsentientMetadataBundle {
-                _marker: AbstractInsentient,
-                parent: AbstractLivingMetadataBundle {
-                    _marker: AbstractLiving,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    auto_spin_attack: AutoSpinAttack(false),
-                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                    health: Health(1.0),
-                    effect_particles: EffectParticles(Default::default()),
-                    effect_ambience: EffectAmbience(false),
-                    arrow_count: ArrowCount(0),
-                    stinger_count: StingerCount(0),
-                    sleeping_pos: SleepingPos(None),
-                },
-                no_ai: NoAi(false),
-                left_handed: LeftHanded(false),
-                aggressive: Aggressive(false),
-            },
+            parent: Default::default(),
             is_charging: IsCharging(false),
         }
     }
@@ -4774,40 +3832,7 @@ impl Default for PhantomMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Phantom,
-            parent: AbstractInsentientMetadataBundle {
-                _marker: AbstractInsentient,
-                parent: AbstractLivingMetadataBundle {
-                    _marker: AbstractLiving,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    auto_spin_attack: AutoSpinAttack(false),
-                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                    health: Health(1.0),
-                    effect_particles: EffectParticles(Default::default()),
-                    effect_ambience: EffectAmbience(false),
-                    arrow_count: ArrowCount(0),
-                    stinger_count: StingerCount(0),
-                    sleeping_pos: SleepingPos(None),
-                },
-                no_ai: NoAi(false),
-                left_handed: LeftHanded(false),
-                aggressive: Aggressive(false),
-            },
+            parent: Default::default(),
             phantom_size: PhantomSize(0),
         }
     }
@@ -4868,40 +3893,7 @@ impl Default for SlimeMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Slime,
-            parent: AbstractInsentientMetadataBundle {
-                _marker: AbstractInsentient,
-                parent: AbstractLivingMetadataBundle {
-                    _marker: AbstractLiving,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    auto_spin_attack: AutoSpinAttack(false),
-                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                    health: Health(1.0),
-                    effect_particles: EffectParticles(Default::default()),
-                    effect_ambience: EffectAmbience(false),
-                    arrow_count: ArrowCount(0),
-                    stinger_count: StingerCount(0),
-                    sleeping_pos: SleepingPos(None),
-                },
-                no_ai: NoAi(false),
-                left_handed: LeftHanded(false),
-                aggressive: Aggressive(false),
-            },
+            parent: Default::default(),
             slime_size: SlimeSize(1),
         }
     }
@@ -4954,44 +3946,7 @@ impl Default for MagmaCubeMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: MagmaCube,
-            parent: SlimeMetadataBundle {
-                _marker: Slime,
-                parent: AbstractInsentientMetadataBundle {
-                    _marker: AbstractInsentient,
-                    parent: AbstractLivingMetadataBundle {
-                        _marker: AbstractLiving,
-                        parent: AbstractEntityMetadataBundle {
-                            _marker: AbstractEntity,
-                            on_fire: OnFire(false),
-                            abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                            sprinting: Sprinting(false),
-                            swimming: Swimming(false),
-                            currently_glowing: CurrentlyGlowing(false),
-                            invisible: Invisible(false),
-                            fall_flying: FallFlying(false),
-                            air_supply: AirSupply(Default::default()),
-                            custom_name: CustomName(Default::default()),
-                            custom_name_visible: CustomNameVisible(Default::default()),
-                            silent: Silent(Default::default()),
-                            no_gravity: NoGravity(Default::default()),
-                            pose: Pose::default(),
-                            ticks_frozen: TicksFrozen(Default::default()),
-                        },
-                        auto_spin_attack: AutoSpinAttack(false),
-                        abstract_living_using_item: AbstractLivingUsingItem(false),
-                        health: Health(1.0),
-                        effect_particles: EffectParticles(Default::default()),
-                        effect_ambience: EffectAmbience(false),
-                        arrow_count: ArrowCount(0),
-                        stinger_count: StingerCount(0),
-                        sleeping_pos: SleepingPos(None),
-                    },
-                    no_ai: NoAi(false),
-                    left_handed: LeftHanded(false),
-                    aggressive: Aggressive(false),
-                },
-                slime_size: SlimeSize(1),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -5135,40 +4090,7 @@ impl Default for AbstractCreatureMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractCreature,
-            parent: AbstractInsentientMetadataBundle {
-                _marker: AbstractInsentient,
-                parent: AbstractLivingMetadataBundle {
-                    _marker: AbstractLiving,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    auto_spin_attack: AutoSpinAttack(false),
-                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                    health: Health(1.0),
-                    effect_particles: EffectParticles(Default::default()),
-                    effect_ambience: EffectAmbience(false),
-                    arrow_count: ArrowCount(0),
-                    stinger_count: StingerCount(0),
-                    sleeping_pos: SleepingPos(None),
-                },
-                no_ai: NoAi(false),
-                left_handed: LeftHanded(false),
-                aggressive: Aggressive(false),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -5237,43 +4159,7 @@ impl Default for AllayMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Allay,
-            parent: AbstractCreatureMetadataBundle {
-                _marker: AbstractCreature,
-                parent: AbstractInsentientMetadataBundle {
-                    _marker: AbstractInsentient,
-                    parent: AbstractLivingMetadataBundle {
-                        _marker: AbstractLiving,
-                        parent: AbstractEntityMetadataBundle {
-                            _marker: AbstractEntity,
-                            on_fire: OnFire(false),
-                            abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                            sprinting: Sprinting(false),
-                            swimming: Swimming(false),
-                            currently_glowing: CurrentlyGlowing(false),
-                            invisible: Invisible(false),
-                            fall_flying: FallFlying(false),
-                            air_supply: AirSupply(Default::default()),
-                            custom_name: CustomName(Default::default()),
-                            custom_name_visible: CustomNameVisible(Default::default()),
-                            silent: Silent(Default::default()),
-                            no_gravity: NoGravity(Default::default()),
-                            pose: Pose::default(),
-                            ticks_frozen: TicksFrozen(Default::default()),
-                        },
-                        auto_spin_attack: AutoSpinAttack(false),
-                        abstract_living_using_item: AbstractLivingUsingItem(false),
-                        health: Health(1.0),
-                        effect_particles: EffectParticles(Default::default()),
-                        effect_ambience: EffectAmbience(false),
-                        arrow_count: ArrowCount(0),
-                        stinger_count: StingerCount(0),
-                        sleeping_pos: SleepingPos(None),
-                    },
-                    no_ai: NoAi(false),
-                    left_handed: LeftHanded(false),
-                    aggressive: Aggressive(false),
-                },
-            },
+            parent: Default::default(),
             dancing: Dancing(false),
             can_duplicate: CanDuplicate(true),
         }
@@ -5345,43 +4231,7 @@ impl Default for CopperGolemMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: CopperGolem,
-            parent: AbstractCreatureMetadataBundle {
-                _marker: AbstractCreature,
-                parent: AbstractInsentientMetadataBundle {
-                    _marker: AbstractInsentient,
-                    parent: AbstractLivingMetadataBundle {
-                        _marker: AbstractLiving,
-                        parent: AbstractEntityMetadataBundle {
-                            _marker: AbstractEntity,
-                            on_fire: OnFire(false),
-                            abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                            sprinting: Sprinting(false),
-                            swimming: Swimming(false),
-                            currently_glowing: CurrentlyGlowing(false),
-                            invisible: Invisible(false),
-                            fall_flying: FallFlying(false),
-                            air_supply: AirSupply(Default::default()),
-                            custom_name: CustomName(Default::default()),
-                            custom_name_visible: CustomNameVisible(Default::default()),
-                            silent: Silent(Default::default()),
-                            no_gravity: NoGravity(Default::default()),
-                            pose: Pose::default(),
-                            ticks_frozen: TicksFrozen(Default::default()),
-                        },
-                        auto_spin_attack: AutoSpinAttack(false),
-                        abstract_living_using_item: AbstractLivingUsingItem(false),
-                        health: Health(1.0),
-                        effect_particles: EffectParticles(Default::default()),
-                        effect_ambience: EffectAmbience(false),
-                        arrow_count: ArrowCount(0),
-                        stinger_count: StingerCount(0),
-                        sleeping_pos: SleepingPos(None),
-                    },
-                    no_ai: NoAi(false),
-                    left_handed: LeftHanded(false),
-                    aggressive: Aggressive(false),
-                },
-            },
+            parent: Default::default(),
             weather_state: WeatherState(Default::default()),
             copper_golem_state: CopperGolemState(Default::default()),
         }
@@ -5446,43 +4296,7 @@ impl Default for IronGolemMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: IronGolem,
-            parent: AbstractCreatureMetadataBundle {
-                _marker: AbstractCreature,
-                parent: AbstractInsentientMetadataBundle {
-                    _marker: AbstractInsentient,
-                    parent: AbstractLivingMetadataBundle {
-                        _marker: AbstractLiving,
-                        parent: AbstractEntityMetadataBundle {
-                            _marker: AbstractEntity,
-                            on_fire: OnFire(false),
-                            abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                            sprinting: Sprinting(false),
-                            swimming: Swimming(false),
-                            currently_glowing: CurrentlyGlowing(false),
-                            invisible: Invisible(false),
-                            fall_flying: FallFlying(false),
-                            air_supply: AirSupply(Default::default()),
-                            custom_name: CustomName(Default::default()),
-                            custom_name_visible: CustomNameVisible(Default::default()),
-                            silent: Silent(Default::default()),
-                            no_gravity: NoGravity(Default::default()),
-                            pose: Pose::default(),
-                            ticks_frozen: TicksFrozen(Default::default()),
-                        },
-                        auto_spin_attack: AutoSpinAttack(false),
-                        abstract_living_using_item: AbstractLivingUsingItem(false),
-                        health: Health(1.0),
-                        effect_particles: EffectParticles(Default::default()),
-                        effect_ambience: EffectAmbience(false),
-                        arrow_count: ArrowCount(0),
-                        stinger_count: StingerCount(0),
-                        sleeping_pos: SleepingPos(None),
-                    },
-                    no_ai: NoAi(false),
-                    left_handed: LeftHanded(false),
-                    aggressive: Aggressive(false),
-                },
-            },
+            parent: Default::default(),
             player_created: PlayerCreated(false),
         }
     }
@@ -5553,43 +4367,7 @@ impl Default for PufferfishMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Pufferfish,
-            parent: AbstractCreatureMetadataBundle {
-                _marker: AbstractCreature,
-                parent: AbstractInsentientMetadataBundle {
-                    _marker: AbstractInsentient,
-                    parent: AbstractLivingMetadataBundle {
-                        _marker: AbstractLiving,
-                        parent: AbstractEntityMetadataBundle {
-                            _marker: AbstractEntity,
-                            on_fire: OnFire(false),
-                            abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                            sprinting: Sprinting(false),
-                            swimming: Swimming(false),
-                            currently_glowing: CurrentlyGlowing(false),
-                            invisible: Invisible(false),
-                            fall_flying: FallFlying(false),
-                            air_supply: AirSupply(Default::default()),
-                            custom_name: CustomName(Default::default()),
-                            custom_name_visible: CustomNameVisible(Default::default()),
-                            silent: Silent(Default::default()),
-                            no_gravity: NoGravity(Default::default()),
-                            pose: Pose::default(),
-                            ticks_frozen: TicksFrozen(Default::default()),
-                        },
-                        auto_spin_attack: AutoSpinAttack(false),
-                        abstract_living_using_item: AbstractLivingUsingItem(false),
-                        health: Health(1.0),
-                        effect_particles: EffectParticles(Default::default()),
-                        effect_ambience: EffectAmbience(false),
-                        arrow_count: ArrowCount(0),
-                        stinger_count: StingerCount(0),
-                        sleeping_pos: SleepingPos(None),
-                    },
-                    no_ai: NoAi(false),
-                    left_handed: LeftHanded(false),
-                    aggressive: Aggressive(false),
-                },
-            },
+            parent: Default::default(),
             pufferfish_from_bucket: PufferfishFromBucket(false),
             puff_state: PuffState(0),
         }
@@ -5668,43 +4446,7 @@ impl Default for ShulkerMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Shulker,
-            parent: AbstractCreatureMetadataBundle {
-                _marker: AbstractCreature,
-                parent: AbstractInsentientMetadataBundle {
-                    _marker: AbstractInsentient,
-                    parent: AbstractLivingMetadataBundle {
-                        _marker: AbstractLiving,
-                        parent: AbstractEntityMetadataBundle {
-                            _marker: AbstractEntity,
-                            on_fire: OnFire(false),
-                            abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                            sprinting: Sprinting(false),
-                            swimming: Swimming(false),
-                            currently_glowing: CurrentlyGlowing(false),
-                            invisible: Invisible(false),
-                            fall_flying: FallFlying(false),
-                            air_supply: AirSupply(Default::default()),
-                            custom_name: CustomName(Default::default()),
-                            custom_name_visible: CustomNameVisible(Default::default()),
-                            silent: Silent(Default::default()),
-                            no_gravity: NoGravity(Default::default()),
-                            pose: Pose::default(),
-                            ticks_frozen: TicksFrozen(Default::default()),
-                        },
-                        auto_spin_attack: AutoSpinAttack(false),
-                        abstract_living_using_item: AbstractLivingUsingItem(false),
-                        health: Health(1.0),
-                        effect_particles: EffectParticles(Default::default()),
-                        effect_ambience: EffectAmbience(false),
-                        arrow_count: ArrowCount(0),
-                        stinger_count: StingerCount(0),
-                        sleeping_pos: SleepingPos(None),
-                    },
-                    no_ai: NoAi(false),
-                    left_handed: LeftHanded(false),
-                    aggressive: Aggressive(false),
-                },
-            },
+            parent: Default::default(),
             attach_face: AttachFace(Default::default()),
             peek: Peek(0),
             color: Color(16),
@@ -5770,43 +4512,7 @@ impl Default for SnowGolemMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: SnowGolem,
-            parent: AbstractCreatureMetadataBundle {
-                _marker: AbstractCreature,
-                parent: AbstractInsentientMetadataBundle {
-                    _marker: AbstractInsentient,
-                    parent: AbstractLivingMetadataBundle {
-                        _marker: AbstractLiving,
-                        parent: AbstractEntityMetadataBundle {
-                            _marker: AbstractEntity,
-                            on_fire: OnFire(false),
-                            abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                            sprinting: Sprinting(false),
-                            swimming: Swimming(false),
-                            currently_glowing: CurrentlyGlowing(false),
-                            invisible: Invisible(false),
-                            fall_flying: FallFlying(false),
-                            air_supply: AirSupply(Default::default()),
-                            custom_name: CustomName(Default::default()),
-                            custom_name_visible: CustomNameVisible(Default::default()),
-                            silent: Silent(Default::default()),
-                            no_gravity: NoGravity(Default::default()),
-                            pose: Pose::default(),
-                            ticks_frozen: TicksFrozen(Default::default()),
-                        },
-                        auto_spin_attack: AutoSpinAttack(false),
-                        abstract_living_using_item: AbstractLivingUsingItem(false),
-                        health: Health(1.0),
-                        effect_particles: EffectParticles(Default::default()),
-                        effect_ambience: EffectAmbience(false),
-                        arrow_count: ArrowCount(0),
-                        stinger_count: StingerCount(0),
-                        sleeping_pos: SleepingPos(None),
-                    },
-                    no_ai: NoAi(false),
-                    left_handed: LeftHanded(false),
-                    aggressive: Aggressive(false),
-                },
-            },
+            parent: Default::default(),
             has_pumpkin: HasPumpkin(true),
         }
     }
@@ -5868,43 +4574,7 @@ impl Default for TadpoleMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Tadpole,
-            parent: AbstractCreatureMetadataBundle {
-                _marker: AbstractCreature,
-                parent: AbstractInsentientMetadataBundle {
-                    _marker: AbstractInsentient,
-                    parent: AbstractLivingMetadataBundle {
-                        _marker: AbstractLiving,
-                        parent: AbstractEntityMetadataBundle {
-                            _marker: AbstractEntity,
-                            on_fire: OnFire(false),
-                            abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                            sprinting: Sprinting(false),
-                            swimming: Swimming(false),
-                            currently_glowing: CurrentlyGlowing(false),
-                            invisible: Invisible(false),
-                            fall_flying: FallFlying(false),
-                            air_supply: AirSupply(Default::default()),
-                            custom_name: CustomName(Default::default()),
-                            custom_name_visible: CustomNameVisible(Default::default()),
-                            silent: Silent(Default::default()),
-                            no_gravity: NoGravity(Default::default()),
-                            pose: Pose::default(),
-                            ticks_frozen: TicksFrozen(Default::default()),
-                        },
-                        auto_spin_attack: AutoSpinAttack(false),
-                        abstract_living_using_item: AbstractLivingUsingItem(false),
-                        health: Health(1.0),
-                        effect_particles: EffectParticles(Default::default()),
-                        effect_ambience: EffectAmbience(false),
-                        arrow_count: ArrowCount(0),
-                        stinger_count: StingerCount(0),
-                        sleeping_pos: SleepingPos(None),
-                    },
-                    no_ai: NoAi(false),
-                    left_handed: LeftHanded(false),
-                    aggressive: Aggressive(false),
-                },
-            },
+            parent: Default::default(),
             tadpole_from_bucket: TadpoleFromBucket(false),
         }
     }
@@ -6010,43 +4680,7 @@ impl Default for AbstractAgeableMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractAgeable,
-            parent: AbstractCreatureMetadataBundle {
-                _marker: AbstractCreature,
-                parent: AbstractInsentientMetadataBundle {
-                    _marker: AbstractInsentient,
-                    parent: AbstractLivingMetadataBundle {
-                        _marker: AbstractLiving,
-                        parent: AbstractEntityMetadataBundle {
-                            _marker: AbstractEntity,
-                            on_fire: OnFire(false),
-                            abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                            sprinting: Sprinting(false),
-                            swimming: Swimming(false),
-                            currently_glowing: CurrentlyGlowing(false),
-                            invisible: Invisible(false),
-                            fall_flying: FallFlying(false),
-                            air_supply: AirSupply(Default::default()),
-                            custom_name: CustomName(Default::default()),
-                            custom_name_visible: CustomNameVisible(Default::default()),
-                            silent: Silent(Default::default()),
-                            no_gravity: NoGravity(Default::default()),
-                            pose: Pose::default(),
-                            ticks_frozen: TicksFrozen(Default::default()),
-                        },
-                        auto_spin_attack: AutoSpinAttack(false),
-                        abstract_living_using_item: AbstractLivingUsingItem(false),
-                        health: Health(1.0),
-                        effect_particles: EffectParticles(Default::default()),
-                        effect_ambience: EffectAmbience(false),
-                        arrow_count: ArrowCount(0),
-                        stinger_count: StingerCount(0),
-                        sleeping_pos: SleepingPos(None),
-                    },
-                    no_ai: NoAi(false),
-                    left_handed: LeftHanded(false),
-                    aggressive: Aggressive(false),
-                },
-            },
+            parent: Default::default(),
             abstract_ageable_baby: AbstractAgeableBaby(false),
         }
     }
@@ -6117,47 +4751,7 @@ impl Default for DolphinMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Dolphin,
-            parent: AbstractAgeableMetadataBundle {
-                _marker: AbstractAgeable,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-                abstract_ageable_baby: AbstractAgeableBaby(false),
-            },
+            parent: Default::default(),
             got_fish: GotFish(false),
             moistness_level: MoistnessLevel(2400),
         }
@@ -6212,47 +4806,7 @@ impl Default for SquidMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Squid,
-            parent: AbstractAgeableMetadataBundle {
-                _marker: AbstractAgeable,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-                abstract_ageable_baby: AbstractAgeableBaby(false),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -6316,52 +4870,7 @@ impl Default for GlowSquidMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: GlowSquid,
-            parent: SquidMetadataBundle {
-                _marker: Squid,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
-                },
-            },
+            parent: Default::default(),
             dark_ticks_remaining: DarkTicksRemaining(0),
         }
     }
@@ -6451,47 +4960,7 @@ impl Default for AbstractAnimalMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractAnimal,
-            parent: AbstractAgeableMetadataBundle {
-                _marker: AbstractAgeable,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-                abstract_ageable_baby: AbstractAgeableBaby(false),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -6555,52 +5024,7 @@ impl Default for ArmadilloMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Armadillo,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
-                },
-            },
+            parent: Default::default(),
             armadillo_state: ArmadilloState(Default::default()),
         }
     }
@@ -6680,52 +5104,7 @@ impl Default for AxolotlMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Axolotl,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
-                },
-            },
+            parent: Default::default(),
             axolotl_variant: AxolotlVariant(0),
             playing_dead: PlayingDead(false),
             axolotl_from_bucket: AxolotlFromBucket(false),
@@ -6812,52 +5191,7 @@ impl Default for BeeMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Bee,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
-                },
-            },
+            parent: Default::default(),
             has_nectar: HasNectar(false),
             has_stung: HasStung(false),
             bee_rolling: BeeRolling(false),
@@ -6924,52 +5258,7 @@ impl Default for ChickenMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Chicken,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
-                },
-            },
+            parent: Default::default(),
             chicken_variant: ChickenVariant(azalea_registry::data::ChickenVariant::new_raw(0)),
         }
     }
@@ -7033,52 +5322,7 @@ impl Default for CowMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Cow,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
-                },
-            },
+            parent: Default::default(),
             cow_variant: CowVariant(azalea_registry::data::CowVariant::new_raw(0)),
         }
     }
@@ -7203,52 +5447,7 @@ impl Default for FoxMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Fox,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
-                },
-            },
+            parent: Default::default(),
             fox_kind: FoxKind(Default::default()),
             fox_sitting: FoxSitting(false),
             faceplanted: Faceplanted(false),
@@ -7329,52 +5528,7 @@ impl Default for FrogMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Frog,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
-                },
-            },
+            parent: Default::default(),
             frog_variant: FrogVariant(azalea_registry::data::FrogVariant::new_raw(0)),
             tongue_target: TongueTarget(OptionalUnsignedInt(None)),
         }
@@ -7455,52 +5609,7 @@ impl Default for GoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Goat,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
-                },
-            },
+            parent: Default::default(),
             is_screaming_goat: IsScreamingGoat(false),
             has_left_horn: HasLeftHorn(true),
             has_right_horn: HasRightHorn(true),
@@ -7575,52 +5684,7 @@ impl Default for HappyGhastMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: HappyGhast,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
-                },
-            },
+            parent: Default::default(),
             is_leash_holder: IsLeashHolder(false),
             stays_still: StaysStill(false),
         }
@@ -7685,52 +5749,7 @@ impl Default for HoglinMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Hoglin,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
-                },
-            },
+            parent: Default::default(),
             hoglin_immune_to_zombification: HoglinImmuneToZombification(false),
         }
     }
@@ -7795,52 +5814,7 @@ impl Default for MooshroomMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Mooshroom,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
-                },
-            },
+            parent: Default::default(),
             mooshroom_kind: MooshroomKind(Default::default()),
         }
     }
@@ -7904,52 +5878,7 @@ impl Default for OcelotMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Ocelot,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
-                },
-            },
+            parent: Default::default(),
             trusting: Trusting(false),
         }
     }
@@ -8072,52 +6001,7 @@ impl Default for PandaMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Panda,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
-                },
-            },
+            parent: Default::default(),
             panda_unhappy_counter: PandaUnhappyCounter(0),
             sneeze_counter: SneezeCounter(0),
             eat_counter: EatCounter(0),
@@ -8197,52 +6081,7 @@ impl Default for PigMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Pig,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
-                },
-            },
+            parent: Default::default(),
             pig_boost_time: PigBoostTime(0),
             pig_variant: PigVariant(azalea_registry::data::PigVariant::new_raw(0)),
         }
@@ -8308,52 +6147,7 @@ impl Default for PolarBearMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: PolarBear,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
-                },
-            },
+            parent: Default::default(),
             polar_bear_standing: PolarBearStanding(false),
         }
     }
@@ -8417,52 +6211,7 @@ impl Default for RabbitMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Rabbit,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
-                },
-            },
+            parent: Default::default(),
             rabbit_kind: RabbitKind(Default::default()),
         }
     }
@@ -8527,52 +6276,7 @@ impl Default for SheepMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Sheep,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
-                },
-            },
+            parent: Default::default(),
             sheep_sheared: SheepSheared(false),
         }
     }
@@ -8644,52 +6348,7 @@ impl Default for SnifferMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Sniffer,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
-                },
-            },
+            parent: Default::default(),
             sniffer_state: SnifferState(Default::default()),
             drop_seed_at_tick: DropSeedAtTick(0),
         }
@@ -8762,52 +6421,7 @@ impl Default for StriderMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Strider,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
-                },
-            },
+            parent: Default::default(),
             strider_boost_time: StriderBoostTime(0),
             suffocating: Suffocating(false),
         }
@@ -8880,52 +6494,7 @@ impl Default for TurtleMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Turtle,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
-                },
-            },
+            parent: Default::default(),
             has_egg: HasEgg(false),
             laying_egg: LayingEgg(false),
         }
@@ -9019,52 +6588,7 @@ impl Default for AbstractHorseMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractHorse,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
-                },
-            },
+            parent: Default::default(),
             tamed: Tamed(false),
             eating: Eating(false),
             abstract_horse_standing: AbstractHorseStanding(false),
@@ -9140,59 +6664,7 @@ impl Default for CamelMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Camel,
-            parent: AbstractHorseMetadataBundle {
-                _marker: AbstractHorse,
-                parent: AbstractAnimalMetadataBundle {
-                    _marker: AbstractAnimal,
-                    parent: AbstractAgeableMetadataBundle {
-                        _marker: AbstractAgeable,
-                        parent: AbstractCreatureMetadataBundle {
-                            _marker: AbstractCreature,
-                            parent: AbstractInsentientMetadataBundle {
-                                _marker: AbstractInsentient,
-                                parent: AbstractLivingMetadataBundle {
-                                    _marker: AbstractLiving,
-                                    parent: AbstractEntityMetadataBundle {
-                                        _marker: AbstractEntity,
-                                        on_fire: OnFire(false),
-                                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                            false,
-                                        ),
-                                        sprinting: Sprinting(false),
-                                        swimming: Swimming(false),
-                                        currently_glowing: CurrentlyGlowing(false),
-                                        invisible: Invisible(false),
-                                        fall_flying: FallFlying(false),
-                                        air_supply: AirSupply(Default::default()),
-                                        custom_name: CustomName(Default::default()),
-                                        custom_name_visible: CustomNameVisible(Default::default()),
-                                        silent: Silent(Default::default()),
-                                        no_gravity: NoGravity(Default::default()),
-                                        pose: Pose::default(),
-                                        ticks_frozen: TicksFrozen(Default::default()),
-                                    },
-                                    auto_spin_attack: AutoSpinAttack(false),
-                                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                                    health: Health(1.0),
-                                    effect_particles: EffectParticles(Default::default()),
-                                    effect_ambience: EffectAmbience(false),
-                                    arrow_count: ArrowCount(0),
-                                    stinger_count: StingerCount(0),
-                                    sleeping_pos: SleepingPos(None),
-                                },
-                                no_ai: NoAi(false),
-                                left_handed: LeftHanded(false),
-                                aggressive: Aggressive(false),
-                            },
-                        },
-                        abstract_ageable_baby: AbstractAgeableBaby(false),
-                    },
-                },
-                tamed: Tamed(false),
-                eating: Eating(false),
-                abstract_horse_standing: AbstractHorseStanding(false),
-                bred: Bred(false),
-            },
+            parent: Default::default(),
             camel_dash: CamelDash(false),
             last_pose_change_tick: LastPoseChangeTick(0),
         }
@@ -9250,65 +6722,7 @@ impl Default for CamelHuskMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: CamelHusk,
-            parent: CamelMetadataBundle {
-                _marker: Camel,
-                parent: AbstractHorseMetadataBundle {
-                    _marker: AbstractHorse,
-                    parent: AbstractAnimalMetadataBundle {
-                        _marker: AbstractAnimal,
-                        parent: AbstractAgeableMetadataBundle {
-                            _marker: AbstractAgeable,
-                            parent: AbstractCreatureMetadataBundle {
-                                _marker: AbstractCreature,
-                                parent: AbstractInsentientMetadataBundle {
-                                    _marker: AbstractInsentient,
-                                    parent: AbstractLivingMetadataBundle {
-                                        _marker: AbstractLiving,
-                                        parent: AbstractEntityMetadataBundle {
-                                            _marker: AbstractEntity,
-                                            on_fire: OnFire(false),
-                                            abstract_entity_shift_key_down:
-                                                AbstractEntityShiftKeyDown(false),
-                                            sprinting: Sprinting(false),
-                                            swimming: Swimming(false),
-                                            currently_glowing: CurrentlyGlowing(false),
-                                            invisible: Invisible(false),
-                                            fall_flying: FallFlying(false),
-                                            air_supply: AirSupply(Default::default()),
-                                            custom_name: CustomName(Default::default()),
-                                            custom_name_visible: CustomNameVisible(
-                                                Default::default(),
-                                            ),
-                                            silent: Silent(Default::default()),
-                                            no_gravity: NoGravity(Default::default()),
-                                            pose: Pose::default(),
-                                            ticks_frozen: TicksFrozen(Default::default()),
-                                        },
-                                        auto_spin_attack: AutoSpinAttack(false),
-                                        abstract_living_using_item: AbstractLivingUsingItem(false),
-                                        health: Health(1.0),
-                                        effect_particles: EffectParticles(Default::default()),
-                                        effect_ambience: EffectAmbience(false),
-                                        arrow_count: ArrowCount(0),
-                                        stinger_count: StingerCount(0),
-                                        sleeping_pos: SleepingPos(None),
-                                    },
-                                    no_ai: NoAi(false),
-                                    left_handed: LeftHanded(false),
-                                    aggressive: Aggressive(false),
-                                },
-                            },
-                            abstract_ageable_baby: AbstractAgeableBaby(false),
-                        },
-                    },
-                    tamed: Tamed(false),
-                    eating: Eating(false),
-                    abstract_horse_standing: AbstractHorseStanding(false),
-                    bred: Bred(false),
-                },
-                camel_dash: CamelDash(false),
-                last_pose_change_tick: LastPoseChangeTick(0),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -9372,59 +6786,7 @@ impl Default for HorseMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Horse,
-            parent: AbstractHorseMetadataBundle {
-                _marker: AbstractHorse,
-                parent: AbstractAnimalMetadataBundle {
-                    _marker: AbstractAnimal,
-                    parent: AbstractAgeableMetadataBundle {
-                        _marker: AbstractAgeable,
-                        parent: AbstractCreatureMetadataBundle {
-                            _marker: AbstractCreature,
-                            parent: AbstractInsentientMetadataBundle {
-                                _marker: AbstractInsentient,
-                                parent: AbstractLivingMetadataBundle {
-                                    _marker: AbstractLiving,
-                                    parent: AbstractEntityMetadataBundle {
-                                        _marker: AbstractEntity,
-                                        on_fire: OnFire(false),
-                                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                            false,
-                                        ),
-                                        sprinting: Sprinting(false),
-                                        swimming: Swimming(false),
-                                        currently_glowing: CurrentlyGlowing(false),
-                                        invisible: Invisible(false),
-                                        fall_flying: FallFlying(false),
-                                        air_supply: AirSupply(Default::default()),
-                                        custom_name: CustomName(Default::default()),
-                                        custom_name_visible: CustomNameVisible(Default::default()),
-                                        silent: Silent(Default::default()),
-                                        no_gravity: NoGravity(Default::default()),
-                                        pose: Pose::default(),
-                                        ticks_frozen: TicksFrozen(Default::default()),
-                                    },
-                                    auto_spin_attack: AutoSpinAttack(false),
-                                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                                    health: Health(1.0),
-                                    effect_particles: EffectParticles(Default::default()),
-                                    effect_ambience: EffectAmbience(false),
-                                    arrow_count: ArrowCount(0),
-                                    stinger_count: StingerCount(0),
-                                    sleeping_pos: SleepingPos(None),
-                                },
-                                no_ai: NoAi(false),
-                                left_handed: LeftHanded(false),
-                                aggressive: Aggressive(false),
-                            },
-                        },
-                        abstract_ageable_baby: AbstractAgeableBaby(false),
-                    },
-                },
-                tamed: Tamed(false),
-                eating: Eating(false),
-                abstract_horse_standing: AbstractHorseStanding(false),
-                bred: Bred(false),
-            },
+            parent: Default::default(),
             horse_type_variant: HorseTypeVariant(0),
         }
     }
@@ -9480,59 +6842,7 @@ impl Default for SkeletonHorseMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: SkeletonHorse,
-            parent: AbstractHorseMetadataBundle {
-                _marker: AbstractHorse,
-                parent: AbstractAnimalMetadataBundle {
-                    _marker: AbstractAnimal,
-                    parent: AbstractAgeableMetadataBundle {
-                        _marker: AbstractAgeable,
-                        parent: AbstractCreatureMetadataBundle {
-                            _marker: AbstractCreature,
-                            parent: AbstractInsentientMetadataBundle {
-                                _marker: AbstractInsentient,
-                                parent: AbstractLivingMetadataBundle {
-                                    _marker: AbstractLiving,
-                                    parent: AbstractEntityMetadataBundle {
-                                        _marker: AbstractEntity,
-                                        on_fire: OnFire(false),
-                                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                            false,
-                                        ),
-                                        sprinting: Sprinting(false),
-                                        swimming: Swimming(false),
-                                        currently_glowing: CurrentlyGlowing(false),
-                                        invisible: Invisible(false),
-                                        fall_flying: FallFlying(false),
-                                        air_supply: AirSupply(Default::default()),
-                                        custom_name: CustomName(Default::default()),
-                                        custom_name_visible: CustomNameVisible(Default::default()),
-                                        silent: Silent(Default::default()),
-                                        no_gravity: NoGravity(Default::default()),
-                                        pose: Pose::default(),
-                                        ticks_frozen: TicksFrozen(Default::default()),
-                                    },
-                                    auto_spin_attack: AutoSpinAttack(false),
-                                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                                    health: Health(1.0),
-                                    effect_particles: EffectParticles(Default::default()),
-                                    effect_ambience: EffectAmbience(false),
-                                    arrow_count: ArrowCount(0),
-                                    stinger_count: StingerCount(0),
-                                    sleeping_pos: SleepingPos(None),
-                                },
-                                no_ai: NoAi(false),
-                                left_handed: LeftHanded(false),
-                                aggressive: Aggressive(false),
-                            },
-                        },
-                        abstract_ageable_baby: AbstractAgeableBaby(false),
-                    },
-                },
-                tamed: Tamed(false),
-                eating: Eating(false),
-                abstract_horse_standing: AbstractHorseStanding(false),
-                bred: Bred(false),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -9587,59 +6897,7 @@ impl Default for ZombieHorseMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: ZombieHorse,
-            parent: AbstractHorseMetadataBundle {
-                _marker: AbstractHorse,
-                parent: AbstractAnimalMetadataBundle {
-                    _marker: AbstractAnimal,
-                    parent: AbstractAgeableMetadataBundle {
-                        _marker: AbstractAgeable,
-                        parent: AbstractCreatureMetadataBundle {
-                            _marker: AbstractCreature,
-                            parent: AbstractInsentientMetadataBundle {
-                                _marker: AbstractInsentient,
-                                parent: AbstractLivingMetadataBundle {
-                                    _marker: AbstractLiving,
-                                    parent: AbstractEntityMetadataBundle {
-                                        _marker: AbstractEntity,
-                                        on_fire: OnFire(false),
-                                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                            false,
-                                        ),
-                                        sprinting: Sprinting(false),
-                                        swimming: Swimming(false),
-                                        currently_glowing: CurrentlyGlowing(false),
-                                        invisible: Invisible(false),
-                                        fall_flying: FallFlying(false),
-                                        air_supply: AirSupply(Default::default()),
-                                        custom_name: CustomName(Default::default()),
-                                        custom_name_visible: CustomNameVisible(Default::default()),
-                                        silent: Silent(Default::default()),
-                                        no_gravity: NoGravity(Default::default()),
-                                        pose: Pose::default(),
-                                        ticks_frozen: TicksFrozen(Default::default()),
-                                    },
-                                    auto_spin_attack: AutoSpinAttack(false),
-                                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                                    health: Health(1.0),
-                                    effect_particles: EffectParticles(Default::default()),
-                                    effect_ambience: EffectAmbience(false),
-                                    arrow_count: ArrowCount(0),
-                                    stinger_count: StingerCount(0),
-                                    sleeping_pos: SleepingPos(None),
-                                },
-                                no_ai: NoAi(false),
-                                left_handed: LeftHanded(false),
-                                aggressive: Aggressive(false),
-                            },
-                        },
-                        abstract_ageable_baby: AbstractAgeableBaby(false),
-                    },
-                },
-                tamed: Tamed(false),
-                eating: Eating(false),
-                abstract_horse_standing: AbstractHorseStanding(false),
-                bred: Bred(false),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -9707,59 +6965,7 @@ impl Default for AbstractChestedHorseMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractChestedHorse,
-            parent: AbstractHorseMetadataBundle {
-                _marker: AbstractHorse,
-                parent: AbstractAnimalMetadataBundle {
-                    _marker: AbstractAnimal,
-                    parent: AbstractAgeableMetadataBundle {
-                        _marker: AbstractAgeable,
-                        parent: AbstractCreatureMetadataBundle {
-                            _marker: AbstractCreature,
-                            parent: AbstractInsentientMetadataBundle {
-                                _marker: AbstractInsentient,
-                                parent: AbstractLivingMetadataBundle {
-                                    _marker: AbstractLiving,
-                                    parent: AbstractEntityMetadataBundle {
-                                        _marker: AbstractEntity,
-                                        on_fire: OnFire(false),
-                                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                            false,
-                                        ),
-                                        sprinting: Sprinting(false),
-                                        swimming: Swimming(false),
-                                        currently_glowing: CurrentlyGlowing(false),
-                                        invisible: Invisible(false),
-                                        fall_flying: FallFlying(false),
-                                        air_supply: AirSupply(Default::default()),
-                                        custom_name: CustomName(Default::default()),
-                                        custom_name_visible: CustomNameVisible(Default::default()),
-                                        silent: Silent(Default::default()),
-                                        no_gravity: NoGravity(Default::default()),
-                                        pose: Pose::default(),
-                                        ticks_frozen: TicksFrozen(Default::default()),
-                                    },
-                                    auto_spin_attack: AutoSpinAttack(false),
-                                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                                    health: Health(1.0),
-                                    effect_particles: EffectParticles(Default::default()),
-                                    effect_ambience: EffectAmbience(false),
-                                    arrow_count: ArrowCount(0),
-                                    stinger_count: StingerCount(0),
-                                    sleeping_pos: SleepingPos(None),
-                                },
-                                no_ai: NoAi(false),
-                                left_handed: LeftHanded(false),
-                                aggressive: Aggressive(false),
-                            },
-                        },
-                        abstract_ageable_baby: AbstractAgeableBaby(false),
-                    },
-                },
-                tamed: Tamed(false),
-                eating: Eating(false),
-                abstract_horse_standing: AbstractHorseStanding(false),
-                bred: Bred(false),
-            },
+            parent: Default::default(),
             chest: Chest(false),
         }
     }
@@ -9816,64 +7022,7 @@ impl Default for DonkeyMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Donkey,
-            parent: AbstractChestedHorseMetadataBundle {
-                _marker: AbstractChestedHorse,
-                parent: AbstractHorseMetadataBundle {
-                    _marker: AbstractHorse,
-                    parent: AbstractAnimalMetadataBundle {
-                        _marker: AbstractAnimal,
-                        parent: AbstractAgeableMetadataBundle {
-                            _marker: AbstractAgeable,
-                            parent: AbstractCreatureMetadataBundle {
-                                _marker: AbstractCreature,
-                                parent: AbstractInsentientMetadataBundle {
-                                    _marker: AbstractInsentient,
-                                    parent: AbstractLivingMetadataBundle {
-                                        _marker: AbstractLiving,
-                                        parent: AbstractEntityMetadataBundle {
-                                            _marker: AbstractEntity,
-                                            on_fire: OnFire(false),
-                                            abstract_entity_shift_key_down:
-                                                AbstractEntityShiftKeyDown(false),
-                                            sprinting: Sprinting(false),
-                                            swimming: Swimming(false),
-                                            currently_glowing: CurrentlyGlowing(false),
-                                            invisible: Invisible(false),
-                                            fall_flying: FallFlying(false),
-                                            air_supply: AirSupply(Default::default()),
-                                            custom_name: CustomName(Default::default()),
-                                            custom_name_visible: CustomNameVisible(
-                                                Default::default(),
-                                            ),
-                                            silent: Silent(Default::default()),
-                                            no_gravity: NoGravity(Default::default()),
-                                            pose: Pose::default(),
-                                            ticks_frozen: TicksFrozen(Default::default()),
-                                        },
-                                        auto_spin_attack: AutoSpinAttack(false),
-                                        abstract_living_using_item: AbstractLivingUsingItem(false),
-                                        health: Health(1.0),
-                                        effect_particles: EffectParticles(Default::default()),
-                                        effect_ambience: EffectAmbience(false),
-                                        arrow_count: ArrowCount(0),
-                                        stinger_count: StingerCount(0),
-                                        sleeping_pos: SleepingPos(None),
-                                    },
-                                    no_ai: NoAi(false),
-                                    left_handed: LeftHanded(false),
-                                    aggressive: Aggressive(false),
-                                },
-                            },
-                            abstract_ageable_baby: AbstractAgeableBaby(false),
-                        },
-                    },
-                    tamed: Tamed(false),
-                    eating: Eating(false),
-                    abstract_horse_standing: AbstractHorseStanding(false),
-                    bred: Bred(false),
-                },
-                chest: Chest(false),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -9946,64 +7095,7 @@ impl Default for LlamaMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Llama,
-            parent: AbstractChestedHorseMetadataBundle {
-                _marker: AbstractChestedHorse,
-                parent: AbstractHorseMetadataBundle {
-                    _marker: AbstractHorse,
-                    parent: AbstractAnimalMetadataBundle {
-                        _marker: AbstractAnimal,
-                        parent: AbstractAgeableMetadataBundle {
-                            _marker: AbstractAgeable,
-                            parent: AbstractCreatureMetadataBundle {
-                                _marker: AbstractCreature,
-                                parent: AbstractInsentientMetadataBundle {
-                                    _marker: AbstractInsentient,
-                                    parent: AbstractLivingMetadataBundle {
-                                        _marker: AbstractLiving,
-                                        parent: AbstractEntityMetadataBundle {
-                                            _marker: AbstractEntity,
-                                            on_fire: OnFire(false),
-                                            abstract_entity_shift_key_down:
-                                                AbstractEntityShiftKeyDown(false),
-                                            sprinting: Sprinting(false),
-                                            swimming: Swimming(false),
-                                            currently_glowing: CurrentlyGlowing(false),
-                                            invisible: Invisible(false),
-                                            fall_flying: FallFlying(false),
-                                            air_supply: AirSupply(Default::default()),
-                                            custom_name: CustomName(Default::default()),
-                                            custom_name_visible: CustomNameVisible(
-                                                Default::default(),
-                                            ),
-                                            silent: Silent(Default::default()),
-                                            no_gravity: NoGravity(Default::default()),
-                                            pose: Pose::default(),
-                                            ticks_frozen: TicksFrozen(Default::default()),
-                                        },
-                                        auto_spin_attack: AutoSpinAttack(false),
-                                        abstract_living_using_item: AbstractLivingUsingItem(false),
-                                        health: Health(1.0),
-                                        effect_particles: EffectParticles(Default::default()),
-                                        effect_ambience: EffectAmbience(false),
-                                        arrow_count: ArrowCount(0),
-                                        stinger_count: StingerCount(0),
-                                        sleeping_pos: SleepingPos(None),
-                                    },
-                                    no_ai: NoAi(false),
-                                    left_handed: LeftHanded(false),
-                                    aggressive: Aggressive(false),
-                                },
-                            },
-                            abstract_ageable_baby: AbstractAgeableBaby(false),
-                        },
-                    },
-                    tamed: Tamed(false),
-                    eating: Eating(false),
-                    abstract_horse_standing: AbstractHorseStanding(false),
-                    bred: Bred(false),
-                },
-                chest: Chest(false),
-            },
+            parent: Default::default(),
             strength: Strength(0),
             llama_variant: LlamaVariant(0),
         }
@@ -10062,71 +7154,7 @@ impl Default for TraderLlamaMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: TraderLlama,
-            parent: LlamaMetadataBundle {
-                _marker: Llama,
-                parent: AbstractChestedHorseMetadataBundle {
-                    _marker: AbstractChestedHorse,
-                    parent: AbstractHorseMetadataBundle {
-                        _marker: AbstractHorse,
-                        parent: AbstractAnimalMetadataBundle {
-                            _marker: AbstractAnimal,
-                            parent: AbstractAgeableMetadataBundle {
-                                _marker: AbstractAgeable,
-                                parent: AbstractCreatureMetadataBundle {
-                                    _marker: AbstractCreature,
-                                    parent: AbstractInsentientMetadataBundle {
-                                        _marker: AbstractInsentient,
-                                        parent: AbstractLivingMetadataBundle {
-                                            _marker: AbstractLiving,
-                                            parent: AbstractEntityMetadataBundle {
-                                                _marker: AbstractEntity,
-                                                on_fire: OnFire(false),
-                                                abstract_entity_shift_key_down:
-                                                    AbstractEntityShiftKeyDown(false),
-                                                sprinting: Sprinting(false),
-                                                swimming: Swimming(false),
-                                                currently_glowing: CurrentlyGlowing(false),
-                                                invisible: Invisible(false),
-                                                fall_flying: FallFlying(false),
-                                                air_supply: AirSupply(Default::default()),
-                                                custom_name: CustomName(Default::default()),
-                                                custom_name_visible: CustomNameVisible(
-                                                    Default::default(),
-                                                ),
-                                                silent: Silent(Default::default()),
-                                                no_gravity: NoGravity(Default::default()),
-                                                pose: Pose::default(),
-                                                ticks_frozen: TicksFrozen(Default::default()),
-                                            },
-                                            auto_spin_attack: AutoSpinAttack(false),
-                                            abstract_living_using_item: AbstractLivingUsingItem(
-                                                false,
-                                            ),
-                                            health: Health(1.0),
-                                            effect_particles: EffectParticles(Default::default()),
-                                            effect_ambience: EffectAmbience(false),
-                                            arrow_count: ArrowCount(0),
-                                            stinger_count: StingerCount(0),
-                                            sleeping_pos: SleepingPos(None),
-                                        },
-                                        no_ai: NoAi(false),
-                                        left_handed: LeftHanded(false),
-                                        aggressive: Aggressive(false),
-                                    },
-                                },
-                                abstract_ageable_baby: AbstractAgeableBaby(false),
-                            },
-                        },
-                        tamed: Tamed(false),
-                        eating: Eating(false),
-                        abstract_horse_standing: AbstractHorseStanding(false),
-                        bred: Bred(false),
-                    },
-                    chest: Chest(false),
-                },
-                strength: Strength(0),
-                llama_variant: LlamaVariant(0),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -10182,64 +7210,7 @@ impl Default for MuleMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Mule,
-            parent: AbstractChestedHorseMetadataBundle {
-                _marker: AbstractChestedHorse,
-                parent: AbstractHorseMetadataBundle {
-                    _marker: AbstractHorse,
-                    parent: AbstractAnimalMetadataBundle {
-                        _marker: AbstractAnimal,
-                        parent: AbstractAgeableMetadataBundle {
-                            _marker: AbstractAgeable,
-                            parent: AbstractCreatureMetadataBundle {
-                                _marker: AbstractCreature,
-                                parent: AbstractInsentientMetadataBundle {
-                                    _marker: AbstractInsentient,
-                                    parent: AbstractLivingMetadataBundle {
-                                        _marker: AbstractLiving,
-                                        parent: AbstractEntityMetadataBundle {
-                                            _marker: AbstractEntity,
-                                            on_fire: OnFire(false),
-                                            abstract_entity_shift_key_down:
-                                                AbstractEntityShiftKeyDown(false),
-                                            sprinting: Sprinting(false),
-                                            swimming: Swimming(false),
-                                            currently_glowing: CurrentlyGlowing(false),
-                                            invisible: Invisible(false),
-                                            fall_flying: FallFlying(false),
-                                            air_supply: AirSupply(Default::default()),
-                                            custom_name: CustomName(Default::default()),
-                                            custom_name_visible: CustomNameVisible(
-                                                Default::default(),
-                                            ),
-                                            silent: Silent(Default::default()),
-                                            no_gravity: NoGravity(Default::default()),
-                                            pose: Pose::default(),
-                                            ticks_frozen: TicksFrozen(Default::default()),
-                                        },
-                                        auto_spin_attack: AutoSpinAttack(false),
-                                        abstract_living_using_item: AbstractLivingUsingItem(false),
-                                        health: Health(1.0),
-                                        effect_particles: EffectParticles(Default::default()),
-                                        effect_ambience: EffectAmbience(false),
-                                        arrow_count: ArrowCount(0),
-                                        stinger_count: StingerCount(0),
-                                        sleeping_pos: SleepingPos(None),
-                                    },
-                                    no_ai: NoAi(false),
-                                    left_handed: LeftHanded(false),
-                                    aggressive: Aggressive(false),
-                                },
-                            },
-                            abstract_ageable_baby: AbstractAgeableBaby(false),
-                        },
-                    },
-                    tamed: Tamed(false),
-                    eating: Eating(false),
-                    abstract_horse_standing: AbstractHorseStanding(false),
-                    bred: Bred(false),
-                },
-                chest: Chest(false),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -10322,52 +7293,7 @@ impl Default for AbstractTameableMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractTameable,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
-                },
-            },
+            parent: Default::default(),
             tame: Tame(false),
             in_sitting_pose: InSittingPose(false),
             owneruuid: Owneruuid(None),
@@ -10458,58 +7384,7 @@ impl Default for CatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Cat,
-            parent: AbstractTameableMetadataBundle {
-                _marker: AbstractTameable,
-                parent: AbstractAnimalMetadataBundle {
-                    _marker: AbstractAnimal,
-                    parent: AbstractAgeableMetadataBundle {
-                        _marker: AbstractAgeable,
-                        parent: AbstractCreatureMetadataBundle {
-                            _marker: AbstractCreature,
-                            parent: AbstractInsentientMetadataBundle {
-                                _marker: AbstractInsentient,
-                                parent: AbstractLivingMetadataBundle {
-                                    _marker: AbstractLiving,
-                                    parent: AbstractEntityMetadataBundle {
-                                        _marker: AbstractEntity,
-                                        on_fire: OnFire(false),
-                                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                            false,
-                                        ),
-                                        sprinting: Sprinting(false),
-                                        swimming: Swimming(false),
-                                        currently_glowing: CurrentlyGlowing(false),
-                                        invisible: Invisible(false),
-                                        fall_flying: FallFlying(false),
-                                        air_supply: AirSupply(Default::default()),
-                                        custom_name: CustomName(Default::default()),
-                                        custom_name_visible: CustomNameVisible(Default::default()),
-                                        silent: Silent(Default::default()),
-                                        no_gravity: NoGravity(Default::default()),
-                                        pose: Pose::default(),
-                                        ticks_frozen: TicksFrozen(Default::default()),
-                                    },
-                                    auto_spin_attack: AutoSpinAttack(false),
-                                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                                    health: Health(1.0),
-                                    effect_particles: EffectParticles(Default::default()),
-                                    effect_ambience: EffectAmbience(false),
-                                    arrow_count: ArrowCount(0),
-                                    stinger_count: StingerCount(0),
-                                    sleeping_pos: SleepingPos(None),
-                                },
-                                no_ai: NoAi(false),
-                                left_handed: LeftHanded(false),
-                                aggressive: Aggressive(false),
-                            },
-                        },
-                        abstract_ageable_baby: AbstractAgeableBaby(false),
-                    },
-                },
-                tame: Tame(false),
-                in_sitting_pose: InSittingPose(false),
-                owneruuid: Owneruuid(None),
-            },
+            parent: Default::default(),
             cat_variant: CatVariant(azalea_registry::data::CatVariant::new_raw(0)),
             is_lying: IsLying(false),
             relax_state_one: RelaxStateOne(false),
@@ -10578,58 +7453,7 @@ impl Default for NautilusMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Nautilus,
-            parent: AbstractTameableMetadataBundle {
-                _marker: AbstractTameable,
-                parent: AbstractAnimalMetadataBundle {
-                    _marker: AbstractAnimal,
-                    parent: AbstractAgeableMetadataBundle {
-                        _marker: AbstractAgeable,
-                        parent: AbstractCreatureMetadataBundle {
-                            _marker: AbstractCreature,
-                            parent: AbstractInsentientMetadataBundle {
-                                _marker: AbstractInsentient,
-                                parent: AbstractLivingMetadataBundle {
-                                    _marker: AbstractLiving,
-                                    parent: AbstractEntityMetadataBundle {
-                                        _marker: AbstractEntity,
-                                        on_fire: OnFire(false),
-                                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                            false,
-                                        ),
-                                        sprinting: Sprinting(false),
-                                        swimming: Swimming(false),
-                                        currently_glowing: CurrentlyGlowing(false),
-                                        invisible: Invisible(false),
-                                        fall_flying: FallFlying(false),
-                                        air_supply: AirSupply(Default::default()),
-                                        custom_name: CustomName(Default::default()),
-                                        custom_name_visible: CustomNameVisible(Default::default()),
-                                        silent: Silent(Default::default()),
-                                        no_gravity: NoGravity(Default::default()),
-                                        pose: Pose::default(),
-                                        ticks_frozen: TicksFrozen(Default::default()),
-                                    },
-                                    auto_spin_attack: AutoSpinAttack(false),
-                                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                                    health: Health(1.0),
-                                    effect_particles: EffectParticles(Default::default()),
-                                    effect_ambience: EffectAmbience(false),
-                                    arrow_count: ArrowCount(0),
-                                    stinger_count: StingerCount(0),
-                                    sleeping_pos: SleepingPos(None),
-                                },
-                                no_ai: NoAi(false),
-                                left_handed: LeftHanded(false),
-                                aggressive: Aggressive(false),
-                            },
-                        },
-                        abstract_ageable_baby: AbstractAgeableBaby(false),
-                    },
-                },
-                tame: Tame(false),
-                in_sitting_pose: InSittingPose(false),
-                owneruuid: Owneruuid(None),
-            },
+            parent: Default::default(),
             nautilus_dash: NautilusDash(false),
         }
     }
@@ -10694,58 +7518,7 @@ impl Default for ParrotMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Parrot,
-            parent: AbstractTameableMetadataBundle {
-                _marker: AbstractTameable,
-                parent: AbstractAnimalMetadataBundle {
-                    _marker: AbstractAnimal,
-                    parent: AbstractAgeableMetadataBundle {
-                        _marker: AbstractAgeable,
-                        parent: AbstractCreatureMetadataBundle {
-                            _marker: AbstractCreature,
-                            parent: AbstractInsentientMetadataBundle {
-                                _marker: AbstractInsentient,
-                                parent: AbstractLivingMetadataBundle {
-                                    _marker: AbstractLiving,
-                                    parent: AbstractEntityMetadataBundle {
-                                        _marker: AbstractEntity,
-                                        on_fire: OnFire(false),
-                                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                            false,
-                                        ),
-                                        sprinting: Sprinting(false),
-                                        swimming: Swimming(false),
-                                        currently_glowing: CurrentlyGlowing(false),
-                                        invisible: Invisible(false),
-                                        fall_flying: FallFlying(false),
-                                        air_supply: AirSupply(Default::default()),
-                                        custom_name: CustomName(Default::default()),
-                                        custom_name_visible: CustomNameVisible(Default::default()),
-                                        silent: Silent(Default::default()),
-                                        no_gravity: NoGravity(Default::default()),
-                                        pose: Pose::default(),
-                                        ticks_frozen: TicksFrozen(Default::default()),
-                                    },
-                                    auto_spin_attack: AutoSpinAttack(false),
-                                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                                    health: Health(1.0),
-                                    effect_particles: EffectParticles(Default::default()),
-                                    effect_ambience: EffectAmbience(false),
-                                    arrow_count: ArrowCount(0),
-                                    stinger_count: StingerCount(0),
-                                    sleeping_pos: SleepingPos(None),
-                                },
-                                no_ai: NoAi(false),
-                                left_handed: LeftHanded(false),
-                                aggressive: Aggressive(false),
-                            },
-                        },
-                        abstract_ageable_baby: AbstractAgeableBaby(false),
-                    },
-                },
-                tame: Tame(false),
-                in_sitting_pose: InSittingPose(false),
-                owneruuid: Owneruuid(None),
-            },
+            parent: Default::default(),
             parrot_variant: ParrotVariant(Default::default()),
         }
     }
@@ -10842,58 +7615,7 @@ impl Default for WolfMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Wolf,
-            parent: AbstractTameableMetadataBundle {
-                _marker: AbstractTameable,
-                parent: AbstractAnimalMetadataBundle {
-                    _marker: AbstractAnimal,
-                    parent: AbstractAgeableMetadataBundle {
-                        _marker: AbstractAgeable,
-                        parent: AbstractCreatureMetadataBundle {
-                            _marker: AbstractCreature,
-                            parent: AbstractInsentientMetadataBundle {
-                                _marker: AbstractInsentient,
-                                parent: AbstractLivingMetadataBundle {
-                                    _marker: AbstractLiving,
-                                    parent: AbstractEntityMetadataBundle {
-                                        _marker: AbstractEntity,
-                                        on_fire: OnFire(false),
-                                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                            false,
-                                        ),
-                                        sprinting: Sprinting(false),
-                                        swimming: Swimming(false),
-                                        currently_glowing: CurrentlyGlowing(false),
-                                        invisible: Invisible(false),
-                                        fall_flying: FallFlying(false),
-                                        air_supply: AirSupply(Default::default()),
-                                        custom_name: CustomName(Default::default()),
-                                        custom_name_visible: CustomNameVisible(Default::default()),
-                                        silent: Silent(Default::default()),
-                                        no_gravity: NoGravity(Default::default()),
-                                        pose: Pose::default(),
-                                        ticks_frozen: TicksFrozen(Default::default()),
-                                    },
-                                    auto_spin_attack: AutoSpinAttack(false),
-                                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                                    health: Health(1.0),
-                                    effect_particles: EffectParticles(Default::default()),
-                                    effect_ambience: EffectAmbience(false),
-                                    arrow_count: ArrowCount(0),
-                                    stinger_count: StingerCount(0),
-                                    sleeping_pos: SleepingPos(None),
-                                },
-                                no_ai: NoAi(false),
-                                left_handed: LeftHanded(false),
-                                aggressive: Aggressive(false),
-                            },
-                        },
-                        abstract_ageable_baby: AbstractAgeableBaby(false),
-                    },
-                },
-                tame: Tame(false),
-                in_sitting_pose: InSittingPose(false),
-                owneruuid: Owneruuid(None),
-            },
+            parent: Default::default(),
             wolf_interested: WolfInterested(false),
             wolf_collar_color: WolfCollarColor(Default::default()),
             wolf_anger_end_time: WolfAngerEndTime(-1),
@@ -10973,58 +7695,7 @@ impl Default for ZombieNautilusMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: ZombieNautilus,
-            parent: AbstractTameableMetadataBundle {
-                _marker: AbstractTameable,
-                parent: AbstractAnimalMetadataBundle {
-                    _marker: AbstractAnimal,
-                    parent: AbstractAgeableMetadataBundle {
-                        _marker: AbstractAgeable,
-                        parent: AbstractCreatureMetadataBundle {
-                            _marker: AbstractCreature,
-                            parent: AbstractInsentientMetadataBundle {
-                                _marker: AbstractInsentient,
-                                parent: AbstractLivingMetadataBundle {
-                                    _marker: AbstractLiving,
-                                    parent: AbstractEntityMetadataBundle {
-                                        _marker: AbstractEntity,
-                                        on_fire: OnFire(false),
-                                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                            false,
-                                        ),
-                                        sprinting: Sprinting(false),
-                                        swimming: Swimming(false),
-                                        currently_glowing: CurrentlyGlowing(false),
-                                        invisible: Invisible(false),
-                                        fall_flying: FallFlying(false),
-                                        air_supply: AirSupply(Default::default()),
-                                        custom_name: CustomName(Default::default()),
-                                        custom_name_visible: CustomNameVisible(Default::default()),
-                                        silent: Silent(Default::default()),
-                                        no_gravity: NoGravity(Default::default()),
-                                        pose: Pose::default(),
-                                        ticks_frozen: TicksFrozen(Default::default()),
-                                    },
-                                    auto_spin_attack: AutoSpinAttack(false),
-                                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                                    health: Health(1.0),
-                                    effect_particles: EffectParticles(Default::default()),
-                                    effect_ambience: EffectAmbience(false),
-                                    arrow_count: ArrowCount(0),
-                                    stinger_count: StingerCount(0),
-                                    sleeping_pos: SleepingPos(None),
-                                },
-                                no_ai: NoAi(false),
-                                left_handed: LeftHanded(false),
-                                aggressive: Aggressive(false),
-                            },
-                        },
-                        abstract_ageable_baby: AbstractAgeableBaby(false),
-                    },
-                },
-                tame: Tame(false),
-                in_sitting_pose: InSittingPose(false),
-                owneruuid: Owneruuid(None),
-            },
+            parent: Default::default(),
             zombie_nautilus_dash: ZombieNautilusDash(false),
             zombie_nautilus_variant: ZombieNautilusVariant(
                 azalea_registry::data::ZombieNautilusVariant::new_raw(0),
@@ -11092,47 +7763,7 @@ impl Default for AbstractVillagerMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractVillager,
-            parent: AbstractAgeableMetadataBundle {
-                _marker: AbstractAgeable,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-                abstract_ageable_baby: AbstractAgeableBaby(false),
-            },
+            parent: Default::default(),
             abstract_villager_unhappy_counter: AbstractVillagerUnhappyCounter(0),
         }
     }
@@ -11197,53 +7828,7 @@ impl Default for VillagerMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Villager,
-            parent: AbstractVillagerMetadataBundle {
-                _marker: AbstractVillager,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
-                },
-                abstract_villager_unhappy_counter: AbstractVillagerUnhappyCounter(0),
-            },
+            parent: Default::default(),
             villager_villager_data: VillagerVillagerData(VillagerData {
                 kind: azalea_registry::builtin::VillagerKind::Plains,
                 profession: azalea_registry::builtin::VillagerProfession::None,
@@ -11302,53 +7887,7 @@ impl Default for WanderingTraderMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: WanderingTrader,
-            parent: AbstractVillagerMetadataBundle {
-                _marker: AbstractVillager,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
-                },
-                abstract_villager_unhappy_counter: AbstractVillagerUnhappyCounter(0),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -11412,43 +7951,7 @@ impl Default for AbstractFishMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractFish,
-            parent: AbstractCreatureMetadataBundle {
-                _marker: AbstractCreature,
-                parent: AbstractInsentientMetadataBundle {
-                    _marker: AbstractInsentient,
-                    parent: AbstractLivingMetadataBundle {
-                        _marker: AbstractLiving,
-                        parent: AbstractEntityMetadataBundle {
-                            _marker: AbstractEntity,
-                            on_fire: OnFire(false),
-                            abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                            sprinting: Sprinting(false),
-                            swimming: Swimming(false),
-                            currently_glowing: CurrentlyGlowing(false),
-                            invisible: Invisible(false),
-                            fall_flying: FallFlying(false),
-                            air_supply: AirSupply(Default::default()),
-                            custom_name: CustomName(Default::default()),
-                            custom_name_visible: CustomNameVisible(Default::default()),
-                            silent: Silent(Default::default()),
-                            no_gravity: NoGravity(Default::default()),
-                            pose: Pose::default(),
-                            ticks_frozen: TicksFrozen(Default::default()),
-                        },
-                        auto_spin_attack: AutoSpinAttack(false),
-                        abstract_living_using_item: AbstractLivingUsingItem(false),
-                        health: Health(1.0),
-                        effect_particles: EffectParticles(Default::default()),
-                        effect_ambience: EffectAmbience(false),
-                        arrow_count: ArrowCount(0),
-                        stinger_count: StingerCount(0),
-                        sleeping_pos: SleepingPos(None),
-                    },
-                    no_ai: NoAi(false),
-                    left_handed: LeftHanded(false),
-                    aggressive: Aggressive(false),
-                },
-            },
+            parent: Default::default(),
             abstract_fish_from_bucket: AbstractFishFromBucket(false),
         }
     }
@@ -11502,47 +8005,7 @@ impl Default for CodMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Cod,
-            parent: AbstractFishMetadataBundle {
-                _marker: AbstractFish,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-                abstract_fish_from_bucket: AbstractFishFromBucket(false),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -11604,47 +8067,7 @@ impl Default for SalmonMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Salmon,
-            parent: AbstractFishMetadataBundle {
-                _marker: AbstractFish,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-                abstract_fish_from_bucket: AbstractFishFromBucket(false),
-            },
+            parent: Default::default(),
             salmon_kind: SalmonKind(Default::default()),
         }
     }
@@ -11708,47 +8131,7 @@ impl Default for TropicalFishMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: TropicalFish,
-            parent: AbstractFishMetadataBundle {
-                _marker: AbstractFish,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-                abstract_fish_from_bucket: AbstractFishFromBucket(false),
-            },
+            parent: Default::default(),
             tropical_fish_type_variant: TropicalFishTypeVariant(Default::default()),
         }
     }
@@ -11837,43 +8220,7 @@ impl Default for AbstractMonsterMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractMonster,
-            parent: AbstractCreatureMetadataBundle {
-                _marker: AbstractCreature,
-                parent: AbstractInsentientMetadataBundle {
-                    _marker: AbstractInsentient,
-                    parent: AbstractLivingMetadataBundle {
-                        _marker: AbstractLiving,
-                        parent: AbstractEntityMetadataBundle {
-                            _marker: AbstractEntity,
-                            on_fire: OnFire(false),
-                            abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                            sprinting: Sprinting(false),
-                            swimming: Swimming(false),
-                            currently_glowing: CurrentlyGlowing(false),
-                            invisible: Invisible(false),
-                            fall_flying: FallFlying(false),
-                            air_supply: AirSupply(Default::default()),
-                            custom_name: CustomName(Default::default()),
-                            custom_name_visible: CustomNameVisible(Default::default()),
-                            silent: Silent(Default::default()),
-                            no_gravity: NoGravity(Default::default()),
-                            pose: Pose::default(),
-                            ticks_frozen: TicksFrozen(Default::default()),
-                        },
-                        auto_spin_attack: AutoSpinAttack(false),
-                        abstract_living_using_item: AbstractLivingUsingItem(false),
-                        health: Health(1.0),
-                        effect_particles: EffectParticles(Default::default()),
-                        effect_ambience: EffectAmbience(false),
-                        arrow_count: ArrowCount(0),
-                        stinger_count: StingerCount(0),
-                        sleeping_pos: SleepingPos(None),
-                    },
-                    no_ai: NoAi(false),
-                    left_handed: LeftHanded(false),
-                    aggressive: Aggressive(false),
-                },
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -11936,46 +8283,7 @@ impl Default for BlazeMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Blaze,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
             charged: Charged(false),
         }
     }
@@ -12038,46 +8346,7 @@ impl Default for BoggedMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Bogged,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
             bogged_sheared: BoggedSheared(false),
         }
     }
@@ -12131,46 +8400,7 @@ impl Default for BreezeMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Breeze,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -12257,46 +8487,7 @@ impl Default for CreakingMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Creaking,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
             can_move: CanMove(true),
             is_active: IsActive(false),
             is_tearing_down: IsTearingDown(false),
@@ -12378,46 +8569,7 @@ impl Default for CreeperMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Creeper,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
             swell_dir: SwellDir(-1),
             is_powered: IsPowered(false),
             is_ignited: IsIgnited(false),
@@ -12499,46 +8651,7 @@ impl Default for EndermanMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Enderman,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
             carry_state: CarryState(azalea_block::BlockState::AIR),
             creepy: Creepy(false),
             stared_at: StaredAt(false),
@@ -12594,46 +8707,7 @@ impl Default for EndermiteMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Endermite,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -12686,46 +8760,7 @@ impl Default for GiantMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Giant,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -12796,46 +8831,7 @@ impl Default for GuardianMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Guardian,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
             moving: Moving(false),
             attack_target: AttackTarget(0),
         }
@@ -12891,53 +8887,7 @@ impl Default for ElderGuardianMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: ElderGuardian,
-            parent: GuardianMetadataBundle {
-                _marker: Guardian,
-                parent: AbstractMonsterMetadataBundle {
-                    _marker: AbstractMonster,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                },
-                moving: Moving(false),
-                attack_target: AttackTarget(0),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -12990,46 +8940,7 @@ impl Default for ParchedMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Parched,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -13082,46 +8993,7 @@ impl Default for SilverfishMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Silverfish,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -13184,46 +9056,7 @@ impl Default for SkeletonMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Skeleton,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
             stray_conversion: StrayConversion(false),
         }
     }
@@ -13287,46 +9120,7 @@ impl Default for SpiderMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Spider,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
             climbing: Climbing(false),
         }
     }
@@ -13381,52 +9175,7 @@ impl Default for CaveSpiderMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: CaveSpider,
-            parent: SpiderMetadataBundle {
-                _marker: Spider,
-                parent: AbstractMonsterMetadataBundle {
-                    _marker: AbstractMonster,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                },
-                climbing: Climbing(false),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -13479,46 +9228,7 @@ impl Default for StrayMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Stray,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -13580,46 +9290,7 @@ impl Default for VexMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Vex,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
             vex_flags: VexFlags(0),
         }
     }
@@ -13682,46 +9353,7 @@ impl Default for WardenMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Warden,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
             client_anger_level: ClientAngerLevel(0),
         }
     }
@@ -13808,46 +9440,7 @@ impl Default for WitherMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Wither,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
             target_a: TargetA(0),
             target_b: TargetB(0),
             target_c: TargetC(0),
@@ -13904,46 +9497,7 @@ impl Default for WitherSkeletonMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: WitherSkeleton,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -14005,46 +9559,7 @@ impl Default for ZoglinMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Zoglin,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
             zoglin_baby: ZoglinBaby(false),
         }
     }
@@ -14126,46 +9641,7 @@ impl Default for ZombieMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Zombie,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
             zombie_baby: ZombieBaby(false),
             special_type: SpecialType(0),
             drowned_conversion: DrownedConversion(false),
@@ -14222,54 +9698,7 @@ impl Default for DrownedMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Drowned,
-            parent: ZombieMetadataBundle {
-                _marker: Zombie,
-                parent: AbstractMonsterMetadataBundle {
-                    _marker: AbstractMonster,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                },
-                zombie_baby: ZombieBaby(false),
-                special_type: SpecialType(0),
-                drowned_conversion: DrownedConversion(false),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -14323,54 +9752,7 @@ impl Default for HuskMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Husk,
-            parent: ZombieMetadataBundle {
-                _marker: Zombie,
-                parent: AbstractMonsterMetadataBundle {
-                    _marker: AbstractMonster,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                },
-                zombie_baby: ZombieBaby(false),
-                special_type: SpecialType(0),
-                drowned_conversion: DrownedConversion(false),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -14442,54 +9824,7 @@ impl Default for ZombieVillagerMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: ZombieVillager,
-            parent: ZombieMetadataBundle {
-                _marker: Zombie,
-                parent: AbstractMonsterMetadataBundle {
-                    _marker: AbstractMonster,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                },
-                zombie_baby: ZombieBaby(false),
-                special_type: SpecialType(0),
-                drowned_conversion: DrownedConversion(false),
-            },
+            parent: Default::default(),
             converting: Converting(false),
             zombie_villager_villager_data: ZombieVillagerVillagerData(VillagerData {
                 kind: azalea_registry::builtin::VillagerKind::Plains,
@@ -14549,54 +9884,7 @@ impl Default for ZombifiedPiglinMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: ZombifiedPiglin,
-            parent: ZombieMetadataBundle {
-                _marker: Zombie,
-                parent: AbstractMonsterMetadataBundle {
-                    _marker: AbstractMonster,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                },
-                zombie_baby: ZombieBaby(false),
-                special_type: SpecialType(0),
-                drowned_conversion: DrownedConversion(false),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -14660,46 +9948,7 @@ impl Default for AbstractPiglinMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractPiglin,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
             abstract_piglin_immune_to_zombification: AbstractPiglinImmuneToZombification(false),
         }
     }
@@ -14779,52 +10028,7 @@ impl Default for PiglinMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Piglin,
-            parent: AbstractPiglinMetadataBundle {
-                _marker: AbstractPiglin,
-                parent: AbstractMonsterMetadataBundle {
-                    _marker: AbstractMonster,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                },
-                abstract_piglin_immune_to_zombification: AbstractPiglinImmuneToZombification(false),
-            },
+            parent: Default::default(),
             piglin_baby: PiglinBaby(false),
             piglin_is_charging_crossbow: PiglinIsChargingCrossbow(false),
             is_dancing: IsDancing(false),
@@ -14881,52 +10085,7 @@ impl Default for PiglinBruteMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: PiglinBrute,
-            parent: AbstractPiglinMetadataBundle {
-                _marker: AbstractPiglin,
-                parent: AbstractMonsterMetadataBundle {
-                    _marker: AbstractMonster,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                },
-                abstract_piglin_immune_to_zombification: AbstractPiglinImmuneToZombification(false),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -14995,46 +10154,7 @@ impl Default for AbstractRaiderMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractRaider,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
             is_celebrating: IsCelebrating(false),
         }
     }
@@ -15099,52 +10219,7 @@ impl Default for PillagerMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Pillager,
-            parent: AbstractRaiderMetadataBundle {
-                _marker: AbstractRaider,
-                parent: AbstractMonsterMetadataBundle {
-                    _marker: AbstractMonster,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                },
-                is_celebrating: IsCelebrating(false),
-            },
+            parent: Default::default(),
             pillager_is_charging_crossbow: PillagerIsChargingCrossbow(false),
         }
     }
@@ -15199,52 +10274,7 @@ impl Default for RavagerMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Ravager,
-            parent: AbstractRaiderMetadataBundle {
-                _marker: AbstractRaider,
-                parent: AbstractMonsterMetadataBundle {
-                    _marker: AbstractMonster,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                },
-                is_celebrating: IsCelebrating(false),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -15298,52 +10328,7 @@ impl Default for VindicatorMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Vindicator,
-            parent: AbstractRaiderMetadataBundle {
-                _marker: AbstractRaider,
-                parent: AbstractMonsterMetadataBundle {
-                    _marker: AbstractMonster,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                },
-                is_celebrating: IsCelebrating(false),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -15406,52 +10391,7 @@ impl Default for WitchMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Witch,
-            parent: AbstractRaiderMetadataBundle {
-                _marker: AbstractRaider,
-                parent: AbstractMonsterMetadataBundle {
-                    _marker: AbstractMonster,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                },
-                is_celebrating: IsCelebrating(false),
-            },
+            parent: Default::default(),
             witch_using_item: WitchUsingItem(false),
         }
     }
@@ -15517,52 +10457,7 @@ impl Default for AbstractSpellcasterIllagerMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractSpellcasterIllager,
-            parent: AbstractRaiderMetadataBundle {
-                _marker: AbstractRaider,
-                parent: AbstractMonsterMetadataBundle {
-                    _marker: AbstractMonster,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                },
-                is_celebrating: IsCelebrating(false),
-            },
+            parent: Default::default(),
             spell_casting: SpellCasting(0),
         }
     }
@@ -15618,56 +10513,7 @@ impl Default for EvokerMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Evoker,
-            parent: AbstractSpellcasterIllagerMetadataBundle {
-                _marker: AbstractSpellcasterIllager,
-                parent: AbstractRaiderMetadataBundle {
-                    _marker: AbstractRaider,
-                    parent: AbstractMonsterMetadataBundle {
-                        _marker: AbstractMonster,
-                        parent: AbstractCreatureMetadataBundle {
-                            _marker: AbstractCreature,
-                            parent: AbstractInsentientMetadataBundle {
-                                _marker: AbstractInsentient,
-                                parent: AbstractLivingMetadataBundle {
-                                    _marker: AbstractLiving,
-                                    parent: AbstractEntityMetadataBundle {
-                                        _marker: AbstractEntity,
-                                        on_fire: OnFire(false),
-                                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                            false,
-                                        ),
-                                        sprinting: Sprinting(false),
-                                        swimming: Swimming(false),
-                                        currently_glowing: CurrentlyGlowing(false),
-                                        invisible: Invisible(false),
-                                        fall_flying: FallFlying(false),
-                                        air_supply: AirSupply(Default::default()),
-                                        custom_name: CustomName(Default::default()),
-                                        custom_name_visible: CustomNameVisible(Default::default()),
-                                        silent: Silent(Default::default()),
-                                        no_gravity: NoGravity(Default::default()),
-                                        pose: Pose::default(),
-                                        ticks_frozen: TicksFrozen(Default::default()),
-                                    },
-                                    auto_spin_attack: AutoSpinAttack(false),
-                                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                                    health: Health(1.0),
-                                    effect_particles: EffectParticles(Default::default()),
-                                    effect_ambience: EffectAmbience(false),
-                                    arrow_count: ArrowCount(0),
-                                    stinger_count: StingerCount(0),
-                                    sleeping_pos: SleepingPos(None),
-                                },
-                                no_ai: NoAi(false),
-                                left_handed: LeftHanded(false),
-                                aggressive: Aggressive(false),
-                            },
-                        },
-                    },
-                    is_celebrating: IsCelebrating(false),
-                },
-                spell_casting: SpellCasting(0),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -15722,56 +10568,7 @@ impl Default for IllusionerMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Illusioner,
-            parent: AbstractSpellcasterIllagerMetadataBundle {
-                _marker: AbstractSpellcasterIllager,
-                parent: AbstractRaiderMetadataBundle {
-                    _marker: AbstractRaider,
-                    parent: AbstractMonsterMetadataBundle {
-                        _marker: AbstractMonster,
-                        parent: AbstractCreatureMetadataBundle {
-                            _marker: AbstractCreature,
-                            parent: AbstractInsentientMetadataBundle {
-                                _marker: AbstractInsentient,
-                                parent: AbstractLivingMetadataBundle {
-                                    _marker: AbstractLiving,
-                                    parent: AbstractEntityMetadataBundle {
-                                        _marker: AbstractEntity,
-                                        on_fire: OnFire(false),
-                                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                            false,
-                                        ),
-                                        sprinting: Sprinting(false),
-                                        swimming: Swimming(false),
-                                        currently_glowing: CurrentlyGlowing(false),
-                                        invisible: Invisible(false),
-                                        fall_flying: FallFlying(false),
-                                        air_supply: AirSupply(Default::default()),
-                                        custom_name: CustomName(Default::default()),
-                                        custom_name_visible: CustomNameVisible(Default::default()),
-                                        silent: Silent(Default::default()),
-                                        no_gravity: NoGravity(Default::default()),
-                                        pose: Pose::default(),
-                                        ticks_frozen: TicksFrozen(Default::default()),
-                                    },
-                                    auto_spin_attack: AutoSpinAttack(false),
-                                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                                    health: Health(1.0),
-                                    effect_particles: EffectParticles(Default::default()),
-                                    effect_ambience: EffectAmbience(false),
-                                    arrow_count: ArrowCount(0),
-                                    stinger_count: StingerCount(0),
-                                    sleeping_pos: SleepingPos(None),
-                                },
-                                no_ai: NoAi(false),
-                                left_handed: LeftHanded(false),
-                                aggressive: Aggressive(false),
-                            },
-                        },
-                    },
-                    is_celebrating: IsCelebrating(false),
-                },
-                spell_casting: SpellCasting(0),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -15837,23 +10634,7 @@ impl Default for AbstractThrownItemProjectileMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractThrownItemProjectile,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             abstract_thrown_item_projectile_item_stack: AbstractThrownItemProjectileItemStack(
                 Default::default(),
             ),
@@ -15906,29 +10687,7 @@ impl Default for EggMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Egg,
-            parent: AbstractThrownItemProjectileMetadataBundle {
-                _marker: AbstractThrownItemProjectile,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
-                },
-                abstract_thrown_item_projectile_item_stack: AbstractThrownItemProjectileItemStack(
-                    Default::default(),
-                ),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -15978,29 +10737,7 @@ impl Default for EnderPearlMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: EnderPearl,
-            parent: AbstractThrownItemProjectileMetadataBundle {
-                _marker: AbstractThrownItemProjectile,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
-                },
-                abstract_thrown_item_projectile_item_stack: AbstractThrownItemProjectileItemStack(
-                    Default::default(),
-                ),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -16050,29 +10787,7 @@ impl Default for ExperienceBottleMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: ExperienceBottle,
-            parent: AbstractThrownItemProjectileMetadataBundle {
-                _marker: AbstractThrownItemProjectile,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
-                },
-                abstract_thrown_item_projectile_item_stack: AbstractThrownItemProjectileItemStack(
-                    Default::default(),
-                ),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -16122,29 +10837,7 @@ impl Default for LingeringPotionMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: LingeringPotion,
-            parent: AbstractThrownItemProjectileMetadataBundle {
-                _marker: AbstractThrownItemProjectile,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
-                },
-                abstract_thrown_item_projectile_item_stack: AbstractThrownItemProjectileItemStack(
-                    Default::default(),
-                ),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -16194,29 +10887,7 @@ impl Default for SnowballMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Snowball,
-            parent: AbstractThrownItemProjectileMetadataBundle {
-                _marker: AbstractThrownItemProjectile,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
-                },
-                abstract_thrown_item_projectile_item_stack: AbstractThrownItemProjectileItemStack(
-                    Default::default(),
-                ),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -16266,29 +10937,7 @@ impl Default for SplashPotionMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: SplashPotion,
-            parent: AbstractThrownItemProjectileMetadataBundle {
-                _marker: AbstractThrownItemProjectile,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
-                },
-                abstract_thrown_item_projectile_item_stack: AbstractThrownItemProjectileItemStack(
-                    Default::default(),
-                ),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -16391,23 +11040,7 @@ impl Default for AbstractVehicleMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractVehicle,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             hurt: Hurt(0),
             hurtdir: Hurtdir(1),
             damage: Damage(0.0),
@@ -16505,29 +11138,7 @@ impl Default for AbstractBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractBoat,
-            parent: AbstractVehicleMetadataBundle {
-                _marker: AbstractVehicle,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
-                },
-                hurt: Hurt(0),
-                hurtdir: Hurtdir(1),
-                damage: Damage(0.0),
-            },
+            parent: Default::default(),
             paddle_left: PaddleLeft(false),
             paddle_right: PaddleRight(false),
             bubble_time: BubbleTime(0),
@@ -16581,35 +11192,7 @@ impl Default for AcaciaBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AcaciaBoat,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
-                },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -16660,35 +11243,7 @@ impl Default for AcaciaChestBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AcaciaChestBoat,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
-                },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -16739,35 +11294,7 @@ impl Default for BambooChestRaftMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: BambooChestRaft,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
-                },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -16818,35 +11345,7 @@ impl Default for BambooRaftMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: BambooRaft,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
-                },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -16897,35 +11396,7 @@ impl Default for BirchBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: BirchBoat,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
-                },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -16976,35 +11447,7 @@ impl Default for BirchChestBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: BirchChestBoat,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
-                },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -17055,35 +11498,7 @@ impl Default for CherryBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: CherryBoat,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
-                },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -17134,35 +11549,7 @@ impl Default for CherryChestBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: CherryChestBoat,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
-                },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -17213,35 +11600,7 @@ impl Default for DarkOakBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: DarkOakBoat,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
-                },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -17292,35 +11651,7 @@ impl Default for DarkOakChestBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: DarkOakChestBoat,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
-                },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -17371,35 +11702,7 @@ impl Default for JungleBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: JungleBoat,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
-                },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -17450,35 +11753,7 @@ impl Default for JungleChestBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: JungleChestBoat,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
-                },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -17529,35 +11804,7 @@ impl Default for MangroveBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: MangroveBoat,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
-                },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -17608,35 +11855,7 @@ impl Default for MangroveChestBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: MangroveChestBoat,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
-                },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -17687,35 +11906,7 @@ impl Default for OakBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: OakBoat,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
-                },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -17766,35 +11957,7 @@ impl Default for OakChestBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: OakChestBoat,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
-                },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -17845,35 +12008,7 @@ impl Default for PaleOakBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: PaleOakBoat,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
-                },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -17924,35 +12059,7 @@ impl Default for PaleOakChestBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: PaleOakChestBoat,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
-                },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -18003,35 +12110,7 @@ impl Default for SpruceBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: SpruceBoat,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
-                },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -18082,35 +12161,7 @@ impl Default for SpruceChestBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: SpruceChestBoat,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
-                },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -18184,29 +12235,7 @@ impl Default for AbstractMinecartMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractMinecart,
-            parent: AbstractVehicleMetadataBundle {
-                _marker: AbstractVehicle,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
-                },
-                hurt: Hurt(0),
-                hurtdir: Hurtdir(1),
-                damage: Damage(0.0),
-            },
+            parent: Default::default(),
             custom_display_block: CustomDisplayBlock(azalea_block::BlockState::AIR),
             display_offset: DisplayOffset(Default::default()),
         }
@@ -18259,34 +12288,7 @@ impl Default for ChestMinecartMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: ChestMinecart,
-            parent: AbstractMinecartMetadataBundle {
-                _marker: AbstractMinecart,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
-                },
-                custom_display_block: CustomDisplayBlock(azalea_block::BlockState::AIR),
-                display_offset: DisplayOffset(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -18356,34 +12358,7 @@ impl Default for CommandBlockMinecartMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: CommandBlockMinecart,
-            parent: AbstractMinecartMetadataBundle {
-                _marker: AbstractMinecart,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
-                },
-                custom_display_block: CustomDisplayBlock(azalea_block::BlockState::AIR),
-                display_offset: DisplayOffset(Default::default()),
-            },
+            parent: Default::default(),
             command_name: CommandName("".to_owned()),
             last_output: LastOutput(Default::default()),
         }
@@ -18446,34 +12421,7 @@ impl Default for FurnaceMinecartMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: FurnaceMinecart,
-            parent: AbstractMinecartMetadataBundle {
-                _marker: AbstractMinecart,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
-                },
-                custom_display_block: CustomDisplayBlock(azalea_block::BlockState::AIR),
-                display_offset: DisplayOffset(Default::default()),
-            },
+            parent: Default::default(),
             fuel: Fuel(false),
         }
     }
@@ -18525,34 +12473,7 @@ impl Default for HopperMinecartMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: HopperMinecart,
-            parent: AbstractMinecartMetadataBundle {
-                _marker: AbstractMinecart,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
-                },
-                custom_display_block: CustomDisplayBlock(azalea_block::BlockState::AIR),
-                display_offset: DisplayOffset(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -18603,34 +12524,7 @@ impl Default for MinecartMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Minecart,
-            parent: AbstractMinecartMetadataBundle {
-                _marker: AbstractMinecart,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
-                },
-                custom_display_block: CustomDisplayBlock(azalea_block::BlockState::AIR),
-                display_offset: DisplayOffset(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -18681,34 +12575,7 @@ impl Default for SpawnerMinecartMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: SpawnerMinecart,
-            parent: AbstractMinecartMetadataBundle {
-                _marker: AbstractMinecart,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
-                },
-                custom_display_block: CustomDisplayBlock(azalea_block::BlockState::AIR),
-                display_offset: DisplayOffset(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -18759,34 +12626,7 @@ impl Default for TntMinecartMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: TntMinecart,
-            parent: AbstractMinecartMetadataBundle {
-                _marker: AbstractMinecart,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
-                },
-                custom_display_block: CustomDisplayBlock(azalea_block::BlockState::AIR),
-                display_offset: DisplayOffset(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }

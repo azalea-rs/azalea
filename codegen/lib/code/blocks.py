@@ -6,7 +6,7 @@ BLOCKS_RS_DIR = get_dir_location("../azalea-block/src/generated.rs")
 # - Property: A property of a block, like "direction"
 # - Variant: A potential state of a property, like "up"
 # - State: A possible state of a block, a combination of variants
-# - BlockKind: Has properties and states.
+# - Block: Has properties and states.
 
 
 def generate_blocks(
