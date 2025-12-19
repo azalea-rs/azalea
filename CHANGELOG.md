@@ -52,6 +52,9 @@ is breaking anyways, semantic versioning is not followed.
 - The WritableBookContent and ResolvableProfile data components had the wrong protocol implementations.
 - Resolving server addresses shouldn't be recursive.
 - A 5 tick mining delay was always being applied after we mined for the first time.
+- Running Azalea on Windows in debug mode would result in a stack overflow error.
+- Wrong packet order when attacking and sprinting in the same tick.
+- Most entity variant components were using the wrong type.
 
 ## [0.14.0+mc1.21.8] - 2025-09-28
 
