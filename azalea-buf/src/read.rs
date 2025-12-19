@@ -285,9 +285,19 @@ impl AzaleaRead for String {
         read_utf_with_len(buf, MAX_STRING_LENGTH.into())
     }
 }
+impl AzaleaRead for Box<str> {
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        String::azalea_read(buf).map(Into::into)
+    }
+}
 impl AzaleaReadLimited for String {
     fn azalea_read_limited(buf: &mut Cursor<&[u8]>, limit: usize) -> Result<Self, BufReadError> {
         read_utf_with_len(buf, limit as u32)
+    }
+}
+impl AzaleaReadLimited for Box<str> {
+    fn azalea_read_limited(buf: &mut Cursor<&[u8]>, limit: usize) -> Result<Self, BufReadError> {
+        String::azalea_read_limited(buf, limit).map(Into::into)
     }
 }
 

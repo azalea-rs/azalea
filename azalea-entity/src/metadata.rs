@@ -250,7 +250,7 @@ pub struct FallFlying(pub bool);
 pub struct AirSupply(pub i32);
 /// A metadata field for [AbstractEntity].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct CustomName(pub Option<FormattedText>);
+pub struct CustomName(pub Option<Box<FormattedText>>);
 /// A metadata field for [AbstractEntity].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct CustomNameVisible(pub bool);
@@ -2718,7 +2718,7 @@ impl Default for ItemDisplayMetadataBundle {
 
 /// A metadata field for [TextDisplay].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct Text(pub FormattedText);
+pub struct Text(pub Box<FormattedText>);
 /// A metadata field for [TextDisplay].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct LineWidth(pub i32);
@@ -2824,7 +2824,7 @@ pub struct AbstractLivingUsingItem(pub bool);
 pub struct Health(pub f32);
 /// A metadata field for [AbstractLiving].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct EffectParticles(pub Vec<Particle>);
+pub struct EffectParticles(pub Box<[Particle]>);
 /// A metadata field for [AbstractLiving].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct EffectAmbience(pub bool);
@@ -3256,7 +3256,7 @@ pub struct Profile(pub components::Profile);
 pub struct Immovable(pub bool);
 /// A metadata field for [Mannequin].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct Description(pub Option<FormattedText>);
+pub struct Description(pub Option<Box<FormattedText>>);
 /// The marker component for entities of type `minecraft:mannequin`.
 ///
 /// # Metadata
@@ -12295,10 +12295,10 @@ impl Default for ChestMinecartMetadataBundle {
 
 /// A metadata field for [CommandBlockMinecart].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct CommandName(pub String);
+pub struct CommandName(pub Box<str>);
 /// A metadata field for [CommandBlockMinecart].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct LastOutput(pub FormattedText);
+pub struct LastOutput(pub Box<FormattedText>);
 /// The marker component for entities of type
 /// `minecraft:command_block_minecart`.
 ///
@@ -12359,7 +12359,7 @@ impl Default for CommandBlockMinecartMetadataBundle {
         Self {
             _marker: CommandBlockMinecart,
             parent: Default::default(),
-            command_name: CommandName("".to_owned()),
+            command_name: CommandName("".into()),
             last_output: LastOutput(Default::default()),
         }
     }

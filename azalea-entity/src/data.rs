@@ -65,9 +65,9 @@ pub enum EntityDataValue {
     Int(#[var] i32),
     Long(#[var] i64),
     Float(f32),
-    String(String),
-    FormattedText(FormattedText),
-    OptionalFormattedText(Option<FormattedText>),
+    String(Box<str>),
+    FormattedText(Box<FormattedText>),
+    OptionalFormattedText(Option<Box<FormattedText>>),
     ItemStack(ItemStack),
     Boolean(bool),
     Rotations(Rotations),
@@ -79,7 +79,7 @@ pub enum EntityDataValue {
     /// If this is air, that means it's absent,
     OptionalBlockState(azalea_block::BlockState),
     Particle(Particle),
-    Particles(Vec<Particle>),
+    Particles(Box<[Particle]>),
     VillagerData(VillagerData),
     // 0 for absent; 1 + actual value otherwise. Used for entity IDs.
     OptionalUnsignedInt(OptionalUnsignedInt),
@@ -92,7 +92,7 @@ pub enum EntityDataValue {
     PigVariant(azalea_registry::data::PigVariant),
     ChickenVariant(azalea_registry::data::ChickenVariant),
     ZombieNautilusVariant(azalea_registry::data::ZombieNautilusVariant),
-    OptionalGlobalPos(Option<GlobalPos>),
+    OptionalGlobalPos(Option<Box<GlobalPos>>),
     PaintingVariant(azalea_registry::data::PaintingVariant),
     SnifferState(SnifferStateKind),
     ArmadilloState(ArmadilloStateKind),
@@ -103,6 +103,8 @@ pub enum EntityDataValue {
     ResolvableProfile(components::Profile),
     HumanoidArm(HumanoidArm),
 }
+
+const _: () = assert!(size_of::<EntityDataValue>() == 24);
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct OptionalUnsignedInt(pub Option<u32>);

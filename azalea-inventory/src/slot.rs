@@ -169,7 +169,7 @@ impl ItemStackData {
         ItemStackData {
             count,
             kind: item,
-            component_patch: DataComponentPatch::default(),
+            component_patch: Default::default(),
         }
     }
 
@@ -224,7 +224,7 @@ impl AzaleaRead for ItemStack {
         } else {
             let kind = ItemKind::azalea_read(buf)?;
             let component_patch = DataComponentPatch::azalea_read(buf)?;
-            Ok(ItemStack::Present(ItemStackData {
+            Ok(ItemStack::from(ItemStackData {
                 count,
                 kind,
                 component_patch,
@@ -283,7 +283,7 @@ impl From<(ItemKind, i32)> for ItemStackData {
 /// and Azalea does not implement that yet.
 #[derive(Default)]
 pub struct DataComponentPatch {
-    components: IndexMap<DataComponentKind, Option<DataComponentUnion>>,
+    components: Box<IndexMap<DataComponentKind, Option<DataComponentUnion>>>,
 }
 
 impl DataComponentPatch {
@@ -366,7 +366,7 @@ impl DataComponentPatch {
 impl Drop for DataComponentPatch {
     fn drop(&mut self) {
         // the component values are ManuallyDrop since they're in a union
-        for (kind, component) in &mut self.components {
+        for (kind, component) in self.components.iter_mut() {
             if let Some(component) = component {
                 // SAFETY: we got the kind and component from the map
                 unsafe { component.drop_as(*kind) };
@@ -396,7 +396,9 @@ impl AzaleaRead for DataComponentPatch {
             components.insert(component_kind, None);
         }
 
-        Ok(DataComponentPatch { components })
+        Ok(DataComponentPatch {
+            components: Box::new(components),
+        })
     }
 }
 
@@ -416,7 +418,7 @@ impl AzaleaWrite for DataComponentPatch {
         components_without_data_count.azalea_write_var(buf)?;
 
         let mut component_buf = Vec::new();
-        for (kind, component) in &self.components {
+        for (kind, component) in self.components.iter() {
             if let Some(component) = component {
                 kind.azalea_write(buf)?;
 
@@ -427,7 +429,7 @@ impl AzaleaWrite for DataComponentPatch {
             }
         }
 
-        for (kind, component) in &self.components {
+        for (kind, component) in self.components.iter() {
             if component.is_none() {
                 kind.azalea_write(buf)?;
             }
@@ -440,13 +442,15 @@ impl AzaleaWrite for DataComponentPatch {
 impl Clone for DataComponentPatch {
     fn clone(&self) -> Self {
         let mut components = IndexMap::with_capacity(self.components.len());
-        for (kind, component) in &self.components {
+        for (kind, component) in self.components.iter() {
             components.insert(
                 *kind,
                 component.as_ref().map(|c| unsafe { c.clone_as(*kind) }),
             );
         }
-        DataComponentPatch { components }
+        DataComponentPatch {
+            components: Box::new(components),
+        }
     }
 }
 impl Debug for DataComponentPatch {
@@ -459,7 +463,7 @@ impl PartialEq for DataComponentPatch {
         if self.components.len() != other.components.len() {
             return false;
         }
-        for (kind, component) in &self.components {
+        for (kind, component) in self.components.iter() {
             let Some(other_component) = other.components.get(kind) else {
                 return false;
             };
@@ -487,7 +491,7 @@ impl Serialize for DataComponentPatch {
         S: serde::Serializer,
     {
         let mut s = serializer.serialize_map(Some(self.components.len()))?;
-        for (kind, component) in &self.components {
+        for (kind, component) in self.components.iter() {
             if let Some(component) = component {
                 unsafe { component.serialize_entry_as(&mut s, *kind) }?;
             } else {

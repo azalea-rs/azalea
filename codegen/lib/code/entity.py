@@ -557,7 +557,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
                             default = "true" if default else "false"
                         elif type_name == "String":
                             string_escaped = default.replace('"', '\\"')
-                            default = f'"{string_escaped}".to_owned()'
+                            default = f'"{string_escaped}".into()'
                         elif type_name == "BlockPos":
                             default = f"BlockPos::new{default}"
                         elif type_name == "OptionalBlockPos":  # Option<BlockPos>
