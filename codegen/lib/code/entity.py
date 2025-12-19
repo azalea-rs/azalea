@@ -386,7 +386,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
         # }
         code.append(f"impl {entity_struct_name} {{")
         code.append(
-            "    pub fn apply_metadata(entity: &mut bevy_ecs::system::EntityCommands, d: EntityDataItem) -> Result<(), UpdateMetadataError> {"
+            "    fn apply_metadata(entity: &mut bevy_ecs::system::EntityCommands, d: EntityDataItem) -> Result<(), UpdateMetadataError> {"
         )
         code.append("        match d.index {")
 

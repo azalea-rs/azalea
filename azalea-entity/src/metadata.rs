@@ -471,7 +471,7 @@ pub struct TicksFrozen(pub i32);
 #[derive(Component)]
 pub struct AbstractEntity;
 impl AbstractEntity {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -586,7 +586,7 @@ pub struct Waiting(pub bool);
 #[derive(Component)]
 pub struct AreaEffectCloud;
 impl AreaEffectCloud {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -666,7 +666,7 @@ impl Default for AreaEffectCloudMetadataBundle {
 #[derive(Component)]
 pub struct BreezeWindCharge;
 impl BreezeWindCharge {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -731,7 +731,7 @@ impl Default for BreezeWindChargeMetadataBundle {
 #[derive(Component)]
 pub struct DragonFireball;
 impl DragonFireball {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -806,7 +806,7 @@ pub struct ShowBottom(pub bool);
 #[derive(Component)]
 pub struct EndCrystal;
 impl EndCrystal {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -881,7 +881,7 @@ impl Default for EndCrystalMetadataBundle {
 #[derive(Component)]
 pub struct EvokerFangs;
 impl EvokerFangs {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -952,7 +952,7 @@ pub struct Value(pub i32);
 #[derive(Component)]
 pub struct ExperienceOrb;
 impl ExperienceOrb {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -1028,7 +1028,7 @@ pub struct EyeOfEnderItemStack(pub ItemStack);
 #[derive(Component)]
 pub struct EyeOfEnder;
 impl EyeOfEnder {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -1104,7 +1104,7 @@ pub struct StartPos(pub BlockPos);
 #[derive(Component)]
 pub struct FallingBlock;
 impl FallingBlock {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -1180,7 +1180,7 @@ pub struct FireballItemStack(pub ItemStack);
 #[derive(Component)]
 pub struct Fireball;
 impl Fireball {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -1264,7 +1264,7 @@ pub struct ShotAtAngle(pub bool);
 #[derive(Component)]
 pub struct FireworkRocket;
 impl FireworkRocket {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -1354,7 +1354,7 @@ pub struct Biting(pub bool);
 #[derive(Component)]
 pub struct FishingBobber;
 impl FishingBobber {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -1443,7 +1443,7 @@ pub struct Response(pub bool);
 #[derive(Component)]
 pub struct Interaction;
 impl Interaction {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -1528,7 +1528,7 @@ pub struct ItemItem(pub ItemStack);
 #[derive(Component)]
 pub struct Item;
 impl Item {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -1612,7 +1612,7 @@ pub struct Rotation(pub i32);
 #[derive(Component)]
 pub struct ItemFrame;
 impl ItemFrame {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -1693,7 +1693,7 @@ impl Default for ItemFrameMetadataBundle {
 #[derive(Component)]
 pub struct GlowItemFrame;
 impl GlowItemFrame {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -1764,7 +1764,7 @@ impl Default for GlowItemFrameMetadataBundle {
 #[derive(Component)]
 pub struct LeashKnot;
 impl LeashKnot {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -1829,7 +1829,7 @@ impl Default for LeashKnotMetadataBundle {
 #[derive(Component)]
 pub struct LightningBolt;
 impl LightningBolt {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -1894,7 +1894,7 @@ impl Default for LightningBoltMetadataBundle {
 #[derive(Component)]
 pub struct LlamaSpit;
 impl LlamaSpit {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -1959,7 +1959,7 @@ impl Default for LlamaSpitMetadataBundle {
 #[derive(Component)]
 pub struct Marker;
 impl Marker {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -2030,7 +2030,7 @@ pub struct OminousItemSpawnerItem(pub ItemStack);
 #[derive(Component)]
 pub struct OminousItemSpawner;
 impl OminousItemSpawner {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -2110,7 +2110,7 @@ pub struct PaintingVariant(pub azalea_registry::data::PaintingVariant);
 #[derive(Component)]
 pub struct Painting;
 impl Painting {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -2185,7 +2185,7 @@ impl Default for PaintingMetadataBundle {
 #[derive(Component)]
 pub struct ShulkerBullet;
 impl ShulkerBullet {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -2256,7 +2256,7 @@ pub struct SmallFireballItemStack(pub ItemStack);
 #[derive(Component)]
 pub struct SmallFireball;
 impl SmallFireball {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -2335,7 +2335,7 @@ pub struct TntBlockState(pub azalea_block::BlockState);
 #[derive(Component)]
 pub struct Tnt;
 impl Tnt {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -2410,7 +2410,7 @@ impl Default for TntMetadataBundle {
 #[derive(Component)]
 pub struct WindCharge;
 impl WindCharge {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -2481,7 +2481,7 @@ pub struct Dangerous(pub bool);
 #[derive(Component)]
 pub struct WitherSkull;
 impl WitherSkull {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -2571,7 +2571,7 @@ pub struct InGround(pub bool);
 #[derive(Component)]
 pub struct AbstractArrow;
 impl AbstractArrow {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -2661,7 +2661,7 @@ pub struct EffectColor(pub i32);
 #[derive(Component)]
 pub struct Arrow;
 impl Arrow {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -2739,7 +2739,7 @@ impl Default for ArrowMetadataBundle {
 #[derive(Component)]
 pub struct SpectralArrow;
 impl SpectralArrow {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -2821,7 +2821,7 @@ pub struct Foil(pub bool);
 #[derive(Component)]
 pub struct Trident;
 impl Trident {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -2967,7 +2967,7 @@ pub struct GlowColorOverride(pub i32);
 #[derive(Component)]
 pub struct AbstractDisplay;
 impl AbstractDisplay {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -3135,7 +3135,7 @@ pub struct BlockDisplayBlockState(pub azalea_block::BlockState);
 #[derive(Component)]
 pub struct BlockDisplay;
 impl BlockDisplay {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -3253,7 +3253,7 @@ pub struct ItemDisplayItemDisplay(pub u8);
 #[derive(Component)]
 pub struct ItemDisplay;
 impl ItemDisplay {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -3388,7 +3388,7 @@ pub struct StyleFlags(pub u8);
 #[derive(Component)]
 pub struct TextDisplay;
 impl TextDisplay {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -3654,7 +3654,7 @@ pub struct SleepingPos(pub Option<BlockPos>);
 #[derive(Component)]
 pub struct AbstractLiving;
 impl AbstractLiving {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -3801,7 +3801,7 @@ pub struct RightLegPose(pub Rotations);
 #[derive(Component)]
 pub struct ArmorStand;
 impl ArmorStand {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -3934,7 +3934,7 @@ pub struct PlayerModeCustomisation(pub u8);
 #[derive(Component)]
 pub struct AbstractAvatar;
 impl AbstractAvatar {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -4036,7 +4036,7 @@ pub struct Description(pub Option<FormattedText>);
 #[derive(Component)]
 pub struct Mannequin;
 impl Mannequin {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -4151,7 +4151,7 @@ pub struct ShoulderParrotRight(pub OptionalUnsignedInt);
 #[derive(Component)]
 pub struct Player;
 impl Player {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -4367,7 +4367,7 @@ pub struct Aggressive(pub bool);
 #[derive(Component)]
 pub struct AbstractInsentient;
 impl AbstractInsentient {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -4462,7 +4462,7 @@ pub struct Resting(pub bool);
 #[derive(Component)]
 pub struct Bat;
 impl Bat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -4558,7 +4558,7 @@ pub struct Phase(pub i32);
 #[derive(Component)]
 pub struct EnderDragon;
 impl EnderDragon {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -4652,7 +4652,7 @@ pub struct IsCharging(pub bool);
 #[derive(Component)]
 pub struct Ghast;
 impl Ghast {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -4746,7 +4746,7 @@ pub struct PhantomSize(pub i32);
 #[derive(Component)]
 pub struct Phantom;
 impl Phantom {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -4840,7 +4840,7 @@ pub struct SlimeSize(pub i32);
 #[derive(Component)]
 pub struct Slime;
 impl Slime {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -4930,7 +4930,7 @@ impl Default for SlimeMetadataBundle {
 #[derive(Component)]
 pub struct MagmaCube;
 impl MagmaCube {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -5111,7 +5111,7 @@ impl Default for MagmaCubeMetadataBundle {
 #[derive(Component)]
 pub struct AbstractCreature;
 impl AbstractCreature {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -5205,7 +5205,7 @@ pub struct CanDuplicate(pub bool);
 #[derive(Component)]
 pub struct Allay;
 impl Allay {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -5313,7 +5313,7 @@ pub struct CopperGolemState(pub CopperGolemStateKind);
 #[derive(Component)]
 pub struct CopperGolem;
 impl CopperGolem {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -5417,7 +5417,7 @@ pub struct PlayerCreated(pub bool);
 #[derive(Component)]
 pub struct IronGolem;
 impl IronGolem {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -5521,7 +5521,7 @@ pub struct PuffState(pub i32);
 #[derive(Component)]
 pub struct Pufferfish;
 impl Pufferfish {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -5632,7 +5632,7 @@ pub struct Color(pub u8);
 #[derive(Component)]
 pub struct Shulker;
 impl Shulker {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -5741,7 +5741,7 @@ pub struct HasPumpkin(pub bool);
 #[derive(Component)]
 pub struct SnowGolem;
 impl SnowGolem {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -5840,7 +5840,7 @@ pub struct TadpoleFromBucket(pub bool);
 #[derive(Component)]
 pub struct Tadpole;
 impl Tadpole {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -5982,7 +5982,7 @@ pub struct AbstractAgeableBaby(pub bool);
 #[derive(Component)]
 pub struct AbstractAgeable;
 impl AbstractAgeable {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -6085,7 +6085,7 @@ pub struct MoistnessLevel(pub i32);
 #[derive(Component)]
 pub struct Dolphin;
 impl Dolphin {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -6188,7 +6188,7 @@ impl Default for DolphinMetadataBundle {
 #[derive(Component)]
 pub struct Squid;
 impl Squid {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -6288,7 +6288,7 @@ pub struct DarkTicksRemaining(pub i32);
 #[derive(Component)]
 pub struct GlowSquid;
 impl GlowSquid {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -6427,7 +6427,7 @@ impl Default for GlowSquidMetadataBundle {
 #[derive(Component)]
 pub struct AbstractAnimal;
 impl AbstractAnimal {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -6527,7 +6527,7 @@ pub struct ArmadilloState(pub ArmadilloStateKind);
 #[derive(Component)]
 pub struct Armadillo;
 impl Armadillo {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -6644,7 +6644,7 @@ pub struct AxolotlFromBucket(pub bool);
 #[derive(Component)]
 pub struct Axolotl;
 impl Axolotl {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -6775,7 +6775,7 @@ pub struct BeeAngerEndTime(pub i64);
 #[derive(Component)]
 pub struct Bee;
 impl Bee {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -6868,7 +6868,7 @@ impl Default for BeeMetadataBundle {
 
 /// A metadata field for [Chicken].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct ChickenVariant(pub azalea_registry::data::PigVariant);
+pub struct ChickenVariant(pub azalea_registry::data::ChickenVariant);
 /// The marker component for entities of type `minecraft:chicken`.
 ///
 /// # Metadata
@@ -6896,14 +6896,14 @@ pub struct ChickenVariant(pub azalea_registry::data::PigVariant);
 #[derive(Component)]
 pub struct Chicken;
 impl Chicken {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
             17 => {
-                entity.insert(ChickenVariant(d.value.into_pig_variant()?));
+                entity.insert(ChickenVariant(d.value.into_chicken_variant()?));
             }
             _ => {}
         }
@@ -6970,14 +6970,14 @@ impl Default for ChickenMetadataBundle {
                     abstract_ageable_baby: AbstractAgeableBaby(false),
                 },
             },
-            chicken_variant: ChickenVariant(azalea_registry::data::PigVariant::new_raw(0)),
+            chicken_variant: ChickenVariant(azalea_registry::data::ChickenVariant::new_raw(0)),
         }
     }
 }
 
 /// A metadata field for [Cow].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct CowVariant(pub azalea_registry::data::ChickenVariant);
+pub struct CowVariant(pub azalea_registry::data::CowVariant);
 /// The marker component for entities of type `minecraft:cow`.
 ///
 /// # Metadata
@@ -7005,14 +7005,14 @@ pub struct CowVariant(pub azalea_registry::data::ChickenVariant);
 #[derive(Component)]
 pub struct Cow;
 impl Cow {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
             17 => {
-                entity.insert(CowVariant(d.value.into_chicken_variant()?));
+                entity.insert(CowVariant(d.value.into_cow_variant()?));
             }
             _ => {}
         }
@@ -7079,7 +7079,7 @@ impl Default for CowMetadataBundle {
                     abstract_ageable_baby: AbstractAgeableBaby(false),
                 },
             },
-            cow_variant: CowVariant(azalea_registry::data::ChickenVariant::new_raw(0)),
+            cow_variant: CowVariant(azalea_registry::data::CowVariant::new_raw(0)),
         }
     }
 }
@@ -7150,7 +7150,7 @@ pub struct TrustedId1(pub Option<Uuid>);
 #[derive(Component)]
 pub struct Fox;
 impl Fox {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -7265,7 +7265,7 @@ impl Default for FoxMetadataBundle {
 
 /// A metadata field for [Frog].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct FrogVariant(pub azalea_registry::data::WolfSoundVariant);
+pub struct FrogVariant(pub azalea_registry::data::FrogVariant);
 /// A metadata field for [Frog].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct TongueTarget(pub OptionalUnsignedInt);
@@ -7297,14 +7297,14 @@ pub struct TongueTarget(pub OptionalUnsignedInt);
 #[derive(Component)]
 pub struct Frog;
 impl Frog {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
             17 => {
-                entity.insert(FrogVariant(d.value.into_wolf_sound_variant()?));
+                entity.insert(FrogVariant(d.value.into_frog_variant()?));
             }
             18 => {
                 entity.insert(TongueTarget(d.value.into_optional_unsigned_int()?));
@@ -7375,7 +7375,7 @@ impl Default for FrogMetadataBundle {
                     abstract_ageable_baby: AbstractAgeableBaby(false),
                 },
             },
-            frog_variant: FrogVariant(azalea_registry::data::WolfSoundVariant::new_raw(0)),
+            frog_variant: FrogVariant(azalea_registry::data::FrogVariant::new_raw(0)),
             tongue_target: TongueTarget(OptionalUnsignedInt(None)),
         }
     }
@@ -7419,7 +7419,7 @@ pub struct HasRightHorn(pub bool);
 #[derive(Component)]
 pub struct Goat;
 impl Goat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -7543,7 +7543,7 @@ pub struct StaysStill(pub bool);
 #[derive(Component)]
 pub struct HappyGhast;
 impl HappyGhast {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -7657,7 +7657,7 @@ pub struct HoglinImmuneToZombification(pub bool);
 #[derive(Component)]
 pub struct Hoglin;
 impl Hoglin {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -7767,7 +7767,7 @@ pub struct MooshroomKind(pub i32);
 #[derive(Component)]
 pub struct Mooshroom;
 impl Mooshroom {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -7876,7 +7876,7 @@ pub struct Trusting(pub bool);
 #[derive(Component)]
 pub struct Ocelot;
 impl Ocelot {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -8017,7 +8017,7 @@ pub struct PandaFlags(pub u8);
 #[derive(Component)]
 pub struct Panda;
 impl Panda {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -8136,7 +8136,7 @@ impl Default for PandaMetadataBundle {
 pub struct PigBoostTime(pub i32);
 /// A metadata field for [Pig].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct PigVariant(pub azalea_registry::data::FrogVariant);
+pub struct PigVariant(pub azalea_registry::data::PigVariant);
 /// The marker component for entities of type `minecraft:pig`.
 ///
 /// # Metadata
@@ -8165,7 +8165,7 @@ pub struct PigVariant(pub azalea_registry::data::FrogVariant);
 #[derive(Component)]
 pub struct Pig;
 impl Pig {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -8175,7 +8175,7 @@ impl Pig {
                 entity.insert(PigBoostTime(d.value.into_int()?));
             }
             18 => {
-                entity.insert(PigVariant(d.value.into_frog_variant()?));
+                entity.insert(PigVariant(d.value.into_pig_variant()?));
             }
             _ => {}
         }
@@ -8244,7 +8244,7 @@ impl Default for PigMetadataBundle {
                 },
             },
             pig_boost_time: PigBoostTime(0),
-            pig_variant: PigVariant(azalea_registry::data::FrogVariant::new_raw(0)),
+            pig_variant: PigVariant(azalea_registry::data::PigVariant::new_raw(0)),
         }
     }
 }
@@ -8280,7 +8280,7 @@ pub struct PolarBearStanding(pub bool);
 #[derive(Component)]
 pub struct PolarBear;
 impl PolarBear {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -8389,7 +8389,7 @@ pub struct RabbitKind(pub i32);
 #[derive(Component)]
 pub struct Rabbit;
 impl Rabbit {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -8498,7 +8498,7 @@ pub struct SheepSheared(pub bool);
 #[derive(Component)]
 pub struct Sheep;
 impl Sheep {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -8612,7 +8612,7 @@ pub struct DropSeedAtTick(pub i32);
 #[derive(Component)]
 pub struct Sniffer;
 impl Sniffer {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -8730,7 +8730,7 @@ pub struct Suffocating(pub bool);
 #[derive(Component)]
 pub struct Strider;
 impl Strider {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -8848,7 +8848,7 @@ pub struct LayingEgg(pub bool);
 #[derive(Component)]
 pub struct Turtle;
 impl Turtle {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -8984,7 +8984,7 @@ pub struct Bred(pub bool);
 #[derive(Component)]
 pub struct AbstractHorse;
 impl AbstractHorse {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -9108,7 +9108,7 @@ pub struct LastPoseChangeTick(pub i64);
 #[derive(Component)]
 pub struct Camel;
 impl Camel {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -9226,7 +9226,7 @@ impl Default for CamelMetadataBundle {
 #[derive(Component)]
 pub struct CamelHusk;
 impl CamelHusk {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -9344,7 +9344,7 @@ pub struct HorseTypeVariant(pub i32);
 #[derive(Component)]
 pub struct Horse;
 impl Horse {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -9456,7 +9456,7 @@ impl Default for HorseMetadataBundle {
 #[derive(Component)]
 pub struct SkeletonHorse;
 impl SkeletonHorse {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -9563,7 +9563,7 @@ impl Default for SkeletonHorseMetadataBundle {
 #[derive(Component)]
 pub struct ZombieHorse;
 impl ZombieHorse {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -9679,7 +9679,7 @@ pub struct Chest(pub bool);
 #[derive(Component)]
 pub struct AbstractChestedHorse;
 impl AbstractChestedHorse {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -9792,7 +9792,7 @@ impl Default for AbstractChestedHorseMetadataBundle {
 #[derive(Component)]
 pub struct Donkey;
 impl Donkey {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -9914,7 +9914,7 @@ pub struct LlamaVariant(pub i32);
 #[derive(Component)]
 pub struct Llama;
 impl Llama {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -10038,7 +10038,7 @@ impl Default for LlamaMetadataBundle {
 #[derive(Component)]
 pub struct TraderLlama;
 impl TraderLlama {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -10158,7 +10158,7 @@ impl Default for TraderLlamaMetadataBundle {
 #[derive(Component)]
 pub struct Mule;
 impl Mule {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -10287,7 +10287,7 @@ pub struct Owneruuid(pub Option<Uuid>);
 #[derive(Component)]
 pub struct AbstractTameable;
 impl AbstractTameable {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -10418,7 +10418,7 @@ pub struct CatCollarColor(pub i32);
 #[derive(Component)]
 pub struct Cat;
 impl Cat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -10550,7 +10550,7 @@ pub struct NautilusDash(pub bool);
 #[derive(Component)]
 pub struct Nautilus;
 impl Nautilus {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -10666,7 +10666,7 @@ pub struct ParrotVariant(pub i32);
 #[derive(Component)]
 pub struct Parrot;
 impl Parrot {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -10762,10 +10762,10 @@ pub struct WolfCollarColor(pub i32);
 pub struct WolfAngerEndTime(pub i64);
 /// A metadata field for [Wolf].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct WolfVariant(pub azalea_registry::data::CowVariant);
+pub struct WolfVariant(pub azalea_registry::data::WolfVariant);
 /// A metadata field for [Wolf].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct SoundVariant(pub azalea_registry::data::WolfVariant);
+pub struct SoundVariant(pub azalea_registry::data::WolfSoundVariant);
 /// The marker component for entities of type `minecraft:wolf`.
 ///
 /// # Metadata
@@ -10798,7 +10798,7 @@ pub struct SoundVariant(pub azalea_registry::data::WolfVariant);
 #[derive(Component)]
 pub struct Wolf;
 impl Wolf {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -10814,10 +10814,10 @@ impl Wolf {
                 entity.insert(WolfAngerEndTime(d.value.into_long()?));
             }
             22 => {
-                entity.insert(WolfVariant(d.value.into_cow_variant()?));
+                entity.insert(WolfVariant(d.value.into_wolf_variant()?));
             }
             23 => {
-                entity.insert(SoundVariant(d.value.into_wolf_variant()?));
+                entity.insert(SoundVariant(d.value.into_wolf_sound_variant()?));
             }
             _ => {}
         }
@@ -10897,8 +10897,8 @@ impl Default for WolfMetadataBundle {
             wolf_interested: WolfInterested(false),
             wolf_collar_color: WolfCollarColor(Default::default()),
             wolf_anger_end_time: WolfAngerEndTime(-1),
-            wolf_variant: WolfVariant(azalea_registry::data::CowVariant::new_raw(0)),
-            sound_variant: SoundVariant(azalea_registry::data::WolfVariant::new_raw(0)),
+            wolf_variant: WolfVariant(azalea_registry::data::WolfVariant::new_raw(0)),
+            sound_variant: SoundVariant(azalea_registry::data::WolfSoundVariant::new_raw(0)),
         }
     }
 }
@@ -10939,7 +10939,7 @@ pub struct ZombieNautilusVariant(pub azalea_registry::data::ZombieNautilusVarian
 #[derive(Component)]
 pub struct ZombieNautilus;
 impl ZombieNautilus {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -11064,7 +11064,7 @@ pub struct AbstractVillagerUnhappyCounter(pub i32);
 #[derive(Component)]
 pub struct AbstractVillager;
 impl AbstractVillager {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -11169,7 +11169,7 @@ pub struct VillagerVillagerData(pub VillagerData);
 #[derive(Component)]
 pub struct Villager;
 impl Villager {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -11278,7 +11278,7 @@ impl Default for VillagerMetadataBundle {
 #[derive(Component)]
 pub struct WanderingTrader;
 impl WanderingTrader {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -11384,7 +11384,7 @@ pub struct AbstractFishFromBucket(pub bool);
 #[derive(Component)]
 pub struct AbstractFish;
 impl AbstractFish {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -11478,7 +11478,7 @@ impl Default for AbstractFishMetadataBundle {
 #[derive(Component)]
 pub struct Cod;
 impl Cod {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -11576,7 +11576,7 @@ pub struct SalmonKind(pub i32);
 #[derive(Component)]
 pub struct Salmon;
 impl Salmon {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -11680,7 +11680,7 @@ pub struct TropicalFishTypeVariant(pub i32);
 #[derive(Component)]
 pub struct TropicalFish;
 impl TropicalFish {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -11813,7 +11813,7 @@ impl Default for TropicalFishMetadataBundle {
 #[derive(Component)]
 pub struct AbstractMonster;
 impl AbstractMonster {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -11907,7 +11907,7 @@ pub struct Charged(pub bool);
 #[derive(Component)]
 pub struct Blaze;
 impl Blaze {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -12010,7 +12010,7 @@ pub struct BoggedSheared(pub bool);
 #[derive(Component)]
 pub struct Bogged;
 impl Bogged {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -12107,7 +12107,7 @@ impl Default for BoggedMetadataBundle {
 #[derive(Component)]
 pub struct Breeze;
 impl Breeze {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -12217,7 +12217,7 @@ pub struct HomePos(pub Option<BlockPos>);
 #[derive(Component)]
 pub struct Creaking;
 impl Creaking {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -12342,7 +12342,7 @@ pub struct IsIgnited(pub bool);
 #[derive(Component)]
 pub struct Creeper;
 impl Creeper {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -12463,7 +12463,7 @@ pub struct StaredAt(pub bool);
 #[derive(Component)]
 pub struct Enderman;
 impl Enderman {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -12570,7 +12570,7 @@ impl Default for EndermanMetadataBundle {
 #[derive(Component)]
 pub struct Endermite;
 impl Endermite {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -12662,7 +12662,7 @@ impl Default for EndermiteMetadataBundle {
 #[derive(Component)]
 pub struct Giant;
 impl Giant {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -12764,7 +12764,7 @@ pub struct AttackTarget(pub i32);
 #[derive(Component)]
 pub struct Guardian;
 impl Guardian {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -12867,7 +12867,7 @@ impl Default for GuardianMetadataBundle {
 #[derive(Component)]
 pub struct ElderGuardian;
 impl ElderGuardian {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -12966,7 +12966,7 @@ impl Default for ElderGuardianMetadataBundle {
 #[derive(Component)]
 pub struct Parched;
 impl Parched {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -13058,7 +13058,7 @@ impl Default for ParchedMetadataBundle {
 #[derive(Component)]
 pub struct Silverfish;
 impl Silverfish {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -13156,7 +13156,7 @@ pub struct StrayConversion(pub bool);
 #[derive(Component)]
 pub struct Skeleton;
 impl Skeleton {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -13258,7 +13258,7 @@ pub struct Climbing(pub bool);
 #[derive(Component)]
 pub struct Spider;
 impl Spider {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -13357,7 +13357,7 @@ impl Default for SpiderMetadataBundle {
 #[derive(Component)]
 pub struct CaveSpider;
 impl CaveSpider {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -13455,7 +13455,7 @@ impl Default for CaveSpiderMetadataBundle {
 #[derive(Component)]
 pub struct Stray;
 impl Stray {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -13552,7 +13552,7 @@ pub struct VexFlags(pub u8);
 #[derive(Component)]
 pub struct Vex;
 impl Vex {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -13654,7 +13654,7 @@ pub struct ClientAngerLevel(pub i32);
 #[derive(Component)]
 pub struct Warden;
 impl Warden {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -13768,7 +13768,7 @@ pub struct Inv(pub i32);
 #[derive(Component)]
 pub struct Wither;
 impl Wither {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -13880,7 +13880,7 @@ impl Default for WitherMetadataBundle {
 #[derive(Component)]
 pub struct WitherSkeleton;
 impl WitherSkeleton {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -13977,7 +13977,7 @@ pub struct ZoglinBaby(pub bool);
 #[derive(Component)]
 pub struct Zoglin;
 impl Zoglin {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -14090,7 +14090,7 @@ pub struct DrownedConversion(pub bool);
 #[derive(Component)]
 pub struct Zombie;
 impl Zombie {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -14198,7 +14198,7 @@ impl Default for ZombieMetadataBundle {
 #[derive(Component)]
 pub struct Drowned;
 impl Drowned {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -14299,7 +14299,7 @@ impl Default for DrownedMetadataBundle {
 #[derive(Component)]
 pub struct Husk;
 impl Husk {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -14410,7 +14410,7 @@ pub struct ZombieVillagerVillagerData(pub VillagerData);
 #[derive(Component)]
 pub struct ZombieVillager;
 impl ZombieVillager {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -14525,7 +14525,7 @@ impl Default for ZombieVillagerMetadataBundle {
 #[derive(Component)]
 pub struct ZombifiedPiglin;
 impl ZombifiedPiglin {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -14632,7 +14632,7 @@ pub struct AbstractPiglinImmuneToZombification(pub bool);
 #[derive(Component)]
 pub struct AbstractPiglin;
 impl AbstractPiglin {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -14743,7 +14743,7 @@ pub struct IsDancing(pub bool);
 #[derive(Component)]
 pub struct Piglin;
 impl Piglin {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -14857,7 +14857,7 @@ impl Default for PiglinMetadataBundle {
 #[derive(Component)]
 pub struct PiglinBrute;
 impl PiglinBrute {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -14967,7 +14967,7 @@ pub struct IsCelebrating(pub bool);
 #[derive(Component)]
 pub struct AbstractRaider;
 impl AbstractRaider {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -15071,7 +15071,7 @@ pub struct PillagerIsChargingCrossbow(pub bool);
 #[derive(Component)]
 pub struct Pillager;
 impl Pillager {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -15175,7 +15175,7 @@ impl Default for PillagerMetadataBundle {
 #[derive(Component)]
 pub struct Ravager;
 impl Ravager {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -15274,7 +15274,7 @@ impl Default for RavagerMetadataBundle {
 #[derive(Component)]
 pub struct Vindicator;
 impl Vindicator {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -15378,7 +15378,7 @@ pub struct WitchUsingItem(pub bool);
 #[derive(Component)]
 pub struct Witch;
 impl Witch {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -15489,7 +15489,7 @@ pub struct SpellCasting(pub u8);
 #[derive(Component)]
 pub struct AbstractSpellcasterIllager;
 impl AbstractSpellcasterIllager {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -15594,7 +15594,7 @@ impl Default for AbstractSpellcasterIllagerMetadataBundle {
 #[derive(Component)]
 pub struct Evoker;
 impl Evoker {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -15698,7 +15698,7 @@ impl Default for EvokerMetadataBundle {
 #[derive(Component)]
 pub struct Illusioner;
 impl Illusioner {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -15807,7 +15807,7 @@ pub struct AbstractThrownItemProjectileItemStack(pub ItemStack);
 #[derive(Component)]
 pub struct AbstractThrownItemProjectile;
 impl AbstractThrownItemProjectile {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -15882,7 +15882,7 @@ impl Default for AbstractThrownItemProjectileMetadataBundle {
 #[derive(Component)]
 pub struct Egg;
 impl Egg {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -15954,7 +15954,7 @@ impl Default for EggMetadataBundle {
 #[derive(Component)]
 pub struct EnderPearl;
 impl EnderPearl {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -16026,7 +16026,7 @@ impl Default for EnderPearlMetadataBundle {
 #[derive(Component)]
 pub struct ExperienceBottle;
 impl ExperienceBottle {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -16098,7 +16098,7 @@ impl Default for ExperienceBottleMetadataBundle {
 #[derive(Component)]
 pub struct LingeringPotion;
 impl LingeringPotion {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -16170,7 +16170,7 @@ impl Default for LingeringPotionMetadataBundle {
 #[derive(Component)]
 pub struct Snowball;
 impl Snowball {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -16242,7 +16242,7 @@ impl Default for SnowballMetadataBundle {
 #[derive(Component)]
 pub struct SplashPotion;
 impl SplashPotion {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -16355,7 +16355,7 @@ pub struct Damage(pub f32);
 #[derive(Component)]
 pub struct AbstractVehicle;
 impl AbstractVehicle {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -16469,7 +16469,7 @@ pub struct BubbleTime(pub i32);
 #[derive(Component)]
 pub struct AbstractBoat;
 impl AbstractBoat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -16557,7 +16557,7 @@ impl Default for AbstractBoatMetadataBundle {
 #[derive(Component)]
 pub struct AcaciaBoat;
 impl AcaciaBoat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -16636,7 +16636,7 @@ impl Default for AcaciaBoatMetadataBundle {
 #[derive(Component)]
 pub struct AcaciaChestBoat;
 impl AcaciaChestBoat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -16715,7 +16715,7 @@ impl Default for AcaciaChestBoatMetadataBundle {
 #[derive(Component)]
 pub struct BambooChestRaft;
 impl BambooChestRaft {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -16794,7 +16794,7 @@ impl Default for BambooChestRaftMetadataBundle {
 #[derive(Component)]
 pub struct BambooRaft;
 impl BambooRaft {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -16873,7 +16873,7 @@ impl Default for BambooRaftMetadataBundle {
 #[derive(Component)]
 pub struct BirchBoat;
 impl BirchBoat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -16952,7 +16952,7 @@ impl Default for BirchBoatMetadataBundle {
 #[derive(Component)]
 pub struct BirchChestBoat;
 impl BirchChestBoat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -17031,7 +17031,7 @@ impl Default for BirchChestBoatMetadataBundle {
 #[derive(Component)]
 pub struct CherryBoat;
 impl CherryBoat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -17110,7 +17110,7 @@ impl Default for CherryBoatMetadataBundle {
 #[derive(Component)]
 pub struct CherryChestBoat;
 impl CherryChestBoat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -17189,7 +17189,7 @@ impl Default for CherryChestBoatMetadataBundle {
 #[derive(Component)]
 pub struct DarkOakBoat;
 impl DarkOakBoat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -17268,7 +17268,7 @@ impl Default for DarkOakBoatMetadataBundle {
 #[derive(Component)]
 pub struct DarkOakChestBoat;
 impl DarkOakChestBoat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -17347,7 +17347,7 @@ impl Default for DarkOakChestBoatMetadataBundle {
 #[derive(Component)]
 pub struct JungleBoat;
 impl JungleBoat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -17426,7 +17426,7 @@ impl Default for JungleBoatMetadataBundle {
 #[derive(Component)]
 pub struct JungleChestBoat;
 impl JungleChestBoat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -17505,7 +17505,7 @@ impl Default for JungleChestBoatMetadataBundle {
 #[derive(Component)]
 pub struct MangroveBoat;
 impl MangroveBoat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -17584,7 +17584,7 @@ impl Default for MangroveBoatMetadataBundle {
 #[derive(Component)]
 pub struct MangroveChestBoat;
 impl MangroveChestBoat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -17663,7 +17663,7 @@ impl Default for MangroveChestBoatMetadataBundle {
 #[derive(Component)]
 pub struct OakBoat;
 impl OakBoat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -17742,7 +17742,7 @@ impl Default for OakBoatMetadataBundle {
 #[derive(Component)]
 pub struct OakChestBoat;
 impl OakChestBoat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -17821,7 +17821,7 @@ impl Default for OakChestBoatMetadataBundle {
 #[derive(Component)]
 pub struct PaleOakBoat;
 impl PaleOakBoat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -17900,7 +17900,7 @@ impl Default for PaleOakBoatMetadataBundle {
 #[derive(Component)]
 pub struct PaleOakChestBoat;
 impl PaleOakChestBoat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -17979,7 +17979,7 @@ impl Default for PaleOakChestBoatMetadataBundle {
 #[derive(Component)]
 pub struct SpruceBoat;
 impl SpruceBoat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -18058,7 +18058,7 @@ impl Default for SpruceBoatMetadataBundle {
 #[derive(Component)]
 pub struct SpruceChestBoat;
 impl SpruceChestBoat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -18152,7 +18152,7 @@ pub struct DisplayOffset(pub i32);
 #[derive(Component)]
 pub struct AbstractMinecart;
 impl AbstractMinecart {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -18235,7 +18235,7 @@ impl Default for AbstractMinecartMetadataBundle {
 #[derive(Component)]
 pub struct ChestMinecart;
 impl ChestMinecart {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -18324,7 +18324,7 @@ pub struct LastOutput(pub FormattedText);
 #[derive(Component)]
 pub struct CommandBlockMinecart;
 impl CommandBlockMinecart {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -18418,7 +18418,7 @@ pub struct Fuel(pub bool);
 #[derive(Component)]
 pub struct FurnaceMinecart;
 impl FurnaceMinecart {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -18501,7 +18501,7 @@ impl Default for FurnaceMinecartMetadataBundle {
 #[derive(Component)]
 pub struct HopperMinecart;
 impl HopperMinecart {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -18579,7 +18579,7 @@ impl Default for HopperMinecartMetadataBundle {
 #[derive(Component)]
 pub struct Minecart;
 impl Minecart {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -18657,7 +18657,7 @@ impl Default for MinecartMetadataBundle {
 #[derive(Component)]
 pub struct SpawnerMinecart;
 impl SpawnerMinecart {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -18735,7 +18735,7 @@ impl Default for SpawnerMinecartMetadataBundle {
 #[derive(Component)]
 pub struct TntMinecart;
 impl TntMinecart {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
