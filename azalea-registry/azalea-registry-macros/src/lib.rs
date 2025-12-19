@@ -146,7 +146,7 @@ pub fn registry(input: TokenStream) -> TokenStream {
         let name = &item.name;
         let id = &item.id;
         display_items.extend(quote! {
-            Self::#name => write!(f, #id),
+            Self::#name => write!(f, concat!("minecraft:", #id)),
         });
         from_str_items.extend(quote! {
             #id => Ok(Self::#name),
