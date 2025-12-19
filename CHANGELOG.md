@@ -10,6 +10,14 @@ is breaking anyways, semantic versioning is not followed.
 
 ### Added
 
+### Changed
+
+### Fixed
+
+## [0.15.0+mc1.21.11] - 2025-12-18
+
+### Added
+
 - Add `Client::query_entity` and `try_query_entity` to complement `query_self`.
 - Add `Client::entity_interact` and `EntityInteractEvent` to interact with entities without checking that they're in the crosshair.
 - Allow disabling dependencies related to Microsoft auth with the `online-mode` cargo feature.
