@@ -55,6 +55,7 @@ pub struct StoreCookieEvent {
     pub payload: Vec<u8>,
 }
 
+#[allow(clippy::type_complexity)]
 pub fn handle_request_cookie(
     request_cookie: On<RequestCookieEvent>,
     mut commands: Commands,

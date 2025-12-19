@@ -183,7 +183,7 @@ impl From<ParticleKind> for Particle {
             ParticleKind::Heart => Self::Heart,
             ParticleKind::InstantEffect => Self::InstantEffect,
             ParticleKind::Item => Self::Item(ItemParticle::default()),
-            ParticleKind::Vibration => Self::Vibration(Box::new(VibrationParticle::default())),
+            ParticleKind::Vibration => Self::Vibration(Default::default()),
             ParticleKind::ItemSlime => Self::ItemSlime,
             ParticleKind::ItemSnowball => Self::ItemSnowball,
             ParticleKind::LargeSmoke => Self::LargeSmoke,
