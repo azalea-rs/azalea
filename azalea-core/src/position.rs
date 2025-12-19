@@ -314,9 +314,17 @@ pub struct Vec3 {
 vec3_impl!(Vec3, f64);
 impl simdnbt::FromNbtTag for Vec3 {
     fn from_nbt_tag(tag: NbtTag) -> Option<Self> {
-        let pos = tag.list()?.doubles()?;
-        let [x, y, z] = <[f64; 3]>::try_from(pos).ok()?;
-        Some(Self { x, y, z })
+        let pos = tag.list()?;
+        if let Some(pos) = pos.doubles() {
+            let [x, y, z] = <[f64; 3]>::try_from(pos).ok()?;
+            Some(Self { x, y, z })
+        } else if let Some(pos) = pos.floats() {
+            // used on hypixel
+            let [x, y, z] = <[f32; 3]>::try_from(pos).ok()?.map(|f| f as f64);
+            Some(Self { x, y, z })
+        } else {
+            None
+        }
     }
 }
 

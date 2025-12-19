@@ -12,6 +12,7 @@ use simdnbt::{
     Deserialize, DeserializeError,
     borrow::{NbtCompound, NbtTag},
 };
+use tracing::error;
 
 use crate::{
     position::{Vec3, Vec3i},
@@ -44,7 +45,7 @@ pub enum EntityEffect {
 impl Deserialize for EntityEffect {
     fn from_compound(nbt: NbtCompound) -> Result<Self, DeserializeError> {
         let kind = get_in_compound(&nbt, "type")?;
-        match kind {
+        let res = match kind {
             EntityEffectKind::AllOf => Deserialize::from_compound(nbt).map(Self::AllOf),
             EntityEffectKind::ApplyMobEffect => {
                 Deserialize::from_compound(nbt).map(Self::ApplyMobEffect)
@@ -78,7 +79,11 @@ impl Deserialize for EntityEffect {
             EntityEffectKind::SummonEntity => {
                 Deserialize::from_compound(nbt).map(Self::SummonEntity)
             }
+        };
+        if res.is_err() {
+            error!("Error deserializing EntityEffect {kind}: {nbt:?}");
         }
+        res
     }
 }
 

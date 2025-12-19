@@ -218,27 +218,27 @@ impl Swarm {
                 static WARNED_1_000: AtomicBool = AtomicBool::new(false);
                 if !WARNED_1_000.swap(true, atomic::Ordering::Relaxed) {
                     warn!(
-                        "the client's Event channel has more than 1,000 items! this is probably fine but if you're concerned about it, maybe consider disabling the packet-event feature in azalea to reduce the number of events?"
+                        "The client's Event channel has more than 1,000 items! If you don't need it, consider disabling the `packet-event` feature for `azalea`."
                     )
                 }
 
                 if rx.len() > 10_000 {
                     static WARNED_10_000: AtomicBool = AtomicBool::new(false);
                     if !WARNED_10_000.swap(true, atomic::Ordering::Relaxed) {
-                        warn!("the client's Event channel has more than 10,000 items!!")
+                        warn!("The client's Event channel has more than 10,000 items!!")
                     }
 
                     if rx.len() > 100_000 {
                         static WARNED_100_000: AtomicBool = AtomicBool::new(false);
                         if !WARNED_100_000.swap(true, atomic::Ordering::Relaxed) {
-                            warn!("the client's Event channel has more than 100,000 items!!!")
+                            warn!("The client's Event channel has more than 100,000 items!!!")
                         }
 
                         if rx.len() > 1_000_000 {
                             static WARNED_1_000_000: AtomicBool = AtomicBool::new(false);
                             if !WARNED_1_000_000.swap(true, atomic::Ordering::Relaxed) {
                                 warn!(
-                                    "the client's Event channel has more than 1,000,000 items!!!! your code is almost certainly leaking memory"
+                                    "The client's Event channel has more than 1,000,000 items!!!! your code is almost certainly leaking memory"
                                 )
                             }
                         }
@@ -248,7 +248,7 @@ impl Swarm {
 
             if let Event::Disconnect(_) = event {
                 debug!(
-                    "sending SwarmEvent::Disconnect due to receiving an Event::Disconnect from client {}",
+                    "Sending SwarmEvent::Disconnect due to receiving an Event::Disconnect from client {}",
                     bot.entity
                 );
                 let account = bot

@@ -26,7 +26,7 @@ fn test_enchantments() {
         .into_iter()
         .collect(),
     });
-    // actual registry data copied from vanillaw
+    // actual registry data copied from vanilla
     s.receive_packet(ClientboundRegistryData {
         registry_id: Identifier::new("minecraft:enchantment"),
         entries: vec![(
