@@ -1,5 +1,6 @@
 use std::{fmt, fmt::Debug};
 
+use azalea_chat::FormattedText;
 use azalea_client::{
     Client,
     inventory::{CloseContainerEvent, ContainerClickEvent},
@@ -234,21 +235,24 @@ impl ContainerHandleRef {
     /// actually cause any packets to be sent. If you're trying to modify your
     /// inventory, use [`Self::click`] instead
     pub fn menu(&self) -> Option<Menu> {
-        let ecs = self.client.ecs.lock();
-        let inventory = ecs
-            .get::<Inventory>(self.client.entity)
-            .expect("no inventory");
-
-        // this also makes sure we can't access the inventory while a container is open
-        if inventory.id == self.id {
+        self.map_inventory(|inv| {
             if self.id == 0 {
-                Some(inventory.inventory_menu.clone())
+                inv.inventory_menu.clone()
             } else {
-                Some(inventory.container_menu.clone().unwrap())
+                inv.container_menu.clone().unwrap()
             }
-        } else {
-            None
-        }
+        })
+    }
+
+    fn map_inventory<R>(&self, f: impl FnOnce(&Inventory) -> R) -> Option<R> {
+        self.client.query_self::<&Inventory, _>(|inv| {
+            if inv.id == self.id {
+                Some(f(inv))
+            } else {
+                // a different inventory is open
+                None
+            }
+        })
     }
 
     /// Returns the item slots in the container, not including the player's
@@ -264,6 +268,19 @@ impl ContainerHandleRef {
     /// If the container is closed, this will return `None`.
     pub fn slots(&self) -> Option<Vec<ItemStack>> {
         self.menu().map(|menu| menu.slots())
+    }
+
+    /// Returns the title of the container, or `None` if no container is open.
+    ///
+    /// ```no_run
+    /// let inventory = bot.get_inventory();
+    /// let inventory_title = inventory.title.unwrap_or_default().to_string();
+    /// // would be true if an unnamed chest is open
+    /// assert_eq!(inventory_title, "Chest");
+    /// ```
+    pub fn title(&self) -> Option<FormattedText> {
+        self.map_inventory(|inv| inv.container_menu_title.clone())
+            .flatten()
     }
 
     /// A shortcut for [`Self::click`] with `PickupClick::Left`.

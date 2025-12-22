@@ -97,7 +97,7 @@ pub enum Event {
     /// # use azalea_protocol::packets::game::ClientboundGamePacket;
     /// # async fn example(event: Event) {
     /// # match event {
-    /// Event::Packet(packet) => match *packet {
+    /// Event::Packet(packet) => match &*packet {
     ///     ClientboundGamePacket::Login(_) => {
     ///         println!("login packet");
     ///     }
