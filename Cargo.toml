@@ -68,6 +68,8 @@ pastey = "0.2.1"
 proc-macro2 = "1.0.103"
 quote = "1.0.42"
 rand = "0.10.0-rc.5"
+# TODO: Remove when rand is fixed.
+rand_core = "=0.10.0-rc-2"
 regex = "1.12.2"
 reqwest = { version = "0.12.26", default-features = false }
 rsa = "0.10.0-rc.10"
@@ -79,8 +81,7 @@ sha1 = "0.11.0-rc.3"
 sha2 = "0.11.0-rc.3"
 # TODO: Remove when rsa is fixed.
 signature = "=3.0.0-rc.5"
-# TODO
-simdnbt = { version = "0.9.0", git = "https://github.com/azalea-rs/simdnbt" }
+simdnbt = "0.9.0"
 socks5-impl = "0.7.3"
 syn = "2.0.111"
 thiserror = "2.0.17"
