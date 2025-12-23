@@ -49,7 +49,7 @@ criterion = "0.8.1"
 crypto-bigint = "=0.7.0-rc.10"
 # TODO: Remove when rsa is fixed.
 crypto-primes = "=0.7.0-pre.4"
-derive_more = "2.1.0"
+derive_more = "2.1.1"
 enum-as-inner = "0.6.1"
 env_logger = "0.11.8"
 flate2 = { version = "1.1.5", features = ["zlib-rs"] }
@@ -71,12 +71,12 @@ rand = "0.10.0-rc.5"
 # TODO: Remove when rand is fixed.
 rand_core = "=0.10.0-rc-2"
 regex = "1.12.2"
-reqwest = { version = "0.12.26", default-features = false }
+reqwest = { version = "0.12.28", default-features = false }
 rsa = "0.10.0-rc.10"
 rsa_public_encrypt_pkcs1 = "0.4.0"
 rustc-hash = "2.1.1"
 serde = "1.0.228"
-serde_json = "1.0.145"
+serde_json = "1.0.147"
 sha1 = "0.11.0-rc.3"
 sha2 = "0.11.0-rc.3"
 # TODO: Remove when rsa is fixed.

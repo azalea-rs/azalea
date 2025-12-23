@@ -41,7 +41,7 @@ fn main() {
     let mod_rs_path = Path::new("tests/simulation/mod.rs");
 
     let existing_mod_rs = fs::read_to_string(mod_rs_path).unwrap_or_default();
-    if mod_rs == existing_mod_rs {
+    if mod_rs.trim() == existing_mod_rs.trim() {
         // this would cause the build script to run again
         return;
     }
