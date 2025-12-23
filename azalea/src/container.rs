@@ -249,7 +249,13 @@ impl ContainerHandleRef {
     /// Returns the title of the container, or `None` if no container is open.
     ///
     /// ```no_run
+<<<<<<< Updated upstream
     /// # fn example(bot: &azalea::Client) {
+||||||| Stash base
+=======
+    /// # use azalea::prelude::*;
+    /// # fn example(bot: &azalea::Client) {
+>>>>>>> Stashed changes
     /// let inventory = bot.get_inventory();
     /// let inventory_title = inventory.title().unwrap_or_default().to_string();
     /// // would be true if an unnamed chest is open
