@@ -86,8 +86,8 @@ fn stop_jumping(mut query: Query<(&mut Jumping, &mut Bot)>) {
     }
 }
 
-/// A trait that adds a few additional functions to [`Client`] that help with
-/// making bots.
+/// A trait that adds a few additional functions to
+/// [`Client`](azalea_client::Client) that help with making bots.
 pub trait BotClientExt {
     /// Queue a jump for the next tick.
     fn jump(&self);
