@@ -14,7 +14,7 @@ use simdnbt::owned::{NbtCompound, NbtTag};
 
 #[test]
 fn test_login_to_dimension_with_same_name() {
-    init_tracing();
+    let _lock = init();
 
     generic_test_login_to_dimension_with_same_name(true);
     generic_test_login_to_dimension_with_same_name(false);

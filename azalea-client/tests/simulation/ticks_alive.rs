@@ -3,7 +3,7 @@ use azalea_protocol::packets::ConnectionProtocol;
 
 #[test]
 fn counter_increments_and_resets_on_disconnect() {
-    init_tracing();
+    let _lock = init();
 
     let mut simulation = Simulation::new(ConnectionProtocol::Game);
     simulation.tick();

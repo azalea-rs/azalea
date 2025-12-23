@@ -4,7 +4,7 @@ use azalea_world::InstanceName;
 
 #[test]
 fn test_receive_start_config_packet() {
-    init_tracing();
+    let _lock = init();
 
     let mut simulation = Simulation::new(ConnectionProtocol::Game);
 

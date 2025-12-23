@@ -9,7 +9,7 @@ use tracing::Level;
 
 #[test]
 fn test_move_despawned_entity() {
-    init_tracing_with_level(Level::ERROR); // a warning is expected here
+    let _lock = init_with_level(Level::ERROR); // a warning is expected here
 
     let mut simulation = Simulation::new(ConnectionProtocol::Game);
     simulation.receive_packet(default_login_packet());

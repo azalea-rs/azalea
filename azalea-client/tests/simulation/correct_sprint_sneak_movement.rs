@@ -15,7 +15,7 @@ use azalea_registry::builtin::BlockKind;
 
 #[test]
 fn test_correct_sprint_sneak_movement() {
-    init_tracing();
+    let _lock = init();
 
     let mut simulation = Simulation::new(ConnectionProtocol::Game);
     let sent_packets = SentPackets::new(&mut simulation);

@@ -10,7 +10,7 @@ use azalea_registry::builtin::MenuKind;
 
 #[test]
 fn test_close_open_container() {
-    init_tracing();
+    let _lock = init();
 
     let mut simulation = Simulation::new(ConnectionProtocol::Game);
 

@@ -11,7 +11,7 @@ use simdnbt::owned::{NbtCompound, NbtTag};
 
 #[test]
 fn test_enchantments() {
-    init_tracing();
+    let _lock = init();
 
     let mut s = Simulation::new(ConnectionProtocol::Configuration);
     s.receive_packet(ClientboundRegistryData {

@@ -4,7 +4,7 @@ use azalea_world::InstanceName;
 
 #[test]
 fn test_client_disconnect() {
-    init_tracing();
+    let _lock = init();
 
     let mut simulation = Simulation::new(ConnectionProtocol::Game);
 

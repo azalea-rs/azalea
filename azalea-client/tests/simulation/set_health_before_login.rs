@@ -1,5 +1,5 @@
 use azalea_client::{InConfigState, test_utils::prelude::*};
-use azalea_entity::metadata::Health;
+use azalea_entity::{LocalEntity, metadata::Health};
 use azalea_protocol::packets::{
     ConnectionProtocol,
     config::{ClientboundFinishConfiguration, ClientboundRegistryData},
@@ -9,8 +9,8 @@ use azalea_registry::identifier::Identifier;
 use simdnbt::owned::{NbtCompound, NbtTag};
 
 #[test]
-fn test_fast_login() {
-    init_tracing();
+fn test_set_health_before_login() {
+    let _lock = init();
 
     let mut simulation = Simulation::new(ConnectionProtocol::Configuration);
     assert!(simulation.has_component::<InConfigState>());
@@ -27,16 +27,24 @@ fn test_fast_login() {
         .into_iter()
         .collect(),
     });
-
+    simulation.tick();
     simulation.receive_packet(ClientboundFinishConfiguration);
-    // note that there's no simulation tick here
+    simulation.tick();
+
+    assert!(!simulation.has_component::<InConfigState>());
+    assert!(simulation.has_component::<LocalEntity>());
+
     simulation.receive_packet(ClientboundSetHealth {
         health: 15.,
         food: 20,
         saturation: 20.,
     });
     simulation.tick();
-    // we need a second tick to handle the state switch properly
+    assert_eq!(*simulation.component::<Health>(), 15.);
+
+    simulation.receive_packet(default_login_packet());
     simulation.tick();
+
+    // health should stay the same
     assert_eq!(*simulation.component::<Health>(), 15.);
 }
