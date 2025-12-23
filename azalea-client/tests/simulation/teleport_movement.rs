@@ -20,7 +20,7 @@ use azalea_world::MinecraftEntityId;
 
 #[test]
 fn test_teleport_movement() {
-    init_tracing();
+    let _lock = init();
 
     let mut simulation = Simulation::new(ConnectionProtocol::Game);
     let sent_packets = SentPackets::new(&mut simulation);

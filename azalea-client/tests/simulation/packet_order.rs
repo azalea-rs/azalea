@@ -15,7 +15,7 @@ use azalea_registry::builtin::BlockKind;
 
 #[test]
 fn test_packet_order() {
-    init_tracing();
+    let _lock = init();
 
     let mut simulation = Simulation::new(ConnectionProtocol::Game);
     let sent_packets = SentPackets::new(&mut simulation);

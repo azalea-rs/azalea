@@ -12,7 +12,7 @@ use azalea_world::MinecraftEntityId;
 
 #[test]
 fn test_move_and_despawn_entity() {
-    init_tracing();
+    let _lock = init();
 
     let mut simulation = Simulation::new(ConnectionProtocol::Game);
     simulation.receive_packet(default_login_packet());

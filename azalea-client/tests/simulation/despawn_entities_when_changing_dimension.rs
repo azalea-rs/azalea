@@ -13,7 +13,7 @@ use simdnbt::owned::{NbtCompound, NbtTag};
 
 #[test]
 fn test_despawn_entities_when_changing_dimension() {
-    init_tracing();
+    let _lock = init();
 
     let mut simulation = Simulation::new(ConnectionProtocol::Configuration);
     simulation.receive_packet(ClientboundRegistryData {

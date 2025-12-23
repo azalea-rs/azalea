@@ -11,7 +11,7 @@ use simdnbt::owned::{NbtCompound, NbtTag};
 
 #[test]
 fn test_change_dimension_to_nether_and_back() {
-    init_tracing();
+    let _lock = init();
 
     generic_test_change_dimension_to_nether_and_back(true);
     generic_test_change_dimension_to_nether_and_back(false);

@@ -18,7 +18,7 @@ use simdnbt::owned::{NbtCompound, NbtTag};
 
 #[test]
 fn reply_to_ping_with_pong() {
-    init_tracing();
+    let _lock = init();
 
     let mut simulation = Simulation::new(ConnectionProtocol::Configuration);
 

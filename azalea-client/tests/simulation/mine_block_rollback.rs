@@ -7,8 +7,8 @@ use azalea_protocol::packets::{
 use azalea_registry::builtin::BlockKind;
 
 #[test]
-fn test_mine_block_without_rollback() {
-    init_tracing();
+fn test_mine_block_rollback() {
+    let _lock = init();
 
     let mut simulation = Simulation::new(ConnectionProtocol::Game);
     simulation.receive_packet(default_login_packet());
@@ -25,6 +25,7 @@ fn test_mine_block_without_rollback() {
     });
     simulation.tick();
     assert_eq!(simulation.get_block_state(pos), Some(BlockKind::Tnt.into()));
+    println!("set serverside tnt");
 
     simulation.write_message(StartMiningBlockEvent {
         entity: simulation.entity,
@@ -33,14 +34,11 @@ fn test_mine_block_without_rollback() {
     });
     simulation.tick();
     assert_eq!(simulation.get_block_state(pos), Some(BlockKind::Air.into()));
+    println!("set clientside air");
 
-    // server acknowledged our change by sending a BlockUpdate + BlockChangedAck, so
-    // no rollback
-    simulation.receive_packet(ClientboundBlockUpdate {
-        pos,
-        block_state: BlockKind::Air.into(),
-    });
+    // server didn't send the new block, so the change should be rolled back
     simulation.receive_packet(ClientboundBlockChangedAck { seq: 1 });
     simulation.tick();
-    assert_eq!(simulation.get_block_state(pos), Some(BlockKind::Air.into()));
+    assert_eq!(simulation.get_block_state(pos), Some(BlockKind::Tnt.into()));
+    println!("reset serverside tnt");
 }

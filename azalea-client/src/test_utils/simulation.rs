@@ -57,8 +57,9 @@ pub struct Simulation {
 }
 
 impl Simulation {
-    pub fn new(initial_connection_protocol: ConnectionProtocol) -> Self {
+    pub fn new(conn_protocol: ConnectionProtocol) -> Self {
         let mut app = create_simulation_app();
+
         let mut entity = app.world_mut().spawn_empty();
         let (player, rt) =
             create_local_player_bundle(entity.id(), ConnectionProtocol::Configuration);
@@ -78,7 +79,7 @@ impl Simulation {
         let mut simulation = Self { app, entity, rt };
 
         #[allow(clippy::single_match)]
-        match initial_connection_protocol {
+        match conn_protocol {
             ConnectionProtocol::Configuration => {}
             ConnectionProtocol::Game => {
                 simulation.receive_packet(ClientboundRegistryData {
@@ -97,7 +98,7 @@ impl Simulation {
                 simulation.receive_packet(ClientboundFinishConfiguration);
                 simulation.tick();
             }
-            _ => unimplemented!("unsupported ConnectionProtocol {initial_connection_protocol:?}"),
+            _ => unimplemented!("unsupported ConnectionProtocol {conn_protocol:?}"),
         }
 
         simulation
@@ -300,10 +301,13 @@ fn create_local_player_bundle(
 fn create_simulation_app() -> App {
     let mut app = App::new();
 
+    let mut plugins = bevy_app::PluginGroup::build(crate::DefaultPlugins);
     #[cfg(feature = "log")]
-    app.add_plugins(
-        bevy_app::PluginGroup::build(crate::DefaultPlugins).disable::<bevy_log::LogPlugin>(),
-    );
+    {
+        plugins = plugins.disable::<bevy_log::LogPlugin>();
+    }
+
+    app.add_plugins(plugins);
 
     app.edit_schedule(bevy_app::Main, |schedule| {
         // makes test results more reproducible
