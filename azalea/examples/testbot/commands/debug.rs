@@ -10,7 +10,6 @@ use azalea::{
     interact::pick::HitResultComponent,
     packet::game,
     pathfinder::{ExecutingPath, Pathfinder},
-    prelude::ContainerClientExt,
     world::MinecraftEntityId,
 };
 use azalea_core::hit_result::HitResult;

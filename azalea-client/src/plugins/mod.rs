@@ -24,7 +24,6 @@ pub mod packet;
 pub mod pong;
 pub mod respawn;
 pub mod task_pool;
-pub mod tick_broadcast;
 pub mod tick_counter;
 pub mod tick_end;
 
@@ -58,7 +57,6 @@ impl PluginGroup for DefaultPlugins {
             .add(loading::PlayerLoadedPlugin)
             .add(brand::BrandPlugin)
             .add(client_information::ClientInformationPlugin)
-            .add(tick_broadcast::TickBroadcastPlugin)
             .add(tick_counter::TickCounterPlugin)
             .add(pong::PongPlugin)
             .add(connection::ConnectionPlugin)

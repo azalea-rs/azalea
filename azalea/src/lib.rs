@@ -6,12 +6,14 @@ pub mod auto_respawn;
 pub mod auto_tool;
 pub mod bot;
 mod builder;
+mod client_impl;
 pub mod container;
 mod join_opts;
 pub mod nearest_entity;
 pub mod pathfinder;
 pub mod prelude;
 pub mod swarm;
+pub mod tick_broadcast;
 
 pub use azalea_auth as auth;
 pub use azalea_block as block;
@@ -48,6 +50,8 @@ use bevy_ecs::component::Component;
 pub use builder::ClientBuilder;
 use futures::future::BoxFuture;
 pub use join_opts::JoinOpts;
+
+pub use crate::client_impl::Client;
 
 pub type BoxHandleFn<S, R> =
     Box<dyn Fn(Client, azalea_client::Event, S) -> BoxFuture<'static, R> + Send>;

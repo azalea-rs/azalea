@@ -11,7 +11,7 @@ impl Instance {
     ///
     /// ```
     /// # use azalea_registry::builtin::BlockKind;
-    /// # fn example(client: &azalea_client::Client) {
+    /// # fn example(client: &azalea::Client) {
     /// client
     ///     .world()
     ///     .read()

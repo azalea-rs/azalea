@@ -1,11 +1,10 @@
 use azalea_block::{BlockState, BlockTrait, fluid_state::FluidKind};
-use azalea_client::Client;
 use azalea_core::position::BlockPos;
 use azalea_entity::{ActiveEffects, Attributes, FluidOnEyes, Physics, inventory::Inventory};
 use azalea_inventory::{ItemStack, Menu, components};
 use azalea_registry::builtin::{BlockKind, EntityKind, ItemKind};
 
-use crate::bot::BotClientExt;
+use crate::Client;
 
 #[derive(Debug)]
 pub struct BestToolResult {
@@ -13,13 +12,8 @@ pub struct BestToolResult {
     pub percentage_per_tick: f32,
 }
 
-pub trait AutoToolClientExt {
-    fn best_tool_in_hotbar_for_block(&self, block: BlockState) -> BestToolResult;
-    fn mine_with_auto_tool(&self, block_pos: BlockPos) -> impl Future<Output = ()> + Send;
-}
-
-impl AutoToolClientExt for Client {
-    fn best_tool_in_hotbar_for_block(&self, block: BlockState) -> BestToolResult {
+impl Client {
+    pub fn best_tool_in_hotbar_for_block(&self, block: BlockState) -> BestToolResult {
         self.query_self::<(
             &Inventory,
             &Physics,
@@ -41,7 +35,7 @@ impl AutoToolClientExt for Client {
         )
     }
 
-    async fn mine_with_auto_tool(&self, block_pos: BlockPos) {
+    pub async fn mine_with_auto_tool(&self, block_pos: BlockPos) {
         let block_state = self
             .world()
             .read()

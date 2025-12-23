@@ -63,13 +63,12 @@ pub struct PermissionLevel(pub u8);
 ///
 /// ```
 /// # use azalea_client::local_player::TabList;
-/// # fn example(client: &azalea_client::Client) {
-/// let tab_list = client.component::<TabList>();
-/// println!("Online players:");
-/// for (uuid, player_info) in tab_list.iter() {
-///     println!("- {} ({}ms)", player_info.profile.name, player_info.latency);
+/// fn example(tab_list: &TabList) {
+///     println!("Online players:");
+///     for (uuid, player_info) in tab_list.iter() {
+///         println!("- {} ({}ms)", player_info.profile.name, player_info.latency);
+///     }
 /// }
-/// # }
 /// ```
 ///
 /// For convenience, `TabList` is also a resource in the ECS.
