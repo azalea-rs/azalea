@@ -239,7 +239,6 @@ dependencies = [
  "rand 0.10.0-rc.5",
  "rustc-hash",
  "serde",
- "thiserror 2.0.17",
  "tokio",
  "tracing",
  "uuid",
@@ -414,7 +413,6 @@ dependencies = [
 name = "azalea-entity"
 version = "0.15.0+mc1.21.11"
 dependencies = [
- "azalea-auth",
  "azalea-block",
  "azalea-buf",
  "azalea-chat",
@@ -426,10 +424,8 @@ dependencies = [
  "bevy_ecs",
  "derive_more",
  "enum-as-inner",
- "indexmap",
  "nohash-hasher",
  "parking_lot",
- "simdnbt",
  "thiserror 2.0.17",
  "tracing",
  "uuid",
@@ -565,7 +561,6 @@ dependencies = [
  "parking_lot",
  "rustc-hash",
  "serde",
- "thiserror 2.0.17",
  "tracing",
 ]
 
