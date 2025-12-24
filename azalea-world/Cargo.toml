@@ -18,7 +18,7 @@ azalea-buf.workspace = true
 azalea-core = { workspace = true, features = ["bevy_ecs"] }
 azalea-registry.workspace = true
 bevy_ecs.workspace = true
-derive_more = { workspace = true}
+derive_more = { workspace = true }
 nohash-hasher.workspace = true
 parking_lot.workspace = true
 rustc-hash.workspace = true

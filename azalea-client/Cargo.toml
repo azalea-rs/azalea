@@ -26,21 +26,21 @@ bevy_log = { workspace = true, optional = true }
 bevy_tasks.workspace = true
 bevy_time.workspace = true
 chrono = { workspace = true, features = ["now"] }
-derive_more = { workspace = true}
+derive_more = { workspace = true }
 indexmap.workspace = true
 minecraft_folder_path.workspace = true
 parking_lot.workspace = true
 pastey.workspace = true
 regex.workspace = true
-reqwest = { workspace = true, optional = true}
+reqwest = { workspace = true, optional = true }
 simdnbt.workspace = true
 thiserror.workspace = true
-tokio = { workspace = true}
+tokio = { workspace = true }
 tracing.workspace = true
 uuid.workspace = true
 # TODO: this is here to make bevy show system names in conflict warnings.
 # in bevy 0.18, we should be able to just enable the debug feature on bevy_ecs instead.
-bevy_utils = { workspace = true}
+bevy_utils = { workspace = true }
 
 [dev-dependencies]
 anyhow.workspace = true

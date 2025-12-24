@@ -16,7 +16,7 @@ numbers = ["dep:azalea-registry", "dep:simdnbt"]
 azalea-buf = { workspace = true, optional = true, features = ["serde_json"] }
 azalea-language.workspace = true
 azalea-registry = { workspace = true, optional = true }
-serde = { workspace = true}
+serde = { workspace = true }
 serde_json.workspace = true
 simdnbt = { workspace = true, optional = true }
 tracing.workspace = true

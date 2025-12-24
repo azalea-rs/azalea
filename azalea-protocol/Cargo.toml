@@ -30,18 +30,18 @@ flate2.workspace = true
 futures.workspace = true
 futures-lite.workspace = true
 # futures-util.workspace = true
-serde = { workspace = true}
+serde = { workspace = true }
 serde_json.workspace = true
 simdnbt.workspace = true
 socks5-impl = { workspace = true, features = ["client"] }
 thiserror.workspace = true
-tokio = { workspace = true}
+tokio = { workspace = true }
 tokio-util = { workspace = true, features = ["codec"] }
 tracing.workspace = true
 hickory-resolver = { workspace = true, features = ["tokio", "system-config"] }
 uuid.workspace = true
 indexmap.workspace = true
-reqwest = { workspace = true, optional = true}
+reqwest = { workspace = true, optional = true }
 
 [features]
 default = ["online-mode"]

@@ -51,7 +51,9 @@ crypto-primes = "=0.7.0-pre.4"
 derive_more = { version = "2.1.1", default-features = false }
 enum-as-inner = "0.6.1"
 env_logger = { version = "0.11.8", default-features = false }
-flate2 = { version = "1.1.5", features = ["libz-rs-sys"], default-features = false }
+flate2 = { version = "1.1.5", features = [
+    "libz-rs-sys",
+], default-features = false }
 futures = { version = "0.3.31", default-features = false }
 futures-lite = { version = "2.6.1", default-features = false }
 hickory-resolver = { version = "0.25.2", default-features = false }
@@ -66,7 +68,9 @@ parking_lot = "0.12.5"
 pastey = "0.2.1"
 proc-macro2 = { version = "1.0.103", default-features = false }
 quote = { version = "1.0.42", default-features = false }
-rand = { version = "0.10.0-rc.5", features = ["thread_rng"], default-features = false }
+rand = { version = "0.10.0-rc.5", features = [
+    "thread_rng",
+], default-features = false }
 # TODO: Remove when rand is fixed.
 rand_core = "=0.10.0-rc-2"
 regex = "1.12.2"
