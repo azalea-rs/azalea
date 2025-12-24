@@ -9,7 +9,7 @@ repository.workspace = true
 [dependencies]
 azalea-auth.workspace = true
 azalea-buf.workspace = true
-azalea-chat = { workspace = true, features = ["azalea-buf"] }
+azalea-chat = { workspace = true}
 azalea-core.workspace = true
 azalea-inventory-macros.workspace = true
 azalea-registry = { workspace = true, features = ["serde"] }

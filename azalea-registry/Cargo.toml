@@ -9,7 +9,7 @@ repository.workspace = true
 [dependencies]
 azalea-buf.workspace = true
 azalea-registry-macros.workspace = true
-serde = { workspace = true, optional = true, features = ["derive"] }
+serde = { workspace = true, optional = true}
 simdnbt.workspace = true
 
 [features]

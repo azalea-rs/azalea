@@ -14,22 +14,19 @@ chrono = { workspace = true, features = ["serde"] }
 crypto-bigint.workspace = true # TODO: Remove when rsa is fixed.
 crypto-primes.workspace = true # TODO: Remove when rsa is fixed.
 indexmap.workspace = true
-reqwest = { workspace = true, optional = true, default-features = false, features = [
-    "json",
-    "rustls-tls",
-] }
+reqwest = { workspace = true, optional = true, features = ["json"] }
 rsa.workspace = true
 signature.workspace = true # TODO: Remove when rsa is fixed.
-serde = { workspace = true, features = ["derive"] }
+serde = { workspace = true}
 serde_json.workspace = true
 thiserror.workspace = true
-tokio = { workspace = true, features = ["fs"] }
+tokio = { workspace = true}
 tracing.workspace = true
-uuid = { workspace = true, features = ["serde", "v3"] }
+uuid = { workspace = true, features = ["serde"] }
 
 [dev-dependencies]
 env_logger.workspace = true
-tokio = { workspace = true, features = ["full"] }
+tokio = { workspace = true}
 
 [features]
 default = ["online-mode"]

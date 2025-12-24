@@ -15,7 +15,7 @@ num-traits.workspace = true
 serde.workspace = true
 simdnbt.workspace = true
 tracing.workspace = true
-azalea-chat = { workspace = true, features = ["simdnbt"] }
+azalea-chat = { workspace = true}
 indexmap.workspace = true
 crc32c.workspace = true
 thiserror.workspace = true

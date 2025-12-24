@@ -30,44 +30,43 @@ repository = "https://github.com/azalea-rs/azalea"
 
 [workspace.dependencies]
 aes = "0.8.4"
-anyhow = "1.0.100"
+anyhow = { version = "1.0.100", default-features = false }
 async-compat = "0.2.5"
-base64 = "0.22.1"
-bevy_app = "0.17.3"
+base64 = { version = "0.22.1", default-features = false }
+bevy_app = { version = "0.17.3", default-features = false }
 bevy_ecs = { version = "0.17.3", default-features = false }
 bevy_utils = { version = "0.17.3", default-features = false }
 bevy_log = "0.17.3"
-bevy_tasks = "0.17.3"
-bevy_time = "0.17.3"
-byteorder = "1.5.0"
+bevy_tasks = { version = "0.17.3", default-features = false }
+bevy_time = { version = "0.17.3", default-features = false }
+byteorder = { version = "1.5.0", default-features = false }
 cfb8 = "0.8.1"
 chrono = { version = "0.4.42", default-features = false }
-compact_str = "0.9.0"
+compact_str = { version = "0.9.0", default-features = false }
 crc32c = "0.6.8"
-criterion = "0.8.1"
-# TODO: Remove when rsa is fixed.
-crypto-bigint = "=0.7.0-rc.10"
+criterion = { version = "0.8.1", default-features = false }
+crypto-bigint = { version = "=0.7.0-rc.10", default-features = false }
 # TODO: Remove when rsa is fixed.
 crypto-primes = "=0.7.0-pre.4"
-derive_more = "2.1.1"
+derive_more = { version = "2.1.1", default-features = false }
 enum-as-inner = "0.6.1"
-env_logger = "0.11.8"
-flate2 = { version = "1.1.5", features = ["zlib-rs"] }
-futures = "0.3.31"
-futures-lite = "2.6.1"
-hickory-resolver = "0.25.2"
-indexmap = "2.12.1"
-md-5 = "0.10.6"
+env_logger = { version = "0.11.8", default-features = false }
+flate2 = { version = "1.1.5", features = ["libz-rs-sys"], default-features = false }
+futures = { version = "0.3.31", default-features = false }
+futures-lite = { version = "2.6.1", default-features = false }
+hickory-resolver = { version = "0.25.2", default-features = false }
+indexmap = { version = "2.12.1", default-features = false }
+md-5 = { version = "0.10.6", default-features = false }
 minecraft_folder_path = "0.1.2"
 nohash-hasher = "0.2.0"
-num-bigint = "0.4.6"
+num-bigint = { version = "0.4.6", default-features = false }
 num-format = "0.4.4"
-num-traits = "0.2.19"
+num-traits = { version = "0.2.19", default-features = false }
 parking_lot = "0.12.5"
 pastey = "0.2.1"
-proc-macro2 = "1.0.103"
-quote = "1.0.42"
-rand = "0.10.0-rc.5"
+proc-macro2 = { version = "1.0.103", default-features = false }
+quote = { version = "1.0.42", default-features = false }
+rand = { version = "0.10.0-rc.5", features = ["thread_rng"], default-features = false }
 # TODO: Remove when rand is fixed.
 rand_core = "=0.10.0-rc-2"
 regex = "1.12.2"
@@ -75,21 +74,21 @@ reqwest = { version = "0.12.28", default-features = false }
 rsa = "0.10.0-rc.10"
 rsa_public_encrypt_pkcs1 = "0.4.0"
 rustc-hash = "2.1.1"
-serde = "1.0.228"
+serde = { version = "1.0.228", default-features = false }
 serde_json = "1.0.147"
-sha1 = "0.11.0-rc.3"
-sha2 = "0.11.0-rc.3"
+sha1 = { version = "0.11.0-rc.3", default-features = false }
+sha2 = { version = "0.11.0-rc.3", default-features = false }
 # TODO: Remove when rsa is fixed.
 signature = "=3.0.0-rc.5"
 simdnbt = "0.9.0"
 socks5-impl = "0.7.3"
-syn = "2.0.111"
-thiserror = "2.0.17"
+syn = { version = "2.0.111", default-features = false }
+thiserror = { version = "2.0.17", default-features = false }
 tokio = "1.48.0"
 tokio-util = "0.7.17"
-tracing = "0.1.44"
-tracing-subscriber = "0.3.22"
-uuid = "1.19.0"
+tracing = { version = "0.1.44", default-features = false }
+tracing-subscriber = { version = "0.3.22", default-features = false }
+uuid = { version = "1.19.0", default-features = false }
 
 azalea-block-macros = { path = "azalea-block/azalea-block-macros", version = "0.15.0" }
 azalea-block = { path = "azalea-block", version = "0.15.0" }
@@ -109,7 +108,7 @@ azalea-physics = { path = "azalea-physics", version = "0.15.0" }
 azalea-protocol-macros = { path = "azalea-protocol/azalea-protocol-macros", version = "0.15.0" }
 azalea-protocol = { path = "azalea-protocol", version = "0.15.0", default-features = false }
 azalea-registry-macros = { path = "azalea-registry/azalea-registry-macros", version = "0.15.0" }
-azalea-registry = { path = "azalea-registry", version = "0.15.0" }
+azalea-registry = { path = "azalea-registry", version = "0.15.0", default-features = false }
 azalea-world = { path = "azalea-world", version = "0.15.0" }
 
 [workspace.lints.clippy]
