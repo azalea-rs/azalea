@@ -41,6 +41,7 @@ pub struct Swarm {
     ///
     /// This will not work if called within a system, as the ECS is already
     /// locked.
+    #[doc(alias = "ecs_lock")] // former type name
     pub ecs: Arc<RwLock<World>>,
 
     // the address is public and mutable so plugins can change it

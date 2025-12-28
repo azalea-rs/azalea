@@ -224,7 +224,7 @@ impl Client {
 
         if let Some(event_sender) = event_sender {
             ecs_lock
-                .lock()
+                .write()
                 .entity_mut(entity)
                 .insert(LocalPlayerEvents(event_sender));
         }
