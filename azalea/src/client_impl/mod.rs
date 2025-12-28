@@ -2,7 +2,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use azalea_auth::game_profile::GameProfile;
 use azalea_client::{
-    Account, DefaultPlugins, Event,
+    Account, DefaultPlugins,
     connection::RawConnection,
     disconnect::DisconnectEvent,
     join::{ConnectOpts, StartJoinServerEvent},
@@ -38,6 +38,8 @@ use bevy_ecs::{
 use parking_lot::{MappedRwLockReadGuard, RwLock};
 use tokio::sync::mpsc;
 use uuid::Uuid;
+
+use crate::events::{Event, LocalPlayerEvents};
 
 pub mod attack;
 pub mod chat;
@@ -213,13 +215,19 @@ impl Client {
         ecs_lock.write().write_message(StartJoinServerEvent {
             account,
             connect_opts,
-            event_sender,
             start_join_callback_tx: Some(start_join_callback_tx),
         });
 
         let entity = start_join_callback_rx.recv().await.expect(
             "start_join_callback should not be dropped before sending a message, this is a bug in Azalea",
         );
+
+        if let Some(event_sender) = event_sender {
+            ecs_lock
+                .lock()
+                .entity_mut(entity)
+                .insert(LocalPlayerEvents(event_sender));
+        }
 
         Client::new(entity, ecs_lock)
     }

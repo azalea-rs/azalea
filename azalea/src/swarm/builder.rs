@@ -8,11 +8,7 @@ use std::{
     time::Duration,
 };
 
-use azalea_client::{
-    Account, DefaultPlugins,
-    auto_reconnect::{AutoReconnectDelay, DEFAULT_RECONNECT_DELAY},
-    start_ecs_runner,
-};
+use azalea_client::{Account, DefaultPlugins, start_ecs_runner};
 use azalea_protocol::address::{ResolvableAddr, ResolvedAddr};
 use azalea_world::InstanceContainer;
 use bevy_app::{App, AppExit, Plugins, SubApp};
@@ -24,6 +20,7 @@ use tracing::{debug, error, warn};
 
 use crate::{
     BoxHandleFn, HandleFn, JoinOpts, NoState,
+    auto_reconnect::{AutoReconnectDelay, DEFAULT_RECONNECT_DELAY},
     bot::DefaultBotPlugins,
     swarm::{
         BoxSwarmHandleFn, DefaultSwarmPlugins, NoSwarmState, Swarm, SwarmEvent, SwarmHandleFn,

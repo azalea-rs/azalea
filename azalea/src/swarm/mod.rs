@@ -12,7 +12,7 @@ use std::sync::{
     atomic::{self, AtomicBool},
 };
 
-use azalea_client::{Account, Event, chat::ChatPacket, join::ConnectOpts};
+use azalea_client::{Account, chat::ChatPacket, join::ConnectOpts};
 use azalea_entity::LocalEntity;
 use azalea_protocol::address::ResolvedAddr;
 use azalea_world::InstanceContainer;
@@ -49,7 +49,7 @@ pub struct Swarm {
     pub instance_container: Arc<RwLock<InstanceContainer>>,
 
     /// This is used internally to make the client handler function work.
-    pub(crate) bots_tx: mpsc::UnboundedSender<(Option<Event>, Client)>,
+    pub(crate) bots_tx: mpsc::UnboundedSender<(Option<crate::Event>, Client)>,
     /// This is used internally to make the swarm handler function work.
     pub(crate) swarm_tx: mpsc::UnboundedSender<SwarmEvent>,
 }
@@ -211,9 +211,9 @@ impl Swarm {
     /// Copy the events from a client's receiver into bots_tx, until the bot is
     /// removed from the ECS.
     async fn event_copying_task(
-        mut rx: mpsc::UnboundedReceiver<Event>,
+        mut rx: mpsc::UnboundedReceiver<crate::Event>,
         swarm_tx: mpsc::UnboundedSender<SwarmEvent>,
-        bots_tx: mpsc::UnboundedSender<(Option<Event>, Client)>,
+        bots_tx: mpsc::UnboundedSender<(Option<crate::Event>, Client)>,
         bot: Client,
         join_opts: JoinOpts,
     ) {
@@ -250,7 +250,7 @@ impl Swarm {
                 }
             }
 
-            if let Event::Disconnect(_) = event {
+            if let crate::Event::Disconnect(_) = event {
                 debug!(
                     "Sending SwarmEvent::Disconnect due to receiving an Event::Disconnect from client {}",
                     bot.entity

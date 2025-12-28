@@ -28,7 +28,7 @@ impl Client {
 
     /// Whether the client is currently trying to sneak.
     ///
-    /// You may want to check the [`Pose`] instead.
+    /// You may want to check the [`Pose`](azalea_entity::Pose) instead.
     pub fn crouching(&self) -> bool {
         self.query_self::<&PhysicsState, _>(|p| p.trying_to_crouch)
     }

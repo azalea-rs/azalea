@@ -9,7 +9,6 @@ use bevy_ecs::prelude::*;
 
 use super::{
     disconnect::DisconnectEvent,
-    events::LocalPlayerEvents,
     join::{ConnectOpts, ConnectionFailedEvent, StartJoinServerEvent},
 };
 use crate::Account;
@@ -89,15 +88,9 @@ fn get_delay(
 pub fn rejoin_after_delay(
     mut commands: Commands,
     mut join_events: MessageWriter<StartJoinServerEvent>,
-    query: Query<(
-        Entity,
-        &InternalReconnectAfter,
-        &Account,
-        &ConnectOpts,
-        Option<&LocalPlayerEvents>,
-    )>,
+    query: Query<(Entity, &InternalReconnectAfter, &Account, &ConnectOpts)>,
 ) {
-    for (entity, reconnect_after, account, connect_opts, local_player_events) in query.iter() {
+    for (entity, reconnect_after, account, connect_opts) in query.iter() {
         if Instant::now() >= reconnect_after.instant {
             // don't keep trying to reconnect
             commands.entity(entity).remove::<InternalReconnectAfter>();
@@ -106,10 +99,6 @@ pub fn rejoin_after_delay(
             join_events.write(StartJoinServerEvent {
                 account: account.clone(),
                 connect_opts: connect_opts.clone(),
-                // not actually necessary since we're reusing the same entity and LocalPlayerEvents
-                // isn't removed, but this is more readable and just in case it's changed in the
-                // future
-                event_sender: local_player_events.map(|e| e.0.clone()),
                 start_join_callback_tx: None,
             });
         }

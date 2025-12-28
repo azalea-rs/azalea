@@ -209,5 +209,7 @@ impl PluginGroup for DefaultBotPlugins {
             .add(crate::auto_respawn::AutoRespawnPlugin)
             .add(crate::accept_resource_packs::AcceptResourcePacksPlugin)
             .add(crate::tick_broadcast::TickBroadcastPlugin)
+            .add(crate::events::EventsPlugin)
+            .add(crate::auto_reconnect::AutoReconnectPlugin)
     }
 }
