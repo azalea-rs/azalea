@@ -21,8 +21,9 @@ impl Client {
     ///
     /// This returns a reference to the component wrapped by a read guard. This
     /// makes the component cheap to access, but means that the ECS cannot be
-    /// mutated while it's in scope. In some cases, it may be simpler for you to
-    /// immediately clone the component after accessing it.
+    /// mutated while it's in scope (it will cause a deadlock). In some cases,
+    /// it may be simpler for you to immediately clone the component after
+    /// accessing it.
     ///
     /// If the component isn't guaranteed to be present, consider using
     /// [`Self::get_component`] instead.
@@ -227,15 +228,19 @@ impl Client {
     pub fn nearest_entities_by<Q: QueryData, F: QueryFilter>(
         &self,
         predicate: impl EntityPredicate<Q, F>,
-    ) -> Vec<Entity> {
-        let Some(instance_name) = self.get_component::<InstanceName>() else {
-            return vec![];
+    ) -> Box<[Entity]> {
+        let (instance_name, position) = {
+            let Some(instance_name) = self.get_component::<InstanceName>() else {
+                return Box::new([]);
+            };
+            let Some(position) = self.get_component::<Position>() else {
+                return Box::new([]);
+            };
+
+            (instance_name.clone(), **position)
         };
-        let Some(position) = self.get_component::<Position>() else {
-            return vec![];
-        };
-        let (instance_name, position) = (instance_name.clone(), *position);
-        predicate.find_all_sorted(self.ecs.clone(), &instance_name, (&position).into())
+
+        predicate.find_all_sorted(self.ecs.clone(), &instance_name, position)
     }
 
     /// Get a component from an entity.
@@ -291,7 +296,7 @@ pub trait EntityPredicate<Q: QueryData, Filter: QueryFilter> {
         ecs_lock: Arc<RwLock<World>>,
         instance_name: &InstanceName,
         nearest_to: Vec3,
-    ) -> Vec<Entity>;
+    ) -> Box<[Entity]>;
 }
 impl<F, Q: QueryData, Filter: QueryFilter> EntityPredicate<Q, Filter> for F
 where
@@ -316,7 +321,7 @@ where
         ecs_lock: Arc<RwLock<World>>,
         instance_name: &InstanceName,
         nearest_to: Vec3,
-    ) -> Vec<Entity> {
+    ) -> Box<[Entity]> {
         let mut ecs = ecs_lock.write();
         let mut query = ecs.query_filtered::<(Entity, &InstanceName, &Position, Q), Filter>();
         let mut entities = query
@@ -333,6 +338,6 @@ where
         entities
             .into_iter()
             .map(|(e, _)| e)
-            .collect::<Vec<Entity>>()
+            .collect::<Box<[Entity]>>()
     }
 }

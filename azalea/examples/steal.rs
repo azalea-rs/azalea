@@ -3,7 +3,7 @@
 use std::sync::Arc;
 
 use azalea::{BlockPos, pathfinder::goals::RadiusGoal, prelude::*};
-use azalea_inventory::{ItemStack, operations::QuickMoveClick};
+use azalea_inventory::ItemStack;
 use azalea_registry::builtin::{BlockKind, ItemKind};
 use parking_lot::Mutex;
 
@@ -81,7 +81,7 @@ async fn steal(bot: Client, state: State) -> anyhow::Result<()> {
             };
             if item.kind == ItemKind::Diamond {
                 println!("clicking slot ^");
-                chest.click(QuickMoveClick::Left { slot: index as u16 });
+                chest.left_click(index);
             }
         }
     }

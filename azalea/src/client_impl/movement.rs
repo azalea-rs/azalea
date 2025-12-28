@@ -48,9 +48,8 @@ impl Client {
     /// Returns the direction the client is looking.
     ///
     /// See [`Self::set_direction`] for more details.
-    pub fn direction(&self) -> (f32, f32) {
-        let look_direction = *self.component::<LookDirection>();
-        (look_direction.y_rot(), look_direction.x_rot())
+    pub fn direction(&self) -> LookDirection {
+        *self.component::<LookDirection>()
     }
 
     /// Start walking in the given direction.

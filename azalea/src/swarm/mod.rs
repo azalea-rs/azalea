@@ -256,7 +256,7 @@ impl Swarm {
                     "Sending SwarmEvent::Disconnect due to receiving an Event::Disconnect from client {}",
                     bot.entity
                 );
-                let account = bot.component::<Account>().clone();
+                let account = bot.account();
                 swarm_tx
                     .send(SwarmEvent::Disconnect(
                         Box::new(account),

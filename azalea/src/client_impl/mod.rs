@@ -35,7 +35,7 @@ use bevy_ecs::{
     resource::Resource,
     world::{Mut, World},
 };
-use parking_lot::{MappedRwLockReadGuard, RwLock};
+use parking_lot::RwLock;
 use tokio::sync::mpsc;
 use uuid::Uuid;
 
@@ -308,9 +308,7 @@ impl Client {
         // the login packet tells us the world name
         self.query_self::<Option<&InstanceName>, _>(|ins| ins.is_some())
     }
-}
 
-impl Client {
     /// Get the position of this client.
     ///
     /// This is a shortcut for `Vec3::from(&bot.component::<Position>())`.
@@ -395,10 +393,26 @@ impl Client {
         (**self.component::<GameProfileComponent>()).clone()
     }
 
+    /// Returns the [`Account`] for our client.
+    pub fn account(&self) -> Account {
+        self.component::<Account>().clone()
+    }
+
     /// Returns the attribute values of our player, which can be used to
     /// determine things like our movement speed.
-    pub fn attributes(&self) -> MappedRwLockReadGuard<'_, Attributes> {
-        self.component::<Attributes>()
+    pub fn attributes(&self) -> Attributes {
+        // this *could* return a mapped read guard for performance but that rarely
+        // matters and it's just easier for the user if it doesn't.
+        self.component::<Attributes>().clone()
+    }
+
+    /// Get the name of the instance (world) that the bot is in.
+    ///
+    /// This can be used to check if the client is in the same world as another
+    /// entity.
+    #[doc(alias("world_name", "dimension_name"))]
+    pub fn instance_name(&self) -> InstanceName {
+        (*self.component::<InstanceName>()).clone()
     }
 
     /// A convenience function to get the Minecraft Uuid of a player by their

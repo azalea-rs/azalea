@@ -58,10 +58,7 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
                 bot.hold(&pickaxe);
 
                 loop {
-                    if let Err(e) = bot
-                        .dig(azalea::entity::feet_pos(bot.entity()).down(1))
-                        .await
-                    {
+                    if let Err(e) = bot.dig(bot.entity().feet_pos().down(1)).await {
                         println!("{e:?}");
                         break;
                     }

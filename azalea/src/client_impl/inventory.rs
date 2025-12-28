@@ -7,8 +7,11 @@ use crate::Client;
 impl Client {
     /// Return the menu that is currently open, or the player's inventory if no
     /// menu is open.
+    ///
+    /// If you need to interact with the menu, consider using
+    /// [`Self::open_inventory`] instead.
     pub fn menu(&self) -> Menu {
-        self.query_self::<&Inventory, _>(|inv| inv.menu().clone())
+        self.component::<Inventory>().menu().clone()
     }
 
     /// Returns the index of the hotbar slot that's currently selected.
@@ -19,7 +22,7 @@ impl Client {
     ///
     /// You can use [`Self::set_selected_hotbar_slot`] to change it.
     pub fn selected_hotbar_slot(&self) -> u8 {
-        self.query_self::<&Inventory, _>(|inv| inv.selected_hotbar_slot)
+        self.component::<Inventory>().selected_hotbar_slot
     }
 
     /// Update the selected hotbar slot index.

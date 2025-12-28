@@ -88,7 +88,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
 
     commands.register(literal("getdirection").executes(|ctx: &Ctx| {
         let source = ctx.source.lock();
-        let direction = source.bot.component::<LookDirection>();
+        let direction = source.bot.direction();
         source.reply(format!(
             "I'm looking at {}, {}",
             direction.y_rot(),
@@ -108,9 +108,9 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
     commands.register(literal("lookingat").executes(|ctx: &Ctx| {
         let source = ctx.source.lock();
 
-        let hit_result = source.bot.component::<HitResultComponent>();
+        let hit_result = source.bot.hit_result();
 
-        match &**hit_result {
+        match &hit_result {
             HitResult::Block(r) => {
                 if r.miss {
                     source.reply("I'm not looking at anything");
@@ -242,7 +242,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
 
     commands.register(literal("attributes").executes(|ctx: &Ctx| {
         let source = ctx.source.lock();
-        let attributes = source.bot.component::<Attributes>();
+        let attributes = source.bot.attributes();
         println!("attributes: {attributes:?}");
         1
     }));

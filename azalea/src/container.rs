@@ -156,13 +156,13 @@ impl Client {
     ///
     /// To open a container in the world, use [`Client::open_container_at`].
     pub fn get_inventory(&self) -> ContainerHandleRef {
-        self.query_self::<&Inventory, _>(|inv| ContainerHandleRef::new(inv.id, self.clone()))
+        ContainerHandleRef::new(self.component::<Inventory>().id, self.clone())
     }
 
     /// Get the item in the bot's hotbar that is currently being held in its
     /// main hand.
     pub fn get_held_item(&self) -> ItemStack {
-        self.query_self::<&Inventory, _>(|inv| inv.held_item().clone())
+        self.component::<Inventory>().held_item().clone()
     }
 }
 

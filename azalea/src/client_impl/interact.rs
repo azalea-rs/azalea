@@ -1,11 +1,17 @@
-use azalea_client::interact::{EntityInteractEvent, StartUseItemEvent};
-use azalea_core::position::BlockPos;
+use azalea_client::interact::{EntityInteractEvent, StartUseItemEvent, pick::HitResultComponent};
+use azalea_core::{hit_result::HitResult, position::BlockPos};
 use azalea_protocol::packets::game::s_interact::InteractionHand;
 use bevy_ecs::entity::Entity;
 
 use crate::Client;
 
 impl Client {
+    /// Returns the current [`HitResult`], which is the block or entity in the
+    /// client's crosshair.
+    pub fn hit_result(&self) -> HitResult {
+        (**self.component::<HitResultComponent>()).clone()
+    }
+
     /// Right-click a block.
     ///
     /// The behavior of this depends on the target block,
