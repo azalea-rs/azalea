@@ -67,6 +67,10 @@ pub struct Client {
     /// You probably don't need to access this directly. Note that if you're
     /// using a shared world (i.e. a swarm), the ECS will contain all entities
     /// in all instances/dimensions.
+    ///
+    /// You can nearly always use [`Self::component`], [`Self::query_self`],
+    /// [`Self::query_entity`], or another one of those related functions to
+    /// access the ECS instead.
     pub ecs: Arc<RwLock<World>>,
 }
 

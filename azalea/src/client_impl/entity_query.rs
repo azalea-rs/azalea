@@ -14,21 +14,31 @@ use parking_lot::{MappedRwLockReadGuard, RwLock, RwLockReadGuard};
 use crate::Client;
 
 impl Client {
-    /// Get a component from this client. This will clone the component and
-    /// return it.
+    /// Get a component from the client.
     ///
+    /// This allows you to access certain data stored about the client entity
+    /// that isn't accessible in a simpler way.
     ///
-    /// If the component can't be cloned, try [`Self::query_self`] instead.
-    /// If it isn't guaranteed to be present, you can use
-    /// [`Self::get_component`] or [`Self::query_self`].
+    /// This returns a reference to the component wrapped by a read guard. This
+    /// makes the component cheap to access, but means that the ECS cannot be
+    /// mutated while it's in scope. In some cases, it may be simpler for you to
+    /// immediately clone the component after accessing it.
     ///
+    /// If the component isn't guaranteed to be present, consider using
+    /// [`Self::get_component`] instead.
+    ///
+    /// To do more complex queries or to mutate data, see [`Self::query_self`].
+    ///
+    /// To access data about other entities, you can use
+    /// [`Self::entity_component`] (and its other related functions).
     ///
     /// You may also use [`Self::ecs`] directly if you need more control over
     /// when the ECS is locked.
     ///
     /// # Panics
     ///
-    /// This will panic if the component doesn't exist on the client.
+    /// This will panic if the component doesn't exist on the client. Use
+    /// [`Self::get_component`] to avoid this.
     ///
     /// # Examples
     ///
@@ -46,46 +56,53 @@ impl Client {
         })
     }
 
-    /// Get a component from this client, or `None` if it doesn't exist.
+    /// Get a component on this client, or `None` if it doesn't exist.
     ///
-    /// If the component can't be cloned, consider using [`Self::query_self`]
-    /// with `Option<&T>` instead.
-    ///
-    /// You may also have to use [`Self::query_self`] directly.
+    /// If the component is guaranteed to be present, consider using
+    /// [`Self::component`]. Also see that function for more details.
     pub fn get_component<T: Component>(&self) -> Option<MappedRwLockReadGuard<'_, T>> {
         self.get_entity_component::<T>(self.entity)
     }
 
-    /// A convenience function for getting components from our client's entity.
+    /// Query the ECS for data from our client entity.
     ///
     /// To query another entity, you can use [`Self::query_entity`].
     ///
+    /// You can use this to mutate data on the client.
+    ///
     /// # Examples
+    ///
     /// ```
-    /// # use azalea_world::InstanceName;
+    /// # use azalea_entity::Position;
     /// # fn example(mut client: azalea::Client) {
-    /// let is_logged_in = client.query_self::<Option<&InstanceName>, _>(|ins| ins.is_some());
+    /// // teleport one block up
+    /// client.query_self::<&mut Position, _>(|mut pos| pos.y += 1.0);
     /// # }
     /// ```
     ///
     /// # Panics
     ///
-    /// This will panic if the component doesn't exist on the client.
+    /// This will panic if the client is missing a component required by the
+    /// query.
     pub fn query_self<D: QueryData, R>(&self, f: impl FnOnce(QueryItem<D>) -> R) -> R {
         let mut ecs = self.ecs.write();
         let mut qs = ecs.query::<D>();
         let res = qs.get_mut(&mut ecs, self.entity).unwrap_or_else(|_| {
             panic!(
-                "Our client is missing a required component {:?}",
+                "`Client::query_self` failed when querying for {:?}",
                 any::type_name::<D>()
             )
         });
         f(res)
     }
 
-    /// A convenience function for getting components from any entity.
+    /// Query the ECS for data from an entity.
     ///
-    /// If you're querying the client, you should use [`Self::query_self`].
+    /// Note that it is often simpler to use [`Self::entity_component`].
+    ///
+    /// To query the client, you should use [`Self::query_self`].
+    ///
+    /// You can also use this to mutate data on an entity.
     ///
     /// # Panics
     ///
@@ -180,7 +197,7 @@ impl Client {
     /// if let Some(nearest_player) =
     ///     bot.nearest_entity_by::<(), (With<Player>, Without<LocalEntity>)>(|_: ()| true)
     /// {
-    ///     let nearest_player_pos = *bot.entity_component::<Position>(nearest_player);
+    ///     let nearest_player_pos = **bot.entity_component::<Position>(nearest_player);
     ///     bot.chat(format!("You are at {nearest_player_pos}"));
     /// }
     /// # }
@@ -217,17 +234,30 @@ impl Client {
         let Some(position) = self.get_component::<Position>() else {
             return vec![];
         };
-        let (instance_name, position) = (instance_name.clone(), position.clone());
+        let (instance_name, position) = (instance_name.clone(), *position);
         predicate.find_all_sorted(self.ecs.clone(), &instance_name, (&position).into())
     }
 
     /// Get a component from an entity.
     ///
-    /// Note that this will return an owned type (i.e. not a reference) so it
-    /// may be expensive for larger types.
+    /// This allows you to access data stored about entities that isn't
+    /// accessible in a simpler way.
     ///
-    /// If you're trying to get a component for this client, use
-    /// [`Self::component`].
+    /// This returns a reference to the component wrapped by a read guard. This
+    /// makes the component cheap to access, but means that the ECS cannot be
+    /// mutated while it's in scope. In some cases, it may be simpler for you to
+    /// immediately clone the component after accessing it.
+    ///
+    /// If you're trying to get a component for this client, you should use
+    /// [`Self::component`] instead.
+    ///
+    /// To do more complex queries or to mutate data, see
+    /// [`Self::query_entity`].
+    ///
+    /// # Panics
+    ///
+    /// This will panic if the component doesn't exist on the entity. Use
+    /// [`Self::get_entity_component`] to avoid this.
     pub fn entity_component<T: Component>(&self, entity: Entity) -> MappedRwLockReadGuard<'_, T> {
         self.get_entity_component::<T>(entity).unwrap_or_else(|| {
             panic!(

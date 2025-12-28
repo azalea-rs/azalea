@@ -22,7 +22,7 @@ use super::ExecutingPath;
 ///     match event {
 ///         azalea::Event::Init => {
 ///             bot.ecs
-///                 .lock()
+///                 .write()
 ///                 .entity_mut(bot.entity)
 ///                 .insert(PathfinderDebugParticles);
 ///         }
