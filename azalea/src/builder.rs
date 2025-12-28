@@ -150,7 +150,7 @@ where
     /// If this function isn't called, then our client will reconnect after
     /// [`DEFAULT_RECONNECT_DELAY`].
     ///
-    /// [`DEFAULT_RECONNECT_DELAY`]: azalea_client::auto_reconnect::DEFAULT_RECONNECT_DELAY
+    /// [`DEFAULT_RECONNECT_DELAY`]: crate::auto_reconnect::DEFAULT_RECONNECT_DELAY
     #[must_use]
     pub fn reconnect_after(mut self, delay: impl Into<Option<Duration>>) -> Self {
         self.swarm.reconnect_after = delay.into();

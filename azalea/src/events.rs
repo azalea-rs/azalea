@@ -93,7 +93,7 @@ pub enum Event {
     /// We received a packet from the server.
     ///
     /// ```
-    /// # use azalea_client::Event;
+    /// # use azalea::Event;
     /// # use azalea_protocol::packets::game::ClientboundGamePacket;
     /// # async fn example(event: Event) {
     /// # match event {
@@ -129,9 +129,8 @@ pub enum Event {
 /// A component that contains an event sender for events that are only
 /// received by local players.
 ///
-/// The receiver for this is returned by [`Client::start_client`].
-///
-/// [`Client::start_client`]: crate::Client::start_client
+/// The receiver for this is returned by
+/// [`Client::start_client`](crate::Client::start_client).
 #[derive(Component, Deref, DerefMut)]
 pub struct LocalPlayerEvents(pub mpsc::UnboundedSender<Event>);
 
@@ -150,7 +149,7 @@ impl Plugin for EventsPlugin {
                 update_player_listener,
                 remove_player_listener,
                 keepalive_listener,
-                death_listener,
+                death_listener.after(azalea_client::packet::death_event_on_0_health),
                 disconnect_listener,
                 receive_chunk_listener,
             ),

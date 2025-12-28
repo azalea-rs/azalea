@@ -2,12 +2,14 @@
 #![feature(type_changing_struct_update)]
 
 pub mod accept_resource_packs;
+pub mod auto_reconnect;
 pub mod auto_respawn;
 pub mod auto_tool;
 pub mod bot;
 mod builder;
 mod client_impl;
 pub mod container;
+pub mod events;
 mod join_opts;
 pub mod nearest_entity;
 pub mod pathfinder;
@@ -51,11 +53,10 @@ pub use builder::ClientBuilder;
 use futures::future::BoxFuture;
 pub use join_opts::JoinOpts;
 
-pub use crate::client_impl::Client;
+pub use crate::{client_impl::Client, events::Event};
 
-pub type BoxHandleFn<S, R> =
-    Box<dyn Fn(Client, azalea_client::Event, S) -> BoxFuture<'static, R> + Send>;
-pub type HandleFn<S, Fut> = fn(Client, azalea_client::Event, S) -> Fut;
+pub type BoxHandleFn<S, R> = Box<dyn Fn(Client, Event, S) -> BoxFuture<'static, R> + Send>;
+pub type HandleFn<S, Fut> = fn(Client, Event, S) -> Fut;
 
 /// A marker that can be used in place of a State in [`ClientBuilder`] or
 /// [`SwarmBuilder`].

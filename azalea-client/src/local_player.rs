@@ -1,19 +1,13 @@
-use std::{
-    collections::HashMap,
-    error, io,
-    sync::{Arc, PoisonError},
-};
+use std::{collections::HashMap, sync::Arc};
 
 use azalea_core::game_type::GameMode;
 use azalea_world::{Instance, PartialInstance};
 use bevy_ecs::{component::Component, prelude::*};
 use derive_more::{Deref, DerefMut};
 use parking_lot::RwLock;
-use thiserror::Error;
-use tokio::sync::mpsc;
 use uuid::Uuid;
 
-use crate::{ClientInformation, events::Event as AzaleaEvent, player::PlayerInfo};
+use crate::{ClientInformation, player::PlayerInfo};
 
 /// A component that keeps strong references to our [`PartialInstance`] and
 /// [`Instance`] for local players.
@@ -143,23 +137,5 @@ impl InstanceHolder {
         self.instance = Arc::new(RwLock::new(new_instance));
 
         self.partial_instance.write().reset();
-    }
-}
-
-#[derive(Debug, Error)]
-pub enum HandlePacketError {
-    #[error("{0}")]
-    Poison(String),
-    #[error(transparent)]
-    Io(#[from] io::Error),
-    #[error(transparent)]
-    Other(#[from] Box<dyn error::Error + Send + Sync>),
-    #[error("{0}")]
-    Send(#[from] mpsc::error::SendError<AzaleaEvent>),
-}
-
-impl<T> From<PoisonError<T>> for HandlePacketError {
-    fn from(e: PoisonError<T>) -> Self {
-        HandlePacketError::Poison(e.to_string())
     }
 }

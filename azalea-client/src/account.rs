@@ -14,7 +14,7 @@ use uuid::Uuid;
 
 /// Something that can join Minecraft servers.
 ///
-/// To join a server using this account, use [`Client::join`] or
+/// To join a server using this account, use [`StartJoinServerEvent`] or
 /// [`azalea::ClientBuilder`].
 ///
 /// This is also an ECS component that is present on our client entities.
@@ -31,7 +31,7 @@ use uuid::Uuid;
 /// # }
 /// ```
 ///
-/// [`Client::join`]: crate::Client::join
+/// [`StartJoinServerEvent`]: crate::join::StartJoinServerEvent
 /// [`azalea::ClientBuilder`]: https://docs.rs/azalea/latest/azalea/struct.ClientBuilder.html
 #[derive(Clone, Component, Debug)]
 pub struct Account {

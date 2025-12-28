@@ -19,7 +19,6 @@ use parking_lot::RwLock;
 use tokio::sync::mpsc;
 use tracing::{debug, warn};
 
-use super::events::LocalPlayerEvents;
 use crate::{
     Account, LocalPlayerBundle,
     connection::RawConnection,
@@ -51,7 +50,6 @@ impl Plugin for JoinPlugin {
 pub struct StartJoinServerEvent {
     pub account: Account,
     pub connect_opts: ConnectOpts,
-    pub event_sender: Option<mpsc::UnboundedSender<crate::Event>>,
 
     // this is mpsc instead of oneshot so it can be cloned (since it's sent in an event)
     pub start_join_callback_tx: Option<mpsc::UnboundedSender<Entity>>,
@@ -146,12 +144,6 @@ pub fn handle_start_join_server_event(
             // there's no InHandshakeState component since we switch off of the handshake state
             // immediately when the connection is created
         ));
-
-        if let Some(event_sender) = &event.event_sender {
-            // this is optional so we don't leak memory in case the user doesn't want to
-            // handle receiving packets
-            entity_mut.insert(LocalPlayerEvents(event_sender.clone()));
-        }
 
         let task_pool = IoTaskPool::get();
         let connect_opts = event.connect_opts.clone();

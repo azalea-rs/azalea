@@ -130,9 +130,7 @@ impl Client {
     /// Mine a block.
     ///
     /// This won't turn the bot's head towards the block, so if that's necessary
-    /// you'll have to do that yourself with [`look_at`].
-    ///
-    /// [`look_at`]: crate::prelude::BotClientExt::look_at
+    /// you'll have to do that yourself with [`look_at`](Client::look_at).
     pub async fn mine(&self, position: BlockPos) {
         self.start_mining(position);
 
@@ -211,5 +209,7 @@ impl PluginGroup for DefaultBotPlugins {
             .add(crate::auto_respawn::AutoRespawnPlugin)
             .add(crate::accept_resource_packs::AcceptResourcePacksPlugin)
             .add(crate::tick_broadcast::TickBroadcastPlugin)
+            .add(crate::events::EventsPlugin)
+            .add(crate::auto_reconnect::AutoReconnectPlugin)
     }
 }
