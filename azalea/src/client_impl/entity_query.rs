@@ -21,7 +21,7 @@ impl Client {
     /// # Examples
     /// ```
     /// # use azalea_world::InstanceName;
-    /// # fn example(mut client: azalea_client::Client) {
+    /// # fn example(mut client: azalea::Client) {
     /// let is_logged_in = client.query_self::<Option<&InstanceName>, _>(|ins| ins.is_some());
     /// # }
     /// ```
@@ -91,8 +91,11 @@ impl Client {
     ///
     /// # Example
     /// ```
-    /// use azalea_client::{Client, player::GameProfileComponent};
-    /// use azalea_entity::{Position, metadata::Player};
+    /// use azalea::{
+    ///     Client,
+    ///     entity::{Position, metadata::Player},
+    ///     player::GameProfileComponent,
+    /// };
     /// use bevy_ecs::query::With;
     ///
     /// # fn example(mut bot: Client, sender_name: String) {
@@ -130,7 +133,7 @@ impl Client {
     /// use azalea_entity::{LocalEntity, Position, metadata::Player};
     /// use bevy_ecs::query::{With, Without};
     ///
-    /// # fn example(mut bot: azalea_client::Client, sender_name: String) {
+    /// # fn example(mut bot: azalea::Client, sender_name: String) {
     /// // get the position of the nearest player
     /// if let Some(nearest_player) =
     ///     bot.nearest_entity_by::<(), (With<Player>, Without<LocalEntity>)>(|_: ()| true)
@@ -157,7 +160,7 @@ impl Client {
     /// ```
     /// # use azalea_entity::{LocalEntity, Position, metadata::Player};
     /// # use bevy_ecs::query::{With, Without};
-    /// # fn example(mut bot: azalea_client::Client, sender_name: String) {
+    /// # fn example(mut bot: azalea::Client, sender_name: String) {
     /// let nearby_players =
     ///     bot.nearest_entities_by::<(), (With<Player>, Without<LocalEntity>)>(|_: ()| true);
     /// # }

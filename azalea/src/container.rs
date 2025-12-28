@@ -2,7 +2,6 @@ use std::{fmt, fmt::Debug};
 
 use azalea_chat::FormattedText;
 use azalea_client::{
-    Client,
     inventory::{CloseContainerEvent, ContainerClickEvent},
     packet::game::ReceiveGamePacketEvent,
 };
@@ -17,9 +16,8 @@ use azalea_protocol::packets::game::ClientboundGamePacket;
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::{component::Component, prelude::MessageReader, system::Commands};
 use derive_more::Deref;
-use futures_lite::Future;
 
-use crate::bot::BotClientExt;
+use crate::Client;
 
 pub struct ContainerPlugin;
 impl Plugin for ContainerPlugin {
@@ -28,7 +26,7 @@ impl Plugin for ContainerPlugin {
     }
 }
 
-pub trait ContainerClientExt {
+impl Client {
     /// Open a container in the world, like a chest.
     ///
     /// Use [`Client::open_inventory`] to open your own inventory.
@@ -51,10 +49,10 @@ pub trait ContainerClientExt {
     /// let container = bot.open_container_at(target_pos).await;
     /// # }
     /// ```
-    fn open_container_at(
-        &self,
-        pos: BlockPos,
-    ) -> impl Future<Output = Option<ContainerHandle>> + Send;
+    pub async fn open_container_at(&self, pos: BlockPos) -> Option<ContainerHandle> {
+        self.open_container_at_with_timeout_ticks(pos, Some(20 * 5))
+            .await
+    }
 
     /// Open a container in the world, or time out after a specified amount of
     /// ticks.
@@ -67,59 +65,7 @@ pub trait ContainerClientExt {
     ///
     /// The timeout is measured in game ticks (on the client, not the server),
     /// i.e. 1/20th of a second.
-    fn open_container_at_with_timeout_ticks(
-        &self,
-        pos: BlockPos,
-        timeout_ticks: Option<usize>,
-    ) -> impl Future<Output = Option<ContainerHandle>> + Send;
-
-    /// Wait until a container is open, up to the specified number of ticks.
-    ///
-    /// Returns `None` if the container was immediately opened and closed, or if
-    /// the timeout expired.
-    ///
-    /// If `timeout_ticks` is None, there will be no timeout.
-    fn wait_for_container_open(
-        &self,
-        timeout_ticks: Option<usize>,
-    ) -> impl Future<Output = Option<ContainerHandle>> + Send;
-
-    /// Open the player's inventory.
-    ///
-    /// This will return None if another container is open.
-    ///
-    /// Note that this will send a packet to the server once it's dropped. Also,
-    /// due to how it's implemented, you could call this function multiple times
-    /// while another inventory handle already exists (but you shouldn't).
-    ///
-    /// If you just want to get the items in the player's inventory without
-    /// sending any packets, use [`Client::menu`], [`Menu::player_slots_range`],
-    /// and [`Menu::slots`].
-    fn open_inventory(&self) -> Option<ContainerHandle>;
-    /// Returns a [`ContainerHandleRef`] to the client's currently open
-    /// container, or their inventory.
-    ///
-    /// This will not send a packet to close the container when it's dropped,
-    /// which may cause anticheat compatibility issues if you modify your
-    /// inventory without closing it afterwards.
-    ///
-    /// To simulate opening your own inventory (like pressing 'e') in a way that
-    /// won't trigger anticheats, use [`Client::open_inventory`].
-    ///
-    /// To open a container in the world, use [`Client::open_container_at`].
-    fn get_inventory(&self) -> ContainerHandleRef;
-    /// Get the item in the bot's hotbar that is currently being held in its
-    /// main hand.
-    fn get_held_item(&self) -> ItemStack;
-}
-
-impl ContainerClientExt for Client {
-    async fn open_container_at(&self, pos: BlockPos) -> Option<ContainerHandle> {
-        self.open_container_at_with_timeout_ticks(pos, Some(20 * 5))
-            .await
-    }
-
-    async fn open_container_at_with_timeout_ticks(
+    pub async fn open_container_at_with_timeout_ticks(
         &self,
         pos: BlockPos,
         timeout_ticks: Option<usize>,
@@ -143,7 +89,13 @@ impl ContainerClientExt for Client {
         self.wait_for_container_open(timeout_ticks).await
     }
 
-    async fn wait_for_container_open(
+    /// Wait until a container is open, up to the specified number of ticks.
+    ///
+    /// Returns `None` if the container was immediately opened and closed, or if
+    /// the timeout expired.
+    ///
+    /// If `timeout_ticks` is None, there will be no timeout.
+    pub async fn wait_for_container_open(
         &self,
         timeout_ticks: Option<usize>,
     ) -> Option<ContainerHandle> {
@@ -172,7 +124,18 @@ impl ContainerClientExt for Client {
         }
     }
 
-    fn open_inventory(&self) -> Option<ContainerHandle> {
+    /// Open the player's inventory.
+    ///
+    /// This will return None if another container is open.
+    ///
+    /// Note that this will send a packet to the server once it's dropped. Also,
+    /// due to how it's implemented, you could call this function multiple times
+    /// while another inventory handle already exists (but you shouldn't).
+    ///
+    /// If you just want to get the items in the player's inventory without
+    /// sending any packets, use [`Client::menu`], [`Menu::player_slots_range`],
+    /// and [`Menu::slots`].
+    pub fn open_inventory(&self) -> Option<ContainerHandle> {
         let ecs = self.ecs.lock();
         let inventory = ecs.get::<Inventory>(self.entity).expect("no inventory");
         if inventory.id == 0 {
@@ -182,11 +145,24 @@ impl ContainerClientExt for Client {
         }
     }
 
-    fn get_inventory(&self) -> ContainerHandleRef {
+    /// Returns a [`ContainerHandleRef`] to the client's currently open
+    /// container, or their inventory.
+    ///
+    /// This will not send a packet to close the container when it's dropped,
+    /// which may cause anticheat compatibility issues if you modify your
+    /// inventory without closing it afterwards.
+    ///
+    /// To simulate opening your own inventory (like pressing 'e') in a way that
+    /// won't trigger anticheats, use [`Client::open_inventory`].
+    ///
+    /// To open a container in the world, use [`Client::open_container_at`].
+    pub fn get_inventory(&self) -> ContainerHandleRef {
         self.query_self::<&Inventory, _>(|inv| ContainerHandleRef::new(inv.id, self.clone()))
     }
 
-    fn get_held_item(&self) -> ItemStack {
+    /// Get the item in the bot's hotbar that is currently being held in its
+    /// main hand.
+    pub fn get_held_item(&self) -> ItemStack {
         self.query_self::<&Inventory, _>(|inv| inv.held_item().clone())
     }
 }
@@ -274,7 +250,7 @@ impl ContainerHandleRef {
     ///
     /// ```no_run
     /// # use azalea::prelude::*;
-    /// # fn example(bot: &azalea::Client) {
+    /// # fn example(bot: &Client) {
     /// let inventory = bot.get_inventory();
     /// let inventory_title = inventory.title().unwrap_or_default().to_string();
     /// // would be true if an unnamed chest is open

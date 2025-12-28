@@ -15,7 +15,6 @@ use derive_more::{Deref, DerefMut};
 use tracing::{debug, trace, warn};
 
 use crate::{
-    Client,
     interact::{
         BlockStatePredictionHandler, SwingArmEvent, can_use_game_master_blocks,
         check_is_interaction_restricted, pick::HitResultComponent,
@@ -70,31 +69,6 @@ impl Plugin for MiningPlugin {
 /// The Bevy system set for things related to mining.
 #[derive(Clone, Debug, Eq, Hash, PartialEq, SystemSet)]
 pub struct MiningSystems;
-
-impl Client {
-    pub fn start_mining(&self, position: BlockPos) {
-        let mut ecs = self.ecs.lock();
-
-        ecs.write_message(StartMiningBlockEvent {
-            entity: self.entity,
-            position,
-            force: true,
-        });
-    }
-
-    /// When enabled, the bot will mine any block that it is looking at if it is
-    /// reachable.
-    pub fn left_click_mine(&self, enabled: bool) {
-        let mut ecs = self.ecs.lock();
-        let mut entity_mut = ecs.entity_mut(self.entity);
-
-        if enabled {
-            entity_mut.insert(LeftClickMine);
-        } else {
-            entity_mut.remove::<LeftClickMine>();
-        }
-    }
-}
 
 /// A component that simulates the client holding down left click to mine the
 /// block that it's facing, but this only interacts with blocks and not

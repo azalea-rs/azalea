@@ -12,7 +12,7 @@ use std::sync::{
     atomic::{self, AtomicBool},
 };
 
-use azalea_client::{Account, Client, Event, StartClientOpts, chat::ChatPacket, join::ConnectOpts};
+use azalea_client::{Account, Event, chat::ChatPacket, join::ConnectOpts};
 use azalea_entity::LocalEntity;
 use azalea_protocol::address::ResolvedAddr;
 use azalea_world::InstanceContainer;
@@ -24,7 +24,7 @@ use parking_lot::{Mutex, RwLock};
 use tokio::{sync::mpsc, task};
 use tracing::{debug, error, warn};
 
-use crate::JoinOpts;
+use crate::{Client, JoinOpts, client_impl::StartClientOpts};
 
 /// A swarm is a way to conveniently control many bots at once, while also
 /// being able to control bots at an individual level when desired.

@@ -549,9 +549,9 @@ dependencies = [
 name = "azalea-world"
 version = "0.15.0+mc1.21.11"
 dependencies = [
+ "azalea",
  "azalea-block",
  "azalea-buf",
- "azalea-client",
  "azalea-core",
  "azalea-registry",
  "bevy_ecs",

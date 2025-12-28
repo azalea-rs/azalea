@@ -66,9 +66,9 @@ use self::{
     moves::{ExecuteCtx, IsReachedCtx, SuccessorsFn},
 };
 use crate::{
-    WalkDirection,
+    Client, WalkDirection,
     app::{App, Plugin},
-    bot::{BotClientExt, JumpEvent, LookAtEvent},
+    bot::{JumpEvent, LookAtEvent},
     ecs::{
         component::Component,
         entity::Entity,
@@ -229,7 +229,7 @@ pub trait PathfinderClientExt {
     fn is_goto_target_reached(&self) -> bool;
 }
 
-impl PathfinderClientExt for azalea_client::Client {
+impl PathfinderClientExt for Client {
     async fn goto(&self, goal: impl Goal + 'static) {
         self.goto_with_opts(goal, PathfinderOpts::new()).await;
     }

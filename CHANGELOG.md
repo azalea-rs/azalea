@@ -10,7 +10,11 @@ is breaking anyways, semantic versioning is not followed.
 
 ### Added
 
+- Re-implement `Client::map_component` and `map_get_component`.
+
 ### Changed
+
+- Move the `Client` struct out of `azalea-client` into `azalea`.
 
 ### Fixed
 
