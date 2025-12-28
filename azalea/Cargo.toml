@@ -38,7 +38,6 @@ num-traits.workspace = true
 parking_lot.workspace = true
 rustc-hash.workspace = true
 serde = { workspace = true, optional = true }
-thiserror.workspace = true
 tokio.workspace = true
 tracing.workspace = true
 uuid.workspace = true

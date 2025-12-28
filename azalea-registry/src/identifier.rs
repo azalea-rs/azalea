@@ -8,6 +8,7 @@ use std::{
 };
 
 use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
 use simdnbt::{FromNbtTag, ToNbtTag, owned::NbtTag};
 
@@ -102,6 +103,7 @@ impl AzaleaWrite for Identifier {
     }
 }
 
+#[cfg(feature = "serde")]
 impl Serialize for Identifier {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -111,6 +113,7 @@ impl Serialize for Identifier {
     }
 }
 
+#[cfg(feature = "serde")]
 impl<'de> Deserialize<'de> for Identifier {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where

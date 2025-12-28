@@ -239,7 +239,6 @@ dependencies = [
  "rand 0.10.0-rc.5",
  "rustc-hash",
  "serde",
- "thiserror 2.0.17",
  "tokio",
  "tracing",
  "uuid",
@@ -414,7 +413,6 @@ dependencies = [
 name = "azalea-entity"
 version = "0.15.0+mc1.21.11"
 dependencies = [
- "azalea-auth",
  "azalea-block",
  "azalea-buf",
  "azalea-chat",
@@ -426,10 +424,8 @@ dependencies = [
  "bevy_ecs",
  "derive_more",
  "enum-as-inner",
- "indexmap",
  "nohash-hasher",
  "parking_lot",
- "simdnbt",
  "thiserror 2.0.17",
  "tracing",
  "uuid",
@@ -565,7 +561,6 @@ dependencies = [
  "parking_lot",
  "rustc-hash",
  "serde",
- "thiserror 2.0.17",
  "tracing",
 ]
 
@@ -1826,7 +1821,7 @@ dependencies = [
  "libc",
  "percent-encoding",
  "pin-project-lite",
- "socket2 0.6.1",
+ "socket2 0.5.10",
  "tokio",
  "tower-service",
  "tracing",
@@ -2528,7 +2523,7 @@ dependencies = [
  "quinn-udp",
  "rustc-hash",
  "rustls",
- "socket2 0.6.1",
+ "socket2 0.5.10",
  "thiserror 2.0.17",
  "tokio",
  "tracing",
@@ -2565,7 +2560,7 @@ dependencies = [
  "cfg_aliases",
  "libc",
  "once_cell",
- "socket2 0.6.1",
+ "socket2 0.5.10",
  "tracing",
  "windows-sys 0.60.2",
 ]
@@ -2929,15 +2924,15 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.146"
+version = "1.0.147"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "217ca874ae0207aac254aa02c957ded05585a90892cc8d87f9e5fa49669dadd8"
+checksum = "6af14725505314343e673e9ecb7cd7e8a36aa9791eb936235a3567cc31447ae4"
 dependencies = [
  "itoa",
  "memchr",
- "ryu",
  "serde",
  "serde_core",
+ "zmij",
 ]
 
 [[package]]
@@ -3774,7 +3769,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
@@ -4150,3 +4145,9 @@ name = "zlib-rs"
 version = "0.5.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "40990edd51aae2c2b6907af74ffb635029d5788228222c4bb811e9351c0caad3"
+
+[[package]]
+name = "zmij"
+version = "0.1.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9e404bcd8afdaf006e529269d3e85a743f9480c3cef60034d77860d02964f3ba"

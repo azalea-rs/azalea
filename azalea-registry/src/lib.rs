@@ -291,10 +291,8 @@ impl<R: Registry + Serialize, Direct: AzaleaRead + AzaleaWrite + Serialize> Seri
     }
 }
 
-impl<
-    R: Registry + Serialize + FromNbtTag,
-    Direct: AzaleaRead + AzaleaWrite + Serialize + FromNbtTag,
-> FromNbtTag for Holder<R, Direct>
+impl<R: Registry + FromNbtTag, Direct: AzaleaRead + AzaleaWrite + FromNbtTag> FromNbtTag
+    for Holder<R, Direct>
 {
     fn from_nbt_tag(tag: NbtTag) -> Option<Self> {
         if let Some(reference) = R::from_nbt_tag(tag) {

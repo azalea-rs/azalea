@@ -12,5 +12,5 @@ mod world;
 
 pub use bit_storage::BitStorage;
 pub use chunk_storage::{Chunk, ChunkStorage, PartialChunkStorage, Section};
-pub use container::*;
+pub use container::{InstanceContainer, InstanceName};
 pub use world::*;

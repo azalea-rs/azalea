@@ -28,9 +28,6 @@ impl Serialize for TextComponent {
 
         self.base.serialize_map::<S>(&mut state)?;
 
-        if !self.base.siblings.is_empty() {
-            state.serialize_entry("extra", &self.base.siblings)?;
-        }
         state.end()
     }
 }
@@ -252,6 +249,15 @@ mod tests {
                 RED = Ansi::rgb(0xff0000),
                 RESET = Ansi::RESET
             )
+        );
+    }
+
+    #[test]
+    fn test_serialize_to_json() {
+        let component = TextComponent::new("Hello §aworld".to_owned()).get();
+        assert_eq!(
+            serde_json::to_string(&component).unwrap(),
+            "{\"text\":\"\",\"extra\":[\"Hello \",{\"text\":\"world\",\"color\":\"#55FF55\"}]}"
         );
     }
 }
