@@ -6,14 +6,13 @@ use azalea::{
     BlockPos,
     brigadier::prelude::*,
     chunks::ReceiveChunkEvent,
-    entity::{LookDirection, Position},
-    interact::pick::HitResultComponent,
+    entity::Position,
     packet::game,
     pathfinder::{ExecutingPath, Pathfinder},
     world::MinecraftEntityId,
 };
 use azalea_core::hit_result::HitResult;
-use azalea_entity::{Attributes, EntityKindComponent, EntityUuid, metadata};
+use azalea_entity::{EntityKindComponent, EntityUuid, metadata};
 use azalea_inventory::components::MaxStackSize;
 use azalea_world::InstanceContainer;
 use bevy_app::AppExit;
