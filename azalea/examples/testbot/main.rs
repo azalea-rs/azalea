@@ -129,7 +129,7 @@ async fn handle(bot: Client, event: azalea::Event, state: State) -> anyhow::Resu
             });
             if swarm.args.pathfinder_debug_particles {
                 bot.ecs
-                    .lock()
+                    .write()
                     .entity_mut(bot.entity)
                     .insert(PathfinderDebugParticles);
             }

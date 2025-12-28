@@ -20,7 +20,7 @@ use bevy_app::{PluginGroup, PluginGroupBuilder};
 use bevy_ecs::prelude::*;
 pub use builder::SwarmBuilder;
 use futures::future::BoxFuture;
-use parking_lot::{Mutex, RwLock};
+use parking_lot::RwLock;
 use tokio::{sync::mpsc, task};
 use tracing::{debug, error, warn};
 
@@ -37,7 +37,12 @@ use crate::{Client, JoinOpts, client_impl::StartClientOpts};
 /// removed with [`Client::disconnect`].
 #[derive(Clone, Resource)]
 pub struct Swarm {
-    pub ecs_lock: Arc<Mutex<World>>,
+    /// A way to directly access the ECS.
+    ///
+    /// This will not work if called within a system, as the ECS is already
+    /// locked.
+    #[doc(alias = "ecs_lock")] // former type name
+    pub ecs: Arc<RwLock<World>>,
 
     // the address is public and mutable so plugins can change it
     pub address: Arc<RwLock<ResolvedAddr>>,
@@ -176,7 +181,7 @@ impl Swarm {
         let (tx, rx) = mpsc::unbounded_channel();
 
         let client = Client::start_client(StartClientOpts {
-            ecs_lock: self.ecs_lock.clone(),
+            ecs_lock: self.ecs.clone(),
             account: account.clone(),
             connect_opts: ConnectOpts {
                 address,
@@ -188,7 +193,7 @@ impl Swarm {
         .await;
         // add the state to the client
         {
-            let mut ecs = self.ecs_lock.lock();
+            let mut ecs = self.ecs.write();
             ecs.entity_mut(client.entity).insert(state);
         }
 
@@ -251,9 +256,7 @@ impl Swarm {
                     "Sending SwarmEvent::Disconnect due to receiving an Event::Disconnect from client {}",
                     bot.entity
                 );
-                let account = bot
-                    .get_component::<Account>()
-                    .expect("bot is missing required Account component");
+                let account = bot.component::<Account>().clone();
                 swarm_tx
                     .send(SwarmEvent::Disconnect(
                         Box::new(account),
@@ -284,7 +287,7 @@ impl Swarm {
     ///
     /// [`LocalEntity`]: azalea_entity::LocalEntity
     pub fn client_entities(&self) -> Box<[Entity]> {
-        let mut ecs = self.ecs_lock.lock();
+        let mut ecs = self.ecs.write();
         let mut query = ecs.query_filtered::<Entity, With<LocalEntity>>();
         query.iter(&ecs).collect::<Box<[Entity]>>()
     }
@@ -312,7 +315,7 @@ impl IntoIterator for Swarm {
 
         client_entities
             .into_iter()
-            .map(|entity| Client::new(entity, self.ecs_lock.clone()))
+            .map(|entity| Client::new(entity, self.ecs.clone()))
             .collect::<Box<[Client]>>()
             .into_iter()
     }

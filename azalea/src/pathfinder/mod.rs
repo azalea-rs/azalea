@@ -242,17 +242,17 @@ impl PathfinderClientExt for Client {
     }
     fn start_goto_with_opts(&self, goal: impl Goal + 'static, opts: PathfinderOpts) {
         self.ecs
-            .lock()
+            .write()
             .write_message(GotoEvent::new(self.entity, goal, opts));
     }
     fn stop_pathfinding(&self) {
-        self.ecs.lock().write_message(StopPathfindingEvent {
+        self.ecs.write().write_message(StopPathfindingEvent {
             entity: self.entity,
             force: false,
         });
     }
     fn force_stop_pathfinding(&self) {
-        self.ecs.lock().write_message(StopPathfindingEvent {
+        self.ecs.write().write_message(StopPathfindingEvent {
             entity: self.entity,
             force: true,
         });

@@ -15,7 +15,7 @@ impl Client {
     /// Note that this may trigger anticheats as it doesn't take into account
     /// whether you're actually looking at the block.
     pub fn block_interact(&self, position: BlockPos) {
-        self.ecs.lock().write_message(StartUseItemEvent {
+        self.ecs.write().write_message(StartUseItemEvent {
             entity: self.entity,
             hand: InteractionHand::MainHand,
             force_block: Some(position),
@@ -28,7 +28,7 @@ impl Client {
     /// behavior isn't desired, consider using [`Client::start_use_item`]
     /// instead.
     pub fn entity_interact(&self, entity: Entity) {
-        self.ecs.lock().trigger(EntityInteractEvent {
+        self.ecs.write().trigger(EntityInteractEvent {
             client: self.entity,
             target: entity,
             location: None,
@@ -43,7 +43,7 @@ impl Client {
     /// If we're looking at a block or entity, then it will be clicked. Also see
     /// [`Client::block_interact`] and [`Client::entity_interact`].
     pub fn start_use_item(&self) {
-        self.ecs.lock().write_message(StartUseItemEvent {
+        self.ecs.write().write_message(StartUseItemEvent {
             entity: self.entity,
             hand: InteractionHand::MainHand,
             force_block: None,

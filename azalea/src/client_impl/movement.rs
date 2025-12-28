@@ -19,7 +19,7 @@ impl Client {
 
     /// Returns whether the player will try to jump next tick.
     pub fn jumping(&self) -> bool {
-        *self.component::<Jumping>()
+        **self.component::<Jumping>()
     }
 
     pub fn set_crouching(&self, crouching: bool) {
@@ -49,7 +49,7 @@ impl Client {
     ///
     /// See [`Self::set_direction`] for more details.
     pub fn direction(&self) -> (f32, f32) {
-        let look_direction: LookDirection = self.component::<LookDirection>();
+        let look_direction = *self.component::<LookDirection>();
         (look_direction.y_rot(), look_direction.x_rot())
     }
 
@@ -71,7 +71,7 @@ impl Client {
     /// # }
     /// ```
     pub fn walk(&self, direction: WalkDirection) {
-        let mut ecs = self.ecs.lock();
+        let mut ecs = self.ecs.write();
         ecs.write_message(StartWalkEvent {
             entity: self.entity,
             direction,
@@ -95,7 +95,7 @@ impl Client {
     /// # }
     /// ```
     pub fn sprint(&self, direction: SprintDirection) {
-        let mut ecs = self.ecs.lock();
+        let mut ecs = self.ecs.write();
         ecs.write_message(StartSprintEvent {
             entity: self.entity,
             direction,

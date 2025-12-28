@@ -110,7 +110,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
 
         let hit_result = source.bot.component::<HitResultComponent>();
 
-        match &*hit_result {
+        match &**hit_result {
             HitResult::Block(r) => {
                 if r.miss {
                     source.reply("I'm not looking at anything");
@@ -121,7 +121,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
                 source.reply(format!("I'm looking at {block:?} at {block_pos:?}"));
             }
             HitResult::Entity(r) => {
-                let entity_kind = *source.bot.entity_component::<EntityKindComponent>(r.entity);
+                let entity_kind = **source.bot.entity_component::<EntityKindComponent>(r.entity);
                 source.reply(format!(
                     "I'm looking at {entity_kind} ({:?}) at {}",
                     r.entity, r.location
@@ -180,7 +180,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
             "is_path_partial: {}, path.len: {}, queued_path.len: {}",
             executing_path.is_path_partial,
             executing_path.path.len(),
-            if let Some(queued) = executing_path.queued_path {
+            if let Some(queued) = &executing_path.queued_path {
                 queued.len().to_string()
             } else {
                 "n/a".to_owned()
@@ -261,9 +261,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
             thread::sleep(Duration::from_secs(1));
             // dump the ecs
 
-            let mut ecs = ecs.lock();
-
-
+            let mut ecs = ecs.write();
 
             let report_path = env::temp_dir().join("azalea-ecs-leak-report.txt");
             let mut report = File::create(&report_path).unwrap();
@@ -357,7 +355,12 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
         thread::spawn(move || {
             thread::sleep(Duration::from_secs(1));
 
-            source.lock().bot.ecs.lock().write_message(AppExit::Success);
+            source
+                .lock()
+                .bot
+                .ecs
+                .write()
+                .write_message(AppExit::Success);
         });
 
         1

@@ -31,12 +31,11 @@ use azalea_registry::{DataRegistryKeyRef, identifier::Identifier};
 use azalea_world::{Instance, InstanceName, MinecraftEntityId, PartialInstance};
 use bevy_app::App;
 use bevy_ecs::{
-    component::Component,
     entity::Entity,
     resource::Resource,
     world::{Mut, World},
 };
-use parking_lot::{Mutex, RwLock};
+use parking_lot::{MappedRwLockReadGuard, RwLock};
 use tokio::sync::mpsc;
 use uuid::Uuid;
 
@@ -70,11 +69,15 @@ pub struct Client {
     /// You probably don't need to access this directly. Note that if you're
     /// using a shared world (i.e. a swarm), the ECS will contain all entities
     /// in all instances/dimensions.
-    pub ecs: Arc<Mutex<World>>,
+    ///
+    /// You can nearly always use [`Self::component`], [`Self::query_self`],
+    /// [`Self::query_entity`], or another one of those related functions to
+    /// access the ECS instead.
+    pub ecs: Arc<RwLock<World>>,
 }
 
 pub struct StartClientOpts {
-    pub ecs_lock: Arc<Mutex<World>>,
+    pub ecs_lock: Arc<RwLock<World>>,
     pub account: Account,
     pub connect_opts: ConnectOpts,
     pub event_sender: Option<mpsc::UnboundedSender<Event>>,
@@ -141,7 +144,7 @@ impl Client {
     /// World, and schedule runner function.
     /// You should only use this if you want to change these fields from the
     /// defaults, otherwise use [`Client::join`].
-    pub fn new(entity: Entity, ecs: Arc<Mutex<World>>) -> Self {
+    pub fn new(entity: Entity, ecs: Arc<RwLock<World>>) -> Self {
         Self {
             // default our id to 0, it'll be set later
             entity,
@@ -209,7 +212,7 @@ impl Client {
         let (start_join_callback_tx, mut start_join_callback_rx) =
             mpsc::unbounded_channel::<Entity>();
 
-        ecs_lock.lock().write_message(StartJoinServerEvent {
+        ecs_lock.write().write_message(StartJoinServerEvent {
             account,
             connect_opts,
             start_join_callback_tx: Some(start_join_callback_tx),
@@ -221,7 +224,7 @@ impl Client {
 
         if let Some(event_sender) = event_sender {
             ecs_lock
-                .lock()
+                .write()
                 .entity_mut(entity)
                 .insert(LocalPlayerEvents(event_sender));
         }
@@ -233,7 +236,7 @@ impl Client {
     pub fn write_packet(&self, packet: impl Packet<ServerboundGamePacket>) {
         let packet = packet.into_variant();
         self.ecs
-            .lock()
+            .write()
             .commands()
             .trigger(SendGamePacketEvent::new(self.entity, packet));
     }
@@ -243,7 +246,7 @@ impl Client {
     /// The OwnedReadHalf for the TCP connection is in one of the tasks, so it
     /// automatically closes the connection when that's dropped.
     pub fn disconnect(&self) {
-        self.ecs.lock().write_message(DisconnectEvent {
+        self.ecs.write().write_message(DisconnectEvent {
             entity: self.entity,
             reason: None,
         });
@@ -256,58 +259,21 @@ impl Client {
         self.query_self::<&mut RawConnection, _>(f)
     }
 
-    /// Get a component from this client. This will clone the component and
-    /// return it.
-    ///
-    ///
-    /// If the component can't be cloned, try [`Self::query_self`] instead.
-    /// If it isn't guaranteed to be present, you can use
-    /// [`Self::get_component`] or [`Self::query_self`].
-    ///
-    ///
-    /// You may also use [`Self::ecs`] directly if you need more control over
-    /// when the ECS is locked.
-    ///
-    /// # Panics
-    ///
-    /// This will panic if the component doesn't exist on the client.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use azalea_world::InstanceName;
-    /// # fn example(client: &azalea::Client) {
-    /// let world_name = client.component::<InstanceName>();
-    /// # }
-    pub fn component<T: Component + Clone>(&self) -> T {
-        self.query_self::<&T, _>(|t| t.clone())
-    }
-
-    /// Get a component from this client, or `None` if it doesn't exist.
-    ///
-    /// If the component can't be cloned, consider using [`Self::query_self`]
-    /// with `Option<&T>` instead.
-    ///
-    /// You may also have to use [`Self::query_self`] directly.
-    pub fn get_component<T: Component + Clone>(&self) -> Option<T> {
-        self.query_self::<Option<&T>, _>(|t| t.cloned())
-    }
-
     /// Get a resource from the ECS. This will clone the resource and return it.
     pub fn resource<T: Resource + Clone>(&self) -> T {
-        self.ecs.lock().resource::<T>().clone()
+        self.ecs.read().resource::<T>().clone()
     }
 
     /// Get a required ECS resource and call the given function with it.
     pub fn map_resource<T: Resource, R>(&self, f: impl FnOnce(&T) -> R) -> R {
-        let ecs = self.ecs.lock();
+        let ecs = self.ecs.read();
         let value = ecs.resource::<T>();
         f(value)
     }
 
     /// Get an optional ECS resource and call the given function with it.
     pub fn map_get_resource<T: Resource, R>(&self, f: impl FnOnce(Option<&T>) -> R) -> R {
-        let ecs = self.ecs.lock();
+        let ecs = self.ecs.read();
         let value = ecs.get_resource::<T>();
         f(value)
     }
@@ -354,7 +320,7 @@ impl Client {
     /// later.
     pub fn position(&self) -> Vec3 {
         Vec3::from(
-            &self
+            &*self
                 .get_component::<Position>()
                 .expect("the client's position hasn't been initialized yet"),
         )
@@ -366,7 +332,7 @@ impl Client {
     /// This is a shortcut for
     /// `self.component::<EntityDimensions>()`.
     pub fn dimensions(&self) -> EntityDimensions {
-        self.component::<EntityDimensions>()
+        self.component::<EntityDimensions>().clone()
     }
 
     /// Get the position of this client's eyes.
@@ -383,7 +349,7 @@ impl Client {
     ///
     /// This is a shortcut for `*bot.component::<Health>()`.
     pub fn health(&self) -> f32 {
-        *self.component::<Health>()
+        **self.component::<Health>()
     }
 
     /// Get the hunger level of this client, which includes both food and
@@ -413,7 +379,7 @@ impl Client {
     ///
     /// This is a shortcut for `*bot.component::<TabList>()`.
     pub fn tab_list(&self) -> HashMap<Uuid, PlayerInfo> {
-        (*self.component::<TabList>()).clone()
+        (**self.component::<TabList>()).clone()
     }
 
     /// Returns the [`GameProfile`] for our client. This contains your username,
@@ -426,12 +392,12 @@ impl Client {
     ///
     /// This as also available from the ECS as [`GameProfileComponent`].
     pub fn profile(&self) -> GameProfile {
-        (*self.component::<GameProfileComponent>()).clone()
+        (**self.component::<GameProfileComponent>()).clone()
     }
 
     /// Returns the attribute values of our player, which can be used to
     /// determine things like our movement speed.
-    pub fn attributes(&self) -> Attributes {
+    pub fn attributes(&self) -> MappedRwLockReadGuard<'_, Attributes> {
         self.component::<Attributes>()
     }
 

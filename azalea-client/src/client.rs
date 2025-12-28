@@ -18,7 +18,7 @@ use bevy_ecs::{
     prelude::*,
     schedule::{InternedScheduleLabel, LogLevel, ScheduleBuildSettings},
 };
-use parking_lot::Mutex;
+use parking_lot::RwLock;
 use tokio::{sync::oneshot, time};
 use tracing::{info, warn};
 
@@ -118,7 +118,11 @@ impl Plugin for AzaleaPlugin {
 #[doc(hidden)]
 pub fn start_ecs_runner(
     app: &mut SubApp,
-) -> (Arc<Mutex<World>>, impl FnOnce(), oneshot::Receiver<AppExit>) {
+) -> (
+    Arc<RwLock<World>>,
+    impl FnOnce(),
+    oneshot::Receiver<AppExit>,
+) {
     // this block is based on Bevy's default runner:
     // https://github.com/bevyengine/bevy/blob/390877cdae7a17095a75c8f9f1b4241fe5047e83/crates/bevy_app/src/schedule_runner.rs#L77-L85
     if app.plugins_state() != PluginsState::Cleaned {
@@ -136,7 +140,7 @@ pub fn start_ecs_runner(
 
     // all resources should have been added by now so we can take the ecs from the
     // app
-    let ecs = Arc::new(Mutex::new(mem::take(app.world_mut())));
+    let ecs = Arc::new(RwLock::new(mem::take(app.world_mut())));
 
     let ecs_clone = ecs.clone();
     let outer_schedule_label = *app.update_schedule.as_ref().unwrap();
@@ -157,7 +161,7 @@ pub fn start_ecs_runner(
 ///
 /// Exits when we receive an `AppExit` event.
 async fn run_schedule_loop(
-    ecs: Arc<Mutex<World>>,
+    ecs: Arc<RwLock<World>>,
     outer_schedule_label: InternedScheduleLabel,
 ) -> AppExit {
     let mut last_update: Option<Instant> = None;
@@ -181,7 +185,7 @@ async fn run_schedule_loop(
         }
         last_update = Some(now);
 
-        let mut ecs = ecs.lock();
+        let mut ecs = ecs.write();
 
         // if last tick is None or more than 50ms ago, run the GameTick schedule
         ecs.run_schedule(outer_schedule_label);

@@ -36,7 +36,7 @@ impl Client {
             "Hotbar slot index must be in the range 0..=8"
         );
 
-        let mut ecs = self.ecs.lock();
+        let mut ecs = self.ecs.write();
         ecs.trigger(SetSelectedHotbarSlotEvent {
             entity: self.entity,
             slot: new_hotbar_slot_index,

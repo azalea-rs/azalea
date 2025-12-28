@@ -65,7 +65,7 @@ impl Client {
     /// # async fn example(bot: &mut azalea::Client) {
     /// let mut ticks = bot.get_tick_broadcaster();
     /// while ticks.recv().await.is_ok() {
-    ///     let ecs = bot.ecs.lock();
+    ///     let ecs = bot.ecs.read();
     ///     if ecs.get::<WaitingForInventoryOpen>(bot.entity).is_none() {
     ///         break;
     ///     }
@@ -73,7 +73,7 @@ impl Client {
     /// # }
     /// ```
     pub fn get_tick_broadcaster(&self) -> tokio::sync::broadcast::Receiver<()> {
-        let ecs = self.ecs.lock();
+        let ecs = self.ecs.read();
         let tick_broadcast = ecs.resource::<TickBroadcast>();
         tick_broadcast.subscribe()
     }
@@ -86,7 +86,7 @@ impl Client {
     /// This is useful if you're sending an ECS event and want to make sure it's
     /// been handled before continuing.
     pub fn get_update_broadcaster(&self) -> tokio::sync::broadcast::Receiver<()> {
-        let ecs = self.ecs.lock();
+        let ecs = self.ecs.read();
         let update_broadcast = ecs.resource::<UpdateBroadcast>();
         update_broadcast.subscribe()
     }
