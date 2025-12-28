@@ -151,6 +151,7 @@ impl PartialEntityInfos {
 /// This is sometimes interchangeably called a "world". However, this type is
 /// called `Instance` to avoid colliding with the `World` type from Bevy ECS.
 #[derive(Debug, Default)]
+#[doc(alias("world", "dimension"))]
 pub struct Instance {
     pub chunks: ChunkStorage,
 
