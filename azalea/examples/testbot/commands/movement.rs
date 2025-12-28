@@ -28,6 +28,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
                     source.reply("I can't see you!");
                     return 0;
                 };
+                let position = position.clone();
                 source.reply("ok");
                 source
                     .bot

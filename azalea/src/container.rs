@@ -81,7 +81,7 @@ impl Client {
         }
 
         self.ecs
-            .lock()
+            .write()
             .entity_mut(self.entity)
             .insert(WaitingForInventoryOpen);
         self.block_interact(pos);
@@ -102,7 +102,7 @@ impl Client {
         let mut ticks = self.get_tick_broadcaster();
         let mut elapsed_ticks = 0;
         while ticks.recv().await.is_ok() {
-            let ecs = self.ecs.lock();
+            let ecs = self.ecs.read();
             if ecs.get::<WaitingForInventoryOpen>(self.entity).is_none() {
                 break;
             }
@@ -115,7 +115,7 @@ impl Client {
             }
         }
 
-        let ecs = self.ecs.lock();
+        let ecs = self.ecs.read();
         let inventory = ecs.get::<Inventory>(self.entity).expect("no inventory");
         if inventory.id == 0 {
             None
@@ -136,8 +136,7 @@ impl Client {
     /// sending any packets, use [`Client::menu`], [`Menu::player_slots_range`],
     /// and [`Menu::slots`].
     pub fn open_inventory(&self) -> Option<ContainerHandle> {
-        let ecs = self.ecs.lock();
-        let inventory = ecs.get::<Inventory>(self.entity).expect("no inventory");
+        let inventory = self.component::<Inventory>();
         if inventory.id == 0 {
             Some(ContainerHandle::new(0, self.clone()))
         } else {
@@ -188,7 +187,7 @@ impl ContainerHandleRef {
     }
 
     pub fn close(&self) {
-        self.client.ecs.lock().trigger(CloseContainerEvent {
+        self.client.ecs.write().trigger(CloseContainerEvent {
             entity: self.client.entity,
             id: self.id,
         });
@@ -285,7 +284,7 @@ impl ContainerHandleRef {
     /// action.
     pub fn click(&self, operation: impl Into<ClickOperation>) {
         let operation = operation.into();
-        self.client.ecs.lock().trigger(ContainerClickEvent {
+        self.client.ecs.write().trigger(ContainerClickEvent {
             entity: self.client.entity,
             window_id: self.id,
             operation,

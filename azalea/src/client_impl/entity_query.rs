@@ -9,11 +9,53 @@ use bevy_ecs::{
     query::{QueryData, QueryEntityError, QueryFilter, QueryItem, ROQueryItem},
     world::World,
 };
-use parking_lot::Mutex;
+use parking_lot::{MappedRwLockReadGuard, RwLock, RwLockReadGuard};
 
 use crate::Client;
 
 impl Client {
+    /// Get a component from this client. This will clone the component and
+    /// return it.
+    ///
+    ///
+    /// If the component can't be cloned, try [`Self::query_self`] instead.
+    /// If it isn't guaranteed to be present, you can use
+    /// [`Self::get_component`] or [`Self::query_self`].
+    ///
+    ///
+    /// You may also use [`Self::ecs`] directly if you need more control over
+    /// when the ECS is locked.
+    ///
+    /// # Panics
+    ///
+    /// This will panic if the component doesn't exist on the client.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use azalea_world::InstanceName;
+    /// # fn example(client: &azalea::Client) {
+    /// let world_name = client.component::<InstanceName>();
+    /// # }
+    pub fn component<T: Component>(&self) -> MappedRwLockReadGuard<'_, T> {
+        self.get_component::<T>().unwrap_or_else(|| {
+            panic!(
+                "Our client is missing a required component: {:?}",
+                any::type_name::<&T>()
+            )
+        })
+    }
+
+    /// Get a component from this client, or `None` if it doesn't exist.
+    ///
+    /// If the component can't be cloned, consider using [`Self::query_self`]
+    /// with `Option<&T>` instead.
+    ///
+    /// You may also have to use [`Self::query_self`] directly.
+    pub fn get_component<T: Component>(&self) -> Option<MappedRwLockReadGuard<'_, T>> {
+        self.get_entity_component::<T>(self.entity)
+    }
+
     /// A convenience function for getting components from our client's entity.
     ///
     /// To query another entity, you can use [`Self::query_entity`].
@@ -30,7 +72,7 @@ impl Client {
     ///
     /// This will panic if the component doesn't exist on the client.
     pub fn query_self<D: QueryData, R>(&self, f: impl FnOnce(QueryItem<D>) -> R) -> R {
-        let mut ecs = self.ecs.lock();
+        let mut ecs = self.ecs.write();
         let mut qs = ecs.query::<D>();
         let res = qs.get_mut(&mut ecs, self.entity).unwrap_or_else(|_| {
             panic!(
@@ -73,7 +115,7 @@ impl Client {
         entity: Entity,
         f: impl FnOnce(QueryItem<D>) -> R,
     ) -> Result<R, QueryEntityError> {
-        let mut ecs = self.ecs.lock();
+        let mut ecs = self.ecs.write();
         let mut qs = ecs.query::<D>();
         qs.get_mut(&mut ecs, entity).map(f)
     }
@@ -175,6 +217,7 @@ impl Client {
         let Some(position) = self.get_component::<Position>() else {
             return vec![];
         };
+        let (instance_name, position) = (instance_name.clone(), position.clone());
         predicate.find_all_sorted(self.ecs.clone(), &instance_name, (&position).into())
     }
 
@@ -185,36 +228,37 @@ impl Client {
     ///
     /// If you're trying to get a component for this client, use
     /// [`Self::component`].
-    pub fn entity_component<Q: Component + Clone>(&self, entity: Entity) -> Q {
-        let mut ecs = self.ecs.lock();
-        let mut q = ecs.query::<&Q>();
-        let components = q.get(&ecs, entity).unwrap_or_else(|_| {
+    pub fn entity_component<T: Component>(&self, entity: Entity) -> MappedRwLockReadGuard<'_, T> {
+        self.get_entity_component::<T>(entity).unwrap_or_else(|| {
             panic!(
-                "Entity is missing a required component {:?}",
-                any::type_name::<Q>()
+                "Entity {entity} is missing a required component: {:?}",
+                any::type_name::<&T>()
             )
-        });
-        components.clone()
+        })
     }
 
     /// Get a component from an entity, if it exists.
     ///
     /// This is similar to [`Self::entity_component`] but returns an `Option`
     /// instead of panicking if the component isn't present.
-    pub fn get_entity_component<Q: Component + Clone>(&self, entity: Entity) -> Option<Q> {
-        let mut ecs = self.ecs.lock();
-        let mut q = ecs.query::<&Q>();
-        let components = q.get(&ecs, entity).ok();
-        components.cloned()
+    pub fn get_entity_component<T: Component>(
+        &self,
+        entity: Entity,
+    ) -> Option<MappedRwLockReadGuard<'_, T>> {
+        let ecs = self.ecs.read();
+        RwLockReadGuard::try_map(ecs, |ecs: &World| ecs.get(entity)).ok()
     }
 }
 
 pub trait EntityPredicate<Q: QueryData, Filter: QueryFilter> {
-    fn find_any(&self, ecs_lock: Arc<Mutex<World>>, instance_name: &InstanceName)
-    -> Option<Entity>;
+    fn find_any(
+        &self,
+        ecs_lock: Arc<RwLock<World>>,
+        instance_name: &InstanceName,
+    ) -> Option<Entity>;
     fn find_all_sorted(
         &self,
-        ecs_lock: Arc<Mutex<World>>,
+        ecs_lock: Arc<RwLock<World>>,
         instance_name: &InstanceName,
         nearest_to: Vec3,
     ) -> Vec<Entity>;
@@ -226,10 +270,10 @@ where
 {
     fn find_any(
         &self,
-        ecs_lock: Arc<Mutex<World>>,
+        ecs_lock: Arc<RwLock<World>>,
         instance_name: &InstanceName,
     ) -> Option<Entity> {
-        let mut ecs = ecs_lock.lock();
+        let mut ecs = ecs_lock.write();
         let mut query = ecs.query_filtered::<(Entity, &InstanceName, Q), Filter>();
         query
             .iter(&ecs)
@@ -239,11 +283,11 @@ where
 
     fn find_all_sorted(
         &self,
-        ecs_lock: Arc<Mutex<World>>,
+        ecs_lock: Arc<RwLock<World>>,
         instance_name: &InstanceName,
         nearest_to: Vec3,
     ) -> Vec<Entity> {
-        let mut ecs = ecs_lock.lock();
+        let mut ecs = ecs_lock.write();
         let mut query = ecs.query_filtered::<(Entity, &InstanceName, &Position, Q), Filter>();
         let mut entities = query
             .iter(&ecs)

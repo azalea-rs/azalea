@@ -451,7 +451,7 @@ where
             let (ecs_lock, start_running_systems, appexit_rx) = start_ecs_runner(&mut self.app);
 
             let swarm = Swarm {
-                ecs_lock: ecs_lock.clone(),
+                ecs: ecs_lock.clone(),
 
                 address: Arc::new(RwLock::new(address)),
                 instance_container,
@@ -463,7 +463,7 @@ where
 
             // run the main schedule so the startup systems run
             {
-                let mut ecs = ecs_lock.lock();
+                let mut ecs = ecs_lock.write();
                 ecs.insert_resource(swarm.clone());
                 ecs.insert_resource(self.swarm_state.clone());
                 if let Some(reconnect_after) = self.reconnect_after {
@@ -548,7 +548,7 @@ where
 
                     if let Some(handler) = &self.handler {
                         let ecs_mutex = first_bot.ecs.clone();
-                        let mut ecs = ecs_mutex.lock();
+                        let mut ecs = ecs_mutex.write();
                         let mut query = ecs.query::<Option<&S>>();
                         let Ok(Some(first_bot_state)) = query.get(&ecs, first_bot.entity) else {
                             error!(

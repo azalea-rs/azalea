@@ -82,7 +82,7 @@ fn stop_jumping(mut query: Query<(&mut Jumping, &mut Bot)>) {
 impl Client {
     /// Queue a jump for the next tick.
     pub fn jump(&self) {
-        let mut ecs = self.ecs.lock();
+        let mut ecs = self.ecs.write();
         ecs.write_message(JumpEvent {
             entity: self.entity,
         });
@@ -92,7 +92,7 @@ impl Client {
     ///
     /// To look at the center of a block, you should call [`BlockPos::center`].
     pub fn look_at(&self, position: Vec3) {
-        let mut ecs = self.ecs.lock();
+        let mut ecs = self.ecs.write();
         ecs.write_message(LookAtEvent {
             entity: self.entity,
             position,
@@ -138,7 +138,7 @@ impl Client {
 
         let mut receiver = self.get_tick_broadcaster();
         while receiver.recv().await.is_ok() {
-            let ecs = self.ecs.lock();
+            let ecs = self.ecs.read();
             if ecs.get::<Mining>(self.entity).is_none() {
                 break;
             }

@@ -11,7 +11,7 @@ impl Client {
     /// the message is a command and using the proper packet for you, so you
     /// should use that instead.
     pub fn write_chat_packet(&self, message: &str) {
-        self.ecs.lock().write_message(SendChatKindEvent {
+        self.ecs.write().write_message(SendChatKindEvent {
             entity: self.entity,
             content: message.to_owned(),
             kind: ChatKind::Message,
@@ -24,7 +24,7 @@ impl Client {
     /// You can also just use [`Client::chat`] and start your message with a `/`
     /// to send a command.
     pub fn write_command_packet(&self, command: &str) {
-        self.ecs.lock().write_message(SendChatKindEvent {
+        self.ecs.write().write_message(SendChatKindEvent {
             entity: self.entity,
             content: command.to_owned(),
             kind: ChatKind::Command,
@@ -41,7 +41,7 @@ impl Client {
     /// # }
     /// ```
     pub fn chat(&self, content: impl Into<String>) {
-        self.ecs.lock().write_message(SendChatEvent {
+        self.ecs.write().write_message(SendChatEvent {
             entity: self.entity,
             content: content.into(),
         });

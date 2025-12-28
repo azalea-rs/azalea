@@ -17,9 +17,9 @@ pub fn tick(bot: Client, state: State) -> anyhow::Result<()> {
     let mut nearest_entity = None;
     let mut nearest_distance = f64::INFINITY;
     let bot_position = bot.eye_position();
-    let bot_instance_name = bot.component::<InstanceName>();
+    let bot_instance_name = bot.component::<InstanceName>().clone();
     {
-        let mut ecs = bot.ecs.lock();
+        let mut ecs = bot.ecs.write();
         let mut query = ecs
             .query_filtered::<(Entity, &Position, &InstanceName), (
                 With<AbstractMonster>,
