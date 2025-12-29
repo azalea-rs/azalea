@@ -6,13 +6,11 @@ use azalea::{
     BlockPos,
     brigadier::prelude::*,
     chunks::ReceiveChunkEvent,
-    entity::Position,
     packet::game,
     pathfinder::{ExecutingPath, Pathfinder},
-    world::MinecraftEntityId,
 };
 use azalea_core::hit_result::HitResult;
-use azalea_entity::{EntityKindComponent, EntityUuid, metadata};
+use azalea_entity::{EntityKindComponent, metadata};
 use azalea_inventory::components::MaxStackSize;
 use azalea_world::InstanceContainer;
 use bevy_app::AppExit;
@@ -40,7 +38,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
             source.reply("You aren't in render distance!");
             return 0;
         };
-        let position = source.bot.entity_component::<Position>(entity);
+        let position = entity.position();
         source.reply(format!(
             "You are at {}, {}, {}",
             position.x, position.y, position.z
@@ -54,7 +52,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
             source.reply("You aren't in render distance!");
             return 0;
         };
-        let entity_id = source.bot.entity_component::<MinecraftEntityId>(entity);
+        let entity_id = entity.minecraft_id();
         source.reply(format!(
             "Your Minecraft ID is {} and your ECS ID is {entity:?}",
             *entity_id
@@ -219,10 +217,10 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
             .nearest_entities_by::<(), With<metadata::Player>>(|_: ()| true);
         let tab_list = source.bot.tab_list();
         for player_entity in player_entities {
-            let uuid = source.bot.entity_component::<EntityUuid>(player_entity);
+            let uuid = player_entity.uuid();
             source.reply(format!(
                 "{} - {} ({:?})",
-                player_entity,
+                player_entity.id(),
                 tab_list.get(&uuid).map_or("?", |p| p.profile.name.as_str()),
                 uuid
             ));
