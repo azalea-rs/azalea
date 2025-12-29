@@ -11,7 +11,7 @@ use bevy_ecs::{
 };
 use parking_lot::{MappedRwLockReadGuard, RwLock, RwLockReadGuard};
 
-use crate::Client;
+use crate::{Client, entity_ref::EntityRef};
 
 impl Client {
     /// Get a component from the client.
@@ -138,40 +138,42 @@ impl Client {
         qs.get_mut(&mut ecs, entity).map(f)
     }
 
+    /// Quickly returns an [`EntityRef`] for an arbitrary entity that
+    /// matches the given predicate function that is in the same
+    /// [`Instance`] as the client.
+    pub fn any_entity_by<Q: QueryData, F: QueryFilter>(
+        &self,
+        predicate: impl EntityPredicate<Q, F>,
+    ) -> Option<EntityRef> {
+        self.any_entity_id_by(predicate)
+            .map(|e| self.entity_ref_for(e))
+    }
     /// Quickly returns a lightweight [`Entity`] for an arbitrary entity that
     /// matches the given predicate function that is in the same
     /// [`Instance`] as the client.
     ///
-    /// You can then use [`Self::entity_component`] to get components from this
-    /// entity.
+    /// To get an [`EntityRef`], consider using [`Self::any_entity_by`]
+    /// instead.
     ///
     /// If you want to find the nearest entity, consider using
-    /// [`Self::nearest_entity_by`] instead. If you want to find all entities
-    /// that match the predicate, use [`Self::nearest_entities_by`].
+    /// [`Self::nearest_entity_id_by`] instead. If you want to find all entities
+    /// that match the predicate, use [`Self::nearest_entity_ids_by`].
     ///
     /// # Example
+    ///
     /// ```
-    /// use azalea::{
-    ///     Client,
-    ///     entity::{Position, metadata::Player},
-    ///     player::GameProfileComponent,
-    /// };
+    /// use azalea::{entity::metadata::Player, player::GameProfileComponent};
     /// use bevy_ecs::query::With;
     ///
-    /// # fn example(mut bot: Client, sender_name: String) {
-    /// let entity = bot.any_entity_by::<&GameProfileComponent, With<Player>>(
+    /// # fn example(mut bot: azalea::Client, sender_name: String) {
+    /// let entity: Entity = bot.any_entity_id_by::<&GameProfileComponent, With<Player>>(
     ///     |profile: &GameProfileComponent| profile.name == sender_name,
     /// );
-    /// if let Some(entity) = entity {
-    ///     let position = bot.entity_component::<Position>(entity);
-    ///     // ...
-    /// }
     /// # }
     /// ```
     ///
-    /// [`Entity`]: bevy_ecs::entity::Entity
     /// [`Instance`]: azalea_world::Instance
-    pub fn any_entity_by<Q: QueryData, F: QueryFilter>(
+    pub fn any_entity_id_by<Q: QueryData, F: QueryFilter>(
         &self,
         predicate: impl EntityPredicate<Q, F>,
     ) -> Option<Entity> {
@@ -179,43 +181,59 @@ impl Client {
         predicate.find_any(self.ecs.clone(), &instance_name)
     }
 
-    /// Return a lightweight [`Entity`] for the nearest entity that matches the
+    /// Return an [`EntityRef`] for the nearest entity that matches the
     /// given predicate function.
-    ///
-    /// You can then use [`Self::entity_component`] to get components from this
-    /// entity.
     ///
     /// If you don't need the entity to be the nearest one, it may be more
     /// efficient to use [`Self::any_entity_by`] instead. You can also use
     /// [`Self::nearest_entities_by`] to get all nearby entities.
     ///
-    /// ```
-    /// use azalea_entity::{LocalEntity, Position, metadata::Player};
-    /// use bevy_ecs::query::{With, Without};
-    ///
-    /// # fn example(mut bot: azalea::Client, sender_name: String) {
-    /// // get the position of the nearest player
-    /// if let Some(nearest_player) =
-    ///     bot.nearest_entity_by::<(), (With<Player>, Without<LocalEntity>)>(|_: ()| true)
-    /// {
-    ///     let nearest_player_pos = **bot.entity_component::<Position>(nearest_player);
-    ///     bot.chat(format!("You are at {nearest_player_pos}"));
-    /// }
-    /// # }
-    /// ```
-    ///
-    /// [`Entity`]: bevy_ecs::entity::Entity
+    /// Also see [`Self::nearest_entity_id_by`] if you only need the lightweight
+    /// [`Entity`] identifier.
     pub fn nearest_entity_by<Q: QueryData, F: QueryFilter>(
         &self,
         predicate: impl EntityPredicate<Q, F>,
+    ) -> Option<EntityRef> {
+        self.nearest_entity_id_by(predicate)
+            .map(|e| self.entity_ref_for(e))
+    }
+    /// Return a lightweight [`Entity`] for the nearest entity that matches the
+    /// given predicate function.
+    ///
+    /// To get an [`EntityRef`], consider using [`Self::nearest_entity_by`]
+    /// instead.
+    ///
+    /// If you don't need the entity to be the nearest one, it may be more
+    /// efficient to use [`Self::any_entity_id_by`] instead. You can also use
+    /// [`Self::nearest_entity_ids_by`] to get all nearby entities.
+    pub fn nearest_entity_id_by<Q: QueryData, F: QueryFilter>(
+        &self,
+        predicate: impl EntityPredicate<Q, F>,
     ) -> Option<Entity> {
-        self.nearest_entities_by(predicate).first().copied()
+        self.nearest_entity_ids_by(predicate).first().copied()
     }
 
-    /// Similar to [`Self::nearest_entity_by`] but returns a `Vec<Entity>` of
-    /// all entities in our instance that match the predicate.
+    /// Returns an array of all [`EntityRef`]s in the instance that match the
+    /// predicate, sorted by nearest first.
     ///
-    /// The first entity is the nearest one.
+    /// To only get the nearest entity, consider using
+    /// [`Self::nearest_entity_by`]. If you only need the [`Entity`]
+    /// identifiers, you can use [`Self::nearest_entity_ids_by`] instead.
+    pub fn nearest_entities_by<Q: QueryData, F: QueryFilter>(
+        &self,
+        predicate: impl EntityPredicate<Q, F>,
+    ) -> Box<[EntityRef]> {
+        self.nearest_entity_ids_by(predicate)
+            .into_iter()
+            .map(|e| self.entity_ref_for(e))
+            .collect()
+    }
+    /// Returns an array of all [`Entity`]s in the instance that match the
+    /// predicate, sorted by nearest first.
+    ///
+    /// To only get the nearest entity, consider using
+    /// [`Self::nearest_entity_id_by`]. To get the [`EntityRef`]s instead, you
+    /// can use [`Self::nearest_entities_by`].
     ///
     /// ```
     /// # use azalea_entity::{LocalEntity, Position, metadata::Player};
@@ -225,7 +243,7 @@ impl Client {
     ///     bot.nearest_entities_by::<(), (With<Player>, Without<LocalEntity>)>(|_: ()| true);
     /// # }
     /// ```
-    pub fn nearest_entities_by<Q: QueryData, F: QueryFilter>(
+    pub fn nearest_entity_ids_by<Q: QueryData, F: QueryFilter>(
         &self,
         predicate: impl EntityPredicate<Q, F>,
     ) -> Box<[Entity]> {

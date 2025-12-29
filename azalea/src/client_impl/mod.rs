@@ -307,7 +307,12 @@ impl Client {
     /// Returns the client as an [`EntityRef`], allowing you to treat it as any
     /// other entity.
     pub fn entity(&self) -> EntityRef {
-        EntityRef::new(self.clone(), self.entity)
+        self.entity_ref_for(self.entity)
+    }
+
+    /// Create an [`EntityRef`] for the given ECS entity.
+    pub fn entity_ref_for(&self, entity: Entity) -> EntityRef {
+        EntityRef::new(self.clone(), entity)
     }
 }
 
@@ -365,23 +370,36 @@ impl Client {
             .map(|player| player.profile.uuid)
     }
 
-    /// Get an ECS `Entity` in the world by its Minecraft UUID, if it's within
+    /// Get an [`Entity`] in the world by its Minecraft UUID, if it's within
     /// render distance.
-    pub fn entity_by_uuid(&self, uuid: Uuid) -> Option<Entity> {
+    ///
+    /// Also see [`Self::entity_by_uuid`] and
+    /// [`Self::entity_id_by_minecraft_id`].
+    pub fn entity_id_by_uuid(&self, uuid: Uuid) -> Option<Entity> {
         self.map_resource::<EntityUuidIndex, _>(|entity_uuid_index| entity_uuid_index.get(&uuid))
     }
+    /// Get an [`EntityRef`] in the world by its Minecraft UUID, if it's within
+    /// render distance.
+    ///
+    /// Also see [`Self::entity_id_by_uuid`].
+    pub fn entity_by_uuid(&self, uuid: Uuid) -> Option<EntityRef> {
+        self.entity_id_by_uuid(uuid).map(|e| self.entity_ref_for(e))
+    }
 
-    /// Convert an ECS `Entity` to a [`MinecraftEntityId`].
-    pub fn minecraft_entity_by_ecs_entity(&self, entity: Entity) -> Option<MinecraftEntityId> {
+    /// Get an [`Entity`] in the world by its [`MinecraftEntityId`].
+    ///
+    /// Also see [`Self::entity_by_uuid`] and [`Self::entity_id_by_uuid`].
+    pub fn entity_id_by_minecraft_id(&self, id: MinecraftEntityId) -> Option<Entity> {
         self.query_self::<&EntityIdIndex, _>(|entity_id_index| {
-            entity_id_index.get_by_ecs_entity(entity)
+            entity_id_index.get_by_minecraft_entity(id)
         })
     }
-    /// Convert a [`MinecraftEntityId`] to an ECS `Entity`.
-    pub fn ecs_entity_by_minecraft_entity(&self, entity: MinecraftEntityId) -> Option<Entity> {
-        self.query_self::<&EntityIdIndex, _>(|entity_id_index| {
-            entity_id_index.get_by_minecraft_entity(entity)
-        })
+    /// Get an [`EntityRef`] in the world by its [`MinecraftEntityId`].
+    ///
+    /// Also see [`Self::entity_id_by_uuid`].
+    pub fn entity_by_minecraft_id(&self, id: MinecraftEntityId) -> Option<EntityRef> {
+        self.entity_id_by_minecraft_id(id)
+            .map(|e| EntityRef::new(self.clone(), e))
     }
 
     /// Call the given function with the client's [`RegistryHolder`].

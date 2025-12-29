@@ -26,7 +26,7 @@ pub fn tick(bot: Client, state: State) -> anyhow::Result<()> {
 
     if let Some(nearest_entity) = nearest_entity {
         println!("attacking {nearest_entity:?}");
-        bot.attack(nearest_entity);
+        nearest_entity.attack();
     }
 
     Ok(())

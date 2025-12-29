@@ -3,9 +3,10 @@ pub mod debug;
 pub mod movement;
 
 use azalea::{
-    Client, brigadier::prelude::*, chat::ChatPacket, ecs::prelude::*, entity::metadata::Player,
+    Client, brigadier::prelude::*, chat::ChatPacket, entity::metadata::Player,
     player::GameProfileComponent,
 };
+use bevy_ecs::query::With;
 use parking_lot::Mutex;
 
 use crate::State;
@@ -29,7 +30,7 @@ impl CommandSource {
         }
     }
 
-    pub fn entity(&mut self) -> Option<Entity> {
+    pub fn entity(&mut self) -> Option<azalea::EntityRef> {
         let username = self.chat.sender()?;
         self.bot
             .any_entity_by::<&GameProfileComponent, With<Player>>(

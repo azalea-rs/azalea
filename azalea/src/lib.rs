@@ -9,7 +9,7 @@ pub mod bot;
 mod builder;
 mod client_impl;
 pub mod container;
-pub mod entity_ref;
+mod entity_ref;
 pub mod events;
 mod join_opts;
 pub mod nearest_entity;
@@ -54,7 +54,7 @@ pub use builder::ClientBuilder;
 use futures::future::BoxFuture;
 pub use join_opts::JoinOpts;
 
-pub use crate::{client_impl::Client, events::Event};
+pub use crate::{client_impl::Client, entity_ref::EntityRef, events::Event};
 
 pub type BoxHandleFn<S, R> = Box<dyn Fn(Client, Event, S) -> BoxFuture<'static, R> + Send>;
 pub type HandleFn<S, Fut> = fn(Client, Event, S) -> Fut;
