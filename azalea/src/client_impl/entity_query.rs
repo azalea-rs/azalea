@@ -117,7 +117,7 @@ impl Client {
     ) -> R {
         self.try_query_entity(entity, f).unwrap_or_else(|_| {
             panic!(
-                "Entity is missing a required component {:?}",
+                "Querying entity {entity} failed when getting {:?}",
                 any::type_name::<D>()
             )
         })

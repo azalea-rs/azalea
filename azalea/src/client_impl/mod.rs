@@ -11,16 +11,8 @@ use azalea_client::{
     player::{GameProfileComponent, PlayerInfo},
     start_ecs_runner,
 };
-use azalea_core::{
-    data_registry::{DataRegistryWithKey, ResolvableDataRegistry},
-    position::Vec3,
-};
-use azalea_entity::{
-    Attributes, Position,
-    dimensions::EntityDimensions,
-    indexing::{EntityIdIndex, EntityUuidIndex},
-    metadata::Health,
-};
+use azalea_core::data_registry::{DataRegistryWithKey, ResolvableDataRegistry};
+use azalea_entity::indexing::{EntityIdIndex, EntityUuidIndex};
 use azalea_protocol::{
     address::{ResolvableAddr, ResolvedAddr},
     connect::Proxy,
@@ -39,7 +31,10 @@ use parking_lot::RwLock;
 use tokio::sync::mpsc;
 use uuid::Uuid;
 
-use crate::events::{Event, LocalPlayerEvents};
+use crate::{
+    entity_ref::EntityRef,
+    events::{Event, LocalPlayerEvents},
+};
 
 pub mod attack;
 pub mod chat;
@@ -309,47 +304,14 @@ impl Client {
         self.query_self::<Option<&InstanceName>, _>(|ins| ins.is_some())
     }
 
-    /// Get the position of this client.
-    ///
-    /// This is a shortcut for `Vec3::from(&bot.component::<Position>())`.
-    ///
-    /// Note that this value is given a default of [`Vec3::ZERO`] when it
-    /// receives the login packet, its true position may be set ticks
-    /// later.
-    pub fn position(&self) -> Vec3 {
-        Vec3::from(
-            &*self
-                .get_component::<Position>()
-                .expect("the client's position hasn't been initialized yet"),
-        )
+    /// Returns the client as an [`EntityRef`], allowing you to treat it as any
+    /// other entity.
+    pub fn entity(&self) -> EntityRef {
+        EntityRef::new(self.clone(), self.entity)
     }
+}
 
-    /// Get the bounding box dimensions for our client, which contains our
-    /// width, height, and eye height.
-    ///
-    /// This is a shortcut for
-    /// `self.component::<EntityDimensions>()`.
-    pub fn dimensions(&self) -> EntityDimensions {
-        self.component::<EntityDimensions>().clone()
-    }
-
-    /// Get the position of this client's eyes.
-    ///
-    /// This is a shortcut for
-    /// `bot.position().up(bot.dimensions().eye_height)`.
-    pub fn eye_position(&self) -> Vec3 {
-        self.query_self::<(&Position, &EntityDimensions), _>(|(pos, dim)| {
-            pos.up(dim.eye_height as f64)
-        })
-    }
-
-    /// Get the health of this client.
-    ///
-    /// This is a shortcut for `*bot.component::<Health>()`.
-    pub fn health(&self) -> f32 {
-        **self.component::<Health>()
-    }
-
+impl Client {
     /// Get the hunger level of this client, which includes both food and
     /// saturation.
     ///
@@ -364,13 +326,6 @@ impl Client {
     /// `bot.component::<GameProfileComponent>().name.to_owned()`.
     pub fn username(&self) -> String {
         self.profile().name.to_owned()
-    }
-
-    /// Get the Minecraft UUID of this client.
-    ///
-    /// This is a shortcut for `bot.component::<GameProfileComponent>().uuid`.
-    pub fn uuid(&self) -> Uuid {
-        self.profile().uuid
     }
 
     /// Get a map of player UUIDs to their information in the tab list.
@@ -396,23 +351,6 @@ impl Client {
     /// Returns the [`Account`] for our client.
     pub fn account(&self) -> Account {
         self.component::<Account>().clone()
-    }
-
-    /// Returns the attribute values of our player, which can be used to
-    /// determine things like our movement speed.
-    pub fn attributes(&self) -> Attributes {
-        // this *could* return a mapped read guard for performance but that rarely
-        // matters and it's just easier for the user if it doesn't.
-        self.component::<Attributes>().clone()
-    }
-
-    /// Get the name of the instance (world) that the bot is in.
-    ///
-    /// This can be used to check if the client is in the same world as another
-    /// entity.
-    #[doc(alias("world_name", "dimension_name"))]
-    pub fn instance_name(&self) -> InstanceName {
-        (*self.component::<InstanceName>()).clone()
     }
 
     /// A convenience function to get the Minecraft Uuid of a player by their
