@@ -141,6 +141,8 @@ impl Client {
     /// Quickly returns an [`EntityRef`] for an arbitrary entity that
     /// matches the given predicate function that is in the same
     /// [`Instance`] as the client.
+    ///
+    /// [`Instance`]: azalea_world::Instance
     pub fn any_entity_by<Q: QueryData, F: QueryFilter>(
         &self,
         predicate: impl EntityPredicate<Q, F>,
@@ -163,10 +165,10 @@ impl Client {
     ///
     /// ```
     /// use azalea::{entity::metadata::Player, player::GameProfileComponent};
-    /// use bevy_ecs::query::With;
+    /// use bevy_ecs::uery::With;
     ///
     /// # fn example(mut bot: azalea::Client, sender_name: String) {
-    /// let entity: Entity = bot.any_entity_id_by::<&GameProfileComponent, With<Player>>(
+    /// let entity = bot.any_entity_id_by::<&GameProfileComponent, With<Player>>(
     ///     |profile: &GameProfileComponent| profile.name == sender_name,
     /// );
     /// # }

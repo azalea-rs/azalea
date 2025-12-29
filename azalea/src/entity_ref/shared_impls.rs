@@ -123,7 +123,7 @@ impl_entity_functions! {
     /// See [`MinecraftEntityId`] for more details. For persistent identifiers,
     /// consider using [`Self::uuid`] instead.
     ///
-    /// Also see [`Client::MinecraftEntityId`].
+    /// Also see [`Client::minecraft_id`].
     pub fn minecraft_id(&self) -> MinecraftEntityId {
         *self.component::<MinecraftEntityId>()
     }
