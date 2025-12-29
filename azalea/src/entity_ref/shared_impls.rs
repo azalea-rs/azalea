@@ -168,7 +168,7 @@ impl_entity_functions! {
     /// Returns whether the entity is alive and hasn't despawned.
     ///
     /// Unlike most functions in `EntityRef`, this one will not panic if the
-    /// entity is despawned. Because of this, it may be useful to check this
+    /// entity is despawned. Because of this, it may be useful to check `is_alive`
     /// before calling functions that request data from the world.
     ///
     /// Also see [`Client::is_alive`].

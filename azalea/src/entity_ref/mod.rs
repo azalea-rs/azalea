@@ -13,8 +13,10 @@ use parking_lot::MappedRwLockReadGuard;
 
 use crate::Client;
 
-/// A reference to an entity in a world, allowing simpler access to certain
-/// functions.
+/// A reference to an entity in a world.
+///
+/// This is different from [`Entity`], since you can perform actions with just
+/// an `EntityRef` instead of it only being an identifier.
 ///
 /// Most functions on `EntityRef` that return a value will result in a panic if
 /// the client has despawned, so if your code involves waiting, you should check
