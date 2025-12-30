@@ -7,7 +7,7 @@ use azalea_registry::builtin::EntityKind;
 use bevy_ecs::{
     component::Component,
     entity::Entity,
-    query::{QueryData, QueryItem},
+    query::{QueryData, QueryEntityError, QueryItem},
 };
 use parking_lot::MappedRwLockReadGuard;
 
@@ -20,7 +20,7 @@ use crate::Client;
 ///
 /// Most functions on `EntityRef` that return a value will result in a panic if
 /// the client has despawned, so if your code involves waiting, you should check
-/// [`Self::is_alive`] before calling those functions.
+/// [`Self::is_alive`] or [`Self::exists`] before calling those functions.
 ///
 /// Also, since `EntityRef` stores the [`Client`] alongside the entity, this
 /// means that it supports interactions such as [`Self::attack`].
@@ -83,10 +83,22 @@ impl EntityRef {
     ///
     /// # Panics
     ///
-    /// This will panic if the entity is missing a component required by the
-    /// query.
+    /// This will panic if the entity doesn't exist or is missing a component
+    /// required by the query. Consider using [`Self::try_query_self`] to
+    /// avoid this.
     pub fn query_self<D: QueryData, R>(&self, f: impl FnOnce(QueryItem<D>) -> R) -> R {
         self.client.query_entity(self.entity, f)
+    }
+
+    /// Query the ECS for data from the entity, or return an error if the query
+    /// fails.
+    ///
+    /// Also see [`Self::query_self`].
+    pub fn try_query_self<D: QueryData, R>(
+        &self,
+        f: impl FnOnce(QueryItem<D>) -> R,
+    ) -> Result<R, QueryEntityError> {
+        self.client.try_query_entity(self.entity, f)
     }
 }
 

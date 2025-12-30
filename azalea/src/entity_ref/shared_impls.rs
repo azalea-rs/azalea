@@ -164,6 +164,8 @@ impl_entity_functions! {
     /// You should avoid using this if you have auto-respawn enabled (which is
     /// the default), instead consider watching for
     /// [`Event::Death`](crate::Event::Death) instead.
+    ///
+    /// Also see [`Self::exists`].
     EntityRef:
     /// Returns whether the entity is alive and hasn't despawned.
     ///
@@ -171,8 +173,22 @@ impl_entity_functions! {
     /// entity is despawned. Because of this, it may be useful to check `is_alive`
     /// before calling functions that request data from the world.
     ///
-    /// Also see [`Client::is_alive`].
+    /// Also see [`Client::is_alive`] and [`Self::exists`].
     pub fn is_alive(&self) -> bool {
-        self.query_self::<Option<&Dead>, _>(|dead| dead.is_none())
+        self.try_query_self::<Option<&Dead>, _>(|dead| dead.is_none()).unwrap_or(false)
+    }
+
+    Client:
+    /// Returns whether the client is in the world (has been assigned an entity ID).
+    ///
+    /// Like [`Self::is_alive`], this will not panic.
+    EntityRef:
+    /// Returns whether the entity is in the world and hasn't despawned.
+    ///
+    /// Like [`Self::is_alive`], this will not panic.
+    ///
+    /// Also see [`Client::exists`].
+    pub fn exists(&self) -> bool {
+        self.try_query_self::<Option<&MinecraftEntityId>, _>(|entity_id| entity_id.is_some()).unwrap_or(false)
     }
 }

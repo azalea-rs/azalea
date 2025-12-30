@@ -84,17 +84,27 @@ impl Client {
     /// # Panics
     ///
     /// This will panic if the client is missing a component required by the
-    /// query.
+    /// query. Consider using [`Self::try_query_self`] to avoid this.
     pub fn query_self<D: QueryData, R>(&self, f: impl FnOnce(QueryItem<D>) -> R) -> R {
-        let mut ecs = self.ecs.write();
-        let mut qs = ecs.query::<D>();
-        let res = qs.get_mut(&mut ecs, self.entity).unwrap_or_else(|_| {
+        self.try_query_self::<D, R>(f).unwrap_or_else(|_| {
             panic!(
                 "`Client::query_self` failed when querying for {:?}",
                 any::type_name::<D>()
             )
-        });
-        f(res)
+        })
+    }
+
+    /// Query the ECS for data from our client entity, or return `None` if the
+    /// query failed.
+    ///
+    /// Also see [`Self::query_self`].
+    pub fn try_query_self<D: QueryData, R>(
+        &self,
+        f: impl FnOnce(QueryItem<D>) -> R,
+    ) -> Result<R, QueryEntityError> {
+        let mut ecs = self.ecs.write();
+        let mut qs = ecs.query::<D>();
+        qs.get_mut(&mut ecs, self.entity).map(f)
     }
 
     /// Query the ECS for data from an entity.
