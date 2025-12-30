@@ -1215,24 +1215,24 @@ impl GamePacketHandler<'_> {
                 // -1 means carried item
                 inventory.carried = p.item_stack.clone();
             } else if p.container_id == -2 {
-                if let Some(slot) = inventory.inventory_menu.slot_mut(p.slot.into()) {
+                if let Some(slot) = inventory.inventory_menu.slot_mut(p.slot) {
                     *slot = p.item_stack.clone();
                 }
             } else {
                 let is_creative_mode_and_inventory_closed = false;
                 // technically minecraft has slightly different behavior here if you're in
                 // creative mode and have your inventory open
-                if p.container_id == 0 && azalea_inventory::Player::is_hotbar_slot(p.slot.into()) {
+                if p.container_id == 0 && azalea_inventory::Player::is_hotbar_slot(p.slot) {
                     // minecraft also sets a "pop time" here which is used for an animation
                     // but that's not really necessary
-                    if let Some(slot) = inventory.inventory_menu.slot_mut(p.slot.into()) {
+                    if let Some(slot) = inventory.inventory_menu.slot_mut(p.slot) {
                         *slot = p.item_stack.clone();
                     }
                 } else if p.container_id == inventory.id
                     && (p.container_id != 0 || !is_creative_mode_and_inventory_closed)
                 {
                     // var2.containerMenu.setItem(var4, var1.getStateId(), var3);
-                    if let Some(slot) = inventory.menu_mut().slot_mut(p.slot.into()) {
+                    if let Some(slot) = inventory.menu_mut().slot_mut(p.slot) {
                         *slot = p.item_stack.clone();
                         inventory.state_id = p.state_id;
                     }

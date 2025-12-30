@@ -74,14 +74,15 @@ async fn steal(bot: Client, state: State) -> anyhow::Result<()> {
         };
 
         println!("Getting contents of chest at {chest_block:?}");
-        for (index, slot) in chest.contents().unwrap_or_default().iter().enumerate() {
-            println!("Checking slot {index}: {slot:?}");
-            let ItemStack::Present(item) = slot else {
+        for slot in chest.contents().unwrap_or_default() {
+            let item = slot.item().expect("container should still be open");
+            println!("Checking slot {}: {item:?}", slot.index(),);
+            let ItemStack::Present(item) = item else {
                 continue;
             };
             if item.kind == ItemKind::Diamond {
                 println!("clicking slot ^");
-                chest.left_click(index);
+                slot.left_click();
             }
         }
     }
