@@ -1,5 +1,4 @@
 from lib.utils import to_camel_case, to_snake_case, get_dir_location, upper_first_letter
-from lib.mappings import Mappings
 from typing import Optional
 import re
 
@@ -10,18 +9,19 @@ DATA_RS_DIR = get_dir_location("../azalea-entity/src/data.rs")
 DIMENSIONS_RS_DIR = get_dir_location("../azalea-entity/src/dimensions.rs")
 
 
-def generate_metadata_names(burger_dataserializers: dict, mappings: Mappings):
+def generate_metadata_names(burger_dataserializers: dict):
     serializer_names: list[Optional[str]] = [None] * len(burger_dataserializers)
     for burger_serializer in burger_dataserializers.values():
         print(burger_serializer)
 
+        # TODO: remove these comments
         # burger gives us the wrong class, so we do this instead
-        data_serializers_class = mappings.get_class_from_deobfuscated_name(
-            "net.minecraft.network.syncher.EntityDataSerializers"
-        )
-        mojmap_name = mappings.get_field(
-            data_serializers_class, burger_serializer["field"]
-        ).lower()
+        # data_serializers_class = "net/minecraft/network/syncher/EntityDataSerializers"
+        # mojmap_name = mappings.get_field(
+        #     data_serializers_class, burger_serializer["field"]
+        # ).lower()
+
+        mojmap_name = burger_serializer["field"].lower()
 
         if mojmap_name == "component":
             mojmap_name = "formatted_text"
@@ -60,11 +60,11 @@ def parse_metadata_types_from_code():
     return data
 
 
-def generate_entity_metadata(burger_entities_data: dict, mappings: Mappings):
+def generate_entity_metadata(burger_entities_data: dict):
     burger_entity_metadata = burger_entities_data["entity"]
 
     new_metadata_names = generate_metadata_names(
-        burger_entities_data["dataserializers"], mappings
+        burger_entities_data["dataserializers"]
     )
     parsed_metadata_types = parse_metadata_types_from_code()
 
@@ -175,7 +175,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
     for entity_id in burger_entity_metadata.keys():
         field_name_map[entity_id] = {}
         for field_name_or_bitfield in get_entity_metadata_names(
-            entity_id, burger_entity_metadata, mappings
+            entity_id, burger_entity_metadata
         ).values():
             if isinstance(field_name_or_bitfield, str):
                 if field_name_or_bitfield in previous_field_names:
@@ -206,7 +206,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
     # and now figure out what to rename them to
     for entity_id in burger_entity_metadata.keys():
         for index, field_name_or_bitfield in get_entity_metadata_names(
-            entity_id, burger_entity_metadata, mappings
+            entity_id, burger_entity_metadata
         ).items():
             if isinstance(field_name_or_bitfield, str):
                 new_field_name = field_name_or_bitfield
@@ -247,7 +247,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
         parents = get_entity_parents(entity_id, burger_entity_metadata)
         for parent_id in list(reversed(parents)):
             for index, name_or_bitfield in get_entity_metadata_names(
-                parent_id, burger_entity_metadata, mappings
+                parent_id, burger_entity_metadata
             ).items():
                 assert index == len(all_field_names_or_bitfields)
                 all_field_names_or_bitfields.append(name_or_bitfield)
@@ -464,7 +464,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
         if parent_struct_name:
             code.append(f"    parent: {parent_struct_name}MetadataBundle,")
         for index, name_or_bitfield in get_entity_metadata_names(
-            entity_id, burger_entity_metadata, mappings
+            entity_id, burger_entity_metadata
         ).items():
             if isinstance(name_or_bitfield, str):
                 name_or_bitfield = maybe_rename_field(name_or_bitfield, index)
@@ -522,7 +522,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
                 code.append("            },")
 
             for index, name_or_bitfield in get_entity_metadata_names(
-                this_entity_id, burger_entity_metadata, mappings
+                this_entity_id, burger_entity_metadata
             ).items():
                 default = next(
                     filter(lambda i: i["index"] == index, entity_metadatas)
@@ -800,22 +800,19 @@ def get_entity_metadata(entity_id: str, burger_entity_metadata: dict):
 # returns a dict of {index: (name or bitfield)}
 
 
-def get_entity_metadata_names(
-    entity_id: str, burger_entity_metadata: dict, mappings: Mappings
-):
+def get_entity_metadata_names(entity_id: str, burger_entity_metadata: dict):
     entity_metadata = burger_entity_metadata[entity_id]["metadata"]
     mapped_metadata_names = {}
 
     for metadata_item in entity_metadata:
         if "data" in metadata_item:
-            obfuscated_class = metadata_item["class"]
+            # obfuscated_class = metadata_item["class"]
             # mojang_class = mappings.get_class(obfuscated_class)
 
             first_byte_index = None
 
             for metadata_attribute in metadata_item["data"]:
-                obfuscated_field = metadata_attribute["field"]
-                mojang_field = mappings.get_field(obfuscated_class, obfuscated_field)
+                mojang_field = metadata_attribute["field"]
                 pretty_mojang_name = prettify_mojang_field(mojang_field)
                 mapped_metadata_names[metadata_attribute["index"]] = pretty_mojang_name
 
@@ -828,12 +825,10 @@ def get_entity_metadata_names(
             if metadata_item["bitfields"] and first_byte_index is not None:
                 clean_bitfield = {}
                 for bitfield_item in metadata_item["bitfields"]:
-                    bitfield_item_obfuscated_class = bitfield_item.get(
-                        "class", obfuscated_class
-                    )
-                    mojang_bitfield_item_name = mappings.get_method(
-                        bitfield_item_obfuscated_class, bitfield_item["method"], ""
-                    )
+                    # bitfield_item_obfuscated_class = bitfield_item.get(
+                    #     "class", obfuscated_class
+                    # )
+                    mojang_bitfield_item_name = bitfield_item["method"]
                     bitfield_item_name = prettify_mojang_method(
                         mojang_bitfield_item_name
                     )

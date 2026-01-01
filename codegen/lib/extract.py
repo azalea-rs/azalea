@@ -5,7 +5,6 @@ from lib.download import (
     get_latest_fabric_api_version,
     get_latest_fabric_kotlin_version,
     get_latest_fabric_loom_version,
-    get_mappings_for_version,
     get_pumpkin_extractor,
     get_server_jar,
     get_burger,
@@ -143,14 +142,12 @@ def get_burger_data_for_version(version_id: str):
     if not os.path.exists(get_dir_location(f"__cache__/burger-{version_id}.json")):
         get_burger()
         get_client_jar(version_id)
-        get_mappings_for_version(version_id)
 
-        print("\033[92mRunning Burger...\033[m")
+        print("\033[92mRunning azalea-burger...\033[m")
         run_python_command_and_download_deps(
-            f"cd {get_dir_location('__cache__/Burger')} && "
+            f"cd {get_dir_location('__cache__/azalea-burger')} && "
             f"venv/bin/python munch.py {get_dir_location('__cache__')}/client-{version_id}.jar "
             f"--output {get_dir_location('__cache__')}/burger-{version_id}.json "
-            f"--mappings {get_dir_location('__cache__')}/mappings-{version_id}.txt"
         )
     with open(get_dir_location(f"__cache__/burger-{version_id}.json"), "r") as f:
         return json.load(f)
@@ -189,7 +186,6 @@ org.gradle.parallel=true
 # Fabric Properties
 # check these on https://modmuss50.me/fabric.html
 minecraft_version={version_id}
-yarn_mappings={fabric_data["mappings"]["version"]}
 loader_version={fabric_data["loader"]["version"]}
 kotlin_loader_version={fabric_kotlin_version}
 # Mod Properties
@@ -263,34 +259,3 @@ def get_file_from_jar(version_id: str, file_dir: str):
 
 def get_en_us_lang(version_id: str):
     return json.loads(get_file_from_jar(version_id, "assets/minecraft/lang/en_us.json"))
-
-
-# burger packet id extraction is broken since 1.20.5 (always returns -1, so we have to determine packet id ourselves from the mappings).
-# this is very much not ideal.
-
-
-def get_packet_list(version_id: str):
-    if version_id != "1.21":
-        return []
-
-    generate_data_from_server_jar(version_id)
-    with open(
-        get_dir_location(f"__cache__/generated-{version_id}/reports/packets.json"), "r"
-    ) as f:
-        packets_report = json.load(f)
-    packet_list = []
-    for state, state_value in packets_report.items():
-        for direction, direction_value in state_value.items():
-            for packet_identifier, packet_value in direction_value.items():
-                assert packet_identifier.startswith("minecraft:")
-                packet_identifier = upper_first_letter(
-                    to_camel_case(packet_identifier[len("minecraft:") :])
-                )
-                packet_list.append(
-                    {
-                        "state": state,
-                        "direction": direction,
-                        "name": packet_identifier,
-                        "id": packet_value["protocol_id"],
-                    }
-                )
