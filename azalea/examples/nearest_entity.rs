@@ -4,7 +4,7 @@ use azalea::{
     nearest_entity::EntityFinder,
     prelude::*,
 };
-use azalea_client::Account;
+use azalea_client::account::Account;
 use azalea_core::tick::GameTick;
 use azalea_entity::{
     LocalEntity, Position,

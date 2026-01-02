@@ -189,7 +189,7 @@ impl Client {
         &self,
         predicate: impl EntityPredicate<Q, F>,
     ) -> Option<Entity> {
-        let instance_name = self.get_component::<InstanceName>()?;
+        let instance_name = self.get_component::<InstanceName>()?.clone();
         predicate.find_any(self.ecs.clone(), &instance_name)
     }
 

@@ -1,7 +1,7 @@
 //! The Azalea prelude. Things that are necessary for a bare-bones bot are
 //! re-exported here.
 
-pub use azalea_client::Account;
+pub use azalea_client::account::Account;
 pub use azalea_core::tick::GameTick;
 pub use bevy_app::AppExit;
 

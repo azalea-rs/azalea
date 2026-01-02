@@ -9,7 +9,7 @@ use bevy_ecs::prelude::*;
 use super::ChatKind;
 use crate::packet::game::SendGamePacketEvent;
 #[cfg(feature = "online-mode")]
-use crate::{Account, chat_signing::ChatSigningSession};
+use crate::{account::Account, chat_signing::ChatSigningSession};
 
 /// Send a chat packet to the server of a specific kind (chat message or
 /// command). Usually you just want [`SendChatEvent`] instead.
@@ -99,11 +99,12 @@ pub fn create_signature(
 ) -> azalea_crypto::signing::MessageSignature {
     use azalea_crypto::signing::SignChatMessageOptions;
 
-    let certs = account.certs.lock();
-    let certs = certs.as_ref().expect("certs shouldn't be set back to None");
+    let certs = account
+        .certs()
+        .expect("certs shouldn't be set back to None");
 
     let signature = azalea_crypto::signing::sign_chat_message(&SignChatMessageOptions {
-        account_uuid: account.uuid.expect("account must have a uuid"),
+        account_uuid: account.uuid(),
         chat_session_uuid: chat_session.session_id,
         message_index: chat_session.messages_sent,
         salt,

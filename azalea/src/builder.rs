@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use azalea_client::{Account, DefaultPlugins};
+use azalea_client::{DefaultPlugins, account::Account};
 use azalea_protocol::address::ResolvableAddr;
 use bevy_app::{AppExit, Plugins};
 use bevy_ecs::component::Component;

@@ -2,7 +2,8 @@ use std::{collections::HashMap, sync::Arc};
 
 use azalea_auth::game_profile::GameProfile;
 use azalea_client::{
-    Account, DefaultPlugins,
+    DefaultPlugins,
+    account::Account,
     connection::RawConnection,
     disconnect::DisconnectEvent,
     join::{ConnectOpts, StartJoinServerEvent},
