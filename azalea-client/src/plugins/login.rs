@@ -46,7 +46,7 @@ fn handle_receive_hello_event(
         None
     };
 
-    let task = task_pool.spawn(auth_with_account(account, packet, connect_opts));
+    let task = task_pool.spawn(async { auth_with_account(account, packet, connect_opts).await });
     commands.entity(client).insert(AuthTask(task));
 }
 
@@ -123,7 +123,7 @@ pub async fn auth_with_account(
 
     #[cfg(feature = "online-mode")]
     if packet.should_authenticate {
-        let Some(access_token) = &account.access_token else {
+        let Some(access_token) = &account.access_token() else {
             // offline mode account, no need to do auth
             return Ok((key_packet, private_key));
         };
@@ -137,18 +137,14 @@ pub async fn auth_with_account(
         while let Err(err) = {
             use azalea_auth::sessionserver::{self, SessionServerJoinOpts};
 
-            let access_token = access_token.lock().clone();
-
-            let uuid = &account
-                .uuid
-                .expect("Uuid must be present if access token is present.");
+            let uuid = &account.uuid();
 
             let proxy = proxy.clone();
 
             // this is necessary since reqwest usually depends on tokio and we're using
             // `futures` here
             async_compat::Compat::new(sessionserver::join(SessionServerJoinOpts {
-                access_token: &access_token,
+                access_token,
                 public_key: &packet.public_key,
                 private_key: &private_key,
                 uuid,
@@ -169,6 +165,7 @@ pub async fn auth_with_account(
             ) {
                 // uh oh, we got an invalid session and have
                 // to reauthenticate now
+
                 async_compat::Compat::new(account.refresh()).await?;
             } else {
                 return Err(err.into());

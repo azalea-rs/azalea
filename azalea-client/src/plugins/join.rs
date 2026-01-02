@@ -94,7 +94,7 @@ pub fn handle_start_join_server_event(
     connection_query: Query<&RawConnection>,
 ) {
     for event in events.read() {
-        let uuid = event.account.uuid_or_offline();
+        let uuid = event.account.uuid();
         let entity = if let Some(entity) = entity_uuid_index.get(&uuid) {
             debug!("Reusing entity {entity:?} for client");
 
@@ -228,8 +228,8 @@ pub fn poll_create_connection_task(
             commands.trigger(SendLoginPacketEvent::new(
                 entity,
                 ServerboundHello {
-                    name: account.username.clone(),
-                    profile_id: account.uuid_or_offline(),
+                    name: account.username().to_owned(),
+                    profile_id: account.uuid(),
                 },
             ));
         }

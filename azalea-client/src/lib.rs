@@ -13,7 +13,7 @@ mod plugins;
 #[doc(hidden)]
 pub mod test_utils;
 
-pub use account::{Account, AccountOpts};
+pub use account::Account;
 pub use azalea_physics::local_player::{PhysicsState, SprintDirection, WalkDirection};
 pub use azalea_protocol::common::client_information::ClientInformation;
 // Re-export bevy-tasks so plugins can make sure that they're using the same

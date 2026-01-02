@@ -165,7 +165,7 @@ impl Swarm {
     ) -> Client {
         debug!(
             "add_with_opts called for account {} with opts {join_opts:?}",
-            account.username
+            account.username()
         );
 
         let mut address = self.address.read().clone();
