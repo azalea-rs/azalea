@@ -17,7 +17,7 @@ use tracing::{debug, error};
 
 use super::as_system;
 use crate::{
-    Account, InConfigState, connection::RawConnection, cookies::RequestCookieEvent,
+    InConfigState, account::Account, connection::RawConnection, cookies::RequestCookieEvent,
     disconnect::DisconnectEvent, packet::declare_packet_handlers, player::GameProfileComponent,
 };
 

@@ -13,7 +13,7 @@ use tracing::{debug, error};
 use uuid::Uuid;
 
 use super::{chat, login::IsAuthenticated, packet::game::SendGamePacketEvent};
-use crate::{Account, InGameState};
+use crate::{InGameState, account::Account};
 
 pub struct ChatSigningPlugin;
 impl Plugin for ChatSigningPlugin {

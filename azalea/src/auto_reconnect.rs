@@ -11,7 +11,7 @@ use super::{
     disconnect::DisconnectEvent,
     join::{ConnectOpts, ConnectionFailedEvent, StartJoinServerEvent},
 };
-use crate::Account;
+use crate::account::Account;
 
 /// The default delay that Azalea will use for reconnecting our clients.
 ///

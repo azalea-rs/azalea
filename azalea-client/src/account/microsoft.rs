@@ -4,8 +4,12 @@ use azalea_auth::{AccessTokenResponse, certs::Certificates};
 use parking_lot::Mutex;
 use uuid::Uuid;
 
-use crate::{Account, account::AccountTrait};
+use crate::account::{Account, AccountTrait};
 
+/// A type of account that authenticates with Microsoft using Azalea's cache.
+///
+/// This type is not intended to be used directly by the user. To actually make
+/// an account that authenticates with Microsoft, see [`Account::microsoft`].
 #[derive(Debug)]
 pub struct MicrosoftAccount {
     cache_key: String,
@@ -77,6 +81,15 @@ impl AccountTrait for MicrosoftAccount {
         })
     }
 }
+
+/// A type of account that authenticates using a Microsoft access token that the
+/// user directly passes.
+///
+/// This does not use Azalea's account cache.
+///
+/// This type is not intended to be used directly by the user. To actually make
+/// an account that authenticates with Microsoft like this, see
+/// [`Account::with_microsoft_access_token`].
 #[derive(Debug)]
 pub struct MicrosoftWithAccessTokenAccount {
     msa: Mutex<azalea_auth::cache::ExpiringValue<AccessTokenResponse>>,

@@ -8,7 +8,7 @@ use std::{
     time::Duration,
 };
 
-use azalea_client::{Account, DefaultPlugins, start_ecs_runner};
+use azalea_client::{DefaultPlugins, account::Account, start_ecs_runner};
 use azalea_protocol::address::{ResolvableAddr, ResolvedAddr};
 use azalea_world::InstanceContainer;
 use bevy_app::{App, AppExit, Plugins, SubApp};

@@ -9,7 +9,7 @@ use bevy_ecs::prelude::*;
 use super::ChatKind;
 use crate::packet::game::SendGamePacketEvent;
 #[cfg(feature = "online-mode")]
-use crate::{Account, chat_signing::ChatSigningSession};
+use crate::{account::Account, chat_signing::ChatSigningSession};
 
 /// Send a chat packet to the server of a specific kind (chat message or
 /// command). Usually you just want [`SendChatEvent`] instead.

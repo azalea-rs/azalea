@@ -10,7 +10,7 @@ use bevy_ecs::prelude::*;
 use tracing::{debug, error};
 
 use super::InLoginState;
-use crate::{Account, connection::RawConnection};
+use crate::{account::Account, connection::RawConnection};
 
 #[derive(Clone, Debug, Message)]
 pub struct ReceiveLoginPacketEvent {

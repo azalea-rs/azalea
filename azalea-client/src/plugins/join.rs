@@ -20,7 +20,8 @@ use tokio::sync::mpsc;
 use tracing::{debug, warn};
 
 use crate::{
-    Account, LocalPlayerBundle,
+    LocalPlayerBundle,
+    account::Account,
     connection::RawConnection,
     packet::login::{InLoginState, SendLoginPacketEvent},
 };

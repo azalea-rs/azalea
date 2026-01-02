@@ -2,7 +2,7 @@
 #![feature(error_generic_member_access)]
 #![feature(never_type)]
 
-mod account;
+pub mod account;
 mod client;
 pub mod local_player;
 pub mod ping;
@@ -13,7 +13,9 @@ mod plugins;
 #[doc(hidden)]
 pub mod test_utils;
 
-pub use account::Account;
+#[deprecated = "moved to `account::Account`."]
+pub type Account = account::Account;
+
 pub use azalea_physics::local_player::{PhysicsState, SprintDirection, WalkDirection};
 pub use azalea_protocol::common::client_information::ClientInformation;
 // Re-export bevy-tasks so plugins can make sure that they're using the same

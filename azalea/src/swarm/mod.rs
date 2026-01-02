@@ -12,7 +12,7 @@ use std::sync::{
     atomic::{self, AtomicBool},
 };
 
-use azalea_client::{Account, chat::ChatPacket, join::ConnectOpts};
+use azalea_client::{account::Account, chat::ChatPacket, join::ConnectOpts};
 use azalea_entity::LocalEntity;
 use azalea_protocol::address::ResolvedAddr;
 use azalea_world::InstanceContainer;

@@ -14,7 +14,7 @@ use super::{
     connection::RawConnection,
     packet::login::{ReceiveCustomQueryEvent, ReceiveHelloEvent, SendLoginPacketEvent},
 };
-use crate::{Account, join::ConnectOpts};
+use crate::{account::Account, join::ConnectOpts};
 
 /// Some systems that run during the `login` state.
 pub struct LoginPlugin;
