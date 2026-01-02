@@ -6,14 +6,16 @@ pub mod offline;
 
 use std::{fmt::Debug, ops::Deref, pin::Pin, sync::Arc};
 
+#[cfg(feature = "online-mode")]
+use azalea_auth::sessionserver::ClientSessionServerError;
 use bevy_ecs::component::Component;
 use uuid::Uuid;
 
 /// Something that can join Minecraft servers.
 ///
-/// By default, Azalea only supports authentication with Microsoft or no
-/// authentication at all. If you'd like to do authentication in some other way,
-/// consider looking at [`AccountTrait`].
+/// By default, Azalea only supports either authentication with Microsoft
+/// (online-mode), or no authentication at all (offline-mode). If you'd like to
+/// do authentication in some other way, consider looking at [`AccountTrait`].
 ///
 /// To join a server using this account, you can either use
 /// [`StartJoinServerEvent`] or `azalea::ClientBuilder`.
@@ -45,12 +47,17 @@ impl Account {
     }
 }
 
+pub(crate) type BoxFuture<'a, T> = Pin<Box<dyn Future<Output = T> + Send + 'a>>;
+
 /// A trait that all types of accounts implement.
+///
+/// This can be used, for example, to join servers with a custom authentication
+/// server.
 ///
 /// Anything that implements [`AccountTrait`] can be converted to an [`Account`]
 /// with `.into()`.
 ///
-/// Consider checking out the source code of
+/// Consider reading the source code of
 /// [`MicrosoftAccount`](microsoft::MicrosoftAccount) for an example of how to
 /// implement this.
 pub trait AccountTrait: Send + Sync + Debug {
@@ -69,16 +76,14 @@ pub trait AccountTrait: Send + Sync + Debug {
 
     /// Refreshes the access token for this account.
     #[cfg(feature = "online-mode")]
-    fn refresh(
-        &self,
-    ) -> Pin<Box<dyn Future<Output = Result<(), azalea_auth::AuthError>> + Send + '_>> {
+    fn refresh(&self) -> BoxFuture<'_, Result<(), azalea_auth::AuthError>> {
         Box::pin(async { Ok(()) })
     }
     /// Refreshes the access token for this account.
     ///
     /// The `online-mode` feature is disabled, so this won't do anything.
     #[cfg(not(feature = "online-mode"))]
-    fn refresh(&self) -> Pin<Box<dyn Future<Output = Result<(), ()>> + Send + '_>> {
+    fn refresh(&self) -> BoxFuture<Result<(), ()>> {
         Box::pin(async { Ok(()) })
     }
 
@@ -97,6 +102,40 @@ pub trait AccountTrait: Send + Sync + Debug {
     #[cfg(feature = "online-mode")]
     fn set_certs(&self, certs: azalea_auth::certs::Certificates) {
         let _ = certs;
+    }
+
+    /// Typically used to tell Mojang's sessionserver that we are going to join
+    /// a server.
+    ///
+    /// This must be implemented for accounts that can join online-mode servers.
+    ///
+    /// This function is called internally by Azalea when the account tries to
+    /// join a server, but only if [`AccountTrait::access_token`] is `Some`.
+    #[cfg(feature = "online-mode")]
+    fn join<'a>(
+        &'a self,
+        public_key: &'a [u8],
+        private_key: &'a [u8; 16],
+        server_id: &'a str,
+        proxy: Option<reqwest::Proxy>,
+    ) -> BoxFuture<'a, Result<(), ClientSessionServerError>> {
+        let _ = (public_key, private_key, server_id, proxy);
+        Box::pin(async { Ok(()) })
+    }
+    /// Typically used to tell Mojang's sessionserver that we are going to join
+    /// a server.
+    ///
+    /// The `online-mode` feature is disabled, so this won't do anything.
+    #[cfg(not(feature = "online-mode"))]
+    fn join(
+        &self,
+        public_key: &[u8],
+        private_key: &[u8; 16],
+        server_id: &str,
+        proxy: Option<reqwest::Proxy>,
+    ) -> BoxFuture<Result<(), ()>> {
+        let _ = (public_key, private_key, server_id, proxy);
+        Box::pin(async { Ok(()) })
     }
 }
 impl<T: AccountTrait + 'static> From<T> for Account {

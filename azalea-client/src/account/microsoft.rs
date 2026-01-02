@@ -1,10 +1,12 @@
-use std::pin::Pin;
-
-use azalea_auth::{AccessTokenResponse, certs::Certificates};
+use azalea_auth::{
+    AccessTokenResponse,
+    certs::Certificates,
+    sessionserver::{self, ClientSessionServerError, SessionServerJoinOpts},
+};
 use parking_lot::Mutex;
 use uuid::Uuid;
 
-use crate::account::{Account, AccountTrait};
+use crate::account::{Account, AccountTrait, BoxFuture};
 
 /// A type of account that authenticates with Microsoft using Azalea's cache.
 ///
@@ -70,14 +72,32 @@ impl AccountTrait for MicrosoftAccount {
     fn set_certs(&self, certs: azalea_auth::certs::Certificates) {
         *self.certs.lock() = Some(certs);
     }
-    fn refresh(
-        &self,
-    ) -> Pin<Box<dyn Future<Output = Result<(), azalea_auth::AuthError>> + Send + '_>> {
+    fn refresh(&self) -> BoxFuture<'_, Result<(), azalea_auth::AuthError>> {
         Box::pin(async {
             let new_account = MicrosoftAccount::new(&self.cache_key, None, None).await?;
             let new_access_token = new_account.access_token().unwrap();
             *self.access_token.lock() = new_access_token;
             Ok(())
+        })
+    }
+    fn join<'a>(
+        &'a self,
+        public_key: &'a [u8],
+        private_key: &'a [u8; 16],
+        server_id: &'a str,
+        proxy: Option<reqwest::Proxy>,
+    ) -> BoxFuture<'a, Result<(), ClientSessionServerError>> {
+        Box::pin(async move {
+            let access_token = self.access_token.lock().clone();
+            sessionserver::join(SessionServerJoinOpts {
+                access_token: &access_token,
+                public_key: public_key,
+                private_key: private_key,
+                uuid: &self.uuid(),
+                server_id: &server_id,
+                proxy,
+            })
+            .await
         })
     }
 }
@@ -152,9 +172,7 @@ impl AccountTrait for MicrosoftWithAccessTokenAccount {
     fn set_certs(&self, certs: azalea_auth::certs::Certificates) {
         *self.certs.lock() = Some(certs);
     }
-    fn refresh(
-        &self,
-    ) -> Pin<Box<dyn Future<Output = Result<(), azalea_auth::AuthError>> + Send + '_>> {
+    fn refresh(&self) -> BoxFuture<'_, Result<(), azalea_auth::AuthError>> {
         Box::pin(async {
             let msa_value = self.msa.lock().clone();
             let new_account = MicrosoftWithAccessTokenAccount::new(msa_value, None, None).await?;
@@ -165,6 +183,26 @@ impl AccountTrait for MicrosoftWithAccessTokenAccount {
             *self.msa.lock() = new_account.msa.lock().clone();
 
             Ok(())
+        })
+    }
+    fn join<'a>(
+        &'a self,
+        public_key: &'a [u8],
+        private_key: &'a [u8; 16],
+        server_id: &'a str,
+        proxy: Option<reqwest::Proxy>,
+    ) -> BoxFuture<'a, Result<(), ClientSessionServerError>> {
+        Box::pin(async move {
+            let access_token = self.access_token.lock().clone();
+            sessionserver::join(SessionServerJoinOpts {
+                access_token: &access_token,
+                public_key: public_key,
+                private_key: private_key,
+                uuid: &self.uuid(),
+                server_id: &server_id,
+                proxy,
+            })
+            .await
         })
     }
 }

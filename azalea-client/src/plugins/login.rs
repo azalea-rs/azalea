@@ -123,7 +123,7 @@ pub async fn auth_with_account(
 
     #[cfg(feature = "online-mode")]
     if packet.should_authenticate {
-        let Some(access_token) = &account.access_token() else {
+        if account.access_token().is_none() {
             // offline mode account, no need to do auth
             return Ok((key_packet, private_key));
         };
@@ -135,22 +135,15 @@ pub async fn auth_with_account(
         let proxy = proxy.map(Proxy::into);
 
         while let Err(err) = {
-            use azalea_auth::sessionserver::{self, SessionServerJoinOpts};
-
-            let uuid = &account.uuid();
-
             let proxy = proxy.clone();
 
             // this is necessary since reqwest usually depends on tokio and we're using
             // `futures` here
-            async_compat::Compat::new(sessionserver::join(SessionServerJoinOpts {
-                access_token,
-                public_key: &packet.public_key,
-                private_key: &private_key,
-                uuid,
-                server_id: &packet.server_id,
-                proxy,
-            }))
+            async_compat::Compat::new(async {
+                account
+                    .join(&packet.public_key, &private_key, &packet.server_id, proxy)
+                    .await
+            })
             .await
         } {
             if attempts >= 2 {

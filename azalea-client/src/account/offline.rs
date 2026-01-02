@@ -3,7 +3,7 @@ use uuid::Uuid;
 use crate::account::{Account, AccountTrait};
 
 /// A type of account that does not perform any authentication and cannot join
-/// `online-mode` servers.
+/// online-mode servers.
 ///
 /// This type is not intended to be used directly by the user. To actually make
 /// an offline-mode account, see [`Account::offline`].
