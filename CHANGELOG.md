@@ -12,6 +12,7 @@ is breaking anyways, semantic versioning is not followed.
 
 - Re-implement `Client::map_component` and `map_get_component`.
 - Add an `EntityRef` type to simplify interactions with entities.
+- `AccountTrait` was implemented, which allows for custom refresh and join behavior for `Account`s.
 
 ### Changed
 
