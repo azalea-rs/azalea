@@ -49,6 +49,8 @@ parking_lot = { workspace = true, features = ["deadlock_detection"] }
 rand.workspace = true
 anyhow.workspace = true
 bevy_log.workspace = true
+rustmatica.workspace = true
+mcdata.workspace = true
 
 [features]
 default = ["log", "serde", "packet-event", "online-mode"]
@@ -65,6 +67,10 @@ name = "testbot"
 doc-scrape-examples = true
 
 [[bench]]
+name = "checks"
+harness = false
+
+[[bench]]
 name = "pathfinder"
 harness = false
 
@@ -73,7 +79,7 @@ name = "physics"
 harness = false
 
 [[bench]]
-name = "checks"
+name = "realistic_one"
 harness = false
 
 [lints]

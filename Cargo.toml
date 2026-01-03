@@ -134,6 +134,9 @@ cargo-args = ["-Zunstable-options", "-Zrustdoc-scrape-examples"]
 [profile.release]
 debug = true
 
+[profile.bench]
+lto = "thin"
+
 # decoding packets takes forever if we don't do this
 [profile.dev.package.azalea-crypto]
 opt-level = 3
