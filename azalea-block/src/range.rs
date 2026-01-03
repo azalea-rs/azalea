@@ -1,13 +1,14 @@
 use std::{
     collections::{HashSet, hash_set},
     ops::{Add, RangeInclusive},
+    sync::LazyLock,
 };
 
-use azalea_registry::Block;
+use azalea_registry::{builtin::BlockKind, tags::RegistryTag};
 
 use crate::{BlockState, block_state::BlockStateIntegerRepr};
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct BlockStates {
     pub set: HashSet<BlockState>,
 }
@@ -47,14 +48,14 @@ impl Add for BlockStates {
     }
 }
 
-impl From<HashSet<Block>> for BlockStates {
-    fn from(set: HashSet<Block>) -> Self {
+impl From<HashSet<BlockKind>> for BlockStates {
+    fn from(set: HashSet<BlockKind>) -> Self {
         Self::from(&set)
     }
 }
 
-impl From<&HashSet<Block>> for BlockStates {
-    fn from(set: &HashSet<Block>) -> Self {
+impl From<&HashSet<BlockKind>> for BlockStates {
+    fn from(set: &HashSet<BlockKind>) -> Self {
         let mut block_states = HashSet::with_capacity(set.len());
         for &block in set {
             block_states.extend(BlockStates::from(block));
@@ -63,17 +64,29 @@ impl From<&HashSet<Block>> for BlockStates {
     }
 }
 
-impl<const N: usize> From<[Block; N]> for BlockStates {
-    fn from(arr: [Block; N]) -> Self {
-        Self::from(&arr[..])
-    }
-}
-impl From<&[Block]> for BlockStates {
-    fn from(arr: &[Block]) -> Self {
+impl From<&[BlockKind]> for BlockStates {
+    fn from(arr: &[BlockKind]) -> Self {
         let mut block_states = HashSet::with_capacity(arr.len());
         for &block in arr {
             block_states.extend(BlockStates::from(block));
         }
         Self { set: block_states }
+    }
+}
+impl<const N: usize> From<[BlockKind; N]> for BlockStates {
+    fn from(arr: [BlockKind; N]) -> Self {
+        Self::from(&arr[..])
+    }
+}
+impl From<&RegistryTag<BlockKind>> for BlockStates {
+    fn from(tag: &RegistryTag<BlockKind>) -> Self {
+        Self::from(&**tag)
+    }
+}
+// allows users to do like `BlockStates::from(&tags::blocks::LOGS)` instead of
+// `BlockStates::from(&&tags::blocks::LOGS)`
+impl From<&LazyLock<RegistryTag<BlockKind>>> for BlockStates {
+    fn from(tag: &LazyLock<RegistryTag<BlockKind>>) -> Self {
+        Self::from(&**tag)
     }
 }

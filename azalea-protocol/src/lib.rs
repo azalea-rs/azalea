@@ -1,119 +1,25 @@
-//! A low-level crate to send and receive Minecraft packets.
-//!
-//! You should probably use [`azalea`] or [`azalea_client`] instead, as
-//! `azalea_protocol` delegates much of the work, such as auth, to the user of
-//! the crate.
-//!
-//! [`azalea`]: https://crates.io/crates/azalea
-//! [`azalea_client`]: https://crates.io/crates/azalea-client
-//!
-//! See [`crate::connect::Connection`] for an example.
-
+#![doc = include_str!("../README.md")]
 // this is necessary for thiserror backtraces
 #![feature(error_generic_member_access)]
 
-use std::{
-    fmt::{self, Display},
-    net::SocketAddr,
-    str::FromStr,
-};
-
+pub mod address;
 pub mod common;
 #[cfg(feature = "connecting")]
 pub mod connect;
-#[cfg(feature = "packets")]
 pub mod packets;
 pub mod read;
-pub mod resolver;
+pub mod resolve;
 pub mod write;
 
-/// A host and port. It's possible that the port doesn't resolve to anything.
-///
-/// # Examples
-///
-/// `ServerAddress` implements TryFrom<&str>, so you can use it like this:
-/// ```
-/// use azalea_protocol::ServerAddress;
-///
-/// let addr = ServerAddress::try_from("localhost:25565").unwrap();
-/// assert_eq!(addr.host, "localhost");
-/// assert_eq!(addr.port, 25565);
-/// ```
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct ServerAddress {
-    pub host: String,
-    pub port: u16,
+#[doc(hidden)]
+#[deprecated(note = "renamed to `resolve`.")]
+pub mod resolver {
+    pub use super::resolve::*;
 }
 
-impl TryFrom<&str> for ServerAddress {
-    type Error = String;
-
-    /// Convert a Minecraft server address (host:port, the port is optional) to
-    /// a `ServerAddress`
-    fn try_from(string: &str) -> Result<Self, Self::Error> {
-        if string.is_empty() {
-            return Err("Empty string".to_string());
-        }
-        let mut parts = string.split(':');
-        let host = parts.next().ok_or("No host specified")?.to_string();
-        // default the port to 25565
-        let port = parts.next().unwrap_or("25565");
-        let port = u16::from_str(port).map_err(|_| "Invalid port specified")?;
-        Ok(ServerAddress { host, port })
-    }
-}
-impl TryFrom<String> for ServerAddress {
-    type Error = String;
-
-    fn try_from(string: String) -> Result<Self, Self::Error> {
-        ServerAddress::try_from(string.as_str())
-    }
-}
-
-impl From<SocketAddr> for ServerAddress {
-    /// Convert an existing `SocketAddr` into a `ServerAddress`.
-    ///
-    /// This just converts the IP to a string and passes along the port. The
-    /// resolver will realize it's already an IP address and not do any DNS
-    /// requests.
-    fn from(addr: SocketAddr) -> Self {
-        ServerAddress {
-            host: addr.ip().to_string(),
-            port: addr.port(),
-        }
-    }
-}
-
-impl Display for ServerAddress {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}:{}", self.host, self.port)
-    }
-}
-
-/// Serde deserialization for ServerAddress.
-///
-/// This is useful if you're storing the server address in a config file.
-impl<'de> serde::Deserialize<'de> for ServerAddress {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        let string = String::deserialize(deserializer)?;
-        ServerAddress::try_from(string.as_str()).map_err(serde::de::Error::custom)
-    }
-}
-
-/// Serde serialization for ServerAddress.
-///
-/// This uses the Display impl, so it will serialize to a string.
-impl serde::Serialize for ServerAddress {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        serializer.serialize_str(&self.to_string())
-    }
-}
+#[doc(hidden)]
+#[deprecated(note = "moved to `address::ServerAddr`.")]
+pub type ServerAddress = address::ServerAddr;
 
 #[cfg(test)]
 mod tests {
@@ -134,7 +40,7 @@ mod tests {
     #[tokio::test]
     async fn test_hello_packet() {
         let packet = ServerboundHello {
-            name: "test".to_string(),
+            name: "test".to_owned(),
             profile_id: Uuid::nil(),
         };
         let mut stream = Vec::new();
@@ -164,7 +70,7 @@ mod tests {
     #[tokio::test]
     async fn test_double_hello_packet() {
         let packet = ServerboundHello {
-            name: "test".to_string(),
+            name: "test".to_owned(),
             profile_id: Uuid::nil(),
         }
         .into_variant();

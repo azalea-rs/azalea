@@ -5,8 +5,8 @@ use azalea::{
     pathfinder, prelude::*, swarm::prelude::*,
 };
 
-#[tokio::main(flavor = "current_thread")]
-async fn main() {
+#[tokio::main]
+async fn main() -> AppExit {
     let mut accounts = Vec::new();
     let mut states = Vec::new();
 
@@ -22,13 +22,12 @@ async fn main() {
         .join_delay(Duration::from_millis(1000))
         .start("localhost")
         .await
-        .unwrap();
 }
 
-#[derive(Component, Default, Clone)]
+#[derive(Clone, Component, Default)]
 struct State {}
 
-#[derive(Resource, Default, Clone)]
+#[derive(Clone, Default, Resource)]
 struct SwarmState {}
 
 async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
@@ -48,7 +47,7 @@ async fn swarm_handle(swarm: Swarm, event: SwarmEvent, state: SwarmState) -> any
                 for (bot, bot_state) in swarm {
                     bot.tick_goto_goal(pathfinder::Goals::Reach(target_bounding_box));
                     // if target.bounding_box.distance(bot.eyes) < bot.reach_distance() {
-                    if azalea::entities::can_reach(bot.entity(), target_bounding_box) {
+                    if bot.can_reach(target_bounding_box) {
                         bot.swing();
                     }
                     if !bot.using_held_item() && bot.hunger() <= 17 {

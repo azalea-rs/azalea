@@ -17,3 +17,6 @@ parking_lot.workspace = true
 
 [features]
 azalea-buf = ["dep:azalea-buf", "dep:azalea-chat", "azalea-chat/azalea-buf"]
+
+[lints]
+workspace = true

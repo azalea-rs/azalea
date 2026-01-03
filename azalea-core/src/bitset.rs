@@ -6,7 +6,7 @@ use std::{
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
 
 /// Represents Java's BitSet, a list of bits.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, AzBuf)]
+#[derive(AzBuf, Clone, Debug, Default, Eq, Hash, PartialEq)]
 pub struct BitSet {
     data: Vec<u64>,
 }
@@ -52,7 +52,7 @@ impl BitSet {
     pub fn clear(&mut self, range: Range<usize>) {
         assert!(
             range.start <= range.end,
-            "Range ends before it starts; {} must be greater than {}",
+            "Range ends before it starts; {} must be less than or equal to {}",
             range.start,
             range.end
         );
@@ -178,7 +178,7 @@ impl From<Vec<u8>> for BitSet {
 /// Minecraft, and may not be as performant as it could be for other purposes.
 /// Consider using [`FastFixedBitSet`] if you don't need the
 /// `AzaleaRead`/`AzaleaWrite` implementation.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct FixedBitSet<const N: usize>
 where
     [u8; bits_to_bytes(N)]: Sized,
@@ -254,7 +254,7 @@ pub const fn bits_to_bytes(n: usize) -> usize {
 ///
 /// This is almost identical to [`FixedBitSet`], but more efficient (~20% faster
 /// access) and doesn't implement `AzaleaRead`/`AzaleaWrite`.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct FastFixedBitSet<const N: usize>
 where
     [u64; bits_to_longs(N)]: Sized,

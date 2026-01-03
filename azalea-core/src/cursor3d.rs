@@ -54,7 +54,7 @@ impl Iterator for Cursor3d {
 }
 
 #[repr(u8)]
-#[derive(Eq, PartialEq, Debug)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum CursorIterationType {
     Inside = 0,
     Face = 1,

@@ -11,7 +11,7 @@ BLOCKS_RS_DIR = get_dir_location("../azalea-block/src/generated.rs")
 
 def generate_blocks(
     blocks_report: dict,
-    pumpkin_block_datas: dict,
+    pumpkin_blocks_data: dict,
     ordered_blocks: list[str],
     burger_data: dict,
 ):
@@ -21,10 +21,10 @@ def generate_blocks(
     new_make_block_states_macro_code = []
     new_make_block_states_macro_code.append("make_block_states! {")
 
-    burger_block_datas = burger_data[0]["blocks"]["block"]
+    burger_blocks_data = burger_data[0]["blocks"]["block"]
 
     pumpkin_block_map = {}
-    for block_data in pumpkin_block_datas["blocks"]:
+    for block_data in pumpkin_blocks_data["blocks"]:
         block_id = block_data["name"]
         pumpkin_block_map[block_id] = block_data
 
@@ -85,11 +85,11 @@ def generate_blocks(
 
     new_make_block_states_macro_code.append("    },")
 
-    # Block codegen
+    # BlockKind codegen
     new_make_block_states_macro_code.append("    Blocks => {")
     for block_id in ordered_blocks:
         block_data_report = blocks_report["minecraft:" + block_id]
-        block_data_burger = burger_block_datas.get(block_id, {})
+        block_data_burger = burger_blocks_data.get(block_id, {})
         block_data_pumpkin = pumpkin_block_map[block_id]
 
         default_property_variants: dict[str, str] = {}

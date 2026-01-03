@@ -10,12 +10,14 @@ use azalea_entity::{
     ActiveEffects, Dead, EntityBundle, EntityKindComponent, HasClientLoaded, LoadedBy, LocalEntity,
     LookDirection, Physics, PlayerAbilities, Position, RelativeEntityUpdate,
     indexing::{EntityIdIndex, EntityUuidIndex},
+    inventory::Inventory,
     metadata::{Health, apply_metadata},
 };
 use azalea_protocol::{
     common::movements::MoveFlags,
     packets::{ConnectionProtocol, game::*},
 };
+use azalea_registry::builtin::EntityKind;
 use azalea_world::{InstanceContainer, InstanceName, MinecraftEntityId, PartialInstance};
 use bevy_ecs::{prelude::*, system::SystemState};
 pub use events::*;
@@ -27,13 +29,12 @@ use crate::{
     chat::{ChatPacket, ChatReceivedEvent},
     chunks,
     connection::RawConnection,
+    cookies::{RequestCookieEvent, StoreCookieEvent},
     disconnect::DisconnectEvent,
     interact::BlockStatePredictionHandler,
-    inventory::{
-        ClientsideCloseContainerEvent, Inventory, MenuOpenedEvent, SetContainerContentEvent,
-    },
+    inventory::{ClientsideCloseContainerEvent, MenuOpenedEvent, SetContainerContentEvent},
     local_player::{Hunger, InstanceHolder, LocalGameMode, TabList},
-    movement::{KnockbackEvent, KnockbackType},
+    movement::{KnockbackData, KnockbackEvent},
     packet::{as_system, declare_packet_handlers},
     player::{GameProfileComponent, PlayerInfo},
     tick_counter::TicksConnected,
@@ -115,7 +116,7 @@ pub fn process_packet(ecs: &mut World, player: Entity, packet: &ClientboundGameP
             delete_chat,
             explode,
             forget_level_chunk,
-            horse_screen_open,
+            mount_screen_open,
             map_item_data,
             merchant_offers,
             move_vehicle,
@@ -245,26 +246,30 @@ impl GamePacketHandler<'_> {
                         .insert(InstanceName(new_instance_name.clone()));
                 }
 
-                let Some((_dimension_type, dimension_data)) = p
-                    .common
-                    .dimension_type(&instance_holder.instance.read().registries)
-                else {
-                    return;
-                };
+                let weak_instance;
+                {
+                    let client_registries = &instance_holder.instance.read().registries;
 
-                // add this world to the instance_container (or don't if it's already
-                // there)
-                let weak_instance = instance_container.get_or_insert(
-                    new_instance_name.clone(),
-                    dimension_data.height,
-                    dimension_data.min_y,
-                    &instance_holder.instance.read().registries,
-                );
-                instance_loaded_events.write(InstanceLoadedEvent {
-                    entity: self.player,
-                    name: new_instance_name.clone(),
-                    instance: Arc::downgrade(&weak_instance),
-                });
+                    let Some((_dimension_type, dimension_data)) =
+                        p.common.dimension_type(client_registries)
+                    else {
+                        return;
+                    };
+
+                    // add this world to the instance_container (or don't if it's already
+                    // there)
+                    weak_instance = instance_container.get_or_insert(
+                        new_instance_name.clone(),
+                        dimension_data.height,
+                        dimension_data.min_y,
+                        client_registries,
+                    );
+                    instance_loaded_events.write(InstanceLoadedEvent {
+                        entity: self.player,
+                        name: new_instance_name.clone(),
+                        instance: Arc::downgrade(&weak_instance),
+                    });
+                }
 
                 // set the partial_world to an empty world
                 // (when we add chunks or entities those will be in the
@@ -279,19 +284,17 @@ impl GamePacketHandler<'_> {
                     Some(self.player),
                 );
                 {
-                    let map = instance_holder.instance.read().registries.map.clone();
-                    let new_registries = &mut weak_instance.write().registries;
+                    let client_registries = instance_holder.instance.read().registries.clone();
+                    let shared_registries = &mut weak_instance.write().registries;
                     // add the registries from this instance to the weak instance
-                    for (registry_name, registry) in map {
-                        new_registries.map.insert(registry_name, registry);
-                    }
+                    shared_registries.extend(client_registries);
                 }
                 instance_holder.instance = weak_instance;
 
                 let entity_bundle = EntityBundle::new(
                     game_profile.uuid,
                     Vec3::ZERO,
-                    azalea_registry::EntityKind::Player,
+                    EntityKind::Player,
                     new_instance_name,
                 );
                 let entity_id = p.player_id;
@@ -735,14 +738,13 @@ impl GamePacketHandler<'_> {
                 // this is to make sure the same entity velocity update doesn't get sent
                 // multiple times when in swarms
 
-                let knockback = KnockbackType::Set(p.delta.to_vec3());
+                let data = KnockbackData::Set(p.delta.to_vec3());
 
                 commands.entity(entity).queue(RelativeEntityUpdate::new(
                     instance_holder.partial_instance.clone(),
                     move |entity_mut| {
-                        entity_mut.world_scope(|world| {
-                            world.write_message(KnockbackEvent { entity, knockback })
-                        });
+                        entity_mut
+                            .world_scope(|world| world.trigger(KnockbackEvent { entity, data }));
                     },
                 ));
             },
@@ -1124,7 +1126,6 @@ impl GamePacketHandler<'_> {
                 };
 
                 let partial_instance = instance_holder.partial_instance.clone();
-                let mob_effect = mob_effect;
                 let effect_data = effect_data.clone();
                 commands.entity(entity).queue(RelativeEntityUpdate::new(
                     partial_instance,
@@ -1260,13 +1261,13 @@ impl GamePacketHandler<'_> {
     pub fn delete_chat(&mut self, _p: &ClientboundDeleteChat) {}
 
     pub fn explode(&mut self, p: &ClientboundExplode) {
-        trace!("Got explode packet {p:?}");
+        println!("Got explode packet {p:?}");
 
-        as_system::<MessageWriter<_>>(self.ecs, |mut knockback_events| {
+        as_system::<Commands>(self.ecs, |mut knockback_events| {
             if let Some(knockback) = p.player_knockback {
-                knockback_events.write(KnockbackEvent {
+                knockback_events.trigger(KnockbackEvent {
                     entity: self.player,
-                    knockback: KnockbackType::Set(knockback),
+                    data: KnockbackData::Set(knockback),
                 });
             }
         });
@@ -1284,7 +1285,7 @@ impl GamePacketHandler<'_> {
         });
     }
 
-    pub fn horse_screen_open(&mut self, _p: &ClientboundHorseScreenOpen) {}
+    pub fn mount_screen_open(&mut self, _p: &ClientboundMountScreenOpen) {}
 
     pub fn map_item_data(&mut self, _p: &ClientboundMapItemData) {}
 
@@ -1433,26 +1434,29 @@ impl GamePacketHandler<'_> {
                         .insert(InstanceName(new_instance_name.clone()));
                 }
 
-                let Some((_dimension_type, dimension_data)) = p
-                    .common
-                    .dimension_type(&instance_holder.instance.read().registries)
-                else {
-                    return;
-                };
+                let weak_instance;
+                {
+                    let client_registries = &instance_holder.instance.read().registries;
+                    let Some((_dimension_type, dimension_data)) =
+                        p.common.dimension_type(client_registries)
+                    else {
+                        return;
+                    };
 
-                // add this world to the instance_container (or don't if it's already
-                // there)
-                let weak_instance = instance_container.get_or_insert(
-                    new_instance_name.clone(),
-                    dimension_data.height,
-                    dimension_data.min_y,
-                    &instance_holder.instance.read().registries,
-                );
-                events.write(InstanceLoadedEvent {
-                    entity: self.player,
-                    name: new_instance_name.clone(),
-                    instance: Arc::downgrade(&weak_instance),
-                });
+                    // add this world to the instance_container (or don't if it's already
+                    // there)
+                    weak_instance = instance_container.get_or_insert(
+                        new_instance_name.clone(),
+                        dimension_data.height,
+                        dimension_data.min_y,
+                        client_registries,
+                    );
+                    events.write(InstanceLoadedEvent {
+                        entity: self.player,
+                        name: new_instance_name.clone(),
+                        instance: Arc::downgrade(&weak_instance),
+                    });
+                }
 
                 // set the partial_world to an empty world
                 // (when we add chunks or entities those will be in the
@@ -1475,7 +1479,7 @@ impl GamePacketHandler<'_> {
                 let entity_bundle = EntityBundle::new(
                     game_profile.uuid,
                     Vec3::ZERO,
-                    azalea_registry::EntityKind::Player,
+                    EntityKind::Player,
                     new_instance_name,
                 );
                 // update the local gamemode and metadata things
@@ -1595,10 +1599,27 @@ impl GamePacketHandler<'_> {
     pub fn ticking_state(&mut self, _p: &ClientboundTickingState) {}
     pub fn ticking_step(&mut self, _p: &ClientboundTickingStep) {}
     pub fn reset_score(&mut self, _p: &ClientboundResetScore) {}
-    pub fn cookie_request(&mut self, _p: &ClientboundCookieRequest) {}
+    pub fn cookie_request(&mut self, p: &ClientboundCookieRequest) {
+        debug!("Got cookie request packet {p:?}");
+        as_system::<Commands>(self.ecs, |mut commands| {
+            commands.trigger(RequestCookieEvent {
+                entity: self.player,
+                key: p.key.clone(),
+            });
+        });
+    }
+    pub fn store_cookie(&mut self, p: &ClientboundStoreCookie) {
+        debug!("Got store cookie packet {p:?}");
+        as_system::<Commands>(self.ecs, |mut commands| {
+            commands.trigger(StoreCookieEvent {
+                entity: self.player,
+                key: p.key.clone(),
+                payload: p.payload.clone(),
+            });
+        });
+    }
     pub fn debug_sample(&mut self, _p: &ClientboundDebugSample) {}
     pub fn pong_response(&mut self, _p: &ClientboundPongResponse) {}
-    pub fn store_cookie(&mut self, _p: &ClientboundStoreCookie) {}
     pub fn transfer(&mut self, _p: &ClientboundTransfer) {}
     pub fn move_minecart_along_track(&mut self, _p: &ClientboundMoveMinecartAlongTrack) {}
     pub fn set_held_slot(&mut self, p: &ClientboundSetHeldSlot) {

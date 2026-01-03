@@ -1,6 +1,6 @@
 use azalea_buf::AzBuf;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, AzBuf)]
+#[derive(AzBuf, Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct RgbColor {
     value: u32,
 }
@@ -25,7 +25,7 @@ impl RgbColor {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, AzBuf)]
+#[derive(AzBuf, Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct ArgbColor {
     value: u32,
 }

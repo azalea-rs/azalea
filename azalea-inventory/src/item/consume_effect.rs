@@ -1,11 +1,15 @@
 use azalea_buf::AzBuf;
-use azalea_core::{codec_utils::is_default, resource_location::ResourceLocation};
-use azalea_registry::{HolderSet, MobEffect, SoundEvent};
+use azalea_core::codec_utils::is_default;
+use azalea_registry::{
+    HolderSet,
+    builtin::{ConsumeEffectKind, MobEffect, SoundEvent},
+    identifier::Identifier,
+};
 use serde::Serialize;
 
 use crate::components::MobEffectInstance;
 
-#[derive(Clone, PartialEq, Debug, AzBuf, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case", tag = "type")]
 pub enum ConsumeEffect {
     ApplyEffects {
@@ -16,7 +20,7 @@ pub enum ConsumeEffect {
     },
     RemoveEffects {
         #[serde(skip_serializing_if = "is_default")]
-        effects: HolderSet<MobEffect, ResourceLocation>,
+        effects: HolderSet<MobEffect, Identifier>,
     },
     ClearAllEffects,
     TeleportRandomly {
@@ -28,18 +32,14 @@ pub enum ConsumeEffect {
     },
 }
 
-impl From<ConsumeEffect> for azalea_registry::ConsumeEffectKind {
+impl From<ConsumeEffect> for ConsumeEffectKind {
     fn from(effect: ConsumeEffect) -> Self {
         match effect {
-            ConsumeEffect::ApplyEffects { .. } => azalea_registry::ConsumeEffectKind::ApplyEffects,
-            ConsumeEffect::RemoveEffects { .. } => {
-                azalea_registry::ConsumeEffectKind::RemoveEffects
-            }
-            ConsumeEffect::ClearAllEffects => azalea_registry::ConsumeEffectKind::ClearAllEffects,
-            ConsumeEffect::TeleportRandomly { .. } => {
-                azalea_registry::ConsumeEffectKind::TeleportRandomly
-            }
-            ConsumeEffect::PlaySound { .. } => azalea_registry::ConsumeEffectKind::PlaySound,
+            ConsumeEffect::ApplyEffects { .. } => ConsumeEffectKind::ApplyEffects,
+            ConsumeEffect::RemoveEffects { .. } => ConsumeEffectKind::RemoveEffects,
+            ConsumeEffect::ClearAllEffects => ConsumeEffectKind::ClearAllEffects,
+            ConsumeEffect::TeleportRandomly { .. } => ConsumeEffectKind::TeleportRandomly,
+            ConsumeEffect::PlaySound { .. } => ConsumeEffectKind::PlaySound,
         }
     }
 }

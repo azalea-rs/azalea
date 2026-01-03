@@ -206,7 +206,10 @@ impl BitStorage {
         }
 
         debug_assert!(index < self.size);
-        debug_assert!(value <= self.mask);
+        debug_assert!(
+            value <= self.mask,
+            "value {value} at {index} was outside of the mask for {self:?}"
+        );
         let cell_index = self.cell_index(index as u64);
         let cell = &mut self.data[cell_index];
         let bit_index = (index - cell_index * self.values_per_long) * self.bits;

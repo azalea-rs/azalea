@@ -1,15 +1,16 @@
 use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
-use azalea_core::{bitset::FixedBitSet, resource_location::ResourceLocation};
+use azalea_core::bitset::FixedBitSet;
 use azalea_protocol_macros::ClientboundGamePacket;
+use azalea_registry::identifier::Identifier;
 
 use super::c_sound::SoundSource;
 
-#[derive(Clone, Debug, PartialEq, ClientboundGamePacket)]
+#[derive(ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundStopSound {
     pub source: Option<SoundSource>,
-    pub name: Option<ResourceLocation>,
+    pub name: Option<Identifier>,
 }
 
 impl AzaleaRead for ClientboundStopSound {
@@ -21,7 +22,7 @@ impl AzaleaRead for ClientboundStopSound {
             None
         };
         let name = if set.index(1) {
-            Some(ResourceLocation::azalea_read(buf)?)
+            Some(Identifier::azalea_read(buf)?)
         } else {
             None
         };

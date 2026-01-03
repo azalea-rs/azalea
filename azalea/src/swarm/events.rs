@@ -17,7 +17,7 @@ impl Plugin for SwarmPlugin {
 #[derive(Message)]
 pub struct SwarmReadyEvent;
 
-#[derive(Default, Resource, Deref, DerefMut)]
+#[derive(Default, Deref, DerefMut, Resource)]
 struct IsSwarmReady(bool);
 
 fn check_ready(

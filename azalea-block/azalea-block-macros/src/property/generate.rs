@@ -59,7 +59,7 @@ fn generate_property_code(
             }
 
             properties_code.extend(quote! {
-                #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+                #[derive(Clone, Copy, Debug, Eq, PartialEq)]
                 pub enum #property_struct_name {
                     #property_enum_variants
                 }
@@ -81,7 +81,7 @@ fn generate_property_code(
             });
 
             properties_code.extend(quote! {
-                #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+                #[derive(Clone, Copy, Debug, Eq, PartialEq)]
                 pub struct #property_struct_name(pub bool);
 
                 impl From<BlockStateIntegerRepr> for #property_struct_name {

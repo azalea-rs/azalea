@@ -1,0 +1,5 @@
+[files]
+extend-exclude = ['azalea-language/src/en_us.json']
+
+[default]
+extend-ignore-re = ['Hel', 'inout', 'Shs', 'shs', '"CONVERTABLE"']

@@ -7,6 +7,7 @@ use std::{
     net::SocketAddr,
 };
 
+#[cfg(feature = "online-mode")]
 use azalea_auth::{
     game_profile::GameProfile,
     sessionserver::{ClientSessionServerError, ServerSessionServerError},
@@ -21,15 +22,18 @@ use tokio::{
     },
 };
 use tracing::{error, info};
+#[cfg(feature = "online-mode")]
 use uuid::Uuid;
 
+#[cfg(feature = "online-mode")]
+use crate::packets::login::ClientboundHello;
 use crate::{
     packets::{
         ProtocolPacket,
         config::{ClientboundConfigPacket, ServerboundConfigPacket},
         game::{ClientboundGamePacket, ServerboundGamePacket},
         handshake::{ClientboundHandshakePacket, ServerboundHandshakePacket},
-        login::{ClientboundLoginPacket, ServerboundLoginPacket, c_hello::ClientboundHello},
+        login::{ClientboundLoginPacket, ServerboundLoginPacket},
         status::{ClientboundStatusPacket, ServerboundStatusPacket},
     },
     read::{ReadPacketError, deserialize_packet, read_raw_packet, try_read_raw_packet},
@@ -95,7 +99,7 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///
 ///     // login
 ///     conn.write(ServerboundHello {
-///         name: "bot".to_string(),
+///         name: "bot".to_owned(),
 ///         profile_id: uuid::Uuid::nil(),
 ///     })
 ///     .await?;
@@ -265,7 +269,7 @@ where
     }
 }
 
-#[derive(Error, Debug)]
+#[derive(Debug, Error)]
 pub enum ConnectionError {
     #[error("{0}")]
     Io(#[from] io::Error),
@@ -273,8 +277,8 @@ pub enum ConnectionError {
 
 use socks5_impl::protocol::UserKey;
 
-/// An address and authentication method for connecting to a Socks5 proxy.
-#[derive(Debug, Clone)]
+/// An address and authentication method for connecting to a SOCKS5 proxy.
+#[derive(Clone, Debug)]
 pub struct Proxy {
     pub addr: SocketAddr,
     pub auth: Option<UserKey>,
@@ -295,6 +299,14 @@ impl Display for Proxy {
     }
 }
 
+#[cfg(feature = "online-mode")]
+impl From<Proxy> for reqwest::Proxy {
+    fn from(proxy: Proxy) -> Self {
+        reqwest::Proxy::all(proxy.to_string())
+            .expect("azalea proxies should not fail to parse as reqwest proxies")
+    }
+}
+
 impl Connection<ClientboundHandshakePacket, ServerboundHandshakePacket> {
     /// Create a new connection to the given address.
     pub async fn new(address: &SocketAddr) -> Result<Self, ConnectionError> {
@@ -306,7 +318,7 @@ impl Connection<ClientboundHandshakePacket, ServerboundHandshakePacket> {
         Self::new_from_stream(stream).await
     }
 
-    /// Create a new connection to the given address and Socks5 proxy.
+    /// Create a new connection to the given address and SOCKS5 proxy.
     ///
     /// If you're not using a proxy, use [`Self::new`] instead.
     pub async fn new_with_proxy(
@@ -439,7 +451,7 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     ///     ClientboundLoginPacket::Hello(p) => {
     ///         // tell Mojang we're joining the server & enable encryption
     ///         let e = azalea_crypto::encrypt(&p.public_key, &p.challenge).unwrap();
-    ///         conn.authenticate(&access_token, &profile.id, e.secret_key, &p)
+    ///         conn.authenticate(&access_token, &profile.id, e.secret_key, &p, None)
     ///             .await?;
     ///         conn.write(ServerboundKey {
     ///             key_bytes: e.encrypted_public_key,
@@ -453,20 +465,25 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     /// # Ok(())
     /// # }
     /// ```
+    #[cfg(feature = "online-mode")]
     pub async fn authenticate(
         &self,
         access_token: &str,
         uuid: &Uuid,
         private_key: [u8; 16],
         packet: &ClientboundHello,
+        sessionserver_proxy: Option<Proxy>,
     ) -> Result<(), ClientSessionServerError> {
-        azalea_auth::sessionserver::join(
+        use azalea_auth::sessionserver::{self, SessionServerJoinOpts};
+
+        sessionserver::join(SessionServerJoinOpts {
             access_token,
-            &packet.public_key,
-            &private_key,
+            public_key: &packet.public_key,
+            private_key: &private_key,
             uuid,
-            &packet.server_id,
-        )
+            server_id: &packet.server_id,
+            proxy: sessionserver_proxy.map(Proxy::into),
+        })
         .await
     }
 }
@@ -526,6 +543,7 @@ impl Connection<ServerboundLoginPacket, ClientboundLoginPacket> {
     /// Verify connecting clients have authenticated with Minecraft's servers.
     /// This must happen after the client sends a `ServerboundLoginPacket::Key`
     /// packet.
+    #[cfg(feature = "online-mode")]
     pub async fn authenticate(
         &self,
         username: &str,

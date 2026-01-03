@@ -5,11 +5,11 @@ use std::{
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
 use azalea_core::bitset::FixedBitSet;
-use azalea_registry::MobEffect;
+use azalea_registry::builtin::MobEffect;
 use bevy_ecs::component::Component;
 
 /// Data about an active mob effect.
-#[derive(Clone, Debug, Default, PartialEq, AzBuf)]
+#[derive(AzBuf, Clone, Debug, Default, PartialEq)]
 pub struct MobEffectData {
     /// The effect's amplifier level, starting at 0 if present.
     #[var]
@@ -64,7 +64,7 @@ impl AzaleaWrite for MobEffectFlags {
 }
 
 /// An ECS component that stores the active mob effects on an entity.
-#[derive(Component, Clone, Debug, Default)]
+#[derive(Clone, Component, Debug, Default)]
 pub struct ActiveEffects(pub HashMap<MobEffect, MobEffectData>);
 impl ActiveEffects {
     pub fn insert(&mut self, effect: MobEffect, data: MobEffectData) {

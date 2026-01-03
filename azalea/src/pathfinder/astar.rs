@@ -310,7 +310,7 @@ impl PartialOrd for WeightedNode {
 ///
 /// [`PathfinderOpts::min_timeout`]: super::goto_event::PathfinderOpts::min_timeout
 /// [`PathfinderOpts::max_timeout`]: super::goto_event::PathfinderOpts::max_timeout
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum PathfinderTimeout {
     /// Time out after a certain duration has passed.
     ///

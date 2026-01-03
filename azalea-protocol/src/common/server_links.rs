@@ -1,19 +1,19 @@
 use azalea_buf::AzBuf;
 use azalea_chat::FormattedText;
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct ServerLinkEntry {
     pub kind: ServerLinkKind,
     pub link: String,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub enum ServerLinkKind {
     Component(FormattedText),
     Known(KnownLinkKind),
 }
 
-#[derive(Clone, Copy, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Copy, Debug, PartialEq)]
 pub enum KnownLinkKind {
     BugReport,
     CommunityGuidelines,

@@ -8,7 +8,7 @@ use crate::{
 /// An axis-aligned bounding box.
 ///
 /// In other words, a rectangular prism with a starting and ending point.
-#[derive(Copy, Clone, Debug, PartialEq, Default)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Aabb {
     pub min: Vec3,
     pub max: Vec3,

@@ -2,11 +2,12 @@ use azalea_auth::game_profile::{
     GameProfile, GameProfileProperties, SerializableProfileProperties,
 };
 use azalea_buf::AzBuf;
-use azalea_core::{codec_utils::*, resource_location::ResourceLocation};
+use azalea_core::codec_utils::*;
+use azalea_registry::identifier::Identifier;
 use serde::{Serialize, Serializer};
 use uuid::Uuid;
 
-#[derive(Clone, Debug, AzBuf, Default, PartialEq, Serialize)]
+#[derive(AzBuf, Clone, Debug, Default, PartialEq, Serialize)]
 #[doc(alias = "ResolvableProfile")]
 pub struct Profile {
     #[serde(flatten)]
@@ -15,7 +16,7 @@ pub struct Profile {
     pub skin_patch: Box<PlayerSkinPatch>,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum PartialOrFullProfile {
     Partial(PartialProfile),
@@ -27,7 +28,7 @@ impl Default for PartialOrFullProfile {
     }
 }
 
-#[derive(Clone, Debug, AzBuf, Default, PartialEq, Serialize)]
+#[derive(AzBuf, Clone, Debug, Default, PartialEq, Serialize)]
 pub struct PartialProfile {
     #[limit(16)]
     #[serde(skip_serializing_if = "is_default")]
@@ -46,7 +47,7 @@ fn serialize_properties<S: Serializer>(
     serializable.serialize(serializer)
 }
 
-#[derive(Clone, Debug, AzBuf, Default, PartialEq, Serialize)]
+#[derive(AzBuf, Clone, Debug, Default, PartialEq, Serialize)]
 pub struct PlayerSkinPatch {
     #[serde(rename = "texture")]
     #[serde(skip_serializing_if = "is_default")]
@@ -59,7 +60,7 @@ pub struct PlayerSkinPatch {
     pub model: Option<PlayerModelType>,
 }
 
-#[derive(Clone, Debug, Copy, AzBuf, Default, PartialEq, Serialize)]
+#[derive(AzBuf, Clone, Copy, Debug, Default, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum PlayerModelType {
     #[default]
@@ -67,8 +68,8 @@ pub enum PlayerModelType {
     Slim,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct ResourceTexture {
-    pub id: ResourceLocation,
+    pub id: Identifier,
 }

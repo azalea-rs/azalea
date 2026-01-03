@@ -47,7 +47,7 @@ pub struct ReceiveChunkEvent {
     pub packet: ClientboundLevelChunkWithLight,
 }
 
-#[derive(Component, Clone, Debug)]
+#[derive(Clone, Component, Debug)]
 pub struct ChunkBatchInfo {
     pub start_time: Instant,
     pub aggregated_duration_per_chunk: Duration,

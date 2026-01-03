@@ -3,11 +3,9 @@ use std::time::Duration;
 use azalea::{
     BlockPos, SprintDirection, WalkDirection,
     brigadier::prelude::*,
-    entity::Position,
     pathfinder::goals::{BlockPosGoal, RadiusGoal, XZGoal},
     prelude::*,
 };
-use azalea_entity::dimensions::EntityDimensions;
 use parking_lot::Mutex;
 
 use super::{CommandSource, Ctx};
@@ -24,10 +22,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
                     source.reply("I can't see you!");
                     return 0;
                 };
-                let Some(position) = source.bot.get_entity_component::<Position>(entity) else {
-                    source.reply("I can't see you!");
-                    return 0;
-                };
+                let position = entity.position();
                 source.reply("ok");
                 source
                     .bot
@@ -98,16 +93,8 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
                     source.reply("I can't see you!");
                     return 0;
                 };
-                let Some(position) = source.bot.get_entity_component::<Position>(entity) else {
-                    source.reply("I can't see you!");
-                    return 0;
-                };
-                let eye_height = source
-                    .bot
-                    .get_entity_component::<EntityDimensions>(entity)
-                    .map(|h| h.eye_height)
-                    .unwrap_or_default();
-                source.bot.look_at(position.up(eye_height as f64));
+                let eye_position = entity.eye_position();
+                source.bot.look_at(eye_position);
                 1
             })
             .then(argument("x", integer()).then(argument("y", integer()).then(

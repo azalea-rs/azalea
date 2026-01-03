@@ -126,7 +126,13 @@ impl AzaleaWrite for Vec<u8> {
 
 impl AzaleaWrite for String {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        write_utf_with_len(buf, self, MAX_STRING_LENGTH.into())
+        self.as_str().azalea_write(buf)
+    }
+}
+
+impl AzaleaWrite for Box<str> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+        (&**self).azalea_write(buf)
     }
 }
 

@@ -1,11 +1,11 @@
 use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
-use azalea_inventory::ItemStack;
+use azalea_inventory::{ItemStack, components::EquipmentSlot};
 use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_world::MinecraftEntityId;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
+#[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundSetEquipment {
     #[var]
     pub entity_id: MinecraftEntityId,
@@ -52,30 +52,5 @@ impl AzaleaWrite for EquipmentSlots {
         }
 
         Ok(())
-    }
-}
-
-#[derive(Clone, Debug, Copy, AzBuf, PartialEq)]
-pub enum EquipmentSlot {
-    MainHand = 0,
-    OffHand = 1,
-    Feet = 2,
-    Legs = 3,
-    Chest = 4,
-    Head = 5,
-}
-
-impl EquipmentSlot {
-    #[must_use]
-    pub fn from_byte(byte: u8) -> Option<Self> {
-        match byte {
-            0 => Some(EquipmentSlot::MainHand),
-            1 => Some(EquipmentSlot::OffHand),
-            2 => Some(EquipmentSlot::Feet),
-            3 => Some(EquipmentSlot::Legs),
-            4 => Some(EquipmentSlot::Chest),
-            5 => Some(EquipmentSlot::Head),
-            _ => None,
-        }
     }
 }

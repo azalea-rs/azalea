@@ -11,9 +11,11 @@ use derive_more::Deref;
 use tracing::info;
 
 use super::login::IsAuthenticated;
+#[cfg(feature = "online-mode")]
+use crate::chat_signing;
 use crate::{
-    chat_signing, client::JoinedClientBundle, connection::RawConnection,
-    local_player::InstanceHolder, tick_counter::TicksConnected,
+    client::JoinedClientBundle, connection::RawConnection, local_player::InstanceHolder,
+    tick_counter::TicksConnected,
 };
 
 pub struct DisconnectPlugin;
@@ -69,6 +71,7 @@ pub struct RemoveOnDisconnectBundle {
     /// This makes it not send [`DisconnectEvent`] again.
     pub is_connection_alive: IsConnectionAlive,
     /// Resend our chat signing certs next time.
+    #[cfg(feature = "online-mode")]
     pub chat_signing_session: chat_signing::ChatSigningSession,
     /// They're not authenticated anymore if they disconnected.
     pub is_authenticated: IsAuthenticated,
@@ -91,7 +94,7 @@ pub fn remove_components_from_disconnected_players(
             if let Some(reason) = reason {
                 format!(": {reason}")
             } else {
-                "".to_string()
+                "".to_owned()
             }
         );
         commands
@@ -109,7 +112,7 @@ pub fn remove_components_from_disconnected_players(
     }
 }
 
-#[derive(Component, Clone, Copy, Debug, Deref)]
+#[derive(Clone, Component, Copy, Debug, Deref)]
 pub struct IsConnectionAlive(bool);
 
 fn update_read_packets_task_running_component(

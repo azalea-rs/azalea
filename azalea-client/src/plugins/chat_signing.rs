@@ -13,7 +13,7 @@ use tracing::{debug, error};
 use uuid::Uuid;
 
 use super::{chat, login::IsAuthenticated, packet::game::SendGamePacketEvent};
-use crate::{Account, InGameState};
+use crate::{InGameState, account::Account};
 
 pub struct ChatSigningPlugin;
 impl Plugin for ChatSigningPlugin {
@@ -39,12 +39,12 @@ pub struct RequestCertsTask(pub Task<Result<Certificates, FetchCertificatesError
 ///
 /// This is used to avoid spamming requests if requesting certs fails. Usually,
 /// we just check [`Certificates::expires_at`].
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct OnlyRefreshCertsAfter {
     pub refresh_at: Instant,
 }
-/// A component that's present when that this client has sent its certificates
-/// to the server.
+/// A component that's present when this client has sent its certificates to the
+/// server.
 ///
 /// This should be removed if you want to re-send the certs.
 ///
@@ -70,7 +70,7 @@ pub fn poll_request_certs_task(
                     commands.entity(entity).insert(QueuedCertsToSend {
                         certs: certs.clone(),
                     });
-                    *account.certs.lock() = Some(certs);
+                    account.set_certs(certs);
                 }
                 Err(err) => {
                     error!("Error requesting certs: {err:?}. Retrying in an hour.");
@@ -108,8 +108,8 @@ pub fn request_certs_if_needed(
             continue;
         }
 
-        let certs = account.certs.lock();
-        let should_refresh = if let Some(certs) = &*certs {
+        let certs = account.certs();
+        let should_refresh = if let Some(certs) = certs {
             // certs were already requested and we're waiting for them to refresh
 
             // but maybe they weren't sent yet, in which case we still want to send the
@@ -122,12 +122,10 @@ pub fn request_certs_if_needed(
         } else {
             true
         };
-        drop(certs);
 
-        if should_refresh && let Some(access_token) = &account.access_token {
+        if should_refresh && let Some(access_token) = account.access_token() {
             let task_pool = IoTaskPool::get();
 
-            let access_token = access_token.lock().clone();
             debug!("Started task to fetch certs");
             let task = task_pool.spawn(async_compat::Compat::new(async move {
                 azalea_auth::certs::fetch_certificates(&access_token).await

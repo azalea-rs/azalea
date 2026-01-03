@@ -1,11 +1,11 @@
 use azalea_core::{aabb::Aabb, position::Vec3};
-use azalea_registry::EntityKind;
+use azalea_registry::builtin::EntityKind;
 use bevy_ecs::component::Component;
 
 use crate::Pose;
 
 /// A component that contains the size of an entity and their eye height.
-#[derive(Component, Debug, Default, Clone)]
+#[derive(Clone, Component, Debug, Default)]
 pub struct EntityDimensions {
     pub width: f32,
     pub height: f32,
@@ -79,6 +79,7 @@ impl From<EntityKind> for EntityDimensions {
             EntityKind::Breeze => EntityDimensions::new(0.6, 1.77).eye_height(1.3452),
             EntityKind::BreezeWindCharge => EntityDimensions::new(0.3125, 0.3125).eye_height(0.0),
             EntityKind::Camel => EntityDimensions::new(1.7, 2.375).eye_height(2.275),
+            EntityKind::CamelHusk => EntityDimensions::new(1.7, 2.375).eye_height(2.275),
             EntityKind::Cat => EntityDimensions::new(0.6, 0.7).eye_height(0.35),
             EntityKind::CaveSpider => EntityDimensions::new(0.7, 0.5).eye_height(0.45),
             EntityKind::CherryBoat => EntityDimensions::new(1.375, 0.5625).eye_height(0.5625),
@@ -150,6 +151,7 @@ impl From<EntityKind> for EntityDimensions {
             EntityKind::Minecart => EntityDimensions::new(0.98, 0.7),
             EntityKind::Mooshroom => EntityDimensions::new(0.9, 1.4).eye_height(1.3),
             EntityKind::Mule => EntityDimensions::new(1.39648, 1.6).eye_height(1.52),
+            EntityKind::Nautilus => EntityDimensions::new(0.875, 0.95).eye_height(0.2751),
             EntityKind::OakBoat => EntityDimensions::new(1.375, 0.5625).eye_height(0.5625),
             EntityKind::OakChestBoat => EntityDimensions::new(1.375, 0.5625).eye_height(0.5625),
             EntityKind::Ocelot => EntityDimensions::new(0.6, 0.7),
@@ -158,6 +160,7 @@ impl From<EntityKind> for EntityDimensions {
             EntityKind::PaleOakBoat => EntityDimensions::new(1.375, 0.5625).eye_height(0.5625),
             EntityKind::PaleOakChestBoat => EntityDimensions::new(1.375, 0.5625).eye_height(0.5625),
             EntityKind::Panda => EntityDimensions::new(1.3, 1.25),
+            EntityKind::Parched => EntityDimensions::new(0.6, 1.99).eye_height(1.74),
             EntityKind::Parrot => EntityDimensions::new(0.5, 0.9).eye_height(0.54),
             EntityKind::Phantom => EntityDimensions::new(0.9, 0.5).eye_height(0.175),
             EntityKind::Pig => EntityDimensions::new(0.9, 0.9),
@@ -212,6 +215,7 @@ impl From<EntityKind> for EntityDimensions {
             EntityKind::Zoglin => EntityDimensions::new(1.39648, 1.4),
             EntityKind::Zombie => EntityDimensions::new(0.6, 1.95).eye_height(1.74),
             EntityKind::ZombieHorse => EntityDimensions::new(1.39648, 1.6).eye_height(1.52),
+            EntityKind::ZombieNautilus => EntityDimensions::new(0.875, 0.95).eye_height(0.2751),
             EntityKind::ZombieVillager => EntityDimensions::new(0.6, 1.95).eye_height(1.74),
             EntityKind::ZombifiedPiglin => EntityDimensions::new(0.6, 1.95).eye_height(1.79),
         }

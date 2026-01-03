@@ -1,44 +1,50 @@
-name: Doc
+name: Documentation
 
 on:
-    push:
-        branches:
-            - main
-    workflow_dispatch:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
 
 permissions:
-    contents: write
-    pages: write
-    id-token: write
+  contents: write
+  pages: write
+  id-token: write
 
 concurrency:
-    group: "pages"
-    cancel-in-progress: true
+  group: "pages"
+  cancel-in-progress: true
 
 jobs:
-    deploy:
-        environment:
-            name: github-pages
-            url: ${{ steps.deployment.outputs.page_url }}
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout Repository
-              uses: actions/checkout@v3
-            - uses: actions-rs/toolchain@v1
-              with:
-                  toolchain: nightly
-            - run: cargo doc --workspace --no-deps
-            - uses: "finnp/create-file-action@master"
-              env:
-                  FILE_NAME: "./target/doc/index.html"
-                  FILE_DATA: '<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=''./azalea''"/></head></html>' # Redirect to default page
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-            - name: Setup Pages
-              uses: actions/configure-pages@v2
-            - name: Upload artifact
-              uses: actions/upload-pages-artifact@v3
-              with:
-                  path: "./target/doc/"
-            - name: Deploy to GitHub Pages
-              id: deployment
-              uses: actions/deploy-pages@v4
+      - name: Install Nightly
+        run: rustup update nightly && rustup default nightly
+
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2
+
+      # Redirect to default page
+      - run: cargo doc --workspace --no-deps
+      - uses: "finnp/create-file-action@master"
+        env:
+          FILE_NAME: "./target/doc/index.html"
+          FILE_DATA: '<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=''./azalea''"/></head></html>'
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: "./target/doc/"
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

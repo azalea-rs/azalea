@@ -25,17 +25,16 @@ use azalea_protocol::{
             s_move_player_pos::ServerboundMovePlayerPos,
             s_move_player_pos_rot::ServerboundMovePlayerPosRot,
             s_move_player_rot::ServerboundMovePlayerRot,
-            s_move_player_status_only::ServerboundMovePlayerStatusOnly,
+            s_move_player_status_only::ServerboundMovePlayerStatusOnly, s_player_command,
         },
     },
 };
-use azalea_registry::EntityKind;
+use azalea_registry::builtin::EntityKind;
 use azalea_world::{Instance, MinecraftEntityId};
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 
 use crate::{
-    client::Client,
     local_player::{Hunger, InstanceHolder, LocalGameMode},
     packet::game::SendGamePacketEvent,
 };
@@ -46,10 +45,9 @@ impl Plugin for MovementPlugin {
     fn build(&self, app: &mut App) {
         app.add_message::<StartWalkEvent>()
             .add_message::<StartSprintEvent>()
-            .add_message::<KnockbackEvent>()
             .add_systems(
                 Update,
-                (handle_sprint, handle_walk, handle_knockback)
+                (handle_sprint, handle_walk)
                     .chain()
                     .in_set(MoveEventsSystems)
                     .after(update_bounding_box)
@@ -70,65 +68,17 @@ impl Plugin for MovementPlugin {
                     send_position.after(PhysicsSystems),
                 )
                     .chain(),
-            );
+            )
+            .add_observer(handle_knockback);
     }
 }
 
-#[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq, SystemSet)]
 pub struct MoveEventsSystems;
-
-impl Client {
-    /// Set whether we're jumping. This acts as if you held space in
-    /// vanilla.
-    ///
-    /// If you want to jump once, use the `jump` function in `azalea`.
-    ///
-    /// If you're making a realistic client, calling this function every tick is
-    /// recommended.
-    pub fn set_jumping(&self, jumping: bool) {
-        self.query_self::<&mut Jumping, _>(|mut j| **j = jumping);
-    }
-
-    /// Returns whether the player will try to jump next tick.
-    pub fn jumping(&self) -> bool {
-        *self.component::<Jumping>()
-    }
-
-    pub fn set_crouching(&self, crouching: bool) {
-        self.query_self::<&mut PhysicsState, _>(|mut p| p.trying_to_crouch = crouching);
-    }
-
-    /// Whether the client is currently trying to sneak.
-    ///
-    /// You may want to check the [`Pose`] instead.
-    pub fn crouching(&self) -> bool {
-        self.query_self::<&PhysicsState, _>(|p| p.trying_to_crouch)
-    }
-
-    /// Sets the direction the client is looking.
-    ///
-    /// `y_rot` is yaw (looking to the side, between -180 to 180), and `x_rot`
-    /// is pitch (looking up and down, between -90 to 90).
-    ///
-    /// You can get these numbers from the vanilla f3 screen.
-    pub fn set_direction(&self, y_rot: f32, x_rot: f32) {
-        self.query_self::<&mut LookDirection, _>(|mut ld| {
-            ld.update(LookDirection::new(y_rot, x_rot));
-        });
-    }
-
-    /// Returns the direction the client is looking.
-    ///
-    /// See [`Self::set_direction`] for more details.
-    pub fn direction(&self) -> (f32, f32) {
-        let look_direction: LookDirection = self.component::<LookDirection>();
-        (look_direction.y_rot(), look_direction.x_rot())
-    }
-}
 
 /// A component that contains the look direction that was last sent over the
 /// network.
-#[derive(Debug, Component, Clone, Default)]
+#[derive(Clone, Component, Debug, Default)]
 pub struct LastSentLookDirection {
     pub x_rot: f32,
     pub y_rot: f32,
@@ -242,7 +192,7 @@ pub fn send_position(
     }
 }
 
-#[derive(Debug, Default, Component, Clone, PartialEq, Eq)]
+#[derive(Clone, Component, Debug, Default, Eq, PartialEq)]
 pub struct LastSentInput(pub ServerboundPlayerInput);
 pub fn send_player_input_packet(
     mut query: Query<(Entity, &PhysicsState, &Jumping, Option<&LastSentInput>)>,
@@ -283,9 +233,9 @@ pub fn send_sprinting_if_needed(
         let was_sprinting = physics_state.was_sprinting;
         if **sprinting != was_sprinting {
             let sprinting_action = if **sprinting {
-                azalea_protocol::packets::game::s_player_command::Action::StartSprinting
+                s_player_command::Action::StartSprinting
             } else {
-                azalea_protocol::packets::game::s_player_command::Action::StopSprinting
+                s_player_command::Action::StopSprinting
             };
             commands.trigger(SendGamePacketEvent::new(
                 entity,
@@ -515,63 +465,12 @@ fn distance_to_unit_square(v: Vec2) -> f32 {
     (1. + ratio * ratio).sqrt()
 }
 
-impl Client {
-    /// Start walking in the given direction.
-    ///
-    /// To sprint, use [`Client::sprint`]. To stop walking, call walk with
-    /// [`WalkDirection::None`].
-    ///
-    /// # Example
-    ///
-    /// ```rust,no_run
-    /// # use azalea_client::{Client, WalkDirection};
-    /// # use std::time::Duration;
-    /// # async fn example(mut bot: Client) {
-    /// // walk for one second
-    /// bot.walk(WalkDirection::Forward);
-    /// tokio::time::sleep(Duration::from_secs(1)).await;
-    /// bot.walk(WalkDirection::None);
-    /// # }
-    /// ```
-    pub fn walk(&self, direction: WalkDirection) {
-        let mut ecs = self.ecs.lock();
-        ecs.write_message(StartWalkEvent {
-            entity: self.entity,
-            direction,
-        });
-    }
-
-    /// Start sprinting in the given direction.
-    ///
-    /// o stop moving, call [`bot.walk(WalkDirection::None)`](Self::walk)
-    ///
-    /// # Example
-    ///
-    /// ```rust,no_run
-    /// # use azalea_client::{Client, WalkDirection, SprintDirection};
-    /// # use std::time::Duration;
-    /// # async fn example(mut bot: Client) {
-    /// // sprint for one second
-    /// bot.sprint(SprintDirection::Forward);
-    /// tokio::time::sleep(Duration::from_secs(1)).await;
-    /// bot.walk(WalkDirection::None);
-    /// # }
-    /// ```
-    pub fn sprint(&self, direction: SprintDirection) {
-        let mut ecs = self.ecs.lock();
-        ecs.write_message(StartSprintEvent {
-            entity: self.entity,
-            direction,
-        });
-    }
-}
-
 /// An event sent when the client starts walking.
 ///
 /// This does not get sent for non-local entities.
 ///
 /// To stop walking or sprinting, send this event with `WalkDirection::None`.
-#[derive(Message, Debug)]
+#[derive(Debug, Message)]
 pub struct StartWalkEvent {
     pub entity: Entity,
     pub direction: WalkDirection,
@@ -655,27 +554,26 @@ fn has_enough_impulse_to_start_sprinting(physics_state: &PhysicsState) -> bool {
 /// Usually `KnockbackKind::Set` is used for normal knockback and
 /// `KnockbackKind::Add` is used for explosions, but some servers (notably
 /// Hypixel) use explosions for knockback.
-#[derive(Message)]
+#[derive(EntityEvent, Debug, Clone)]
 pub struct KnockbackEvent {
     pub entity: Entity,
-    pub knockback: KnockbackType,
+    pub data: KnockbackData,
 }
 
-pub enum KnockbackType {
+#[derive(Debug, Clone)]
+pub enum KnockbackData {
     Set(Vec3),
     Add(Vec3),
 }
 
-pub fn handle_knockback(mut query: Query<&mut Physics>, mut events: MessageReader<KnockbackEvent>) {
-    for event in events.read() {
-        if let Ok(mut physics) = query.get_mut(event.entity) {
-            match event.knockback {
-                KnockbackType::Set(velocity) => {
-                    physics.velocity = velocity;
-                }
-                KnockbackType::Add(velocity) => {
-                    physics.velocity += velocity;
-                }
+pub fn handle_knockback(knockback: On<KnockbackEvent>, mut query: Query<&mut Physics>) {
+    if let Ok(mut physics) = query.get_mut(knockback.entity) {
+        match knockback.data {
+            KnockbackData::Set(velocity) => {
+                physics.velocity = velocity;
+            }
+            KnockbackData::Add(velocity) => {
+                physics.velocity += velocity;
             }
         }
     }

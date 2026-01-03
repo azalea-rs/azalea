@@ -43,7 +43,7 @@ pub struct ClientChatState {
 }
 
 /// A chat message that no other bots have seen yet was received by a bot.
-#[derive(Message, Debug)]
+#[derive(Debug, Message)]
 pub struct NewChatMessageEvent(ChatPacket);
 
 #[derive(Resource)]

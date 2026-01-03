@@ -1,4 +1,4 @@
-use std::{collections::VecDeque, fmt::Debug, sync::Arc};
+use std::{any, collections::VecDeque, fmt::Debug, sync::Arc};
 
 use azalea_auth::game_profile::GameProfile;
 use azalea_block::BlockState;
@@ -7,7 +7,6 @@ use azalea_core::{
     delta::LpVec3,
     game_type::{GameMode, OptionalGameType},
     position::{BlockPos, ChunkPos, Vec3},
-    resource_location::ResourceLocation,
     tick::GameTick,
 };
 use azalea_entity::metadata::PlayerMetadataBundle;
@@ -25,10 +24,20 @@ use azalea_protocol::{
         },
     },
 };
-use azalea_registry::{Biome, DataRegistry, DimensionType, EntityKind};
+use azalea_registry::{
+    DataRegistry,
+    builtin::EntityKind,
+    data::{Biome, DimensionKind},
+    identifier::Identifier,
+};
 use azalea_world::{Chunk, Instance, MinecraftEntityId, Section, palette::PalettedContainer};
 use bevy_app::App;
-use bevy_ecs::{component::Mutable, prelude::*, schedule::ExecutorKind};
+use bevy_ecs::{
+    component::Mutable,
+    prelude::*,
+    query::{QueryData, QueryItem},
+    schedule::ExecutorKind,
+};
 use parking_lot::{Mutex, RwLock};
 use simdnbt::owned::{NbtCompound, NbtTag};
 use uuid::Uuid;
@@ -48,8 +57,9 @@ pub struct Simulation {
 }
 
 impl Simulation {
-    pub fn new(initial_connection_protocol: ConnectionProtocol) -> Self {
+    pub fn new(conn_protocol: ConnectionProtocol) -> Self {
         let mut app = create_simulation_app();
+
         let mut entity = app.world_mut().spawn_empty();
         let (player, rt) =
             create_local_player_bundle(entity.id(), ConnectionProtocol::Configuration);
@@ -62,23 +72,20 @@ impl Simulation {
         // start in the config state
         app.world_mut().entity_mut(entity).insert((
             InConfigState,
-            GameProfileComponent(GameProfile::new(
-                Uuid::from_u128(1234),
-                "azalea".to_string(),
-            )),
+            GameProfileComponent(GameProfile::new(Uuid::from_u128(1234), "azalea".to_owned())),
         ));
         tick_app(&mut app);
 
         let mut simulation = Self { app, entity, rt };
 
         #[allow(clippy::single_match)]
-        match initial_connection_protocol {
+        match conn_protocol {
             ConnectionProtocol::Configuration => {}
             ConnectionProtocol::Game => {
                 simulation.receive_packet(ClientboundRegistryData {
-                    registry_id: ResourceLocation::new("minecraft:dimension_type"),
+                    registry_id: Identifier::new("minecraft:dimension_type"),
                     entries: vec![(
-                        ResourceLocation::new("minecraft:overworld"),
+                        Identifier::new("minecraft:overworld"),
                         Some(NbtCompound::from_values(vec![
                             ("height".into(), NbtTag::Int(384)),
                             ("min_y".into(), NbtTag::Int(-64)),
@@ -91,7 +98,7 @@ impl Simulation {
                 simulation.receive_packet(ClientboundFinishConfiguration);
                 simulation.tick();
             }
-            _ => unimplemented!("unsupported ConnectionProtocol {initial_connection_protocol:?}"),
+            _ => unimplemented!("unsupported ConnectionProtocol {conn_protocol:?}"),
         }
 
         simulation
@@ -133,6 +140,18 @@ impl Simulation {
     pub fn with_component<T: Component>(&self, f: impl FnOnce(&T)) {
         f(self.app.world().entity(self.entity).get::<T>().unwrap());
     }
+    pub fn query_self<D: QueryData, R>(&mut self, f: impl FnOnce(QueryItem<D>) -> R) -> R {
+        let ecs = self.app.world_mut();
+        let mut qs = ecs.query::<D>();
+        let res = qs.get_mut(ecs, self.entity).unwrap_or_else(|_| {
+            panic!(
+                "Our client is missing a required component {:?}",
+                any::type_name::<D>()
+            )
+        });
+        f(res)
+    }
+
     pub fn with_component_mut<T: Component<Mutability = Mutable>>(
         &mut self,
         f: impl FnOnce(&mut T),
@@ -282,10 +301,13 @@ fn create_local_player_bundle(
 fn create_simulation_app() -> App {
     let mut app = App::new();
 
+    let mut plugins = bevy_app::PluginGroup::build(crate::DefaultPlugins);
     #[cfg(feature = "log")]
-    app.add_plugins(
-        bevy_app::PluginGroup::build(crate::DefaultPlugins).disable::<bevy_log::LogPlugin>(),
-    );
+    {
+        plugins = plugins.disable::<bevy_log::LogPlugin>();
+    }
+
+    app.add_plugins(plugins);
 
     app.edit_schedule(bevy_app::Main, |schedule| {
         // makes test results more reproducible
@@ -301,14 +323,14 @@ fn tick_app(app: &mut App) {
 
 pub fn default_login_packet() -> ClientboundLogin {
     make_basic_login_packet(
-        DimensionType::new_raw(0), // overworld
-        ResourceLocation::new("minecraft:overworld"),
+        DimensionKind::new_raw(0), // overworld
+        Identifier::new("minecraft:overworld"),
     )
 }
 
 pub fn make_basic_login_packet(
-    dimension_type: DimensionType,
-    dimension: ResourceLocation,
+    dimension_type: DimensionKind,
+    dimension: Identifier,
 ) -> ClientboundLogin {
     ClientboundLogin {
         player_id: MinecraftEntityId(0),
@@ -337,8 +359,8 @@ pub fn make_basic_login_packet(
 }
 
 pub fn make_basic_respawn_packet(
-    dimension_type: DimensionType,
-    dimension: ResourceLocation,
+    dimension_type: DimensionKind,
+    dimension: Identifier,
 ) -> ClientboundRespawn {
     ClientboundRespawn {
         common: CommonPlayerSpawnInfo {

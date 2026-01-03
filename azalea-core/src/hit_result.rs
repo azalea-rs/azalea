@@ -7,7 +7,7 @@ use crate::{
 ///
 /// If there's nothing, it'll be a [`BlockHitResult`] with `miss` set to true.
 #[cfg(feature = "bevy_ecs")]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum HitResult {
     Block(BlockHitResult),
     Entity(EntityHitResult),
@@ -65,24 +65,33 @@ impl HitResult {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+/// The result of raycasting on the blocks in the world.
+///
+/// Also see [`HitResult`].
+#[derive(Clone, Debug, PartialEq)]
 pub struct BlockHitResult {
+    /// The exact position that the raycast ended at.
     pub location: Vec3,
     pub miss: bool,
 
     pub direction: Direction,
+    /// The block position that was hit.
+    ///
+    /// If [`Self::miss`] is true, then this will be the position that the
+    /// raycast ended at.
     pub block_pos: BlockPos,
     pub inside: bool,
     pub world_border: bool,
 }
 impl BlockHitResult {
-    pub fn miss(location: Vec3, direction: Direction, block_pos: BlockPos) -> Self {
+    /// Create a new [`BlockHitResult`] for when nothing was hit.
+    pub fn miss(location: Vec3, direction: Direction) -> Self {
         Self {
             location,
             miss: true,
 
             direction,
-            block_pos,
+            block_pos: BlockPos::from(location),
             inside: false,
             world_border: false,
         }
@@ -103,7 +112,7 @@ impl From<BlockHitResult> for HitResult {
 }
 
 #[cfg(feature = "bevy_ecs")]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct EntityHitResult {
     pub location: Vec3,
     pub entity: bevy_ecs::entity::Entity,

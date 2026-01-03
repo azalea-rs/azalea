@@ -7,7 +7,7 @@ license.workspace = true
 repository.workspace = true
 
 [dev-dependencies]
-azalea-client.path = "../azalea-client"
+azalea.path = "../azalea"
 criterion.workspace = true
 
 [dependencies]
@@ -21,7 +21,6 @@ nohash-hasher.workspace = true
 parking_lot.workspace = true
 rustc-hash.workspace = true
 serde = { workspace = true, optional = true }
-thiserror.workspace = true
 tracing.workspace = true
 
 [features]
@@ -30,3 +29,6 @@ serde = ["dep:serde"]
 [[bench]]
 name = "chunks"
 harness = false
+
+[lints]
+workspace = true

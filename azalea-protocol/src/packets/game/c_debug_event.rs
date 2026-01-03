@@ -3,7 +3,7 @@ use azalea_protocol_macros::ClientboundGamePacket;
 
 use crate::common::debug_subscription::DebugSubscriptionEvent;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
+#[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundDebugEvent {
     pub event: DebugSubscriptionEvent,
 }

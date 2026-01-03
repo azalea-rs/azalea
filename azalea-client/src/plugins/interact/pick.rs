@@ -24,7 +24,7 @@ use derive_more::{Deref, DerefMut};
 /// A component that contains the block or entity that the player is currently
 /// looking at.
 #[doc(alias("looking at", "looking at block", "crosshair"))]
-#[derive(Component, Clone, Debug, Deref, DerefMut)]
+#[derive(Clone, Component, Debug, Deref, DerefMut)]
 pub struct HitResultComponent(HitResult);
 
 #[allow(clippy::type_complexity)]

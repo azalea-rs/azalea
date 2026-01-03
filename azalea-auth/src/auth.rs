@@ -142,7 +142,7 @@ pub async fn auth(cache_key: &str, opts: AuthOpts<'_>) -> Result<AuthResult, Aut
                 &cache_file,
                 cache_key,
                 CachedAccount {
-                    cache_key: cache_key.to_string(),
+                    cache_key: cache_key.to_owned(),
                     mca: res.mca,
                     msa,
                     xbl: res.xbl,
@@ -224,8 +224,7 @@ pub struct DeviceCodeResponse {
     pub interval: u64,
 }
 
-#[allow(unused)]
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct AccessTokenResponse {
     pub token_type: String,
     pub expires_in: u64,
@@ -235,7 +234,6 @@ pub struct AccessTokenResponse {
     pub user_id: String,
 }
 
-#[allow(unused)]
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct XboxLiveAuthResponse {
@@ -246,13 +244,12 @@ pub struct XboxLiveAuthResponse {
 }
 
 /// Just the important data
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct XboxLiveAuth {
     pub token: String,
     pub user_hash: String,
 }
 
-#[allow(unused)]
 #[derive(Debug, Deserialize, Serialize)]
 pub struct MinecraftAuthResponse {
     pub username: String,
@@ -270,14 +267,13 @@ pub struct GameOwnershipResponse {
     pub key_id: String,
 }
 
-#[allow(unused)]
 #[derive(Debug, Deserialize)]
 pub struct GameOwnershipItem {
     pub name: String,
     pub signature: String,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ProfileResponse {
     pub id: Uuid,
     pub name: String,
@@ -531,7 +527,7 @@ async fn obtain_xsts_for_minecraft(
         .json(&json!({
             "Properties": {
                 "SandboxId": "RETAIL",
-                "UserTokens": [xbl_auth_token.to_string()]
+                "UserTokens": [xbl_auth_token.to_owned()]
             },
             "RelyingParty": "rp://api.minecraftservices.com/",
             "TokenType": "JWT"

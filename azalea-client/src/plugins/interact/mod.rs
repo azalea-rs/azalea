@@ -17,6 +17,7 @@ use azalea_entity::{
     },
     clamp_look_direction,
     indexing::EntityIdIndex,
+    inventory::Inventory,
 };
 use azalea_inventory::{ItemStack, ItemStackData, components};
 use azalea_physics::{
@@ -29,6 +30,7 @@ use azalea_protocol::packets::game::{
     s_swing::ServerboundSwing,
     s_use_item_on::ServerboundUseItemOn,
 };
+use azalea_registry::builtin::ItemKind;
 use azalea_world::Instance;
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
@@ -36,10 +38,9 @@ use tracing::warn;
 
 use super::mining::Mining;
 use crate::{
-    Client,
     attack::handle_attack_event,
     interact::pick::{HitResultComponent, update_hit_result_component},
-    inventory::{Inventory, InventorySystems},
+    inventory::InventorySystems,
     local_player::{LocalGameMode, PermissionLevel},
     movement::MoveEventsSystems,
     packet::game::SendGamePacketEvent,
@@ -51,7 +52,6 @@ pub struct InteractPlugin;
 impl Plugin for InteractPlugin {
     fn build(&self, app: &mut App) {
         app.add_message::<StartUseItemEvent>()
-            .add_message::<EntityInteractEvent>()
             .add_systems(
                 Update,
                 (
@@ -74,66 +74,19 @@ impl Plugin for InteractPlugin {
             )
             .add_systems(
                 GameTick,
-                (handle_start_use_item_queued, handle_entity_interact)
-                    .chain()
-                    .before(PhysicsSystems),
+                handle_start_use_item_queued.before(PhysicsSystems),
             )
+            .add_observer(handle_entity_interact)
             .add_observer(handle_swing_arm_trigger);
     }
 }
 
-#[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq, SystemSet)]
 pub struct UpdateAttributesSystems;
-
-impl Client {
-    /// Right-click a block.
-    ///
-    /// The behavior of this depends on the target block,
-    /// and it'll either place the block you're holding in your hand or use the
-    /// block you clicked (like toggling a lever).
-    ///
-    /// Note that this may trigger anticheats as it doesn't take into account
-    /// whether you're actually looking at the block.
-    pub fn block_interact(&self, position: BlockPos) {
-        self.ecs.lock().write_message(StartUseItemEvent {
-            entity: self.entity,
-            hand: InteractionHand::MainHand,
-            force_block: Some(position),
-        });
-    }
-
-    /// Right-click an entity.
-    ///
-    /// This can click through walls, which may trigger anticheats. If that
-    /// behavior isn't desired, consider using [`Client::start_use_item`]
-    /// instead.
-    pub fn entity_interact(&self, entity: Entity) {
-        self.ecs.lock().write_message(EntityInteractEvent {
-            client: self.entity,
-            target: entity,
-            location: None,
-        });
-    }
-
-    /// Right-click the currently held item.
-    ///
-    /// If the item is consumable, then it'll act as if right-click was held
-    /// until the item finishes being consumed. You can use this to eat food.
-    ///
-    /// If we're looking at a block or entity, then it will be clicked. Also see
-    /// [`Client::block_interact`] and [`Client::entity_interact`].
-    pub fn start_use_item(&self) {
-        self.ecs.lock().write_message(StartUseItemEvent {
-            entity: self.entity,
-            hand: InteractionHand::MainHand,
-            force_block: None,
-        });
-    }
-}
 
 /// A component that contains information about our local block state
 /// predictions.
-#[derive(Component, Clone, Debug, Default)]
+#[derive(Clone, Component, Debug, Default)]
 pub struct BlockStatePredictionHandler {
     /// The total number of changes that this client has made to blocks.
     seq: u32,
@@ -275,7 +228,6 @@ pub fn handle_start_use_item_queued(
         &LookDirection,
         Option<&Mining>,
     )>,
-    mut entity_interact: MessageWriter<EntityInteractEvent>,
 ) {
     for (entity, start_use_item, mut prediction_handler, hit_result, look_direction, mining) in
         query
@@ -340,7 +292,7 @@ pub fn handle_start_use_item_queued(
                 }
             }
             HitResult::Entity(r) => {
-                entity_interact.write(EntityInteractEvent {
+                commands.trigger(EntityInteractEvent {
                     client: entity,
                     target: r.entity,
                     location: Some(r.location),
@@ -350,10 +302,11 @@ pub fn handle_start_use_item_queued(
     }
 }
 
-/// An ECS `Message` that makes the client tell the server that we right-clicked
+/// An ECS `Event` that makes the client tell the server that we right-clicked
 /// an entity.
-#[derive(Message)]
+#[derive(Clone, Debug, EntityEvent)]
 pub struct EntityInteractEvent {
+    #[event_target]
     pub client: Entity,
     pub target: Entity,
     /// The position on the entity that we'll tell the server that we clicked
@@ -367,67 +320,65 @@ pub struct EntityInteractEvent {
 }
 
 pub fn handle_entity_interact(
-    mut events: MessageReader<EntityInteractEvent>,
+    trigger: On<EntityInteractEvent>,
     mut commands: Commands,
     client_query: Query<(&PhysicsState, &EntityIdIndex, &HitResultComponent)>,
     target_query: Query<&Position>,
 ) {
-    for event in events.read() {
-        let Some((physics_state, entity_id_index, hit_result)) =
-            client_query.get(event.target).ok()
-        else {
-            warn!(
-                "tried to interact with an entity but the client didn't have the required components"
-            );
-            continue;
-        };
+    let Some((physics_state, entity_id_index, hit_result)) = client_query.get(trigger.client).ok()
+    else {
+        warn!(
+            "tried to interact with an entity but the client didn't have the required components"
+        );
+        return;
+    };
 
-        // TODO: worldborder check
+    // TODO: worldborder check
 
-        let Some(entity_id) = entity_id_index.get_by_ecs_entity(event.target) else {
-            warn!("tried to interact with an entity that isn't known by the client");
-            continue;
-        };
+    let Some(entity_id) = entity_id_index.get_by_ecs_entity(trigger.target) else {
+        warn!("tried to interact with an entity that isn't known by the client");
+        return;
+    };
 
-        let location = if let Some(l) = event.location {
-            l
+    let location = if let Some(l) = trigger.location {
+        l
+    } else {
+        // if we're looking at the entity, use that
+        if let Some(entity_hit_result) = hit_result.as_entity_hit_result()
+            && entity_hit_result.entity == trigger.target
+        {
+            entity_hit_result.location
         } else {
-            // if we're looking at the entity, use that
-            if let Some(entity_hit_result) = hit_result.as_entity_hit_result()
-                && entity_hit_result.entity == event.target
-            {
-                entity_hit_result.location
-            } else {
-                // if we're not looking at the entity, make up a value that's good enough by
-                // using the entity's position
-                let Ok(target_position) = target_query.get(event.target) else {
-                    warn!("tried to look at an entity without the entity having a position");
-                    continue;
-                };
-                **target_position
-            }
-        };
-
-        let mut interact = ServerboundInteract {
-            entity_id,
-            action: s_interact::ActionType::InteractAt {
-                location,
-                hand: InteractionHand::MainHand,
-            },
-            using_secondary_action: physics_state.trying_to_crouch,
-        };
-        commands.trigger(SendGamePacketEvent::new(event.client, interact.clone()));
-        // TODO: this is true if the interaction failed, which i think can only happen
-        // in certain cases when interacting with armor stands
-        let consumes_action = false;
-        if !consumes_action {
-            // but yes, most of the time vanilla really does send two interact packets like
-            // this
-            interact.action = s_interact::ActionType::Interact {
-                hand: InteractionHand::MainHand,
+            // if we're not looking at the entity, make up a value that's good enough by
+            // using the entity's position
+            let Ok(target_position) = target_query.get(trigger.target) else {
+                warn!("tried to look at an entity without the entity having a position");
+                return;
             };
-            commands.trigger(SendGamePacketEvent::new(event.client, interact));
+            **target_position
         }
+    };
+
+    let mut interact = ServerboundInteract {
+        entity_id,
+        action: s_interact::ActionType::InteractAt {
+            location,
+            hand: InteractionHand::MainHand,
+        },
+        using_secondary_action: physics_state.trying_to_crouch,
+    };
+    commands.trigger(SendGamePacketEvent::new(trigger.client, interact.clone()));
+
+    // TODO: this is true if the interaction failed, which i think can only happen
+    // in certain cases when interacting with armor stands
+    let consumes_action = false;
+    if !consumes_action {
+        // but yes, most of the time vanilla really does send two interact packets like
+        // this
+        interact.action = s_interact::ActionType::Interact {
+            hand: InteractionHand::MainHand,
+        };
+        commands.trigger(SendGamePacketEvent::new(trigger.client, interact));
     }
 }
 
@@ -500,7 +451,7 @@ pub fn can_use_game_master_blocks(
 ///
 /// This is purely a visual effect and won't interact with anything in the
 /// world.
-#[derive(EntityEvent, Clone, Debug)]
+#[derive(Clone, Debug, EntityEvent)]
 pub struct SwingArmEvent {
     pub entity: Entity,
 }
@@ -520,52 +471,55 @@ fn update_attributes_for_held_item(
     for (mut attributes, inventory) in &mut query {
         let held_item = inventory.held_item();
 
-        use azalea_registry::Item;
-        let added_attack_speed = match held_item.kind() {
-            Item::WoodenSword => -2.4,
-            Item::WoodenShovel => -3.0,
-            Item::WoodenPickaxe => -2.8,
-            Item::WoodenAxe => -3.2,
-            Item::WoodenHoe => -3.0,
-
-            Item::StoneSword => -2.4,
-            Item::StoneShovel => -3.0,
-            Item::StonePickaxe => -2.8,
-            Item::StoneAxe => -3.2,
-            Item::StoneHoe => -2.0,
-
-            Item::GoldenSword => -2.4,
-            Item::GoldenShovel => -3.0,
-            Item::GoldenPickaxe => -2.8,
-            Item::GoldenAxe => -3.0,
-            Item::GoldenHoe => -3.0,
-
-            Item::IronSword => -2.4,
-            Item::IronShovel => -3.0,
-            Item::IronPickaxe => -2.8,
-            Item::IronAxe => -3.1,
-            Item::IronHoe => -1.0,
-
-            Item::DiamondSword => -2.4,
-            Item::DiamondShovel => -3.0,
-            Item::DiamondPickaxe => -2.8,
-            Item::DiamondAxe => -3.0,
-            Item::DiamondHoe => 0.0,
-
-            Item::NetheriteSword => -2.4,
-            Item::NetheriteShovel => -3.0,
-            Item::NetheritePickaxe => -2.8,
-            Item::NetheriteAxe => -3.0,
-            Item::NetheriteHoe => 0.0,
-
-            Item::Trident => -2.9,
-            _ => 0.,
-        };
+        let added_attack_speed = added_attack_speed_for_item(held_item.kind());
         attributes
             .attack_speed
             .insert(azalea_entity::attributes::base_attack_speed_modifier(
                 added_attack_speed,
             ));
+    }
+}
+
+fn added_attack_speed_for_item(item: ItemKind) -> f64 {
+    match item {
+        ItemKind::WoodenSword => -2.4,
+        ItemKind::WoodenShovel => -3.0,
+        ItemKind::WoodenPickaxe => -2.8,
+        ItemKind::WoodenAxe => -3.2,
+        ItemKind::WoodenHoe => -3.0,
+
+        ItemKind::StoneSword => -2.4,
+        ItemKind::StoneShovel => -3.0,
+        ItemKind::StonePickaxe => -2.8,
+        ItemKind::StoneAxe => -3.2,
+        ItemKind::StoneHoe => -2.0,
+
+        ItemKind::GoldenSword => -2.4,
+        ItemKind::GoldenShovel => -3.0,
+        ItemKind::GoldenPickaxe => -2.8,
+        ItemKind::GoldenAxe => -3.0,
+        ItemKind::GoldenHoe => -3.0,
+
+        ItemKind::IronSword => -2.4,
+        ItemKind::IronShovel => -3.0,
+        ItemKind::IronPickaxe => -2.8,
+        ItemKind::IronAxe => -3.1,
+        ItemKind::IronHoe => -1.0,
+
+        ItemKind::DiamondSword => -2.4,
+        ItemKind::DiamondShovel => -3.0,
+        ItemKind::DiamondPickaxe => -2.8,
+        ItemKind::DiamondAxe => -3.0,
+        ItemKind::DiamondHoe => 0.0,
+
+        ItemKind::NetheriteSword => -2.4,
+        ItemKind::NetheriteShovel => -3.0,
+        ItemKind::NetheritePickaxe => -2.8,
+        ItemKind::NetheriteAxe => -3.0,
+        ItemKind::NetheriteHoe => 0.0,
+
+        ItemKind::Trident => -2.9,
+        _ => 0.,
     }
 }
 

@@ -15,7 +15,7 @@ use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
 use azalea_core::position::{
     BlockPos, ChunkBiomePos, ChunkBlockPos, ChunkPos, ChunkSectionBiomePos, ChunkSectionBlockPos,
 };
-use azalea_registry::Biome;
+use azalea_registry::data::Biome;
 use nohash_hasher::IntMap;
 use parking_lot::RwLock;
 use tracing::{debug, trace, warn};
@@ -47,9 +47,18 @@ pub struct PartialChunkStorage {
 ///
 /// This is relatively cheap to clone since it's just an `IntMap` with `Weak`
 /// pointers.
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct ChunkStorage {
+    /// The height of the world.
+    ///
+    /// To get the maximum y position (exclusive), you have to combine this with
+    /// [`Self::min_y`].
     pub height: u32,
+    /// The lowest y position in the world that can still have blocks placed on
+    /// it.
+    ///
+    /// This exists because in modern Minecraft versions, worlds can extend
+    /// below y=0.
     pub min_y: i32,
     pub map: IntMap<ChunkPos, Weak<RwLock<Chunk>>>,
 }

@@ -4,7 +4,7 @@ use azalea_protocol_macros::ClientboundGamePacket;
 
 use crate::common::debug_subscription::DebugSubscriptionUpdate;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
+#[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundDebugBlockValue {
     pub block_pos: BlockPos,
     pub update: DebugSubscriptionUpdate,

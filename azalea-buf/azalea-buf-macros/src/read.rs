@@ -1,14 +1,20 @@
 use quote::{ToTokens, quote};
-use syn::{Data, Field, FieldsNamed, Ident, punctuated::Punctuated, token::Comma};
+use syn::{Data, Field, FieldsNamed, Generics, Ident, punctuated::Punctuated, token::Comma};
 
-pub fn create_impl_azalearead(ident: &Ident, data: &Data) -> proc_macro2::TokenStream {
+pub fn create_impl_azalearead(
+    ident: &Ident,
+    generics: &Generics,
+    data: &Data,
+) -> proc_macro2::TokenStream {
+    let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+
     match data {
         syn::Data::Struct(syn::DataStruct { fields, .. }) => match fields {
             syn::Fields::Named(FieldsNamed { named, .. }) => {
                 let (read_fields, read_field_names) = read_named_fields(named);
 
                 quote! {
-                impl azalea_buf::AzaleaRead for #ident {
+                impl #impl_generics azalea_buf::AzaleaRead for #ident #ty_generics #where_clause {
                     fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> std::result::Result<Self, azalea_buf::BufReadError> {
                         #(#read_fields)*
                         Ok(Self {
@@ -20,7 +26,7 @@ pub fn create_impl_azalearead(ident: &Ident, data: &Data) -> proc_macro2::TokenS
             }
             syn::Fields::Unit => {
                 quote! {
-                impl azalea_buf::AzaleaRead for #ident {
+                impl #impl_generics azalea_buf::AzaleaRead for #ident #ty_generics #where_clause {
                     fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> std::result::Result<Self, azalea_buf::BufReadError> {
                         Ok(Self)
                     }
@@ -31,7 +37,7 @@ pub fn create_impl_azalearead(ident: &Ident, data: &Data) -> proc_macro2::TokenS
                 let read_fields = read_unnamed_fields(&fields.unnamed);
 
                 quote! {
-                impl azalea_buf::AzaleaRead for #ident {
+                impl #impl_generics azalea_buf::AzaleaRead for #ident #ty_generics #where_clause {
                     fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> std::result::Result<Self, azalea_buf::BufReadError> {
                         Ok(Self(
                             #(#read_fields),*
@@ -135,14 +141,14 @@ pub fn create_impl_azalearead(ident: &Ident, data: &Data) -> proc_macro2::TokenS
             let first_reader = first_reader.expect("There should be at least one variant");
 
             quote! {
-            impl azalea_buf::AzaleaRead for #ident {
+            impl #impl_generics azalea_buf::AzaleaRead for #ident #ty_generics #where_clause {
                 fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> std::result::Result<Self, azalea_buf::BufReadError> {
                     let id = azalea_buf::AzaleaReadVar::azalea_read_var(buf)?;
                     Self::azalea_read_id(buf, id)
                 }
             }
 
-            impl #ident {
+            impl #impl_generics #ident #ty_generics #where_clause {
                 pub fn azalea_read_id(buf: &mut std::io::Cursor<&[u8]>, id: u32) -> std::result::Result<Self, azalea_buf::BufReadError> {
                     match id {
                         #match_contents

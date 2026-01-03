@@ -27,7 +27,7 @@ impl ArgumentType for Boolean {
     }
 
     fn examples(&self) -> Vec<String> {
-        vec!["true".to_string(), "false".to_string()]
+        vec!["true".to_owned(), "false".to_owned()]
     }
 }
 

@@ -1,6 +1,6 @@
 use azalea_buf::AzBuf;
 
-use crate::position::{BlockPos, Vec3};
+use crate::position::{BlockPos, Vec3, Vec3i};
 
 #[derive(
     Clone, Copy, Debug, AzBuf, Default, Eq, PartialEq, serde::Deserialize, serde::Serialize,
@@ -91,7 +91,7 @@ impl Direction {
 ///
 /// Note that azalea_block has a similar enum named `FacingCardinal` that is
 /// used for block states.
-#[derive(Clone, Copy, Debug, AzBuf, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize)]
+#[derive(AzBuf, Clone, Copy, Debug, serde::Deserialize, Eq, Hash, PartialEq, serde::Serialize)]
 pub enum CardinalDirection {
     North,
     South,
@@ -220,11 +220,11 @@ impl AxisCycle {
             Self::Backward => Axis::from_ordinal(i32::rem_euclid(axis as i32 - 1, 3) as u32),
         }
     }
-    pub fn cycle_xyz(self, x: i32, y: i32, z: i32, axis: Axis) -> i32 {
+    pub fn cycle_xyz(self, pos: Vec3i, axis: Axis) -> i32 {
         match self {
-            Self::None => axis.choose(x, y, z),
-            Self::Forward => axis.choose(z, x, y),
-            Self::Backward => axis.choose(y, z, x),
+            Self::None => axis.choose(pos.x, pos.y, pos.z),
+            Self::Forward => axis.choose(pos.z, pos.x, pos.y),
+            Self::Backward => axis.choose(pos.y, pos.z, pos.x),
         }
     }
 }

@@ -1,4 +1,4 @@
-# Azalea Auth
+# `azalea-auth`
 
 A port of Mojang's Authlib and launcher authentication.
 

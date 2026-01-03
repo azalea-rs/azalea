@@ -3,7 +3,7 @@ use std::{mem, ops::Deref, sync::Arc};
 use azalea_brigadier::prelude::*;
 use bevy_app::App;
 use bevy_ecs::{prelude::*, system::RunSystemOnce};
-use parking_lot::Mutex;
+use parking_lot::RwLock;
 
 #[test]
 fn bevy_app() {
@@ -89,7 +89,7 @@ impl DispatchStorage {
                 assert_eq!(result, Ok(0));
 
                 // Query the World for the spawned entity
-                let mut world = source.lock();
+                let mut world = source.write();
                 let mut query = world.query_filtered::<(), With<SpawnedEntity>>();
 
                 // Ensure only one entity was spawned
@@ -109,7 +109,7 @@ impl DispatchStorage {
                 assert_eq!(result, Ok(0));
 
                 // Query the World for spawned entities
-                let mut world = source.lock();
+                let mut world = source.write();
                 let mut query = world.query_filtered::<(), With<SpawnedEntity>>();
 
                 // Ensure three additional entities were spawned
@@ -131,7 +131,7 @@ impl DispatchStorage {
     ///
     /// Spawns an entity with the [`SpawnedEntity`] component.
     fn command_spawn_entity(context: &CommandContext<WorldAccessor>) -> i32 {
-        context.source.lock().spawn(SpawnedEntity);
+        context.source.write().spawn(SpawnedEntity);
 
         0
     }
@@ -143,7 +143,7 @@ impl DispatchStorage {
         let num = get_integer(context, "entities").unwrap();
 
         for _ in 0..num {
-            context.source.lock().spawn(SpawnedEntity);
+            context.source.write().spawn(SpawnedEntity);
         }
 
         0
@@ -159,30 +159,30 @@ impl DispatchStorage {
 /// access from inside a [`CommandDispatcher`].
 #[derive(Clone)]
 struct WorldAccessor {
-    world: Arc<Mutex<World>>,
+    world: Arc<RwLock<World>>,
 }
 
 impl WorldAccessor {
     /// Create a new empty [`WorldAccessor`].
     fn empty() -> Self {
         Self {
-            world: Arc::new(Mutex::new(World::new())),
+            world: Arc::new(RwLock::new(World::new())),
         }
     }
 
     /// Swap the internal [`World`] with the given one.
     fn swap(&mut self, world: &mut World) {
-        mem::swap(&mut *self.lock(), world);
+        mem::swap(&mut *self.write(), world);
     }
 }
 
 /// A marker [`Component`] used to test spawning entities from the dispatcher.
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash, Component)]
+#[derive(Clone, Component, Copy, Debug, Default, Eq, Hash, PartialEq)]
 struct SpawnedEntity;
 
 /// Implemented for convenience.
 impl Deref for WorldAccessor {
-    type Target = Arc<Mutex<World>>;
+    type Target = Arc<RwLock<World>>;
     fn deref(&self) -> &Self::Target {
         &self.world
     }

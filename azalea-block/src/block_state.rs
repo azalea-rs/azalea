@@ -4,6 +4,7 @@ use std::{
 };
 
 use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
+use azalea_registry::builtin::BlockKind;
 
 use crate::BlockTrait;
 
@@ -23,7 +24,7 @@ pub type BlockStateIntegerRepr = u16;
 ///
 /// Note that this type is internally either a `u16` or `u32`, depending on
 /// [`BlockStateIntegerRepr`].
-#[derive(Copy, Clone, PartialEq, Eq, Default, Hash)]
+#[derive(Clone, Copy, Default, Eq, Hash, PartialEq)]
 pub struct BlockState {
     id: BlockStateIntegerRepr,
 }
@@ -84,6 +85,14 @@ impl TryFrom<u32> for BlockState {
         }
     }
 }
+impl TryFrom<i32> for BlockState {
+    type Error = ();
+
+    fn try_from(state_id: i32) -> Result<Self, Self::Error> {
+        Self::try_from(state_id as u32)
+    }
+}
+
 impl TryFrom<u16> for BlockState {
     type Error = ();
 
@@ -129,7 +138,7 @@ impl Debug for BlockState {
     }
 }
 
-impl From<BlockState> for azalea_registry::Block {
+impl From<BlockState> for BlockKind {
     fn from(value: BlockState) -> Self {
         Box::<dyn BlockTrait>::from(value).as_registry_block()
     }
@@ -156,22 +165,16 @@ mod tests {
         assert_eq!(block.id(), "air");
 
         let block: Box<dyn BlockTrait> =
-            Box::<dyn BlockTrait>::from(BlockState::from(azalea_registry::Block::FloweringAzalea));
+            Box::<dyn BlockTrait>::from(BlockState::from(BlockKind::FloweringAzalea));
         assert_eq!(block.id(), "flowering_azalea");
     }
 
     #[test]
     fn test_debug_blockstate() {
-        let formatted = format!(
-            "{:?}",
-            BlockState::from(azalea_registry::Block::FloweringAzalea)
-        );
+        let formatted = format!("{:?}", BlockState::from(BlockKind::FloweringAzalea));
         assert!(formatted.ends_with(", FloweringAzalea)"), "{}", formatted);
 
-        let formatted = format!(
-            "{:?}",
-            BlockState::from(azalea_registry::Block::BigDripleafStem)
-        );
+        let formatted = format!("{:?}", BlockState::from(BlockKind::BigDripleafStem));
         assert!(
             formatted.ends_with(", BigDripleafStem { facing: North, waterlogged: false })"),
             "{}",

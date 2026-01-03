@@ -3,13 +3,13 @@ use std::sync::Arc;
 use azalea::{pathfinder, prelude::*};
 use parking_lot::Mutex;
 
-#[derive(Default, Clone, Component)]
+#[derive(Clone, Component, Default)]
 struct State {
     pub started: Arc<Mutex<bool>>,
 }
 
-#[tokio::main(flavor = "current_thread")]
-async fn main() {
+#[tokio::main]
+async fn main() -> AppExit {
     let account = Account::offline("bot");
     // or let bot = Account::microsoft("email").await;
 
@@ -17,7 +17,6 @@ async fn main() {
         .set_handler(handle)
         .start(account, "localhost")
         .await
-        .unwrap();
 }
 
 async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
@@ -38,7 +37,7 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
                 bot.goto(pathfinder::Goals::NearXZ(5, azalea::BlockXZ(0, 0)))
                     .await;
                 let chest = bot
-                    .open_container_at(&bot.world().find_block(azalea::Block::Chest))
+                    .open_container_at(&bot.world().find_block(BlockKind::Chest))
                     .await
                     .unwrap();
                 bot.take_amount_from_container(&chest, 5, |i| i.id == "#minecraft:planks")
@@ -46,7 +45,7 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
                 chest.close().await;
 
                 let crafting_table = bot
-                    .open_crafting_table(&bot.world.find_block(azalea::Block::CraftingTable))
+                    .open_crafting_table(&bot.world.find_block(BlockKind::CraftingTable))
                     .await
                     .unwrap();
                 bot.craft(&crafting_table, &bot.recipe_for("minecraft:sticks"))
@@ -59,10 +58,7 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
                 bot.hold(&pickaxe);
 
                 loop {
-                    if let Err(e) = bot
-                        .dig(azalea::entity::feet_pos(bot.entity()).down(1))
-                        .await
-                    {
+                    if let Err(e) = bot.dig(bot.entity().feet_pos().down(1)).await {
                         println!("{e:?}");
                         break;
                     }

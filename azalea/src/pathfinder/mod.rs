@@ -35,7 +35,7 @@ use astar::{Edge, PathfinderTimeout};
 use azalea_block::{BlockState, BlockTrait};
 use azalea_client::{
     StartSprintEvent, StartWalkEvent,
-    inventory::{Inventory, InventorySystems},
+    inventory::InventorySystems,
     local_player::InstanceHolder,
     mining::{Mining, MiningSystems, StartMiningBlockEvent},
     movement::MoveEventsSystems,
@@ -44,7 +44,7 @@ use azalea_core::{
     position::{BlockPos, Vec3},
     tick::GameTick,
 };
-use azalea_entity::{LocalEntity, Physics, Position, metadata::Player};
+use azalea_entity::{LocalEntity, Physics, Position, inventory::Inventory, metadata::Player};
 use azalea_physics::{PhysicsSystems, get_block_pos_below_that_affects_movement};
 use azalea_world::{InstanceContainer, InstanceName};
 use bevy_app::{PreUpdate, Update};
@@ -66,9 +66,9 @@ use self::{
     moves::{ExecuteCtx, IsReachedCtx, SuccessorsFn},
 };
 use crate::{
-    WalkDirection,
+    Client, WalkDirection,
     app::{App, Plugin},
-    bot::{BotClientExt, JumpEvent, LookAtEvent},
+    bot::{JumpEvent, LookAtEvent},
     ecs::{
         component::Component,
         entity::Entity,
@@ -121,7 +121,7 @@ impl Plugin for PathfinderPlugin {
 }
 
 /// A component that makes this client able to pathfind.
-#[derive(Component, Default, Clone)]
+#[derive(Clone, Component, Default)]
 #[non_exhaustive]
 pub struct Pathfinder {
     pub goal: Option<Arc<dyn Goal>>,
@@ -132,7 +132,7 @@ pub struct Pathfinder {
 
 /// A component that's present on clients that are actively following a
 /// pathfinder path.
-#[derive(Component, Clone)]
+#[derive(Clone, Component)]
 pub struct ExecutingPath {
     pub path: VecDeque<astar::Edge<BlockPos, moves::MoveData>>,
     pub queued_path: Option<VecDeque<astar::Edge<BlockPos, moves::MoveData>>>,
@@ -141,7 +141,7 @@ pub struct ExecutingPath {
     pub is_path_partial: bool,
 }
 
-#[derive(Message, Clone, Debug)]
+#[derive(Clone, Debug, Message)]
 #[non_exhaustive]
 pub struct PathFoundEvent {
     pub entity: Entity,
@@ -229,7 +229,7 @@ pub trait PathfinderClientExt {
     fn is_goto_target_reached(&self) -> bool;
 }
 
-impl PathfinderClientExt for azalea_client::Client {
+impl PathfinderClientExt for Client {
     async fn goto(&self, goal: impl Goal + 'static) {
         self.goto_with_opts(goal, PathfinderOpts::new()).await;
     }
@@ -242,17 +242,17 @@ impl PathfinderClientExt for azalea_client::Client {
     }
     fn start_goto_with_opts(&self, goal: impl Goal + 'static, opts: PathfinderOpts) {
         self.ecs
-            .lock()
+            .write()
             .write_message(GotoEvent::new(self.entity, goal, opts));
     }
     fn stop_pathfinding(&self) {
-        self.ecs.lock().write_message(StopPathfindingEvent {
+        self.ecs.write().write_message(StopPathfindingEvent {
             entity: self.entity,
             force: false,
         });
     }
     fn force_stop_pathfinding(&self) {
-        self.ecs.lock().write_message(StopPathfindingEvent {
+        self.ecs.write().write_message(StopPathfindingEvent {
             entity: self.entity,
             force: true,
         });

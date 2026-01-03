@@ -126,7 +126,7 @@ impl<S> CommandNode<S> {
             }
         } else {
             self.children
-                .insert(node.read().name().to_string(), node.clone());
+                .insert(node.read().name().to_owned(), node.clone());
             match &node.read().value {
                 ArgumentBuilderType::Literal(literal) => {
                     self.literals.insert(literal.value.clone(), node.clone());
@@ -305,9 +305,7 @@ impl<S> PartialEq for CommandNode<S> {
             Some(selfexecutes) => {
                 // idk how to do this better since we can't compare `dyn Fn`s
                 match &other.command {
-                    Some(otherexecutes) =>
-                    {
-                        #[allow(ambiguous_wide_pointer_comparisons)]
+                    Some(otherexecutes) => {
                         if !Arc::ptr_eq(selfexecutes, otherexecutes) {
                             return false;
                         }

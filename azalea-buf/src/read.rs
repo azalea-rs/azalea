@@ -13,7 +13,7 @@ use tracing::warn;
 
 use super::{MAX_STRING_LENGTH, UnsizedByteArray};
 
-#[derive(Error, Debug)]
+#[derive(Debug, Error)]
 pub enum BufReadError {
     #[error("Invalid VarInt")]
     InvalidVarInt,
@@ -103,7 +103,7 @@ fn read_utf_with_len(buf: &mut Cursor<&[u8]>, max_length: u32) -> Result<String,
             lossy: String::from_utf8_lossy(buffer).to_string(),
             // backtrace: Backtrace::capture(),
         })?
-        .to_string();
+        .to_owned();
     if string.len() > length as usize {
         return Err(BufReadError::StringLengthTooLong { length, max_length });
     }
@@ -285,9 +285,19 @@ impl AzaleaRead for String {
         read_utf_with_len(buf, MAX_STRING_LENGTH.into())
     }
 }
+impl AzaleaRead for Box<str> {
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        String::azalea_read(buf).map(Into::into)
+    }
+}
 impl AzaleaReadLimited for String {
     fn azalea_read_limited(buf: &mut Cursor<&[u8]>, limit: usize) -> Result<Self, BufReadError> {
         read_utf_with_len(buf, limit as u32)
+    }
+}
+impl AzaleaReadLimited for Box<str> {
+    fn azalea_read_limited(buf: &mut Cursor<&[u8]>, limit: usize) -> Result<Self, BufReadError> {
+        String::azalea_read_limited(buf, limit).map(Into::into)
     }
 }
 
@@ -422,7 +432,7 @@ impl AzaleaRead for simdnbt::owned::NbtCompound {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         match simdnbt::owned::read_tag(buf).map_err(simdnbt::Error::from)? {
             simdnbt::owned::NbtTag::Compound(compound) => Ok(compound),
-            _ => Err(BufReadError::Custom("Expected compound tag".to_string())),
+            _ => Err(BufReadError::Custom("Expected compound tag".to_owned())),
         }
     }
 }

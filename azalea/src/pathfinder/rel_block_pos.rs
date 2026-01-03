@@ -7,7 +7,7 @@ use azalea_core::position::BlockPos;
 /// This fits in 64 bits, so it's more efficient than a BlockPos in some cases.
 ///
 /// The X and Z are limited to ±32k.
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[repr(C)]
 pub struct RelBlockPos {
     pub x: i16,

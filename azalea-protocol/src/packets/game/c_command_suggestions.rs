@@ -2,7 +2,7 @@ use azalea_brigadier::suggestion::Suggestions;
 use azalea_buf::AzBuf;
 use azalea_protocol_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
+#[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundCommandSuggestions {
     #[var]
     pub id: u32,
@@ -25,7 +25,7 @@ mod tests {
             vec![Suggestion::new_with_tooltip(
                 StringRange::new(1, 4),
                 "foo",
-                "bar".to_string(),
+                "bar".to_owned(),
             )],
         );
         let mut buf = Vec::new();

@@ -9,7 +9,7 @@ use simdnbt::owned::{NbtCompound, NbtTag};
 
 use crate::{click_event::ClickEvent, hover_event::HoverEvent};
 
-#[derive(Clone, PartialEq, Eq, Debug, Hash)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct TextColor {
     pub value: u32,
     pub name: Option<String>,
@@ -62,7 +62,7 @@ static LEGACY_FORMAT_TO_COLOR: LazyLock<HashMap<&'static ChatFormatting, TextCol
                     formatter,
                     TextColor {
                         value: formatter.color().unwrap(),
-                        name: Some(formatter.name().to_string()),
+                        name: Some(formatter.name().to_owned()),
                     },
                 );
             }
@@ -97,7 +97,7 @@ impl Ansi {
     }
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[cfg_attr(feature = "azalea-buf", derive(AzBuf))]
 pub enum ChatFormatting {
     Black,
@@ -300,7 +300,7 @@ impl TryFrom<ChatFormatting> for TextColor {
             return Err(format!("{} is not a color", formatter.name()));
         }
         let color = formatter.color().unwrap_or(0);
-        Ok(Self::new(color, Some(formatter.name().to_string())))
+        Ok(Self::new(color, Some(formatter.name().to_owned())))
     }
 }
 
@@ -374,7 +374,7 @@ define_style_struct! {
     click_event: ClickEvent,
     hover_event: HoverEvent,
     insertion: String,
-    /// Represented as a `ResourceLocation`.
+    /// Represented as an `Identifier`.
     font: String,
 }
 
@@ -412,11 +412,8 @@ impl Style {
             insertion: j
                 .get("insertion")
                 .and_then(|v| v.as_str())
-                .map(|s| s.to_string()),
-            font: j
-                .get("font")
-                .and_then(|v| v.as_str())
-                .map(|s| s.to_string()),
+                .map(|s| s.to_owned()),
+            font: j.get("font").and_then(|v| v.as_str()).map(|s| s.to_owned()),
         }
     }
 

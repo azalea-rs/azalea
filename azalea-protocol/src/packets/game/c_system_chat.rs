@@ -2,7 +2,7 @@ use azalea_buf::AzBuf;
 use azalea_chat::FormattedText;
 use azalea_protocol_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
+#[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundSystemChat {
     pub content: FormattedText,
     pub overlay: bool,
@@ -26,7 +26,7 @@ mod tests {
         let packet = ClientboundSystemChat::azalea_read(&mut Cursor::new(&bytes)).unwrap();
         assert_eq!(
             packet.content.to_string(),
-            "[py5: Gave 1 [Diamond Pickaxe] to py5]".to_string()
+            "[py5: Gave 1 [Diamond Pickaxe] to py5]".to_owned()
         );
     }
 
@@ -39,7 +39,7 @@ mod tests {
         let packet = ClientboundSystemChat::azalea_read(&mut Cursor::new(&bytes)).unwrap();
         assert_eq!(
             packet.content.to_string(),
-            "Displaying particle minecraft:dust".to_string()
+            "Displaying particle minecraft:dust".to_owned()
         );
     }
 
@@ -53,7 +53,7 @@ mod tests {
 
         assert_eq!(
             packet.content.to_string().trim(),
-            "Position in queue: 328\nYou can purchase priority queue status to join the server faster, visit shop.2b2t.org".to_string()
+            "Position in queue: 328\nYou can purchase priority queue status to join the server faster, visit shop.2b2t.org".to_owned()
         );
     }
 

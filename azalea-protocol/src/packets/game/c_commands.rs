@@ -1,18 +1,19 @@
 use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
-use azalea_core::{bitset::FixedBitSet, resource_location::ResourceLocation};
+use azalea_core::bitset::FixedBitSet;
 use azalea_protocol_macros::ClientboundGamePacket;
+use azalea_registry::identifier::Identifier;
 use tracing::warn;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
+#[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundCommands {
     pub entries: Vec<BrigadierNodeStub>,
     #[var]
     pub root_index: u32,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct BrigadierNodeStub {
     pub is_executable: bool,
     pub children: Vec<u32>,
@@ -21,7 +22,7 @@ pub struct BrigadierNodeStub {
     pub is_restricted: bool,
 }
 
-#[derive(Debug, Clone, Eq)]
+#[derive(Clone, Debug, Eq)]
 pub struct BrigadierNumber<T> {
     pub min: Option<T>,
     pub max: Option<T>,
@@ -81,7 +82,7 @@ impl<T: AzaleaWrite> AzaleaWrite for BrigadierNumber<T> {
     }
 }
 
-#[derive(Debug, Clone, Copy, AzBuf, PartialEq, Eq)]
+#[derive(AzBuf, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum BrigadierString {
     /// Reads a single word
     SingleWord = 0,
@@ -93,7 +94,7 @@ pub enum BrigadierString {
 }
 
 // see ArgumentTypeInfos.java
-#[derive(Debug, Clone, PartialEq, AzBuf)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub enum BrigadierParser {
     Bool,
     Float(BrigadierNumber<f32>),
@@ -131,7 +132,7 @@ pub enum BrigadierParser {
     Team,
     ItemSlot,
     ItemSlots,
-    ResourceLocation,
+    Identifier,
     Function,
     EntityAnchor,
     IntRange,
@@ -139,11 +140,11 @@ pub enum BrigadierParser {
     Dimension,
     GameMode,
     Time { min: i32 },
-    ResourceOrTag { registry_key: ResourceLocation },
-    ResourceOrTagKey { registry_key: ResourceLocation },
-    Resource { registry_key: ResourceLocation },
-    ResourceKey { registry_key: ResourceLocation },
-    ResourceSelector { registry_key: ResourceLocation },
+    ResourceOrTag { registry_key: Identifier },
+    ResourceOrTagKey { registry_key: Identifier },
+    Resource { registry_key: Identifier },
+    ResourceKey { registry_key: Identifier },
+    ResourceSelector { registry_key: Identifier },
     TemplateMirror,
     TemplateRotation,
     Heightmap,
@@ -154,7 +155,7 @@ pub enum BrigadierParser {
     Uuid,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct EntityParser {
     pub single: bool,
     pub players_only: bool,
@@ -210,7 +211,7 @@ impl AzaleaRead for BrigadierNodeStub {
             let name = String::azalea_read(buf)?;
             let parser = BrigadierParser::azalea_read(buf)?;
             let suggestions_type = if has_suggestions_type {
-                Some(ResourceLocation::azalea_read(buf)?)
+                Some(Identifier::azalea_read(buf)?)
             } else {
                 None
             };
@@ -309,7 +310,7 @@ impl AzaleaWrite for BrigadierNodeStub {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum NodeType {
     Root,
     Literal {
@@ -318,7 +319,7 @@ pub enum NodeType {
     Argument {
         name: String,
         parser: BrigadierParser,
-        suggestions_type: Option<ResourceLocation>,
+        suggestions_type: Option<Identifier>,
     },
 }
 
@@ -359,7 +360,7 @@ mod tests {
             children: vec![],
             redirect_node: None,
             node_type: NodeType::Literal {
-                name: "String".to_string(),
+                name: "String".to_owned(),
             },
             is_restricted: false,
         };
@@ -377,9 +378,9 @@ mod tests {
             children: vec![6, 9],
             redirect_node: Some(5),
             node_type: NodeType::Argument {
-                name: "position".to_string(),
+                name: "position".to_owned(),
                 parser: BrigadierParser::Vec3,
-                suggestions_type: Some(ResourceLocation::new("minecraft:test_suggestion")),
+                suggestions_type: Some(Identifier::new("minecraft:test_suggestion")),
             },
             is_restricted: false,
         };

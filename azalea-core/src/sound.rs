@@ -1,10 +1,9 @@
 use azalea_buf::AzBuf;
+use azalea_registry::identifier::Identifier;
 use serde::Serialize;
 
-use crate::resource_location::ResourceLocation;
-
-#[derive(Clone, Debug, PartialEq, AzBuf, Serialize)]
+#[derive(AzBuf, Clone, Debug, simdnbt::Deserialize, PartialEq, Serialize)]
 pub struct CustomSound {
-    pub location: ResourceLocation,
-    pub fixed_range: Option<f32>,
+    pub sound_id: Identifier,
+    pub range: Option<f32>,
 }

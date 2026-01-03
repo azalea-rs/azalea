@@ -6,5 +6,5 @@ use bevy_ecs::schedule::ScheduleLabel;
 /// physics.
 ///
 /// This schedule runs either zero or one times after every Bevy `Update`.
-#[derive(ScheduleLabel, Hash, Copy, Clone, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, ScheduleLabel)]
 pub struct GameTick;

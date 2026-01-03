@@ -1,14 +1,15 @@
 use std::{cmp::Ordering, fmt, hash::Hasher};
 
 use azalea_buf::AzBuf;
+use azalea_registry::identifier::Identifier;
 use crc32c::Crc32cHasher;
 use serde::{Serialize, ser};
 use thiserror::Error;
 use tracing::error;
 
-use crate::{registry_holder::RegistryHolder, resource_location::ResourceLocation};
+use crate::registry_holder::RegistryHolder;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, AzBuf)]
+#[derive(AzBuf, Clone, Copy, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Checksum(pub u32);
 
 pub struct ChecksumSerializer<'a, 'r> {
@@ -199,10 +200,8 @@ impl<'a, 'r> ser::Serializer for ChecksumSerializer<'a, 'r> {
         if name.starts_with("minecraft:") {
             let value = self
                 .registries
-                .map
-                .get(&ResourceLocation::from(name))
-                .and_then(|r| r.get_index(variant_index as usize))
-                .map(|r| r.0.to_string())
+                .protocol_id_to_identifier(Identifier::from(name), variant_index)
+                .map(|v| v.to_string())
                 .unwrap_or_default();
             self.serialize_str(&value)?;
             return Ok(());
@@ -336,7 +335,7 @@ impl<'a, 'r> ser::SerializeSeq for ChecksumListSerializer<'a, 'r> {
 /// keep track of that when serializing the arrays.
 ///
 /// Byte arrays aren't included here as they're handled with `serialize_bytes`.
-#[derive(Default, PartialEq, Eq)]
+#[derive(Default, Eq, PartialEq)]
 enum ListKind {
     #[default]
     Normal,
@@ -618,7 +617,7 @@ impl<'a> ser::Serializer for IntOrLongArrayChecksumSerializer<'a> {
     }
 }
 
-#[derive(Error, Debug)]
+#[derive(Debug, Error)]
 #[error("Checksum serialization error")]
 pub struct ChecksumError;
 impl ser::Error for ChecksumError {

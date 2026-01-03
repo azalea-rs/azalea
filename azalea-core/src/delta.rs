@@ -12,22 +12,11 @@ pub trait PositionDeltaTrait {
 }
 
 /// Only works for up to 8 blocks
-#[derive(Clone, Debug, AzBuf, Default, PartialEq)]
+#[derive(AzBuf, Clone, Debug, Default, PartialEq)]
 pub struct PositionDelta8 {
     pub xa: i16,
     pub ya: i16,
     pub za: i16,
-}
-
-impl PositionDelta8 {
-    #[deprecated = "Use Self::x, y, z instead"]
-    pub fn float(&self) -> (f64, f64, f64) {
-        (
-            (self.xa as f64) / 4096.0,
-            (self.ya as f64) / 4096.0,
-            (self.za as f64) / 4096.0,
-        )
-    }
 }
 
 impl PositionDeltaTrait for PositionDelta8 {
@@ -85,7 +74,7 @@ impl Vec3 {
 ///
 /// Can be freely converted to and from a [`Vec3`], but some precision will be
 /// lost.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub enum LpVec3 {
     #[default]
     Zero,

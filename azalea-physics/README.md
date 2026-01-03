@@ -1,3 +1,3 @@
-# Azalea Physics
+# `azalea-physics`
 
-Physics for Minecraft entities.
+Accurate physics for Minecraft entities.

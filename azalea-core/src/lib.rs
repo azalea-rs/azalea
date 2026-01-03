@@ -3,6 +3,7 @@
 #![doc = include_str!("../README.md")]
 
 pub mod aabb;
+pub mod attribute_modifier_operation;
 pub mod bitset;
 pub mod checksum;
 pub mod codec_utils;
@@ -19,7 +20,18 @@ pub mod math;
 pub mod objectives;
 pub mod position;
 pub mod registry_holder;
-pub mod resource_location;
+#[doc(hidden)]
+pub mod resource_location {
+    #![deprecated(note = "moved to `azalea_registry::identifier`.")]
+    #[deprecated(note = "moved to `azalea_registry::identifier::Identifier`.")]
+    pub type ResourceLocation = azalea_registry::identifier::Identifier;
+}
+#[doc(hidden)]
+pub mod identifier {
+    #![deprecated(note = "moved to `azalea_registry::identifier`.")]
+    #[deprecated(note = "moved to `azalea_registry::identifier::Identifier`.")]
+    pub type Identifier = azalea_registry::identifier::Identifier;
+}
 pub mod sound;
 #[cfg(feature = "bevy_ecs")]
 pub mod tick;

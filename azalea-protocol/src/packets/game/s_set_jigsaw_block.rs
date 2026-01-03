@@ -4,17 +4,18 @@ use std::{
 };
 
 use azalea_buf::{AzBuf, AzaleaRead};
-use azalea_core::{position::BlockPos, resource_location::ResourceLocation};
+use azalea_core::position::BlockPos;
 use azalea_protocol_macros::ServerboundGamePacket;
+use azalea_registry::identifier::Identifier;
 
 use crate::packets::{AzaleaWrite, BufReadError};
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ServerboundGamePacket)]
+#[derive(AzBuf, Clone, Debug, PartialEq, ServerboundGamePacket)]
 pub struct ServerboundSetJigsawBlock {
     pub pos: BlockPos,
-    pub name: ResourceLocation,
-    pub target: ResourceLocation,
-    pub pool: ResourceLocation,
+    pub name: Identifier,
+    pub target: Identifier,
+    pub pool: Identifier,
     pub final_state: String,
     pub joint: String,
     #[var]
@@ -42,8 +43,8 @@ impl AzaleaRead for JointType {
 impl AzaleaWrite for JointType {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         match self {
-            JointType::Rollable => "rollable".to_string().azalea_write(buf)?,
-            JointType::Aligned => "aligned".to_string().azalea_write(buf)?,
+            JointType::Rollable => "rollable".to_owned().azalea_write(buf)?,
+            JointType::Aligned => "aligned".to_owned().azalea_write(buf)?,
         };
         Ok(())
     }

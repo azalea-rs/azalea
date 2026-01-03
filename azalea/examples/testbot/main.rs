@@ -32,8 +32,8 @@ use azalea::{
 use commands::{CommandSource, register_commands};
 use parking_lot::Mutex;
 
-#[tokio::main(flavor = "current_thread")]
-async fn main() {
+#[tokio::main]
+async fn main() -> AppExit {
     let args = parse_args();
 
     thread::spawn(deadlock_detection_thread);
@@ -65,7 +65,6 @@ async fn main() {
         })
         .start(join_address)
         .await
-        .unwrap();
 }
 
 /// Runs a loop that checks for deadlocks every 10 seconds.
@@ -92,13 +91,13 @@ fn deadlock_detection_thread() {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub enum BotTask {
     #[default]
     None,
 }
 
-#[derive(Component, Clone, Default)]
+#[derive(Clone, Component, Default)]
 pub struct State {
     pub killaura: bool,
     pub task: Arc<Mutex<BotTask>>,
@@ -113,7 +112,7 @@ impl State {
     }
 }
 
-#[derive(Resource, Default, Clone)]
+#[derive(Clone, Default, Resource)]
 struct SwarmState {
     pub args: Args,
     pub commands: Arc<CommandDispatcher<Mutex<CommandSource>>>,
@@ -130,7 +129,7 @@ async fn handle(bot: Client, event: azalea::Event, state: State) -> anyhow::Resu
             });
             if swarm.args.pathfinder_debug_particles {
                 bot.ecs
-                    .lock()
+                    .write()
                     .entity_mut(bot.entity)
                     .insert(PathfinderDebugParticles);
             }
@@ -191,7 +190,7 @@ async fn handle(bot: Client, event: azalea::Event, state: State) -> anyhow::Resu
 async fn swarm_handle(_swarm: Swarm, event: SwarmEvent, _state: SwarmState) -> anyhow::Result<()> {
     match &event {
         SwarmEvent::Disconnect(account, _join_opts) => {
-            println!("bot got kicked! {}", account.username);
+            println!("bot got kicked! {}", account.username());
         }
         SwarmEvent::Chat(chat) => {
             if chat.message().to_string() == "The particle was not visible for anybody" {
@@ -205,7 +204,7 @@ async fn swarm_handle(_swarm: Swarm, event: SwarmEvent, _state: SwarmState) -> a
     Ok(())
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct Args {
     pub owner_username: String,
     pub accounts: Vec<String>,
@@ -214,9 +213,9 @@ pub struct Args {
 }
 
 fn parse_args() -> Args {
-    let mut owner_username = "admin".to_string();
+    let mut owner_username = "admin".to_owned();
     let mut accounts = Vec::new();
-    let mut server = "localhost".to_string();
+    let mut server = "localhost".to_owned();
     let mut pathfinder_debug_particles = false;
 
     let mut args = env::args().skip(1);
@@ -244,7 +243,7 @@ fn parse_args() -> Args {
     }
 
     if accounts.is_empty() {
-        accounts.push("azalea".to_string());
+        accounts.push("azalea".to_owned());
     }
 
     Args {

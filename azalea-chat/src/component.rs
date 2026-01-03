@@ -5,13 +5,9 @@ use std::{
     sync::LazyLock,
 };
 
-#[cfg(feature = "azalea-buf")]
+#[cfg(all(feature = "azalea-buf", feature = "simdnbt"))]
 use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
 use serde::{Deserialize, Deserializer, Serialize, de};
-#[cfg(feature = "simdnbt")]
-use simdnbt::{Deserialize as _, FromNbtTag as _, Serialize as _};
-#[cfg(all(feature = "azalea-buf", feature = "simdnbt"))]
-use tracing::{debug, trace, warn};
 
 use crate::{
     base_component::BaseComponent,
@@ -66,6 +62,8 @@ impl FormattedText {
 
     #[cfg(feature = "simdnbt")]
     fn parse_separator_nbt(nbt: &simdnbt::borrow::NbtCompound) -> Option<FormattedText> {
+        use simdnbt::FromNbtTag;
+
         if let Some(separator) = nbt.get("separator") {
             FormattedText::from_nbt_tag(separator)
         } else {
@@ -102,13 +100,13 @@ impl FormattedText {
     /// })).unwrap();
     ///
     /// let ansi = component.to_custom_format(
-    ///     |running, new| (running.compare_ansi(new), "".to_string()),
+    ///     |running, new| (running.compare_ansi(new), "".to_owned()),
     ///     |text| text.to_string(),
     ///     |style| {
     ///         if !style.is_empty() {
-    ///             "\u{1b}[m".to_string()
+    ///             "\u{1b}[m".to_owned()
     ///         } else {
-    ///             "".to_string()
+    ///             "".to_owned()
     ///         }
     ///     },
     ///     &DEFAULT_STYLE,
@@ -153,28 +151,42 @@ impl FormattedText {
         F: FnMut(&Style, &Style) -> (String, String),
         S: FnMut(&str) -> String,
     {
-        let component_text = match &self {
-            Self::Text(c) => c.text.to_string(),
-            Self::Translatable(c) => match c.read() {
-                Ok(c) => c.to_string(),
-                Err(_) => c.key.to_string(),
-            },
-        };
-
         let component_style = &self.get_base().style;
         let new_style = parent_style.merged_with(component_style);
 
-        if !component_text.is_empty() {
-            let (formatted_style_prefix, formatted_style_suffix) =
-                style_formatter(running_style, &new_style);
-            let formatted_text = text_formatter(&component_text);
+        let mut append_text = |text: &str| {
+            if !text.is_empty() {
+                let (formatted_style_prefix, formatted_style_suffix) =
+                    style_formatter(running_style, &new_style);
+                let formatted_text = text_formatter(text);
 
-            output.push_str(&formatted_style_prefix);
-            output.push_str(&formatted_text);
-            output.push_str(&formatted_style_suffix);
+                output.push_str(&formatted_style_prefix);
+                output.push_str(&formatted_text);
+                output.push_str(&formatted_style_suffix);
 
-            *running_style = new_style.clone();
-        }
+                *running_style = new_style.clone();
+            }
+        };
+
+        match &self {
+            Self::Text(c) => {
+                append_text(&c.text);
+            }
+            Self::Translatable(c) => match c.read() {
+                Ok(c) => {
+                    FormattedText::Text(c).to_custom_format_recursive(
+                        output,
+                        style_formatter,
+                        text_formatter,
+                        &new_style,
+                        running_style,
+                    );
+                }
+                Err(_) => {
+                    append_text(&c.key);
+                }
+            },
+        };
 
         for sibling in &self.get_base().siblings {
             sibling.to_custom_format_recursive(
@@ -195,8 +207,8 @@ impl FormattedText {
     pub fn to_ansi_with_custom_style(&self, default_style: &Style) -> String {
         self.to_custom_format(
             |running, new| (running.compare_ansi(new), "".to_owned()),
-            |text| text.to_string(),
-            |style| if !style.is_empty() { "\u{1b}[m" } else { "" }.to_string(),
+            |text| text.to_owned(),
+            |style| if !style.is_empty() { "\u{1b}[m" } else { "" }.to_owned(),
             default_style,
         )
     }
@@ -248,7 +260,7 @@ impl FormattedText {
                     .replace(">", "&gt;")
                     .replace("\n", "<br>")
             },
-            |_| "".to_string(),
+            |_| "".to_owned(),
             &DEFAULT_STYLE,
         )
     }
@@ -285,13 +297,13 @@ impl<'de> Deserialize<'de> for FormattedText {
         // if it's primitive, make it a text component
         if !json.is_array() && !json.is_object() {
             return Ok(FormattedText::Text(TextComponent::new(
-                json.as_str().unwrap_or("").to_string(),
+                json.as_str().unwrap_or("").to_owned(),
             )));
         }
         // if it's an object, do things with { text } and stuff
         else if json.is_object() {
             if let Some(text) = json.get("text") {
-                let text = text.as_str().unwrap_or("").to_string();
+                let text = text.as_str().unwrap_or("").to_owned();
                 component = FormattedText::Text(TextComponent::new(text));
             } else if let Some(translate) = json.get("translate") {
                 let translate = translate
@@ -303,7 +315,7 @@ impl<'de> Deserialize<'de> for FormattedText {
                         fallback
                             .as_str()
                             .ok_or_else(|| de::Error::custom("\"fallback\" must be a string"))?
-                            .to_string(),
+                            .to_owned(),
                     )
                 } else {
                     None
@@ -447,6 +459,8 @@ impl FormattedText {
         FormattedText::from(s)
     }
     fn from_nbt_list(list: simdnbt::borrow::NbtList) -> Option<FormattedText> {
+        use tracing::debug;
+
         let mut component;
         if let Some(compounds) = list.compounds() {
             component = FormattedText::from_nbt_compound(compounds.first()?)?;
@@ -466,6 +480,9 @@ impl FormattedText {
     }
 
     pub fn from_nbt_compound(compound: simdnbt::borrow::NbtCompound) -> Option<Self> {
+        use simdnbt::{Deserialize, FromNbtTag};
+        use tracing::{trace, warn};
+
         let mut component: FormattedText;
 
         if let Some(text) = compound.get("text") {
@@ -513,7 +530,7 @@ impl FormattedText {
                                 warn!(
                                     "couldn't parse {item:?} as FormattedText because it has a disallowed primitive"
                                 );
-                                with_array.push(PrimitiveOrComponent::String("?".to_string()));
+                                with_array.push(PrimitiveOrComponent::String("?".to_owned()));
                             }
                         } else if let Some(c) = FormattedText::from_nbt_compound(item) {
                             if let FormattedText::Text(text_component) = c
@@ -528,7 +545,7 @@ impl FormattedText {
                             ));
                         } else {
                             warn!("couldn't parse {item:?} as FormattedText");
-                            with_array.push(PrimitiveOrComponent::String("?".to_string()));
+                            with_array.push(PrimitiveOrComponent::String("?".to_owned()));
                         }
                     }
                 } else {
@@ -617,6 +634,9 @@ impl From<&simdnbt::Mutf8Str> for FormattedText {
 #[cfg(all(feature = "azalea-buf", feature = "simdnbt"))]
 impl AzaleaRead for FormattedText {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        use simdnbt::FromNbtTag;
+        use tracing::trace;
+
         let nbt = simdnbt::borrow::read_optional_tag(buf)?;
         trace!(
             "Reading NBT for FormattedText: {:?}",
@@ -634,6 +654,8 @@ impl AzaleaRead for FormattedText {
 #[cfg(all(feature = "azalea-buf", feature = "simdnbt"))]
 impl AzaleaWrite for FormattedText {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+        use simdnbt::Serialize;
+
         let mut out = Vec::new();
         simdnbt::owned::BaseNbt::write_unnamed(&(self.clone().to_compound().into()), &mut out);
         buf.write_all(&out)
@@ -650,7 +672,7 @@ impl From<String> for FormattedText {
 }
 impl From<&str> for FormattedText {
     fn from(s: &str) -> Self {
-        Self::from(s.to_string())
+        Self::from(s.to_owned())
     }
 }
 impl From<TranslatableComponent> for FormattedText {
@@ -699,10 +721,10 @@ mod tests {
         assert_eq!(
             component,
             FormattedText::Translatable(TranslatableComponent::new(
-                "translation.test.args".to_string(),
+                "translation.test.args".to_owned(),
                 vec![
-                    PrimitiveOrComponent::String("a".to_string()),
-                    PrimitiveOrComponent::String("b".to_string())
+                    PrimitiveOrComponent::String("a".to_owned()),
+                    PrimitiveOrComponent::String("b".to_owned())
                 ]
             ))
         );
@@ -722,9 +744,9 @@ mod tests {
         assert_eq!(
             component,
             FormattedText::Translatable(TranslatableComponent::with_fallback(
-                "translation.test.undefined".to_string(),
-                Some("fallback: %s".to_string()),
-                vec![PrimitiveOrComponent::String("a".to_string())]
+                "translation.test.undefined".to_owned(),
+                Some("fallback: %s".to_owned()),
+                vec![PrimitiveOrComponent::String("a".to_owned())]
             ))
         );
     }
@@ -746,11 +768,11 @@ mod tests {
         assert_eq!(
             FormattedText::deserialize(&j).unwrap(),
             FormattedText::Translatable(TranslatableComponent::new(
-                "commands.list.players".to_string(),
+                "commands.list.players".to_owned(),
                 vec![
                     PrimitiveOrComponent::Short(1),
                     PrimitiveOrComponent::Integer(65536),
-                    PrimitiveOrComponent::String("<players>".to_string()),
+                    PrimitiveOrComponent::String("<players>".to_owned()),
                     PrimitiveOrComponent::FormattedText(FormattedText::Text(
                         TextComponent::new("unused")
                             .with_style(Style::new().color(Some(TextColor::parse("red").unwrap())))
@@ -758,5 +780,17 @@ mod tests {
                 ]
             ))
         );
+    }
+
+    #[test]
+    fn test_translatable_with_color_inheritance() {
+        let json = serde_json::json!({
+            "translate": "advancements.story.smelt_iron.title",
+            "color": "green",
+            "with": [{"text": "Acquire Hardware"}]
+        });
+        let component = FormattedText::deserialize(&json).unwrap();
+        let ansi = component.to_ansi();
+        assert!(ansi.contains("\u{1b}[38;2;85;255;85m"));
     }
 }

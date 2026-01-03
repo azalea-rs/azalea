@@ -1,5 +1,7 @@
-# Azalea Protocol
+# `azalea-protocol`
 
-A low-level crate to send and receive Minecraft packets. If you intend on making bots, you should use the main `azalea` crate instead.
+A low-level crate for sending and receiving Minecraft packets.
 
 Only the latest Minecraft version is supported.
+
+See [`crate::connect::Connection`] for usage.

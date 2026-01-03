@@ -7,11 +7,14 @@ use azalea_block::{
 use azalea_core::{
     position::{BlockPos, ChunkPos, Vec3},
     registry_holder::RegistryHolder,
-    resource_location::ResourceLocation,
     tick::GameTick,
 };
 use azalea_entity::{EntityBundle, EntityPlugin, HasClientLoaded, LocalEntity, Physics, Position};
 use azalea_physics::PhysicsPlugin;
+use azalea_registry::{
+    builtin::{BlockKind, EntityKind},
+    identifier::Identifier,
+};
 use azalea_world::{Chunk, Instance, InstanceContainer, MinecraftEntityId, PartialInstance};
 use bevy_app::App;
 use parking_lot::RwLock;
@@ -29,7 +32,7 @@ pub fn insert_overworld(app: &mut App) -> Arc<RwLock<Instance>> {
     app.world_mut()
         .resource_mut::<InstanceContainer>()
         .get_or_insert(
-            ResourceLocation::new("minecraft:overworld"),
+            Identifier::new("minecraft:overworld"),
             384,
             -64,
             &RegistryHolder::default(),
@@ -58,8 +61,8 @@ fn test_gravity() {
                     y: 70.,
                     z: 0.,
                 },
-                azalea_registry::EntityKind::Zombie,
-                ResourceLocation::new("minecraft:overworld"),
+                EntityKind::Zombie,
+                Identifier::new("minecraft:overworld"),
             ),
             MinecraftEntityId(0),
             LocalEntity,
@@ -114,8 +117,8 @@ fn test_collision() {
                     y: 70.,
                     z: 0.5,
                 },
-                azalea_registry::EntityKind::Player,
-                ResourceLocation::new("minecraft:overworld"),
+                EntityKind::Player,
+                Identifier::new("minecraft:overworld"),
             ),
             MinecraftEntityId(0),
             LocalEntity,
@@ -124,12 +127,12 @@ fn test_collision() {
         .id();
     let block_state = partial_world.chunks.set_block_state(
         BlockPos { x: 0, y: 69, z: 0 },
-        azalea_registry::Block::Stone.into(),
+        BlockKind::Stone.into(),
         &world_lock.write().chunks,
     );
     assert!(
         block_state.is_some(),
-        "Block state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
+        "BlockKind state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
     );
     app.update();
     app.world_mut().run_schedule(GameTick);
@@ -171,8 +174,8 @@ fn test_slab_collision() {
                     y: 71.,
                     z: 0.5,
                 },
-                azalea_registry::EntityKind::Player,
-                ResourceLocation::new("minecraft:overworld"),
+                EntityKind::Player,
+                Identifier::new("minecraft:overworld"),
             ),
             MinecraftEntityId(0),
             LocalEntity,
@@ -190,7 +193,7 @@ fn test_slab_collision() {
     );
     assert!(
         block_state.is_some(),
-        "Block state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
+        "BlockKind state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
     );
     // do a few steps so we fall on the slab
     for _ in 0..20 {
@@ -222,8 +225,8 @@ fn test_top_slab_collision() {
                     y: 71.,
                     z: 0.5,
                 },
-                azalea_registry::EntityKind::Player,
-                ResourceLocation::new("minecraft:overworld"),
+                EntityKind::Player,
+                Identifier::new("minecraft:overworld"),
             ),
             MinecraftEntityId(0),
             LocalEntity,
@@ -240,7 +243,7 @@ fn test_top_slab_collision() {
     );
     assert!(
         block_state.is_some(),
-        "Block state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
+        "BlockKind state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
     );
     // do a few steps so we fall on the slab
     for _ in 0..20 {
@@ -258,7 +261,7 @@ fn test_weird_wall_collision() {
         .world_mut()
         .resource_mut::<InstanceContainer>()
         .get_or_insert(
-            ResourceLocation::new("minecraft:overworld"),
+            Identifier::new("minecraft:overworld"),
             384,
             -64,
             &RegistryHolder::default(),
@@ -280,8 +283,8 @@ fn test_weird_wall_collision() {
                     y: 73.,
                     z: 0.5,
                 },
-                azalea_registry::EntityKind::Player,
-                ResourceLocation::new("minecraft:overworld"),
+                EntityKind::Player,
+                Identifier::new("minecraft:overworld"),
             ),
             MinecraftEntityId(0),
             LocalEntity,
@@ -302,7 +305,7 @@ fn test_weird_wall_collision() {
     );
     assert!(
         block_state.is_some(),
-        "Block state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
+        "BlockKind state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
     );
     // do a few steps so we fall on the wall
     for _ in 0..20 {
@@ -321,7 +324,7 @@ fn test_negative_coordinates_weird_wall_collision() {
         .world_mut()
         .resource_mut::<InstanceContainer>()
         .get_or_insert(
-            ResourceLocation::new("minecraft:overworld"),
+            Identifier::new("minecraft:overworld"),
             384,
             -64,
             &RegistryHolder::default(),
@@ -343,8 +346,8 @@ fn test_negative_coordinates_weird_wall_collision() {
                     y: 73.,
                     z: -7.5,
                 },
-                azalea_registry::EntityKind::Player,
-                ResourceLocation::new("minecraft:overworld"),
+                EntityKind::Player,
+                Identifier::new("minecraft:overworld"),
             ),
             MinecraftEntityId(0),
             LocalEntity,
@@ -369,7 +372,7 @@ fn test_negative_coordinates_weird_wall_collision() {
     );
     assert!(
         block_state.is_some(),
-        "Block state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
+        "BlockKind state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
     );
     // do a few steps so we fall on the wall
     for _ in 0..20 {
@@ -388,7 +391,7 @@ fn spawn_and_unload_world() {
         .world_mut()
         .resource_mut::<InstanceContainer>()
         .get_or_insert(
-            ResourceLocation::new("minecraft:overworld"),
+            Identifier::new("minecraft:overworld"),
             384,
             -64,
             &RegistryHolder::default(),
@@ -410,8 +413,8 @@ fn spawn_and_unload_world() {
                     y: 73.,
                     z: -7.5,
                 },
-                azalea_registry::EntityKind::Player,
-                ResourceLocation::new("minecraft:overworld"),
+                EntityKind::Player,
+                Identifier::new("minecraft:overworld"),
             ),
             MinecraftEntityId(0),
             LocalEntity,
@@ -526,8 +529,8 @@ fn test_afk_pool() {
                     y: 70.,
                     z: 1.5,
                 },
-                azalea_registry::EntityKind::Player,
-                ResourceLocation::new("minecraft:overworld"),
+                EntityKind::Player,
+                Identifier::new("minecraft:overworld"),
             ),
             MinecraftEntityId(0),
             LocalEntity,

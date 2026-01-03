@@ -1,5 +1,8 @@
 //! Define some types needed for entity metadata.
 
+// TODO: this is here because of a bug in enum_as_inner. remove when it's fixed
+#![allow(clippy::double_parens)]
+
 use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
@@ -9,6 +12,7 @@ use azalea_core::{
     position::{BlockPos, GlobalPos, Vec3f32},
 };
 use azalea_inventory::{ItemStack, components};
+use azalea_registry::builtin::{VillagerKind, VillagerProfession};
 use bevy_ecs::component::Component;
 use derive_more::Deref;
 use enum_as_inner::EnumAsInner;
@@ -55,15 +59,15 @@ impl AzaleaWrite for EntityMetadataItems {
 
 // Note: This enum is partially generated and parsed by
 // codegen/lib/code/entity.py
-#[derive(Clone, Debug, EnumAsInner, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, EnumAsInner, PartialEq)]
 pub enum EntityDataValue {
     Byte(u8),
     Int(#[var] i32),
     Long(#[var] i64),
     Float(f32),
-    String(String),
-    FormattedText(FormattedText),
-    OptionalFormattedText(Option<FormattedText>),
+    String(Box<str>),
+    FormattedText(Box<FormattedText>),
+    OptionalFormattedText(Option<Box<FormattedText>>),
     ItemStack(ItemStack),
     Boolean(bool),
     Rotations(Rotations),
@@ -75,20 +79,21 @@ pub enum EntityDataValue {
     /// If this is air, that means it's absent,
     OptionalBlockState(azalea_block::BlockState),
     Particle(Particle),
-    Particles(Vec<Particle>),
+    Particles(Box<[Particle]>),
     VillagerData(VillagerData),
     // 0 for absent; 1 + actual value otherwise. Used for entity IDs.
     OptionalUnsignedInt(OptionalUnsignedInt),
     Pose(Pose),
-    CatVariant(azalea_registry::CatVariant),
-    ChickenVariant(azalea_registry::ChickenVariant),
-    CowVariant(azalea_registry::CowVariant),
-    WolfVariant(azalea_registry::WolfVariant),
-    WolfSoundVariant(azalea_registry::WolfSoundVariant),
-    FrogVariant(azalea_registry::FrogVariant),
-    PigVariant(azalea_registry::PigVariant),
-    OptionalGlobalPos(Option<GlobalPos>),
-    PaintingVariant(azalea_registry::PaintingVariant),
+    CatVariant(azalea_registry::data::CatVariant),
+    CowVariant(azalea_registry::data::CowVariant),
+    WolfVariant(azalea_registry::data::WolfVariant),
+    WolfSoundVariant(azalea_registry::data::WolfSoundVariant),
+    FrogVariant(azalea_registry::data::FrogVariant),
+    PigVariant(azalea_registry::data::PigVariant),
+    ChickenVariant(azalea_registry::data::ChickenVariant),
+    ZombieNautilusVariant(azalea_registry::data::ZombieNautilusVariant),
+    OptionalGlobalPos(Option<Box<GlobalPos>>),
+    PaintingVariant(azalea_registry::data::PaintingVariant),
     SnifferState(SnifferStateKind),
     ArmadilloState(ArmadilloStateKind),
     CopperGolemState(CopperGolemStateKind),
@@ -96,12 +101,15 @@ pub enum EntityDataValue {
     Vector3(Vec3f32),
     Quaternion(Quaternion),
     ResolvableProfile(components::Profile),
+    HumanoidArm(HumanoidArm),
 }
+
+const _: () = assert!(size_of::<EntityDataValue>() == 24);
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct OptionalUnsignedInt(pub Option<u32>);
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct Quaternion {
     pub x: f32,
     pub y: f32,
@@ -111,7 +119,7 @@ pub struct Quaternion {
 
 // mojang just calls this ArmadilloState but i added "Kind" since otherwise it
 // collides with a name in metadata.rs
-#[derive(Clone, Debug, Copy, Default, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Copy, Debug, Default, PartialEq)]
 pub enum ArmadilloStateKind {
     #[default]
     Idle,
@@ -139,14 +147,14 @@ impl AzaleaWrite for OptionalUnsignedInt {
 }
 
 /// A set of x, y, and z rotations. This is used for armor stands.
-#[derive(Clone, Debug, AzBuf, Default, PartialEq)]
+#[derive(AzBuf, Clone, Debug, Default, PartialEq)]
 pub struct Rotations {
     pub x: f32,
     pub y: f32,
     pub z: f32,
 }
 
-#[derive(Clone, Debug, Copy, AzBuf, Default, Component, Eq, PartialEq)]
+#[derive(AzBuf, Clone, Component, Copy, Debug, Default, Eq, PartialEq)]
 pub enum Pose {
     #[default]
     Standing = 0,
@@ -169,15 +177,15 @@ pub enum Pose {
     Inhaling,
 }
 
-#[derive(Debug, Clone, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct VillagerData {
-    pub kind: azalea_registry::VillagerKind,
-    pub profession: azalea_registry::VillagerProfession,
+    pub kind: VillagerKind,
+    pub profession: VillagerProfession,
     #[var]
     pub level: u32,
 }
 
-#[derive(Debug, Copy, Clone, AzBuf, Default, PartialEq)]
+#[derive(AzBuf, Clone, Copy, Debug, Default, PartialEq)]
 pub enum SnifferStateKind {
     #[default]
     Idling,
@@ -189,7 +197,7 @@ pub enum SnifferStateKind {
     Rising,
 }
 
-#[derive(Debug, Copy, Clone, AzBuf, Default, PartialEq)]
+#[derive(AzBuf, Clone, Copy, Debug, Default, PartialEq)]
 pub enum CopperGolemStateKind {
     #[default]
     Idle,
@@ -198,11 +206,18 @@ pub enum CopperGolemStateKind {
     DroppingItem,
     DroppingNoItem,
 }
-#[derive(Debug, Copy, Clone, AzBuf, Default, PartialEq)]
+#[derive(AzBuf, Clone, Copy, Debug, Default, PartialEq)]
 pub enum WeatheringCopperStateKind {
     #[default]
     Unaffected,
     Exposed,
     Weathered,
     Oxidized,
+}
+
+#[derive(AzBuf, Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub enum HumanoidArm {
+    Left = 0,
+    #[default]
+    Right = 1,
 }

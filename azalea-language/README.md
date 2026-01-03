@@ -1,6 +1,6 @@
-# Azalea Language
+# `azalea-language`
 
-Translate Minecraft strings from their ID.
+Translate Minecraft strings from their IDs.
 
 # Examples
 

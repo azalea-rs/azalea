@@ -12,7 +12,7 @@ use tracing::warn;
 
 use super::packet::game::SendGamePacketEvent;
 use crate::{
-    Client, interact::SwingArmEvent, local_player::LocalGameMode, movement::MoveEventsSystems,
+    interact::SwingArmEvent, local_player::LocalGameMode, movement::MoveEventsSystems,
     respawn::perform_respawn,
 };
 
@@ -32,9 +32,10 @@ impl Plugin for AttackPlugin {
                 (
                     increment_ticks_since_last_attack,
                     update_attack_strength_scale.after(PhysicsSystems),
+                    // in vanilla, handle_attack_queued is part of `handleKeybinds`
                     handle_attack_queued
+                        .before(super::movement::send_sprinting_if_needed)
                         .before(super::tick_end::game_tick_packet)
-                        .after(super::movement::send_sprinting_if_needed)
                         .before(super::movement::send_position),
                 )
                     .chain(),
@@ -42,52 +43,9 @@ impl Plugin for AttackPlugin {
     }
 }
 
-impl Client {
-    /// Attack an entity in the world.
-    ///
-    /// This doesn't automatically look at the entity or perform any
-    /// range/visibility checks, so it might trigger anticheats.
-    pub fn attack(&self, entity: Entity) {
-        self.ecs.lock().write_message(AttackEvent {
-            entity: self.entity,
-            target: entity,
-        });
-    }
-
-    /// Whether the player has an attack cooldown.
-    ///
-    /// Also see [`Client::attack_cooldown_remaining_ticks`].
-    pub fn has_attack_cooldown(&self) -> bool {
-        let Some(attack_strength_scale) = self.get_component::<AttackStrengthScale>() else {
-            // they don't even have an AttackStrengthScale so they probably can't even
-            // attack? whatever, just return false
-            return false;
-        };
-        *attack_strength_scale < 1.0
-    }
-
-    /// Returns the number of ticks until we can attack at full strength again.
-    ///
-    /// Also see [`Client::has_attack_cooldown`].
-    pub fn attack_cooldown_remaining_ticks(&self) -> usize {
-        let mut ecs = self.ecs.lock();
-        let Ok((attributes, ticks_since_last_attack)) = ecs
-            .query::<(&Attributes, &TicksSinceLastAttack)>()
-            .get(&ecs, self.entity)
-        else {
-            return 0;
-        };
-
-        let attack_strength_delay = get_attack_strength_delay(attributes);
-        let remaining_ticks = attack_strength_delay - **ticks_since_last_attack as f32;
-
-        remaining_ticks.max(0.).ceil() as usize
-    }
-}
-
 /// A component that indicates that this client will be attacking the given
 /// entity next tick.
-#[derive(Component, Clone, Debug)]
+#[derive(Clone, Component, Debug)]
 pub struct AttackQueued {
     pub target: Entity,
 }
@@ -166,13 +124,13 @@ pub fn handle_attack_event(mut events: MessageReader<AttackEvent>, mut commands:
     }
 }
 
-#[derive(Default, Bundle)]
+#[derive(Bundle, Default)]
 pub struct AttackBundle {
     pub ticks_since_last_attack: TicksSinceLastAttack,
     pub attack_strength_scale: AttackStrengthScale,
 }
 
-#[derive(Default, Component, Clone, Deref, DerefMut)]
+#[derive(Clone, Component, Default, Deref, DerefMut)]
 pub struct TicksSinceLastAttack(pub u32);
 pub fn increment_ticks_since_last_attack(mut query: Query<&mut TicksSinceLastAttack>) {
     for mut ticks_since_last_attack in query.iter_mut() {
@@ -180,7 +138,7 @@ pub fn increment_ticks_since_last_attack(mut query: Query<&mut TicksSinceLastAtt
     }
 }
 
-#[derive(Default, Component, Clone, Deref, DerefMut)]
+#[derive(Clone, Component, Default, Deref, DerefMut)]
 pub struct AttackStrengthScale(pub f32);
 pub fn update_attack_strength_scale(
     mut query: Query<(&TicksSinceLastAttack, &Attributes, &mut AttackStrengthScale)>,

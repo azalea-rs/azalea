@@ -1,10 +1,10 @@
 use azalea_buf::AzBuf;
-use azalea_core::resource_location::ResourceLocation;
+use azalea_registry::identifier::Identifier;
 use azalea_protocol_macros::ServerboundConfigPacket;
 use simdnbt::owned::Nbt;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ServerboundConfigPacket)]
+#[derive(AzBuf, Clone, Debug, PartialEq, ServerboundConfigPacket)]
 pub struct ServerboundCustomClickAction {
-    pub id: ResourceLocation,
+    pub id: Identifier,
     pub payload: Nbt,
 }

@@ -130,7 +130,7 @@ mod tests {
         let set_solid_block_at = |x, y, z| {
             partial_world.chunks.set_block_state(
                 &BlockPos::new(x, y, z),
-                azalea_registry::Block::Stone.into(),
+                BlockKind::Stone.into(),
                 &world,
             );
         };

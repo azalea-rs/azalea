@@ -2,7 +2,7 @@ use azalea_brigadier::{errors::BuiltInError, string_reader::StringReader};
 
 #[test]
 fn can_read() {
-    let mut reader = StringReader::from("abc".to_string());
+    let mut reader = StringReader::from("abc".to_owned());
     assert!(reader.can_read());
     reader.skip(); // 'a'
     assert!(reader.can_read());
@@ -14,7 +14,7 @@ fn can_read() {
 
 #[test]
 fn get_remaining_length() {
-    let mut reader = StringReader::from("abc".to_string());
+    let mut reader = StringReader::from("abc".to_owned());
     assert_eq!(reader.remaining_length(), 3);
     reader.cursor = 1;
     assert_eq!(reader.remaining_length(), 2);
@@ -26,7 +26,7 @@ fn get_remaining_length() {
 
 #[test]
 fn can_read_length() {
-    let reader = StringReader::from("abc".to_string());
+    let reader = StringReader::from("abc".to_owned());
     assert!(reader.can_read_length(1));
     assert!(reader.can_read_length(2));
     assert!(reader.can_read_length(3));
@@ -36,7 +36,7 @@ fn can_read_length() {
 
 #[test]
 fn peek() {
-    let mut reader = StringReader::from("abc".to_string());
+    let mut reader = StringReader::from("abc".to_owned());
     assert_eq!(reader.peek(), 'a');
     assert_eq!(reader.cursor(), 0);
     reader.cursor = 2;
@@ -46,7 +46,7 @@ fn peek() {
 
 #[test]
 fn peek_length() {
-    let mut reader = StringReader::from("abc".to_string());
+    let mut reader = StringReader::from("abc".to_owned());
     assert_eq!(reader.peek_offset(0), 'a');
     assert_eq!(reader.peek_offset(2), 'c');
     assert_eq!(reader.cursor(), 0);
@@ -57,7 +57,7 @@ fn peek_length() {
 
 #[test]
 fn read() {
-    let mut reader = StringReader::from("abc".to_string());
+    let mut reader = StringReader::from("abc".to_owned());
     assert_eq!(reader.read(), 'a');
     assert_eq!(reader.read(), 'b');
     assert_eq!(reader.read(), 'c');
@@ -66,14 +66,14 @@ fn read() {
 
 #[test]
 fn skip() {
-    let mut reader = StringReader::from("abc".to_string());
+    let mut reader = StringReader::from("abc".to_owned());
     reader.skip();
     assert_eq!(reader.cursor(), 1);
 }
 
 #[test]
 fn get_remaining() {
-    let mut reader = StringReader::from("Hello!".to_string());
+    let mut reader = StringReader::from("Hello!".to_owned());
     assert_eq!(reader.remaining(), "Hello!");
     reader.cursor = 3;
     assert_eq!(reader.remaining(), "lo!");
@@ -83,7 +83,7 @@ fn get_remaining() {
 
 #[test]
 fn get_read() {
-    let mut reader = StringReader::from("Hello!".to_string());
+    let mut reader = StringReader::from("Hello!".to_owned());
     assert_eq!(reader.get_read(), "");
     reader.cursor = 3;
     assert_eq!(reader.get_read(), "Hel");
@@ -93,28 +93,28 @@ fn get_read() {
 
 #[test]
 fn skip_whitespace_none() {
-    let mut reader = StringReader::from("Hello!".to_string());
+    let mut reader = StringReader::from("Hello!".to_owned());
     reader.skip_whitespace();
     assert_eq!(reader.cursor(), 0);
 }
 
 #[test]
 fn skip_whitespace_mixed() {
-    let mut reader = StringReader::from(" \t \t\nHello!".to_string());
+    let mut reader = StringReader::from(" \t \t\nHello!".to_owned());
     reader.skip_whitespace();
     assert_eq!(reader.cursor(), 5);
 }
 
 #[test]
 fn skip_whitespace_empty() {
-    let mut reader = StringReader::from("".to_string());
+    let mut reader = StringReader::from("".to_owned());
     reader.skip_whitespace();
     assert_eq!(reader.cursor(), 0);
 }
 
 #[test]
 fn read_unquoted_string() {
-    let mut reader = StringReader::from("hello world".to_string());
+    let mut reader = StringReader::from("hello world".to_owned());
     assert_eq!(reader.read_unquoted_string(), "hello");
     assert_eq!(reader.get_read(), "hello");
     assert_eq!(reader.remaining(), " world");
@@ -122,7 +122,7 @@ fn read_unquoted_string() {
 
 #[test]
 fn read_unquoted_string_empty() {
-    let mut reader = StringReader::from("".to_string());
+    let mut reader = StringReader::from("".to_owned());
     assert_eq!(reader.read_unquoted_string(), "");
     assert_eq!(reader.get_read(), "");
     assert_eq!(reader.remaining(), "");
@@ -130,7 +130,7 @@ fn read_unquoted_string_empty() {
 
 #[test]
 fn read_unquoted_string_empty_with_remaining() {
-    let mut reader = StringReader::from(" hello world".to_string());
+    let mut reader = StringReader::from(" hello world".to_owned());
     assert_eq!(reader.read_unquoted_string(), "");
     assert_eq!(reader.get_read(), "");
     assert_eq!(reader.remaining(), " hello world");
@@ -138,7 +138,7 @@ fn read_unquoted_string_empty_with_remaining() {
 
 #[test]
 fn read_quoted_string() {
-    let mut reader = StringReader::from("\"hello world\"".to_string());
+    let mut reader = StringReader::from("\"hello world\"".to_owned());
     assert_eq!(reader.read_quoted_string().unwrap(), "hello world");
     assert_eq!(reader.get_read(), "\"hello world\"");
     assert_eq!(reader.remaining(), "");
@@ -146,7 +146,7 @@ fn read_quoted_string() {
 
 #[test]
 fn read_single_quoted_string() {
-    let mut reader = StringReader::from("'hello world'".to_string());
+    let mut reader = StringReader::from("'hello world'".to_owned());
     assert_eq!(reader.read_quoted_string().unwrap(), "hello world");
     assert_eq!(reader.get_read(), "'hello world'");
     assert_eq!(reader.remaining(), "");
@@ -154,7 +154,7 @@ fn read_single_quoted_string() {
 
 #[test]
 fn read_mixed_quoted_string_double_inside_single() {
-    let mut reader = StringReader::from("'hello \"world\"'".to_string());
+    let mut reader = StringReader::from("'hello \"world\"'".to_owned());
     assert_eq!(reader.read_quoted_string().unwrap(), "hello \"world\"");
     assert_eq!(reader.get_read(), "'hello \"world\"'");
     assert_eq!(reader.remaining(), "");
@@ -162,7 +162,7 @@ fn read_mixed_quoted_string_double_inside_single() {
 
 #[test]
 fn read_mixed_quoted_string_single_inside_double() {
-    let mut reader = StringReader::from("\"hello 'world'\"".to_string());
+    let mut reader = StringReader::from("\"hello 'world'\"".to_owned());
     assert_eq!(reader.read_quoted_string().unwrap(), "hello 'world'");
     assert_eq!(reader.get_read(), "\"hello 'world'\"");
     assert_eq!(reader.remaining(), "");
@@ -170,7 +170,7 @@ fn read_mixed_quoted_string_single_inside_double() {
 
 #[test]
 fn read_quoted_string_empty_quoted() {
-    let mut reader = StringReader::from("".to_string());
+    let mut reader = StringReader::from("".to_owned());
     assert_eq!(reader.read_quoted_string().unwrap(), "");
     assert_eq!(reader.get_read(), "");
     assert_eq!(reader.remaining(), "");
@@ -178,7 +178,7 @@ fn read_quoted_string_empty_quoted() {
 
 #[test]
 fn read_quoted_string_empty_quoted_with_remaining() {
-    let mut reader = StringReader::from("\"\" hello world".to_string());
+    let mut reader = StringReader::from("\"\" hello world".to_owned());
     assert_eq!(reader.read_quoted_string().unwrap(), "");
     assert_eq!(reader.get_read(), "\"\"");
     assert_eq!(reader.remaining(), " hello world");
@@ -186,7 +186,7 @@ fn read_quoted_string_empty_quoted_with_remaining() {
 
 #[test]
 fn read_quoted_string_with_escaped_quote() {
-    let mut reader = StringReader::from("\"hello \\\"world\\\"\"".to_string());
+    let mut reader = StringReader::from("\"hello \\\"world\\\"\"".to_owned());
     assert_eq!(reader.read_quoted_string().unwrap(), "hello \"world\"");
     assert_eq!(reader.get_read(), "\"hello \\\"world\\\"\"");
     assert_eq!(reader.remaining(), "");
@@ -194,7 +194,7 @@ fn read_quoted_string_with_escaped_quote() {
 
 #[test]
 fn read_quoted_string_with_escaped_escapes() {
-    let mut reader = StringReader::from("\"\\\\o/\"".to_string());
+    let mut reader = StringReader::from("\"\\\\o/\"".to_owned());
     assert_eq!(reader.read_quoted_string().unwrap(), "\\o/");
     assert_eq!(reader.get_read(), "\"\\\\o/\"");
     assert_eq!(reader.remaining(), "");
@@ -202,7 +202,7 @@ fn read_quoted_string_with_escaped_escapes() {
 
 #[test]
 fn read_quoted_string_with_remaining() {
-    let mut reader = StringReader::from("\"hello world\" foo bar".to_string());
+    let mut reader = StringReader::from("\"hello world\" foo bar".to_owned());
     assert_eq!(reader.read_quoted_string().unwrap(), "hello world");
     assert_eq!(reader.get_read(), "\"hello world\"");
     assert_eq!(reader.remaining(), " foo bar");
@@ -210,7 +210,7 @@ fn read_quoted_string_with_remaining() {
 
 #[test]
 fn read_quoted_string_with_immediate_remaining() {
-    let mut reader = StringReader::from("\"hello world\"foo bar".to_string());
+    let mut reader = StringReader::from("\"hello world\"foo bar".to_owned());
     assert_eq!(reader.read_quoted_string().unwrap(), "hello world");
     assert_eq!(reader.get_read(), "\"hello world\"");
     assert_eq!(reader.remaining(), "foo bar");
@@ -218,7 +218,7 @@ fn read_quoted_string_with_immediate_remaining() {
 
 #[test]
 fn read_quoted_string_no_open() {
-    let mut reader = StringReader::from("hello world\"".to_string());
+    let mut reader = StringReader::from("hello world\"".to_owned());
     let result = reader.read_quoted_string();
     assert!(result.is_err());
     if let Err(e) = result {
@@ -229,7 +229,7 @@ fn read_quoted_string_no_open() {
 
 #[test]
 fn read_quoted_string_no_close() {
-    let mut reader = StringReader::from("\"hello world".to_string());
+    let mut reader = StringReader::from("\"hello world".to_owned());
     let result = reader.read_quoted_string();
     assert!(result.is_err());
     if let Err(e) = result {
@@ -240,7 +240,7 @@ fn read_quoted_string_no_close() {
 
 #[test]
 fn read_quoted_string_invalid_escape() {
-    let mut reader = StringReader::from("\"hello\\nworld\"".to_string());
+    let mut reader = StringReader::from("\"hello\\nworld\"".to_owned());
     let result = reader.read_quoted_string();
     assert!(result.is_err());
     if let Err(e) = result {
@@ -254,7 +254,7 @@ fn read_quoted_string_invalid_escape() {
 
 #[test]
 fn read_quoted_string_invalid_quote_escape() {
-    let mut reader = StringReader::from("'hello\\\"\'world".to_string());
+    let mut reader = StringReader::from("'hello\\\"\'world".to_owned());
     let result = reader.read_quoted_string();
     assert!(result.is_err());
     if let Err(e) = result {
@@ -268,7 +268,7 @@ fn read_quoted_string_invalid_quote_escape() {
 
 #[test]
 fn read_string_no_quotes() {
-    let mut reader = StringReader::from("hello world".to_string());
+    let mut reader = StringReader::from("hello world".to_owned());
     assert_eq!(reader.read_string().unwrap(), "hello");
     assert_eq!(reader.get_read(), "hello");
     assert_eq!(reader.remaining(), " world");
@@ -276,7 +276,7 @@ fn read_string_no_quotes() {
 
 #[test]
 fn read_string_single_quotes() {
-    let mut reader = StringReader::from("'hello world'".to_string());
+    let mut reader = StringReader::from("'hello world'".to_owned());
     assert_eq!(reader.read_string().unwrap(), "hello world");
     assert_eq!(reader.get_read(), "'hello world'");
     assert_eq!(reader.remaining(), "");
@@ -284,7 +284,7 @@ fn read_string_single_quotes() {
 
 #[test]
 fn read_string_double_quotes() {
-    let mut reader = StringReader::from("\"hello world\"".to_string());
+    let mut reader = StringReader::from("\"hello world\"".to_owned());
     assert_eq!(reader.read_string().unwrap(), "hello world");
     assert_eq!(reader.get_read(), "\"hello world\"");
     assert_eq!(reader.remaining(), "");
@@ -292,7 +292,7 @@ fn read_string_double_quotes() {
 
 #[test]
 fn read_int() {
-    let mut reader = StringReader::from("1234567890".to_string());
+    let mut reader = StringReader::from("1234567890".to_owned());
     assert_eq!(reader.read_int().unwrap(), 1234567890);
     assert_eq!(reader.get_read(), "1234567890");
     assert_eq!(reader.remaining(), "");
@@ -300,7 +300,7 @@ fn read_int() {
 
 #[test]
 fn read_int_negative() {
-    let mut reader = StringReader::from("-1234567890".to_string());
+    let mut reader = StringReader::from("-1234567890".to_owned());
     assert_eq!(reader.read_int().unwrap(), -1234567890);
     assert_eq!(reader.get_read(), "-1234567890");
     assert_eq!(reader.remaining(), "");
@@ -308,14 +308,14 @@ fn read_int_negative() {
 
 #[test]
 fn read_int_invalid() {
-    let mut reader = StringReader::from("12.34".to_string());
+    let mut reader = StringReader::from("12.34".to_owned());
     let result = reader.read_int();
     assert!(result.is_err());
     if let Err(e) = result {
         assert_eq!(
             e.kind(),
             &BuiltInError::ReaderInvalidInt {
-                value: "12.34".to_string()
+                value: "12.34".to_owned()
             }
         );
         assert_eq!(e.cursor(), Some(0));
@@ -324,7 +324,7 @@ fn read_int_invalid() {
 
 #[test]
 fn read_int_none() {
-    let mut reader = StringReader::from("".to_string());
+    let mut reader = StringReader::from("".to_owned());
     let result = reader.read_int();
     assert!(result.is_err());
     if let Err(e) = result {
@@ -335,7 +335,7 @@ fn read_int_none() {
 
 #[test]
 fn read_int_with_remaining() {
-    let mut reader = StringReader::from("1234567890 foo bar".to_string());
+    let mut reader = StringReader::from("1234567890 foo bar".to_owned());
     assert_eq!(reader.read_int().unwrap(), 1234567890);
     assert_eq!(reader.get_read(), "1234567890");
     assert_eq!(reader.remaining(), " foo bar");
@@ -343,7 +343,7 @@ fn read_int_with_remaining() {
 
 #[test]
 fn read_int_with_remaining_immediate() {
-    let mut reader = StringReader::from("1234567890foo bar".to_string());
+    let mut reader = StringReader::from("1234567890foo bar".to_owned());
     assert_eq!(reader.read_int().unwrap(), 1234567890);
     assert_eq!(reader.get_read(), "1234567890");
     assert_eq!(reader.remaining(), "foo bar");
@@ -351,7 +351,7 @@ fn read_int_with_remaining_immediate() {
 
 #[test]
 fn read_long() {
-    let mut reader = StringReader::from("1234567890".to_string());
+    let mut reader = StringReader::from("1234567890".to_owned());
     assert_eq!(reader.read_long().unwrap(), 1234567890);
     assert_eq!(reader.get_read(), "1234567890");
     assert_eq!(reader.remaining(), "");
@@ -359,7 +359,7 @@ fn read_long() {
 
 #[test]
 fn read_long_negative() {
-    let mut reader = StringReader::from("-1234567890".to_string());
+    let mut reader = StringReader::from("-1234567890".to_owned());
     assert_eq!(reader.read_long().unwrap(), -1234567890);
     assert_eq!(reader.get_read(), "-1234567890");
     assert_eq!(reader.remaining(), "");
@@ -367,14 +367,14 @@ fn read_long_negative() {
 
 #[test]
 fn read_long_invalid() {
-    let mut reader = StringReader::from("12.34".to_string());
+    let mut reader = StringReader::from("12.34".to_owned());
     let result = reader.read_long();
     assert!(result.is_err());
     if let Err(e) = result {
         assert_eq!(
             e.kind(),
             &BuiltInError::ReaderInvalidLong {
-                value: "12.34".to_string()
+                value: "12.34".to_owned()
             }
         );
         assert_eq!(e.cursor(), Some(0));
@@ -383,7 +383,7 @@ fn read_long_invalid() {
 
 #[test]
 fn read_long_none() {
-    let mut reader = StringReader::from("".to_string());
+    let mut reader = StringReader::from("".to_owned());
     let result = reader.read_long();
     assert!(result.is_err());
     if let Err(e) = result {
@@ -394,7 +394,7 @@ fn read_long_none() {
 
 #[test]
 fn read_long_with_remaining() {
-    let mut reader = StringReader::from("1234567890 foo bar".to_string());
+    let mut reader = StringReader::from("1234567890 foo bar".to_owned());
     assert_eq!(reader.read_long().unwrap(), 1234567890);
     assert_eq!(reader.get_read(), "1234567890");
     assert_eq!(reader.remaining(), " foo bar");
@@ -402,7 +402,7 @@ fn read_long_with_remaining() {
 
 #[test]
 fn read_long_with_remaining_immediate() {
-    let mut reader = StringReader::from("1234567890foo bar".to_string());
+    let mut reader = StringReader::from("1234567890foo bar".to_owned());
     assert_eq!(reader.read_long().unwrap(), 1234567890);
     assert_eq!(reader.get_read(), "1234567890");
     assert_eq!(reader.remaining(), "foo bar");
@@ -410,7 +410,7 @@ fn read_long_with_remaining_immediate() {
 
 #[test]
 fn read_double() {
-    let mut reader = StringReader::from("123".to_string());
+    let mut reader = StringReader::from("123".to_owned());
     assert_eq!(reader.read_double().unwrap(), 123.0);
     assert_eq!(reader.get_read(), "123");
     assert_eq!(reader.remaining(), "");
@@ -418,7 +418,7 @@ fn read_double() {
 
 #[test]
 fn read_double_with_decimal() {
-    let mut reader = StringReader::from("12.34".to_string());
+    let mut reader = StringReader::from("12.34".to_owned());
     assert_eq!(reader.read_double().unwrap(), 12.34);
     assert_eq!(reader.get_read(), "12.34");
     assert_eq!(reader.remaining(), "");
@@ -426,7 +426,7 @@ fn read_double_with_decimal() {
 
 #[test]
 fn read_double_negative() {
-    let mut reader = StringReader::from("-123".to_string());
+    let mut reader = StringReader::from("-123".to_owned());
     assert_eq!(reader.read_double().unwrap(), -123.0);
     assert_eq!(reader.get_read(), "-123");
     assert_eq!(reader.remaining(), "");
@@ -434,14 +434,14 @@ fn read_double_negative() {
 
 #[test]
 fn read_double_invalid() {
-    let mut reader = StringReader::from("12.34.56".to_string());
+    let mut reader = StringReader::from("12.34.56".to_owned());
     let result = reader.read_double();
     assert!(result.is_err());
     if let Err(e) = result {
         assert_eq!(
             e.kind(),
             &BuiltInError::ReaderInvalidDouble {
-                value: "12.34.56".to_string()
+                value: "12.34.56".to_owned()
             }
         );
         assert_eq!(e.cursor(), Some(0));
@@ -450,7 +450,7 @@ fn read_double_invalid() {
 
 #[test]
 fn read_double_none() {
-    let mut reader = StringReader::from("".to_string());
+    let mut reader = StringReader::from("".to_owned());
     let result = reader.read_double();
     assert!(result.is_err());
     if let Err(e) = result {
@@ -461,7 +461,7 @@ fn read_double_none() {
 
 #[test]
 fn read_double_with_remaining() {
-    let mut reader = StringReader::from("12.34 foo bar".to_string());
+    let mut reader = StringReader::from("12.34 foo bar".to_owned());
     assert_eq!(reader.read_double().unwrap(), 12.34);
     assert_eq!(reader.get_read(), "12.34");
     assert_eq!(reader.remaining(), " foo bar");
@@ -469,7 +469,7 @@ fn read_double_with_remaining() {
 
 #[test]
 fn read_double_with_remaining_immediate() {
-    let mut reader = StringReader::from("12.34foo bar".to_string());
+    let mut reader = StringReader::from("12.34foo bar".to_owned());
     assert_eq!(reader.read_double().unwrap(), 12.34);
     assert_eq!(reader.get_read(), "12.34");
     assert_eq!(reader.remaining(), "foo bar");
@@ -477,7 +477,7 @@ fn read_double_with_remaining_immediate() {
 
 #[test]
 fn read_float() {
-    let mut reader = StringReader::from("123".to_string());
+    let mut reader = StringReader::from("123".to_owned());
     assert_eq!(reader.read_float().unwrap(), 123.0f32);
     assert_eq!(reader.get_read(), "123");
     assert_eq!(reader.remaining(), "");
@@ -485,7 +485,7 @@ fn read_float() {
 
 #[test]
 fn read_float_with_decimal() {
-    let mut reader = StringReader::from("12.34".to_string());
+    let mut reader = StringReader::from("12.34".to_owned());
     assert_eq!(reader.read_float().unwrap(), 12.34f32);
     assert_eq!(reader.get_read(), "12.34");
     assert_eq!(reader.remaining(), "");
@@ -493,7 +493,7 @@ fn read_float_with_decimal() {
 
 #[test]
 fn read_float_negative() {
-    let mut reader = StringReader::from("-123".to_string());
+    let mut reader = StringReader::from("-123".to_owned());
     assert_eq!(reader.read_float().unwrap(), -123.0f32);
     assert_eq!(reader.get_read(), "-123");
     assert_eq!(reader.remaining(), "");
@@ -501,14 +501,14 @@ fn read_float_negative() {
 
 #[test]
 fn read_float_invalid() {
-    let mut reader = StringReader::from("12.34.56".to_string());
+    let mut reader = StringReader::from("12.34.56".to_owned());
     let result = reader.read_float();
     assert!(result.is_err());
     if let Err(e) = result {
         assert_eq!(
             e.kind(),
             &BuiltInError::ReaderInvalidFloat {
-                value: "12.34.56".to_string()
+                value: "12.34.56".to_owned()
             }
         );
         assert_eq!(e.cursor(), Some(0));
@@ -517,7 +517,7 @@ fn read_float_invalid() {
 
 #[test]
 fn read_float_none() {
-    let mut reader = StringReader::from("".to_string());
+    let mut reader = StringReader::from("".to_owned());
     let result = reader.read_float();
     assert!(result.is_err());
     if let Err(e) = result {
@@ -528,7 +528,7 @@ fn read_float_none() {
 
 #[test]
 fn read_float_with_remaining() {
-    let mut reader = StringReader::from("12.34 foo bar".to_string());
+    let mut reader = StringReader::from("12.34 foo bar".to_owned());
     assert_eq!(reader.read_float().unwrap(), 12.34f32);
     assert_eq!(reader.get_read(), "12.34");
     assert_eq!(reader.remaining(), " foo bar");
@@ -536,7 +536,7 @@ fn read_float_with_remaining() {
 
 #[test]
 fn read_float_with_remaining_immediate() {
-    let mut reader = StringReader::from("12.34foo bar".to_string());
+    let mut reader = StringReader::from("12.34foo bar".to_owned());
     assert_eq!(reader.read_float().unwrap(), 12.34f32);
     assert_eq!(reader.get_read(), "12.34");
     assert_eq!(reader.remaining(), "foo bar");
@@ -544,14 +544,14 @@ fn read_float_with_remaining_immediate() {
 
 #[test]
 fn expect_correct() {
-    let mut reader = StringReader::from("abc".to_string());
+    let mut reader = StringReader::from("abc".to_owned());
     reader.expect('a').unwrap();
     assert_eq!(reader.cursor(), 1);
 }
 
 #[test]
 fn expect_incorrect() {
-    let mut reader = StringReader::from("bcd".to_string());
+    let mut reader = StringReader::from("bcd".to_owned());
     let result = reader.expect('a');
     assert!(result.is_err());
     if let Err(e) = result {
@@ -565,7 +565,7 @@ fn expect_incorrect() {
 
 #[test]
 fn expect_none() {
-    let mut reader = StringReader::from("".to_string());
+    let mut reader = StringReader::from("".to_owned());
     let result = reader.expect('a');
     assert!(result.is_err());
     if let Err(e) = result {
@@ -579,21 +579,21 @@ fn expect_none() {
 
 #[test]
 fn read_boolean_correct() {
-    let mut reader = StringReader::from("true".to_string());
+    let mut reader = StringReader::from("true".to_owned());
     assert!(reader.read_boolean().unwrap());
     assert_eq!(reader.get_read(), "true");
 }
 
 #[test]
 fn read_boolean_incorrect() {
-    let mut reader = StringReader::from("tuesday".to_string());
+    let mut reader = StringReader::from("tuesday".to_owned());
     let result = reader.read_boolean();
     assert!(result.is_err());
     if let Err(e) = result {
         assert_eq!(
             e.kind(),
             &BuiltInError::ReaderInvalidBool {
-                value: "tuesday".to_string()
+                value: "tuesday".to_owned()
             }
         );
         assert_eq!(e.cursor(), Some(0));
@@ -602,7 +602,7 @@ fn read_boolean_incorrect() {
 
 #[test]
 fn read_boolean_none() {
-    let mut reader = StringReader::from("".to_string());
+    let mut reader = StringReader::from("".to_owned());
     let result = reader.read_boolean();
     assert!(result.is_err());
     if let Err(e) = result {

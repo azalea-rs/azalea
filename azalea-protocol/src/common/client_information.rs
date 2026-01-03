@@ -2,15 +2,16 @@ use std::io::{self, Cursor};
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite};
 use azalea_core::bitset::FixedBitSet;
+use azalea_entity::HumanoidArm;
 use bevy_ecs::component::Component;
 
 /// A component that contains some of the "settings" for this client that are
 /// sent to the server, such as render distance.
 ///
 /// This is only present on local players.
-#[derive(Clone, Debug, AzBuf, PartialEq, Eq, Component)]
+#[derive(AzBuf, Clone, Component, Debug, Eq, PartialEq)]
 pub struct ClientInformation {
-    /// The locale of the client.
+    /// The locale of the client, formatted like "en_us".
     pub language: String,
     /// The view distance of the client in chunks, same as the render distance
     /// in-game.
@@ -35,7 +36,7 @@ pub struct ClientInformation {
 impl Default for ClientInformation {
     fn default() -> Self {
         Self {
-            language: "en_us".to_string(),
+            language: "en_us".to_owned(),
             view_distance: 8,
             chat_visibility: ChatVisibility::default(),
             chat_colors: true,
@@ -48,7 +49,7 @@ impl Default for ClientInformation {
     }
 }
 
-#[derive(AzBuf, Clone, Copy, Debug, PartialEq, Eq, Default)]
+#[derive(AzBuf, Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub enum ChatVisibility {
     /// All chat messages should be sent to the client.
     #[default]
@@ -60,14 +61,7 @@ pub enum ChatVisibility {
     Hidden = 2,
 }
 
-#[derive(AzBuf, Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum HumanoidArm {
-    Left = 0,
-    #[default]
-    Right = 1,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ModelCustomization {
     pub cape: bool,
     pub jacket: bool,
@@ -78,7 +72,7 @@ pub struct ModelCustomization {
     pub hat: bool,
 }
 
-#[derive(AzBuf, Clone, Copy, Debug, PartialEq, Eq, Default)]
+#[derive(AzBuf, Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub enum ParticleStatus {
     #[default]
     All,
@@ -164,7 +158,7 @@ mod tests {
         }
 
         let data = ClientInformation {
-            language: "en_gb".to_string(),
+            language: "en_gb".to_owned(),
             view_distance: 24,
             chat_visibility: ChatVisibility::Hidden,
             chat_colors: false,

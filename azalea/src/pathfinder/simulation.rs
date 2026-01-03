@@ -3,16 +3,15 @@
 use std::sync::Arc;
 
 use azalea_client::{
-    PhysicsState, interact::BlockStatePredictionHandler, inventory::Inventory,
-    local_player::LocalGameMode, mining::MineBundle,
+    PhysicsState, interact::BlockStatePredictionHandler, local_player::LocalGameMode,
+    mining::MineBundle,
 };
-use azalea_core::{
-    game_type::GameMode, position::Vec3, resource_location::ResourceLocation, tick::GameTick,
-};
+use azalea_core::{game_type::GameMode, position::Vec3, tick::GameTick};
 use azalea_entity::{
-    Attributes, LookDirection, Physics, Position, default_attributes, dimensions::EntityDimensions,
+    Attributes, LookDirection, Physics, Position, dimensions::EntityDimensions,
+    inventory::Inventory,
 };
-use azalea_registry::EntityKind;
+use azalea_registry::{builtin::EntityKind, identifier::Identifier};
 use azalea_world::{ChunkStorage, Instance, InstanceContainer, MinecraftEntityId, PartialInstance};
 use bevy_app::App;
 use bevy_ecs::prelude::*;
@@ -38,14 +37,14 @@ impl SimulatedPlayerBundle {
             physics: Physics::new(&dimensions, position),
             physics_state: PhysicsState::default(),
             look_direction: LookDirection::default(),
-            attributes: default_attributes(EntityKind::Player),
+            attributes: Attributes::new(EntityKind::Player),
             inventory: Inventory::default(),
         }
     }
 }
 
-fn simulation_instance_name() -> ResourceLocation {
-    ResourceLocation::new("azalea:simulation")
+fn simulation_instance_name() -> Identifier {
+    Identifier::new("azalea:simulation")
 }
 
 fn create_simulation_instance(chunks: ChunkStorage) -> (App, Arc<RwLock<Instance>>) {
@@ -98,7 +97,7 @@ fn create_simulation_player_complete_bundle(
         azalea_entity::EntityBundle::new(
             Uuid::nil(),
             *player.position,
-            azalea_registry::EntityKind::Player,
+            EntityKind::Player,
             instance_name,
         ),
         azalea_client::local_player::InstanceHolder {

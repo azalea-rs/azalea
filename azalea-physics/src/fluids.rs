@@ -5,9 +5,9 @@ use azalea_block::{
 use azalea_core::{
     direction::Direction,
     position::{BlockPos, Vec3},
-    resource_location::ResourceLocation,
 };
 use azalea_entity::{HasClientLoaded, LocalEntity, Physics, Position};
+use azalea_registry::builtin::BlockKind;
 use azalea_world::{Instance, InstanceContainer, InstanceName};
 use bevy_ecs::prelude::*;
 
@@ -39,12 +39,10 @@ pub fn update_in_water_state_and_do_fluid_pushing(
 
         let is_ultrawarm = world
             .registries
+            .dimension_type
             .map
-            .get(&ResourceLocation::new("minecraft:dimension_type"))
-            .and_then(|d| {
-                d.get(&**instance_name)
-                    .map(|d| d.byte("ultrawarm") != Some(0))
-            })
+            .get(&**instance_name)
+            .and_then(|i| i.ultrawarm)
             .unwrap_or_default();
         let lava_push_factor = if is_ultrawarm {
             0.007
@@ -258,11 +256,11 @@ fn is_solid_face(
     if direction == Direction::Up {
         return true;
     }
-    let registry_block = azalea_registry::Block::from(block_state);
+    let registry_block = BlockKind::from(block_state);
     if matches!(
         registry_block,
         // frosted ice is from frost walker
-        azalea_registry::Block::Ice | azalea_registry::Block::FrostedIce
+        BlockKind::Ice | BlockKind::FrostedIce
     ) {
         return false;
     }

@@ -1,17 +1,17 @@
 use azalea_buf::AzBuf;
-use azalea_entity::attributes::AttributeModifier;
+use azalea_inventory::components::AttributeModifier;
 use azalea_protocol_macros::ClientboundGamePacket;
-use azalea_registry::Attribute;
+use azalea_registry::builtin::Attribute;
 use azalea_world::MinecraftEntityId;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
+#[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundUpdateAttributes {
     #[var]
     pub entity_id: MinecraftEntityId,
     pub values: Vec<AttributeSnapshot>,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct AttributeSnapshot {
     pub attribute: Attribute,
     pub base: f64,

@@ -9,7 +9,7 @@ use tracing::{debug, error};
 
 use crate::{InConfigState, connection::RawConnection};
 
-#[derive(Message, Debug, Clone)]
+#[derive(Clone, Debug, Message)]
 pub struct ReceiveConfigPacketEvent {
     /// The client entity that received the packet.
     pub entity: Entity,
@@ -19,7 +19,7 @@ pub struct ReceiveConfigPacketEvent {
 
 /// An event for sending a packet to the server while we're in the
 /// `configuration` state.
-#[derive(EntityEvent, Clone)]
+#[derive(Clone, EntityEvent)]
 pub struct SendConfigPacketEvent {
     #[event_target]
     pub sent_by: Entity,
@@ -58,7 +58,7 @@ pub fn handle_outgoing_packets_observer(
 ///
 /// [`ClientboundPing`]: azalea_protocol::packets::config::ClientboundPing
 /// [`GamePingEvent`]: crate::packet::game::GamePingEvent
-#[derive(Event, Debug, Clone)]
+#[derive(Clone, Debug, Event)]
 pub struct ConfigPingEvent {
     pub entity: Entity,
     pub packet: azalea_protocol::packets::config::ClientboundPing,

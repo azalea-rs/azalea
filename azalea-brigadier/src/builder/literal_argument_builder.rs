@@ -1,13 +1,13 @@
 use super::argument_builder::{ArgumentBuilder, ArgumentBuilderType};
 
-#[derive(Debug, Clone, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct Literal {
     pub value: String,
 }
 impl Literal {
     pub fn new(value: &str) -> Self {
         Self {
-            value: value.to_string(),
+            value: value.to_owned(),
         }
     }
 }

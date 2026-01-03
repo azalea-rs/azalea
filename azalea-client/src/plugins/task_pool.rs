@@ -105,7 +105,7 @@ impl TaskPoolOptions {
             IoTaskPool::get_or_init(|| {
                 TaskPoolBuilder::default()
                     .num_threads(io_threads)
-                    .thread_name("IO Task Pool".to_string())
+                    .thread_name("IO Task Pool".to_owned())
                     .build()
             });
         }
@@ -121,7 +121,7 @@ impl TaskPoolOptions {
             AsyncComputeTaskPool::get_or_init(|| {
                 TaskPoolBuilder::default()
                     .num_threads(async_compute_threads)
-                    .thread_name("Async Compute Task Pool".to_string())
+                    .thread_name("Async Compute Task Pool".to_owned())
                     .build()
             });
         }
@@ -136,7 +136,7 @@ impl TaskPoolOptions {
             ComputeTaskPool::get_or_init(|| {
                 TaskPoolBuilder::default()
                     .num_threads(compute_threads)
-                    .thread_name("Compute Task Pool".to_string())
+                    .thread_name("Compute Task Pool".to_owned())
                     .build()
             });
         }

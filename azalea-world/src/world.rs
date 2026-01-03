@@ -11,7 +11,7 @@ use azalea_core::{
     position::{BlockPos, ChunkPos},
     registry_holder::RegistryHolder,
 };
-use azalea_registry::Biome;
+use azalea_registry::data::Biome;
 use bevy_ecs::{component::Component, entity::Entity};
 use derive_more::{Deref, DerefMut};
 use nohash_hasher::IntMap;
@@ -52,7 +52,7 @@ impl PartialInstance {
 
 /// An entity ID used by Minecraft.
 ///
-/// These IDs are picked by the server. Some server softwares (like Bungeecord)
+/// These IDs are picked by the server. Some server software (like Bungeecord)
 /// may pick entity IDs per-player, so you should avoid relying on them for
 /// identifying IDs (especially if you're using a shared world -- i.e. a swarm).
 ///
@@ -66,7 +66,7 @@ impl PartialInstance {
 /// `#[var]` attribute.
 ///
 /// [`Entity`]: bevy_ecs::entity::Entity
-#[derive(Component, Copy, Clone, Debug, Default, PartialEq, Eq, Deref, DerefMut)]
+#[derive(Clone, Component, Copy, Debug, Default, Deref, DerefMut, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct MinecraftEntityId(pub i32);
 
@@ -150,7 +150,8 @@ impl PartialEntityInfos {
 ///
 /// This is sometimes interchangeably called a "world". However, this type is
 /// called `Instance` to avoid colliding with the `World` type from Bevy ECS.
-#[derive(Default, Debug)]
+#[derive(Debug, Default)]
+#[doc(alias("world", "dimension"))]
 pub struct Instance {
     pub chunks: ChunkStorage,
 
@@ -169,10 +170,14 @@ pub struct Instance {
 }
 
 impl Instance {
+    /// Get the block at the given position, or `None` if it's outside of the
+    /// world that we have loaded.
     pub fn get_block_state(&self, pos: BlockPos) -> Option<BlockState> {
         self.chunks.get_block_state(pos)
     }
 
+    /// Similar to [`Self::get_block_state`], but returns data about the fluid
+    /// at the position, including for waterlogged blocks.
     pub fn get_fluid_state(&self, pos: BlockPos) -> Option<FluidState> {
         self.chunks.get_block_state(pos).map(FluidState::from)
     }

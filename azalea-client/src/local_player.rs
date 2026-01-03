@@ -1,19 +1,13 @@
-use std::{
-    collections::HashMap,
-    error, io,
-    sync::{Arc, PoisonError},
-};
+use std::{collections::HashMap, sync::Arc};
 
 use azalea_core::game_type::GameMode;
 use azalea_world::{Instance, PartialInstance};
 use bevy_ecs::{component::Component, prelude::*};
 use derive_more::{Deref, DerefMut};
 use parking_lot::RwLock;
-use thiserror::Error;
-use tokio::sync::mpsc;
 use uuid::Uuid;
 
-use crate::{ClientInformation, events::Event as AzaleaEvent, player::PlayerInfo};
+use crate::{ClientInformation, player::PlayerInfo};
 
 /// A component that keeps strong references to our [`PartialInstance`] and
 /// [`Instance`] for local players.
@@ -24,7 +18,7 @@ use crate::{ClientInformation, events::Event as AzaleaEvent, player::PlayerInfo}
 ///
 /// [`InstanceContainer`]: azalea_world::InstanceContainer
 /// [`InstanceName`]: azalea_world::InstanceName
-#[derive(Component, Clone)]
+#[derive(Clone, Component)]
 pub struct InstanceHolder {
     /// The partial instance is the world this client currently has loaded.
     ///
@@ -40,7 +34,7 @@ pub struct InstanceHolder {
 
 /// The gamemode of a local player. For a non-local player, you can look up the
 /// player in the [`TabList`].
-#[derive(Component, Clone, Debug, Copy)]
+#[derive(Clone, Component, Copy, Debug)]
 pub struct LocalGameMode {
     pub current: GameMode,
     pub previous: Option<GameMode>,
@@ -55,7 +49,7 @@ impl From<GameMode> for LocalGameMode {
 }
 
 /// Level must be 0..=4
-#[derive(Component, Clone, Default, Deref, DerefMut)]
+#[derive(Clone, Component, Default, Deref, DerefMut)]
 pub struct PermissionLevel(pub u8);
 
 /// A component that contains a map of player UUIDs to their information in the
@@ -63,13 +57,12 @@ pub struct PermissionLevel(pub u8);
 ///
 /// ```
 /// # use azalea_client::local_player::TabList;
-/// # fn example(client: &azalea_client::Client) {
-/// let tab_list = client.component::<TabList>();
-/// println!("Online players:");
-/// for (uuid, player_info) in tab_list.iter() {
-///     println!("- {} ({}ms)", player_info.profile.name, player_info.latency);
+/// fn example(tab_list: &TabList) {
+///     println!("Online players:");
+///     for (uuid, player_info) in tab_list.iter() {
+///         println!("- {} ({}ms)", player_info.profile.name, player_info.latency);
+///     }
 /// }
-/// # }
 /// ```
 ///
 /// For convenience, `TabList` is also a resource in the ECS.
@@ -77,10 +70,10 @@ pub struct PermissionLevel(pub u8);
 /// was updated.
 /// This means you should avoid using `TabList` as a resource unless you know
 /// all of your clients will have the same tab list.
-#[derive(Component, Resource, Clone, Debug, Deref, DerefMut, Default)]
+#[derive(Clone, Component, Debug, Default, Deref, DerefMut, Resource)]
 pub struct TabList(HashMap<Uuid, PlayerInfo>);
 
-#[derive(Component, Clone)]
+#[derive(Clone, Component)]
 pub struct Hunger {
     /// The main hunger bar. This is typically in the range `0..=20`.
     pub food: u32,
@@ -144,23 +137,5 @@ impl InstanceHolder {
         self.instance = Arc::new(RwLock::new(new_instance));
 
         self.partial_instance.write().reset();
-    }
-}
-
-#[derive(Error, Debug)]
-pub enum HandlePacketError {
-    #[error("{0}")]
-    Poison(String),
-    #[error(transparent)]
-    Io(#[from] io::Error),
-    #[error(transparent)]
-    Other(#[from] Box<dyn error::Error + Send + Sync>),
-    #[error("{0}")]
-    Send(#[from] mpsc::error::SendError<AzaleaEvent>),
-}
-
-impl<T> From<PoisonError<T>> for HandlePacketError {
-    fn from(e: PoisonError<T>) -> Self {
-        HandlePacketError::Poison(e.to_string())
     }
 }

@@ -14,7 +14,14 @@ use super::VoxelShape;
 use crate::collision::{self, Shapes};
 
 pub trait BlockWithShape {
+    /// The hitbox for blocks that's used when simulating physics.
     fn collision_shape(&self) -> &'static VoxelShape;
+    /// The hitbox for blocks that's used for determining whether we're looking
+    /// at it.
+    ///
+    /// This is often but not always the same as the collision shape. For
+    /// example, tall grass has a normal outline shape but an empty collision
+    /// shape.
     fn outline_shape(&self) -> &'static VoxelShape;
     /// Tells you whether the block has an empty shape.
     ///

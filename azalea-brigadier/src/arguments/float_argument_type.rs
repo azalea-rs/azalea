@@ -43,7 +43,7 @@ impl ArgumentType for Float {
     fn examples(&self) -> Vec<String> {
         vec!["0", "1.2", ".5", "-1", "-.5", "-1234.56"]
             .into_iter()
-            .map(|s| s.to_string())
+            .map(|s| s.to_owned())
             .collect()
     }
 }

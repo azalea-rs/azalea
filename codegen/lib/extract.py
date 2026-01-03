@@ -34,7 +34,7 @@ def get_block_states_report(version_id: str):
     return get_report(version_id, "blocks")
 
 
-def get_registries_report(version_id: str):
+def get_builtin_registries_report(version_id: str):
     return get_report(version_id, "registries")
 
 
@@ -71,6 +71,33 @@ def get_registry_tags(version_id: str, name: str):
             with open(file, "r") as f:
                 tags[relative_path[:-5]] = json.load(f)
     return tags
+
+
+# note that these are different from "builtin" registries
+def get_data_registries(version_id: str):
+    generate_data_from_server_jar(version_id)
+    data_registries_dir = get_dir_location(
+        f"__cache__/generated-{version_id}/data/minecraft"
+    )
+    registries = {}
+
+    def add_entries_in_dir(parent_dir, registry_name):
+        entries = []
+        for variant_dir in os.listdir(os.path.join(parent_dir, registry_name)):
+            if not variant_dir.endswith(".json"):
+                continue
+            entries.append(variant_dir[:-5])
+        if len(entries) > 0:
+            registries[registry_name] = entries
+
+    for registry_name in os.listdir(data_registries_dir):
+        add_entries_in_dir(data_registries_dir, registry_name)
+    for registry_name in os.listdir(os.path.join(data_registries_dir, "worldgen")):
+        if registry_name != "biome":
+            continue
+        add_entries_in_dir(data_registries_dir, os.path.join("worldgen", registry_name))
+
+    return registries
 
 
 python_command = None
@@ -254,16 +281,16 @@ def get_packet_list(version_id: str):
     packet_list = []
     for state, state_value in packets_report.items():
         for direction, direction_value in state_value.items():
-            for packet_resourcelocation, packet_value in direction_value.items():
-                assert packet_resourcelocation.startswith("minecraft:")
-                packet_resourcelocation = upper_first_letter(
-                    to_camel_case(packet_resourcelocation[len("minecraft:") :])
+            for packet_identifier, packet_value in direction_value.items():
+                assert packet_identifier.startswith("minecraft:")
+                packet_identifier = upper_first_letter(
+                    to_camel_case(packet_identifier[len("minecraft:") :])
                 )
                 packet_list.append(
                     {
                         "state": state,
                         "direction": direction,
-                        "name": packet_resourcelocation,
+                        "name": packet_identifier,
                         "id": packet_value["protocol_id"],
                     }
                 )

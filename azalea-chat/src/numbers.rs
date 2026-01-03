@@ -1,11 +1,13 @@
 //! Contains a few ways to style numbers. At the time of writing, Minecraft only
 //! uses this for rendering scoreboard objectives.
 
+#[cfg(feature = "azalea-buf")]
 use std::io::{self, Cursor, Write};
 
 #[cfg(feature = "azalea-buf")]
 use azalea_buf::{AzaleaRead, AzaleaWrite};
-use azalea_registry::NumberFormatKind;
+#[cfg(feature = "azalea-buf")]
+use azalea_registry::builtin::NumberFormatKind;
 use simdnbt::owned::Nbt;
 
 use crate::FormattedText;

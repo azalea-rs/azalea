@@ -15,14 +15,14 @@ use super::ExecutingPath;
 /// ```
 /// # use azalea::prelude::*;
 /// # use azalea::pathfinder::debug::PathfinderDebugParticles;
-/// # #[derive(Component, Clone, Default)]
+/// # #[derive(Clone, Component, Default)]
 /// # pub struct State;
 ///
 /// async fn handle(mut bot: Client, event: azalea::Event, state: State) -> anyhow::Result<()> {
 ///     match event {
 ///         azalea::Event::Init => {
 ///             bot.ecs
-///                 .lock()
+///                 .write()
 ///                 .entity_mut(bot.entity)
 ///                 .insert(PathfinderDebugParticles);
 ///         }

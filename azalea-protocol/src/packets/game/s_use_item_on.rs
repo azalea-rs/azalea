@@ -10,7 +10,7 @@ use azalea_protocol_macros::ServerboundGamePacket;
 
 use crate::packets::game::s_interact::InteractionHand;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ServerboundGamePacket)]
+#[derive(AzBuf, Clone, Debug, PartialEq, ServerboundGamePacket)]
 pub struct ServerboundUseItemOn {
     pub hand: InteractionHand,
     pub block_hit: BlockHit,

@@ -12,7 +12,7 @@ use uuid::Uuid;
 
 use super::s_chat_session_update::RemoteChatSessionData;
 
-#[derive(Clone, Debug, PartialEq, ClientboundGamePacket)]
+#[derive(ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundPlayerInfoUpdate {
     pub actions: ActionEnumSet,
     pub entries: Vec<PlayerInfoEntry>,
@@ -30,37 +30,37 @@ pub struct PlayerInfoEntry {
     pub chat_session: Option<RemoteChatSessionData>,
 }
 
-#[derive(Clone, Debug, AzBuf)]
+#[derive(AzBuf, Clone, Debug)]
 pub struct AddPlayerAction {
     pub name: String,
     pub properties: GameProfileProperties,
 }
-#[derive(Clone, Debug, AzBuf)]
+#[derive(AzBuf, Clone, Debug)]
 pub struct InitializeChatAction {
     pub chat_session: Option<RemoteChatSessionData>,
 }
-#[derive(Clone, Debug, AzBuf)]
+#[derive(AzBuf, Clone, Debug)]
 pub struct UpdateGameModeAction {
     pub game_mode: GameMode,
 }
-#[derive(Clone, Debug, AzBuf)]
+#[derive(AzBuf, Clone, Debug)]
 pub struct UpdateListedAction {
     pub listed: bool,
 }
-#[derive(Clone, Debug, AzBuf)]
+#[derive(AzBuf, Clone, Debug)]
 pub struct UpdateLatencyAction {
     #[var]
     pub latency: i32,
 }
-#[derive(Clone, Debug, AzBuf)]
+#[derive(AzBuf, Clone, Debug)]
 pub struct UpdateDisplayNameAction {
     pub display_name: Option<Box<FormattedText>>,
 }
-#[derive(Clone, Debug, AzBuf)]
+#[derive(AzBuf, Clone, Debug)]
 pub struct UpdateHatAction {
     pub update_hat: bool,
 }
-#[derive(Clone, Debug, AzBuf)]
+#[derive(AzBuf, Clone, Debug)]
 pub struct UpdateListOrderAction {
     #[var]
     pub list_order: i32,
@@ -169,7 +169,7 @@ impl AzaleaWrite for ClientboundPlayerInfoUpdate {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ActionEnumSet {
     pub add_player: bool,
     pub initialize_chat: bool,

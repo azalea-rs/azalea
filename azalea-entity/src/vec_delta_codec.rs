@@ -1,6 +1,6 @@
 use azalea_core::{delta::PositionDelta8, position::Vec3};
 
-#[derive(Debug, Clone, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct VecDeltaCodec {
     base: Vec3,
 }

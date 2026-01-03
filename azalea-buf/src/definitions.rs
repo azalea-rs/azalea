@@ -1,7 +1,7 @@
 use std::ops::Deref;
 
 /// A `Vec<u8>` that isn't prefixed by a VarInt with the size.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct UnsizedByteArray(pub Vec<u8>);
 
 impl Deref for UnsizedByteArray {

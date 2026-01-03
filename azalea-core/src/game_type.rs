@@ -5,7 +5,7 @@ use azalea_chat::translatable_component::TranslatableComponent;
 use tracing::debug;
 
 /// A Minecraft gamemode, like survival or creative.
-#[derive(Hash, Copy, Clone, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
 pub enum GameMode {
     #[default]
     Survival,
@@ -115,7 +115,7 @@ impl AzaleaWrite for GameMode {
 
 /// Rust doesn't let us `impl AzaleaRead for Option<GameType>` so we have to
 /// make a new type :(
-#[derive(Hash, Copy, Clone, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, Hash, PartialEq)]
 pub struct OptionalGameType(pub Option<GameMode>);
 
 impl From<Option<GameMode>> for OptionalGameType {

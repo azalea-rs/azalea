@@ -24,7 +24,7 @@ use tracing::trace;
 
 use crate::packets::ProtocolPacket;
 
-#[derive(Error, Debug)]
+#[derive(Debug, Error)]
 pub enum ReadPacketError {
     #[error("Error reading packet {packet_name} (id {packet_id}): {source}")]
     Parse {
@@ -61,7 +61,7 @@ pub enum ReadPacketError {
     ConnectionClosed,
 }
 
-#[derive(Error, Debug)]
+#[derive(Debug, Error)]
 pub enum FrameSplitterError {
     #[error("Couldn't read VarInt length for packet. The previous packet may have been corrupted")]
     LengthRead {
@@ -162,7 +162,7 @@ static VALIDATE_DECOMPRESSED: bool = true;
 
 pub static MAXIMUM_UNCOMPRESSED_LENGTH: u32 = 8_388_608;
 
-#[derive(Error, Debug)]
+#[derive(Debug, Error)]
 pub enum DecompressionError {
     #[error("Couldn't read VarInt length for data")]
     LengthReadError {

@@ -4,7 +4,7 @@ use azalea_world::MinecraftEntityId;
 
 use crate::common::movements::{PositionMoveRotation, RelativeMovements};
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
+#[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundTeleportEntity {
     #[var]
     pub id: MinecraftEntityId,

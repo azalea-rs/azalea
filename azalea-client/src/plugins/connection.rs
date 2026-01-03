@@ -371,7 +371,7 @@ async fn write_task(
     trace!("write task is done");
 }
 
-#[derive(Error, Debug)]
+#[derive(Debug, Error)]
 pub enum WritePacketError {
     #[error("Wrong protocol state: expected {expected:?}, got {got:?}")]
     WrongState {

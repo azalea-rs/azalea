@@ -9,7 +9,7 @@ use azalea_core::{
     position::{BlockPos, ChunkPos, ChunkSectionBlockPos, ChunkSectionPos},
 };
 use azalea_physics::collision::BlockWithShape;
-use azalea_registry::{Block, tags};
+use azalea_registry::{builtin::BlockKind, tags};
 use azalea_world::{Instance, palette::PalettedContainer};
 use parking_lot::RwLock;
 
@@ -531,8 +531,8 @@ pub fn is_block_state_passable(block_state: BlockState) -> bool {
     if !block_state.is_collision_shape_empty() {
         return false;
     }
-    let registry_block = Block::from(block_state);
-    if registry_block == Block::Water {
+    let registry_block = BlockKind::from(block_state);
+    if registry_block == BlockKind::Water {
         return false;
     }
     if block_state
@@ -541,26 +541,26 @@ pub fn is_block_state_passable(block_state: BlockState) -> bool {
     {
         return false;
     }
-    if registry_block == Block::Lava {
+    if registry_block == BlockKind::Lava {
         return false;
     }
     // block.waterlogged currently doesn't account for seagrass and some other water
     // blocks
-    if block_state == Block::Seagrass.into() {
+    if block_state == BlockKind::Seagrass.into() {
         return false;
     }
 
     // don't walk into fire
-    if registry_block == Block::Fire || registry_block == Block::SoulFire {
+    if registry_block == BlockKind::Fire || registry_block == BlockKind::SoulFire {
         return false;
     }
 
-    if registry_block == Block::PowderSnow {
+    if registry_block == BlockKind::PowderSnow {
         // we can't jump out of powder snow
         return false;
     }
 
-    if registry_block == Block::SweetBerryBush {
+    if registry_block == BlockKind::SweetBerryBush {
         // these hurt us
         return false;
     }
@@ -588,9 +588,9 @@ pub fn is_block_state_solid(block_state: BlockState) -> bool {
         return true;
     }
 
-    let block = Block::from(block_state);
+    let block = BlockKind::from(block_state);
     // solid enough
-    if matches!(block, Block::DirtPath | Block::Farmland) {
+    if matches!(block, BlockKind::DirtPath | BlockKind::Farmland) {
         return true;
     }
 
@@ -604,7 +604,7 @@ pub fn is_block_state_standable(block_state: BlockState) -> bool {
         return true;
     }
 
-    let block = Block::from(block_state);
+    let block = BlockKind::from(block_state);
     if tags::blocks::SLABS.contains(&block) || tags::blocks::STAIRS.contains(&block) {
         return true;
     }
@@ -626,9 +626,11 @@ mod tests {
         partial_world
             .chunks
             .set(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()), &mut world);
-        partial_world
-            .chunks
-            .set_block_state(BlockPos::new(0, 0, 0), Block::Stone.into(), &world);
+        partial_world.chunks.set_block_state(
+            BlockPos::new(0, 0, 0),
+            BlockKind::Stone.into(),
+            &world,
+        );
         partial_world
             .chunks
             .set_block_state(BlockPos::new(0, 1, 0), BlockState::AIR, &world);
@@ -645,9 +647,11 @@ mod tests {
         partial_world
             .chunks
             .set(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()), &mut world);
-        partial_world
-            .chunks
-            .set_block_state(BlockPos::new(0, 0, 0), Block::Stone.into(), &world);
+        partial_world.chunks.set_block_state(
+            BlockPos::new(0, 0, 0),
+            BlockKind::Stone.into(),
+            &world,
+        );
         partial_world
             .chunks
             .set_block_state(BlockPos::new(0, 1, 0), BlockState::AIR, &world);
@@ -664,9 +668,11 @@ mod tests {
         partial_world
             .chunks
             .set(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()), &mut world);
-        partial_world
-            .chunks
-            .set_block_state(BlockPos::new(0, 0, 0), Block::Stone.into(), &world);
+        partial_world.chunks.set_block_state(
+            BlockPos::new(0, 0, 0),
+            BlockKind::Stone.into(),
+            &world,
+        );
         partial_world
             .chunks
             .set_block_state(BlockPos::new(0, 1, 0), BlockState::AIR, &world);

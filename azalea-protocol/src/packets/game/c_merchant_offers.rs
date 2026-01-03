@@ -10,9 +10,9 @@ use azalea_inventory::{
     components::{self, DataComponentUnion},
 };
 use azalea_protocol_macros::ClientboundGamePacket;
-use azalea_registry::{DataComponentKind, Item};
+use azalea_registry::builtin::{DataComponentKind, ItemKind};
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
+#[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundMerchantOffers {
     #[var]
     pub container_id: i32,
@@ -25,7 +25,7 @@ pub struct ClientboundMerchantOffers {
     pub can_restock: bool,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct MerchantOffer {
     pub base_cost_a: ItemCost,
     pub result: ItemStack,
@@ -43,9 +43,9 @@ pub struct MerchantOffer {
 ///
 /// This can be converted into an [`ItemStackData`] with
 /// [`Self::into_item_stack`].
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct ItemCost {
-    pub item: Item,
+    pub item: ItemKind,
     #[var]
     pub count: i32,
     pub components: DataComponentExactPredicate,
@@ -74,7 +74,7 @@ impl ItemCost {
 ///
 /// If you got this from [`ItemCost`], consider using
 /// [`ItemCost::into_item_stack`] for a better API instead.
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct DataComponentExactPredicate {
     pub expected: Vec<TypedDataComponent>,
 }

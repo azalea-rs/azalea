@@ -13,7 +13,7 @@ use uuid::Uuid;
 use crate::packet::game::AddPlayerEvent;
 
 /// A player in the tab list.
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct PlayerInfo {
     /// Information about the player's Minecraft account, including their
     /// username.
@@ -38,7 +38,7 @@ pub struct PlayerInfo {
 ///
 /// Note that it's possible for this to be missing in a player if the server
 /// never sent the player info for them (though this is uncommon).
-#[derive(Component, Clone, Debug, Deref, DerefMut)]
+#[derive(Clone, Component, Debug, Deref, DerefMut)]
 pub struct GameProfileComponent(pub GameProfile);
 
 /// Add a [`GameProfileComponent`] when an [`AddPlayerEvent`] is received.

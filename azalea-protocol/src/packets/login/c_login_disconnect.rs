@@ -6,7 +6,7 @@ use azalea_protocol_macros::ClientboundLoginPacket;
 use serde::{Deserialize, Serialize};
 use tracing::trace;
 
-#[derive(Clone, Debug, PartialEq, ClientboundLoginPacket)]
+#[derive(ClientboundLoginPacket, Clone, Debug, PartialEq)]
 pub struct ClientboundLoginDisconnect {
     pub reason: FormattedText,
 }

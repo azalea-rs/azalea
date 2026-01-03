@@ -106,7 +106,7 @@ impl<S: PalletedContainerKind> From<&Palette<S>> for PaletteKind {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum PaletteKind {
     SingleValue,
     Linear,

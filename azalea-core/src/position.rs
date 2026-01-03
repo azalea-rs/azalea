@@ -13,16 +13,22 @@ use std::{
 };
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
+use azalea_registry::identifier::Identifier;
 use serde::{Serialize, Serializer};
-use simdnbt::Deserialize;
+use simdnbt::borrow::NbtTag;
 
-use crate::{
-    codec_utils::IntArray, direction::Direction, math, resource_location::ResourceLocation,
-};
+use crate::{codec_utils::IntArray, direction::Direction, math};
 
 macro_rules! vec3_impl {
     ($name:ident, $type:ty) => {
         impl $name {
+            /// The position where x, y, and z are all 0.
+            pub const ZERO: Self = Self {
+                x: 0 as $type,
+                y: 0 as $type,
+                z: 0 as $type,
+            };
+
             #[inline]
             pub const fn new(x: $type, y: $type, z: $type) -> Self {
                 Self { x, y, z }
@@ -299,17 +305,30 @@ macro_rules! vec3_impl {
 /// Used to represent an exact position in the world where an entity could be.
 ///
 /// For blocks, [`BlockPos`] is used instead.
-#[derive(Clone, Copy, Debug, Default, PartialEq, AzBuf, serde::Deserialize, serde::Serialize)]
+#[derive(AzBuf, Clone, Copy, Debug, Default, serde::Deserialize, PartialEq, serde::Serialize)]
 pub struct Vec3 {
     pub x: f64,
     pub y: f64,
     pub z: f64,
 }
 vec3_impl!(Vec3, f64);
+impl simdnbt::FromNbtTag for Vec3 {
+    fn from_nbt_tag(tag: NbtTag) -> Option<Self> {
+        let pos = tag.list()?;
+        if let Some(pos) = pos.doubles() {
+            let [x, y, z] = <[f64; 3]>::try_from(pos).ok()?;
+            Some(Self { x, y, z })
+        } else if let Some(pos) = pos.floats() {
+            // used on hypixel
+            let [x, y, z] = <[f32; 3]>::try_from(pos).ok()?.map(|f| f as f64);
+            Some(Self { x, y, z })
+        } else {
+            None
+        }
+    }
+}
 
 impl Vec3 {
-    pub const ZERO: Vec3 = Vec3::new(0.0, 0.0, 0.0);
-
     /// Get the distance of this vector to the origin by doing
     /// `sqrt(x^2 + y^2 + z^2)`.
     pub fn length(&self) -> f64 {
@@ -362,7 +381,7 @@ impl Vec3 {
 }
 
 /// A lower precision [`Vec3`], used for some fields in entity metadata.
-#[derive(Clone, Copy, Debug, Default, PartialEq, AzBuf)]
+#[derive(AzBuf, Clone, Copy, Debug, Default, PartialEq)]
 pub struct Vec3f32 {
     pub x: f32,
     pub y: f32,
@@ -390,7 +409,8 @@ impl From<Vec3> for Vec3f32 {
 /// The coordinates of a block in the world.
 ///
 /// For entities (if the coordinates are floating-point), use [`Vec3`] instead.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+/// To convert a `BlockPos` to a `Vec3`, you'll usually want [`Self::center`].
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
 pub struct BlockPos {
     pub x: i32,
     pub y: i32,
@@ -433,6 +453,17 @@ impl BlockPos {
         (self.x.abs() + self.y.abs() + self.z.abs()) as u32
     }
 
+    /// Add or subtract `1` to one of this position's coordinates, depending on
+    /// the direction.
+    ///
+    /// ```
+    /// # use azalea_core::{position::BlockPos, direction::Direction};
+    /// let pos = BlockPos::new(10, 10, 10);
+    /// assert_eq!(
+    ///     pos.offset_with_direction(Direction::North),
+    ///     BlockPos::new(10, 10, 9)
+    /// );
+    /// ```
     pub fn offset_with_direction(self, direction: Direction) -> Self {
         self + direction.normal()
     }
@@ -472,9 +503,11 @@ impl<'de> serde::Deserialize<'de> for BlockPos {
     }
 }
 
-/// Similar to [`BlockPos`] but it's serialized as 3 varints instead of one
-/// 64-bit integer, so it can represent a bigger range of numbers.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, AzBuf)]
+/// An arbitrary position that's represented as 32-bit integers.
+///
+/// This is similar to [`BlockPos`], but isn't limited to representing block
+/// positions and can represent a larger range of numbers.
+#[derive(AzBuf, Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
 pub struct Vec3i {
     #[var]
     pub x: i32,
@@ -483,11 +516,19 @@ pub struct Vec3i {
     #[var]
     pub z: i32,
 }
+vec3_impl!(Vec3i, i32);
+impl simdnbt::FromNbtTag for Vec3i {
+    fn from_nbt_tag(tag: NbtTag) -> Option<Self> {
+        let pos = tag.list()?.ints()?;
+        let [x, y, z] = <[i32; 3]>::try_from(pos).ok()?;
+        Some(Self { x, y, z })
+    }
+}
 
 /// Chunk coordinates are used to represent where a chunk is in the world.
 ///
 /// You can convert the x and z to block coordinates by multiplying them by 16.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct ChunkPos {
     pub x: i32,
     pub z: i32,
@@ -562,7 +603,7 @@ impl Hash for ChunkPos {
 impl nohash_hasher::IsEnabled for ChunkPos {}
 
 /// The coordinates of a chunk section in the world.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
 pub struct ChunkSectionPos {
     pub x: i32,
     pub y: i32,
@@ -577,7 +618,7 @@ impl ChunkSectionPos {
 }
 
 /// The coordinates of a block inside a chunk.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct ChunkBlockPos {
     pub x: u8,
     pub y: i32,
@@ -616,7 +657,7 @@ impl nohash_hasher::IsEnabled for ChunkBlockPos {}
 /// The coordinates of a block inside of a chunk section.
 ///
 /// Each coordinate should be in the range 0..=15.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct ChunkSectionBlockPos {
     pub x: u8,
     pub y: u8,
@@ -627,7 +668,7 @@ vec3_impl!(ChunkSectionBlockPos, u8);
 /// The coordinates of a biome inside of a chunk section.
 ///
 /// Each coordinate should be in the range 0..=3.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct ChunkSectionBiomePos {
     pub x: u8,
     pub y: u8,
@@ -654,7 +695,7 @@ vec3_impl!(ChunkSectionBiomePos, u8);
 /// The coordinates of a biome inside a chunk.
 ///
 /// Biomes are 4x4 blocks.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct ChunkBiomePos {
     pub x: u8,
     pub y: i32,
@@ -712,10 +753,10 @@ impl From<ChunkSectionBlockPos> for u16 {
 impl nohash_hasher::IsEnabled for ChunkSectionBlockPos {}
 
 /// A block pos with an attached world
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct GlobalPos {
     // this is actually a ResourceKey in Minecraft, but i don't think it matters?
-    pub dimension: ResourceLocation,
+    pub dimension: Identifier,
     pub pos: BlockPos,
 }
 
@@ -870,7 +911,7 @@ impl fmt::Display for Vec3 {
 }
 
 /// A 2D vector.
-#[derive(Clone, Copy, Debug, Default, PartialEq, AzBuf, Deserialize, Serialize)]
+#[derive(AzBuf, Clone, Copy, Debug, Default, simdnbt::Deserialize, PartialEq, Serialize)]
 pub struct Vec2 {
     pub x: f32,
     pub y: f32,
@@ -950,7 +991,7 @@ impl AzaleaRead for BlockPos {
 impl AzaleaRead for GlobalPos {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(GlobalPos {
-            dimension: ResourceLocation::azalea_read(buf)?,
+            dimension: Identifier::azalea_read(buf)?,
             pos: BlockPos::azalea_read(buf)?,
         })
     }
@@ -979,7 +1020,7 @@ impl AzaleaWrite for BlockPos {
 
 impl AzaleaWrite for GlobalPos {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        ResourceLocation::azalea_write(&self.dimension, buf)?;
+        Identifier::azalea_write(&self.dimension, buf)?;
         BlockPos::azalea_write(&self.pos, buf)?;
 
         Ok(())

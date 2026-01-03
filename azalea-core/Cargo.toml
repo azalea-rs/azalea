@@ -15,7 +15,7 @@ num-traits.workspace = true
 serde.workspace = true
 simdnbt.workspace = true
 tracing.workspace = true
-azalea-chat.workspace = true
+azalea-chat = { workspace = true, features = ["simdnbt"] }
 indexmap.workspace = true
 crc32c.workspace = true
 thiserror.workspace = true
@@ -24,3 +24,6 @@ uuid.workspace = true
 [features]
 bevy_ecs = ["dep:bevy_ecs"]
 strict_registry = []
+
+[lints]
+workspace = true

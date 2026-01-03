@@ -2,13 +2,13 @@ use azalea_buf::AzBuf;
 use azalea_protocol_macros::ServerboundConfigPacket;
 use uuid::Uuid;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ServerboundConfigPacket)]
+#[derive(AzBuf, Clone, Debug, PartialEq, ServerboundConfigPacket)]
 pub struct ServerboundResourcePack {
     pub id: Uuid,
     pub action: Action,
 }
 
-#[derive(AzBuf, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(AzBuf, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Action {
     SuccessfullyLoaded = 0,
     Declined = 1,

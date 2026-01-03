@@ -5,7 +5,7 @@ use std::{
 
 use azalea_buf::AzBuf;
 
-#[derive(Clone, Copy, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Copy, Debug, PartialEq)]
 pub enum ObjectiveCriteria {
     Integer,
     Hearts,

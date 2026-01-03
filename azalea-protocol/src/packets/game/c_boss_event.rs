@@ -9,7 +9,7 @@ use azalea_core::bitset::FixedBitSet;
 use azalea_protocol_macros::ClientboundGamePacket;
 use uuid::Uuid;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
+#[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundBossEvent {
     pub id: Uuid,
     pub operation: Operation,
@@ -75,7 +75,7 @@ impl AzaleaWrite for Operation {
     }
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct AddOperation {
     pub name: FormattedText,
     pub progress: f32,
@@ -83,7 +83,7 @@ pub struct AddOperation {
     pub properties: Properties,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct Style {
     pub color: BossBarColor,
     pub overlay: BossBarOverlay,

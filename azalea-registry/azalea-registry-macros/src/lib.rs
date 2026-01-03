@@ -34,7 +34,7 @@ impl Parse for RegistryItem {
 
 impl Parse for Registry {
     fn parse(input: ParseStream) -> Result<Self> {
-        // enum Block {
+        // enum BlockKind {
         //     Air => "minecraft:air",
         //     Stone => "minecraft:stone"
         // }
@@ -63,7 +63,7 @@ pub fn registry(input: TokenStream) -> TokenStream {
     let name = input.name;
     let mut generated = quote! {};
 
-    // enum Block {
+    // enum BlockKind {
     //     Air = 0,
     //     Stone,
     // }
@@ -80,7 +80,7 @@ pub fn registry(input: TokenStream) -> TokenStream {
     let attributes = input.attrs;
     generated.extend(quote! {
         #(#attributes)*
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, azalea_buf::AzBuf, simdnbt::ToNbtTag, simdnbt::FromNbtTag)]
+        #[derive(azalea_buf::AzBuf, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
         #[repr(u32)]
         pub enum #name {
             #enum_items
@@ -108,7 +108,7 @@ pub fn registry(input: TokenStream) -> TokenStream {
                 id <= #max_id
             }
         }
-        impl Registry for #name {
+        impl crate::Registry for #name {
             fn from_u32(value: u32) -> Option<Self> {
                 if Self::is_valid_id(value) {
                     Some(unsafe { Self::from_u32_unchecked(value) })
@@ -130,7 +130,7 @@ pub fn registry(input: TokenStream) -> TokenStream {
 
             #[doc = #doc_0]
             fn try_from(id: u32) -> Result<Self, Self::Error> {
-                if let Some(value) = Self::from_u32(id) {
+                if let Some(value) = crate::Registry::from_u32(id) {
                     Ok(value)
                 } else {
                     Err(())
@@ -146,7 +146,7 @@ pub fn registry(input: TokenStream) -> TokenStream {
         let name = &item.name;
         let id = &item.id;
         display_items.extend(quote! {
-            Self::#name => write!(f, #id),
+            Self::#name => write!(f, concat!("minecraft:", #id)),
         });
         from_str_items.extend(quote! {
             #id => Ok(Self::#name),
@@ -160,14 +160,21 @@ pub fn registry(input: TokenStream) -> TokenStream {
                 }
             }
         }
+        impl<'a> TryFrom<&'a crate::Identifier> for #name {
+            type Error = ();
+            fn try_from(ident: &'a crate::Identifier) -> Result<Self, Self::Error> {
+                if ident.namespace() != "minecraft" { return Err(()) }
+                match ident.path() {
+                    #from_str_items
+                    _ => return Err(()),
+                }
+            }
+        }
         impl std::str::FromStr for #name {
-            type Err = String;
+            type Err = ();
 
             fn from_str(s: &str) -> Result<Self, Self::Err> {
-                match s {
-                    #from_str_items
-                    _ => Err(format!("{s:?} is not a valid {name}", s = s, name = stringify!(#name))),
-                }
+                Self::try_from(&crate::Identifier::new(s))
             }
         }
 
@@ -187,7 +194,21 @@ pub fn registry(input: TokenStream) -> TokenStream {
                 D: serde::Deserializer<'de>,
             {
                 let s = String::deserialize(deserializer)?;
-                s.parse().map_err(serde::de::Error::custom)
+                s.parse().map_err(|_| serde::de::Error::custom(
+                    format!("{s:?} is not a valid {name}", s = s, name = stringify!(#name))
+                ))
+            }
+        }
+
+        impl simdnbt::FromNbtTag for #name {
+            fn from_nbt_tag(tag: simdnbt::borrow::NbtTag) -> Option<Self> {
+                let v = tag.string()?;
+                std::str::FromStr::from_str(&v.to_str()).ok()
+            }
+        }
+        impl simdnbt::ToNbtTag for #name {
+            fn to_nbt_tag(self) -> simdnbt::owned::NbtTag {
+                simdnbt::owned::NbtTag::String(self.to_string().into())
             }
         }
     });

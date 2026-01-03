@@ -6,15 +6,11 @@ use azalea::{
     BlockPos,
     brigadier::prelude::*,
     chunks::ReceiveChunkEvent,
-    entity::{LookDirection, Position},
-    interact::pick::HitResultComponent,
     packet::game,
     pathfinder::{ExecutingPath, Pathfinder},
-    prelude::ContainerClientExt,
-    world::MinecraftEntityId,
 };
 use azalea_core::hit_result::HitResult;
-use azalea_entity::{EntityKindComponent, EntityUuid, metadata};
+use azalea_entity::{EntityKindComponent, metadata};
 use azalea_inventory::components::MaxStackSize;
 use azalea_world::InstanceContainer;
 use bevy_app::AppExit;
@@ -42,7 +38,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
             source.reply("You aren't in render distance!");
             return 0;
         };
-        let position = source.bot.entity_component::<Position>(entity);
+        let position = entity.position();
         source.reply(format!(
             "You are at {}, {}, {}",
             position.x, position.y, position.z
@@ -56,7 +52,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
             source.reply("You aren't in render distance!");
             return 0;
         };
-        let entity_id = source.bot.entity_component::<MinecraftEntityId>(entity);
+        let entity_id = entity.minecraft_id();
         source.reply(format!(
             "Your Minecraft ID is {} and your ECS ID is {entity:?}",
             *entity_id
@@ -89,7 +85,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
 
     commands.register(literal("getdirection").executes(|ctx: &Ctx| {
         let source = ctx.source.lock();
-        let direction = source.bot.component::<LookDirection>();
+        let direction = source.bot.direction();
         source.reply(format!(
             "I'm looking at {}, {}",
             direction.y_rot(),
@@ -109,9 +105,9 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
     commands.register(literal("lookingat").executes(|ctx: &Ctx| {
         let source = ctx.source.lock();
 
-        let hit_result = source.bot.component::<HitResultComponent>();
+        let hit_result = source.bot.hit_result();
 
-        match &*hit_result {
+        match &hit_result {
             HitResult::Block(r) => {
                 if r.miss {
                     source.reply("I'm not looking at anything");
@@ -122,7 +118,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
                 source.reply(format!("I'm looking at {block:?} at {block_pos:?}"));
             }
             HitResult::Entity(r) => {
-                let entity_kind = *source.bot.entity_component::<EntityKindComponent>(r.entity);
+                let entity_kind = **source.bot.entity_component::<EntityKindComponent>(r.entity);
                 source.reply(format!(
                     "I'm looking at {entity_kind} ({:?}) at {}",
                     r.entity, r.location
@@ -142,7 +138,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
             println!("getblock xyz {x} {y} {z}");
             let block_pos = BlockPos::new(x, y, z);
             let block = source.bot.world().read().get_block_state(block_pos);
-            source.reply(format!("Block at {block_pos} is {block:?}"));
+            source.reply(format!("BlockKind at {block_pos} is {block:?}"));
             1
         })),
     )));
@@ -181,10 +177,10 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
             "is_path_partial: {}, path.len: {}, queued_path.len: {}",
             executing_path.is_path_partial,
             executing_path.path.len(),
-            if let Some(queued) = executing_path.queued_path {
+            if let Some(queued) = &executing_path.queued_path {
                 queued.len().to_string()
             } else {
-                "n/a".to_string()
+                "n/a".to_owned()
             },
         ));
         1
@@ -221,14 +217,30 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
             .nearest_entities_by::<(), With<metadata::Player>>(|_: ()| true);
         let tab_list = source.bot.tab_list();
         for player_entity in player_entities {
-            let uuid = source.bot.entity_component::<EntityUuid>(player_entity);
+            let uuid = player_entity.uuid();
             source.reply(format!(
                 "{} - {} ({:?})",
-                player_entity,
+                player_entity.id(),
                 tab_list.get(&uuid).map_or("?", |p| p.profile.name.as_str()),
                 uuid
             ));
         }
+        1
+    }));
+
+    commands.register(literal("enchants").executes(|ctx: &Ctx| {
+        let source = ctx.source.lock();
+        source.bot.with_registry_holder(|r| {
+            let enchants = &r.enchantment;
+            println!("enchants: {enchants:?}");
+        });
+        1
+    }));
+
+    commands.register(literal("attributes").executes(|ctx: &Ctx| {
+        let source = ctx.source.lock();
+        let attributes = source.bot.attributes();
+        println!("attributes: {attributes:?}");
         1
     }));
 
@@ -246,9 +258,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
             thread::sleep(Duration::from_secs(1));
             // dump the ecs
 
-            let mut ecs = ecs.lock();
-
-
+            let mut ecs = ecs.write();
 
             let report_path = env::temp_dir().join("azalea-ecs-leak-report.txt");
             let mut report = File::create(&report_path).unwrap();
@@ -342,7 +352,12 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
         thread::spawn(move || {
             thread::sleep(Duration::from_secs(1));
 
-            source.lock().bot.ecs.lock().write_message(AppExit::Success);
+            source
+                .lock()
+                .bot
+                .ecs
+                .write()
+                .write_message(AppExit::Success);
         });
 
         1

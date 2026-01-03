@@ -3,14 +3,14 @@ use azalea_core::position::Vec3;
 use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_world::MinecraftEntityId;
 
-#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
+#[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundMoveMinecartAlongTrack {
     #[var]
     pub entity_id: MinecraftEntityId,
     pub lerp_steps: Vec<MinecartStep>,
 }
 
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct MinecartStep {
     pub position: Vec3,
     pub movement: Vec3,

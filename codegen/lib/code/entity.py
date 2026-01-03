@@ -4,9 +4,7 @@ from typing import Optional
 import re
 
 METADATA_RS_DIR = get_dir_location("../azalea-entity/src/metadata.rs")
-
 DATA_RS_DIR = get_dir_location("../azalea-entity/src/data.rs")
-
 DIMENSIONS_RS_DIR = get_dir_location("../azalea-entity/src/dimensions.rs")
 
 
@@ -102,19 +100,32 @@ def generate_entity_metadata(burger_entities_data: dict, mappings: Mappings):
 
     metadata_types = parse_metadata_types_from_code()
 
+    code_header = []
+    code_header.append("// This file is @generated from codegen/lib/code/entity.py.")
+    code_header.append("// Don't change it manually!")
+    code_header.append("")
+
+    code_header.append("""//! Metadata fields stored on entities.
+//!
+//! Also see the [protocol wiki documentation](https://minecraft.wiki/w/Java_Edition_protocol/Entity_metadata).
+//!
+//! # Entities
+//!
+//! Azalea creates a marker ECS component for every entity and abstract entity.
+//! You can use these to check if an entity is of a given type with an ECS
+//! filter, such as `With<AbstractMonster>`.
+//!
+//! All marker components are shown as a tree structure below:
+//!""")
+
     code = []
-    code.append("""#![allow(clippy::single_match)]
-
-// This file is @generated from codegen/lib/code/entity.py.
-// Don't change it manually!
-
-use azalea_chat::FormattedText;
+    code.append("""use azalea_chat::FormattedText;
 use azalea_core::{
     direction::Direction,
     position::{BlockPos, Vec3f32},
 };
 use azalea_inventory::{ItemStack, components};
-use azalea_registry::DataRegistry;
+use azalea_registry::{DataRegistry, builtin::EntityKind};
 use bevy_ecs::{bundle::Bundle, component::Component};
 use derive_more::{Deref, DerefMut};
 use thiserror::Error;
@@ -124,7 +135,7 @@ use super::{
     ArmadilloStateKind, CopperGolemStateKind, EntityDataItem, EntityDataValue, OptionalUnsignedInt,
     Pose, Quaternion, Rotations, SnifferStateKind, VillagerData, WeatheringCopperStateKind,
 };
-use crate::particle::Particle;
+use crate::{HumanoidArm, particle::Particle};
 
 #[derive(Error, Debug)]
 pub enum UpdateMetadataError {
@@ -157,6 +168,8 @@ impl From<EntityDataValue> for UpdateMetadataError {
     # make this one longer to avoid accidental use -- AbstractEntityShiftKeyDown instead of ShiftKeydown
     duplicate_field_names.add("shift_key_down")
 
+    entity_ids_to_children_ids = {}
+
     for entity_id in burger_entity_metadata.keys():
         field_name_map[entity_id] = {}
         for field_name_or_bitfield in get_entity_metadata_names(
@@ -177,6 +190,11 @@ impl From<EntityDataValue> for UpdateMetadataError {
         # oh and also just add the entity id to the duplicate field names to
         # make sure entity names don't clash with field names
         duplicate_field_names.add(entity_id)
+
+        parent_id = get_entity_parent(entity_id, burger_entity_metadata)
+        if parent_id not in entity_ids_to_children_ids:
+            entity_ids_to_children_ids[parent_id] = []
+        entity_ids_to_children_ids[parent_id].append(entity_id)
 
     # make sure these types are only ever made once
     for name in single_use_imported_types:
@@ -237,6 +255,12 @@ impl From<EntityDataValue> for UpdateMetadataError {
             )
         parent_id = parents[1] if len(parents) > 1 else None
 
+        entity_struct_name = entity_id_to_struct_name(entity_id)
+        code_header_indent = "  " * (len(parents) - 1)
+        code_header.append(f"//! {code_header_indent}- [{entity_struct_name}]")
+
+        entity_metadata_doc_code = []
+
         # now add all the fields/component structs
         for index, name_or_bitfield in enumerate(all_field_names_or_bitfields):
             # make sure we only ever make these structs once
@@ -262,8 +286,10 @@ impl From<EntityDataValue> for UpdateMetadataError {
                 metadata_type_data = metadata_types[type_id]
                 rust_type = metadata_type_data["type"]
 
+                code.append(f"/// A metadata field for [{entity_struct_name}].")
                 code.append("#[derive(Component, Deref, DerefMut, Clone, PartialEq)]")
                 code.append(f"pub struct {struct_name}(pub {rust_type});")
+                entity_metadata_doc_code.append(f"/// - [{struct_name}]")
             else:
                 # if it's a bitfield just make a struct for each bit
                 for mask, name in name_or_bitfield.items():
@@ -272,12 +298,70 @@ impl From<EntityDataValue> for UpdateMetadataError {
                     code.append(
                         "#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]"
                     )
+                    code.append(f"/// A metadata field for [{entity_struct_name}].")
                     code.append(f"pub struct {struct_name}(pub bool);")
+                    entity_metadata_doc_code.append(f"/// - [{struct_name}]")
 
         # add the entity struct and Bundle struct
-        struct_name: str = upper_first_letter(to_camel_case(entity_id.lstrip("~")))
+        if entity_id == "~abstract_entity":
+            code.append("/// The root entity marker component.")
+            code.append("///")
+            code.append(
+                "/// All entities that have had their metadata sent by the server will have this component."
+            )
+        elif entity_id.startswith("~"):
+            code.append("/// An abstract entity marker component.")
+        else:
+            code.append(
+                f"/// The marker component for entities of type `minecraft:{entity_id}`."
+            )
+
+        code.append("///")
+        code.append("/// # Metadata")
+        code.append("///")
+        if len(entity_metadata_doc_code) == 0:
+            code.append(
+                "/// This entity type does not add any additional metadata. It will still have metadata from parent types."
+            )
+        else:
+            code.append(
+                f"/// These are the metadata components that all `{entity_struct_name}` entities are guaranteed to have, in addition to the metadata components from parent types:"
+            )
+            code.append("///")
+            code.extend(entity_metadata_doc_code)
+
+        if len(parents) > 1:
+            code.append("///")
+            code.append("/// # Parents")
+            code.append("///")
+            code.append(
+                f"/// Entities with `{entity_struct_name}` will also have the following marker components and their metadata fields:"
+            )
+            code.append("///")
+            for parent_entity_id in parents[1:]:
+                code.append(f"/// - [{entity_id_to_struct_name(parent_entity_id)}]")
+
+        code.append("///")
+        code.append("/// # Children")
+        code.append("///")
+
+        def add_children_recursively(current_entity_id, indentation=""):
+            for child_entity_id in entity_ids_to_children_ids.get(
+                current_entity_id, []
+            ):
+                code.append(
+                    f"/// {indentation}- [{entity_id_to_struct_name(child_entity_id)}]"
+                )
+                add_children_recursively(child_entity_id, indentation + "  ")
+
+        children_entity_ids = entity_ids_to_children_ids.get(entity_id)
+        if children_entity_ids:
+            add_children_recursively(entity_id)
+        else:
+            code.append("/// This entity type has no children types.")
+
         code.append("#[derive(Component)]")
-        code.append(f"pub struct {struct_name};")
+        code.append(f"pub struct {entity_struct_name};")
 
         parent_struct_name = (
             upper_first_letter(to_camel_case(parent_id.lstrip("~")))
@@ -298,9 +382,9 @@ impl From<EntityDataValue> for UpdateMetadataError {
         #         Ok(())
         #     }
         # }
-        code.append(f"impl {struct_name} {{")
+        code.append(f"impl {entity_struct_name} {{")
         code.append(
-            "    pub fn apply_metadata(entity: &mut bevy_ecs::system::EntityCommands, d: EntityDataItem) -> Result<(), UpdateMetadataError> {"
+            "    fn apply_metadata(entity: &mut bevy_ecs::system::EntityCommands, d: EntityDataItem) -> Result<(), UpdateMetadataError> {"
         )
         code.append("        match d.index {")
 
@@ -367,11 +451,14 @@ impl From<EntityDataValue> for UpdateMetadataError {
         #     dancing: Dancing,
         #     can_duplicate: CanDuplicate,
         # }
-        bundle_struct_name = f"{struct_name}MetadataBundle"
+        bundle_struct_name = f"{entity_struct_name}MetadataBundle"
         code.append("")
+        code.append(f"/// The metadata bundle for [{entity_struct_name}].")
+        code.append("///")
+        code.append("/// This type should generally not be used directly.")
         code.append("#[derive(Bundle)]")
         code.append(f"pub struct {bundle_struct_name} {{")
-        code.append(f"    _marker: {struct_name},")
+        code.append(f"    _marker: {entity_struct_name},")
         if parent_struct_name:
             code.append(f"    parent: {parent_struct_name}MetadataBundle,")
         for index, name_or_bitfield in get_entity_metadata_names(
@@ -424,13 +511,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
                 this_entity_parent_ids[1] if len(this_entity_parent_ids) > 1 else None
             )
             if this_entity_parent_id:
-                bundle_struct_name = (
-                    upper_first_letter(to_camel_case(this_entity_parent_id.lstrip("~")))
-                    + "MetadataBundle"
-                )
-                code.append(f"            parent: {bundle_struct_name} {{")
-                generate_fields(this_entity_parent_id)
-                code.append("            },")
+                code.append("            parent: Default::default(),")
 
             for index, name_or_bitfield in get_entity_metadata_names(
                 this_entity_id, burger_entity_metadata, mappings
@@ -456,15 +537,15 @@ impl From<EntityDataValue> for UpdateMetadataError {
                             default = "simdnbt::owned::NbtCompound::default()"
                         # elif type_name == 'CatVariant':
                         #     # TODO: the default should be Tabby but we don't have a way to get that from here
-                        #     default = 'azalea_registry::CatVariant::new_raw(0)'
+                        #     default = 'azalea_registry::data::CatVariant::new_raw(0)'
                         # elif type_name == 'PaintingVariant':
-                        #     default = 'azalea_registry::PaintingVariant::Kebab'
+                        #     default = 'azalea_registry::data::PaintingVariant::Kebab'
                         # elif type_name == 'FrogVariant':
-                        #     default = 'azalea_registry::FrogVariant::Temperate'
+                        #     default = 'azalea_registry::data::FrogVariant::Temperate'
                         elif type_name.endswith("Variant"):
-                            default = f"azalea_registry::{type_name}::new_raw(0)"
+                            default = f"azalea_registry::data::{type_name}::new_raw(0)"
                         elif type_name == "VillagerData":
-                            default = "VillagerData { kind: azalea_registry::VillagerKind::Plains, profession: azalea_registry::VillagerProfession::None, level: 0 }"
+                            default = "VillagerData { kind: azalea_registry::builtin::VillagerKind::Plains, profession: azalea_registry::builtin::VillagerProfession::None, level: 0 }"
                         else:
                             default = (
                                 f"{type_name}::default()"
@@ -476,7 +557,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
                             default = "true" if default else "false"
                         elif type_name == "String":
                             string_escaped = default.replace('"', '\\"')
-                            default = f'"{string_escaped}".to_string()'
+                            default = f'"{string_escaped}".into()'
                         elif type_name == "BlockPos":
                             default = f"BlockPos::new{default}"
                         elif type_name == "OptionalBlockPos":  # Option<BlockPos>
@@ -560,9 +641,13 @@ impl From<EntityDataValue> for UpdateMetadataError {
         code.append("}")
         code.append("")
 
-    # parent_field_name = None
-    for entity_id in burger_entity_metadata:
+    def new_entity_recursive(entity_id: str):
         new_entity(entity_id)
+
+        for child_entity_id in entity_ids_to_children_ids.get(entity_id, []):
+            new_entity_recursive(child_entity_id)
+
+    new_entity_recursive("~abstract_entity")
 
     # and now make the main apply_metadata
     # pub fn apply_metadata(
@@ -581,7 +666,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
     code.append(
         """pub fn apply_metadata(
     entity: &mut bevy_ecs::system::EntityCommands,
-    entity_kind: azalea_registry::EntityKind,
+    entity_kind: EntityKind,
     items: Vec<EntityDataItem>,
 ) -> Result<(), UpdateMetadataError> {
     match entity_kind {"""
@@ -591,7 +676,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
             # not actually an entity
             continue
         struct_name: str = upper_first_letter(to_camel_case(entity_id))
-        code.append(f"        azalea_registry::EntityKind::{struct_name} => {{")
+        code.append(f"        EntityKind::{struct_name} => {{")
         code.append("            for d in items {")
         code.append(f"                {struct_name}::apply_metadata(entity, d)?;")
         code.append("            }")
@@ -601,15 +686,15 @@ impl From<EntityDataValue> for UpdateMetadataError {
     code.append("}")
     code.append("")
 
-    # pub fn apply_default_metadata(entity: &mut bevy_ecs::system::EntityCommands, kind: azalea_registry::EntityKind) {
+    # pub fn apply_default_metadata(entity: &mut bevy_ecs::system::EntityCommands, kind: EntityKind) {
     #     match kind {
-    #         azalea_registry::EntityKind::AreaEffectCloud => {
+    #         EntityKind::AreaEffectCloud => {
     #             entity.insert(AreaEffectCloudMetadataBundle::default());
     #         }
     #     }
     # }
     code.append(
-        "pub fn apply_default_metadata(entity: &mut bevy_ecs::system::EntityCommands, kind: azalea_registry::EntityKind) {"
+        "pub fn apply_default_metadata(entity: &mut bevy_ecs::system::EntityCommands, kind: EntityKind) {"
     )
     code.append("    match kind {")
     for entity_id in burger_entity_metadata:
@@ -617,7 +702,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
             # not actually an entity
             continue
         struct_name: str = upper_first_letter(to_camel_case(entity_id))
-        code.append(f"        azalea_registry::EntityKind::{struct_name} => {{")
+        code.append(f"        EntityKind::{struct_name} => {{")
         code.append(
             f"            entity.insert({struct_name}MetadataBundle::default());"
         )
@@ -626,8 +711,16 @@ impl From<EntityDataValue> for UpdateMetadataError {
     code.append("}")
     code.append("")
 
+    code_header.append("")
+    code_header.append("#![allow(clippy::single_match)]")
+
     with open(METADATA_RS_DIR, "w") as f:
+        f.write("\n".join(code_header) + "\n\n")
         f.write("\n".join(code))
+
+
+def entity_id_to_struct_name(entity_id: str) -> str:
+    return upper_first_letter(to_camel_case(entity_id.lstrip("~")))
 
 
 def generate_entity_dimensions(burger_entities_data: dict):
