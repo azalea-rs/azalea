@@ -458,19 +458,19 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             set_property_match_inner.extend(match kind {
                 PropertyKind::Enum => quote! { #name => self.#name_ident = new_value.parse()?, },
                 PropertyKind::Bool => {
-                    quote! { #name => self.#name_ident = new_value.parse::<bool>().map_err(|_| ())?, }
+                    quote! { #name => self.#name_ident = new_value.parse::<bool>().map_err(|_| InvalidPropertyError)?, }
                 }
             });
         }
         let set_property = if set_property_match_inner.is_empty() {
             quote! {
-                Err(())
+                Err(InvalidPropertyError)
             }
         } else {
             quote! {
                 match name {
                     #set_property_match_inner
-                    _ => return Err(()),
+                    _ => return Err(InvalidPropertyError),
                 }
                 Ok(())
             }
@@ -527,7 +527,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                         _ => None,
                     }
                 }
-                fn set_property(&mut self, name: &str, new_value: &str) -> Result<(), ()> {
+                fn set_property(&mut self, name: &str, new_value: &str) -> Result<(), InvalidPropertyError> {
                     #set_property
                 }
             }

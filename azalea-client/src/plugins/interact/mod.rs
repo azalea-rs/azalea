@@ -30,7 +30,6 @@ use azalea_protocol::packets::game::{
     s_swing::ServerboundSwing,
     s_use_item_on::ServerboundUseItemOn,
 };
-use azalea_registry::builtin::ItemKind;
 use azalea_world::Instance;
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;

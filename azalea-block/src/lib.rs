@@ -52,8 +52,11 @@ pub trait BlockTrait: Debug + Any {
     /// returns `Err(())`.
     ///
     /// To get a property, use [`Self::get_property`].
-    fn set_property(&mut self, name: &str, new_value: &str) -> Result<(), ()>;
+    fn set_property(&mut self, name: &str, new_value: &str) -> Result<(), InvalidPropertyError>;
 }
+
+#[derive(Debug)]
+pub struct InvalidPropertyError;
 
 impl dyn BlockTrait {
     pub fn downcast_ref<T: BlockTrait>(&self) -> Option<&T> {

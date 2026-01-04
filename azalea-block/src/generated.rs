@@ -5,7 +5,7 @@ use std::{fmt::Debug, str::FromStr};
 use azalea_block_macros::make_block_states;
 
 use crate::{
-    BlockBehavior, BlockState, BlockStates, BlockTrait, Property,
+    BlockBehavior, BlockState, BlockStates, BlockTrait, InvalidPropertyError, Property,
     block_state::BlockStateIntegerRepr,
 };
 

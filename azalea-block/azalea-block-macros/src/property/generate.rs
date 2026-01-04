@@ -131,12 +131,12 @@ fn generate_property_code(
             }
         }
         impl FromStr for #property_struct_name {
-            type Err = ();
+            type Err = InvalidPropertyError;
 
             fn from_str(s: &str) -> Result<Self, Self::Err> {
                 Ok(match s {
                     #from_str_match_inner
-                    _ => return Err(())
+                    _ => return Err(InvalidPropertyError)
                 })
             }
         }

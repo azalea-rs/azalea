@@ -91,10 +91,10 @@ impl AccountTrait for MicrosoftAccount {
             let access_token = self.access_token.lock().clone();
             sessionserver::join(SessionServerJoinOpts {
                 access_token: &access_token,
-                public_key: public_key,
-                private_key: private_key,
+                public_key,
+                private_key,
                 uuid: &self.uuid(),
-                server_id: &server_id,
+                server_id,
                 proxy,
             })
             .await
@@ -196,10 +196,10 @@ impl AccountTrait for MicrosoftWithAccessTokenAccount {
             let access_token = self.access_token.lock().clone();
             sessionserver::join(SessionServerJoinOpts {
                 access_token: &access_token,
-                public_key: public_key,
-                private_key: private_key,
+                public_key,
+                private_key,
                 uuid: &self.uuid(),
-                server_id: &server_id,
+                server_id,
                 proxy,
             })
             .await
