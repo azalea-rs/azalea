@@ -11,6 +11,9 @@ pub mod read;
 pub mod resolve;
 pub mod write;
 
+// re-export to make it easier for users to have the correct version
+pub use simdnbt;
+
 #[doc(hidden)]
 #[deprecated(note = "renamed to `resolve`.")]
 pub mod resolver {
