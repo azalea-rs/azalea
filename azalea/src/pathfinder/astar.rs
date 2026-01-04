@@ -17,6 +17,11 @@ where
 {
     pub movements: Vec<Movement<P, M>>,
     pub is_partial: bool,
+    /// The A* cost for executing the path.
+    ///
+    /// For Azalea's pathfinder, this is generally the estimated amount of time
+    /// that it takes to complete the path, in ticks.
+    pub cost: f32,
 }
 
 // used for better results when timing out
@@ -79,6 +84,7 @@ where
             return Path {
                 movements: reconstruct_path(nodes, best_path, successors),
                 is_partial: false,
+                cost: g_score,
             };
         }
 
@@ -168,6 +174,7 @@ where
     Path {
         movements: reconstruct_path(nodes, best_path, successors),
         is_partial: true,
+        cost: best_path_scores[best_path],
     }
 }
 

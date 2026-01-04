@@ -439,6 +439,7 @@ pub fn calculate_path(ctx: CalculatePathCtx) -> Option<PathFoundEvent> {
     let astar::Path {
         movements,
         is_partial,
+        cost,
     } = a_star(
         RelBlockPos::get_origin(origin),
         |n| ctx.goal.heuristic(n.apply(origin)),
@@ -448,7 +449,7 @@ pub fn calculate_path(ctx: CalculatePathCtx) -> Option<PathFoundEvent> {
         ctx.opts.max_timeout,
     );
     let end_time = Instant::now();
-    debug!("partial: {is_partial:?}");
+    debug!("partial: {is_partial:?}, cost: {cost}");
     let duration = end_time - start_time;
     if is_partial {
         if movements.is_empty() {
