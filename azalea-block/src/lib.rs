@@ -7,7 +7,7 @@ mod generated;
 mod range;
 
 use core::fmt::Debug;
-use std::{any::Any, collections::HashMap};
+use std::{any::Any, collections::HashMap, str::FromStr};
 
 use azalea_registry::builtin::BlockKind;
 pub use behavior::BlockBehavior;
@@ -43,7 +43,16 @@ pub trait BlockTrait: Debug + Any {
     /// has no property with that name.
     ///
     /// To get all properties, you may use [`Self::property_map`].
+    ///
+    /// To set a property, use [`Self::set_property`].
     fn get_property(&self, name: &str) -> Option<&'static str>;
+    /// Update a property on this block, with the name and value being strings.
+    ///
+    /// Returns `Ok(())`, if the property name and value are valid, otherwise it
+    /// returns `Err(())`.
+    ///
+    /// To get a property, use [`Self::get_property`].
+    fn set_property(&mut self, name: &str, new_value: &str) -> Result<(), ()>;
 }
 
 impl dyn BlockTrait {
@@ -52,7 +61,7 @@ impl dyn BlockTrait {
     }
 }
 
-pub trait Property {
+pub trait Property: FromStr {
     type Value;
 
     fn try_from_block_state(state: BlockState) -> Option<Self::Value>;

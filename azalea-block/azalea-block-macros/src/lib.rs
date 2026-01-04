@@ -434,7 +434,8 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         });
 
         let mut property_map_inner = quote! {};
-        let mut get_property_inner = quote! {};
+        let mut get_property_match_inner = quote! {};
+        let mut set_property_match_inner = quote! {};
 
         for PropertyWithNameAndDefault {
             name,
@@ -450,10 +451,30 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             property_map_inner.extend(quote! {
                 map.insert(#name, #variant_name_tokens);
             });
-            get_property_inner.extend(quote! {
+            get_property_match_inner.extend(quote! {
                 #name => Some(#variant_name_tokens),
             });
+
+            set_property_match_inner.extend(match kind {
+                PropertyKind::Enum => quote! { #name => self.#name_ident = new_value.parse()?, },
+                PropertyKind::Bool => {
+                    quote! { #name => self.#name_ident = new_value.parse::<bool>().map_err(|_| ())?, }
+                }
+            });
         }
+        let set_property = if set_property_match_inner.is_empty() {
+            quote! {
+                Err(())
+            }
+        } else {
+            quote! {
+                match name {
+                    #set_property_match_inner
+                    _ => return Err(()),
+                }
+                Ok(())
+            }
+        };
 
         let mut block_default_fields = quote! {};
         for PropertyWithNameAndDefault {
@@ -502,9 +523,12 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 }
                 fn get_property(&self, name: &str) -> Option<&'static str> {
                     match name {
-                        #get_property_inner
+                        #get_property_match_inner
                         _ => None,
                     }
+                }
+                fn set_property(&mut self, name: &str, new_value: &str) -> Result<(), ()> {
+                    #set_property
                 }
             }
 
