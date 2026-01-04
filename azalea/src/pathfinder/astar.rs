@@ -1,5 +1,5 @@
 use std::{
-    cmp::{self},
+    cmp::{self, Reverse},
     collections::BinaryHeap,
     fmt::{self, Debug},
     hash::{BuildHasherDefault, Hash},
@@ -8,6 +8,7 @@ use std::{
 
 use indexmap::IndexMap;
 use num_format::ToFormattedString;
+use radix_heap::RadixHeapMap;
 use rustc_hash::FxHasher;
 use tracing::{debug, trace, warn};
 
@@ -285,6 +286,11 @@ impl<P: Hash + Copy + Clone, M: Clone> Clone for Movement<P, M> {
 #[derive(Default)]
 struct PathfinderHeap {
     binary_heap: BinaryHeap<WeightedNode>,
+    /// Key is f_score.to_bits(), value is (g_score, index)
+    ///
+    /// As long as the f_score is positive, comparing it as bits is fine. Also,
+    /// it has to be `Reverse`d to make it a min-heap.
+    radix_heap: RadixHeapMap<Reverse<u32>, (f32, usize)>,
 }
 impl PathfinderHeap {
     pub fn new() -> Self {
@@ -292,10 +298,27 @@ impl PathfinderHeap {
     }
 
     pub fn push(&mut self, item: WeightedNode) {
-        self.binary_heap.push(item);
+        if let Some(top) = self.radix_heap.top() {
+            // this can happen when the heuristic isn't optimal, so just fall back to a
+            // binary heap in those cases
+            if item.f_score < f32::from_bits(top.0) {
+                self.binary_heap.push(item);
+                return;
+            }
+        }
+        self.radix_heap
+            .push(Reverse(item.f_score.to_bits()), (item.g_score, item.index))
     }
     pub fn pop(&mut self) -> Option<WeightedNode> {
-        self.binary_heap.pop()
+        self.binary_heap.pop().or_else(|| {
+            self.radix_heap
+                .pop()
+                .map(|(f_score, (g_score, index))| WeightedNode {
+                    f_score: f32::from_bits(f_score.0),
+                    g_score,
+                    index,
+                })
+        })
     }
 }
 

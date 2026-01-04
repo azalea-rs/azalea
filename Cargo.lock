@@ -258,6 +258,7 @@ dependencies = [
  "num-format",
  "num-traits",
  "parking_lot",
+ "radix-heap",
  "rand 0.10.0-rc.5",
  "rustc-hash",
  "serde",
@@ -2704,6 +2705,12 @@ name = "r-efi"
 version = "5.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "69cdb34c158ceb288df11e18b4bd39de994f6657d83847bdffdbd7f346754b0f"
+
+[[package]]
+name = "radix-heap"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "59ffec9df464013295b499298811e6a3de31bf8128092135826517db12dee601"
 
 [[package]]
 name = "rand"
