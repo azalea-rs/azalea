@@ -148,6 +148,7 @@ fn run_pathfinder_benchmark(
         let astar::Path {
             movements,
             is_partial: partial,
+            ..
         } = a_star(
             RelBlockPos::get_origin(origin),
             |n| goal.heuristic(n.apply(origin)),

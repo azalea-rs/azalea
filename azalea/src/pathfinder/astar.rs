@@ -52,7 +52,7 @@ where
 {
     let start_time = Instant::now();
 
-    let mut open_set = BinaryHeap::<WeightedNode>::new();
+    let mut open_set = PathfinderHeap::new();
     open_set.push(WeightedNode {
         g_score: 0.,
         f_score: 0.,
@@ -279,6 +279,23 @@ impl<P: Hash + Copy + Clone, M: Clone> Clone for Movement<P, M> {
             target: self.target,
             data: self.data.clone(),
         }
+    }
+}
+
+#[derive(Default)]
+struct PathfinderHeap {
+    binary_heap: BinaryHeap<WeightedNode>,
+}
+impl PathfinderHeap {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn push(&mut self, item: WeightedNode) {
+        self.binary_heap.push(item);
+    }
+    pub fn pop(&mut self) -> Option<WeightedNode> {
+        self.binary_heap.pop()
     }
 }
 
