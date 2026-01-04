@@ -56,12 +56,7 @@ impl Plugin for InteractPlugin {
             .add_systems(
                 Update,
                 (
-                    (
-                        update_attributes_for_held_item,
-                        update_attributes_for_gamemode,
-                    )
-                        .in_set(UpdateAttributesSystems)
-                        .chain(),
+                    update_attributes_for_gamemode,
                     handle_start_use_item_event,
                     update_hit_result_component
                         .after(clamp_look_direction)
@@ -81,9 +76,6 @@ impl Plugin for InteractPlugin {
             .add_observer(handle_swing_arm_trigger);
     }
 }
-
-#[derive(Clone, Debug, Eq, Hash, PartialEq, SystemSet)]
-pub struct UpdateAttributesSystems;
 
 impl Client {
     /// Right-click a block.
@@ -509,65 +501,6 @@ pub fn handle_swing_arm_trigger(swing_arm: On<SwingArmEvent>, mut commands: Comm
             hand: InteractionHand::MainHand,
         },
     ));
-}
-
-#[allow(clippy::type_complexity)]
-fn update_attributes_for_held_item(
-    mut query: Query<(&mut Attributes, &Inventory), (With<LocalEntity>, Changed<Inventory>)>,
-) {
-    for (mut attributes, inventory) in &mut query {
-        let held_item = inventory.held_item();
-
-        let added_attack_speed = added_attack_speed_for_item(held_item.kind());
-        attributes
-            .attack_speed
-            .insert(azalea_entity::attributes::base_attack_speed_modifier(
-                added_attack_speed,
-            ));
-    }
-}
-
-fn added_attack_speed_for_item(item: ItemKind) -> f64 {
-    match item {
-        ItemKind::WoodenSword => -2.4,
-        ItemKind::WoodenShovel => -3.0,
-        ItemKind::WoodenPickaxe => -2.8,
-        ItemKind::WoodenAxe => -3.2,
-        ItemKind::WoodenHoe => -3.0,
-
-        ItemKind::StoneSword => -2.4,
-        ItemKind::StoneShovel => -3.0,
-        ItemKind::StonePickaxe => -2.8,
-        ItemKind::StoneAxe => -3.2,
-        ItemKind::StoneHoe => -2.0,
-
-        ItemKind::GoldenSword => -2.4,
-        ItemKind::GoldenShovel => -3.0,
-        ItemKind::GoldenPickaxe => -2.8,
-        ItemKind::GoldenAxe => -3.0,
-        ItemKind::GoldenHoe => -3.0,
-
-        ItemKind::IronSword => -2.4,
-        ItemKind::IronShovel => -3.0,
-        ItemKind::IronPickaxe => -2.8,
-        ItemKind::IronAxe => -3.1,
-        ItemKind::IronHoe => -1.0,
-
-        ItemKind::DiamondSword => -2.4,
-        ItemKind::DiamondShovel => -3.0,
-        ItemKind::DiamondPickaxe => -2.8,
-        ItemKind::DiamondAxe => -3.0,
-        ItemKind::DiamondHoe => 0.0,
-
-        ItemKind::NetheriteSword => -2.4,
-        ItemKind::NetheriteShovel => -3.0,
-        ItemKind::NetheritePickaxe => -2.8,
-        ItemKind::NetheriteAxe => -3.0,
-        ItemKind::NetheriteHoe => 0.0,
-
-        ItemKind::Trident => -2.9,
-        _ => 0.,
-    }
 }
 
 #[allow(clippy::type_complexity)]
