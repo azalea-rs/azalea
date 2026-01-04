@@ -1,4 +1,8 @@
-use std::ops::{Add, Mul};
+use std::{
+    hash::{Hash, Hasher},
+    mem::transmute,
+    ops::{Add, Mul},
+};
 
 use azalea_core::position::BlockPos;
 
@@ -7,7 +11,7 @@ use azalea_core::position::BlockPos;
 /// This fits in 64 bits, so it's more efficient than a BlockPos in some cases.
 ///
 /// The X and Z are limited to ±32k.
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[repr(C)]
 pub struct RelBlockPos {
     pub x: i16,
@@ -89,6 +93,12 @@ impl RelBlockPos {
             z: self.z,
         }
     }
+
+    #[inline]
+    pub fn as_u64(self) -> u64 {
+        // SAFETY: RelBlockPos can be represented as a u64
+        unsafe { transmute::<Self, u64>(self) }
+    }
 }
 
 impl Add<RelBlockPos> for RelBlockPos {
@@ -111,5 +121,11 @@ impl Mul<i16> for RelBlockPos {
             y: self.y * rhs as i32,
             z: self.z * rhs,
         }
+    }
+}
+
+impl Hash for RelBlockPos {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.as_u64().hash(state);
     }
 }
