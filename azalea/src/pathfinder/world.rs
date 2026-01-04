@@ -314,10 +314,7 @@ impl CachedWorld {
         let cached_mining_costs = unsafe { &mut *self.cached_mining_costs.get() };
         // 20 bits total:
         // 8 bits for x, 4 bits for y, 8 bits for z
-        let hash_index = ((pos.x as usize & 0xff) << 12)
-            | ((pos.y as usize & 0xf) << 8)
-            | (pos.z as usize & 0xff);
-        debug_assert!(hash_index < 1048576);
+        let hash_index = Self::calculate_cached_mining_costs_index(pos);
         let &(cached_pos, potential_cost) =
             unsafe { cached_mining_costs.get_unchecked(hash_index) };
         if cached_pos == pos {
@@ -330,6 +327,16 @@ impl CachedWorld {
         };
 
         cost
+    }
+
+    fn calculate_cached_mining_costs_index(pos: RelBlockPos) -> usize {
+        // 20 bits total:
+        // 8 bits for x, 8 bits for z, 4 bits for y
+        let hash_index = ((pos.x as usize & 0xff) << 12)
+            | ((pos.z as usize & 0xff) << 4)
+            | (pos.y as usize & 0xf);
+        debug_assert!(hash_index < 1048576);
+        hash_index
     }
 
     fn uncached_cost_for_breaking_block(
