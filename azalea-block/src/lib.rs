@@ -49,7 +49,7 @@ pub trait BlockTrait: Debug + Any {
     /// Update a property on this block, with the name and value being strings.
     ///
     /// Returns `Ok(())`, if the property name and value are valid, otherwise it
-    /// returns `Err(())`.
+    /// returns `Err(InvalidPropertyError)`.
     ///
     /// To get a property, use [`Self::get_property`].
     fn set_property(&mut self, name: &str, new_value: &str) -> Result<(), InvalidPropertyError>;
