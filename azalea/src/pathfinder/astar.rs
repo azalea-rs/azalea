@@ -170,12 +170,12 @@ where
         }
     }
 
-    let best_path = determine_best_path(best_paths, 0);
+    let best_path_idx = determine_best_path_idx(best_paths, 0);
     log_perf_info(start_time, num_nodes, num_movements);
     Path {
-        movements: reconstruct_path(nodes, best_path, successors),
+        movements: reconstruct_path(nodes, best_paths[best_path_idx], successors),
         is_partial: true,
-        cost: best_path_scores[best_path],
+        cost: best_path_scores[best_path_idx],
     }
 }
 
@@ -194,16 +194,16 @@ fn log_perf_info(start_time: Instant, num_nodes: usize, num_movements: usize) {
     );
 }
 
-fn determine_best_path(best_paths: [usize; 7], start: usize) -> usize {
+fn determine_best_path_idx(best_paths: [usize; 7], start: usize) -> usize {
     // this basically makes sure we don't create a path that's really short
 
-    for node in best_paths {
+    for (i, &node) in best_paths.iter().enumerate() {
         if node != start {
-            return node;
+            return i;
         }
     }
     warn!("No best node found, returning first node");
-    best_paths[0]
+    0
 }
 
 fn reconstruct_path<P, M, SuccessorsFn>(

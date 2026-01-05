@@ -10,6 +10,8 @@ pub const SPRINT_MULTIPLIER: f32 = SPRINT_ONE_BLOCK_COST / WALK_ONE_BLOCK_COST;
 pub const JUMP_PENALTY: f32 = 2.;
 pub const CENTER_AFTER_FALL_COST: f32 = WALK_ONE_BLOCK_COST - WALK_OFF_BLOCK_COST; // 0.927
 
+pub const SWIM_ONE_BLOCK_COST: f32 = 20. / 1.960;
+
 // explanation here:
 // https://github.com/cabaletta/baritone/blob/f147519a5c291015d4f18c94558a3f1bdcdb9588/src/api/java/baritone/api/Settings.java#L405
 // it's basically just the heuristic multiplier

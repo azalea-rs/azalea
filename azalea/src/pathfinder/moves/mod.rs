@@ -217,10 +217,22 @@ pub struct IsReachedCtx<'a> {
 #[must_use]
 pub fn default_is_reached(
     IsReachedCtx {
-        position, target, ..
+        position,
+        target,
+        physics,
+        ..
     }: IsReachedCtx,
 ) -> bool {
-    player_pos_to_block_pos(position) == target
+    let block_pos = player_pos_to_block_pos(position);
+    if block_pos == target {
+        return true;
+    }
+    // it's fine if we slightly go under the target while swimming
+    if physics.is_in_water() && block_pos.up(1) == target {
+        return true;
+    }
+
+    false
 }
 
 pub struct PathfinderCtx<'a> {
