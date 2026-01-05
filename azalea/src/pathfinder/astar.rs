@@ -63,19 +63,19 @@ where
     nodes.insert(
         start,
         Node {
-            came_from: usize::MAX,
+            came_from: u32::MAX,
             g_score: 0.,
         },
     );
 
-    let mut best_paths: [usize; 7] = [0; 7];
+    let mut best_paths: [u32; 7] = [0; 7];
     let mut best_path_scores: [f32; 7] = [heuristic(start); 7];
 
     let mut num_nodes = 0_usize;
     let mut num_movements = 0;
 
     while let Some(WeightedNode { index, g_score, .. }) = open_set.pop() {
-        let (&node, node_data) = nodes.get_index(index).unwrap();
+        let (&node, node_data) = nodes.get_index(index as usize).unwrap();
         if g_score > node_data.g_score {
             continue;
         }
@@ -105,7 +105,7 @@ where
                 indexmap::map::Entry::Occupied(mut e) => {
                     if e.get().g_score > tentative_g_score {
                         neighbor_heuristic = heuristic(*e.key());
-                        neighbor_index = e.index();
+                        neighbor_index = e.index() as u32;
                         e.insert(Node {
                             came_from: index,
                             g_score: tentative_g_score,
@@ -116,7 +116,7 @@ where
                 }
                 indexmap::map::Entry::Vacant(e) => {
                     neighbor_heuristic = heuristic(*e.key());
-                    neighbor_index = e.index();
+                    neighbor_index = e.index() as u32;
                     e.insert(Node {
                         came_from: index,
                         g_score: tentative_g_score,
@@ -198,7 +198,7 @@ fn log_perf_info(start_time: Instant, num_nodes: usize, num_movements: usize) {
     );
 }
 
-fn determine_best_path_idx(best_paths: [usize; 7], start: usize) -> usize {
+fn determine_best_path_idx(best_paths: [u32; 7], start: u32) -> usize {
     // this basically makes sure we don't create a path that's really short
 
     for (i, &node) in best_paths.iter().enumerate() {
@@ -212,7 +212,7 @@ fn determine_best_path_idx(best_paths: [usize; 7], start: usize) -> usize {
 
 fn reconstruct_path<P, M, SuccessorsFn>(
     nodes: FxIndexMap<P, Node>,
-    mut current_index: usize,
+    mut current_index: u32,
     mut successors: SuccessorsFn,
 ) -> Vec<Movement<P, M>>
 where
@@ -220,11 +220,11 @@ where
     SuccessorsFn: FnMut(P) -> Vec<Edge<P, M>>,
 {
     let mut path = Vec::new();
-    while let Some((&node_position, node)) = nodes.get_index(current_index) {
-        if node.came_from == usize::MAX {
+    while let Some((&node_position, node)) = nodes.get_index(current_index as usize) {
+        if node.came_from == u32::MAX {
             break;
         }
-        let came_from_position = *nodes.get_index(node.came_from).unwrap().0;
+        let came_from_position = *nodes.get_index(node.came_from as usize).unwrap().0;
 
         // find the movement data for this successor, we have to do this again because
         // we don't include the movement data in the Node (as an optimization)
@@ -255,7 +255,7 @@ where
 }
 
 pub struct Node {
-    pub came_from: usize,
+    pub came_from: u32,
     pub g_score: f32,
 }
 
@@ -294,7 +294,7 @@ struct PathfinderHeap {
     ///
     /// As long as the f_score is positive, comparing it as bits is fine. Also,
     /// it has to be `Reverse`d to make it a min-heap.
-    radix_heap: RadixHeapMap<Reverse<u32>, (f32, usize)>,
+    radix_heap: RadixHeapMap<Reverse<u32>, (f32, u32)>,
 }
 impl PathfinderHeap {
     pub fn new() -> Self {
@@ -333,7 +333,7 @@ pub struct WeightedNode {
     pub f_score: f32,
     /// The actual cost to get to this node
     pub g_score: f32,
-    pub index: usize,
+    pub index: u32,
 }
 
 impl Ord for WeightedNode {
