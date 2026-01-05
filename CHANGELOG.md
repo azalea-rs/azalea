@@ -14,6 +14,7 @@ is breaking anyways, semantic versioning is not followed.
 - Add an `EntityRef` type to simplify interactions with entities.
 - `AccountTrait` was implemented, which allows for custom refresh and join behavior for `Account`s.
 - Add `BlockTrait::set_property` to allow setting properties on blocks generically.
+- The pathfinder can now traverse on the surface of water.
 
 ### Changed
 
