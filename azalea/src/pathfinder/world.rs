@@ -108,8 +108,11 @@ impl CachedWorld {
             cached_blocks: Default::default(),
             // this uses about 12mb of memory. it *really* helps though.
             cached_mining_costs: UnsafeCell::new(
-                vec![(RelBlockPos::new(i16::MAX, i32::MAX, i16::MAX), 0.); 2usize.pow(20)]
-                    .into_boxed_slice(),
+                vec![
+                    (RelBlockPos::new(i16::MAX, i32::MAX, i16::MAX), 0.);
+                    CACHED_MINING_COSTS_SIZE
+                ]
+                .into_boxed_slice(),
             ),
         }
     }
@@ -314,7 +317,7 @@ impl CachedWorld {
         let cached_mining_costs = unsafe { &mut *self.cached_mining_costs.get() };
         // 20 bits total:
         // 8 bits for x, 4 bits for y, 8 bits for z
-        let hash_index = Self::calculate_cached_mining_costs_index(pos);
+        let hash_index = calculate_cached_mining_costs_index(pos);
         let &(cached_pos, potential_cost) =
             unsafe { cached_mining_costs.get_unchecked(hash_index) };
         if cached_pos == pos {
@@ -327,16 +330,6 @@ impl CachedWorld {
         };
 
         cost
-    }
-
-    fn calculate_cached_mining_costs_index(pos: RelBlockPos) -> usize {
-        // 20 bits total:
-        // 8 bits for x, 8 bits for z, 4 bits for y
-        let hash_index = ((pos.x as usize & 0xff) << 12)
-            | ((pos.z as usize & 0xff) << 4)
-            | (pos.y as usize & 0xf);
-        debug_assert!(hash_index < 1048576);
-        hash_index
     }
 
     fn uncached_cost_for_breaking_block(
@@ -524,6 +517,25 @@ impl CachedWorld {
     pub fn origin(&self) -> BlockPos {
         self.origin
     }
+}
+
+const CACHED_MINING_COSTS_SIZE: usize = 2usize.pow(20);
+fn calculate_cached_mining_costs_index(pos: RelBlockPos) -> usize {
+    // create a 20-bit index by taking the bottom bits from each axis
+
+    const X_BITS: usize = 8;
+    const Y_BITS: usize = 3;
+    const Z_BITS: usize = 8;
+
+    const X_MASK: usize = (1 << X_BITS) - 1;
+    const Y_MASK: usize = (1 << Y_BITS) - 1;
+    const Z_MASK: usize = (1 << Z_BITS) - 1;
+
+    let hash_index = ((pos.x as usize & X_MASK) << (Y_BITS + Z_BITS))
+        | ((pos.z as usize & Z_MASK) << Y_BITS)
+        | (pos.y as usize & Y_MASK);
+    debug_assert!(hash_index < CACHED_MINING_COSTS_SIZE);
+    hash_index
 }
 
 /// Whether our client could pass through this block.

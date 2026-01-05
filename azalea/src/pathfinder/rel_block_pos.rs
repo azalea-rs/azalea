@@ -14,10 +14,12 @@ use azalea_core::position::BlockPos;
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[repr(C)]
 pub struct RelBlockPos {
-    pub x: i16,
-    pub z: i16,
     /// The actual non-relative Y coordinate of the block.
     pub y: i32,
+    /// The X coordinate of the block, relative to some origin.
+    pub x: i16,
+    /// The Y coordinate of the block, relative to some origin.
+    pub z: i16,
 }
 
 impl RelBlockPos {
