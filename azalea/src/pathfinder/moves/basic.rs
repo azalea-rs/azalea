@@ -20,10 +20,17 @@ pub fn basic_move(ctx: &mut PathfinderCtx, node: RelBlockPos) {
 }
 
 fn forward_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
+    let mut base_cost = SPRINT_ONE_BLOCK_COST;
+    // it's for us cheaper to have the water cost be applied when leaving the water
+    // rather than when entering
+    if ctx.world.is_block_water(pos.down(1)) {
+        base_cost = WALK_ONE_IN_WATER_COST;
+    }
+
     for dir in CardinalDirection::iter() {
         let offset = RelBlockPos::new(dir.x(), 0, dir.z());
 
-        let mut cost = SPRINT_ONE_BLOCK_COST;
+        let mut cost = base_cost;
 
         let break_cost = ctx.world.cost_for_standing(pos + offset, ctx.mining_cache);
         if break_cost == f32::INFINITY {
@@ -407,14 +414,21 @@ fn descend_forward_1_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
 }
 
 fn diagonal_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
+    let mut base_cost = SPRINT_ONE_BLOCK_COST;
+    if ctx.world.is_block_water(pos.down(1)) {
+        base_cost = WALK_ONE_IN_WATER_COST;
+    }
+
+    // add 0.001 as a tie-breaker to avoid unnecessarily going diagonal
+    base_cost = base_cost.mul_add(SQRT_2, 0.001);
+
     for dir in CardinalDirection::iter() {
         let right = dir.right();
         let offset = RelBlockPos::new(dir.x() + right.x(), 0, dir.z() + right.z());
         let left_pos = RelBlockPos::new(pos.x + dir.x(), pos.y, pos.z + dir.z());
         let right_pos = RelBlockPos::new(pos.x + right.x(), pos.y, pos.z + right.z());
 
-        // +0.001 so it doesn't unnecessarily go diagonal sometimes
-        let mut cost = SPRINT_ONE_BLOCK_COST * SQRT_2 + 0.001;
+        let mut cost = base_cost;
 
         let left_passable = ctx.world.is_passable(left_pos);
         let right_passable = ctx.world.is_passable(right_pos);

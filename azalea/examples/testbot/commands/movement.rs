@@ -15,7 +15,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
     commands.register(
         literal("goto")
             .executes(|ctx: &Ctx| {
-                let mut source = ctx.source.lock();
+                let source = ctx.source.lock();
                 println!("got goto");
                 // look for the sender
                 let Some(entity) = source.entity() else {
@@ -88,7 +88,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
         literal("look")
             .executes(|ctx: &Ctx| {
                 // look for the sender
-                let mut source = ctx.source.lock();
+                let source = ctx.source.lock();
                 let Some(entity) = source.entity() else {
                     source.reply("I can't see you!");
                     return 0;

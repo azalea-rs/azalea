@@ -7,7 +7,10 @@ use azalea::{
     brigadier::prelude::*,
     chunks::ReceiveChunkEvent,
     packet::game,
-    pathfinder::{ExecutingPath, Pathfinder},
+    pathfinder::{
+        ExecutingPath, Pathfinder, custom_state::CustomPathfinderStateRef, mining::MiningCache,
+        moves::PathfinderCtx, rel_block_pos::RelBlockPos, world::CachedWorld,
+    },
 };
 use azalea_core::hit_result::HitResult;
 use azalea_entity::{EntityKindComponent, metadata};
@@ -33,7 +36,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
     }));
 
     commands.register(literal("whereami").executes(|ctx: &Ctx| {
-        let mut source = ctx.source.lock();
+        let source = ctx.source.lock();
         let Some(entity) = source.entity() else {
             source.reply("You aren't in render distance!");
             return 0;
@@ -47,7 +50,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
     }));
 
     commands.register(literal("entityid").executes(|ctx: &Ctx| {
-        let mut source = ctx.source.lock();
+        let source = ctx.source.lock();
         let Some(entity) = source.entity() else {
             source.reply("You aren't in render distance!");
             return 0;
@@ -160,7 +163,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
         let source = ctx.source.lock();
         let pathfinder = source.bot.get_component::<Pathfinder>();
         let Some(pathfinder) = pathfinder else {
-            source.reply("I don't have the Pathfinder ocmponent");
+            source.reply("I don't have the Pathfinder component");
             return 1;
         };
         source.reply(format!(
@@ -183,6 +186,42 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
                 "n/a".to_owned()
             },
         ));
+        1
+    }));
+    commands.register(literal("pathfindermoves").executes(|ctx: &Ctx| {
+        let source = ctx.source.lock();
+
+        let Some(entity) = source.entity() else {
+            source.reply("You aren't in render distance!");
+            return 0;
+        };
+        let position = entity.position();
+        let position = BlockPos::from(position);
+
+        let mut edges = Vec::new();
+        let cached_world = CachedWorld::new(source.bot.world(), position);
+        let mining_cache = MiningCache::new(None);
+        let custom_state = CustomPathfinderStateRef::default();
+
+        azalea::pathfinder::moves::default_move(
+            &mut PathfinderCtx {
+                edges: &mut edges,
+                world: &cached_world,
+                mining_cache: &mining_cache,
+                custom_state: &custom_state,
+            },
+            RelBlockPos::from_origin(position, position),
+        );
+
+        if edges.is_empty() {
+            source.reply("No possible moves.");
+        } else {
+            source.reply("Moves:");
+            for (i, edge) in edges.iter().enumerate() {
+                source.reply(format!("{}) {edge:?}", i + 1));
+            }
+        }
+
         1
     }));
 

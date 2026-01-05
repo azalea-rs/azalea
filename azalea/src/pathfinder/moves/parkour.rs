@@ -22,7 +22,7 @@ fn parkour_forward_1_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
         let offset = RelBlockPos::new(dir.x() * 2, 0, dir.z() * 2);
 
         // make sure we actually have to jump
-        if ctx.world.is_block_solid((pos + gap_offset).down(1)) {
+        if ctx.world.is_block_standable((pos + gap_offset).down(1)) {
             continue;
         }
         if !ctx.world.is_passable(pos + gap_offset) {
@@ -75,8 +75,8 @@ fn parkour_forward_2_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
         let offset = RelBlockPos::new(dir.x() * 3, 0, dir.z() * 3);
 
         // make sure we actually have to jump
-        if ctx.world.is_block_solid((pos + gap_1_offset).down(1))
-            || ctx.world.is_block_solid((pos + gap_2_offset).down(1))
+        if ctx.world.is_block_standable((pos + gap_1_offset).down(1))
+            || ctx.world.is_block_standable((pos + gap_2_offset).down(1))
         {
             continue;
         }
@@ -134,9 +134,9 @@ fn parkour_forward_3_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
         let offset = RelBlockPos::new(dir.x() * 4, 0, dir.z() * 4);
 
         // make sure we actually have to jump
-        if ctx.world.is_block_solid((pos + gap_1_offset).down(1))
-            || ctx.world.is_block_solid((pos + gap_2_offset).down(1))
-            || ctx.world.is_block_solid((pos + gap_3_offset).down(1))
+        if ctx.world.is_block_standable((pos + gap_1_offset).down(1))
+            || ctx.world.is_block_standable((pos + gap_2_offset).down(1))
+            || ctx.world.is_block_standable((pos + gap_3_offset).down(1))
         {
             continue;
         }

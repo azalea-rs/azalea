@@ -75,9 +75,13 @@ where
     let mut num_movements = 0;
 
     while let Some(WeightedNode { index, g_score, .. }) = open_set.pop() {
+        let (&node, node_data) = nodes.get_index(index).unwrap();
+        if g_score > node_data.g_score {
+            continue;
+        }
+
         num_nodes += 1;
 
-        let (&node, node_data) = nodes.get_index(index).unwrap();
         if success(node) {
             let best_path = index;
             log_perf_info(start_time, num_nodes, num_movements);
@@ -87,10 +91,6 @@ where
                 is_partial: false,
                 cost: g_score,
             };
-        }
-
-        if g_score > node_data.g_score {
-            continue;
         }
 
         for neighbor in successors(node) {
@@ -124,6 +124,9 @@ where
                 }
             }
 
+            // we don't update the existing node, which means that the same node might be
+            // present in the open_set multiple times. this is fine because at the start of
+            // the loop we check `g_score > node_data.g_score`.
             open_set.push(WeightedNode {
                 index: neighbor_index,
                 g_score: tentative_g_score,
@@ -180,11 +183,12 @@ where
 }
 
 fn log_perf_info(start_time: Instant, num_nodes: usize, num_movements: usize) {
-    let elapsed_seconds = start_time.elapsed().as_secs_f64();
+    let elapsed = start_time.elapsed();
+    let elapsed_seconds = elapsed.as_secs_f64();
     let nodes_per_second = (num_nodes as f64 / elapsed_seconds) as u64;
     let num_movements_per_second = (num_movements as f64 / elapsed_seconds) as u64;
     debug!(
-        "Nodes considered: {}",
+        "Considered {} nodes in {elapsed:?}",
         num_nodes.to_formatted_string(&num_format::Locale::en)
     );
     debug!(

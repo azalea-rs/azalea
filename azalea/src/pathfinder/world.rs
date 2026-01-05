@@ -1,3 +1,4 @@
+use core::f32;
 use std::{
     cell::{RefCell, UnsafeCell},
     sync::Arc,
@@ -94,6 +95,7 @@ pub struct CachedSection {
     pub solid_bitset: FastFixedBitSet<4096>,
     /// Blocks that we can stand on but might not be able to parkour from.
     pub standable_bitset: FastFixedBitSet<4096>,
+    pub water_bitset: FastFixedBitSet<4096>,
 }
 
 impl CachedWorld {
@@ -208,6 +210,8 @@ impl CachedWorld {
             let mut passable_bitset = FastFixedBitSet::<4096>::new();
             let mut solid_bitset = FastFixedBitSet::<4096>::new();
             let mut standable_bitset = FastFixedBitSet::<4096>::new();
+            let mut water_bitset = FastFixedBitSet::<4096>::new();
+
             for i in 0..4096 {
                 let block_state = section.get_at_index(i);
                 if is_block_state_passable(block_state) {
@@ -219,12 +223,16 @@ impl CachedWorld {
                 if is_block_state_standable(block_state) {
                     standable_bitset.set(i);
                 }
+                if is_block_state_water(block_state) {
+                    water_bitset.set(i);
+                }
             }
             CachedSection {
                 pos: section_pos,
                 passable_bitset,
                 solid_bitset,
                 standable_bitset,
+                water_bitset,
             }
         })
     }
@@ -232,7 +240,6 @@ impl CachedWorld {
     pub fn is_block_passable(&self, pos: RelBlockPos) -> bool {
         self.is_block_pos_passable(pos.apply(self.origin))
     }
-
     fn is_block_pos_passable(&self, pos: BlockPos) -> bool {
         let (section_pos, section_block_pos) =
             (ChunkSectionPos::from(pos), ChunkSectionBlockPos::from(pos));
@@ -249,6 +256,27 @@ impl CachedWorld {
         let passable = cached.passable_bitset.index(index);
         cached_blocks.insert(cached);
         passable
+    }
+
+    pub fn is_block_water(&self, pos: RelBlockPos) -> bool {
+        self.is_block_pos_water(pos.apply(self.origin))
+    }
+    fn is_block_pos_water(&self, pos: BlockPos) -> bool {
+        let (section_pos, section_block_pos) =
+            (ChunkSectionPos::from(pos), ChunkSectionBlockPos::from(pos));
+        let index = u16::from(section_block_pos) as usize;
+        // SAFETY: we're only accessing this from one thread
+        let cached_blocks = unsafe { &mut *self.cached_blocks.get() };
+        if let Some(cached) = cached_blocks.get_mut(section_pos) {
+            return cached.water_bitset.index(index);
+        }
+
+        let Some(cached) = self.calculate_bitsets_for_section(section_pos) else {
+            return false;
+        };
+        let water = cached.water_bitset.index(index);
+        cached_blocks.insert(cached);
+        water
     }
 
     /// Get the block state at the given position.
@@ -622,6 +650,9 @@ pub fn is_block_state_standable(block_state: BlockState) -> bool {
     if is_block_state_solid(block_state) {
         return true;
     }
+    if is_block_state_water(block_state) {
+        return true;
+    }
 
     let block = BlockKind::from(block_state);
     if tags::blocks::SLABS.contains(&block) || tags::blocks::STAIRS.contains(&block) {
@@ -629,6 +660,11 @@ pub fn is_block_state_standable(block_state: BlockState) -> bool {
     }
 
     false
+}
+
+pub fn is_block_state_water(block_state: BlockState) -> bool {
+    // only the default blockstate
+    block_state == BlockState::from(BlockKind::Water)
 }
 
 #[cfg(test)]

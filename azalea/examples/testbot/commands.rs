@@ -30,7 +30,7 @@ impl CommandSource {
         }
     }
 
-    pub fn entity(&mut self) -> Option<azalea::EntityRef> {
+    pub fn entity(&self) -> Option<azalea::EntityRef> {
         let username = self.chat.sender()?;
         self.bot
             .any_entity_by::<&GameProfileComponent, With<Player>>(

@@ -28,7 +28,7 @@ impl RelBlockPos {
     }
 
     #[inline]
-    pub fn new(x: i16, y: i32, z: i16) -> Self {
+    pub const fn new(x: i16, y: i32, z: i16) -> Self {
         Self { x, y, z }
     }
 
