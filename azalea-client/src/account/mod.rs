@@ -83,7 +83,7 @@ pub trait AccountTrait: Send + Sync + Debug {
     ///
     /// The `online-mode` feature is disabled, so this won't do anything.
     #[cfg(not(feature = "online-mode"))]
-    fn refresh(&self) -> BoxFuture<Result<(), ()>> {
+    fn refresh(&self) -> BoxFuture<'_, Result<(), ()>> {
         Box::pin(async { Ok(()) })
     }
 
@@ -132,8 +132,8 @@ pub trait AccountTrait: Send + Sync + Debug {
         public_key: &[u8],
         private_key: &[u8; 16],
         server_id: &str,
-        proxy: Option<reqwest::Proxy>,
-    ) -> BoxFuture<Result<(), ()>> {
+        proxy: Option<()>,
+    ) -> BoxFuture<'_, Result<(), ()>> {
         let _ = (public_key, private_key, server_id, proxy);
         Box::pin(async { Ok(()) })
     }
