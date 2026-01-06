@@ -425,12 +425,27 @@ impl Client {
     /// This is necessary for data-driven registries like [`Enchantment`].
     ///
     /// [`Enchantment`]: azalea_registry::data::Enchantment
+    #[deprecated = "use `bot.resolve_registry_key(registry).map(|r| r.into_ident())` instead."]
     pub fn resolve_registry_name(
         &self,
         registry: &impl ResolvableDataRegistry,
     ) -> Option<Identifier> {
         self.with_registry_holder(|registries| registry.key(registries).map(|r| r.into_ident()))
     }
+
+    /// Resolve the given registry entry to its key (aka name).
+    ///
+    /// This is necessary for data-driven registries like [`Enchantment`] and
+    /// [`Biome`](azalea_registry::data::Biome).
+    ///
+    /// To get the key as an [`Identifier`], you can map the return value like
+    /// `.map(|r| r.into_ident())`.
+    ///
+    /// [`Enchantment`]: azalea_registry::data::Enchantment
+    pub fn resolve_registry_key<R: ResolvableDataRegistry>(&self, registry: &R) -> Option<R::Key> {
+        self.with_registry_holder(|registries| registry.key_owned(registries))
+    }
+
     /// Resolve the given registry to its name and data and call the given
     /// function with it.
     ///
