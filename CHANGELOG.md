@@ -22,12 +22,14 @@ is breaking anyways, semantic versioning is not followed.
 - `Client::ecs` is now an `RwLock` instead of a `Mutex`.
 - `Client::component` and `entity_component` now return a mapped RwLock guard instead of cloning the component.
 - Most functions on `Client` that previously returned `Entity` now return `EntityRef` instead.
+- Deprecate pathfinder `InverseGoal`.
 
 ### Fixed
 
 - Serializing `FormattedText` with serde was writing `extra` twice.
 - Attack cooldowns were being applied incorrectly for tools.
 - `Identifier` had an incorrect `Hash` and `PartialEq` implementation.
+- The pathfinder now avoids magma blocks.
 
 ## [0.15.0+mc1.21.11] - 2025-12-18
 

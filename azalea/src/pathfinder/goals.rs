@@ -130,7 +130,9 @@ impl Goal for RadiusGoal {
 
 /// Do the opposite of the given goal.
 #[derive(Debug)]
+#[deprecated = "`InverseGoal` has poor performance and often doesn't work as expected, consider using different goals."]
 pub struct InverseGoal<T: Goal>(pub T);
+#[allow(deprecated)]
 impl<T: Goal> Goal for InverseGoal<T> {
     fn heuristic(&self, n: BlockPos) -> f32 {
         -self.0.heuristic(n)
