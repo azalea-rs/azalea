@@ -87,11 +87,11 @@ impl_entity_functions! {
     }
 
     Client:
-    /// Get the health of this client.
+    /// Get the health of this client, typically in the range `0..=20`.
     ///
     /// This is a shortcut for `*bot.component::<Health>()`.
     EntityRef:
-    /// Get the health of this entity.
+    /// Get the health of this entity, typically in the range `0..=20`.
     ///
     /// Also see [`Client::health`].
     pub fn health(&self) -> f32 {

@@ -11,6 +11,7 @@ use azalea_client::{
     packet::game::SendGamePacketEvent,
     player::{GameProfileComponent, PlayerInfo},
     start_ecs_runner,
+    tick_counter::TicksConnected,
 };
 use azalea_core::data_registry::{DataRegistryWithKey, ResolvableDataRegistry};
 use azalea_entity::indexing::{EntityIdIndex, EntityUuidIndex};
@@ -449,5 +450,15 @@ impl Client {
                 .resolve(registries)
                 .map(|(name, data)| f(name, data))
         })
+    }
+
+    /// Returns the number of ticks since the `login` packet was received, or 0
+    /// if the client isn't in the world.
+    ///
+    /// This is a shortcut for getting the [`TicksConnected`] component.
+    pub fn ticks_connected(&self) -> u64 {
+        self.get_component::<TicksConnected>()
+            .map(|c| c.0)
+            .unwrap_or(0)
     }
 }

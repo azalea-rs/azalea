@@ -303,8 +303,8 @@ impl PathfinderHeap {
 
     pub fn push(&mut self, item: WeightedNode) {
         if let Some(top) = self.radix_heap.top() {
-            // this can happen when the heuristic isn't optimal, so just fall back to a
-            // binary heap in those cases
+            // this can happen when the heuristic wasn't an underestimate, so just fall back
+            // to a binary heap in those cases
             if item.f_score < f32::from_bits(top.0) {
                 self.binary_heap.push(item);
                 return;

@@ -73,7 +73,7 @@ pub struct PermissionLevel(pub u8);
 #[derive(Clone, Component, Debug, Default, Deref, DerefMut, Resource)]
 pub struct TabList(HashMap<Uuid, PlayerInfo>);
 
-#[derive(Clone, Component)]
+#[derive(Clone, Component, Debug)]
 pub struct Hunger {
     /// The main hunger bar. This is typically in the range `0..=20`.
     pub food: u32,
@@ -81,7 +81,7 @@ pub struct Hunger {
     ///
     /// This isn't displayed in the vanilla Minecraft GUI, but it's used
     /// internally by the game. It's a decrementing counter, and the player's
-    /// [`Hunger::food`] only starts decreasing when this reaches 0.
+    /// [`Hunger::food`] only starts decreasing when their saturation reaches 0.
     pub saturation: f32,
 }
 

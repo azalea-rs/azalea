@@ -132,4 +132,15 @@ impl EntityRef {
     pub fn interact(&self) {
         self.client.entity_interact(self.entity);
     }
+
+    /// Look at this entity from the client that created the `EntityRef`.
+    pub fn look_at(&self) {
+        self.client.look_at(self.eye_position());
+    }
+
+    /// Returns the distance between the client's feet position and this
+    /// entity's feet position.
+    pub fn distance_to_client(&self) -> f64 {
+        self.position().distance_to(self.client.position())
+    }
 }
