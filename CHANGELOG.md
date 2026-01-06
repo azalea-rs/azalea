@@ -16,6 +16,7 @@ is breaking anyways, semantic versioning is not followed.
 
 - Serializing `FormattedText` with serde was writing `extra` twice.
 - Attack cooldowns were being applied incorrectly for tools.
+- `Identifier` had an incorrect `Hash` and `PartialEq` implementation.
 
 ## [0.15.0+mc1.21.11] - 2025-12-18
 

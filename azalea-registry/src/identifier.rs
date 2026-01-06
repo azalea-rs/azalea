@@ -2,6 +2,7 @@
 
 use std::{
     fmt::{self, Debug, Display},
+    hash::{Hash, Hasher},
     io::{self, Cursor, Write},
     num::NonZeroUsize,
     str::FromStr,
@@ -17,7 +18,7 @@ use simdnbt::{FromNbtTag, ToNbtTag, owned::NbtTag};
 ///
 /// This was formerly called a `ResourceLocation`.
 #[doc(alias = "ResourceLocation")]
-#[derive(Clone, Default, Eq, Hash, PartialEq)]
+#[derive(Clone, Default, Eq)]
 pub struct Identifier {
     // empty namespaces aren't allowed so NonZero is fine.
     colon_index: Option<NonZeroUsize>,
@@ -60,6 +61,20 @@ impl Identifier {
         } else {
             &self.inner
         }
+    }
+}
+impl PartialEq for Identifier {
+    fn eq(&self, other: &Self) -> bool {
+        self.namespace() == other.namespace() && self.path() == other.path()
+    }
+}
+impl Hash for Identifier {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        let namespace = self.namespace();
+        if namespace != DEFAULT_NAMESPACE {
+            namespace.hash(state);
+        }
+        self.path().hash(state);
     }
 }
 

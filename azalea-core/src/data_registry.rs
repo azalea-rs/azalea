@@ -16,6 +16,13 @@ pub trait DataRegistryWithKey: DataRegistry {
             .protocol_id_to_identifier(Identifier::from(Self::NAME), self.protocol_id())
             .map(DataRegistryKeyRef::from_ident)
     }
+
+    fn key_owned<'s, 'a: 's>(&'s self, registries: &'a RegistryHolder) -> Option<Self::Key> {
+        registries
+            .protocol_id_to_identifier(Identifier::from(Self::NAME), self.protocol_id())
+            .cloned()
+            .map(DataRegistryKey::from_ident)
+    }
 }
 impl<R: DataRegistry> DataRegistryWithKey for R {}
 

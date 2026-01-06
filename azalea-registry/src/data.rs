@@ -72,6 +72,9 @@ macro_rules! data_registry {
         impl crate::DataRegistryKey for $enum_name {
             type Borrow<'a> = $enum_name<&'a Identifier>;
 
+            fn from_ident(ident: Identifier) -> Self {
+                Self::from(ident)
+            }
             fn into_ident(self) -> Identifier {
                 match self {
                     $(

@@ -321,6 +321,7 @@ pub trait DataRegistry:
 pub trait DataRegistryKey {
     type Borrow<'a>: DataRegistryKeyRef<'a>;
 
+    fn from_ident(ident: Identifier) -> Self;
     fn into_ident(self) -> Identifier;
 }
 pub trait DataRegistryKeyRef<'a> {
