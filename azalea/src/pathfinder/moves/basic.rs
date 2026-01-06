@@ -53,6 +53,7 @@ fn forward_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
 
 fn execute_forward_move(mut ctx: ExecuteCtx) {
     let center = ctx.target.center();
+    ctx.jump_if_in_water();
 
     if ctx.mine_while_at_start(ctx.target.up(1)) {
         return;
@@ -62,7 +63,6 @@ fn execute_forward_move(mut ctx: ExecuteCtx) {
     }
 
     ctx.look_at(center);
-    ctx.jump_if_in_water();
     ctx.sprint(SprintDirection::Forward);
 }
 
@@ -135,6 +135,8 @@ fn execute_ascend_move(mut ctx: ExecuteCtx) {
         ..
     } = ctx;
 
+    ctx.jump_if_in_water();
+
     if ctx.mine_while_at_start(start.up(2)) {
         return;
     }
@@ -149,7 +151,6 @@ fn execute_ascend_move(mut ctx: ExecuteCtx) {
 
     ctx.look_at(target_center);
     ctx.walk(WalkDirection::Forward);
-    ctx.jump_if_in_water();
 
     // these checks are to make sure we don't fall if our velocity is too high in
     // the wrong direction
@@ -461,9 +462,10 @@ fn diagonal_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
 fn execute_diagonal_move(mut ctx: ExecuteCtx) {
     let target_center = ctx.target.center();
 
+    ctx.jump_if_in_water();
+
     ctx.look_at(target_center);
     ctx.sprint(SprintDirection::Forward);
-    ctx.jump_if_in_water();
 }
 
 /// Go directly down, usually by mining.

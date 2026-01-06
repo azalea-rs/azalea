@@ -1,6 +1,6 @@
 use azalea_core::position::Vec3;
 use azalea_entity::{
-    Attributes, Dead, EntityUuid, Position, dimensions::EntityDimensions, metadata::Health,
+    Attributes, Dead, EntityUuid, Physics, Position, dimensions::EntityDimensions, metadata::Health,
 };
 use azalea_world::{InstanceName, MinecraftEntityId};
 use uuid::Uuid;
@@ -190,5 +190,17 @@ impl_entity_functions! {
     /// Also see [`Client::exists`].
     pub fn exists(&self) -> bool {
         self.try_query_self::<Option<&MinecraftEntityId>, _>(|entity_id| entity_id.is_some()).unwrap_or(false)
+    }
+
+    Client:
+    /// Returns the complete [`Physics`] data for this client, including velocity, bounding box,
+    /// collisions, etc.
+    EntityRef:
+    /// Returns the complete [`Physics`] data for this entity, including velocity, bounding box,
+    /// collisions, etc.
+    ///
+    /// Also see [`Client::physics`].
+    pub fn physics(&self) -> Physics {
+        self.component::<Physics>().clone()
     }
 }

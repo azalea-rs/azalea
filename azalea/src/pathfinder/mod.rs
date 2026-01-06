@@ -227,6 +227,16 @@ pub trait PathfinderClientExt {
     /// Returns true if the pathfinder has no active goal and isn't calculating
     /// a path.
     fn is_goto_target_reached(&self) -> bool;
+    /// Whether the pathfinder is currently following a path.
+    ///
+    /// Also see [`Self::is_calculating_path`] and
+    /// [`Self::is_goto_target_reached`].
+    fn is_executing_path(&self) -> bool;
+    /// Whether the pathfinder is currently calculating a path.
+    ///
+    /// Also see [`Self::is_executing_path`] and
+    /// [`Self::is_goto_target_reached`].
+    fn is_calculating_path(&self) -> bool;
 }
 
 impl PathfinderClientExt for Client {
@@ -257,6 +267,7 @@ impl PathfinderClientExt for Client {
             force: true,
         });
     }
+
     async fn wait_until_goto_target_reached(&self) {
         // we do this to make sure the event got handled before we start checking
         // is_goto_target_reached
@@ -273,10 +284,15 @@ impl PathfinderClientExt for Client {
         }
     }
     fn is_goto_target_reached(&self) -> bool {
-        self.query_self::<Option<&Pathfinder>, _>(|p| {
-            p.map(|p| p.goal.is_none() && !p.is_calculating)
-                .unwrap_or(true)
-        })
+        self.get_component::<Pathfinder>()
+            .is_none_or(|p| p.goal.is_none() && !p.is_calculating)
+    }
+    fn is_executing_path(&self) -> bool {
+        self.get_component::<ExecutingPath>().is_some()
+    }
+    fn is_calculating_path(&self) -> bool {
+        self.get_component::<Pathfinder>()
+            .is_some_and(|p| p.is_calculating)
     }
 }
 

@@ -116,7 +116,8 @@ impl Goal for RadiusGoal {
         let dx = (self.pos.x - n.x) as f32;
         let dy = (self.pos.y - n.y) as f32;
         let dz = (self.pos.z - n.z) as f32;
-        dx.powi(2) + dy.powi(2) + dz.powi(2)
+
+        xz_heuristic(dx, dz) + y_heuristic(dy)
     }
     fn success(&self, n: BlockPos) -> bool {
         let n = n.center();

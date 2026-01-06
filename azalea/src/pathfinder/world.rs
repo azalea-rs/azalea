@@ -623,6 +623,12 @@ pub fn is_block_state_solid(block_state: BlockState) -> bool {
         // fast path
         return false;
     }
+
+    // hazard
+    if block_state == BlockState::from(BlockKind::MagmaBlock) {
+        return false;
+    };
+
     if block_state.is_collision_shape_full() {
         return true;
     }
@@ -692,7 +698,7 @@ mod tests {
 
         let ctx = CachedWorld::new(Arc::new(RwLock::new(world.into())), BlockPos::default());
         assert!(!ctx.is_block_pos_passable(BlockPos::new(0, 0, 0)));
-        assert!(ctx.is_block_pos_passable(BlockPos::new(0, 1, 0),));
+        assert!(ctx.is_block_pos_passable(BlockPos::new(0, 1, 0)));
     }
 
     #[test]
