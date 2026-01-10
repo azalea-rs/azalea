@@ -1,4 +1,5 @@
 use azalea_core::{
+    entity_id::MinecraftEntityId,
     game_type::GameMode,
     position::{Vec2, Vec3},
     tick::GameTick,
@@ -30,7 +31,7 @@ use azalea_protocol::{
     },
 };
 use azalea_registry::builtin::EntityKind;
-use azalea_world::{Instance, MinecraftEntityId};
+use azalea_world::Instance;
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 

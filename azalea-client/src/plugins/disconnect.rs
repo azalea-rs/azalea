@@ -4,7 +4,7 @@ use azalea_chat::FormattedText;
 use azalea_entity::{
     EntityBundle, HasClientLoaded, InLoadedChunk, LocalEntity, metadata::PlayerMetadataBundle,
 };
-use azalea_world::MinecraftEntityId;
+use azalea_core::entity_id::MinecraftEntityId;
 use bevy_app::{App, Plugin, PostUpdate};
 use bevy_ecs::prelude::*;
 use derive_more::Deref;

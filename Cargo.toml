@@ -92,26 +92,26 @@ tracing-subscriber = "0.3.22"
 uuid = "1.19.0"
 radix-heap = "0.4.2"
 
-azalea-block-macros = { path = "azalea-block/azalea-block-macros", version = "0.15.0" }
-azalea-block = { path = "azalea-block", version = "0.15.0" }
+azalea-block-macros = { path = "azalea-block/azalea-block-macros", version = "0.15.0", default-features = false }
+azalea-block = { path = "azalea-block", version = "0.15.0", default-features = false }
 azalea-auth = { path = "azalea-auth", version = "0.15.0", default-features = false }
-azalea-brigadier = { path = "azalea-brigadier", version = "0.15.0" }
-azalea-buf-macros = { path = "azalea-buf/azalea-buf-macros", version = "0.15.0" }
-azalea-buf = { path = "azalea-buf", version = "0.15.0" }
-azalea-chat = { path = "azalea-chat", version = "0.15.0" }
+azalea-brigadier = { path = "azalea-brigadier", version = "0.15.0", default-features = false }
+azalea-buf-macros = { path = "azalea-buf/azalea-buf-macros", version = "0.15.0", default-features = false }
+azalea-buf = { path = "azalea-buf", version = "0.15.0", default-features = false }
+azalea-chat = { path = "azalea-chat", version = "0.15.0", default-features = false }
 azalea-client = { path = "azalea-client", version = "0.15.0", default-features = false }
-azalea-core = { path = "azalea-core", version = "0.15.0" }
-azalea-crypto = { path = "azalea-crypto", version = "0.15.0" }
-azalea-entity = { path = "azalea-entity", version = "0.15.0" }
-azalea-inventory-macros = { path = "azalea-inventory/azalea-inventory-macros", version = "0.15.0" }
-azalea-inventory = { path = "azalea-inventory", version = "0.15.0" }
-azalea-language = { path = "azalea-language", version = "0.15.0" }
-azalea-physics = { path = "azalea-physics", version = "0.15.0" }
-azalea-protocol-macros = { path = "azalea-protocol/azalea-protocol-macros", version = "0.15.0" }
+azalea-core = { path = "azalea-core", version = "0.15.0", default-features = false }
+azalea-crypto = { path = "azalea-crypto", version = "0.15.0", default-features = false }
+azalea-entity = { path = "azalea-entity", version = "0.15.0", default-features = false }
+azalea-inventory-macros = { path = "azalea-inventory/azalea-inventory-macros", version = "0.15.0", default-features = false }
+azalea-inventory = { path = "azalea-inventory", version = "0.15.0", default-features = false }
+azalea-language = { path = "azalea-language", version = "0.15.0", default-features = false }
+azalea-physics = { path = "azalea-physics", version = "0.15.0", default-features = false }
+azalea-protocol-macros = { path = "azalea-protocol/azalea-protocol-macros", version = "0.15.0", default-features = false }
 azalea-protocol = { path = "azalea-protocol", version = "0.15.0", default-features = false }
-azalea-registry-macros = { path = "azalea-registry/azalea-registry-macros", version = "0.15.0" }
-azalea-registry = { path = "azalea-registry", version = "0.15.0" }
-azalea-world = { path = "azalea-world", version = "0.15.0" }
+azalea-registry-macros = { path = "azalea-registry/azalea-registry-macros", version = "0.15.0", default-features = false }
+azalea-registry = { path = "azalea-registry", version = "0.15.0", default-features = false }
+azalea-world = { path = "azalea-world", version = "0.15.0", default-features = false }
 
 [workspace.lints.clippy]
 # https://users.rust-lang.org/t/to-string-vs-to-owned-for-string-literals/1441

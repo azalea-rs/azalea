@@ -1,7 +1,7 @@
 use azalea_buf::AzBuf;
 use azalea_registry::identifier::Identifier;
 use azalea_protocol_macros::ClientboundGamePacket;
-use azalea_world::MinecraftEntityId;
+use azalea_core::entity_id::MinecraftEntityId;
 
 use crate::packets::common::CommonPlayerSpawnInfo;
 

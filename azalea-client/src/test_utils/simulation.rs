@@ -5,6 +5,7 @@ use azalea_block::BlockState;
 use azalea_buf::AzaleaWrite;
 use azalea_core::{
     delta::LpVec3,
+    entity_id::MinecraftEntityId,
     game_type::{GameMode, OptionalGameType},
     position::{BlockPos, ChunkPos, Vec3},
     tick::GameTick,
@@ -30,7 +31,7 @@ use azalea_registry::{
     data::{Biome, DimensionKind},
     identifier::Identifier,
 };
-use azalea_world::{Chunk, Instance, MinecraftEntityId, Section, palette::PalettedContainer};
+use azalea_world::{Chunk, Instance, Section, palette::PalettedContainer};
 use bevy_app::App;
 use bevy_ecs::{
     component::Mutable,

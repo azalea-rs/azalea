@@ -3,13 +3,13 @@ use std::io::{self, Cursor};
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite};
 use azalea_core::bitset::FixedBitSet;
 use azalea_entity::HumanoidArm;
-use bevy_ecs::component::Component;
 
 /// A component that contains some of the "settings" for this client that are
 /// sent to the server, such as render distance.
 ///
 /// This is only present on local players.
-#[derive(AzBuf, Clone, Component, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "bevy_ecs", derive(bevy_ecs::component::Component))]
+#[derive(AzBuf, Clone, Debug, Eq, PartialEq)]
 pub struct ClientInformation {
     /// The locale of the client, formatted like "en_us".
     pub language: String,

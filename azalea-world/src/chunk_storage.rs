@@ -12,18 +12,19 @@ use azalea_block::{
     fluid_state::FluidState,
 };
 use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
-use azalea_core::position::{
-    BlockPos, ChunkBiomePos, ChunkBlockPos, ChunkPos, ChunkSectionBiomePos, ChunkSectionBlockPos,
+use azalea_core::{
+    heightmap_kind::HeightmapKind,
+    position::{
+        BlockPos, ChunkBiomePos, ChunkBlockPos, ChunkPos, ChunkSectionBiomePos,
+        ChunkSectionBlockPos,
+    },
 };
 use azalea_registry::data::Biome;
 use nohash_hasher::IntMap;
 use parking_lot::RwLock;
 use tracing::{debug, trace, warn};
 
-use crate::{
-    heightmap::{Heightmap, HeightmapKind},
-    palette::PalettedContainer,
-};
+use crate::{heightmap::Heightmap, palette::PalettedContainer};
 
 const SECTION_HEIGHT: u32 = 16;
 

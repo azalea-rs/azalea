@@ -5,8 +5,8 @@ use std::{
     fmt::{self, Debug},
 };
 
-use azalea_core::position::ChunkPos;
-use azalea_world::{Instance, InstanceContainer, InstanceName, MinecraftEntityId};
+use azalea_core::{entity_id::MinecraftEntityId, position::ChunkPos};
+use azalea_world::{Instance, InstanceContainer, InstanceName};
 use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
 use nohash_hasher::IntMap;

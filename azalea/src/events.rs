@@ -4,10 +4,10 @@
 use std::sync::Arc;
 
 use azalea_chat::FormattedText;
-use azalea_core::{position::ChunkPos, tick::GameTick};
+use azalea_core::{entity_id::MinecraftEntityId, position::ChunkPos, tick::GameTick};
 use azalea_entity::{Dead, InLoadedChunk};
 use azalea_protocol::packets::game::c_player_combat_kill::ClientboundPlayerCombatKill;
-use azalea_world::{InstanceName, MinecraftEntityId};
+use azalea_world::InstanceName;
 use bevy_app::{App, Plugin, PreUpdate, Update};
 use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
