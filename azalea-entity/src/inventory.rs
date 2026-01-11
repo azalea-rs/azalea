@@ -713,9 +713,9 @@ mod tests {
         );
 
         let new_slots = inventory.menu().slots();
-        assert_eq!(&new_slots[0], &ItemStack::Empty);
+        assert_eq!(new_slots[0], &ItemStack::Empty);
         assert_eq!(
-            &new_slots[*Menu::CRAFTING_PLAYER_SLOTS.start()],
+            new_slots[*Menu::CRAFTING_PLAYER_SLOTS.start()],
             &spruce_planks
         );
     }
