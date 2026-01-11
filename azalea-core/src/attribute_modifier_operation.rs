@@ -1,11 +1,11 @@
 use std::str::FromStr;
 
 use azalea_buf::AzBuf;
-use serde::Serialize;
 use simdnbt::{FromNbtTag, borrow::NbtTag};
 
-#[derive(AzBuf, Clone, Copy, Debug, PartialEq, Serialize)]
-#[serde(rename_all = "snake_case")]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[derive(AzBuf, Clone, Copy, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", serde(rename_all = "snake_case"))]
 pub enum AttributeModifierOperation {
     AddValue,
     AddMultipliedBase,

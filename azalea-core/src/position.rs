@@ -14,10 +14,11 @@ use std::{
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
 use azalea_registry::identifier::Identifier;
-use serde::{Serialize, Serializer};
+#[cfg(feature = "serde")]
+use serde::Serializer;
 use simdnbt::borrow::NbtTag;
 
-use crate::{codec_utils::IntArray, direction::Direction, math};
+use crate::{direction::Direction, math};
 
 macro_rules! vec3_impl {
     ($name:ident, $type:ty) => {
@@ -305,7 +306,8 @@ macro_rules! vec3_impl {
 /// Used to represent an exact position in the world where an entity could be.
 ///
 /// For blocks, [`BlockPos`] is used instead.
-#[derive(AzBuf, Clone, Copy, Debug, Default, serde::Deserialize, PartialEq, serde::Serialize)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(AzBuf, Clone, Copy, Debug, Default, PartialEq)]
 pub struct Vec3 {
     pub x: f64,
     pub y: f64,
@@ -484,15 +486,19 @@ impl BlockPos {
         (self - other).length()
     }
 }
+#[cfg(feature = "serde")]
 impl serde::Serialize for BlockPos {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
         // makes sure it gets serialized correctly for the checksum
+
+        use crate::codec_utils::IntArray;
         IntArray([self.x, self.y, self.z]).serialize(serializer)
     }
 }
+#[cfg(feature = "serde")]
 impl<'de> serde::Deserialize<'de> for BlockPos {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -753,7 +759,8 @@ impl From<ChunkSectionBlockPos> for u16 {
 impl nohash_hasher::IsEnabled for ChunkSectionBlockPos {}
 
 /// A block pos with an attached world
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[derive(Clone, Debug, PartialEq)]
 pub struct GlobalPos {
     // this is actually a ResourceKey in Minecraft, but i don't think it matters?
     pub dimension: Identifier,
@@ -911,7 +918,8 @@ impl fmt::Display for Vec3 {
 }
 
 /// A 2D vector.
-#[derive(AzBuf, Clone, Copy, Debug, Default, simdnbt::Deserialize, PartialEq, Serialize)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(AzBuf, Clone, Copy, Debug, Default, PartialEq)]
 pub struct Vec2 {
     pub x: f32,
     pub y: f32,

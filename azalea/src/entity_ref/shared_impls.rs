@@ -1,8 +1,8 @@
-use azalea_core::position::Vec3;
+use azalea_core::{entity_id::MinecraftEntityId, position::Vec3};
 use azalea_entity::{
     Attributes, Dead, EntityUuid, Physics, Position, dimensions::EntityDimensions, metadata::Health,
 };
-use azalea_world::{InstanceName, MinecraftEntityId};
+use azalea_world::InstanceName;
 use uuid::Uuid;
 
 use super::EntityRef;

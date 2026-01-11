@@ -8,7 +8,7 @@ use azalea_protocol::{
     },
 };
 use azalea_registry::builtin::EntityKind;
-use azalea_world::MinecraftEntityId;
+use azalea_core::entity_id::MinecraftEntityId;
 
 #[test]
 fn test_move_and_despawn_entity() {

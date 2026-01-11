@@ -5,6 +5,7 @@ use azalea_block::{
     properties::WaterLevel,
 };
 use azalea_core::{
+    entity_id::MinecraftEntityId,
     position::{BlockPos, ChunkPos, Vec3},
     registry_holder::RegistryHolder,
     tick::GameTick,
@@ -15,7 +16,7 @@ use azalea_registry::{
     builtin::{BlockKind, EntityKind},
     identifier::Identifier,
 };
-use azalea_world::{Chunk, Instance, InstanceContainer, MinecraftEntityId, PartialInstance};
+use azalea_world::{Chunk, Instance, InstanceContainer, PartialInstance};
 use bevy_app::App;
 use parking_lot::RwLock;
 use uuid::Uuid;

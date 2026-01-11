@@ -13,7 +13,10 @@ use azalea_client::{
     start_ecs_runner,
     tick_counter::TicksConnected,
 };
-use azalea_core::data_registry::{DataRegistryWithKey, ResolvableDataRegistry};
+use azalea_core::{
+    data_registry::{DataRegistryWithKey, ResolvableDataRegistry},
+    entity_id::MinecraftEntityId,
+};
 use azalea_entity::indexing::{EntityIdIndex, EntityUuidIndex};
 use azalea_protocol::{
     address::{ResolvableAddr, ResolvedAddr},
@@ -22,7 +25,7 @@ use azalea_protocol::{
     resolve::ResolveError,
 };
 use azalea_registry::{DataRegistryKeyRef, identifier::Identifier};
-use azalea_world::{Instance, InstanceName, MinecraftEntityId, PartialInstance};
+use azalea_world::{Instance, InstanceName, PartialInstance};
 use bevy_app::App;
 use bevy_ecs::{
     entity::Entity,

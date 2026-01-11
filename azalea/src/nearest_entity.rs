@@ -1,5 +1,6 @@
+use azalea_core::entity_id::MinecraftEntityId;
 use azalea_entity::Position;
-use azalea_world::{InstanceName, MinecraftEntityId};
+use azalea_world::InstanceName;
 use bevy_ecs::{
     prelude::Entity,
     query::{QueryFilter, With},

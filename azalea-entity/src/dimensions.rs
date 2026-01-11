@@ -1,11 +1,11 @@
 use azalea_core::{aabb::Aabb, position::Vec3};
 use azalea_registry::builtin::EntityKind;
-use bevy_ecs::component::Component;
 
 use crate::Pose;
 
-/// A component that contains the size of an entity and their eye height.
-#[derive(Clone, Component, Debug, Default)]
+/// The size of an entity and its eye height.
+#[cfg_attr(feature = "bevy_ecs", derive(bevy_ecs::component::Component))]
+#[derive(Clone, Debug, Default)]
 pub struct EntityDimensions {
     pub width: f32,
     pub height: f32,

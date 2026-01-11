@@ -7,14 +7,14 @@ use std::collections::{HashMap, hash_map};
 use azalea_core::attribute_modifier_operation::AttributeModifierOperation;
 use azalea_inventory::components::AttributeModifier;
 use azalea_registry::{builtin::Attribute, identifier::Identifier};
-use bevy_ecs::component::Component;
 use thiserror::Error;
 
-/// A component that contains the current attribute values for an entity.
+/// The current attribute values for an entity.
 ///
 /// Each attribute can have multiple modifiers, and these modifiers are the
 /// result of things like sprinting or enchantments.
-#[derive(Clone, Component, Debug)]
+#[cfg_attr(feature = "bevy_ecs", derive(bevy_ecs::component::Component))]
+#[derive(Clone, Debug)]
 pub struct Attributes {
     pub movement_speed: AttributeInstance,
     pub sneaking_speed: AttributeInstance,

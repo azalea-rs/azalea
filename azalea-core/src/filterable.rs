@@ -4,13 +4,12 @@ use std::{
 };
 
 use azalea_buf::{AzaleaRead, AzaleaReadLimited, AzaleaReadVar, AzaleaWrite};
-use serde::Serialize;
 
 /// Used for written books.
-#[derive(Serialize)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
 pub struct Filterable<T> {
     pub raw: T,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub filtered: Option<T>,
 }
 

@@ -3,6 +3,7 @@ mod events;
 use std::{collections::HashSet, sync::Arc};
 
 use azalea_core::{
+    entity_id::MinecraftEntityId,
     game_type::GameMode,
     position::{ChunkPos, Vec3},
 };
@@ -18,7 +19,7 @@ use azalea_protocol::{
     packets::{ConnectionProtocol, game::*},
 };
 use azalea_registry::builtin::EntityKind;
-use azalea_world::{InstanceContainer, InstanceName, MinecraftEntityId, PartialInstance};
+use azalea_world::{InstanceContainer, InstanceName, PartialInstance};
 use bevy_ecs::{prelude::*, system::SystemState};
 pub use events::*;
 use tracing::{debug, error, trace, warn};

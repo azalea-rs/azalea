@@ -5,7 +5,7 @@ use azalea_registry::{
 };
 use simdnbt::owned::NbtCompound;
 
-use crate::registry_holder::{self, RegistryDeserializesTo, RegistryHolder};
+use crate::registry_holder::{RegistryDeserializesTo, RegistryHolder};
 
 pub trait DataRegistryWithKey: DataRegistry {
     fn key<'s, 'a: 's>(
@@ -63,8 +63,8 @@ macro_rules! define_default_deserializes_to {
 }
 
 define_deserializes_to! {
-    data::DimensionKind => registry_holder::dimension_type::DimensionKindElement,
-    data::Enchantment => registry_holder::enchantment::EnchantmentData,
+    data::DimensionKind => crate::registry_holder::dimension_type::DimensionKindElement,
+    data::Enchantment => crate::registry_holder::enchantment::EnchantmentData,
 }
 
 define_default_deserializes_to! {

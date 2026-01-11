@@ -1,9 +1,9 @@
 use std::sync::Arc;
 
 use azalea_buf::AzBuf;
+use azalea_core::heightmap_kind::HeightmapKind;
 use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_registry::builtin::BlockEntityKind;
-use azalea_world::heightmap::HeightmapKind;
 use simdnbt::owned::Nbt;
 
 use super::c_light_update::ClientboundLightUpdatePacketData;

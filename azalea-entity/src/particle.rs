@@ -1,16 +1,15 @@
 use azalea_block::BlockState;
 use azalea_buf::AzBuf;
-use azalea_core::{color::RgbColor, position::BlockPos};
+use azalea_core::{color::RgbColor, entity_id::MinecraftEntityId, position::BlockPos};
 use azalea_inventory::ItemStack;
 use azalea_registry::builtin::ParticleKind;
-use azalea_world::MinecraftEntityId;
-use bevy_ecs::component::Component;
 
 // the order of this enum must be kept in sync with ParticleKind, otherwise
 // we get errors parsing particles.
 
 /// A [`ParticleKind`] with data potentially attached to it.
-#[derive(AzBuf, Clone, Component, Debug, PartialEq)]
+#[cfg_attr(feature = "bevy_ecs", derive(bevy_ecs::component::Component))]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub enum Particle {
     AngryVillager,
     Block(BlockParticle),
