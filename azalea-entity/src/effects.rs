@@ -62,7 +62,7 @@ impl AzaleaWrite for MobEffectFlags {
     }
 }
 
-/// An ECS component that stores the active mob effects on an entity.
+/// The active mob effects on an entity.
 #[cfg_attr(feature = "bevy_ecs", derive(bevy_ecs::component::Component))]
 #[derive(Clone, Debug, Default)]
 pub struct ActiveEffects(pub HashMap<MobEffect, MobEffectData>);

@@ -9,7 +9,7 @@ use azalea_inventory::components::AttributeModifier;
 use azalea_registry::{builtin::Attribute, identifier::Identifier};
 use thiserror::Error;
 
-/// A component that contains the current attribute values for an entity.
+/// The current attribute values for an entity.
 ///
 /// Each attribute can have multiple modifiers, and these modifiers are the
 /// result of things like sprinting or enchantments.

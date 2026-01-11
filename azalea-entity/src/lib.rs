@@ -104,8 +104,8 @@ impl Debug for EntityUuid {
 
 /// The position of the entity right now.
 ///
-/// You are free to change the value of this component; there's systems that
-/// update the indexes automatically.
+/// If this is being used as an ECS component then you are free to modify it,
+/// because there are systems that will update the indexes automatically.
 ///
 /// Its value is set to a default of [`Vec3::ZERO`] when it receives the login
 /// packet, its true position may be set ticks later.
@@ -143,48 +143,7 @@ impl From<&Position> for BlockPos {
     }
 }
 
-/// The second most recent position of the entity that was sent over the
-/// network.
-///
-/// This is currently only updated for our own local player entities.
-#[cfg_attr(feature = "bevy_ecs", derive(bevy_ecs::component::Component))]
-#[derive(Clone, Copy, Debug, Default, Deref, DerefMut, PartialEq)]
-pub struct LastSentPosition(Vec3);
-impl From<&LastSentPosition> for Vec3 {
-    fn from(value: &LastSentPosition) -> Self {
-        value.0
-    }
-}
-impl From<LastSentPosition> for ChunkPos {
-    fn from(value: LastSentPosition) -> Self {
-        ChunkPos::from(&value.0)
-    }
-}
-impl From<LastSentPosition> for BlockPos {
-    fn from(value: LastSentPosition) -> Self {
-        BlockPos::from(&value.0)
-    }
-}
-impl From<&LastSentPosition> for ChunkPos {
-    fn from(value: &LastSentPosition) -> Self {
-        ChunkPos::from(value.0)
-    }
-}
-impl From<&LastSentPosition> for BlockPos {
-    fn from(value: &LastSentPosition) -> Self {
-        BlockPos::from(value.0)
-    }
-}
-
-/// A component for entities that can jump.
-///
-/// If this is true, the entity will try to jump every tick. It's equivalent to
-/// the space key being held in vanilla.
-#[cfg_attr(feature = "bevy_ecs", derive(bevy_ecs::component::Component))]
-#[derive(Clone, Copy, Debug, Default, Deref, DerefMut, Eq, PartialEq)]
-pub struct Jumping(pub bool);
-
-/// A component that contains the direction an entity is looking, in degrees.
+/// The direction that an entity is looking, in degrees.
 ///
 /// To avoid flagging anticheats, consider using [`Self::update`] when updating
 /// the values of this struct.
@@ -443,10 +402,10 @@ impl Attributes {
     }
 }
 
-/// A component that contains the abilities the player has, like flying
-/// or instantly breaking blocks.
+/// The abilities that a player has, such as flying or being able to instantly
+/// break blocks.
 ///
-/// This is only present on local players.
+/// This should only be present on local players.
 #[cfg_attr(feature = "bevy_ecs", derive(bevy_ecs::component::Component))]
 #[derive(Clone, Debug, Default)]
 pub struct PlayerAbilities {
@@ -462,6 +421,8 @@ pub struct PlayerAbilities {
     pub walking_speed: f32,
 }
 
+/// The type of fluid that is at an entity's eye position, while also accounting
+/// for fluid height.
 #[cfg_attr(feature = "bevy_ecs", derive(bevy_ecs::component::Component))]
 #[derive(Clone, Copy, Debug, Deref, DerefMut, PartialEq)]
 pub struct FluidOnEyes(FluidKind);

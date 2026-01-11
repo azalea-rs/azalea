@@ -1,5 +1,5 @@
 use azalea_block::fluid_state::FluidKind;
-use azalea_core::position::{ChunkPos, Vec3};
+use azalea_core::position::{BlockPos, ChunkPos, Vec3};
 use azalea_registry::{builtin::EntityKind, identifier::Identifier};
 use azalea_world::InstanceName;
 use bevy_ecs::{bundle::Bundle, component::Component};
@@ -7,8 +7,8 @@ use derive_more::{Deref, DerefMut};
 use uuid::Uuid;
 
 use crate::{
-    ActiveEffects, Attributes, EntityUuid, FluidOnEyes, Jumping, LastSentPosition, LookDirection,
-    Physics, Position, dimensions::EntityDimensions, indexing::EntityChunkPos,
+    ActiveEffects, Attributes, EntityUuid, FluidOnEyes, LookDirection, Physics, Position,
+    dimensions::EntityDimensions, indexing::EntityChunkPos,
 };
 
 /// A bundle of components that every entity has.
@@ -110,3 +110,42 @@ pub struct Crouching(bool);
 /// This is updated by a system in `azalea-client`.
 #[derive(Component)]
 pub struct HasClientLoaded;
+
+/// The second most recent position of the entity that was sent over the
+/// network.
+///
+/// This is currently only updated for our own local player entities.
+#[derive(Clone, Copy, Component, Debug, Default, Deref, DerefMut, PartialEq)]
+pub struct LastSentPosition(Vec3);
+impl From<&LastSentPosition> for Vec3 {
+    fn from(value: &LastSentPosition) -> Self {
+        value.0
+    }
+}
+impl From<LastSentPosition> for ChunkPos {
+    fn from(value: LastSentPosition) -> Self {
+        ChunkPos::from(&value.0)
+    }
+}
+impl From<LastSentPosition> for BlockPos {
+    fn from(value: LastSentPosition) -> Self {
+        BlockPos::from(&value.0)
+    }
+}
+impl From<&LastSentPosition> for ChunkPos {
+    fn from(value: &LastSentPosition) -> Self {
+        ChunkPos::from(value.0)
+    }
+}
+impl From<&LastSentPosition> for BlockPos {
+    fn from(value: &LastSentPosition) -> Self {
+        BlockPos::from(value.0)
+    }
+}
+
+/// A component for entities that can jump.
+///
+/// If this is true, the entity will try to jump every tick. It's equivalent to
+/// the space key being held in vanilla.
+#[derive(Clone, Copy, Component, Debug, Default, Deref, DerefMut, Eq, PartialEq)]
+pub struct Jumping(pub bool);

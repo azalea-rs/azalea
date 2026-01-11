@@ -13,7 +13,8 @@ use azalea_inventory::{
 
 use crate::PlayerAbilities;
 
-/// A component present on all local players that have an inventory.
+/// A local player's inventory and related data, including the container that
+/// they may have opened.
 #[cfg_attr(feature = "bevy_ecs", derive(bevy_ecs::component::Component))]
 #[derive(Clone, Debug)]
 pub struct Inventory {

@@ -4,10 +4,10 @@ use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite};
 use azalea_core::bitset::FixedBitSet;
 use azalea_entity::HumanoidArm;
 
-/// A component that contains some of the "settings" for this client that are
-/// sent to the server, such as render distance.
+/// Some of the "settings" for this client that are sent to the server,
+/// including render distance.
 ///
-/// This is only present on local players.
+/// This should only be present on local players.
 #[cfg_attr(feature = "bevy_ecs", derive(bevy_ecs::component::Component))]
 #[derive(AzBuf, Clone, Debug, Eq, PartialEq)]
 pub struct ClientInformation {
