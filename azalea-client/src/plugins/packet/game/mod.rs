@@ -1261,7 +1261,7 @@ impl GamePacketHandler<'_> {
     pub fn delete_chat(&mut self, _p: &ClientboundDeleteChat) {}
 
     pub fn explode(&mut self, p: &ClientboundExplode) {
-        println!("Got explode packet {p:?}");
+        debug!("Got explode packet {p:?}");
 
         as_system::<Commands>(self.ecs, |mut knockback_events| {
             if let Some(knockback) = p.player_knockback {
