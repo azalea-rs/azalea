@@ -1267,7 +1267,7 @@ impl GamePacketHandler<'_> {
             if let Some(knockback) = p.player_knockback {
                 knockback_events.trigger(KnockbackEvent {
                     entity: self.player,
-                    data: KnockbackData::Set(knockback),
+                    data: KnockbackData::Add(knockback),
                 });
             }
         });
