@@ -17,7 +17,8 @@
 
 use std::sync::Arc;
 
-use azalea_world::{MinecraftEntityId, PartialInstance};
+use azalea_core::entity_id::MinecraftEntityId;
+use azalea_world::PartialInstance;
 use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
 use parking_lot::RwLock;

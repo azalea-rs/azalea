@@ -13,7 +13,6 @@ use azalea_core::{
 };
 use azalea_inventory::{ItemStack, components};
 use azalea_registry::builtin::{VillagerKind, VillagerProfession};
-use bevy_ecs::component::Component;
 use derive_more::Deref;
 use enum_as_inner::EnumAsInner;
 use uuid::Uuid;
@@ -154,7 +153,8 @@ pub struct Rotations {
     pub z: f32,
 }
 
-#[derive(AzBuf, Clone, Component, Copy, Debug, Default, Eq, PartialEq)]
+#[cfg_attr(feature = "bevy_ecs", derive(bevy_ecs::component::Component))]
+#[derive(AzBuf, Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub enum Pose {
     #[default]
     Standing = 0,

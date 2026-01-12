@@ -1,3 +1,4 @@
+mod components;
 pub mod indexing;
 mod relative_updates;
 
@@ -5,21 +6,22 @@ use std::collections::HashSet;
 
 use azalea_block::{BlockState, BlockTrait, fluid_state::FluidKind, properties};
 use azalea_core::{
+    entity_id::MinecraftEntityId,
     position::{BlockPos, ChunkPos},
     tick::GameTick,
 };
 use azalea_registry::{builtin::BlockKind, tags};
-use azalea_world::{InstanceContainer, InstanceName, MinecraftEntityId};
+use azalea_world::{ChunkStorage, InstanceContainer, InstanceName};
 use bevy_app::{App, Plugin, PostUpdate, Update};
 use bevy_ecs::prelude::*;
+pub use components::*;
 use derive_more::{Deref, DerefMut};
 use indexing::EntityUuidIndex;
 pub use relative_updates::RelativeEntityUpdate;
 use tracing::debug;
 
 use crate::{
-    Crouching, Dead, EntityKindComponent, FluidOnEyes, LocalEntity, LookDirection, OnClimbable,
-    Physics, Pose, Position,
+    FluidOnEyes, LookDirection, Physics, Pose, Position,
     dimensions::{EntityDimensions, calculate_dimensions},
     metadata::Health,
 };
@@ -197,13 +199,8 @@ pub struct LoadedBy(pub HashSet<Entity>);
 
 pub fn clamp_look_direction(mut query: Query<&mut LookDirection>) {
     for mut look_direction in &mut query {
-        *look_direction = apply_clamp_look_direction(*look_direction);
+        *look_direction = look_direction.clamped();
     }
-}
-pub fn apply_clamp_look_direction(mut look_direction: LookDirection) -> LookDirection {
-    look_direction.x_rot = look_direction.x_rot.clamp(-90., 90.);
-
-    look_direction
 }
 
 /// Sets the position of the entity.
@@ -279,11 +276,47 @@ pub fn update_in_loaded_chunk(
     }
 }
 
-/// A component that indicates whether the client has loaded.
-///
-/// This is updated by a system in `azalea-client`.
-#[derive(Component)]
-pub struct HasClientLoaded;
+/// Get the position of the block below the entity, but a little lower.
+pub fn on_pos_legacy(chunk_storage: &ChunkStorage, position: Position) -> BlockPos {
+    on_pos(0.2, chunk_storage, position)
+}
+
+// int x = Mth.floor(this.position.x);
+// int y = Mth.floor(this.position.y - (double)var1);
+// int z = Mth.floor(this.position.z);
+// BlockPos var5 = new BlockPos(x, y, z);
+// if (this.level.getBlockState(var5).isAir()) {
+//    BlockPos var6 = var5.below();
+//    BlockState var7 = this.level.getBlockState(var6);
+//    if (var7.is(BlockTags.FENCES) || var7.is(BlockTags.WALLS) ||
+// var7.getBlock() instanceof FenceGateBlock) {       return var6;
+//    }
+// }
+// return var5;
+pub fn on_pos(offset: f32, chunk_storage: &ChunkStorage, pos: Position) -> BlockPos {
+    let x = pos.x.floor() as i32;
+    let y = (pos.y - offset as f64).floor() as i32;
+    let z = pos.z.floor() as i32;
+    let pos = BlockPos { x, y, z };
+
+    // TODO: check if block below is a fence, wall, or fence gate
+    let block_pos = pos.down(1);
+    let block_state = chunk_storage.get_block_state(block_pos);
+    if block_state == Some(BlockState::AIR) {
+        let block_pos_below = block_pos.down(1);
+        let block_state_below = chunk_storage.get_block_state(block_pos_below);
+        if let Some(_block_state_below) = block_state_below {
+            // if block_state_below.is_fence()
+            //     || block_state_below.is_wall()
+            //     || block_state_below.is_fence_gate()
+            // {
+            //     return block_pos_below;
+            // }
+        }
+    }
+
+    pos
+}
 
 #[cfg(test)]
 mod tests {

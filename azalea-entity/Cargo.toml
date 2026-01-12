@@ -13,9 +13,9 @@ azalea-chat = { workspace = true, features = ["azalea-buf"] }
 azalea-core.workspace = true
 azalea-inventory.workspace = true
 azalea-registry.workspace = true
-azalea-world.workspace = true
-bevy_app.workspace = true
-bevy_ecs.workspace = true
+azalea-world = { workspace = true, optional = true }
+bevy_app = { workspace = true, optional = true }
+bevy_ecs = { workspace = true, optional = true }
 derive_more.workspace = true
 enum-as-inner.workspace = true
 nohash-hasher.workspace = true
@@ -23,6 +23,9 @@ parking_lot.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
 uuid.workspace = true
+
+[features]
+bevy_ecs = ["dep:bevy_ecs", "dep:bevy_app", "dep:azalea-world"]
 
 [lints]
 workspace = true

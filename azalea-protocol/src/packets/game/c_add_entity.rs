@@ -1,9 +1,9 @@
 use azalea_buf::AzBuf;
-use azalea_core::{delta::LpVec3, position::Vec3};
-use azalea_entity::{EntityBundle, metadata::apply_default_metadata};
+use azalea_core::{delta::LpVec3, entity_id::MinecraftEntityId, position::Vec3};
 use azalea_protocol_macros::ClientboundGamePacket;
-use azalea_registry::{builtin::EntityKind, identifier::Identifier};
-use azalea_world::MinecraftEntityId;
+use azalea_registry::builtin::EntityKind;
+#[cfg(feature = "bevy_ecs")]
+use azalea_registry::identifier::Identifier;
 use uuid::Uuid;
 
 #[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
@@ -35,12 +35,14 @@ impl ClientboundAddEntity {
     ///
     /// You must apply the metadata after inserting the bundle with
     /// [`Self::apply_metadata`].
-    pub fn as_entity_bundle(&self, world_name: Identifier) -> EntityBundle {
-        EntityBundle::new(self.uuid, self.position, self.entity_type, world_name)
+    #[cfg(feature = "bevy_ecs")]
+    pub fn as_entity_bundle(&self, world_name: Identifier) -> azalea_entity::EntityBundle {
+        azalea_entity::EntityBundle::new(self.uuid, self.position, self.entity_type, world_name)
     }
 
     /// Apply the default metadata for the given entity.
+    #[cfg(feature = "bevy_ecs")]
     pub fn apply_metadata(&self, entity: &mut bevy_ecs::system::EntityCommands) {
-        apply_default_metadata(entity, self.entity_type);
+        azalea_entity::metadata::apply_default_metadata(entity, self.entity_type);
     }
 }

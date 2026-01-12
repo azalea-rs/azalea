@@ -3,7 +3,7 @@ use std::io::{self, Cursor, Write};
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar};
 use azalea_core::position::Vec3;
 use azalea_protocol_macros::ClientboundGamePacket;
-use azalea_world::MinecraftEntityId;
+use azalea_core::entity_id::MinecraftEntityId;
 
 #[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundDamageEvent {

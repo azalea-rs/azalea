@@ -13,7 +13,7 @@ criterion.workspace = true
 [dependencies]
 azalea-block.workspace = true
 azalea-buf.workspace = true
-azalea-core = { workspace = true, features = ["bevy_ecs"] }
+azalea-core = { workspace = true, features = ["serde", "bevy_ecs"] }
 azalea-registry.workspace = true
 bevy_ecs.workspace = true
 derive_more = { workspace = true, features = ["deref", "deref_mut"] }

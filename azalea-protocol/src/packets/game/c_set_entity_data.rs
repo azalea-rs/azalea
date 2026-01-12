@@ -1,7 +1,7 @@
 use azalea_buf::AzBuf;
 use azalea_entity::EntityMetadataItems;
 use azalea_protocol_macros::ClientboundGamePacket;
-use azalea_world::MinecraftEntityId;
+use azalea_core::entity_id::MinecraftEntityId;
 
 #[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundSetEntityData {
