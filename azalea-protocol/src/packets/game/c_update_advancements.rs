@@ -22,7 +22,7 @@ pub struct ClientboundUpdateAdvancements {
 #[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct Advancement {
     pub parent_id: Option<Identifier>,
-    pub display: Option<DisplayInfo>,
+    pub display: Option<Box<DisplayInfo>>,
     pub requirements: Vec<Vec<String>>,
     pub sends_telemetry_event: bool,
 }
@@ -134,7 +134,7 @@ mod tests {
                 id: Identifier::new("minecraft:test"),
                 value: Advancement {
                     parent_id: None,
-                    display: Some(DisplayInfo {
+                    display: Some(Box::new(DisplayInfo {
                         title: FormattedText::from("title".to_owned()),
                         description: FormattedText::from("description".to_owned()),
                         icon: ItemStack::Empty,
@@ -144,7 +144,7 @@ mod tests {
                         background: None,
                         x: 0.0,
                         y: 0.0,
-                    }),
+                    })),
                     requirements: Vec::new(),
                     sends_telemetry_event: false,
                 },

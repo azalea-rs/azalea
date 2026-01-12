@@ -406,6 +406,8 @@ where
 mod tests {
     use std::io::Cursor;
 
+    use azalea_buf::AzaleaRead as _;
+
     use crate::{packets::game::ClientboundGamePacket, read::deserialize_packet};
 
     #[test]
@@ -432,5 +434,24 @@ mod tests {
             ]
             .as_slice(),
         ));
+    }
+    #[test]
+    fn fuzzed_4() {
+        // memory leak in DataComponentPatch
+        let _ = deserialize_packet::<ClientboundGamePacket>(&mut Cursor::new(
+            [94, 94, 70, 52, 0, 6, 0].as_slice(),
+        ));
+    }
+    #[test]
+    fn fuzzed_5() {
+        // also a memory leak in DataComponentPatch
+        let _ = deserialize_packet::<ClientboundGamePacket>(&mut Cursor::new(
+            [94, 94, 70, 52, 0, 6, 0, 6, 0].as_slice(),
+        ));
+    }
+    #[test]
+    fn fuzzed_6() {
+        // memory leak in simdnbt
+        let _ = simdnbt::owned::Nbt::azalea_read(&mut Cursor::new([10, 10, 0, 0, 0].as_slice()));
     }
 }

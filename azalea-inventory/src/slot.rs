@@ -359,7 +359,12 @@ impl DataComponentPatch {
         kind: DataComponentKind,
         value: Option<DataComponentUnion>,
     ) {
-        self.components.insert(kind, value);
+        let existing = self.components.insert(kind, value);
+        if let Some(Some(mut existing)) = existing {
+            // SAFETY: we just got it from self.components, so it must already be the
+            // correct type
+            unsafe { existing.drop_as(kind) };
+        }
     }
 }
 
@@ -384,21 +389,23 @@ impl AzaleaRead for DataComponentPatch {
             return Ok(DataComponentPatch::default());
         }
 
-        let mut components = IndexMap::new();
+        let mut components = DataComponentPatch::default();
+
         for _ in 0..components_with_data_count {
             let component_kind = DataComponentKind::azalea_read(buf)?;
             let component_data = DataComponentUnion::azalea_read_as(component_kind, buf)?;
-            components.insert(component_kind, Some(component_data));
+            // SAFETY: it must be of the correct type because we just read using
+            // azalea_read_as
+            unsafe { components.unchecked_insert_component(component_kind, Some(component_data)) };
         }
 
         for _ in 0..components_without_data_count {
             let component_kind = DataComponentKind::azalea_read(buf)?;
-            components.insert(component_kind, None);
+            // SAFETY: the value is None so the kind doesn't matter anyways
+            unsafe { components.unchecked_insert_component(component_kind, None) };
         }
 
-        Ok(DataComponentPatch {
-            components: Box::new(components),
-        })
+        Ok(components)
     }
 }
 

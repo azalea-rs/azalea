@@ -128,7 +128,8 @@ macro_rules! define_data_components {
 
                 Ok(match kind {
                     $( DataComponentKind::$x => {
-                        Self { $x: ManuallyDrop::new($x::azalea_read(buf)?) }
+                        let v = $x::azalea_read(buf)?;
+                        Self { $x: ManuallyDrop::new(v) }
                     }, )*
                 })
             }
