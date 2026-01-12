@@ -9,6 +9,8 @@ Additionally, you should be aware that this fuzzer only targets `azalea-protocol
 ## Usage
 
 ```sh
+cargo install cargo-fuzz
+
 cargo fuzz run clientbound_game -s none -- -rss_limit_mb=16384
 # other valid targets: {clientbound,serverbound}_{config,game,handshake,login,status}
 # note: the rss_limit_mb is increased (from the default of 2048) so libfuzzer
