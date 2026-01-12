@@ -23,6 +23,7 @@ is breaking anyways, semantic versioning is not followed.
 - `Client::component` and `entity_component` now return a mapped RwLock guard instead of cloning the component.
 - Most functions on `Client` that previously returned `Entity` now return `EntityRef` instead.
 - Deprecate pathfinder `InverseGoal`.
+- Add a `bevy_ecs` feature to `azalea-protocol` and related crates to allow disabling the Bevy dependencies.
 
 ### Fixed
 
@@ -30,6 +31,8 @@ is breaking anyways, semantic versioning is not followed.
 - Attack cooldowns were being applied incorrectly for tools.
 - `Identifier` had an incorrect `Hash` and `PartialEq` implementation.
 - The pathfinder now avoids magma blocks.
+- Explosion knockback was being applied incorrectly.
+- Fixed several panics/OOMs in `azalea-protocol`.
 
 ## [0.15.0+mc1.21.11] - 2025-12-18
 
