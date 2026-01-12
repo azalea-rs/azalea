@@ -1,0 +1,75 @@
+[package]
+name = "azalea-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2024"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+azalea-protocol = { path = "..", default-features = false }
+
+[[bin]]
+name = "clientbound_config"
+path = "fuzz_targets/clientbound_config.rs"
+test = false
+doc = false
+bench = false
+[[bin]]
+name = "clientbound_game"
+path = "fuzz_targets/clientbound_game.rs"
+test = false
+doc = false
+bench = false
+[[bin]]
+name = "clientbound_handshake"
+path = "fuzz_targets/clientbound_handshake.rs"
+test = false
+doc = false
+bench = false
+[[bin]]
+name = "clientbound_login"
+path = "fuzz_targets/clientbound_login.rs"
+test = false
+doc = false
+bench = false
+[[bin]]
+name = "clientbound_status"
+path = "fuzz_targets/clientbound_status.rs"
+test = false
+doc = false
+bench = false
+
+
+[[bin]]
+name = "serverbound_config"
+path = "fuzz_targets/serverbound_config.rs"
+test = false
+doc = false
+bench = false
+[[bin]]
+name = "serverbound_game"
+path = "fuzz_targets/serverbound_game.rs"
+test = false
+doc = false
+bench = false
+[[bin]]
+name = "serverbound_handshake"
+path = "fuzz_targets/serverbound_handshake.rs"
+test = false
+doc = false
+bench = false
+[[bin]]
+name = "serverbound_login"
+path = "fuzz_targets/serverbound_login.rs"
+test = false
+doc = false
+bench = false
+[[bin]]
+name = "serverbound_status"
+path = "fuzz_targets/serverbound_status.rs"
+test = false
+doc = false
+bench = false

@@ -133,7 +133,7 @@ pub enum HolderSet<D: Registry, Identifier: AzaleaRead + AzaleaWrite> {
 }
 impl<D: Registry, Identifier: AzaleaRead + AzaleaWrite> AzaleaRead for HolderSet<D, Identifier> {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let size = i32::azalea_read_var(buf)? - 1;
+        let size = i32::azalea_read_var(buf)?.wrapping_sub(1);
         if size == -1 {
             let key = Identifier::azalea_read(buf)?;
             Ok(Self::Named {

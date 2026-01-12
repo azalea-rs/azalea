@@ -43,7 +43,7 @@ indexmap.workspace = true
 reqwest = { workspace = true, optional = true, features = ["socks"] }
 
 [features]
-default = ["online-mode"]
+default = ["online-mode", "connecting"]
 connecting = []
 online-mode = ["azalea-auth/online-mode", "dep:reqwest"]
 bevy_ecs = ["dep:bevy_ecs", "azalea-entity/bevy_ecs", "azalea-core/bevy_ecs"]

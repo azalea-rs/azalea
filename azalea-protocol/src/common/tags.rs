@@ -19,11 +19,11 @@ pub struct Tags {
 impl AzaleaRead for TagMap {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let length = u32::azalea_read_var(buf)? as usize;
-        let mut data = IndexMap::with_capacity(length);
+        let mut data = IndexMap::new();
         for _ in 0..length {
             let tag_type = Identifier::azalea_read(buf)?;
             let tags_count = i32::azalea_read_var(buf)? as usize;
-            let mut tags_vec = Vec::with_capacity(tags_count);
+            let mut tags_vec = Vec::new();
             for _ in 0..tags_count {
                 let tags = Tags::azalea_read(buf)?;
                 tags_vec.push(tags);

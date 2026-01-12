@@ -408,6 +408,9 @@ impl<'de> Deserialize<'de> for FormattedText {
             ));
         }
         let json_array = json.as_array().unwrap();
+        if json_array.is_empty() {
+            return Ok(FormattedText::default());
+        }
         // the first item in the array is the one that we're gonna return, the others
         // are siblings
         let mut component =

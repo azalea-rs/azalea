@@ -401,3 +401,36 @@ where
 
     Ok(Some(buf))
 }
+
+#[cfg(test)]
+mod tests {
+    use std::io::Cursor;
+
+    use crate::{packets::game::ClientboundGamePacket, read::deserialize_packet};
+
+    #[test]
+    fn fuzzed_1() {
+        // oom: checks for unbounded TagMap
+        let _ = deserialize_packet::<ClientboundGamePacket>(&mut Cursor::new(
+            [132, 1, 255, 255, 255, 255, 255].as_slice(),
+        ));
+    }
+    #[test]
+    fn fuzzed_2() {
+        // oom: also checks for unbounded TagMap
+        let _ = deserialize_packet::<ClientboundGamePacket>(&mut Cursor::new(
+            [132, 1, 75, 0, 255, 255, 255, 255, 24, 0].as_slice(),
+        ));
+    }
+    #[test]
+    fn fuzzed_3() {
+        // panic: integer overflow in HolderSet::azalea_read
+        let _ = deserialize_packet::<ClientboundGamePacket>(&mut Cursor::new(
+            [
+                94, 44, 157, 38, 61, 37, 37, 37, 37, 37, 37, 65, 128, 128, 1, 1, 255, 252, 128,
+                128, 128, 128, 128, 128, 128, 40, 0,
+            ]
+            .as_slice(),
+        ));
+    }
+}
