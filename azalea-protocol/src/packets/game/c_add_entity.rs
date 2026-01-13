@@ -3,7 +3,7 @@ use azalea_core::{delta::LpVec3, entity_id::MinecraftEntityId, position::Vec3};
 use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_registry::builtin::EntityKind;
 #[cfg(feature = "bevy_ecs")]
-use azalea_registry::identifier::Identifier;
+use azalea_world::WorldName;
 use uuid::Uuid;
 
 #[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
@@ -36,7 +36,7 @@ impl ClientboundAddEntity {
     /// You must apply the metadata after inserting the bundle with
     /// [`Self::apply_metadata`].
     #[cfg(feature = "bevy_ecs")]
-    pub fn as_entity_bundle(&self, world_name: Identifier) -> azalea_entity::EntityBundle {
+    pub fn as_entity_bundle(&self, world_name: WorldName) -> azalea_entity::EntityBundle {
         azalea_entity::EntityBundle::new(self.uuid, self.position, self.entity_type, world_name)
     }
 

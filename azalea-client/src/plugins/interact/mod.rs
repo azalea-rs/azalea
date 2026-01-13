@@ -30,7 +30,7 @@ use azalea_protocol::packets::game::{
     s_swing::ServerboundSwing,
     s_use_item_on::ServerboundUseItemOn,
 };
-use azalea_world::Instance;
+use azalea_world::World;
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 use tracing::warn;
@@ -140,7 +140,7 @@ impl BlockStatePredictionHandler {
         }
     }
 
-    pub fn end_prediction_up_to(&mut self, seq: u32, world: &Instance) {
+    pub fn end_prediction_up_to(&mut self, seq: u32, world: &World) {
         let mut to_remove = Vec::new();
         for (pos, state) in &self.server_state {
             if state.seq > seq {
@@ -377,10 +377,10 @@ pub fn handle_entity_interact(
 ///
 /// If this is false, then we can interact with the block.
 ///
-/// Passing the inventory, block position, and instance is necessary for the
-/// adventure mode check.
+/// The world, block position, and inventory are used for the adventure mode
+/// check.
 pub fn check_is_interaction_restricted(
-    instance: &Instance,
+    world: &World,
     block_pos: BlockPos,
     game_mode: &GameMode,
     inventory: &Inventory,
@@ -393,7 +393,7 @@ pub fn check_is_interaction_restricted(
             let held_item = inventory.held_item();
             match &held_item {
                 ItemStack::Present(item) => {
-                    let block = instance.chunks.get_block_state(block_pos);
+                    let block = world.chunks.get_block_state(block_pos);
                     let Some(block) = block else {
                         // block isn't loaded so just say that it is restricted
                         return true;

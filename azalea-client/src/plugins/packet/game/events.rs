@@ -5,8 +5,7 @@ use azalea_protocol::packets::{
     Packet,
     game::{ClientboundGamePacket, ClientboundPlayerCombatKill, ServerboundGamePacket},
 };
-use azalea_registry::identifier::Identifier;
-use azalea_world::Instance;
+use azalea_world::{World, WorldName};
 use bevy_ecs::prelude::*;
 use parking_lot::RwLock;
 use tracing::{error, trace};
@@ -138,16 +137,18 @@ pub struct ResourcePackEvent {
     pub prompt: Option<FormattedText>,
 }
 
-/// An instance (aka world, dimension) was loaded by a client.
+/// A world instance (aka dimension) was loaded by a client.
 ///
-/// Since the instance is given to you as a weak reference, it won't be able to
-/// be `upgrade`d if all local players leave it.
+/// Since the world is given to you as a weak reference, it won't be able to be
+/// `upgrade`d if all local players unload it.
 #[derive(Clone, Debug, Message)]
-pub struct InstanceLoadedEvent {
+pub struct WorldLoadedEvent {
     pub entity: Entity,
-    pub name: Identifier,
-    pub instance: Weak<RwLock<Instance>>,
+    pub name: WorldName,
+    pub world: Weak<RwLock<World>>,
 }
+#[deprecated = "renamed to `WorldLoadedEvent`."]
+pub type InstanceLoadedEvent = WorldLoadedEvent;
 
 /// A Bevy trigger that's sent when our client receives a [`ClientboundPing`]
 /// packet in the game state.

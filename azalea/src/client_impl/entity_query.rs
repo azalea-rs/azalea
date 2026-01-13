@@ -2,7 +2,7 @@ use std::{any, sync::Arc};
 
 use azalea_core::position::Vec3;
 use azalea_entity::Position;
-use azalea_world::InstanceName;
+use azalea_world::WorldName;
 use bevy_ecs::{
     component::Component,
     entity::Entity,
@@ -44,9 +44,9 @@ impl Client {
     /// # Examples
     ///
     /// ```
-    /// # use azalea_world::InstanceName;
+    /// # use azalea_world::WorldName;
     /// # fn example(client: &azalea::Client) {
-    /// let world_name = client.component::<InstanceName>();
+    /// let world_name = client.component::<WorldName>();
     /// # }
     pub fn component<T: Component>(&self) -> MappedRwLockReadGuard<'_, T> {
         self.get_component::<T>().unwrap_or_else(|| {
@@ -150,9 +150,9 @@ impl Client {
 
     /// Quickly returns an [`EntityRef`] for an arbitrary entity that
     /// matches the given predicate function that is in the same
-    /// [`Instance`] as the client.
+    /// [`World`] as the client.
     ///
-    /// [`Instance`]: azalea_world::Instance
+    /// [`World`]: azalea_world::World
     pub fn any_entity_by<Q: QueryData, F: QueryFilter>(
         &self,
         predicate: impl EntityPredicate<Q, F>,
@@ -162,7 +162,7 @@ impl Client {
     }
     /// Quickly returns a lightweight [`Entity`] for an arbitrary entity that
     /// matches the given predicate function that is in the same
-    /// [`Instance`] as the client.
+    /// [`World`] as the client.
     ///
     /// To get an [`EntityRef`], consider using [`Self::any_entity_by`]
     /// instead.
@@ -184,13 +184,13 @@ impl Client {
     /// # }
     /// ```
     ///
-    /// [`Instance`]: azalea_world::Instance
+    /// [`World`]: azalea_world::World
     pub fn any_entity_id_by<Q: QueryData, F: QueryFilter>(
         &self,
         predicate: impl EntityPredicate<Q, F>,
     ) -> Option<Entity> {
-        let instance_name = self.get_component::<InstanceName>()?.clone();
-        predicate.find_any(self.ecs.clone(), &instance_name)
+        let world_name = self.get_component::<WorldName>()?.clone();
+        predicate.find_any(self.ecs.clone(), &world_name)
     }
 
     /// Return an [`EntityRef`] for the nearest entity that matches the
@@ -225,7 +225,7 @@ impl Client {
         self.nearest_entity_ids_by(predicate).first().copied()
     }
 
-    /// Returns an array of all [`EntityRef`]s in the instance that match the
+    /// Returns an array of all [`EntityRef`]s in the world that match the
     /// predicate, sorted by nearest first.
     ///
     /// To only get the nearest entity, consider using
@@ -240,7 +240,7 @@ impl Client {
             .map(|e| self.entity_ref_for(e))
             .collect()
     }
-    /// Returns an array of all [`Entity`]s in the instance that match the
+    /// Returns an array of all [`Entity`]s in the world that match the
     /// predicate, sorted by nearest first.
     ///
     /// To only get the nearest entity, consider using
@@ -259,18 +259,18 @@ impl Client {
         &self,
         predicate: impl EntityPredicate<Q, F>,
     ) -> Box<[Entity]> {
-        let (instance_name, position) = {
-            let Some(instance_name) = self.get_component::<InstanceName>() else {
+        let (world_name, position) = {
+            let Some(world_name) = self.get_component::<WorldName>() else {
                 return Box::new([]);
             };
             let Some(position) = self.get_component::<Position>() else {
                 return Box::new([]);
             };
 
-            (instance_name.clone(), **position)
+            (world_name.clone(), **position)
         };
 
-        predicate.find_all_sorted(self.ecs.clone(), &instance_name, position)
+        predicate.find_all_sorted(self.ecs.clone(), &world_name, position)
     }
 
     /// Get a component from an entity.
@@ -316,15 +316,11 @@ impl Client {
 }
 
 pub trait EntityPredicate<Q: QueryData, Filter: QueryFilter> {
-    fn find_any(
-        &self,
-        ecs_lock: Arc<RwLock<World>>,
-        instance_name: &InstanceName,
-    ) -> Option<Entity>;
+    fn find_any(&self, ecs_lock: Arc<RwLock<World>>, world_name: &WorldName) -> Option<Entity>;
     fn find_all_sorted(
         &self,
         ecs_lock: Arc<RwLock<World>>,
-        instance_name: &InstanceName,
+        world_name: &WorldName,
         nearest_to: Vec3,
     ) -> Box<[Entity]>;
 }
@@ -333,30 +329,26 @@ where
     F: Fn(ROQueryItem<Q>) -> bool,
     for<'w, 's> <<Q as QueryData>::ReadOnly as QueryData>::Item<'w, 's>: Copy,
 {
-    fn find_any(
-        &self,
-        ecs_lock: Arc<RwLock<World>>,
-        instance_name: &InstanceName,
-    ) -> Option<Entity> {
+    fn find_any(&self, ecs_lock: Arc<RwLock<World>>, world_name: &WorldName) -> Option<Entity> {
         let mut ecs = ecs_lock.write();
-        let mut query = ecs.query_filtered::<(Entity, &InstanceName, Q), Filter>();
+        let mut query = ecs.query_filtered::<(Entity, &WorldName, Q), Filter>();
         query
             .iter(&ecs)
-            .find(|(_, e_instance_name, q)| *e_instance_name == instance_name && (self)(*q))
+            .find(|(_, e_world_name, q)| *e_world_name == world_name && (self)(*q))
             .map(|(e, _, _)| e)
     }
 
     fn find_all_sorted(
         &self,
         ecs_lock: Arc<RwLock<World>>,
-        instance_name: &InstanceName,
+        world_name: &WorldName,
         nearest_to: Vec3,
     ) -> Box<[Entity]> {
         let mut ecs = ecs_lock.write();
-        let mut query = ecs.query_filtered::<(Entity, &InstanceName, &Position, Q), Filter>();
+        let mut query = ecs.query_filtered::<(Entity, &WorldName, &Position, Q), Filter>();
         let mut entities = query
             .iter(&ecs)
-            .filter(|(_, e_instance_name, _, q)| *e_instance_name == instance_name && (self)(*q))
+            .filter(|(_, e_world_name, _, q)| *e_world_name == world_name && (self)(*q))
             .map(|(e, _, position, _)| (e, Vec3::from(position)))
             .collect::<Vec<(Entity, Vec3)>>();
 

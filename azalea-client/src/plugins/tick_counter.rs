@@ -1,6 +1,6 @@
 use azalea_core::tick::GameTick;
 use azalea_physics::PhysicsSystems;
-use azalea_world::InstanceName;
+use azalea_world::WorldName;
 use bevy_app::{App, Plugin};
 use bevy_ecs::prelude::*;
 
@@ -27,9 +27,9 @@ impl Plugin for TickCounterPlugin {
     }
 }
 
-/// Increment the [`TicksConnected`] component on every entity
-/// that lives in an instance.
-pub fn increment_counter(mut query: Query<&mut TicksConnected, With<InstanceName>>) {
+/// Increment the [`TicksConnected`] component for every entity that's in any
+/// world.
+pub fn increment_counter(mut query: Query<&mut TicksConnected, With<WorldName>>) {
     for mut counter in &mut query {
         counter.0 += 1;
     }

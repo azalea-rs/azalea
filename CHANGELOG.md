@@ -18,6 +18,7 @@ is breaking anyways, semantic versioning is not followed.
 
 ### Changed
 
+- Rename `Instance` to `World` (and rename other related types).
 - Move the `Client` struct out of `azalea-client` into `azalea`.
 - `Client::ecs` is now an `RwLock` instead of a `Mutex`.
 - `Client::component` and `entity_component` now return a mapped RwLock guard instead of cloning the component.

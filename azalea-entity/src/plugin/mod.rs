@@ -11,7 +11,7 @@ use azalea_core::{
     tick::GameTick,
 };
 use azalea_registry::{builtin::BlockKind, tags};
-use azalea_world::{ChunkStorage, InstanceContainer, InstanceName};
+use azalea_world::{ChunkStorage, WorldName, Worlds};
 use bevy_app::{App, Plugin, PostUpdate, Update};
 use bevy_ecs::prelude::*;
 pub use components::*;
@@ -97,22 +97,17 @@ pub fn add_dead(mut commands: Commands, query: Query<(Entity, &Health), Changed<
 }
 
 pub fn update_fluid_on_eyes(
-    mut query: Query<(
-        &mut FluidOnEyes,
-        &Position,
-        &EntityDimensions,
-        &InstanceName,
-    )>,
-    instance_container: Res<InstanceContainer>,
+    mut query: Query<(&mut FluidOnEyes, &Position, &EntityDimensions, &WorldName)>,
+    worlds: Res<Worlds>,
 ) {
-    for (mut fluid_on_eyes, position, dimensions, instance_name) in query.iter_mut() {
-        let Some(instance) = instance_container.get(instance_name) else {
+    for (mut fluid_on_eyes, position, dimensions, world_name) in query.iter_mut() {
+        let Some(world) = worlds.get(world_name) else {
             continue;
         };
 
         let adjusted_eye_y = position.y + (dimensions.eye_height as f64) - 0.1111111119389534;
         let eye_block_pos = BlockPos::from(position.with_y(adjusted_eye_y));
-        let fluid_at_eye = instance
+        let fluid_at_eye = world
             .read()
             .get_fluid_state(eye_block_pos)
             .unwrap_or_default();
@@ -126,10 +121,10 @@ pub fn update_fluid_on_eyes(
 }
 
 pub fn update_on_climbable(
-    mut query: Query<(&mut OnClimbable, &Position, &InstanceName), With<LocalEntity>>,
-    instance_container: Res<InstanceContainer>,
+    mut query: Query<(&mut OnClimbable, &Position, &WorldName), With<LocalEntity>>,
+    worlds: Res<Worlds>,
 ) {
-    for (mut on_climbable, position, instance_name) in query.iter_mut() {
+    for (mut on_climbable, position, world_name) in query.iter_mut() {
         // TODO: there's currently no gamemode component that can be accessed from here,
         // maybe LocalGameMode should be replaced with two components, maybe called
         // EntityGameMode and PreviousGameMode?
@@ -138,27 +133,27 @@ pub fn update_on_climbable(
         //     continue;
         // }
 
-        let Some(instance) = instance_container.get(instance_name) else {
+        let Some(world) = worlds.get(world_name) else {
             continue;
         };
 
-        let instance = instance.read();
+        let world = world.read();
 
         let block_pos = BlockPos::from(position);
-        let block_state_at_feet = instance.get_block_state(block_pos).unwrap_or_default();
+        let block_state_at_feet = world.get_block_state(block_pos).unwrap_or_default();
         let block_at_feet = Box::<dyn BlockTrait>::from(block_state_at_feet);
         let registry_block_at_feet = block_at_feet.as_registry_block();
 
         **on_climbable = tags::blocks::CLIMBABLE.contains(&registry_block_at_feet)
             || (tags::blocks::TRAPDOORS.contains(&registry_block_at_feet)
-                && is_trapdoor_useable_as_ladder(block_state_at_feet, block_pos, &instance));
+                && is_trapdoor_usable_as_ladder(block_state_at_feet, block_pos, &world));
     }
 }
 
-fn is_trapdoor_useable_as_ladder(
+fn is_trapdoor_usable_as_ladder(
     block_state: BlockState,
     block_pos: BlockPos,
-    instance: &azalea_world::Instance,
+    world: &azalea_world::World,
 ) -> bool {
     // trapdoor must be open
     if !block_state
@@ -169,9 +164,7 @@ fn is_trapdoor_useable_as_ladder(
     }
 
     // block below must be a ladder
-    let block_below = instance
-        .get_block_state(block_pos.down(1))
-        .unwrap_or_default();
+    let block_below = world.get_block_state(block_pos.down(1)).unwrap_or_default();
     let registry_block_below = Box::<dyn BlockTrait>::from(block_below).as_registry_block();
     if registry_block_below != BlockKind::Ladder {
         return false;
@@ -257,17 +250,17 @@ pub struct InLoadedChunk;
 /// Update the [`InLoadedChunk`] component for all entities in the world.
 pub fn update_in_loaded_chunk(
     mut commands: bevy_ecs::system::Commands,
-    query: Query<(Entity, &InstanceName, &Position)>,
-    instance_container: Res<InstanceContainer>,
+    query: Query<(Entity, &WorldName, &Position)>,
+    worlds: Res<Worlds>,
 ) {
-    for (entity, instance_name, position) in &query {
+    for (entity, world_name, position) in &query {
         let player_chunk_pos = ChunkPos::from(position);
-        let Some(instance_lock) = instance_container.get(instance_name) else {
+        let Some(world_lock) = worlds.get(world_name) else {
             commands.entity(entity).remove::<InLoadedChunk>();
             continue;
         };
 
-        let in_loaded_chunk = instance_lock.read().chunks.get(&player_chunk_pos).is_some();
+        let in_loaded_chunk = world_lock.read().chunks.get(&player_chunk_pos).is_some();
         if in_loaded_chunk {
             commands.entity(entity).insert(InLoadedChunk);
         } else {
@@ -326,20 +319,20 @@ mod tests {
     };
     use azalea_core::position::{BlockPos, ChunkPos};
     use azalea_registry::builtin::BlockKind;
-    use azalea_world::{Chunk, ChunkStorage, Instance, PartialInstance};
+    use azalea_world::{Chunk, ChunkStorage, PartialWorld, World};
 
-    use super::is_trapdoor_useable_as_ladder;
+    use super::is_trapdoor_usable_as_ladder;
 
     #[test]
     fn test_is_trapdoor_useable_as_ladder() {
-        let mut partial_instance = PartialInstance::default();
+        let mut partial_world = PartialWorld::default();
         let mut chunks = ChunkStorage::default();
-        partial_instance.chunks.set(
+        partial_world.chunks.set(
             &ChunkPos { x: 0, z: 0 },
             Some(Chunk::default()),
             &mut chunks,
         );
-        partial_instance.chunks.set_block_state(
+        partial_world.chunks.set_block_state(
             BlockPos::new(0, 0, 0),
             BlockKind::Stone.into(),
             &chunks,
@@ -349,7 +342,7 @@ mod tests {
             facing: FacingCardinal::East,
             waterlogged: false,
         };
-        partial_instance
+        partial_world
             .chunks
             .set_block_state(BlockPos::new(0, 0, 0), ladder.into(), &chunks);
 
@@ -360,17 +353,17 @@ mod tests {
             powered: false,
             waterlogged: false,
         };
-        partial_instance
+        partial_world
             .chunks
             .set_block_state(BlockPos::new(0, 1, 0), trapdoor.into(), &chunks);
 
-        let instance = Instance::from(chunks);
-        let trapdoor_matches_ladder = is_trapdoor_useable_as_ladder(
-            instance
+        let world = World::from(chunks);
+        let trapdoor_matches_ladder = is_trapdoor_usable_as_ladder(
+            world
                 .get_block_state(BlockPos::new(0, 1, 0))
                 .unwrap_or_default(),
             BlockPos::new(0, 1, 0),
-            &instance,
+            &world,
         );
 
         assert!(trapdoor_matches_ladder);

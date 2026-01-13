@@ -536,6 +536,7 @@ dependencies = [
  "azalea-inventory",
  "azalea-protocol-macros",
  "azalea-registry",
+ "azalea-world",
  "bevy_ecs",
  "flate2",
  "futures",

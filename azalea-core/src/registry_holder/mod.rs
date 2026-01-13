@@ -26,7 +26,7 @@ use tracing::error;
 ///
 /// This is the registry that is sent to the client upon login.
 ///
-/// Note that `azalea-client` stores registries in `Instance` rather than
+/// Note that `azalea-client` stores registries per-world rather than
 /// per-client like you might expect. This is an optimization for swarms to
 /// reduce memory usage, since registries are expected to be the same for every
 /// client in a world.

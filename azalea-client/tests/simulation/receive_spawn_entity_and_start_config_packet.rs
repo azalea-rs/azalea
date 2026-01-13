@@ -5,7 +5,7 @@ use azalea_protocol::packets::{
     game::{ClientboundAddEntity, ClientboundStartConfiguration},
 };
 use azalea_registry::builtin::EntityKind;
-use azalea_world::InstanceName;
+use azalea_world::WorldName;
 use uuid::Uuid;
 
 #[test]
@@ -15,7 +15,7 @@ fn test_receive_spawn_entity_and_start_config_packet() {
     let mut simulation = Simulation::new(ConnectionProtocol::Game);
     simulation.receive_packet(default_login_packet());
     simulation.tick();
-    assert!(simulation.has_component::<InstanceName>());
+    assert!(simulation.has_component::<WorldName>());
     simulation.tick();
 
     simulation.receive_packet(ClientboundAddEntity {

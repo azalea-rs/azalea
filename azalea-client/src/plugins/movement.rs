@@ -31,12 +31,12 @@ use azalea_protocol::{
     },
 };
 use azalea_registry::builtin::EntityKind;
-use azalea_world::Instance;
+use azalea_world::World;
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 
 use crate::{
-    local_player::{Hunger, InstanceHolder, LocalGameMode},
+    local_player::{Hunger, LocalGameMode, WorldHolder},
     packet::game::SendGamePacketEvent,
 };
 
@@ -296,7 +296,7 @@ pub fn local_player_ai_step(
             &PlayerAbilities,
             &metadata::Swimming,
             &metadata::SleepingPos,
-            &InstanceHolder,
+            &WorldHolder,
             &Position,
             Option<&Hunger>,
             Option<&LastSentInput>,
@@ -316,7 +316,7 @@ pub fn local_player_ai_step(
         abilities,
         swimming,
         sleeping_pos,
-        instance_holder,
+        world_holder,
         position,
         hunger,
         last_sent_input,
@@ -333,7 +333,7 @@ pub fn local_player_ai_step(
         let is_passenger = false;
         let is_sleeping = sleeping_pos.is_some();
 
-        let world = instance_holder.instance.read();
+        let world = world_holder.shared.read();
         let ctx = CanPlayerFitCtx {
             world: &world,
             entity,
@@ -587,16 +587,16 @@ pub fn update_pose(
         &Physics,
         &PhysicsState,
         &LocalGameMode,
-        &InstanceHolder,
+        &WorldHolder,
         &Position,
     )>,
     aabb_query: AabbQuery,
     collidable_entity_query: CollidableEntityQuery,
 ) {
-    for (entity, mut pose, physics, physics_state, game_mode, instance_holder, position) in
+    for (entity, mut pose, physics, physics_state, game_mode, world_holder, position) in
         query.iter_mut()
     {
-        let world = instance_holder.instance.read();
+        let world = world_holder.shared.read();
         let world = &*world;
         let ctx = CanPlayerFitCtx {
             world,
@@ -642,7 +642,7 @@ pub fn update_pose(
 }
 
 struct CanPlayerFitCtx<'world, 'state, 'a, 'b> {
-    world: &'a Instance,
+    world: &'a World,
     entity: Entity,
     position: Position,
     aabb_query: &'a AabbQuery<'world, 'state, 'b>,

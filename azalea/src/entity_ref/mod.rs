@@ -57,9 +57,9 @@ impl EntityRef {
     /// # Examples
     ///
     /// ```
-    /// # use azalea_world::InstanceName;
+    /// # use azalea_world::WorldName;
     /// # fn example(client: &azalea::Client) {
-    /// let world_name = client.component::<InstanceName>();
+    /// let world_name = client.component::<WorldName>();
     /// # }
     pub fn component<T: Component>(&self) -> MappedRwLockReadGuard<'_, T> {
         self.client.entity_component(self.entity)

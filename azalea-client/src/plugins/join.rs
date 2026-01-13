@@ -11,7 +11,7 @@ use azalea_protocol::{
         login::{ClientboundLoginPacket, ServerboundHello, ServerboundLoginPacket},
     },
 };
-use azalea_world::Instance;
+use azalea_world::World;
 use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
 use bevy_tasks::{IoTaskPool, Task, futures_lite::future};
@@ -23,6 +23,7 @@ use crate::{
     LocalPlayerBundle,
     account::Account,
     connection::RawConnection,
+    local_player::WorldHolder,
     packet::login::{InLoginState, SendLoginPacketEvent},
 };
 
@@ -204,12 +205,12 @@ pub fn poll_create_connection_task(
             let (read_conn, write_conn) = conn.into_split();
             let (read_conn, write_conn) = (read_conn.raw, write_conn.raw);
 
-            let instance = Instance::default();
-            let instance_holder = crate::local_player::InstanceHolder::new(
+            let world = World::default();
+            let world_holder = WorldHolder::new(
                 entity,
                 // default to an empty world, it'll be set correctly later when we
                 // get the login packet
-                Arc::new(RwLock::new(instance)),
+                Arc::new(RwLock::new(world)),
             );
 
             entity_mut.insert((
@@ -220,7 +221,7 @@ pub fn poll_create_connection_task(
                         write_conn,
                         ConnectionProtocol::Login,
                     ),
-                    instance_holder,
+                    world_holder,
                     metadata: azalea_entity::metadata::PlayerMetadataBundle::default(),
                 },
                 InLoginState,

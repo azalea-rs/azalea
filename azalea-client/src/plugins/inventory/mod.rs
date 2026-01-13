@@ -11,7 +11,7 @@ use azalea_protocol::packets::game::{
     s_set_carried_item::ServerboundSetCarriedItem,
 };
 use azalea_registry::builtin::MenuKind;
-use azalea_world::{InstanceContainer, InstanceName};
+use azalea_world::{WorldName, Worlds};
 use bevy_app::{App, Plugin};
 use bevy_ecs::prelude::*;
 use indexmap::IndexMap;
@@ -167,10 +167,10 @@ pub struct ContainerClickEvent {
 pub fn handle_container_click_event(
     container_click: On<ContainerClickEvent>,
     mut commands: Commands,
-    mut query: Query<(Entity, &mut Inv, Option<&PlayerAbilities>, &InstanceName)>,
-    instance_container: Res<InstanceContainer>,
+    mut query: Query<(Entity, &mut Inv, Option<&PlayerAbilities>, &WorldName)>,
+    worlds: Res<Worlds>,
 ) {
-    let (entity, mut inventory, player_abilities, instance_name) =
+    let (entity, mut inventory, player_abilities, world_name) =
         query.get_mut(container_click.entity).unwrap();
     if inventory.id != container_click.window_id {
         error!(
@@ -180,7 +180,7 @@ pub fn handle_container_click_event(
         return;
     }
 
-    let Some(instance) = instance_container.get(instance_name) else {
+    let Some(world) = worlds.get(world_name) else {
         return;
     };
 
@@ -191,7 +191,7 @@ pub fn handle_container_click_event(
     );
     let new_slots = inventory.menu().slots();
 
-    let registry_holder = &instance.read().registries;
+    let registry_holder = &world.read().registries;
 
     // see which slots changed after clicking and put them in the map the server
     // uses this to check if we desynced

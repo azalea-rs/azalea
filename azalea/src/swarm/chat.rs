@@ -2,12 +2,12 @@
 
 // How the chat event works (to avoid firing the event multiple times):
 // ---
-// There's a shared queue of all the chat messages
-// Each bot contains an index of the farthest message we've seen
-// When a bot receives a chat messages, it looks into the queue to find the
-// earliest instance of the message content that's after the bot's chat index.
-// If it finds it, then its personal index is simply updated. Otherwise, fire
-// the event and add to the queue.
+// There's a shared queue of all the chat messages. Each bot contains an index
+// of the farthest message that it has seen. When a bot receives a chat
+// message, it looks into the shared queue to find the earliest instance of the
+// message content, that's after the bot's current chat index. If it finds it,
+// then its personal index is simply updated. Otherwise, it fires the event and
+// adds to the shared queue.
 //
 // To make sure the queue doesn't grow too large, we keep a `chat_min_index`
 // in Swarm that's set to the smallest index of all the bots, and we remove all

@@ -11,7 +11,7 @@ use azalea_entity::{
     EntityUpdateSystems, PlayerAbilities, indexing::EntityIdIndex, inventory::Inventory,
 };
 use azalea_physics::local_player::PhysicsState;
-use azalea_world::InstanceContainer;
+use azalea_world::Worlds;
 use bevy_app::{App, AppExit, Plugin, PluginsState, SubApp, Update};
 use bevy_ecs::{
     message::MessageCursor,
@@ -29,7 +29,7 @@ use crate::{
     connection::RawConnection,
     cookies::ServerCookies,
     interact::BlockStatePredictionHandler,
-    local_player::{Hunger, InstanceHolder, PermissionLevel, TabList},
+    local_player::{Hunger, PermissionLevel, TabList, WorldHolder},
     mining,
     movement::LastSentLookDirection,
     player::retroactively_add_game_profile_component,
@@ -43,7 +43,7 @@ use crate::{
 #[derive(Bundle)]
 pub struct LocalPlayerBundle {
     pub raw_connection: RawConnection,
-    pub instance_holder: InstanceHolder,
+    pub world_holder: WorldHolder,
 
     pub metadata: azalea_entity::metadata::PlayerMetadataBundle,
 }
@@ -56,7 +56,7 @@ pub struct LocalPlayerBundle {
 /// If you want to filter for this, use [`InGameState`].
 #[derive(Bundle, Default)]
 pub struct JoinedClientBundle {
-    // note that InstanceHolder isn't here because it's set slightly before we fully join the world
+    // note that WorldHolder isn't here because it's set slightly before we fully join the world
     pub physics_state: PhysicsState,
     pub inventory: Inventory,
     pub tab_list: TabList,
@@ -98,7 +98,7 @@ impl Plugin for AzaleaPlugin {
                     .after(crate::join::handle_start_join_server_event),
             ),
         )
-        .init_resource::<InstanceContainer>()
+        .init_resource::<Worlds>()
         .init_resource::<TabList>();
     }
 }

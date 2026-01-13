@@ -6,7 +6,7 @@ use azalea_protocol::packets::{
     config::{ClientboundFinishConfiguration, ClientboundRegistryData},
 };
 use azalea_registry::{DataRegistry, data::DimensionKind, identifier::Identifier};
-use azalea_world::InstanceName;
+use azalea_world::WorldName;
 use simdnbt::owned::{NbtCompound, NbtTag};
 
 #[test]
@@ -19,12 +19,12 @@ fn test_change_dimension_to_nether_and_back() {
 
 fn generic_test_change_dimension_to_nether_and_back(using_respawn: bool) {
     let make_basic_login_or_respawn_packet = if using_respawn {
-        |dimension: DimensionKind, instance_name: Identifier| {
-            make_basic_respawn_packet(dimension, instance_name).into_variant()
+        |dimension: DimensionKind, world_name: Identifier| {
+            make_basic_respawn_packet(dimension, world_name).into_variant()
         }
     } else {
-        |dimension: DimensionKind, instance_name: Identifier| {
-            make_basic_login_packet(dimension, instance_name).into_variant()
+        |dimension: DimensionKind, world_name: Identifier| {
+            make_basic_login_packet(dimension, world_name).into_variant()
         }
     };
 
@@ -81,9 +81,9 @@ fn generic_test_change_dimension_to_nether_and_back(using_respawn: bool) {
     simulation.tick();
 
     assert_eq!(
-        *simulation.component::<InstanceName>(),
+        *simulation.component::<WorldName>(),
         Identifier::new("azalea:a"),
-        "InstanceName should be azalea:a after setting dimension to that"
+        "WorldName should be azalea:a after setting dimension to that"
     );
 
     simulation.receive_packet(make_basic_empty_chunk(ChunkPos::new(0, 0), (384 + 64) / 16));
@@ -108,9 +108,9 @@ fn generic_test_change_dimension_to_nether_and_back(using_respawn: bool) {
         "chunk should not exist immediately after changing dimensions"
     );
     assert_eq!(
-        *simulation.component::<InstanceName>(),
+        *simulation.component::<WorldName>(),
         Identifier::new("azalea:b"),
-        "InstanceName should be azalea:b after changing dimensions to that"
+        "WorldName should be azalea:b after changing dimensions to that"
     );
 
     simulation.receive_packet(make_basic_empty_chunk(ChunkPos::new(0, 0), 256 / 16));
@@ -136,9 +136,9 @@ fn generic_test_change_dimension_to_nether_and_back(using_respawn: bool) {
     simulation.tick();
 
     assert_eq!(
-        *simulation.component::<InstanceName>(),
+        *simulation.component::<WorldName>(),
         Identifier::new("azalea:a"),
-        "InstanceName should be azalea:a after setting dimension back to that"
+        "WorldName should be azalea:a after setting dimension back to that"
     );
     assert!(
         simulation.chunk(ChunkPos::new(0, 0)).is_none(),

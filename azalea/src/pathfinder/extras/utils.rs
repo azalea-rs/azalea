@@ -115,13 +115,13 @@ pub fn get_hit_result_while_looking_at_with_eye_position(
 #[cfg(test)]
 mod tests {
     use azalea_core::position::ChunkPos;
-    use azalea_world::{Chunk, PartialInstance};
+    use azalea_world::{Chunk, PartialWorld};
 
     use super::*;
 
     #[test]
     fn test_cannot_reach_block_through_wall_when_y_is_negative() {
-        let mut partial_world = PartialInstance::default();
+        let mut partial_world = PartialWorld::default();
         let mut world = ChunkStorage::default();
         partial_world
             .chunks
