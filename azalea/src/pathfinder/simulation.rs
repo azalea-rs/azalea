@@ -13,8 +13,8 @@ use azalea_entity::{
     Attributes, LookDirection, Physics, Position, dimensions::EntityDimensions,
     inventory::Inventory,
 };
-use azalea_registry::{builtin::EntityKind, identifier::Identifier};
-use azalea_world::{ChunkStorage, Instance, InstanceContainer, PartialInstance};
+use azalea_registry::builtin::EntityKind;
+use azalea_world::{ChunkStorage, PartialWorld, World, WorldName, Worlds};
 use bevy_app::App;
 use bevy_ecs::prelude::*;
 use parking_lot::RwLock;
@@ -45,14 +45,14 @@ impl SimulatedPlayerBundle {
     }
 }
 
-fn simulation_instance_name() -> Identifier {
-    Identifier::new("azalea:simulation")
+fn simulation_world_name() -> WorldName {
+    WorldName::new("azalea:simulation")
 }
 
-fn create_simulation_instance(chunks: ChunkStorage) -> (App, Arc<RwLock<Instance>>) {
-    let instance_name = simulation_instance_name();
+fn create_simulation_world(chunks: ChunkStorage) -> (App, Arc<RwLock<World>>) {
+    let world_name = simulation_world_name();
 
-    let instance = Arc::new(RwLock::new(Instance {
+    let world = Arc::new(RwLock::new(World {
         chunks,
         ..Default::default()
     }));
@@ -72,8 +72,8 @@ fn create_simulation_instance(chunks: ChunkStorage) -> (App, Arc<RwLock<Instance
         azalea_client::interact::InteractPlugin,
         azalea_client::loading::PlayerLoadedPlugin,
     ))
-    .insert_resource(InstanceContainer {
-        instances: [(instance_name.clone(), Arc::downgrade(&instance.clone()))]
+    .insert_resource(Worlds {
+        map: [(world_name.clone(), Arc::downgrade(&world.clone()))]
             .iter()
             .cloned()
             .collect(),
@@ -83,14 +83,14 @@ fn create_simulation_instance(chunks: ChunkStorage) -> (App, Arc<RwLock<Instance
         schedule.set_executor_kind(bevy_ecs::schedule::ExecutorKind::SingleThreaded);
     });
 
-    (app, instance)
+    (app, world)
 }
 
 fn create_simulation_player_complete_bundle(
-    instance: Arc<RwLock<Instance>>,
+    world: Arc<RwLock<World>>,
     player: &SimulatedPlayerBundle,
 ) -> impl Bundle {
-    let instance_name = simulation_instance_name();
+    let world_name = simulation_world_name();
 
     (
         MinecraftEntityId(0),
@@ -100,12 +100,12 @@ fn create_simulation_player_complete_bundle(
             Uuid::nil(),
             *player.position,
             EntityKind::Player,
-            instance_name,
+            world_name,
         ),
-        azalea_client::local_player::InstanceHolder {
-            // partial_instance is never actually used by the pathfinder so
-            partial_instance: Arc::new(RwLock::new(PartialInstance::default())),
-            instance: instance.clone(),
+        azalea_client::local_player::WorldHolder {
+            // the partial world is never actually used by the pathfinder, so we can leave it empty
+            partial: Arc::new(RwLock::new(PartialWorld::default())),
+            shared: world.clone(),
         },
         Inventory::default(),
         LocalGameMode::from(GameMode::Survival),
@@ -117,11 +117,11 @@ fn create_simulation_player_complete_bundle(
 }
 
 fn create_simulation_player(
-    ecs: &mut World,
-    instance: Arc<RwLock<Instance>>,
+    ecs: &mut bevy_ecs::world::World,
+    world: Arc<RwLock<World>>,
     player: SimulatedPlayerBundle,
 ) -> Entity {
-    let mut entity = ecs.spawn(create_simulation_player_complete_bundle(instance, &player));
+    let mut entity = ecs.spawn(create_simulation_player_complete_bundle(world, &player));
     entity.insert(player);
     entity.id()
 }
@@ -130,17 +130,17 @@ fn create_simulation_player(
 pub struct Simulation {
     pub app: App,
     pub entity: Entity,
-    _instance: Arc<RwLock<Instance>>,
+    _world: Arc<RwLock<World>>,
 }
 
 impl Simulation {
     pub fn new(chunks: ChunkStorage, player: SimulatedPlayerBundle) -> Self {
-        let (mut app, instance) = create_simulation_instance(chunks);
-        let entity = create_simulation_player(app.world_mut(), instance.clone(), player);
+        let (mut app, world) = create_simulation_world(chunks);
+        let entity = create_simulation_player(app.world_mut(), world.clone(), player);
         Self {
             app,
             entity,
-            _instance: instance,
+            _world: world,
         }
     }
 
@@ -168,12 +168,12 @@ impl Simulation {
 /// A set of simulations, useful for efficiently doing multiple simulations.
 pub struct SimulationSet {
     pub app: App,
-    instance: Arc<RwLock<Instance>>,
+    world: Arc<RwLock<World>>,
 }
 impl SimulationSet {
     pub fn new(chunks: ChunkStorage) -> Self {
-        let (app, instance) = create_simulation_instance(chunks);
-        Self { app, instance }
+        let (app, world) = create_simulation_world(chunks);
+        Self { app, world }
     }
     pub fn tick(&mut self) {
         self.app.update();
@@ -181,7 +181,7 @@ impl SimulationSet {
     }
 
     pub fn spawn(&mut self, player: SimulatedPlayerBundle) -> Entity {
-        create_simulation_player(self.app.world_mut(), self.instance.clone(), player)
+        create_simulation_player(self.app.world_mut(), self.world.clone(), player)
     }
     pub fn despawn(&mut self, entity: Entity) {
         self.app.world_mut().despawn(entity);

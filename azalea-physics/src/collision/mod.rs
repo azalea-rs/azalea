@@ -19,7 +19,7 @@ use azalea_entity::{
     metadata::Sprinting,
 };
 use azalea_registry::builtin::BlockKind;
-use azalea_world::{ChunkStorage, Instance};
+use azalea_world::{ChunkStorage, World};
 use bevy_ecs::{entity::Entity, world::Mut};
 pub use blocks::BlockWithShape;
 pub use discrete_voxel_shape::*;
@@ -110,7 +110,7 @@ fn collide(ctx: &MoveCtx, movement: Vec3) -> Vec3 {
 
 pub struct MoveCtx<'world, 'state, 'a, 'b> {
     pub mover_type: MoverType,
-    pub world: &'a Instance,
+    pub world: &'a World,
     pub position: Mut<'a, Position>,
     pub physics: &'a mut Physics,
     pub source_entity: Entity,
@@ -338,7 +338,7 @@ fn is_above_ground(ctx: &CanFallAtLeastCtx, max_up_step: f32) -> bool {
 
 pub struct CanFallAtLeastCtx<'world, 'state, 'a, 'b> {
     physics: &'a Physics,
-    world: &'a Instance,
+    world: &'a World,
     source_entity: Entity,
     aabb_query: &'a AabbQuery<'world, 'state, 'b>,
     collidable_entity_query: &'a CollidableEntityQuery<'world, 'state>,
@@ -377,7 +377,7 @@ fn can_fall_at_least(
 fn collide_bounding_box(
     movement: Vec3,
     entity_bounding_box: &Aabb,
-    world: &Instance,
+    world: &World,
     entity_collisions: &[VoxelShape],
 ) -> Vec3 {
     let mut collision_boxes: Vec<VoxelShape> = Vec::with_capacity(entity_collisions.len() + 1);
@@ -437,7 +437,7 @@ fn collide_with_shapes(
 
 /// Get the [`VoxelShape`] for the given fluid state.
 ///
-/// The instance and position are required so it can check if the block above is
+/// The world and position are required so it can check if the block above is
 /// also the same fluid type.
 pub fn fluid_shape(fluid: &FluidState, world: &ChunkStorage, pos: BlockPos) -> &'static VoxelShape {
     if fluid.amount == 9 {

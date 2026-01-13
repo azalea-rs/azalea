@@ -11,7 +11,7 @@ use azalea_core::{
 };
 use azalea_physics::collision::BlockWithShape;
 use azalea_registry::{builtin::BlockKind, tags};
-use azalea_world::{Instance, palette::PalettedContainer};
+use azalea_world::{World, palette::PalettedContainer};
 use parking_lot::RwLock;
 
 use super::{mining::MiningCache, rel_block_pos::RelBlockPos};
@@ -25,7 +25,7 @@ pub struct CachedWorld {
     origin: BlockPos,
 
     min_y: i32,
-    world_lock: Arc<RwLock<Instance>>,
+    world_lock: Arc<RwLock<World>>,
 
     // we store `PalettedContainer`s instead of `Chunk`s or `Section`s because it doesn't contain
     // any unnecessary data like heightmaps or biomes.
@@ -99,7 +99,7 @@ pub struct CachedSection {
 }
 
 impl CachedWorld {
-    pub fn new(world_lock: Arc<RwLock<Instance>>, origin: BlockPos) -> Self {
+    pub fn new(world_lock: Arc<RwLock<World>>, origin: BlockPos) -> Self {
         let min_y = world_lock.read().chunks.min_y;
         Self {
             origin,
@@ -675,13 +675,13 @@ pub fn is_block_state_water(block_state: BlockState) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use azalea_world::{Chunk, ChunkStorage, PartialInstance};
+    use azalea_world::{Chunk, ChunkStorage, PartialWorld};
 
     use super::*;
 
     #[test]
     fn test_is_passable() {
-        let mut partial_world = PartialInstance::default();
+        let mut partial_world = PartialWorld::default();
         let mut world = ChunkStorage::default();
 
         partial_world
@@ -703,7 +703,7 @@ mod tests {
 
     #[test]
     fn test_is_solid() {
-        let mut partial_world = PartialInstance::default();
+        let mut partial_world = PartialWorld::default();
         let mut world = ChunkStorage::default();
         partial_world
             .chunks
@@ -724,7 +724,7 @@ mod tests {
 
     #[test]
     fn test_is_standable() {
-        let mut partial_world = PartialInstance::default();
+        let mut partial_world = PartialWorld::default();
         let mut world = ChunkStorage::default();
         partial_world
             .chunks

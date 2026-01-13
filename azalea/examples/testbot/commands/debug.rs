@@ -15,7 +15,7 @@ use azalea::{
 use azalea_core::hit_result::HitResult;
 use azalea_entity::{EntityKindComponent, metadata};
 use azalea_inventory::components::MaxStackSize;
-use azalea_world::InstanceContainer;
+use azalea_world::Worlds;
 use bevy_app::AppExit;
 use bevy_ecs::{message::Messages, query::With, world::EntityRef};
 use parking_lot::Mutex;
@@ -331,16 +331,16 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
                 // info.layout().size()).unwrap();
 
                 match name.as_ref() {
-                    "azalea_world::container::InstanceContainer" => {
-                        let instance_container = ecs.resource::<InstanceContainer>();
+                    "azalea_world::container::Worlds" => {
+                        let worlds = ecs.resource::<Worlds>();
 
-                        for (instance_name, instance) in &instance_container.instances {
-                            writeln!(report, "- Name: {instance_name}").unwrap();
-                            writeln!(report, "- Reference count: {}", instance.strong_count())
+                        for (world_name, world) in &worlds.map {
+                            writeln!(report, "- Name: {world_name}").unwrap();
+                            writeln!(report, "- Reference count: {}", world.strong_count())
                                 .unwrap();
-                            if let Some(instance) = instance.upgrade() {
-                                let instance = instance.read();
-                                let strong_chunks = instance
+                            if let Some(world) = world.upgrade() {
+                                let world = world.read();
+                                let strong_chunks = world
                                     .chunks
                                     .map
                                     .iter()
@@ -350,13 +350,13 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
                                     report,
                                     "- Chunks: {} strongly referenced, {} in map",
                                     strong_chunks,
-                                    instance.chunks.map.len()
+                                    world.chunks.map.len()
                                 )
                                 .unwrap();
                                 writeln!(
                                     report,
                                     "- Entities: {}",
-                                    instance.entities_by_chunk.len()
+                                    world.entities_by_chunk.len()
                                 )
                                 .unwrap();
                             }

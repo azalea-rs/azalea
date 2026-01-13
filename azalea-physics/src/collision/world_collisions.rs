@@ -7,14 +7,14 @@ use azalea_core::{
     position::{BlockPos, ChunkBlockPos, ChunkPos, ChunkSectionBlockPos, ChunkSectionPos, Vec3},
 };
 use azalea_inventory::ItemStack;
-use azalea_world::{Chunk, Instance};
+use azalea_world::{Chunk, World};
 use bevy_ecs::entity::Entity;
 use parking_lot::RwLock;
 
 use super::{BLOCK_SHAPE, Shapes};
 use crate::collision::{Aabb, BlockWithShape, VoxelShape};
 
-pub fn get_block_collisions(world: &Instance, aabb: &Aabb) -> Vec<VoxelShape> {
+pub fn get_block_collisions(world: &World, aabb: &Aabb) -> Vec<VoxelShape> {
     let mut state = BlockCollisionsState::new(world, aabb, EntityCollisionContext::of(None));
     let mut block_collisions = Vec::new();
 
@@ -34,7 +34,7 @@ pub fn get_block_collisions(world: &Instance, aabb: &Aabb) -> Vec<VoxelShape> {
     block_collisions
 }
 
-pub fn get_block_and_liquid_collisions(world: &Instance, aabb: &Aabb) -> Vec<VoxelShape> {
+pub fn get_block_and_liquid_collisions(world: &World, aabb: &Aabb) -> Vec<VoxelShape> {
     let mut state = BlockCollisionsState::new(
         world,
         aabb,
@@ -59,7 +59,7 @@ pub fn get_block_and_liquid_collisions(world: &Instance, aabb: &Aabb) -> Vec<Vox
 }
 
 pub struct BlockCollisionsState<'a> {
-    pub world: &'a Instance,
+    pub world: &'a World,
     pub aabb: &'a Aabb,
     pub entity_shape: VoxelShape,
     pub cursor: Cursor3d,
@@ -126,7 +126,7 @@ impl<'a> BlockCollisionsState<'a> {
         block_collisions.push(block_shape);
     }
 
-    pub fn new(world: &'a Instance, aabb: &'a Aabb, context: EntityCollisionContext) -> Self {
+    pub fn new(world: &'a World, aabb: &'a Aabb, context: EntityCollisionContext) -> Self {
         let origin = BlockPos {
             x: (aabb.min.x - EPSILON).floor() as i32 - 1,
             y: (aabb.min.y - EPSILON).floor() as i32 - 1,
@@ -283,7 +283,7 @@ impl CanStandOnFluidPredicate {
 /// a performance loss for Azalea. If this ever turns out to be a bottleneck,
 /// then maybe you should try having it do that instead.
 pub fn for_entities_in_chunks_colliding_with(
-    world: &Instance,
+    world: &World,
     aabb: &Aabb,
     mut consumer: impl FnMut(ChunkPos, &HashSet<Entity>),
 ) {

@@ -10,7 +10,7 @@ use std::{
 
 use azalea_client::{DefaultPlugins, account::Account, start_ecs_runner};
 use azalea_protocol::address::{ResolvableAddr, ResolvedAddr};
-use azalea_world::InstanceContainer;
+use azalea_world::Worlds;
 use bevy_app::{App, AppExit, Plugins, SubApp};
 use bevy_ecs::{component::Component, resource::Resource};
 use futures::future::join_all;
@@ -431,7 +431,7 @@ where
             addr
         };
 
-        let instance_container = Arc::new(RwLock::new(InstanceContainer::default()));
+        let worlds = Arc::new(RwLock::new(Worlds::default()));
 
         // we can't modify the swarm plugins after this
         let (bots_tx, mut bots_rx) = mpsc::unbounded_channel();
@@ -451,7 +451,7 @@ where
                 ecs: ecs_lock.clone(),
 
                 address: Arc::new(RwLock::new(address)),
-                instance_container,
+                worlds,
 
                 bots_tx,
 

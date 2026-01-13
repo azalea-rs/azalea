@@ -7,7 +7,7 @@ use azalea_chat::FormattedText;
 use azalea_core::{entity_id::MinecraftEntityId, position::ChunkPos, tick::GameTick};
 use azalea_entity::{Dead, InLoadedChunk};
 use azalea_protocol::packets::game::c_player_combat_kill::ClientboundPlayerCombatKill;
-use azalea_world::InstanceName;
+use azalea_world::WorldName;
 use bevy_app::{App, Plugin, PreUpdate, Update};
 use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
@@ -211,7 +211,7 @@ pub fn chat_listener(
 }
 
 // only tick if we're in a world
-pub fn tick_listener(query: Query<&LocalPlayerEvents, With<InstanceName>>) {
+pub fn tick_listener(query: Query<&LocalPlayerEvents, With<WorldName>>) {
     for local_player_events in &query {
         let _ = local_player_events.send(Event::Tick);
     }

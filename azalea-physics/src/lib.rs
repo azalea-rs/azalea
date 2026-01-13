@@ -21,7 +21,7 @@ use azalea_entity::{
     metadata::Sprinting, move_relative,
 };
 use azalea_registry::builtin::{BlockKind, EntityKind, MobEffect};
-use azalea_world::{Instance, InstanceContainer, InstanceName};
+use azalea_world::{World, WorldName, Worlds};
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 use clip::box_traverse_blocks;
@@ -71,12 +71,12 @@ pub fn ai_step(
             &LookDirection,
             &Sprinting,
             &ActiveEffects,
-            &InstanceName,
+            &WorldName,
             &EntityKindComponent,
         ),
         (With<LocalEntity>, With<HasClientLoaded>),
     >,
-    instance_container: Res<InstanceContainer>,
+    worlds: Res<Worlds>,
 ) {
     for (
         mut physics,
@@ -85,7 +85,7 @@ pub fn ai_step(
         look_direction,
         sprinting,
         active_effects,
-        instance_name,
+        world_name,
         entity_kind,
     ) in &mut query
     {
@@ -147,8 +147,8 @@ pub fn ai_step(
                             *position,
                             *look_direction,
                             *sprinting,
-                            instance_name,
-                            &instance_container,
+                            world_name,
+                            &worlds,
                             active_effects,
                         );
                         physics.no_jump_delay = 10;
@@ -176,13 +176,13 @@ fn jump_in_liquid(physics: &mut Physics) {
 #[allow(clippy::type_complexity)]
 pub fn apply_effects_from_blocks(
     mut query: Query<
-        (&mut Physics, &Position, &EntityDimensions, &InstanceName),
+        (&mut Physics, &Position, &EntityDimensions, &WorldName),
         (With<LocalEntity>, With<HasClientLoaded>),
     >,
-    instance_container: Res<InstanceContainer>,
+    worlds: Res<Worlds>,
 ) {
     for (mut physics, position, dimensions, world_name) in &mut query {
-        let Some(world_lock) = instance_container.get(world_name) else {
+        let Some(world_lock) = worlds.get(world_name) else {
             continue;
         };
         let world = world_lock.read();
@@ -211,7 +211,7 @@ pub fn apply_effects_from_blocks(
 fn check_inside_blocks(
     physics: &mut Physics,
     dimensions: &EntityDimensions,
-    world: &Instance,
+    world: &World,
     movements: &[EntityMovement],
 ) -> Vec<BlockState> {
     let mut blocks_inside = Vec::new();
@@ -291,7 +291,7 @@ fn collided_with_shape_moving_from(
 
 // BlockBehavior.entityInside
 fn handle_entity_inside_block(
-    world: &Instance,
+    world: &World,
     block: BlockState,
     block_pos: BlockPos,
     physics: &mut Physics,
@@ -339,12 +339,12 @@ pub fn jump_from_ground(
     position: Position,
     look_direction: LookDirection,
     sprinting: Sprinting,
-    instance_name: &InstanceName,
-    instance_container: &InstanceContainer,
+    world_name: &WorldName,
+    worlds: &Worlds,
     active_effects: &ActiveEffects,
 ) {
-    let world_lock = instance_container
-        .get(instance_name)
+    let world_lock = worlds
+        .get(world_name)
         .expect("All entities should be in a valid world");
     let world = world_lock.read();
 
@@ -436,7 +436,7 @@ fn handle_on_climbable(
     velocity: Vec3,
     on_climbable: OnClimbable,
     position: Position,
-    world: &Instance,
+    world: &World,
     pose: Option<Pose>,
 ) -> Vec3 {
     if !*on_climbable {
@@ -488,7 +488,7 @@ fn get_friction_influenced_speed(
 
 /// Returns the what the entity's jump should be multiplied by based on the
 /// block they're standing on.
-fn block_jump_factor(world: &Instance, position: Position) -> f32 {
+fn block_jump_factor(world: &World, position: Position) -> f32 {
     let block_at_pos = world.chunks.get_block_state(position.into());
     let block_below = world
         .chunks
@@ -516,7 +516,7 @@ fn block_jump_factor(world: &Instance, position: Position) -> f32 {
 // public double getJumpBoostPower() {
 //     return this.hasEffect(MobEffects.JUMP) ? (double)(0.1F *
 // (float)(this.getEffect(MobEffects.JUMP).getAmplifier() + 1)) : 0.0D; }
-fn jump_power(world: &Instance, position: Position) -> f32 {
+fn jump_power(world: &World, position: Position) -> f32 {
     0.42 * block_jump_factor(world, position)
 }
 

@@ -1,6 +1,6 @@
 use azalea_client::{InConfigState, test_utils::prelude::*};
 use azalea_protocol::packets::{ConnectionProtocol, game::ClientboundStartConfiguration};
-use azalea_world::InstanceName;
+use azalea_world::WorldName;
 
 #[test]
 fn test_receive_start_config_packet() {
@@ -10,7 +10,7 @@ fn test_receive_start_config_packet() {
 
     simulation.receive_packet(default_login_packet());
     simulation.tick();
-    assert!(simulation.has_component::<InstanceName>());
+    assert!(simulation.has_component::<WorldName>());
     simulation.tick();
 
     simulation.receive_packet(ClientboundStartConfiguration);

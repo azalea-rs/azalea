@@ -36,7 +36,7 @@ use azalea_block::{BlockState, BlockTrait};
 use azalea_client::{
     StartSprintEvent, StartWalkEvent,
     inventory::InventorySystems,
-    local_player::InstanceHolder,
+    local_player::WorldHolder,
     mining::{Mining, MiningSystems, StartMiningBlockEvent},
     movement::MoveEventsSystems,
 };
@@ -46,7 +46,7 @@ use azalea_core::{
 };
 use azalea_entity::{LocalEntity, Physics, Position, inventory::Inventory, metadata::Player};
 use azalea_physics::{PhysicsSystems, get_block_pos_below_that_affects_movement};
-use azalea_world::{InstanceContainer, InstanceName};
+use azalea_world::{WorldName, Worlds};
 use bevy_app::{PreUpdate, Update};
 use bevy_ecs::prelude::*;
 use bevy_tasks::{AsyncComputeTaskPool, Task};
@@ -109,7 +109,7 @@ impl Plugin for PathfinderPlugin {
                 (
                     goto_listener,
                     handle_tasks,
-                    stop_pathfinding_on_instance_change,
+                    stop_pathfinding_on_world_change,
                     path_found_listener,
                     handle_stop_pathfinding_event,
                 )
@@ -307,16 +307,16 @@ pub fn goto_listener(
         &mut Pathfinder,
         Option<&mut ExecutingPath>,
         &Position,
-        &InstanceName,
+        &WorldName,
         &Inventory,
         Option<&CustomPathfinderState>,
     )>,
-    instance_container: Res<InstanceContainer>,
+    worlds: Res<Worlds>,
 ) {
     let thread_pool = AsyncComputeTaskPool::get();
 
     for event in events.read() {
-        let Ok((mut pathfinder, executing_path, position, instance_name, inventory, custom_state)) =
+        let Ok((mut pathfinder, executing_path, position, world_name, inventory, custom_state)) =
             query.get_mut(event.entity)
         else {
             warn!("got goto event for an entity that can't pathfind");
@@ -367,8 +367,8 @@ pub fn goto_listener(
             );
         }
 
-        let world_lock = instance_container
-            .get(instance_name)
+        let world_lock = worlds
+            .get(world_name)
             .expect("Entity tried to pathfind but the entity isn't in a valid world");
 
         let goal = event.goal.clone();
@@ -417,7 +417,7 @@ pub struct CalculatePathCtx {
     pub entity: Entity,
     pub start: BlockPos,
     pub goal: Arc<dyn Goal>,
-    pub world_lock: Arc<RwLock<azalea_world::Instance>>,
+    pub world_lock: Arc<RwLock<azalea_world::World>>,
     pub goto_id_atomic: Arc<AtomicUsize>,
     pub mining_cache: MiningCache,
     pub custom_state: CustomPathfinderState,
@@ -559,15 +559,15 @@ pub fn path_found_listener(
     mut query: Query<(
         &mut Pathfinder,
         Option<&mut ExecutingPath>,
-        &InstanceName,
+        &WorldName,
         &Inventory,
         Option<&CustomPathfinderState>,
     )>,
-    instance_container: Res<InstanceContainer>,
+    worlds: Res<Worlds>,
     mut commands: Commands,
 ) {
     for event in events.read() {
-        let Ok((mut pathfinder, executing_path, instance_name, inventory, custom_state)) =
+        let Ok((mut pathfinder, executing_path, world_name, inventory, custom_state)) =
             query.get_mut(event.entity)
         else {
             debug!("got path found event for an entity that can't pathfind");
@@ -580,8 +580,8 @@ pub fn path_found_listener(
                 // combine the old and new paths if the first node of the new path is a
                 // successor of the last node of the old path
                 if let Some(last_node_of_current_path) = executing_path.path.back() {
-                    let world_lock = instance_container
-                        .get(instance_name)
+                    let world_lock = worlds
+                        .get(world_name)
                         .expect("Entity tried to pathfind but the entity isn't in a valid world");
                     let origin = event.start;
                     let successors_fn: moves::SuccessorsFn = event.successors_fn;
@@ -676,11 +676,11 @@ pub fn timeout_movement(
         &mut ExecutingPath,
         &Position,
         Option<&Mining>,
-        &InstanceName,
+        &WorldName,
         &Inventory,
         Option<&CustomPathfinderState>,
     )>,
-    instance_container: Res<InstanceContainer>,
+    worlds: Res<Worlds>,
 ) {
     for (
         entity,
@@ -688,7 +688,7 @@ pub fn timeout_movement(
         mut executing_path,
         position,
         mining,
-        instance_name,
+        world_name,
         inventory,
         custom_state,
     ) in &mut query
@@ -713,8 +713,8 @@ pub fn timeout_movement(
             let cur_pos = player_pos_to_block_pos(**position);
             executing_path.last_reached_node = cur_pos;
 
-            let world_lock = instance_container
-                .get(instance_name)
+            let world_lock = worlds
+                .get(world_name)
                 .expect("Entity tried to pathfind but the entity isn't in a valid world");
             let Some(opts) = pathfinder.opts.clone() else {
                 warn!(
@@ -751,15 +751,14 @@ pub fn check_node_reached(
         &mut ExecutingPath,
         &Position,
         &Physics,
-        &InstanceName,
+        &WorldName,
     )>,
     mut walk_events: MessageWriter<StartWalkEvent>,
     mut commands: Commands,
-    instance_container: Res<InstanceContainer>,
+    worlds: Res<Worlds>,
 ) {
-    for (entity, mut pathfinder, mut executing_path, position, physics, instance_name) in &mut query
-    {
-        let Some(instance) = instance_container.get(instance_name) else {
+    for (entity, mut pathfinder, mut executing_path, position, physics, world_name) in &mut query {
+        let Some(world) = worlds.get(world_name) else {
             warn!("entity is pathfinding but not in a valid world");
             continue;
         };
@@ -794,8 +793,8 @@ pub fn check_node_reached(
                     let block_pos_below = get_block_pos_below_that_affects_movement(*position);
 
                     let block_state_below = {
-                        let instance = instance.read();
-                        instance
+                        let world = world.read();
+                        world
                             .chunks
                             .get_block_state(block_pos_below)
                             .unwrap_or(BlockState::AIR)
@@ -879,21 +878,21 @@ pub fn check_for_path_obstruction(
         Entity,
         &mut Pathfinder,
         &mut ExecutingPath,
-        &InstanceName,
+        &WorldName,
         &Inventory,
         Option<&CustomPathfinderState>,
     )>,
-    instance_container: Res<InstanceContainer>,
+    worlds: Res<Worlds>,
 ) {
-    for (entity, mut pathfinder, mut executing_path, instance_name, inventory, custom_state) in
+    for (entity, mut pathfinder, mut executing_path, world_name, inventory, custom_state) in
         &mut query
     {
         let Some(opts) = pathfinder.opts.clone() else {
             continue;
         };
 
-        let world_lock = instance_container
-            .get(instance_name)
+        let world_lock = worlds
+            .get(world_name)
             .expect("Entity tried to pathfind but the entity isn't in a valid world");
 
         // obstruction check (the path we're executing isn't possible anymore)
@@ -948,8 +947,8 @@ pub fn check_for_path_obstruction(
             continue;
         };
 
-        let world_lock = instance_container
-            .get(instance_name)
+        let world_lock = worlds
+            .get(world_name)
             .expect("Entity tried to pathfind but the entity isn't in a valid world");
 
         // patch up to 20 nodes
@@ -980,7 +979,7 @@ fn patch_path(
     pathfinder: &mut Pathfinder,
     inventory: &Inventory,
     entity: Entity,
-    world_lock: Arc<RwLock<azalea_world::Instance>>,
+    world_lock: Arc<RwLock<azalea_world::World>>,
     custom_state: CustomPathfinderState,
     opts: PathfinderOpts,
 ) {
@@ -1145,7 +1144,7 @@ pub fn tick_execute_path(
         &Position,
         &Physics,
         Option<&Mining>,
-        &InstanceHolder,
+        &WorldHolder,
         &Inventory,
     )>,
     mut look_at_events: MessageWriter<LookAtEvent>,
@@ -1154,7 +1153,7 @@ pub fn tick_execute_path(
     mut jump_events: MessageWriter<JumpEvent>,
     mut start_mining_events: MessageWriter<StartMiningBlockEvent>,
 ) {
-    for (entity, executing_path, position, physics, mining, instance_holder, inventory_component) in
+    for (entity, executing_path, position, physics, mining, world_holder, inventory_component) in
         &mut query
     {
         if let Some(edge) = executing_path.path.front() {
@@ -1165,7 +1164,7 @@ pub fn tick_execute_path(
                 start: executing_path.last_reached_node,
                 physics,
                 is_currently_mining: mining.is_some(),
-                instance: instance_holder.instance.clone(),
+                world: world_holder.shared.clone(),
                 menu: inventory_component.inventory_menu.clone(),
 
                 commands: &mut commands,
@@ -1246,13 +1245,13 @@ pub fn handle_stop_pathfinding_event(
     }
 }
 
-pub fn stop_pathfinding_on_instance_change(
-    mut query: Query<(Entity, &mut ExecutingPath), Changed<InstanceName>>,
+pub fn stop_pathfinding_on_world_change(
+    mut query: Query<(Entity, &mut ExecutingPath), Changed<WorldName>>,
     mut stop_pathfinding_events: MessageWriter<StopPathfindingEvent>,
 ) {
     for (entity, mut executing_path) in &mut query {
         if !executing_path.path.is_empty() {
-            debug!("instance changed, clearing path");
+            debug!("world changed, clearing path");
             executing_path.path.clear();
             stop_pathfinding_events.write(StopPathfindingEvent {
                 entity,

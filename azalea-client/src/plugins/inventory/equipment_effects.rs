@@ -19,7 +19,7 @@ use bevy_ecs::{
 };
 use tracing::{debug, error, warn};
 
-use crate::local_player::InstanceHolder;
+use crate::local_player::WorldHolder;
 
 /// A component that contains the equipment slots that we had last tick.
 ///
@@ -91,9 +91,9 @@ pub struct EquipmentChange {
 
 pub fn handle_equipment_changes(
     equipment_changes: On<EquipmentChangesEvent>,
-    mut query: Query<(&InstanceHolder, &mut LastEquipmentItems, &mut Attributes)>,
+    mut query: Query<(&WorldHolder, &mut LastEquipmentItems, &mut Attributes)>,
 ) {
-    let Ok((instance_holder, mut last_equipment_items, mut attributes)) =
+    let Ok((world_holder, mut last_equipment_items, mut attributes)) =
         query.get_mut(equipment_changes.entity)
     else {
         error!(
@@ -112,7 +112,7 @@ pub fn handle_equipment_changes(
             // stopLocationBasedEffects
 
             for (attribute, modifier) in
-                collect_attribute_modifiers_from_item(slot, &change.old, instance_holder)
+                collect_attribute_modifiers_from_item(slot, &change.old, world_holder)
             {
                 if let Some(attribute) = attributes.get_mut(attribute) {
                     attribute.remove(&modifier.id);
@@ -126,7 +126,7 @@ pub fn handle_equipment_changes(
             // see ItemStack.forEachModifier in vanilla
 
             for (attribute, modifier) in
-                collect_attribute_modifiers_from_item(slot, &change.new, instance_holder)
+                collect_attribute_modifiers_from_item(slot, &change.new, world_holder)
             {
                 if let Some(attribute) = attributes.get_mut(attribute) {
                     attribute.remove(&modifier.id);
@@ -144,7 +144,7 @@ pub fn handle_equipment_changes(
 fn collect_attribute_modifiers_from_item(
     slot: EquipmentSlot,
     item: &ItemStack,
-    instance_holder: &InstanceHolder,
+    world_holder: &WorldHolder,
 ) -> Vec<(azalea_registry::builtin::Attribute, AttributeModifier)> {
     let mut modifiers = Vec::new();
 
@@ -161,7 +161,7 @@ fn collect_attribute_modifiers_from_item(
         .get_component::<components::Enchantments>()
         .unwrap_or_default();
     if !enchants.levels.is_empty() {
-        let registry_holder = &instance_holder.instance.read().registries;
+        let registry_holder = &world_holder.shared.read().registries;
         for (enchant, &level) in &enchants.levels {
             let Some((_enchant_id, enchant_definition)) = enchant.resolve(registry_holder) else {
                 warn!(

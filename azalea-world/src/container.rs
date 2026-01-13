@@ -1,5 +1,6 @@
 use std::{
     collections::HashMap,
+    fmt::{self, Display},
     sync::{Arc, Weak},
 };
 
@@ -12,14 +13,14 @@ use parking_lot::RwLock;
 use rustc_hash::FxHashMap;
 use tracing::{debug, error};
 
-use crate::{ChunkStorage, Instance};
+use crate::{ChunkStorage, World};
 
-/// A container of [`Instance`]s (aka worlds).
+/// A container of [`World`] instances.
 ///
-/// Instances are stored as a Weak pointer here, so if no clients are using an
-/// instance it will be forgotten.
+/// Worlds are stored as a `Weak` pointer here, so if no clients are using a
+/// world then it will be forgotten.
 #[derive(Default, Resource)]
-pub struct InstanceContainer {
+pub struct Worlds {
     // We just refer to the chunks here and don't include entities because there's not that many
     // cases where we'd want to get every entity in the world (just getting the entities in chunks
     // should work fine).
@@ -29,22 +30,21 @@ pub struct InstanceContainer {
 
     // If it looks like we're relying on the server giving us unique world names, that's because we
     // are. An evil server could give us two worlds with the same name and then we'd have no way of
-    // telling them apart. We hope most servers are nice and don't do that though. It's only an
-    // issue when there's multiple clients with the same WorldContainer in different worlds
-    // anyways.
-    pub instances: FxHashMap<Identifier, Weak<RwLock<Instance>>>,
+    // telling them apart. We hope most servers are nice and don't do that. Perhaps this should be
+    // changed in the future to be configurable.
+    pub map: FxHashMap<WorldName, Weak<RwLock<World>>>,
 }
 
-impl InstanceContainer {
+impl Worlds {
     pub fn new() -> Self {
-        InstanceContainer::default()
+        Worlds::default()
     }
 
-    /// Get an instance (aka world) from the container.
+    /// Get a world instance from the container.
     ///
-    /// Returns `None` if none of the clients are in this instance.
-    pub fn get(&self, name: &InstanceName) -> Option<Arc<RwLock<Instance>>> {
-        self.instances.get(name).and_then(|world| world.upgrade())
+    /// Returns `None` if none of the clients are in the requested world.
+    pub fn get(&self, name: &WorldName) -> Option<Arc<RwLock<World>>> {
+        self.map.get(name).and_then(|world| world.upgrade())
     }
 
     /// Add an empty world to the container (unless it already exists) and
@@ -52,12 +52,12 @@ impl InstanceContainer {
     #[must_use = "the world will be immediately forgotten if unused"]
     pub fn get_or_insert(
         &mut self,
-        name: Identifier,
+        name: WorldName,
         height: u32,
         min_y: i32,
         default_registries: &RegistryHolder,
-    ) -> Arc<RwLock<Instance>> {
-        match self.instances.get(&name).and_then(|world| world.upgrade()) {
+    ) -> Arc<RwLock<World>> {
+        match self.map.get(&name).and_then(|world| world.upgrade()) {
             Some(existing_lock) => {
                 let existing = existing_lock.read();
                 if existing.chunks.height != height {
@@ -75,24 +75,40 @@ impl InstanceContainer {
                 existing_lock.clone()
             }
             _ => {
-                let world = Arc::new(RwLock::new(Instance {
+                let world = Arc::new(RwLock::new(World {
                     chunks: ChunkStorage::new(height, min_y),
                     entities_by_chunk: HashMap::new(),
                     entity_by_id: IntMap::default(),
                     registries: default_registries.clone(),
                 }));
-                debug!("Added new instance {name}");
-                self.instances.insert(name, Arc::downgrade(&world));
+                debug!("Added new world {name:?}");
+                self.map.insert(name, Arc::downgrade(&world));
                 world
             }
         }
     }
 }
 
-/// The name of the [`Instance`] (aka world/dimension) that the entity is in.
+/// The name of the [`World`] (aka dimension) that an entity is in.
 ///
-/// If two entities share the same instance name, we assume they're in the
-/// same instance.
+/// If two entities share the same world name, then Azalea assumes that they're
+/// in the same world.
 #[derive(Clone, Component, Debug, Deref, DerefMut, Eq, Hash, PartialEq)]
 #[doc(alias("worldname", "world name", "dimension"))]
-pub struct InstanceName(pub Identifier);
+pub struct WorldName(pub Identifier);
+impl WorldName {
+    /// Create a new `WorldName` with the given name.
+    pub fn new(name: &str) -> Self {
+        Self(Identifier::new(name))
+    }
+}
+impl Display for WorldName {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.0.fmt(f)
+    }
+}
+impl From<Identifier> for WorldName {
+    fn from(ident: Identifier) -> Self {
+        Self(ident)
+    }
+}

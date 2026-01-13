@@ -1,10 +1,10 @@
 //! Disconnect a client from the server.
 
 use azalea_chat::FormattedText;
+use azalea_core::entity_id::MinecraftEntityId;
 use azalea_entity::{
     EntityBundle, HasClientLoaded, InLoadedChunk, LocalEntity, metadata::PlayerMetadataBundle,
 };
-use azalea_core::entity_id::MinecraftEntityId;
 use bevy_app::{App, Plugin, PostUpdate};
 use bevy_ecs::prelude::*;
 use derive_more::Deref;
@@ -14,7 +14,7 @@ use super::login::IsAuthenticated;
 #[cfg(feature = "online-mode")]
 use crate::chat_signing;
 use crate::{
-    client::JoinedClientBundle, connection::RawConnection, local_player::InstanceHolder,
+    client::JoinedClientBundle, connection::RawConnection, local_player::WorldHolder,
     tick_counter::TicksConnected,
 };
 
@@ -63,7 +63,7 @@ pub struct RemoveOnDisconnectBundle {
 
     pub entity: EntityBundle,
     pub minecraft_entity_id: MinecraftEntityId,
-    pub instance_holder: InstanceHolder,
+    pub world_holder: WorldHolder,
     pub player_metadata: PlayerMetadataBundle,
     pub in_loaded_chunk: InLoadedChunk,
     //// This makes it close the TCP connection.

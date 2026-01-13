@@ -23,6 +23,7 @@ azalea-entity = { workspace = true }
 azalea-inventory.workspace = true
 azalea-protocol-macros.workspace = true
 azalea-registry.workspace = true
+azalea-world = { workspace = true, optional = true }
 bevy_ecs = { workspace = true, optional = true }
 # byteorder.workspace = true
 flate2.workspace = true
@@ -46,7 +47,12 @@ reqwest = { workspace = true, optional = true, features = ["socks"] }
 default = ["online-mode", "connecting"]
 connecting = []
 online-mode = ["azalea-auth/online-mode", "dep:reqwest"]
-bevy_ecs = ["dep:bevy_ecs", "azalea-entity/bevy_ecs", "azalea-core/bevy_ecs"]
+bevy_ecs = [
+    "dep:bevy_ecs",
+    "dep:azalea-world",
+    "azalea-entity/bevy_ecs",
+    "azalea-core/bevy_ecs",
+]
 
 [lints]
 workspace = true

@@ -13,7 +13,7 @@ use azalea_client::{
 };
 use azalea_core::position::{BlockPos, Vec3};
 use azalea_inventory::Menu;
-use azalea_world::Instance;
+use azalea_world::World;
 use bevy_ecs::{entity::Entity, message::MessageWriter, system::Commands};
 use parking_lot::RwLock;
 use tracing::debug;
@@ -65,7 +65,7 @@ pub struct ExecuteCtx<'s, 'w1, 'w2, 'w3, 'w4, 'w5, 'w6, 'a> {
     pub position: Vec3,
     pub physics: &'a azalea_entity::Physics,
     pub is_currently_mining: bool,
-    pub instance: Arc<RwLock<Instance>>,
+    pub world: Arc<RwLock<World>>,
     pub menu: Menu,
 
     pub commands: &'a mut Commands<'w1, 's>,
@@ -124,11 +124,7 @@ impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_, '_> {
 
     /// Returns whether this block could be mined.
     pub fn should_mine(&mut self, block: BlockPos) -> bool {
-        let block_state = self
-            .instance
-            .read()
-            .get_block_state(block)
-            .unwrap_or_default();
+        let block_state = self.world.read().get_block_state(block).unwrap_or_default();
         if is_block_state_passable(block_state) {
             // block is already passable, no need to mine it
             return false;
@@ -141,11 +137,7 @@ impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_, '_> {
     ///
     /// Returns whether the block is being mined.
     pub fn mine(&mut self, block: BlockPos) -> bool {
-        let block_state = self
-            .instance
-            .read()
-            .get_block_state(block)
-            .unwrap_or_default();
+        let block_state = self.world.read().get_block_state(block).unwrap_or_default();
         if is_block_state_passable(block_state) {
             // block is already passable, no need to mine it
             return false;
@@ -196,10 +188,7 @@ impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_, '_> {
     }
 
     pub fn get_block_state(&self, block: BlockPos) -> BlockState {
-        self.instance
-            .read()
-            .get_block_state(block)
-            .unwrap_or_default()
+        self.world.read().get_block_state(block).unwrap_or_default()
     }
 }
 

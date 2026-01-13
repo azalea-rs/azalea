@@ -7,7 +7,7 @@ use azalea_client::{
     connection::RawConnection,
     disconnect::DisconnectEvent,
     join::{ConnectOpts, StartJoinServerEvent},
-    local_player::{Hunger, InstanceHolder, TabList},
+    local_player::{Hunger, TabList, WorldHolder},
     packet::game::SendGamePacketEvent,
     player::{GameProfileComponent, PlayerInfo},
     start_ecs_runner,
@@ -25,13 +25,9 @@ use azalea_protocol::{
     resolve::ResolveError,
 };
 use azalea_registry::{DataRegistryKeyRef, identifier::Identifier};
-use azalea_world::{Instance, InstanceName, PartialInstance};
+use azalea_world::{PartialWorld, World, WorldName};
 use bevy_app::App;
-use bevy_ecs::{
-    entity::Entity,
-    resource::Resource,
-    world::{Mut, World},
-};
+use bevy_ecs::{entity::Entity, resource::Resource, world::Mut};
 use parking_lot::RwLock;
 use tokio::sync::mpsc;
 use uuid::Uuid;
@@ -67,17 +63,17 @@ pub struct Client {
     /// A mutually exclusive reference to the entity component system (ECS).
     ///
     /// You probably don't need to access this directly. Note that if you're
-    /// using a shared world (i.e. a swarm), the ECS will contain all entities
-    /// in all instances/dimensions.
+    /// using a shared world (i.e. a swarm), the ECS will also contain all
+    /// entities in all worlds.
     ///
     /// You can nearly always use [`Self::component`], [`Self::query_self`],
     /// [`Self::query_entity`], or another one of those related functions to
     /// access the ECS instead.
-    pub ecs: Arc<RwLock<World>>,
+    pub ecs: Arc<RwLock<bevy_ecs::world::World>>,
 }
 
 pub struct StartClientOpts {
-    pub ecs_lock: Arc<RwLock<World>>,
+    pub ecs_lock: Arc<RwLock<bevy_ecs::world::World>>,
     pub account: Account,
     pub connect_opts: ConnectOpts,
     pub event_sender: Option<mpsc::UnboundedSender<Event>>,
@@ -144,7 +140,7 @@ impl Client {
     /// World, and schedule runner function.
     /// You should only use this if you want to change these fields from the
     /// defaults, otherwise use [`Client::join`].
-    pub fn new(entity: Entity, ecs: Arc<RwLock<World>>) -> Self {
+    pub fn new(entity: Entity, ecs: Arc<RwLock<bevy_ecs::world::World>>) -> Self {
         Self {
             // default our id to 0, it'll be set later
             entity,
@@ -278,15 +274,16 @@ impl Client {
         f(value)
     }
 
-    /// Get an `RwLock` with a reference to our (potentially shared) world.
+    /// Get an `RwLock` with a reference to our (potentially shared) Minecraft
+    /// world.
     ///
-    /// This gets the [`Instance`] from the client's [`InstanceHolder`]
+    /// This gets the [`World`] from the client's [`WorldHolder`]
     /// component. If it's a normal client, then it'll be the same as the
     /// world the client has loaded. If the client is using a shared world,
     /// then the shared world will be a superset of the client's world.
-    pub fn world(&self) -> Arc<RwLock<Instance>> {
-        let instance_holder = self.component::<InstanceHolder>();
-        instance_holder.instance.clone()
+    pub fn world(&self) -> Arc<RwLock<World>> {
+        let world_holder = self.component::<WorldHolder>();
+        world_holder.shared.clone()
     }
 
     /// Get an `RwLock` with a reference to the world that this client has
@@ -298,15 +295,15 @@ impl Client {
     /// let world = client.partial_world();
     /// let is_0_0_loaded = world.read().chunks.limited_get(&ChunkPos::new(0, 0)).is_some();
     /// # }
-    pub fn partial_world(&self) -> Arc<RwLock<PartialInstance>> {
-        let instance_holder = self.component::<InstanceHolder>();
-        instance_holder.partial_instance.clone()
+    pub fn partial_world(&self) -> Arc<RwLock<PartialWorld>> {
+        let world_holder = self.component::<WorldHolder>();
+        world_holder.partial.clone()
     }
 
     /// Returns whether we have a received the login packet yet.
     pub fn logged_in(&self) -> bool {
         // the login packet tells us the world name
-        self.query_self::<Option<&InstanceName>, _>(|ins| ins.is_some())
+        self.query_self::<Option<&WorldName>, _>(|ins| ins.is_some())
     }
 
     /// Returns the client as an [`EntityRef`], allowing you to treat it as any
@@ -409,8 +406,8 @@ impl Client {
 
     /// Call the given function with the client's [`RegistryHolder`].
     ///
-    /// The player's instance (aka world) will be locked during this time, which
-    /// may result in a deadlock if you try to access the instance again while
+    /// Note that the player's world will be locked during this time, which may
+    /// result in a deadlock if you try to access the world again while
     /// in the function.
     ///
     /// [`RegistryHolder`]: azalea_core::registry_holder::RegistryHolder
@@ -418,8 +415,8 @@ impl Client {
         &self,
         f: impl FnOnce(&azalea_core::registry_holder::RegistryHolder) -> R,
     ) -> R {
-        let instance = self.world();
-        let registries = &instance.read().registries;
+        let world = self.world();
+        let registries = &world.read().registries;
         f(registries)
     }
 

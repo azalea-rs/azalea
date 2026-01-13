@@ -1,7 +1,7 @@
 use azalea_block::fluid_state::FluidKind;
 use azalea_core::position::{BlockPos, ChunkPos, Vec3};
-use azalea_registry::{builtin::EntityKind, identifier::Identifier};
-use azalea_world::InstanceName;
+use azalea_registry::builtin::EntityKind;
+use azalea_world::WorldName;
 use bevy_ecs::{bundle::Bundle, component::Component};
 use derive_more::{Deref, DerefMut};
 use uuid::Uuid;
@@ -18,7 +18,7 @@ use crate::{
 pub struct EntityBundle {
     pub kind: EntityKindComponent,
     pub uuid: EntityUuid,
-    pub world_name: InstanceName,
+    pub world_name: WorldName,
     pub position: Position,
     pub last_sent_position: LastSentPosition,
 
@@ -36,13 +36,13 @@ pub struct EntityBundle {
 }
 
 impl EntityBundle {
-    pub fn new(uuid: Uuid, pos: Vec3, kind: EntityKind, world_name: Identifier) -> Self {
+    pub fn new(uuid: Uuid, pos: Vec3, kind: EntityKind, world_name: WorldName) -> Self {
         let dimensions = EntityDimensions::from(kind);
 
         Self {
             kind: EntityKindComponent(kind),
             uuid: EntityUuid(uuid),
-            world_name: InstanceName(world_name),
+            world_name,
             position: Position(pos),
             chunk_pos: EntityChunkPos(ChunkPos::from(&pos)),
             last_sent_position: LastSentPosition(pos),

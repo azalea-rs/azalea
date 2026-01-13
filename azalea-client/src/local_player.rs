@@ -1,7 +1,7 @@
 use std::{collections::HashMap, sync::Arc};
 
 use azalea_core::game_type::GameMode;
-use azalea_world::{Instance, PartialInstance};
+use azalea_world::{PartialWorld, World};
 use bevy_ecs::{component::Component, prelude::*};
 use derive_more::{Deref, DerefMut};
 use parking_lot::RwLock;
@@ -9,28 +9,29 @@ use uuid::Uuid;
 
 use crate::{ClientInformation, player::PlayerInfo};
 
-/// A component that keeps strong references to our [`PartialInstance`] and
-/// [`Instance`] for local players.
+/// A component that keeps strong references to our [`PartialWorld`] and
+/// [`World`] for local players.
 ///
-/// This can also act as a convenience for accessing the player's Instance since
-/// the alternative is to look up the player's [`InstanceName`] in the
-/// [`InstanceContainer`].
+/// This can also act as a convenient way to access the player's `World`, since
+/// the alternative is to look up the player's [`WorldName`] in the [`Worlds`]
+/// resource.
 ///
-/// [`InstanceContainer`]: azalea_world::InstanceContainer
-/// [`InstanceName`]: azalea_world::InstanceName
+/// [`Worlds`]: azalea_world::Worlds
+/// [`WorldName`]: azalea_world::WorldName
 #[derive(Clone, Component)]
-pub struct InstanceHolder {
-    /// The partial instance is the world this client currently has loaded.
+pub struct WorldHolder {
+    /// The slice of the world that this client actually has loaded, based on
+    /// its render distance.
+    pub partial: Arc<RwLock<PartialWorld>>,
+    /// The combined [`PartialWorld`]s of all clients in the same world.
     ///
-    /// It has a limited render distance.
-    pub partial_instance: Arc<RwLock<PartialInstance>>,
-    /// The combined [`PartialInstance`]s of all clients in the same instance
-    /// (aka world/dimension).
-    ///
-    /// This is only relevant if you're using a shared world (i.e. a
-    /// swarm).
-    pub instance: Arc<RwLock<Instance>>,
+    /// The distinction between this and `partial` is mostly only relevant if
+    /// you're using a shared world (i.e. a swarm). If in doubt, prefer to use
+    /// the shared world.
+    pub shared: Arc<RwLock<World>>,
 }
+#[deprecated = "renamed to `WorldHolder`."]
+pub type InstanceHolder = WorldHolder;
 
 /// The gamemode of a local player. For a non-local player, you can look up the
 /// player in the [`TabList`].
@@ -103,18 +104,18 @@ impl Hunger {
     }
 }
 
-impl InstanceHolder {
-    /// Create a new `InstanceHolder` for the given entity.
+impl WorldHolder {
+    /// Create a new `WorldHolder` for the given entity.
     ///
-    /// The partial instance will be created for you. The render distance will
+    /// The partial world will be created for you. The render distance will
     /// be set to a default value, which you can change by creating a new
-    /// partial_instance.
-    pub fn new(entity: Entity, instance: Arc<RwLock<Instance>>) -> Self {
+    /// partial world.
+    pub fn new(entity: Entity, shared: Arc<RwLock<World>>) -> Self {
         let client_information = ClientInformation::default();
 
-        InstanceHolder {
-            instance,
-            partial_instance: Arc::new(RwLock::new(PartialInstance::new(
+        WorldHolder {
+            shared,
+            partial: Arc::new(RwLock::new(PartialWorld::new(
                 azalea_world::chunk_storage::calculate_chunk_storage_range(
                     client_information.view_distance.into(),
                 ),
@@ -123,19 +124,19 @@ impl InstanceHolder {
         }
     }
 
-    /// Reset the `Instance` to a new reference to an empty instance, but with
+    /// Reset the [`World`] to be a reference to an empty world, but with
     /// the same registries as the current one.
     ///
     /// This is used by Azalea when entering the config state.
     pub fn reset(&mut self) {
-        let registries = self.instance.read().registries.clone();
+        let registries = self.shared.read().registries.clone();
 
-        let new_instance = Instance {
+        let new_world = World {
             registries,
             ..Default::default()
         };
-        self.instance = Arc::new(RwLock::new(new_instance));
+        self.shared = Arc::new(RwLock::new(new_world));
 
-        self.partial_instance.write().reset();
+        self.partial.write().reset();
     }
 }

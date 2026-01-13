@@ -2,7 +2,7 @@ use azalea_core::{entity_id::MinecraftEntityId, position::Vec3};
 use azalea_entity::{
     Attributes, Dead, EntityUuid, Physics, Position, dimensions::EntityDimensions, metadata::Health,
 };
-use azalea_world::InstanceName;
+use azalea_world::WorldName;
 use uuid::Uuid;
 
 use super::EntityRef;
@@ -141,21 +141,29 @@ impl_entity_functions! {
     }
 
     Client:
-    /// Get the name of the instance (world) that the bot is in.
+    #[deprecated = "renamed to `world_name`."]
+    EntityRef:
+    #[deprecated = "renamed to `world_name`."]
+    pub fn instance_name(&self) -> WorldName {
+        self.world_name()
+    }
+
+    Client:
+    /// Get the name of the world that the bot is in.
     ///
     /// This can be used to check if the client is in the same world as another
     /// entity.
-    #[doc(alias("world_name", "dimension_name"))]
+    #[doc(alias("dimension_name"))]
     EntityRef:
-    /// Get the name of the instance (world) that the entity is in.
+    /// Get the name of the world that the entity is in.
     ///
     /// This can be used to check if the entity is in the same world as another
     /// entity.
     ///
-    /// Also see [`Client::instance_name`],
-    #[doc(alias("world_name", "dimension_name"))]
-    pub fn instance_name(&self) -> InstanceName {
-        (*self.component::<InstanceName>()).clone()
+    /// Also see [`Client::world_name`],
+    #[doc(alias("dimension_name"))]
+    pub fn world_name(&self) -> WorldName {
+        (*self.component::<WorldName>()).clone()
     }
 
     Client:

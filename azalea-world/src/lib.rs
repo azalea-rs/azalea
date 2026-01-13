@@ -12,5 +12,12 @@ mod world;
 
 pub use bit_storage::BitStorage;
 pub use chunk_storage::{Chunk, ChunkStorage, PartialChunkStorage, Section};
-pub use container::{InstanceContainer, InstanceName};
+pub use container::{Worlds, WorldName};
 pub use world::*;
+
+#[deprecated = "renamed to `WorldName`."]
+pub type InstanceName = WorldName;
+#[deprecated = "renamed to `WorldContainer`."]
+pub type InstanceContainer = Worlds;
+#[deprecated = "renamed to `PartialWorld`."]
+pub type PartialInstance = PartialWorld;

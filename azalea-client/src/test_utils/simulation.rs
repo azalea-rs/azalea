@@ -31,7 +31,7 @@ use azalea_registry::{
     data::{Biome, DimensionKind},
     identifier::Identifier,
 };
-use azalea_world::{Chunk, Instance, Section, palette::PalettedContainer};
+use azalea_world::{Chunk, Section, World, palette::PalettedContainer};
 use bevy_app::App;
 use bevy_ecs::{
     component::Mutable,
@@ -45,7 +45,7 @@ use uuid::Uuid;
 
 use crate::{
     InConfigState, LocalPlayerBundle, connection::RawConnection, disconnect::DisconnectEvent,
-    local_player::InstanceHolder, packet::game::SendGamePacketEvent, player::GameProfileComponent,
+    local_player::WorldHolder, packet::game::SendGamePacketEvent, player::GameProfileComponent,
 };
 
 /// A way to simulate a client in a server, used for some internal tests.
@@ -175,15 +175,15 @@ impl Simulation {
     }
 
     pub fn chunk(&self, chunk_pos: ChunkPos) -> Option<Arc<RwLock<Chunk>>> {
-        self.component::<InstanceHolder>()
-            .instance
+        self.component::<WorldHolder>()
+            .shared
             .read()
             .chunks
             .get(&chunk_pos)
     }
     pub fn get_block_state(&self, pos: BlockPos) -> Option<BlockState> {
-        self.component::<InstanceHolder>()
-            .instance
+        self.component::<WorldHolder>()
+            .shared
             .read()
             .get_block_state(pos)
     }
@@ -287,12 +287,12 @@ fn create_local_player_bundle(
 
     let raw_connection = RawConnection::new_networkless(connection_protocol);
 
-    let instance = Instance::default();
-    let instance_holder = InstanceHolder::new(entity, Arc::new(RwLock::new(instance)));
+    let world = World::default();
+    let world_holder = WorldHolder::new(entity, Arc::new(RwLock::new(world)));
 
     let local_player_bundle = LocalPlayerBundle {
         raw_connection,
-        instance_holder,
+        world_holder,
         metadata: PlayerMetadataBundle::default(),
     };
 

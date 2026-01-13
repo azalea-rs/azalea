@@ -15,7 +15,7 @@ use std::sync::{
 use azalea_client::{account::Account, chat::ChatPacket, join::ConnectOpts};
 use azalea_entity::LocalEntity;
 use azalea_protocol::address::ResolvedAddr;
-use azalea_world::InstanceContainer;
+use azalea_world::Worlds;
 use bevy_app::{PluginGroup, PluginGroupBuilder};
 use bevy_ecs::prelude::*;
 pub use builder::SwarmBuilder;
@@ -47,7 +47,7 @@ pub struct Swarm {
     // the address is public and mutable so plugins can change it
     pub address: Arc<RwLock<ResolvedAddr>>,
 
-    pub instance_container: Arc<RwLock<InstanceContainer>>,
+    pub worlds: Arc<RwLock<Worlds>>,
 
     /// This is used internally to make the client handler function work.
     pub(crate) bots_tx: mpsc::UnboundedSender<(Option<crate::Event>, Client)>,

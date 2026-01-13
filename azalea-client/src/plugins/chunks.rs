@@ -17,7 +17,7 @@ use bevy_ecs::prelude::*;
 use tracing::{error, trace};
 
 use crate::{
-    inventory::InventorySystems, local_player::InstanceHolder, packet::game::SendGamePacketEvent,
+    inventory::InventorySystems, local_player::WorldHolder, packet::game::SendGamePacketEvent,
     respawn::perform_respawn,
 };
 
@@ -66,42 +66,40 @@ pub struct ChunkBatchFinishedEvent {
 
 pub fn handle_receive_chunk_event(
     mut events: MessageReader<ReceiveChunkEvent>,
-    mut query: Query<&InstanceHolder>,
+    mut query: Query<&WorldHolder>,
 ) {
     for event in events.read() {
         let pos = ChunkPos::new(event.packet.x, event.packet.z);
 
         let local_player = query.get_mut(event.entity).unwrap();
 
-        let mut instance = local_player.instance.write();
-        let mut partial_instance = local_player.partial_instance.write();
+        let mut world = local_player.shared.write();
+        let mut partial_world = local_player.partial.write();
 
         // OPTIMIZATION: if we already know about the chunk from the shared world (and
         // not ourselves), then we don't need to parse it again. This is only used when
         // we have a shared world, since we check that the chunk isn't currently owned
         // by this client.
-        let shared_chunk = instance.chunks.get(&pos);
-        let this_client_has_chunk = partial_instance.chunks.limited_get(&pos).is_some();
+        let shared_chunk = world.chunks.get(&pos);
+        let this_client_has_chunk = partial_world.chunks.limited_get(&pos).is_some();
 
         if !this_client_has_chunk && let Some(shared_chunk) = shared_chunk {
             trace!("Skipping parsing chunk {pos:?} because we already know about it");
-            partial_instance
-                .chunks
-                .limited_set(&pos, Some(shared_chunk));
+            partial_world.chunks.limited_set(&pos, Some(shared_chunk));
             continue;
         }
 
         let heightmaps = &event.packet.chunk_data.heightmaps;
 
-        if let Err(e) = partial_instance.chunks.replace_with_packet_data(
+        if let Err(e) = partial_world.chunks.replace_with_packet_data(
             &pos,
             &mut Cursor::new(&event.packet.chunk_data.data),
             heightmaps,
-            &mut instance.chunks,
+            &mut world.chunks,
         ) {
             error!(
                 "Couldn't set chunk data: {e}. World height: {}",
-                instance.chunks.height
+                world.chunks.height
             );
         }
     }
