@@ -712,7 +712,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
     code.append("")
 
     code_header.append("")
-    code_header.append("#![allow(clippy::single_match)]")
+    code_header.append("#![allow(clippy::single_match, non_snake_case)]")
 
     with open(METADATA_RS_DIR, "w") as f:
         f.write("\n".join(code_header) + "\n\n")

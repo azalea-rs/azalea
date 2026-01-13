@@ -8,7 +8,7 @@ use aes::{
     Aes128,
     cipher::{BlockDecryptMut, BlockEncryptMut, KeyIvInit, inout::InOutBuf},
 };
-use rand::{TryRngCore, rngs::OsRng};
+use rand::{TryRngCore, rngs::SysRng};
 use sha1::{Digest, Sha1};
 
 #[cfg(feature = "signing")]
@@ -30,7 +30,7 @@ pub fn make_salt() -> u64 {
 
 fn generate_secret_key() -> [u8; 16] {
     let mut key = [0u8; 16];
-    OsRng.try_fill_bytes(&mut key).unwrap();
+    SysRng.try_fill_bytes(&mut key).unwrap();
     key
 }
 

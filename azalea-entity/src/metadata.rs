@@ -193,7 +193,7 @@
 //!       - [SpawnerMinecart]
 //!       - [TntMinecart]
 
-#![allow(clippy::single_match)]
+#![allow(clippy::single_match, non_snake_case)]
 
 use azalea_chat::FormattedText;
 use azalea_core::{
