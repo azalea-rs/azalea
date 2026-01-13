@@ -3,7 +3,7 @@ use std::{
     io::{self, Cursor, Write},
 };
 
-use azalea_buf::{AzaleaRead, AzaleaReadLimited, AzaleaReadVar, AzaleaWrite};
+use azalea_buf::{AzBuf, AzBufLimited, AzBufVar};
 
 /// Used for written books.
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
@@ -13,35 +13,38 @@ pub struct Filterable<T> {
     pub filtered: Option<T>,
 }
 
-impl<T: AzaleaWrite> azalea_buf::AzaleaWrite for Filterable<T> {
+impl<T: AzBuf> AzBuf for Filterable<T> {
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
+        let raw = AzBuf::azalea_read(buf)?;
+        let filtered = AzBuf::azalea_read(buf)?;
+        Ok(Self { raw, filtered })
+    }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         self.raw.azalea_write(buf)?;
         self.filtered.azalea_write(buf)?;
         Ok(())
     }
 }
-impl<T: AzaleaRead> azalea_buf::AzaleaRead for Filterable<T> {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
-        let raw = AzaleaRead::azalea_read(buf)?;
-        let filtered = AzaleaRead::azalea_read(buf)?;
-        Ok(Self { raw, filtered })
-    }
-}
-impl<T: AzaleaReadLimited> azalea_buf::AzaleaReadLimited for Filterable<T> {
+impl<T: AzBufLimited> AzBufLimited for Filterable<T> {
     fn azalea_read_limited(
         buf: &mut Cursor<&[u8]>,
-        limit: usize,
+        limit: u32,
     ) -> Result<Self, azalea_buf::BufReadError> {
-        let raw = AzaleaReadLimited::azalea_read_limited(buf, limit)?;
-        let filtered = AzaleaReadLimited::azalea_read_limited(buf, limit)?;
+        let raw = AzBufLimited::azalea_read_limited(buf, limit)?;
+        let filtered = AzBufLimited::azalea_read_limited(buf, limit)?;
         Ok(Self { raw, filtered })
     }
 }
-impl<T: AzaleaReadVar> azalea_buf::AzaleaReadVar for Filterable<T> {
+impl<T: AzBufVar> AzBufVar for Filterable<T> {
     fn azalea_read_var(buf: &mut Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
-        let raw = AzaleaReadVar::azalea_read_var(buf)?;
-        let filtered = AzaleaReadVar::azalea_read_var(buf)?;
+        let raw = AzBufVar::azalea_read_var(buf)?;
+        let filtered = AzBufVar::azalea_read_var(buf)?;
         Ok(Self { raw, filtered })
+    }
+    fn azalea_write_var(&self, buf: &mut impl Write) -> io::Result<()> {
+        self.raw.azalea_write_var(buf)?;
+        self.filtered.azalea_write_var(buf)?;
+        Ok(())
     }
 }
 

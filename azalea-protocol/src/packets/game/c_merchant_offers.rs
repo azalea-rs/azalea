@@ -5,7 +5,7 @@ use std::{
     mem::ManuallyDrop,
 };
 
-use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
+use azalea_buf::{AzBuf, BufReadError};
 use azalea_inventory::{
     DataComponentPatch, ItemStack, ItemStackData,
     components::{self, DataComponentUnion},
@@ -107,14 +107,12 @@ impl TypedDataComponent {
         component_any.downcast_ref::<T>()
     }
 }
-impl AzaleaRead for TypedDataComponent {
+impl AzBuf for TypedDataComponent {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let kind = DataComponentKind::azalea_read(buf)?;
         let value = DataComponentUnion::azalea_read_as(kind, buf)?;
         Ok(Self { kind, value })
     }
-}
-impl AzaleaWrite for TypedDataComponent {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         self.kind.azalea_write(buf)?;
         unsafe { self.value.azalea_write_as(self.kind, buf) }

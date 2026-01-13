@@ -5,7 +5,7 @@
 
 use std::io::{self, Cursor, Write};
 
-use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
+use azalea_buf::{AzBuf, AzBufVar, BufReadError};
 use azalea_chat::FormattedText;
 use azalea_core::{
     direction::Direction,
@@ -30,7 +30,7 @@ pub struct EntityDataItem {
     pub value: EntityDataValue,
 }
 
-impl AzaleaRead for EntityMetadataItems {
+impl AzBuf for EntityMetadataItems {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let mut metadata = Vec::new();
         loop {
@@ -43,9 +43,6 @@ impl AzaleaRead for EntityMetadataItems {
         }
         Ok(EntityMetadataItems(metadata))
     }
-}
-
-impl AzaleaWrite for EntityMetadataItems {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         for item in &self.0 {
             item.index.azalea_write(buf)?;
@@ -126,7 +123,7 @@ pub enum ArmadilloStateKind {
     Scared,
 }
 
-impl AzaleaRead for OptionalUnsignedInt {
+impl AzBuf for OptionalUnsignedInt {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let val = u32::azalea_read_var(buf)?;
         Ok(OptionalUnsignedInt(if val == 0 {
@@ -135,8 +132,6 @@ impl AzaleaRead for OptionalUnsignedInt {
             Some(val - 1)
         }))
     }
-}
-impl AzaleaWrite for OptionalUnsignedInt {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         match self.0 {
             Some(val) => (val + 1).azalea_write_var(buf),

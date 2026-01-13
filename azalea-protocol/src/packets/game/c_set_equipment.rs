@@ -1,9 +1,9 @@
 use std::io::{self, Cursor, Write};
 
-use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
+use azalea_buf::{AzBuf, BufReadError};
+use azalea_core::entity_id::MinecraftEntityId;
 use azalea_inventory::{ItemStack, components::EquipmentSlot};
 use azalea_protocol_macros::ClientboundGamePacket;
-use azalea_core::entity_id::MinecraftEntityId;
 
 #[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundSetEquipment {
@@ -17,7 +17,7 @@ pub struct EquipmentSlots {
     pub slots: Vec<(EquipmentSlot, ItemStack)>,
 }
 
-impl AzaleaRead for EquipmentSlots {
+impl AzBuf for EquipmentSlots {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let mut slots = vec![];
 
@@ -38,8 +38,6 @@ impl AzaleaRead for EquipmentSlots {
 
         Ok(EquipmentSlots { slots })
     }
-}
-impl AzaleaWrite for EquipmentSlots {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         for i in 0..self.slots.len() {
             let (equipment_slot, item) = &self.slots[i];

@@ -1,4 +1,4 @@
-use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite};
+use azalea_buf::AzBuf;
 use azalea_core::position::Vec3;
 use azalea_entity::particle::Particle;
 use azalea_protocol_macros::ClientboundGamePacket;
@@ -16,7 +16,7 @@ pub struct ClientboundExplode {
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq)]
-pub struct Weighted<T: AzaleaRead + AzaleaWrite> {
+pub struct Weighted<T: AzBuf> {
     pub value: T,
     #[var]
     pub weight: i32,

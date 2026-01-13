@@ -1,20 +1,13 @@
 use quote::{ToTokens, quote};
-use syn::{Data, Field, FieldsNamed, Generics, Ident, punctuated::Punctuated, token::Comma};
+use syn::{Data, Field, FieldsNamed, Ident, punctuated::Punctuated, token::Comma};
 
-pub fn create_impl_azalearead(
-    ident: &Ident,
-    generics: &Generics,
-    data: &Data,
-) -> proc_macro2::TokenStream {
-    let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
-
+pub fn create_fn_azalea_read(data: &Data) -> proc_macro2::TokenStream {
     match data {
         syn::Data::Struct(syn::DataStruct { fields, .. }) => match fields {
             syn::Fields::Named(FieldsNamed { named, .. }) => {
                 let (read_fields, read_field_names) = read_named_fields(named);
 
                 quote! {
-                impl #impl_generics azalea_buf::AzaleaRead for #ident #ty_generics #where_clause {
                     fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> std::result::Result<Self, azalea_buf::BufReadError> {
                         #(#read_fields)*
                         Ok(Self {
@@ -22,28 +15,23 @@ pub fn create_impl_azalearead(
                         })
                     }
                 }
-                }
             }
             syn::Fields::Unit => {
                 quote! {
-                impl #impl_generics azalea_buf::AzaleaRead for #ident #ty_generics #where_clause {
                     fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> std::result::Result<Self, azalea_buf::BufReadError> {
                         Ok(Self)
                     }
-                }
                 }
             }
             syn::Fields::Unnamed(fields) => {
                 let read_fields = read_unnamed_fields(&fields.unnamed);
 
                 quote! {
-                impl #impl_generics azalea_buf::AzaleaRead for #ident #ty_generics #where_clause {
                     fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> std::result::Result<Self, azalea_buf::BufReadError> {
                         Ok(Self(
                             #(#read_fields),*
                         ))
                     }
-                }
                 }
             }
         },
@@ -81,7 +69,7 @@ pub fn create_impl_azalearead(
 
                         quote! {
                             #(#read_fields)*
-                            Ok(#ident::#variant_name {
+                            Ok(Self::#variant_name {
                                 #(#read_field_names: #read_field_names),*
                             })
                         }
@@ -98,7 +86,7 @@ pub fn create_impl_azalearead(
                                     .map(|a| {
                                         a.parse_args::<syn::LitInt>()
                                             .unwrap()
-                                            .base10_parse::<usize>()
+                                            .base10_parse::<u32>()
                                             .unwrap()
                                     });
 
@@ -108,15 +96,15 @@ pub fn create_impl_azalearead(
 
                             if is_variable_length {
                                 reader_code.extend(quote! {
-                                    Self::#variant_name(azalea_buf::AzaleaReadVar::azalea_read_var(buf)?),
+                                    Self::#variant_name(azalea_buf::AzBufVar::azalea_read_var(buf)?),
                                 });
                             } else if let Some(limit) = limit {
                                 reader_code.extend(quote! {
-                                    Self::#variant_name(azalea_buf::AzaleaReadLimited::azalea_read_limited(buf, #limit)?),
+                                    Self::#variant_name(azalea_buf::AzBufLimited::azalea_read_limited(buf, #limit)?),
                                 });
                             } else {
                                 reader_code.extend(quote! {
-                                    Self::#variant_name(azalea_buf::AzaleaRead::azalea_read(buf)?),
+                                    Self::#variant_name(azalea_buf::AzBuf::azalea_read(buf)?),
                                 });
                             }
                         }
@@ -141,22 +129,15 @@ pub fn create_impl_azalearead(
             let first_reader = first_reader.expect("There should be at least one variant");
 
             quote! {
-            impl #impl_generics azalea_buf::AzaleaRead for #ident #ty_generics #where_clause {
                 fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> std::result::Result<Self, azalea_buf::BufReadError> {
-                    let id = azalea_buf::AzaleaReadVar::azalea_read_var(buf)?;
-                    Self::azalea_read_id(buf, id)
-                }
-            }
+                    let id = azalea_buf::AzBufVar::azalea_read_var(buf)?;
 
-            impl #impl_generics #ident #ty_generics #where_clause {
-                pub fn azalea_read_id(buf: &mut std::io::Cursor<&[u8]>, id: u32) -> std::result::Result<Self, azalea_buf::BufReadError> {
                     match id {
                         #match_contents
                         // you'd THINK this throws an error, but mojang decided to make it default for some reason
                         _ => {#first_reader}
                     }
                 }
-            }
             }
         }
         _ => panic!("#[derive(AzBuf)] can only be used on structs"),
@@ -202,7 +183,7 @@ fn get_reader_call(f: &Field) -> proc_macro2::TokenStream {
         .map(|a| {
             a.parse_args::<syn::LitInt>()
                 .unwrap()
-                .base10_parse::<usize>()
+                .base10_parse::<u32>()
                 .unwrap()
         });
 
@@ -218,15 +199,15 @@ fn get_reader_call(f: &Field) -> proc_macro2::TokenStream {
         syn::Type::Path(_) | syn::Type::Array(_) => {
             if is_variable_length {
                 quote! {
-                    azalea_buf::AzaleaReadVar::azalea_read_var(buf)?
+                    azalea_buf::AzBufVar::azalea_read_var(buf)?
                 }
             } else if let Some(limit) = limit {
                 quote! {
-                    azalea_buf::AzaleaReadLimited::azalea_read_limited(buf, #limit)?
+                    azalea_buf::AzBufLimited::azalea_read_limited(buf, #limit)?
                 }
             } else {
                 quote! {
-                    azalea_buf::AzaleaRead::azalea_read(buf)?
+                    azalea_buf::AzBuf::azalea_read(buf)?
                 }
             }
         }

@@ -4,18 +4,16 @@
 #![feature(error_generic_member_access)]
 
 mod definitions;
-mod read;
+pub mod impls;
 mod serializable_uuid;
-mod write;
 
 pub use azalea_buf_macros::*;
 pub use definitions::*;
-pub use read::{AzaleaRead, AzaleaReadLimited, AzaleaReadVar, BufReadError};
+pub use impls::*;
 pub use serializable_uuid::*;
-pub use write::{AzaleaWrite, AzaleaWriteVar};
 
 // const DEFAULT_NBT_QUOTA: u32 = 2097152;
-const MAX_STRING_LENGTH: u16 = 32767;
+const MAX_STRING_LENGTH: u32 = 32767;
 // const MAX_COMPONENT_STRING_LENGTH: u32 = 262144;
 
 #[cfg(test)]

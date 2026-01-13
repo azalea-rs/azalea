@@ -34,7 +34,7 @@ pub enum SoundSource {
 mod tests {
     use std::io::Cursor;
 
-    use azalea_buf::AzaleaRead;
+    use azalea_buf::AzBuf;
 
     use crate::packets::game::ClientboundSound;
 

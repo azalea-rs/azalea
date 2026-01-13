@@ -4,7 +4,7 @@ use std::{
     io::{self, Cursor},
 };
 
-use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
+use azalea_buf::{AzBuf, AzBufVar, BufReadError};
 use derive_more::{Deref, DerefMut};
 
 // note: this is here instead of in azalea-entity because azalea-world depends
@@ -41,22 +41,18 @@ impl nohash_hasher::IsEnabled for MinecraftEntityId {}
 
 // we can't have the default be #[var] because mojang doesn't use varints for
 // entities sometimes :(
-impl AzaleaRead for MinecraftEntityId {
+impl AzBuf for MinecraftEntityId {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         i32::azalea_read(buf).map(MinecraftEntityId)
     }
-}
-impl AzaleaWrite for MinecraftEntityId {
     fn azalea_write(&self, buf: &mut impl io::Write) -> io::Result<()> {
         i32::azalea_write(&self.0, buf)
     }
 }
-impl AzaleaReadVar for MinecraftEntityId {
+impl AzBufVar for MinecraftEntityId {
     fn azalea_read_var(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         i32::azalea_read_var(buf).map(MinecraftEntityId)
     }
-}
-impl AzaleaWriteVar for MinecraftEntityId {
     fn azalea_write_var(&self, buf: &mut impl io::Write) -> io::Result<()> {
         i32::azalea_write_var(&self.0, buf)
     }

@@ -4,7 +4,7 @@ use std::{
 };
 
 use azalea_block::BlockState;
-use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
+use azalea_buf::{AzBuf, BufReadError};
 use azalea_core::position::{ChunkSectionBiomePos, ChunkSectionBlockPos};
 use azalea_registry::data::Biome;
 use tracing::{debug, warn};
@@ -291,10 +291,10 @@ impl<S: PalletedContainerKind> PalettedContainer<S> {
     }
 }
 
-impl<S: PalletedContainerKind> AzaleaWrite for PalettedContainer<S> {
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+impl<S: PalletedContainerKind> PalettedContainer<S> {
+    pub fn write(&self, buf: &mut impl Write) -> io::Result<()> {
         self.bits_per_entry.azalea_write(buf)?;
-        self.palette.azalea_write(buf)?;
+        self.palette.write(buf)?;
         self.storage.data.azalea_write(buf)?;
         Ok(())
     }

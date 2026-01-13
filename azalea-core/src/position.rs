@@ -12,7 +12,7 @@ use std::{
     str::FromStr,
 };
 
-use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
+use azalea_buf::{AzBuf, BufReadError};
 use azalea_registry::identifier::Identifier;
 #[cfg(feature = "serde")]
 use serde::Serializer;
@@ -584,13 +584,11 @@ impl From<u64> for ChunkPos {
         }
     }
 }
-impl AzaleaRead for ChunkPos {
+impl AzBuf for ChunkPos {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let long = u64::azalea_read(buf)?;
         Ok(ChunkPos::from(long))
     }
-}
-impl AzaleaWrite for ChunkPos {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         u64::from(*self).azalea_write(buf)?;
         Ok(())
@@ -986,7 +984,7 @@ const PACKED_Z_MASK: u64 = (1 << PACKED_Z_LENGTH) - 1;
 const Z_OFFSET: u64 = PACKED_Y_LENGTH;
 const X_OFFSET: u64 = PACKED_Y_LENGTH + PACKED_Z_LENGTH;
 
-impl AzaleaRead for BlockPos {
+impl AzBuf for BlockPos {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let val = i64::azalea_read(buf)?;
         let x = (val << (64 - X_OFFSET - PACKED_X_LENGTH) >> (64 - PACKED_X_LENGTH)) as i32;
@@ -994,29 +992,6 @@ impl AzaleaRead for BlockPos {
         let z = (val << (64 - Z_OFFSET - PACKED_Z_LENGTH) >> (64 - PACKED_Z_LENGTH)) as i32;
         Ok(BlockPos { x, y, z })
     }
-}
-
-impl AzaleaRead for GlobalPos {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        Ok(GlobalPos {
-            dimension: Identifier::azalea_read(buf)?,
-            pos: BlockPos::azalea_read(buf)?,
-        })
-    }
-}
-
-impl AzaleaRead for ChunkSectionPos {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let long = i64::azalea_read(buf)?;
-        Ok(ChunkSectionPos {
-            x: (long >> 42) as i32,
-            y: (long << 44 >> 44) as i32,
-            z: (long << 22 >> 42) as i32,
-        })
-    }
-}
-
-impl AzaleaWrite for BlockPos {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         let mut val: u64 = 0;
         val |= ((self.x as u64) & PACKED_X_MASK) << X_OFFSET;
@@ -1026,7 +1001,13 @@ impl AzaleaWrite for BlockPos {
     }
 }
 
-impl AzaleaWrite for GlobalPos {
+impl AzBuf for GlobalPos {
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        Ok(GlobalPos {
+            dimension: Identifier::azalea_read(buf)?,
+            pos: BlockPos::azalea_read(buf)?,
+        })
+    }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         Identifier::azalea_write(&self.dimension, buf)?;
         BlockPos::azalea_write(&self.pos, buf)?;
@@ -1035,7 +1016,15 @@ impl AzaleaWrite for GlobalPos {
     }
 }
 
-impl AzaleaWrite for ChunkSectionPos {
+impl AzBuf for ChunkSectionPos {
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let long = i64::azalea_read(buf)?;
+        Ok(ChunkSectionPos {
+            x: (long >> 42) as i32,
+            y: (long << 44 >> 44) as i32,
+            z: (long << 22 >> 42) as i32,
+        })
+    }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         let long = (((self.x & 0x3FFFFF) as i64) << 42)
             | (self.y & 0xFFFFF) as i64

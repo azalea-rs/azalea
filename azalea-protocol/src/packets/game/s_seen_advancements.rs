@@ -1,8 +1,8 @@
 use std::io::{self, Cursor, Write};
 
-use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite};
-use azalea_registry::identifier::Identifier;
+use azalea_buf::AzBuf;
 use azalea_protocol_macros::ServerboundGamePacket;
+use azalea_registry::identifier::Identifier;
 
 use crate::packets::BufReadError;
 
@@ -18,7 +18,7 @@ pub enum Action {
     ClosedScreen = 1,
 }
 
-impl AzaleaRead for ServerboundSeenAdvancements {
+impl AzBuf for ServerboundSeenAdvancements {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let action = Action::azalea_read(buf)?;
         let tab = if action == Action::OpenedTab {
@@ -28,9 +28,6 @@ impl AzaleaRead for ServerboundSeenAdvancements {
         };
         Ok(Self { action, tab })
     }
-}
-
-impl AzaleaWrite for ServerboundSeenAdvancements {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         self.action.azalea_write(buf)?;
         if let Some(tab) = &self.tab {

@@ -50,7 +50,7 @@ type PlayerList = Vec<String>;
 mod tests {
     use std::io::Cursor;
 
-    use azalea_buf::AzaleaRead;
+    use azalea_buf::AzBuf;
 
     use crate::packets::game::ClientboundSetPlayerTeam;
 

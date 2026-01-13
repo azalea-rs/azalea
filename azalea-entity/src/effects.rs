@@ -3,7 +3,7 @@ use std::{
     io::{self, Cursor, Write},
 };
 
-use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
+use azalea_buf::{AzBuf, BufReadError};
 use azalea_core::bitset::FixedBitSet;
 use azalea_registry::builtin::MobEffect;
 
@@ -27,7 +27,7 @@ pub struct MobEffectFlags {
     pub blend: bool,
 }
 
-impl AzaleaRead for MobEffectFlags {
+impl AzBuf for MobEffectFlags {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let bitset = FixedBitSet::<8>::azalea_read(buf)?;
         let ambient = bitset.index(0);
@@ -41,9 +41,6 @@ impl AzaleaRead for MobEffectFlags {
             blend,
         })
     }
-}
-
-impl AzaleaWrite for MobEffectFlags {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         let mut bitset = FixedBitSet::<8>::new();
         if self.ambient {

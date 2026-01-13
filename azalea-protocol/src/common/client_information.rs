@@ -1,6 +1,6 @@
 use std::io::{self, Cursor};
 
-use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite};
+use azalea_buf::AzBuf;
 use azalea_core::bitset::FixedBitSet;
 use azalea_entity::HumanoidArm;
 
@@ -94,7 +94,7 @@ impl Default for ModelCustomization {
     }
 }
 
-impl AzaleaRead for ModelCustomization {
+impl AzBuf for ModelCustomization {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
         let set = FixedBitSet::<7>::azalea_read(buf)?;
         Ok(Self {
@@ -107,9 +107,6 @@ impl AzaleaRead for ModelCustomization {
             hat: set.index(6),
         })
     }
-}
-
-impl AzaleaWrite for ModelCustomization {
     fn azalea_write(&self, buf: &mut impl io::Write) -> io::Result<()> {
         let mut set = FixedBitSet::<7>::new();
         if self.cape {
@@ -141,7 +138,7 @@ impl AzaleaWrite for ModelCustomization {
 mod tests {
     use std::io::Cursor;
 
-    use azalea_buf::{AzaleaRead, AzaleaWrite};
+    use azalea_buf::AzBuf;
 
     use super::*;
 

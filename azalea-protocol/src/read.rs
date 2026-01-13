@@ -9,7 +9,7 @@ use std::{
     sync::LazyLock,
 };
 
-use azalea_buf::{AzaleaReadVar, BufReadError};
+use azalea_buf::{AzBufVar, BufReadError};
 use azalea_crypto::Aes128CfbDec;
 use flate2::read::ZlibDecoder;
 use futures::StreamExt;
@@ -406,7 +406,7 @@ where
 mod tests {
     use std::io::Cursor;
 
-    use azalea_buf::AzaleaRead as _;
+    use azalea_buf::AzBuf as _;
 
     use crate::{packets::game::ClientboundGamePacket, read::deserialize_packet};
 

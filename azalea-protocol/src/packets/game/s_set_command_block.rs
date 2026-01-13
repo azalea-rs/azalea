@@ -1,10 +1,8 @@
 use std::io::{self, Cursor, Write};
 
-use azalea_buf::{AzBuf, AzaleaRead, BufReadError};
+use azalea_buf::{AzBuf, BufReadError};
 use azalea_core::{bitset::FixedBitSet, position::BlockPos};
 use azalea_protocol_macros::ServerboundGamePacket;
-
-use crate::packets::AzaleaWrite;
 
 #[derive(Clone, Debug, PartialEq, ServerboundGamePacket)]
 pub struct ServerboundSetCommandBlock {
@@ -24,7 +22,7 @@ pub enum Mode {
     Redstone = 2,
 }
 
-impl AzaleaRead for ServerboundSetCommandBlock {
+impl AzBuf for ServerboundSetCommandBlock {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let pos = BlockPos::azalea_read(buf)?;
         let command = String::azalea_read(buf)?;
@@ -40,9 +38,6 @@ impl AzaleaRead for ServerboundSetCommandBlock {
             automatic: set.index(2),
         })
     }
-}
-
-impl AzaleaWrite for ServerboundSetCommandBlock {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         self.pos.azalea_write(buf)?;
         self.command.azalea_write(buf)?;
