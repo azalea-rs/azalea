@@ -3,9 +3,7 @@ use std::{
     sync::Arc,
 };
 
-use azalea_buf::{
-    AzBuf, AzaleaRead, AzaleaReadLimited, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError,
-};
+use azalea_buf::{AzBuf, AzBufLimited, AzBufVar, BufReadError};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize, Serializer};
 use uuid::Uuid;
@@ -53,7 +51,7 @@ impl From<SerializableGameProfile> for GameProfile {
 pub struct GameProfileProperties {
     pub map: IndexMap<String, ProfilePropertyValue>,
 }
-impl AzaleaRead for GameProfileProperties {
+impl AzBuf for GameProfileProperties {
     fn azalea_read(buf: &mut io::Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let mut properties = IndexMap::new();
         let properties_len = u32::azalea_read_var(buf)?;
@@ -70,8 +68,6 @@ impl AzaleaRead for GameProfileProperties {
         }
         Ok(GameProfileProperties { map: properties })
     }
-}
-impl AzaleaWrite for GameProfileProperties {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         (self.map.len() as u64).azalea_write_var(buf)?;
         for (key, value) in &self.map {
@@ -87,14 +83,12 @@ pub struct ProfilePropertyValue {
     pub value: String,
     pub signature: Option<String>,
 }
-impl AzaleaRead for ProfilePropertyValue {
+impl AzBuf for ProfilePropertyValue {
     fn azalea_read(buf: &mut io::Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let value = String::azalea_read_limited(buf, 32767)?;
         let signature = Option::<String>::azalea_read_limited(buf, 1024)?;
         Ok(ProfilePropertyValue { value, signature })
     }
-}
-impl AzaleaWrite for ProfilePropertyValue {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         self.value.azalea_write(buf)?;
         self.signature.azalea_write(buf)?;

@@ -6,7 +6,7 @@ use std::{
 };
 
 #[cfg(all(feature = "azalea-buf", feature = "simdnbt"))]
-use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
+use azalea_buf::{AzBuf, BufReadError};
 use serde::{Deserialize, Deserializer, Serialize, de};
 
 use crate::{
@@ -635,7 +635,7 @@ impl From<&simdnbt::Mutf8Str> for FormattedText {
 }
 
 #[cfg(all(feature = "azalea-buf", feature = "simdnbt"))]
-impl AzaleaRead for FormattedText {
+impl AzBuf for FormattedText {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         use simdnbt::FromNbtTag;
         use tracing::trace;
@@ -652,10 +652,6 @@ impl AzaleaRead for FormattedText {
             _ => Ok(FormattedText::default()),
         }
     }
-}
-
-#[cfg(all(feature = "azalea-buf", feature = "simdnbt"))]
-impl AzaleaWrite for FormattedText {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         use simdnbt::Serialize;
 

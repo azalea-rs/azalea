@@ -2,7 +2,7 @@
 
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use azalea_buf::{AzBuf, AzaleaWrite};
+use azalea_buf::AzBuf;
 use rsa::{
     RsaPrivateKey,
     signature::{RandomizedSigner, SignatureEncoding},

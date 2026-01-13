@@ -16,7 +16,7 @@ pub struct ClientboundContainerSetContent {
 mod tests {
     use std::io::Cursor;
 
-    use azalea_buf::AzaleaRead;
+    use azalea_buf::AzBuf;
 
     use super::ClientboundContainerSetContent;
 

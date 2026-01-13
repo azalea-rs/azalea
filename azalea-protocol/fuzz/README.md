@@ -11,12 +11,12 @@ Additionally, you should be aware that this fuzzer only targets `azalea-protocol
 ```sh
 cargo install cargo-fuzz
 
-cargo fuzz run clientbound_game -s none -- -rss_limit_mb=16384 -malloc_limit_mb=1024
-# other valid targets: {clientbound,serverbound}_{config,game,handshake,login,status}
-# note: the rss_limit_mb is increased (from the default of 2048) so libfuzzer
-# doesn't oom due to the branchiness of the code :(
+cargo fuzz run clientbound_game -s none -- -rss_limit_mb=4096 -malloc_limit_mb=1024
+# other valid targets:
+# {clientbound,serverbound}_{config,game,handshake,login,status}
 
-# also, the `-s none` is there for increased performance, but at the cost of catching less bugs. feel free to remove it.
+# the `-s none` is there for increased performance, but at the cost of catching
+# less bugs. feel free to remove it.
 
 # also see https://appsec.guide/docs/fuzzing/rust/cargo-fuzz/
 ```

@@ -1,6 +1,6 @@
 use std::io::{self, Cursor, Write};
 
-use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
+use azalea_buf::{AzBuf, BufReadError};
 use azalea_core::bitset::FixedBitSet;
 use azalea_entity::PlayerAbilities;
 use azalea_protocol_macros::ClientboundGamePacket;
@@ -21,7 +21,7 @@ pub struct PlayerAbilitiesFlags {
     pub instant_break: bool,
 }
 
-impl AzaleaRead for PlayerAbilitiesFlags {
+impl AzBuf for PlayerAbilitiesFlags {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let set = FixedBitSet::<4>::azalea_read(buf)?;
         Ok(PlayerAbilitiesFlags {
@@ -31,9 +31,6 @@ impl AzaleaRead for PlayerAbilitiesFlags {
             instant_break: set.index(3),
         })
     }
-}
-
-impl AzaleaWrite for PlayerAbilitiesFlags {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         let mut set = FixedBitSet::<4>::new();
         if self.invulnerable {

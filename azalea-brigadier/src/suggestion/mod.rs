@@ -2,18 +2,12 @@ mod suggestion_provider;
 mod suggestions;
 mod suggestions_builder;
 
-#[cfg(feature = "azalea-buf")]
-use std::io::{self, Write};
 use std::{
     cmp::Ordering,
     fmt::{self, Display},
     hash::Hash,
 };
 
-#[cfg(feature = "azalea-buf")]
-use azalea_buf::AzaleaWrite;
-#[cfg(feature = "azalea-buf")]
-use azalea_chat::FormattedText;
 pub use suggestion_provider::SuggestionProvider;
 pub use suggestions::Suggestions;
 pub use suggestions_builder::SuggestionsBuilder;
@@ -136,17 +130,5 @@ impl Ord for SuggestionValue {
 impl PartialOrd for SuggestionValue {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
-    }
-}
-
-#[cfg(feature = "azalea-buf")]
-impl AzaleaWrite for Suggestion {
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        self.value.to_string().azalea_write(buf)?;
-        self.tooltip
-            .clone()
-            .map(FormattedText::from)
-            .azalea_write(buf)?;
-        Ok(())
     }
 }

@@ -2,7 +2,7 @@ use std::{any, collections::VecDeque, fmt::Debug, sync::Arc};
 
 use azalea_auth::game_profile::GameProfile;
 use azalea_block::BlockState;
-use azalea_buf::AzaleaWrite;
+use azalea_buf::AzBuf;
 use azalea_core::{
     delta::LpVec3,
     entity_id::MinecraftEntityId,

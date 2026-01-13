@@ -1,6 +1,6 @@
 use std::io::{self, Cursor, Write};
 
-use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
+use azalea_buf::{AzBuf, BufReadError};
 use azalea_core::bitset::FixedBitSet;
 use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_registry::identifier::Identifier;
@@ -13,7 +13,7 @@ pub struct ClientboundStopSound {
     pub name: Option<Identifier>,
 }
 
-impl AzaleaRead for ClientboundStopSound {
+impl AzBuf for ClientboundStopSound {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let set = FixedBitSet::<2>::azalea_read(buf)?;
         let source = if set.index(0) {
@@ -29,9 +29,6 @@ impl AzaleaRead for ClientboundStopSound {
 
         Ok(Self { source, name })
     }
-}
-
-impl AzaleaWrite for ClientboundStopSound {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         let mut set = FixedBitSet::<2>::new();
         if self.source.is_some() {

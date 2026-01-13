@@ -11,7 +11,7 @@ use azalea_block::{
     block_state::{BlockState, BlockStateIntegerRepr},
     fluid_state::FluidState,
 };
-use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
+use azalea_buf::{AzBuf, BufReadError};
 use azalea_core::{
     heightmap_kind::HeightmapKind,
     position::{
@@ -461,14 +461,14 @@ pub fn get_block_state_from_sections(
     Some(section.get_block_state(chunk_section_pos))
 }
 
-impl AzaleaWrite for Chunk {
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        for section in &self.sections {
-            section.azalea_write(buf)?;
-        }
-        Ok(())
-    }
-}
+// impl AzBuf for Chunk {
+//     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+//         for section in &self.sections {
+//             section.azalea_write(buf)?;
+//         }
+//         Ok(())
+//     }
+// }
 
 impl Debug for PartialChunkStorage {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -482,7 +482,7 @@ impl Debug for PartialChunkStorage {
     }
 }
 
-impl AzaleaRead for Section {
+impl AzBuf for Section {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let block_count = u16::azalea_read(buf)?;
 
@@ -511,13 +511,10 @@ impl AzaleaRead for Section {
             biomes,
         })
     }
-}
-
-impl AzaleaWrite for Section {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         self.block_count.azalea_write(buf)?;
-        self.states.azalea_write(buf)?;
-        self.biomes.azalea_write(buf)?;
+        self.states.write(buf)?;
+        self.biomes.write(buf)?;
         Ok(())
     }
 }

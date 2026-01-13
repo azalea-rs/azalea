@@ -5,7 +5,7 @@ use std::{
     io::{self, Read},
 };
 
-use azalea_buf::AzaleaWriteVar;
+use azalea_buf::AzBufVar;
 use azalea_crypto::Aes128CfbEnc;
 use flate2::{Compression, bufread::ZlibEncoder};
 use thiserror::Error;

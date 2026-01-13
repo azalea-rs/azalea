@@ -8,7 +8,7 @@ use std::{
     str::FromStr,
 };
 
-use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
+use azalea_buf::{AzBuf, BufReadError};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
 use simdnbt::{FromNbtTag, ToNbtTag, owned::NbtTag};
@@ -106,13 +106,11 @@ impl From<&str> for Identifier {
     }
 }
 
-impl AzaleaRead for Identifier {
+impl AzBuf for Identifier {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let location_string = String::azalea_read(buf)?;
         Ok(Identifier::new(&location_string))
     }
-}
-impl AzaleaWrite for Identifier {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         self.to_string().azalea_write(buf)
     }
