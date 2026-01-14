@@ -91,6 +91,7 @@ pub struct CachedSection {
     pub pos: ChunkSectionPos,
     pub bitsets: Box<SectionBitsets>,
 }
+#[derive(Default)]
 pub struct SectionBitsets {
     /// Blocks that we can fully pass through (like air).
     pub passable: FastFixedBitSet<4096>,
@@ -98,6 +99,7 @@ pub struct SectionBitsets {
     pub solid: FastFixedBitSet<4096>,
     /// Blocks that we can stand on but might not be able to parkour from.
     pub standable: FastFixedBitSet<4096>,
+    /// Water source blocks.
     pub water: FastFixedBitSet<4096>,
 }
 
@@ -208,80 +210,76 @@ impl CachedWorld {
         Some(r)
     }
 
-    fn calculate_bitsets_for_section(&self, section_pos: ChunkSectionPos) -> Option<CachedSection> {
-        self.with_section(section_pos, |section| {
-            let mut passable_bitset = FastFixedBitSet::<4096>::new();
-            let mut solid_bitset = FastFixedBitSet::<4096>::new();
-            let mut standable_bitset = FastFixedBitSet::<4096>::new();
-            let mut water_bitset = FastFixedBitSet::<4096>::new();
+    fn calculate_bitsets_for_section(&self, section_pos: ChunkSectionPos) -> CachedSection {
+        let bitsets = self
+            .with_section(section_pos, |section| {
+                let mut passable_bitset = FastFixedBitSet::<4096>::new();
+                let mut solid_bitset = FastFixedBitSet::<4096>::new();
+                let mut standable_bitset = FastFixedBitSet::<4096>::new();
+                let mut water_bitset = FastFixedBitSet::<4096>::new();
 
-            for i in 0..4096 {
-                let block_state = section.get_at_index(i);
-                if is_block_state_passable(block_state) {
-                    passable_bitset.set(i);
+                for i in 0..4096 {
+                    let block_state = section.get_at_index(i);
+                    if is_block_state_passable(block_state) {
+                        passable_bitset.set(i);
+                    }
+                    if is_block_state_solid(block_state) {
+                        solid_bitset.set(i);
+                    }
+                    if is_block_state_standable(block_state) {
+                        standable_bitset.set(i);
+                    }
+                    if is_block_state_water(block_state) {
+                        water_bitset.set(i);
+                    }
                 }
-                if is_block_state_solid(block_state) {
-                    solid_bitset.set(i);
-                }
-                if is_block_state_standable(block_state) {
-                    standable_bitset.set(i);
-                }
-                if is_block_state_water(block_state) {
-                    water_bitset.set(i);
-                }
-            }
-            CachedSection {
-                pos: section_pos,
-                bitsets: Box::new(SectionBitsets {
+                Box::new(SectionBitsets {
                     passable: passable_bitset,
                     solid: solid_bitset,
                     standable: standable_bitset,
                     water: water_bitset,
-                }),
-            }
-        })
+                })
+            })
+            .unwrap_or_default();
+
+        CachedSection {
+            pos: section_pos,
+            bitsets,
+        }
+    }
+
+    fn check_bitset_for_block(
+        &self,
+        pos: BlockPos,
+        cb: impl FnOnce(&SectionBitsets, usize) -> bool,
+    ) -> bool {
+        let (section_pos, section_block_pos) =
+            (ChunkSectionPos::from(pos), ChunkSectionBlockPos::from(pos));
+        let index = u16::from(section_block_pos) as usize;
+        // SAFETY: we're only accessing this from one thread
+        let cached_blocks = unsafe { &mut *self.cached_blocks.get() };
+        if let Some(cached) = cached_blocks.get_mut(section_pos) {
+            return cb(&cached.bitsets, index);
+        }
+
+        let cached = self.calculate_bitsets_for_section(section_pos);
+        let passable = cb(&cached.bitsets, index);
+        cached_blocks.insert(cached);
+        passable
     }
 
     pub fn is_block_passable(&self, pos: RelBlockPos) -> bool {
         self.is_block_pos_passable(pos.apply(self.origin))
     }
     fn is_block_pos_passable(&self, pos: BlockPos) -> bool {
-        let (section_pos, section_block_pos) =
-            (ChunkSectionPos::from(pos), ChunkSectionBlockPos::from(pos));
-        let index = u16::from(section_block_pos) as usize;
-        // SAFETY: we're only accessing this from one thread
-        let cached_blocks = unsafe { &mut *self.cached_blocks.get() };
-        if let Some(cached) = cached_blocks.get_mut(section_pos) {
-            return cached.bitsets.passable.index(index);
-        }
-
-        let Some(cached) = self.calculate_bitsets_for_section(section_pos) else {
-            return false;
-        };
-        let passable = cached.bitsets.passable.index(index);
-        cached_blocks.insert(cached);
-        passable
+        self.check_bitset_for_block(pos, |bitsets, index| bitsets.passable.index(index))
     }
 
     pub fn is_block_water(&self, pos: RelBlockPos) -> bool {
         self.is_block_pos_water(pos.apply(self.origin))
     }
     fn is_block_pos_water(&self, pos: BlockPos) -> bool {
-        let (section_pos, section_block_pos) =
-            (ChunkSectionPos::from(pos), ChunkSectionBlockPos::from(pos));
-        let index = u16::from(section_block_pos) as usize;
-        // SAFETY: we're only accessing this from one thread
-        let cached_blocks = unsafe { &mut *self.cached_blocks.get() };
-        if let Some(cached) = cached_blocks.get_mut(section_pos) {
-            return cached.bitsets.water.index(index);
-        }
-
-        let Some(cached) = self.calculate_bitsets_for_section(section_pos) else {
-            return false;
-        };
-        let water = cached.bitsets.water.index(index);
-        cached_blocks.insert(cached);
-        water
+        self.check_bitset_for_block(pos, |bitsets, index| bitsets.water.index(index))
     }
 
     /// Get the block state at the given position.
@@ -308,38 +306,10 @@ impl CachedWorld {
     }
 
     fn is_block_pos_solid(&self, pos: BlockPos) -> bool {
-        let (section_pos, section_block_pos) =
-            (ChunkSectionPos::from(pos), ChunkSectionBlockPos::from(pos));
-        let index = u16::from(section_block_pos) as usize;
-        // SAFETY: we're only accessing this from one thread
-        let cached_blocks = unsafe { &mut *self.cached_blocks.get() };
-        if let Some(cached) = cached_blocks.get_mut(section_pos) {
-            return cached.bitsets.solid.index(index);
-        }
-
-        let Some(cached) = self.calculate_bitsets_for_section(section_pos) else {
-            return false;
-        };
-        let solid = cached.bitsets.solid.index(index);
-        cached_blocks.insert(cached);
-        solid
+        self.check_bitset_for_block(pos, |bitsets, index| bitsets.solid.index(index))
     }
     fn is_block_pos_standable(&self, pos: BlockPos) -> bool {
-        let (section_pos, section_block_pos) =
-            (ChunkSectionPos::from(pos), ChunkSectionBlockPos::from(pos));
-        let index = u16::from(section_block_pos) as usize;
-        // SAFETY: we're only accessing this from one thread
-        let cached_blocks = unsafe { &mut *self.cached_blocks.get() };
-        if let Some(cached) = cached_blocks.get_mut(section_pos) {
-            return cached.bitsets.standable.index(index);
-        }
-
-        let Some(cached) = self.calculate_bitsets_for_section(section_pos) else {
-            return false;
-        };
-        let solid = cached.bitsets.standable.index(index);
-        cached_blocks.insert(cached);
-        solid
+        self.check_bitset_for_block(pos, |bitsets, index| bitsets.standable.index(index))
     }
 
     /// Returns how much it costs to break this block.
@@ -348,8 +318,7 @@ impl CachedWorld {
     pub fn cost_for_breaking_block(&self, pos: RelBlockPos, mining_cache: &MiningCache) -> f32 {
         // SAFETY: pathfinding is single-threaded
         let cached_mining_costs = unsafe { &mut *self.cached_mining_costs.get() };
-        // 20 bits total:
-        // 8 bits for x, 4 bits for y, 8 bits for z
+
         let hash_index = calculate_cached_mining_costs_index(pos);
         let &(cached_pos, potential_cost) =
             unsafe { cached_mining_costs.get_unchecked(hash_index) };
@@ -552,12 +521,12 @@ impl CachedWorld {
     }
 }
 
-const CACHED_MINING_COSTS_SIZE: usize = 2usize.pow(20);
+const CACHED_MINING_COSTS_SIZE: usize = 2usize.pow(22);
 fn calculate_cached_mining_costs_index(pos: RelBlockPos) -> usize {
-    // create a 20-bit index by taking the bottom bits from each axis
+    // create a 22-bit index by taking the bottom bits from each axis
 
     const X_BITS: usize = 8;
-    const Y_BITS: usize = 3;
+    const Y_BITS: usize = 6;
     const Z_BITS: usize = 8;
 
     const X_MASK: usize = (1 << X_BITS) - 1;
@@ -674,7 +643,7 @@ pub fn is_block_state_standable(block_state: BlockState) -> bool {
 }
 
 pub fn is_block_state_water(block_state: BlockState) -> bool {
-    // only the default blockstate
+    // only the default blockstate, which is source blocks
     block_state == BlockState::from(BlockKind::Water)
 }
 
