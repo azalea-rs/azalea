@@ -11,6 +11,7 @@ use azalea_world::ChunkStorage;
 use serde::{Deserialize, Serialize};
 
 use super::costs::{COST_HEURISTIC, FALL_N_BLOCKS_COST, JUMP_ONE_BLOCK_COST};
+use crate::pathfinder::costs::JUMP_PENALTY;
 
 pub trait Goal: Debug + Send + Sync {
     #[must_use]
@@ -76,8 +77,10 @@ impl Goal for XZGoal {
 
 fn y_heuristic(dy: f32) -> f32 {
     if dy > 0.0 {
-        *JUMP_ONE_BLOCK_COST * dy
+        (*JUMP_ONE_BLOCK_COST + JUMP_PENALTY) * dy
     } else {
+        // this assumes that we always descend 2 blocks at a time, which is fine because
+        // the heuristic should be an underestimate.
         FALL_N_BLOCKS_COST[2] / 2. * -dy
     }
 }
