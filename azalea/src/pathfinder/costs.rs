@@ -26,24 +26,32 @@ pub static JUMP_ONE_BLOCK_COST: LazyLock<f32> =
     LazyLock::new(|| *FALL_1_25_BLOCKS_COST - *FALL_0_25_BLOCKS_COST); // 3.163
 
 pub static FALL_N_BLOCKS_COST: LazyLock<[f32; 4097]> = LazyLock::new(|| {
+    // mostly the same as calculating distance_to_ticks for every distance, but in
+    // linear time complexity
+
     let mut fall_n_blocks_cost = [0.; 4097];
-
-    let mut distance = 0;
-
-    // this is the same as calling distance_to_ticks a bunch of times but more
-    // efficient
-    let mut temp_distance = distance as f32;
+    let mut last_distance_blocks = 0;
+    let mut current_distance = 0.;
     let mut tick_count = 0;
-    loop {
-        let fall_distance = velocity(tick_count);
-        if temp_distance <= fall_distance {
-            fall_n_blocks_cost[distance] = tick_count as f32 + temp_distance / fall_distance;
-            distance += 1;
-            if distance >= fall_n_blocks_cost.len() {
-                break;
+
+    'outer: loop {
+        let fall_distance_per_tick = velocity(tick_count);
+
+        let current_distance_blocks = (current_distance + fall_distance_per_tick) as usize;
+        if current_distance_blocks > last_distance_blocks {
+            for blocks in (last_distance_blocks + 1)..=current_distance_blocks {
+                if blocks == fall_n_blocks_cost.len() {
+                    break 'outer;
+                }
+
+                fall_n_blocks_cost[blocks] =
+                    tick_count as f32 + (blocks as f32 - current_distance) / fall_distance_per_tick;
             }
+
+            last_distance_blocks = current_distance_blocks;
         }
-        temp_distance -= fall_distance;
+
+        current_distance += fall_distance_per_tick;
         tick_count += 1;
     }
 
@@ -59,14 +67,14 @@ fn distance_to_ticks(distance: f32) -> f32 {
         // Avoid 0/0 NaN
         return 0.;
     }
-    let mut temp_distance = distance;
     let mut tick_count = 0;
+    let mut remaining_distance = distance;
     loop {
-        let fall_distance = velocity(tick_count);
-        if temp_distance <= fall_distance {
-            return tick_count as f32 + temp_distance / fall_distance;
+        let fall_distance_per_tick = velocity(tick_count);
+        if fall_distance_per_tick >= remaining_distance {
+            return (tick_count as f32) + (remaining_distance / fall_distance_per_tick);
         }
-        temp_distance -= fall_distance;
+        remaining_distance -= fall_distance_per_tick;
         tick_count += 1;
     }
 }
