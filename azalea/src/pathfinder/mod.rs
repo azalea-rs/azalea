@@ -137,7 +137,9 @@ pub struct ExecutingPath {
     pub path: VecDeque<astar::Edge<BlockPos, moves::MoveData>>,
     pub queued_path: Option<VecDeque<astar::Edge<BlockPos, moves::MoveData>>>,
     pub last_reached_node: BlockPos,
-    pub last_node_reached_at: Instant,
+    // count ticks instead of using real time to make our timeouts more consistent, in case we lag
+    // and our ticks take a while
+    pub ticks_since_last_node_reached: usize,
     pub is_path_partial: bool,
 }
 
@@ -649,7 +651,7 @@ pub fn path_found_listener(
                     path: path.to_owned(),
                     queued_path: None,
                     last_reached_node: event.start,
-                    last_node_reached_at: Instant::now(),
+                    ticks_since_last_node_reached: 0,
                     is_path_partial: event.is_partial,
                 });
                 debug!("set path to {:?}", path.iter().take(10).collect::<Vec<_>>());
@@ -697,14 +699,14 @@ pub fn timeout_movement(
         if let Some(mining) = mining {
             // also make sure we're close enough to the block that's being mined
             if mining.pos.distance_squared_to(position.into()) < 6_i32.pow(2) {
-                // also reset the last_node_reached_at so we don't timeout after we finish
-                // mining
-                executing_path.last_node_reached_at = Instant::now();
+                // also reset the ticks_since_last_node_reached so we don't timeout after we
+                // finish mining
+                executing_path.ticks_since_last_node_reached = 0;
                 continue;
             }
         }
 
-        if executing_path.last_node_reached_at.elapsed() > Duration::from_secs(2)
+        if executing_path.ticks_since_last_node_reached > (2 * 20)
             && !pathfinder.is_calculating
             && !executing_path.path.is_empty()
         {
@@ -739,7 +741,7 @@ pub fn timeout_movement(
                 opts,
             );
             // reset last_node_reached_at so we don't immediately try to patch again
-            executing_path.last_node_reached_at = Instant::now();
+            executing_path.ticks_since_last_node_reached = 0
         }
     }
 }
@@ -824,7 +826,7 @@ pub fn check_node_reached(
                 if (movement.data.is_reached)(is_reached_ctx) && extra_check {
                     executing_path.path = executing_path.path.split_off(i + 1);
                     executing_path.last_reached_node = movement.target;
-                    executing_path.last_node_reached_at = Instant::now();
+                    executing_path.ticks_since_last_node_reached = 0;
                     trace!("reached node {}", movement.target);
 
                     if let Some(new_path) = executing_path.queued_path.take() {
@@ -1153,9 +1155,18 @@ pub fn tick_execute_path(
     mut jump_events: MessageWriter<JumpEvent>,
     mut start_mining_events: MessageWriter<StartMiningBlockEvent>,
 ) {
-    for (entity, executing_path, position, physics, mining, world_holder, inventory_component) in
-        &mut query
+    for (
+        entity,
+        mut executing_path,
+        position,
+        physics,
+        mining,
+        world_holder,
+        inventory_component,
+    ) in &mut query
     {
+        executing_path.ticks_since_last_node_reached += 1;
+
         if let Some(edge) = executing_path.path.front() {
             let ctx = ExecuteCtx {
                 entity,
