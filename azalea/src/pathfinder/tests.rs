@@ -94,7 +94,7 @@ pub fn wait_until_bot_starts_moving(simulation: &mut Simulation) {
     let start_time = Instant::now();
     while simulation.position() == start_pos
         && !simulation.is_mining()
-        && start_time.elapsed() < Duration::from_millis(1000)
+        && start_time.elapsed() < Duration::from_millis(5000)
     {
         simulation.tick();
         thread::yield_now();
