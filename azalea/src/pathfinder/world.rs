@@ -89,13 +89,16 @@ impl CachedSections {
 
 pub struct CachedSection {
     pub pos: ChunkSectionPos,
+    pub bitsets: Box<SectionBitsets>,
+}
+pub struct SectionBitsets {
     /// Blocks that we can fully pass through (like air).
-    pub passable_bitset: FastFixedBitSet<4096>,
+    pub passable: FastFixedBitSet<4096>,
     /// Blocks that we can stand on and do parkour from.
-    pub solid_bitset: FastFixedBitSet<4096>,
+    pub solid: FastFixedBitSet<4096>,
     /// Blocks that we can stand on but might not be able to parkour from.
-    pub standable_bitset: FastFixedBitSet<4096>,
-    pub water_bitset: FastFixedBitSet<4096>,
+    pub standable: FastFixedBitSet<4096>,
+    pub water: FastFixedBitSet<4096>,
 }
 
 impl CachedWorld {
@@ -229,10 +232,12 @@ impl CachedWorld {
             }
             CachedSection {
                 pos: section_pos,
-                passable_bitset,
-                solid_bitset,
-                standable_bitset,
-                water_bitset,
+                bitsets: Box::new(SectionBitsets {
+                    passable: passable_bitset,
+                    solid: solid_bitset,
+                    standable: standable_bitset,
+                    water: water_bitset,
+                }),
             }
         })
     }
@@ -247,13 +252,13 @@ impl CachedWorld {
         // SAFETY: we're only accessing this from one thread
         let cached_blocks = unsafe { &mut *self.cached_blocks.get() };
         if let Some(cached) = cached_blocks.get_mut(section_pos) {
-            return cached.passable_bitset.index(index);
+            return cached.bitsets.passable.index(index);
         }
 
         let Some(cached) = self.calculate_bitsets_for_section(section_pos) else {
             return false;
         };
-        let passable = cached.passable_bitset.index(index);
+        let passable = cached.bitsets.passable.index(index);
         cached_blocks.insert(cached);
         passable
     }
@@ -268,13 +273,13 @@ impl CachedWorld {
         // SAFETY: we're only accessing this from one thread
         let cached_blocks = unsafe { &mut *self.cached_blocks.get() };
         if let Some(cached) = cached_blocks.get_mut(section_pos) {
-            return cached.water_bitset.index(index);
+            return cached.bitsets.water.index(index);
         }
 
         let Some(cached) = self.calculate_bitsets_for_section(section_pos) else {
             return false;
         };
-        let water = cached.water_bitset.index(index);
+        let water = cached.bitsets.water.index(index);
         cached_blocks.insert(cached);
         water
     }
@@ -309,13 +314,13 @@ impl CachedWorld {
         // SAFETY: we're only accessing this from one thread
         let cached_blocks = unsafe { &mut *self.cached_blocks.get() };
         if let Some(cached) = cached_blocks.get_mut(section_pos) {
-            return cached.solid_bitset.index(index);
+            return cached.bitsets.solid.index(index);
         }
 
         let Some(cached) = self.calculate_bitsets_for_section(section_pos) else {
             return false;
         };
-        let solid = cached.solid_bitset.index(index);
+        let solid = cached.bitsets.solid.index(index);
         cached_blocks.insert(cached);
         solid
     }
@@ -326,13 +331,13 @@ impl CachedWorld {
         // SAFETY: we're only accessing this from one thread
         let cached_blocks = unsafe { &mut *self.cached_blocks.get() };
         if let Some(cached) = cached_blocks.get_mut(section_pos) {
-            return cached.standable_bitset.index(index);
+            return cached.bitsets.standable.index(index);
         }
 
         let Some(cached) = self.calculate_bitsets_for_section(section_pos) else {
             return false;
         };
-        let solid = cached.standable_bitset.index(index);
+        let solid = cached.bitsets.standable.index(index);
         cached_blocks.insert(cached);
         solid
     }
