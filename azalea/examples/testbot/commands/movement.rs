@@ -26,7 +26,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
                 source.reply("ok");
                 source
                     .bot
-                    .start_goto(BlockPosGoal(BlockPos::from(position)));
+                    .start_goto(BlockPosGoal(BlockPos::from(position.up(0.5))));
                 1
             })
             .then(literal("xz").then(argument("x", integer()).then(

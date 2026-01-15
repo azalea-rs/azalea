@@ -94,6 +94,9 @@ fn ascend_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
         return;
     }
 
+    let base_cost =
+        f32::max(WALK_ONE_BLOCK_COST, *JUMP_ONE_BLOCK_COST) + JUMP_PENALTY + break_cost_1;
+
     for dir in CardinalDirection::iter() {
         if let Some(stair_facing) = stair_facing {
             let expected_stair_facing = cardinal_direction_to_facing_property(dir);
@@ -109,10 +112,7 @@ fn ascend_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
             continue;
         }
 
-        let cost = f32::max(WALK_ONE_BLOCK_COST, *JUMP_ONE_BLOCK_COST)
-            + JUMP_PENALTY
-            + break_cost_1
-            + break_cost_2;
+        let cost = base_cost + break_cost_2;
 
         ctx.edges.push(Edge {
             movement: astar::Movement {
@@ -271,8 +271,8 @@ fn descend_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
                 FALL_N_BLOCKS_COST
                     .get(fall_distance as usize)
                     .copied()
-                    // avoid panicking if we fall more than the size of FALL_N_BLOCKS_COST
-                    // probably not possible but just in case
+                    // this isn't possible because we already checked bounds on the fall distance,
+                    // but it might be faster to default?
                     .unwrap_or(f32::INFINITY),
                 CENTER_AFTER_FALL_COST,
             )

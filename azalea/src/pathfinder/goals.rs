@@ -21,6 +21,17 @@ pub trait Goal: Debug + Send + Sync {
 }
 
 /// Move to the given block position.
+///
+/// If you're converting to a `BlockPosGoal` from a [`Vec3`], you should move
+/// the Y up by 0.5 to avoid the pathfinding destroying the final block if it's
+/// non-full like farmland.
+///
+/// ```
+/// # use azalea::{prelude::*, pathfinder::goals::BlockPosGoal};
+/// # fn example(bot: &Client, entity_position: azalea::Vec3) {
+/// bot.start_goto(BlockPosGoal(entity_position.up(0.5).into()));
+/// # }
+/// ```
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct BlockPosGoal(pub BlockPos);
@@ -33,9 +44,7 @@ impl Goal for BlockPosGoal {
         xz_heuristic(dx, dz) + y_heuristic(dy)
     }
     fn success(&self, n: BlockPos) -> bool {
-        // the second half of this condition is intended to fix issues when pathing to
-        // non-full blocks
-        n == self.0 || n.down(1) == self.0
+        n == self.0
     }
 }
 
@@ -74,9 +83,19 @@ impl Goal for XZGoal {
         n.x == self.x && n.z == self.z
     }
 }
+impl From<BlockPos> for XZGoal {
+    fn from(block: BlockPos) -> Self {
+        Self {
+            x: block.x,
+            z: block.z,
+        }
+    }
+}
 
 fn y_heuristic(dy: f32) -> f32 {
-    if dy > 0.0 {
+    if dy == 0. {
+        0.
+    } else if dy > 0.0 {
         (*JUMP_ONE_BLOCK_COST + JUMP_PENALTY) * dy
     } else {
         // this assumes that we always descend 2 blocks at a time, which is fine because
@@ -98,6 +117,11 @@ impl Goal for YGoal {
     }
     fn success(&self, n: BlockPos) -> bool {
         n.y == self.y
+    }
+}
+impl From<BlockPos> for YGoal {
+    fn from(block: BlockPos) -> Self {
+        Self { y: block.y }
     }
 }
 

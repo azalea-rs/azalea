@@ -281,8 +281,6 @@ fn test_mine_through_non_colliding_block() {
 
     let mut simulation = setup_simulation_world(
         &mut partial_chunks,
-        // the pathfinder can't actually dig straight down, so we start a block to the side so
-        // it can descend correctly
         BlockPos::new(0, 72, 1),
         &[BlockPos::new(0, 71, 1)],
         &[
@@ -296,7 +294,7 @@ fn test_mine_through_non_colliding_block() {
 
     simulation.app.world_mut().write_message(GotoEvent {
         entity: simulation.entity,
-        goal: Arc::new(BlockPosGoal(BlockPos::new(0, 69, 0))),
+        goal: Arc::new(BlockPosGoal(BlockPos::new(0, 70, 0))),
         opts: PathfinderOpts::new()
             .min_timeout(PathfinderTimeout::Nodes(1_000_000))
             .max_timeout(PathfinderTimeout::Nodes(5_000_000)),
