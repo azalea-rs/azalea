@@ -87,6 +87,13 @@ fn ascend_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
         stair_facing = Some(found_stair_facing);
     }
 
+    let break_cost_1 = ctx
+        .world
+        .cost_for_breaking_block(pos.up(2), ctx.mining_cache);
+    if break_cost_1 == f32::INFINITY {
+        return;
+    }
+
     for dir in CardinalDirection::iter() {
         if let Some(stair_facing) = stair_facing {
             let expected_stair_facing = cardinal_direction_to_facing_property(dir);
@@ -97,20 +104,13 @@ fn ascend_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
 
         let offset = RelBlockPos::new(dir.x(), 1, dir.z());
 
-        let break_cost_1 = ctx
-            .world
-            .cost_for_breaking_block(pos.up(2), ctx.mining_cache);
-        if break_cost_1 == f32::INFINITY {
-            continue;
-        }
         let break_cost_2 = ctx.world.cost_for_standing(pos + offset, ctx.mining_cache);
         if break_cost_2 == f32::INFINITY {
             continue;
         }
 
-        let cost = SPRINT_ONE_BLOCK_COST
+        let cost = f32::max(WALK_ONE_BLOCK_COST, *JUMP_ONE_BLOCK_COST)
             + JUMP_PENALTY
-            + *JUMP_ONE_BLOCK_COST
             + break_cost_1
             + break_cost_2;
 

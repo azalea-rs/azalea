@@ -13,7 +13,8 @@ pub const WALK_ONE_IN_WATER_COST: f32 = 20. / 1.960; // 10.204
 
 // explanation here:
 // https://github.com/cabaletta/baritone/blob/f147519a5c291015d4f18c94558a3f1bdcdb9588/src/api/java/baritone/api/Settings.java#L405
-// it's basically just the heuristic multiplier
+// it's basically a multiplier used by some heuristics to convert x and z
+// distance to ticks
 pub const COST_HEURISTIC: f32 = 3.563;
 
 // this one is also from baritone, it's helpful as a tiebreaker to avoid
@@ -64,7 +65,6 @@ fn velocity(ticks: usize) -> f32 {
 
 fn distance_to_ticks(distance: f32) -> f32 {
     if distance == 0. {
-        // Avoid 0/0 NaN
         return 0.;
     }
     let mut tick_count = 0;
