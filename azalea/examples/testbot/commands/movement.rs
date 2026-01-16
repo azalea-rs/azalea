@@ -210,4 +210,11 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
         *source.state.task.lock() = BotTask::None;
         1
     }));
+    commands.register(literal("forcestop").executes(|ctx: &Ctx| {
+        let source = ctx.source.lock();
+        source.bot.force_stop_pathfinding();
+        source.reply("ok");
+        *source.state.task.lock() = BotTask::None;
+        1
+    }));
 }

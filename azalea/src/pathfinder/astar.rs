@@ -326,7 +326,7 @@ impl PathfinderHeap {
     }
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Debug)]
 #[repr(C)]
 pub struct WeightedNode {
     /// Sum of the g_score and heuristic

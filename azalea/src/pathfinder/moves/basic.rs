@@ -8,7 +8,9 @@ use azalea_core::{
 };
 
 use super::{Edge, ExecuteCtx, IsReachedCtx, MoveData, PathfinderCtx, default_is_reached};
-use crate::pathfinder::{astar, costs::*, player_pos_to_block_pos, rel_block_pos::RelBlockPos};
+use crate::pathfinder::{
+    astar, costs::*, moves::BARITONE_COMPAT, player_pos_to_block_pos, rel_block_pos::RelBlockPos,
+};
 
 pub fn basic_move(ctx: &mut PathfinderCtx, node: RelBlockPos) {
     forward_move(ctx, node);
@@ -23,8 +25,13 @@ fn forward_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
     let mut base_cost = SPRINT_ONE_BLOCK_COST;
     // it's for us cheaper to have the water cost be applied when leaving the water
     // rather than when entering
-    if ctx.world.is_block_water(pos.down(1)) {
-        base_cost = WALK_ONE_IN_WATER_COST;
+    let currently_in_water = ctx.world.is_block_water(pos.down(1));
+    if currently_in_water {
+        if BARITONE_COMPAT {
+            base_cost = WALK_ONE_BLOCK_COST;
+        } else {
+            base_cost = WALK_ONE_IN_WATER_COST;
+        }
     }
 
     for dir in CardinalDirection::iter() {
@@ -37,6 +44,15 @@ fn forward_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
             continue;
         }
         cost += break_cost;
+
+        if BARITONE_COMPAT && currently_in_water {
+            let dest_in_water = ctx.world.is_block_water((pos + offset).down(1));
+            if !dest_in_water {
+                // baritone does a descend when we enter water, doesn't matter much in practice
+                // though
+                cost += 2. + FALL_N_BLOCKS_COST[1] + WALK_OFF_BLOCK_COST - SPRINT_ONE_BLOCK_COST;
+            }
+        }
 
         ctx.edges.push(Edge {
             movement: astar::Movement {
@@ -266,14 +282,15 @@ fn descend_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
             break_cost_2 = 0.;
         }
 
+        if BARITONE_COMPAT && fall_distance > 1 {
+            fall_distance += 1;
+        }
+
         let cost = WALK_OFF_BLOCK_COST
             + f32::max(
-                FALL_N_BLOCKS_COST
+                *FALL_N_BLOCKS_COST
                     .get(fall_distance as usize)
-                    .copied()
-                    // this isn't possible because we already checked bounds on the fall distance,
-                    // but it might be faster to default?
-                    .unwrap_or(f32::INFINITY),
+                    .expect("already checked bounds on fall distance"),
                 CENTER_AFTER_FALL_COST,
             )
             + break_cost_1
@@ -363,6 +380,10 @@ pub fn descend_is_reached(
 }
 
 fn descend_forward_1_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
+    if BARITONE_COMPAT {
+        return;
+    }
+
     for dir in CardinalDirection::iter() {
         let dir_delta = RelBlockPos::new(dir.x(), 0, dir.z());
         let gap_horizontal_position = pos + dir_delta;
@@ -416,8 +437,14 @@ fn descend_forward_1_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
 
 fn diagonal_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
     let mut base_cost = SPRINT_ONE_BLOCK_COST;
-    if ctx.world.is_block_water(pos.down(1)) {
-        base_cost = WALK_ONE_IN_WATER_COST;
+
+    let currently_in_water = ctx.world.is_block_water(pos.down(1));
+    if currently_in_water {
+        if BARITONE_COMPAT {
+            base_cost = WALK_ONE_BLOCK_COST;
+        } else {
+            base_cost = WALK_ONE_IN_WATER_COST;
+        }
     }
 
     // add 0.001 as a tie-breaker to avoid unnecessarily going diagonal
@@ -439,12 +466,25 @@ fn diagonal_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
         }
 
         if !left_passable || !right_passable {
-            // add a bit of cost because it'll probably be hugging a wall here
-            cost += WALK_ONE_BLOCK_COST / 2.;
+            if !BARITONE_COMPAT {
+                // add a bit of cost because it'll probably be hugging a wall here
+                cost += WALK_ONE_BLOCK_COST / 2.;
+            } else {
+                cost = WALK_ONE_BLOCK_COST * (SQRT_2 - 0.001) * SQRT_2;
+            }
         }
 
         if !ctx.world.is_standable(pos + offset) {
             continue;
+        }
+
+        if BARITONE_COMPAT && currently_in_water {
+            let dest_in_water = ctx.world.is_block_water((pos + offset).down(1));
+            if !dest_in_water {
+                // baritone does a descend when we enter water, doesn't matter much in practice
+                // though
+                cost += 2. + FALL_N_BLOCKS_COST[1] + WALK_OFF_BLOCK_COST - SPRINT_ONE_BLOCK_COST;
+            }
         }
 
         ctx.edges.push(Edge {

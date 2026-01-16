@@ -11,7 +11,10 @@ use azalea_world::ChunkStorage;
 use serde::{Deserialize, Serialize};
 
 use super::costs::{COST_HEURISTIC, FALL_N_BLOCKS_COST, JUMP_ONE_BLOCK_COST};
-use crate::pathfinder::costs::JUMP_PENALTY;
+use crate::pathfinder::{
+    costs::{JUMP_PENALTY, SPRINT_ONE_BLOCK_COST, WALK_ONE_BLOCK_COST},
+    moves::BARITONE_COMPAT,
+};
 
 pub trait Goal: Debug + Send + Sync {
     #[must_use]
@@ -93,14 +96,22 @@ impl From<BlockPos> for XZGoal {
 }
 
 fn y_heuristic(dy: f32) -> f32 {
-    if dy == 0. {
-        0.
-    } else if dy > 0.0 {
-        (*JUMP_ONE_BLOCK_COST + JUMP_PENALTY) * dy
+    if dy > 0. {
+        if BARITONE_COMPAT {
+            return *JUMP_ONE_BLOCK_COST * dy;
+        }
+
+        // forward+up is the main way to ascend, so make sure to match that. we subtract
+        // SPRINT_ONE_BLOCK_COST to cancel out the value that should've been
+        // added by the xz heuristic.
+        (f32::max(*JUMP_ONE_BLOCK_COST, WALK_ONE_BLOCK_COST) + JUMP_PENALTY - SPRINT_ONE_BLOCK_COST)
+            * dy
+    } else if dy < 0. {
+        // this is an overestimate (copied from baritone), but fixing it makes perf
+        // worse
+        (FALL_N_BLOCKS_COST[2] / 2.) * -dy
     } else {
-        // this assumes that we always descend 2 blocks at a time, which is fine because
-        // the heuristic should be an underestimate.
-        FALL_N_BLOCKS_COST[2] / 2. * -dy
+        0.
     }
 }
 

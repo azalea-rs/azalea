@@ -35,6 +35,12 @@ type Edge = astar::Edge<RelBlockPos, MoveData>;
 
 pub type SuccessorsFn = fn(&mut PathfinderCtx, RelBlockPos);
 
+/// Re-implement certain bugs and quirks that Baritone has, and disable
+/// movements that Baritone doesn't have.
+///
+/// Meant to help with debugging when directly comparing against Baritone.
+pub const BARITONE_COMPAT: bool = false;
+
 pub fn default_move(ctx: &mut PathfinderCtx, node: RelBlockPos) {
     basic::basic_move(ctx, node);
     parkour::parkour_move(ctx, node);
