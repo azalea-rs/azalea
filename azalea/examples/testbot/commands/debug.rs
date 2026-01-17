@@ -15,7 +15,7 @@ use azalea::{
 };
 use azalea_core::hit_result::HitResult;
 use azalea_entity::{EntityKindComponent, metadata};
-use azalea_inventory::{Menu, Player, components::MaxStackSize};
+use azalea_inventory::{Menu, components::MaxStackSize};
 use azalea_world::Worlds;
 use bevy_app::AppExit;
 use bevy_ecs::{message::Messages, query::With, world::EntityRef};

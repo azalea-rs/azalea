@@ -1,17 +1,19 @@
 pub mod heap;
+pub mod nodemap;
 
 use std::{
     fmt::{self, Debug},
-    hash::{BuildHasherDefault, Hash},
+    hash::Hash,
     time::{Duration, Instant},
 };
 
-use indexmap::IndexMap;
 use num_format::ToFormattedString;
-use rustc_hash::FxHasher;
 use tracing::{debug, trace, warn};
 
-use crate::pathfinder::astar::heap::{PathfinderHeap, WeightedNode};
+use crate::pathfinder::astar::{
+    heap::{PathfinderHeap, WeightedNode},
+    nodemap::NodeMap,
+};
 
 pub struct Path<P, M>
 where
@@ -31,8 +33,6 @@ where
 const COEFFICIENTS: [f32; 7] = [1.5, 2., 2.5, 3., 4., 5., 10.];
 
 const MIN_IMPROVEMENT: f32 = 0.01;
-
-type FxIndexMap<K, V> = IndexMap<K, V, BuildHasherDefault<FxHasher>>;
 
 // Sources:
 // - https://en.wikipedia.org/wiki/A*_search_algorithm
@@ -60,7 +60,7 @@ where
         f_score: 0.,
         index: 0,
     });
-    let mut nodes: FxIndexMap<P, Node> = IndexMap::default();
+    let mut nodes: NodeMap<P> = NodeMap::default();
     nodes.insert(
         start,
         Node {
@@ -76,7 +76,7 @@ where
     let mut num_movements = 0;
 
     while let Some(WeightedNode { index, g_score, .. }) = open_set.pop() {
-        let (&node, node_data) = nodes.get_index(index as usize).unwrap();
+        let (&node, node_data) = nodes.get_index(index).unwrap();
         if g_score > node_data.g_score {
             continue;
         }
@@ -212,7 +212,7 @@ fn determine_best_path_idx(best_paths: [u32; 7], start: u32) -> usize {
 }
 
 fn reconstruct_path<P, M, SuccessorsFn>(
-    nodes: FxIndexMap<P, Node>,
+    nodes: NodeMap<P>,
     mut current_index: u32,
     mut successors: SuccessorsFn,
 ) -> Vec<Movement<P, M>>
@@ -221,11 +221,11 @@ where
     SuccessorsFn: FnMut(P) -> Vec<Edge<P, M>>,
 {
     let mut path = Vec::new();
-    while let Some((&node_position, node)) = nodes.get_index(current_index as usize) {
+    while let Some((&node_position, node)) = nodes.get_index(current_index) {
         if node.came_from == u32::MAX {
             break;
         }
-        let came_from_position = *nodes.get_index(node.came_from as usize).unwrap().0;
+        let came_from_position = *nodes.get_index(node.came_from).unwrap().0;
 
         // find the movement data for this successor, we have to do this again because
         // we don't include the movement data in the Node (as an optimization)
