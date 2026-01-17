@@ -17,7 +17,6 @@ pub fn basic_move(ctx: &mut PathfinderCtx, node: RelBlockPos) {
     ascend_move(ctx, node);
     descend_move(ctx, node);
     diagonal_move(ctx, node);
-    descend_forward_1_move(ctx, node);
     downward_move(ctx, node);
 }
 
@@ -25,7 +24,7 @@ fn forward_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
     let mut base_cost = SPRINT_ONE_BLOCK_COST;
     // it's for us cheaper to have the water cost be applied when leaving the water
     // rather than when entering
-    let currently_in_water = ctx.world.is_block_water(pos.down(1));
+    let currently_in_water = ctx.world.is_block_water(pos);
     if currently_in_water {
         if BARITONE_COMPAT {
             base_cost = WALK_ONE_BLOCK_COST;
@@ -39,24 +38,32 @@ fn forward_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
 
         let mut cost = base_cost;
 
-        let break_cost = ctx.world.cost_for_standing(pos + offset, ctx.mining_cache);
+        let new_position = pos + offset;
+
+        let break_cost;
+        if currently_in_water {
+            let dest_in_water = ctx.world.is_block_water(new_position);
+            if !dest_in_water {
+                continue;
+            }
+
+            break_cost = ctx
+                .world
+                .cost_for_breaking_block(new_position.up(1), ctx.mining_cache);
+        } else {
+            break_cost = ctx.world.cost_for_standing(new_position, ctx.mining_cache);
+        }
         if break_cost == f32::INFINITY {
             continue;
         }
-        cost += break_cost;
 
-        if BARITONE_COMPAT && currently_in_water {
-            let dest_in_water = ctx.world.is_block_water((pos + offset).down(1));
-            if !dest_in_water {
-                // baritone does a descend when we enter water, doesn't matter much in practice
-                // though
-                cost += 2. + FALL_N_BLOCKS_COST[1] + WALK_OFF_BLOCK_COST - SPRINT_ONE_BLOCK_COST;
-            }
-        }
+        // TODO: benchmark this
+        // cost = cost.algebraic_add(break_cost);
+        cost += break_cost;
 
         ctx.edges.push(Edge {
             movement: astar::Movement {
-                target: pos + offset,
+                target: new_position,
                 data: MoveData {
                     execute: &execute_forward_move,
                     is_reached: &default_is_reached,
@@ -90,17 +97,19 @@ fn ascend_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
     let mut stair_facing = None;
 
     if is_unusual_shape {
-        // this is potentially expensive but it's rare enough that it shouldn't matter
-        // much
-        let block_below = ctx.world.get_block_state(pos.down(1));
+        if !ctx.world.is_block_water(pos) {
+            // this is potentially expensive but it's rare enough that it shouldn't matter
+            // much
+            let block_below = ctx.world.get_block_state(pos.down(1));
 
-        let Some(found_stair_facing) = validate_stair_and_get_facing(block_below) else {
-            // return if it's not a stair or it's not facing the right way (like, if it's
-            // upside down or something)
-            return;
-        };
+            let Some(found_stair_facing) = validate_stair_and_get_facing(block_below) else {
+                // return if it's not a stair or it's not facing the right way (like, if it's
+                // upside down or something)
+                return;
+            };
 
-        stair_facing = Some(found_stair_facing);
+            stair_facing = Some(found_stair_facing);
+        }
     }
 
     let break_cost_1 = ctx
@@ -260,16 +269,29 @@ fn descend_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
             continue;
         }
 
+        let mut into_water = false;
         if fall_distance == 0 {
-            // if the fall distance is 0, set it to 1 so we try mining
-            fall_distance = 1
+            if ctx.world.is_block_water(new_horizontal_position.down(1)) {
+                fall_distance = 1;
+                into_water = true;
+            } else {
+                continue;
+            }
         }
 
         let new_position = new_horizontal_position.down(fall_distance as i32);
 
         // only mine if we're descending 1 block
-        let break_cost_2;
-        if fall_distance == 1 {
+        let mut break_cost_2;
+        if into_water {
+            break_cost_2 = ctx
+                .world
+                .cost_for_breaking_block(new_position.up(1), ctx.mining_cache);
+            if break_cost_2 == f32::INFINITY {
+                continue;
+            }
+            break_cost_2 += ENTER_WATER_PENALTY;
+        } else if fall_distance == 1 {
             break_cost_2 = ctx.world.cost_for_standing(new_position, ctx.mining_cache);
             if break_cost_2 == f32::INFINITY {
                 continue;
@@ -379,11 +401,9 @@ pub fn descend_is_reached(
     false
 }
 
-fn descend_forward_1_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
-    if BARITONE_COMPAT {
-        return;
-    }
-
+// TODO: disabled for now (for performance), this should probably be moved into
+// its own category of moves
+fn _descend_forward_1_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
     for dir in CardinalDirection::iter() {
         let dir_delta = RelBlockPos::new(dir.x(), 0, dir.z());
         let gap_horizontal_position = pos + dir_delta;
@@ -438,7 +458,7 @@ fn descend_forward_1_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
 fn diagonal_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
     let mut base_cost = SPRINT_ONE_BLOCK_COST;
 
-    let currently_in_water = ctx.world.is_block_water(pos.down(1));
+    let currently_in_water = ctx.world.is_block_water(pos);
     if currently_in_water {
         if BARITONE_COMPAT {
             base_cost = WALK_ONE_BLOCK_COST;
@@ -458,11 +478,40 @@ fn diagonal_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
 
         let mut cost = base_cost;
 
-        let left_passable = ctx.world.is_passable(left_pos);
-        let right_passable = ctx.world.is_passable(right_pos);
+        let left_passable;
+        let right_passable;
 
-        if !left_passable && !right_passable {
-            continue;
+        if currently_in_water {
+            left_passable =
+                ctx.world.is_block_water(left_pos) && ctx.world.is_block_passable(left_pos.up(1));
+            if !left_passable {
+                // don't bother hugging corners while in water
+                continue;
+            }
+            right_passable =
+                ctx.world.is_block_water(right_pos) && ctx.world.is_block_passable(right_pos.up(1));
+            if !right_passable {
+                continue;
+            }
+        } else {
+            left_passable = ctx.world.is_passable(left_pos);
+            right_passable = ctx.world.is_passable(right_pos);
+            if !left_passable && !right_passable {
+                continue;
+            }
+        }
+
+        let new_position = pos + offset;
+        if currently_in_water {
+            if !ctx.world.is_block_water(new_position)
+                || !ctx.world.is_block_passable(new_position.up(1))
+            {
+                continue;
+            }
+        } else {
+            if !ctx.world.is_standable(new_position) {
+                continue;
+            }
         }
 
         if !left_passable || !right_passable {
@@ -474,22 +523,9 @@ fn diagonal_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
             }
         }
 
-        if !ctx.world.is_standable(pos + offset) {
-            continue;
-        }
-
-        if BARITONE_COMPAT && currently_in_water {
-            let dest_in_water = ctx.world.is_block_water((pos + offset).down(1));
-            if !dest_in_water {
-                // baritone does a descend when we enter water, doesn't matter much in practice
-                // though
-                cost += 2. + FALL_N_BLOCKS_COST[1] + WALK_OFF_BLOCK_COST - SPRINT_ONE_BLOCK_COST;
-            }
-        }
-
         ctx.edges.push(Edge {
             movement: astar::Movement {
-                target: pos + offset,
+                target: new_position,
                 data: MoveData {
                     execute: &execute_diagonal_move,
                     is_reached: &default_is_reached,

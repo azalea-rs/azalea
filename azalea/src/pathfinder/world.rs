@@ -344,6 +344,7 @@ impl CachedWorld {
             return 0.;
         }
 
+        let rel_pos = pos;
         let pos = pos.apply(self.origin);
 
         let (section_pos, section_block_pos) =
@@ -357,7 +358,9 @@ impl CachedWorld {
         let south_is_in_same_section = section_block_pos.z != 15;
         let west_is_in_same_section = section_block_pos.x != 0;
 
-        let Some(mining_cost) = self.with_section(section_pos, |section| {
+        let mut is_falling_block_above = false;
+
+        let Some(mut mining_cost) = self.with_section(section_pos, |section| {
             let block_state = section.get_at_index(u16::from(section_block_pos) as usize);
             let mining_cost = mining_cache.cost_for(block_state);
 
@@ -369,8 +372,11 @@ impl CachedWorld {
             // if there's a falling block or liquid above this block, abort
             if up_is_in_same_section {
                 let up_block = section.get_at_index(u16::from(section_block_pos.up(1)) as usize);
-                if mining_cache.is_liquid(up_block) || mining_cache.is_falling_block(up_block) {
+                if mining_cache.is_liquid(up_block) {
                     return f32::INFINITY;
+                }
+                if mining_cache.is_falling_block(up_block) {
+                    is_falling_block_above = true;
                 }
             }
 
@@ -429,42 +435,53 @@ impl CachedWorld {
             return f32::INFINITY;
         }
 
-        let check_should_avoid_this_block = |pos: BlockPos, check: &dyn Fn(BlockState) -> bool| {
-            let block_state = self
+        fn check_should_avoid_this_block(
+            world: &CachedWorld,
+            pos: BlockPos,
+            check: impl FnOnce(BlockState) -> bool,
+        ) -> bool {
+            let block_state = world
                 .with_section(ChunkSectionPos::from(pos), |section| {
                     section.get_at_index(u16::from(ChunkSectionBlockPos::from(pos)) as usize)
                 })
                 .unwrap_or_default();
             check(block_state)
-        };
+        }
 
         // check the adjacent blocks that weren't in the same section
-        if !up_is_in_same_section
-            && check_should_avoid_this_block(pos.up(1), &|b| {
-                mining_cache.is_liquid(b) || mining_cache.is_falling_block(b)
-            })
-        {
-            return f32::INFINITY;
+        if !up_is_in_same_section {
+            if check_should_avoid_this_block(&self, pos.up(1), |b| {
+                if mining_cache.is_falling_block(b) {
+                    is_falling_block_above = true;
+                }
+                mining_cache.is_liquid(b)
+            }) {
+                return f32::INFINITY;
+            }
         }
         if !north_is_in_same_section
-            && check_should_avoid_this_block(pos.north(1), &|b| mining_cache.is_liquid(b))
+            && check_should_avoid_this_block(&self, pos.north(1), &|b| mining_cache.is_liquid(b))
         {
             return f32::INFINITY;
         }
         if !east_is_in_same_section
-            && check_should_avoid_this_block(pos.east(1), &|b| mining_cache.is_liquid(b))
+            && check_should_avoid_this_block(&self, pos.east(1), |b| mining_cache.is_liquid(b))
         {
             return f32::INFINITY;
         }
         if !south_is_in_same_section
-            && check_should_avoid_this_block(pos.south(1), &|b| mining_cache.is_liquid(b))
+            && check_should_avoid_this_block(&self, pos.south(1), |b| mining_cache.is_liquid(b))
         {
             return f32::INFINITY;
         }
         if !west_is_in_same_section
-            && check_should_avoid_this_block(pos.west(1), &|b| mining_cache.is_liquid(b))
+            && check_should_avoid_this_block(&self, pos.west(1), |b| mining_cache.is_liquid(b))
         {
             return f32::INFINITY;
+        }
+
+        if is_falling_block_above {
+            mining_cost += self.cost_for_breaking_block(rel_pos.up(1), mining_cache);
         }
 
         mining_cost
@@ -501,7 +518,8 @@ impl CachedWorld {
         self.cost_for_passing(pos, mining_cache)
     }
 
-    /// Get the amount of air blocks until the next solid block below this one.
+    /// Get the amount of air/passable blocks until the next non-passable block
+    /// below this one.
     pub fn fall_distance(&self, pos: RelBlockPos) -> u32 {
         let mut distance = 0;
         let mut current_pos = pos.down(1);
@@ -628,9 +646,6 @@ pub fn is_block_state_solid(block_state: BlockState) -> bool {
 /// from it).
 pub fn is_block_state_standable(block_state: BlockState) -> bool {
     if is_block_state_solid(block_state) {
-        return true;
-    }
-    if is_block_state_water(block_state) {
         return true;
     }
 

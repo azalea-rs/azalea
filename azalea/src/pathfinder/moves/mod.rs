@@ -28,7 +28,7 @@ use super::{
 use crate::{
     auto_tool::best_tool_in_hotbar_for_block,
     bot::{JumpEvent, LookAtEvent},
-    pathfinder::player_pos_to_block_pos,
+    pathfinder::{player_pos_to_block_pos, world::is_block_state_water},
 };
 
 type Edge = astar::Edge<RelBlockPos, MoveData>;
@@ -131,7 +131,7 @@ impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_, '_> {
     /// Returns whether this block could be mined.
     pub fn should_mine(&mut self, block: BlockPos) -> bool {
         let block_state = self.world.read().get_block_state(block).unwrap_or_default();
-        if is_block_state_passable(block_state) {
+        if is_block_state_passable(block_state) || is_block_state_water(block_state) {
             // block is already passable, no need to mine it
             return false;
         }
@@ -222,8 +222,8 @@ pub fn default_is_reached(
     if block_pos == target {
         return true;
     }
-    // it's fine if we slightly go under the target while swimming
-    if physics.is_in_water() && block_pos.up(1) == target {
+    // it's fine if we go over the target while swimming
+    if physics.is_in_water() && block_pos.down(1) == target {
         return true;
     }
 
