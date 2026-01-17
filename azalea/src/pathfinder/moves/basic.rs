@@ -40,19 +40,17 @@ fn forward_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
 
         let new_position = pos + offset;
 
-        let break_cost;
-        if currently_in_water {
+        let break_cost = if currently_in_water {
             let dest_in_water = ctx.world.is_block_water(new_position);
             if !dest_in_water {
                 continue;
             }
 
-            break_cost = ctx
-                .world
-                .cost_for_breaking_block(new_position.up(1), ctx.mining_cache);
+            ctx.world
+                .cost_for_breaking_block(new_position.up(1), ctx.mining_cache)
         } else {
-            break_cost = ctx.world.cost_for_standing(new_position, ctx.mining_cache);
-        }
+            ctx.world.cost_for_standing(new_position, ctx.mining_cache)
+        };
         if break_cost == f32::INFINITY {
             continue;
         }
@@ -96,20 +94,18 @@ fn ascend_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
     let is_unusual_shape = !ctx.world.is_block_solid(pos.down(1));
     let mut stair_facing = None;
 
-    if is_unusual_shape {
-        if !ctx.world.is_block_water(pos) {
-            // this is potentially expensive but it's rare enough that it shouldn't matter
-            // much
-            let block_below = ctx.world.get_block_state(pos.down(1));
+    if is_unusual_shape && !ctx.world.is_block_water(pos) {
+        // this is potentially expensive but it's rare enough that it shouldn't matter
+        // much
+        let block_below = ctx.world.get_block_state(pos.down(1));
 
-            let Some(found_stair_facing) = validate_stair_and_get_facing(block_below) else {
-                // return if it's not a stair or it's not facing the right way (like, if it's
-                // upside down or something)
-                return;
-            };
+        let Some(found_stair_facing) = validate_stair_and_get_facing(block_below) else {
+            // return if it's not a stair or it's not facing the right way (like, if it's
+            // upside down or something)
+            return;
+        };
 
-            stair_facing = Some(found_stair_facing);
-        }
+        stair_facing = Some(found_stair_facing);
     }
 
     let break_cost_1 = ctx
@@ -454,10 +450,8 @@ fn diagonal_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
             {
                 continue;
             }
-        } else {
-            if !ctx.world.is_standable(new_position) {
-                continue;
-            }
+        } else if !ctx.world.is_standable(new_position) {
+            continue;
         }
 
         if !left_passable || !right_passable {

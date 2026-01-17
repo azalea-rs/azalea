@@ -1,14 +1,13 @@
 use core::f32;
 use std::{
     cell::{RefCell, UnsafeCell},
-    cmp, mem,
     sync::Arc,
 };
 
 use azalea_block::{BlockState, properties};
 use azalea_core::{
     bitset::FastFixedBitSet,
-    position::{BlockPos, ChunkPos, ChunkSectionBlockPos, ChunkSectionPos},
+    position::{BlockPos, ChunkPos, ChunkSectionBlockPos},
 };
 use azalea_physics::collision::BlockWithShape;
 use azalea_registry::{builtin::BlockKind, tags};
@@ -29,15 +28,17 @@ pub struct CachedWorld {
     min_y: i32,
     world_lock: Arc<RwLock<World>>,
 
-    // we store `PalettedContainer`s instead of `Chunk`s or `Section`s because it doesn't contain
-    // any unnecessary data like heightmaps or biomes.
-    cached_chunks: RefCell<Vec<(ChunkPos, Box<[PalettedContainer<BlockState>]>)>>,
+    cached_chunks: RefCell<Vec<(ChunkPos, CachedChunk)>>,
     last_chunk_cache_index: RefCell<Option<usize>>,
 
     cached_blocks: UnsafeCell<CachedSections>,
 
     cached_mining_costs: UnsafeCell<Box<[(RelBlockPos, f32)]>>,
 }
+
+// we store `PalettedContainer`s instead of `Chunk`s or `Section`s because it
+// doesn't contain any unnecessary data like heightmaps or biomes.
+type CachedChunk = Box<[PalettedContainer<BlockState>]>;
 
 #[derive(Default)]
 pub struct CachedSections {
@@ -452,33 +453,33 @@ impl CachedWorld {
         }
 
         // check the adjacent blocks that weren't in the same section
-        if !up_is_in_same_section {
-            if check_should_avoid_this_block(&self, pos.up(1), |b| {
+        if !up_is_in_same_section
+            && check_should_avoid_this_block(self, pos.up(1), |b| {
                 if mining_cache.is_falling_block(b) {
                     is_falling_block_above = true;
                 }
                 mining_cache.is_liquid(b)
-            }) {
-                return f32::INFINITY;
-            }
+            })
+        {
+            return f32::INFINITY;
         }
         if !north_is_in_same_section
-            && check_should_avoid_this_block(&self, pos.north(1), &|b| mining_cache.is_liquid(b))
+            && check_should_avoid_this_block(self, pos.north(1), |b| mining_cache.is_liquid(b))
         {
             return f32::INFINITY;
         }
         if !east_is_in_same_section
-            && check_should_avoid_this_block(&self, pos.east(1), |b| mining_cache.is_liquid(b))
+            && check_should_avoid_this_block(self, pos.east(1), |b| mining_cache.is_liquid(b))
         {
             return f32::INFINITY;
         }
         if !south_is_in_same_section
-            && check_should_avoid_this_block(&self, pos.south(1), |b| mining_cache.is_liquid(b))
+            && check_should_avoid_this_block(self, pos.south(1), |b| mining_cache.is_liquid(b))
         {
             return f32::INFINITY;
         }
         if !west_is_in_same_section
-            && check_should_avoid_this_block(&self, pos.west(1), |b| mining_cache.is_liquid(b))
+            && check_should_avoid_this_block(self, pos.west(1), |b| mining_cache.is_liquid(b))
         {
             return f32::INFINITY;
         }
