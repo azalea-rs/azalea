@@ -3,7 +3,7 @@ use azalea_core::{direction::CardinalDirection, position::BlockPos};
 use tracing::trace;
 
 use super::{Edge, ExecuteCtx, IsReachedCtx, MoveData, PathfinderCtx};
-use crate::pathfinder::{astar, costs::*, player_pos_to_block_pos, rel_block_pos::RelBlockPos};
+use crate::pathfinder::{astar, costs::*, player_pos_to_block_pos, positions::RelBlockPos};
 
 pub fn parkour_move(ctx: &mut PathfinderCtx, node: RelBlockPos) {
     if !ctx.world.is_block_solid(node.down(1)) {

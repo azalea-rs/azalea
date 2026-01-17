@@ -1,6 +1,7 @@
 use core::f32;
 use std::{
     cell::{RefCell, UnsafeCell},
+    cmp, mem,
     sync::Arc,
 };
 
@@ -14,7 +15,8 @@ use azalea_registry::{builtin::BlockKind, tags};
 use azalea_world::{World, palette::PalettedContainer};
 use parking_lot::RwLock;
 
-use super::{mining::MiningCache, rel_block_pos::RelBlockPos};
+use super::{mining::MiningCache, positions::RelBlockPos};
+use crate::pathfinder::positions::SmallChunkSectionPos;
 
 /// An efficient representation of the world used for the pathfinder.
 pub struct CachedWorld {
@@ -46,7 +48,7 @@ pub struct CachedSections {
 
 impl CachedSections {
     #[inline]
-    pub fn get_mut(&mut self, pos: ChunkSectionPos) -> Option<&mut CachedSection> {
+    pub fn get_mut(&mut self, pos: SmallChunkSectionPos) -> Option<&mut CachedSection> {
         if let Some(last_item) = self.sections.get(self.last_index) {
             if last_item.pos == pos {
                 return Some(&mut self.sections[self.last_index]);
@@ -83,7 +85,7 @@ impl CachedSections {
 }
 
 pub struct CachedSection {
-    pub pos: ChunkSectionPos,
+    pub pos: SmallChunkSectionPos,
     pub bitsets: Box<SectionBitsets>,
 }
 #[derive(Default)]
@@ -130,7 +132,7 @@ impl CachedWorld {
 
     fn with_section<T>(
         &self,
-        section_pos: ChunkSectionPos,
+        section_pos: SmallChunkSectionPos,
         f: impl FnOnce(&azalea_world::palette::PalettedContainer<BlockState>) -> T,
     ) -> Option<T> {
         if section_pos.y * 16 < self.min_y {
@@ -138,7 +140,7 @@ impl CachedWorld {
             return None;
         }
 
-        let chunk_pos = ChunkPos::from(section_pos);
+        let chunk_pos = ChunkPos::new(section_pos.x as i32, section_pos.z as i32);
         let section_index =
             azalea_world::chunk_storage::section_index(section_pos.y * 16, self.min_y) as usize;
 
@@ -205,7 +207,7 @@ impl CachedWorld {
         Some(r)
     }
 
-    fn calculate_bitsets_for_section(&self, section_pos: ChunkSectionPos) -> CachedSection {
+    fn calculate_bitsets_for_section(&self, section_pos: SmallChunkSectionPos) -> CachedSection {
         let bitsets = self
             .with_section(section_pos, |section| {
                 let mut passable_bitset = FastFixedBitSet::<4096>::new();
@@ -248,8 +250,10 @@ impl CachedWorld {
         pos: BlockPos,
         cb: impl FnOnce(&SectionBitsets, usize) -> bool,
     ) -> bool {
-        let (section_pos, section_block_pos) =
-            (ChunkSectionPos::from(pos), ChunkSectionBlockPos::from(pos));
+        let (section_pos, section_block_pos) = (
+            SmallChunkSectionPos::from(pos),
+            ChunkSectionBlockPos::from(pos),
+        );
         let index = u16::from(section_block_pos) as usize;
         // SAFETY: we're only accessing this from one thread
         let cached_blocks = unsafe { &mut *self.cached_blocks.get() };
@@ -285,8 +289,10 @@ impl CachedWorld {
     }
 
     fn get_block_state_at_pos(&self, pos: BlockPos) -> BlockState {
-        let (section_pos, section_block_pos) =
-            (ChunkSectionPos::from(pos), ChunkSectionBlockPos::from(pos));
+        let (section_pos, section_block_pos) = (
+            SmallChunkSectionPos::from(pos),
+            ChunkSectionBlockPos::from(pos),
+        );
         let index = u16::from(section_block_pos) as usize;
 
         self.with_section(section_pos, |section| section.get_at_index(index))
@@ -342,8 +348,10 @@ impl CachedWorld {
         let rel_pos = pos;
         let pos = pos.apply(self.origin);
 
-        let (section_pos, section_block_pos) =
-            (ChunkSectionPos::from(pos), ChunkSectionBlockPos::from(pos));
+        let (section_pos, section_block_pos) = (
+            SmallChunkSectionPos::from(pos),
+            ChunkSectionBlockPos::from(pos),
+        );
 
         // we use this as an optimization to avoid getting the section again if the
         // block is in the same section
@@ -436,7 +444,7 @@ impl CachedWorld {
             check: impl FnOnce(BlockState) -> bool,
         ) -> bool {
             let block_state = world
-                .with_section(ChunkSectionPos::from(pos), |section| {
+                .with_section(SmallChunkSectionPos::from(pos), |section| {
                     section.get_at_index(u16::from(ChunkSectionBlockPos::from(pos)) as usize)
                 })
                 .unwrap_or_default();

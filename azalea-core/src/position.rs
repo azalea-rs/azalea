@@ -787,7 +787,7 @@ impl From<BlockPos> for ChunkPos {
 impl From<BlockPos> for ChunkSectionPos {
     #[inline]
     fn from(pos: BlockPos) -> Self {
-        ChunkSectionPos {
+        Self {
             x: pos.x >> 4,
             y: pos.y >> 4,
             z: pos.z >> 4,
@@ -797,7 +797,7 @@ impl From<BlockPos> for ChunkSectionPos {
 impl From<&BlockPos> for ChunkSectionPos {
     #[inline]
     fn from(pos: &BlockPos) -> Self {
-        ChunkSectionPos {
+        Self {
             x: pos.x >> 4,
             y: pos.y >> 4,
             z: pos.z >> 4,

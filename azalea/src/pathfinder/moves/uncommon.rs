@@ -9,7 +9,7 @@ use crate::pathfinder::{
         BARITONE_COMPAT, MoveData, PathfinderCtx,
         basic::{descend_is_reached, execute_descend_move},
     },
-    rel_block_pos::RelBlockPos,
+    positions::RelBlockPos,
 };
 
 pub fn uncommon_move(ctx: &mut PathfinderCtx, node: RelBlockPos) {

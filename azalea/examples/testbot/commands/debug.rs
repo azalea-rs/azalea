@@ -10,7 +10,7 @@ use azalea::{
     packet::game,
     pathfinder::{
         ExecutingPath, Pathfinder, custom_state::CustomPathfinderStateRef, mining::MiningCache,
-        moves::PathfinderCtx, rel_block_pos::RelBlockPos, world::CachedWorld,
+        moves::PathfinderCtx, positions::RelBlockPos, world::CachedWorld,
     },
 };
 use azalea_core::hit_result::HitResult;

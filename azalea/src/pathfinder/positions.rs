@@ -1,6 +1,7 @@
 use std::{
+    cmp,
     hash::{Hash, Hasher},
-    mem::transmute,
+    mem::{self, transmute},
     ops::{Add, Mul},
 };
 
@@ -129,5 +130,41 @@ impl Mul<i16> for RelBlockPos {
 impl Hash for RelBlockPos {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.as_u64().hash(state);
+    }
+}
+
+/// Similar to [`ChunkSectionPos`] but fits in 64 bits.
+///
+/// [`ChunkSectionPos`]: azalea_core::position::ChunkSectionPos
+#[derive(Clone, Copy, PartialEq, Eq)]
+#[repr(C)]
+pub struct SmallChunkSectionPos {
+    pub y: i32,
+    pub x: i16,
+    pub z: i16,
+}
+impl SmallChunkSectionPos {
+    pub fn as_u64(self) -> u64 {
+        unsafe { mem::transmute::<_, u64>(self) }
+    }
+}
+impl From<BlockPos> for SmallChunkSectionPos {
+    #[inline]
+    fn from(pos: BlockPos) -> Self {
+        Self {
+            x: (pos.x >> 4) as i16,
+            y: pos.y >> 4,
+            z: (pos.z >> 4) as i16,
+        }
+    }
+}
+impl PartialOrd for SmallChunkSectionPos {
+    fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
+        self.as_u64().partial_cmp(&other.as_u64())
+    }
+}
+impl Ord for SmallChunkSectionPos {
+    fn cmp(&self, other: &Self) -> cmp::Ordering {
+        self.as_u64().cmp(&other.as_u64())
     }
 }

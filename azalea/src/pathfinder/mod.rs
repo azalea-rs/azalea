@@ -13,7 +13,7 @@ pub mod goals;
 mod goto_event;
 pub mod mining;
 pub mod moves;
-pub mod rel_block_pos;
+pub mod positions;
 pub mod simulation;
 #[cfg(test)]
 mod tests;
@@ -55,7 +55,7 @@ use futures_lite::future;
 use goals::BlockPosGoal;
 pub use goto_event::{GotoEvent, PathfinderOpts};
 use parking_lot::RwLock;
-use rel_block_pos::RelBlockPos;
+use positions::RelBlockPos;
 use tokio::sync::broadcast::error::RecvError;
 use tracing::{debug, error, info, trace, warn};
 

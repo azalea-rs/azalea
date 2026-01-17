@@ -23,7 +23,7 @@ use super::{
     astar,
     custom_state::CustomPathfinderStateRef,
     mining::MiningCache,
-    rel_block_pos::RelBlockPos,
+    positions::RelBlockPos,
     world::{CachedWorld, is_block_state_passable},
 };
 use crate::{

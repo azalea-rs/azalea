@@ -9,7 +9,7 @@ use azalea_core::{
 
 use super::{Edge, ExecuteCtx, IsReachedCtx, MoveData, PathfinderCtx, default_is_reached};
 use crate::pathfinder::{
-    astar, costs::*, moves::BARITONE_COMPAT, player_pos_to_block_pos, rel_block_pos::RelBlockPos,
+    astar, costs::*, moves::BARITONE_COMPAT, player_pos_to_block_pos, positions::RelBlockPos,
 };
 
 pub fn basic_move(ctx: &mut PathfinderCtx, node: RelBlockPos) {

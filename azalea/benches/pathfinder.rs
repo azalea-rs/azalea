@@ -7,7 +7,7 @@ use azalea::{
         custom_state::CustomPathfinderStateRef,
         goals::{BlockPosGoal, Goal},
         mining::MiningCache,
-        rel_block_pos::RelBlockPos,
+        positions::RelBlockPos,
         world::CachedWorld,
     },
 };
