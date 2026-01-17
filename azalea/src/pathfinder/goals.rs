@@ -98,6 +98,7 @@ impl From<BlockPos> for XZGoal {
 fn y_heuristic(dy: f32) -> f32 {
     if dy > 0. {
         if BARITONE_COMPAT {
+            // this is wrong because it can be an overestimate
             return *JUMP_ONE_BLOCK_COST * dy;
         }
 
@@ -107,8 +108,8 @@ fn y_heuristic(dy: f32) -> f32 {
         (f32::max(*JUMP_ONE_BLOCK_COST, WALK_ONE_BLOCK_COST) + JUMP_PENALTY - SPRINT_ONE_BLOCK_COST)
             * dy
     } else if dy < 0. {
-        // this is an overestimate (copied from baritone), but fixing it makes perf
-        // worse
+        // this is also an overestimate (copied from baritone), but fixing it makes perf
+        // too much worse
         (FALL_N_BLOCKS_COST[2] / 2.) * -dy
     } else {
         0.

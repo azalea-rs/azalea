@@ -29,12 +29,7 @@ pub struct CachedWorld {
 
     // we store `PalettedContainer`s instead of `Chunk`s or `Section`s because it doesn't contain
     // any unnecessary data like heightmaps or biomes.
-    cached_chunks: RefCell<
-        Vec<(
-            ChunkPos,
-            Vec<azalea_world::palette::PalettedContainer<BlockState>>,
-        )>,
-    >,
+    cached_chunks: RefCell<Vec<(ChunkPos, Box<[PalettedContainer<BlockState>]>)>>,
     last_chunk_cache_index: RefCell<Option<usize>>,
 
     cached_blocks: UnsafeCell<CachedSections>,
@@ -194,7 +189,7 @@ impl CachedWorld {
             .sections
             .iter()
             .map(|section| section.states.clone())
-            .collect::<Vec<PalettedContainer<BlockState>>>();
+            .collect::<Box<[PalettedContainer<BlockState>]>>();
 
         if section_index >= sections.len() {
             // y position is out of bounds
