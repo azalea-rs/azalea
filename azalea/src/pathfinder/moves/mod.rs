@@ -1,5 +1,6 @@
 pub mod basic;
 pub mod parkour;
+pub mod uncommon;
 
 use std::{
     fmt::{self, Debug},
@@ -44,6 +45,7 @@ pub const BARITONE_COMPAT: bool = false;
 pub fn default_move(ctx: &mut PathfinderCtx, node: RelBlockPos) {
     basic::basic_move(ctx, node);
     parkour::parkour_move(ctx, node);
+    uncommon::uncommon_move(ctx, node);
 }
 
 #[derive(Clone)]
