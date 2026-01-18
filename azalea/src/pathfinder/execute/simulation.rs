@@ -42,7 +42,9 @@ use crate::{
 /// To use it, simply add [`SimulationPathfinderExecutionPlugin`] as a plugin.
 ///
 /// ```
-/// use azalea::{simulation::SimulationPathfinderExecutionPlugin, swarm::prelude::*};
+/// use azalea::{
+///     pathfinder::execute::simulation::SimulationPathfinderExecutionPlugin, swarm::prelude::*,
+/// };
 ///
 /// let builder = SwarmBuilder::new().add_plugins(SimulationPathfinderExecutionPlugin);
 /// // ...
@@ -209,18 +211,16 @@ pub fn tick_execute_path(
                         entity,
                         direction: SprintDirection::Forward,
                     });
+                } else if physics_state.was_sprinting {
+                    walk_events.write(StartWalkEvent {
+                        entity,
+                        direction: WalkDirection::None,
+                    });
                 } else {
-                    if physics_state.was_sprinting {
-                        walk_events.write(StartWalkEvent {
-                            entity,
-                            direction: WalkDirection::None,
-                        });
-                    } else {
-                        walk_events.write(StartWalkEvent {
-                            entity,
-                            direction: WalkDirection::Forward,
-                        });
-                    }
+                    walk_events.write(StartWalkEvent {
+                        entity,
+                        direction: WalkDirection::Forward,
+                    });
                 }
                 if *jumping
                     && target.center().horizontal_distance_squared_to(**position)
@@ -359,23 +359,21 @@ fn run_one_simulation(
                 entity: sim.entity,
                 direction: SprintDirection::Forward,
             });
+        } else if ecs
+            .get::<PhysicsState>(sim.entity)
+            .map(|p| p.trying_to_sprint)
+            .unwrap_or_default()
+        {
+            // have to let go for a tick to be able to start walking
+            ecs.write_message(StartWalkEvent {
+                entity: sim.entity,
+                direction: WalkDirection::None,
+            });
         } else {
-            if ecs
-                .get::<PhysicsState>(sim.entity)
-                .map(|p| p.trying_to_sprint)
-                .unwrap_or_default()
-            {
-                // have to let go for a tick to be able to start walking
-                ecs.write_message(StartWalkEvent {
-                    entity: sim.entity,
-                    direction: WalkDirection::None,
-                });
-            } else {
-                ecs.write_message(StartWalkEvent {
-                    entity: sim.entity,
-                    direction: WalkDirection::Forward,
-                });
-            }
+            ecs.write_message(StartWalkEvent {
+                entity: sim.entity,
+                direction: WalkDirection::Forward,
+            });
         }
         if state.jumping
             && simulating_to_block
@@ -443,9 +441,8 @@ fn run_one_simulation(
 
                 let (position, physics, mining, inventory) = query.get(sim.entity).unwrap();
 
-                if physics.horizontal_collision && physics.velocity.y < -0. {
-                    // if the simulated move just made us hit a wall that we aren't already jumping
-                    // from then that's bad
+                if physics.horizontal_collision {
+                    // if the simulated move made us hit a wall then it's bad
                     break;
                 }
                 if physics.velocity.y < -0.7 && !physics.is_in_water() {

@@ -83,6 +83,8 @@ fn create_simulation_world(chunks: ChunkStorage) -> (App, Arc<RwLock<World>>) {
         schedule.set_executor_kind(bevy_ecs::schedule::ExecutorKind::SingleThreaded);
     });
 
+    app.finish();
+
     (app, world)
 }
 

@@ -6,7 +6,7 @@
 //! Note that the pathfinder is highly optimized, but it will be very slow if
 //! it's not compiled with optimizations enabled.
 //!
-//! For more efficient and realistic path execution, also see
+//! For smoother and more realistic path execution, also see
 //! [`SimulationPathfinderExecutionPlugin`].
 //!
 //! Much of the pathfinder's code is based on [Baritone](https://github.com/cabaletta/baritone). <3

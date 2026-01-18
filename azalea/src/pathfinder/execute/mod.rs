@@ -354,6 +354,7 @@ pub fn timeout_movement(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn patch_path_from_timeout(
     entity: Entity,
     executing_path: &mut ExecutingPath,
