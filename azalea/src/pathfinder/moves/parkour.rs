@@ -1,5 +1,6 @@
 use azalea_client::{SprintDirection, WalkDirection};
 use azalea_core::{direction::CardinalDirection, position::BlockPos};
+use azalea_physics::collision::BlockWithShape;
 use tracing::trace;
 
 use super::{Edge, ExecuteCtx, IsReachedCtx, MoveData, MovesCtx};
@@ -232,6 +233,30 @@ fn execute_parkour_move(mut ctx: ExecuteCtx) {
     } else {
         ctx.look_at(target_center);
         trace!("looking at target_center");
+
+        // it's possible to hit our heads on a block when doing certain jumps (which
+        // resets our horizontal velocity), but we can avoid that by sneaking
+        if !ctx.physics.on_ground() && ctx.physics.velocity.y.abs() < 0.1 {
+            let should_sneak = {
+                let world = ctx.world.read();
+                let pos_above = ctx.position.up(1.62 + 0.3);
+                let block_pos_above = BlockPos::from(pos_above);
+                let block_pos_above_plus_velocity =
+                    BlockPos::from(pos_above + ctx.physics.velocity.with_y(0.) * 4.);
+
+                let block_above = world.get_block_state(block_pos_above).unwrap_or_default();
+                let block_above_plus_velocity = world
+                    .get_block_state(block_pos_above_plus_velocity)
+                    .unwrap_or_default();
+
+                // these checks are overly lenient but it doesn't matter much
+                !block_above.is_collision_shape_full()
+                    && !block_above_plus_velocity.is_collision_shape_empty()
+            };
+            if should_sneak {
+                ctx.sneak();
+            }
+        }
     }
 
     if !is_at_start_block && is_at_jump_block && distance_from_start > required_distance_from_center

@@ -6,11 +6,13 @@ use azalea_block::{BlockState, BlockTrait};
 use azalea_client::{
     StartSprintEvent, StartWalkEvent,
     local_player::WorldHolder,
-    mining::{Mining, StartMiningBlockEvent},
+    mining::{Mining, MiningSystems, StartMiningBlockEvent},
 };
+use azalea_core::tick::GameTick;
 use azalea_entity::{Physics, Position, inventory::Inventory};
-use azalea_physics::get_block_pos_below_that_affects_movement;
+use azalea_physics::{PhysicsSystems, get_block_pos_below_that_affects_movement};
 use azalea_world::{WorldName, Worlds};
+use bevy_app::{App, Plugin};
 use bevy_ecs::prelude::*;
 use tracing::{debug, info, trace, warn};
 
@@ -26,10 +28,36 @@ use crate::{
         ExecutingPath, GotoEvent, Pathfinder,
         astar::PathfinderTimeout,
         custom_state::CustomPathfinderState,
+        debug::debug_render_path_with_particles,
+        execute,
         moves::{ExecuteCtx, IsReachedCtx},
         player_pos_to_block_pos,
     },
 };
+
+pub struct DefaultPathfinderExecutionPlugin;
+impl Plugin for DefaultPathfinderExecutionPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(
+            // putting systems in the GameTick schedule makes them run every Minecraft tick
+            // (every 50 milliseconds).
+            GameTick,
+            (
+                execute::timeout_movement,
+                execute::patching::check_for_path_obstruction,
+                execute::check_node_reached,
+                execute::tick_execute_path,
+                execute::recalculate_near_end_of_path,
+                execute::recalculate_if_has_goal_but_no_path,
+            )
+                .chain()
+                .after(PhysicsSystems)
+                .after(azalea_client::movement::send_position)
+                .after(MiningSystems)
+                .after(debug_render_path_with_particles),
+        );
+    }
+}
 
 #[allow(clippy::type_complexity)]
 pub fn tick_execute_path(
@@ -62,7 +90,7 @@ pub fn tick_execute_path(
         executing_path.ticks_since_last_node_reached += 1;
 
         if let Some(edge) = executing_path.path.front() {
-            let ctx = ExecuteCtx {
+            let mut ctx = ExecuteCtx {
                 entity,
                 target: edge.movement.target,
                 position: **position,
@@ -79,6 +107,7 @@ pub fn tick_execute_path(
                 jump_events: &mut jump_events,
                 start_mining_events: &mut start_mining_events,
             };
+            ctx.on_tick_start();
             trace!(
                 "executing move, position: {}, last_reached_node: {}",
                 **position, executing_path.last_reached_node

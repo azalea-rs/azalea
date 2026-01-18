@@ -31,15 +31,12 @@ use std::{
 };
 
 use astar::Edge;
-use azalea_client::{
-    StartWalkEvent, inventory::InventorySystems, mining::MiningSystems, movement::MoveEventsSystems,
-};
+use azalea_client::{StartWalkEvent, inventory::InventorySystems, movement::MoveEventsSystems};
 use azalea_core::{
     position::{BlockPos, Vec3},
     tick::GameTick,
 };
 use azalea_entity::{LocalEntity, Position, inventory::Inventory, metadata::Player};
-use azalea_physics::PhysicsSystems;
 use azalea_world::{WorldName, Worlds};
 use bevy_app::{PreUpdate, Update};
 use bevy_ecs::prelude::*;
@@ -64,7 +61,10 @@ use crate::{
         query::{With, Without},
         system::{Commands, Query, Res},
     },
-    pathfinder::{astar::a_star, moves::MovesCtx, world::CachedWorld},
+    pathfinder::{
+        astar::a_star, execute::DefaultPathfinderExecutionPlugin, moves::MovesCtx,
+        world::CachedWorld,
+    },
 };
 
 #[derive(Clone, Default)]
@@ -74,24 +74,7 @@ impl Plugin for PathfinderPlugin {
         app.add_message::<GotoEvent>()
             .add_message::<PathFoundEvent>()
             .add_message::<StopPathfindingEvent>()
-            .add_systems(
-                // putting systems in the GameTick schedule makes them run every Minecraft tick
-                // (every 50 milliseconds).
-                GameTick,
-                (
-                    execute::timeout_movement,
-                    execute::patching::check_for_path_obstruction,
-                    execute::check_node_reached,
-                    execute::tick_execute_path,
-                    debug_render_path_with_particles,
-                    execute::recalculate_near_end_of_path,
-                    execute::recalculate_if_has_goal_but_no_path,
-                )
-                    .chain()
-                    .after(PhysicsSystems)
-                    .after(azalea_client::movement::send_position)
-                    .after(MiningSystems),
-            )
+            .add_systems(GameTick, debug_render_path_with_particles)
             .add_systems(PreUpdate, add_default_pathfinder)
             .add_systems(
                 Update,
@@ -105,7 +88,8 @@ impl Plugin for PathfinderPlugin {
                     .chain()
                     .before(MoveEventsSystems)
                     .before(InventorySystems),
-            );
+            )
+            .add_plugins(DefaultPathfinderExecutionPlugin);
     }
 }
 
