@@ -239,7 +239,7 @@ fn execute_parkour_move(mut ctx: ExecuteCtx) {
         if !ctx.physics.on_ground() && ctx.physics.velocity.y.abs() < 0.1 {
             let should_sneak = {
                 let world = ctx.world.read();
-                let pos_above = ctx.position.up(1.62 + 0.3);
+                let pos_above = ctx.position.up(1.8 + 0.1);
                 let block_pos_above = BlockPos::from(pos_above);
                 let block_pos_above_plus_velocity =
                     BlockPos::from(pos_above + ctx.physics.velocity.with_y(0.) * 4.);
