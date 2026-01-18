@@ -10,11 +10,12 @@ is breaking anyways, semantic versioning is not followed.
 
 ### Added
 
-- Re-implement `Client::map_component` and `map_get_component`.
-- Add an `EntityRef` type to simplify interactions with entities.
-- `AccountTrait` was implemented, which allows for custom refresh and join behavior for `Account`s.
-- Add `BlockTrait::set_property` to allow setting properties on blocks generically.
+- Add `SimulationPathfinderExecutionPlugin`, an alternative execution engine for the pathfinder with smoother movement.
 - The pathfinder can now traverse on the surface of water.
+- `AccountTrait` was implemented, which allows for custom refresh and join behavior for `Account`s.
+- Add an `EntityRef` type to simplify interactions with entities.
+- Add `BlockTrait::set_property` to allow setting properties on blocks generically.
+- Re-implement `Client::map_component` and `map_get_component`.
 
 ### Changed
 
