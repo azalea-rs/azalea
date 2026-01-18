@@ -2,10 +2,10 @@ use azalea_client::{SprintDirection, WalkDirection};
 use azalea_core::{direction::CardinalDirection, position::BlockPos};
 use tracing::trace;
 
-use super::{Edge, ExecuteCtx, IsReachedCtx, MoveData, PathfinderCtx};
+use super::{Edge, ExecuteCtx, IsReachedCtx, MoveData, MovesCtx};
 use crate::pathfinder::{astar, costs::*, player_pos_to_block_pos, positions::RelBlockPos};
 
-pub fn parkour_move(ctx: &mut PathfinderCtx, node: RelBlockPos) {
+pub fn parkour_move(ctx: &mut MovesCtx, node: RelBlockPos) {
     if !ctx.world.is_block_solid(node.down(1)) {
         // we can only parkour from solid blocks (not just standable blocks like slabs)
         return;
@@ -16,7 +16,7 @@ pub fn parkour_move(ctx: &mut PathfinderCtx, node: RelBlockPos) {
     parkour_forward_3_move(ctx, node);
 }
 
-fn parkour_forward_1_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
+fn parkour_forward_1_move(ctx: &mut MovesCtx, pos: RelBlockPos) {
     for dir in CardinalDirection::iter() {
         let gap_offset = RelBlockPos::new(dir.x(), 0, dir.z());
         let offset = RelBlockPos::new(dir.x() * 2, 0, dir.z() * 2);
@@ -70,7 +70,7 @@ fn parkour_forward_1_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
     }
 }
 
-fn parkour_forward_2_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
+fn parkour_forward_2_move(ctx: &mut MovesCtx, pos: RelBlockPos) {
     'dir: for dir in CardinalDirection::iter() {
         let gap_1_offset = RelBlockPos::new(dir.x(), 0, dir.z());
         let gap_2_offset = RelBlockPos::new(dir.x() * 2, 0, dir.z() * 2);
@@ -128,7 +128,7 @@ fn parkour_forward_2_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
     }
 }
 
-fn parkour_forward_3_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
+fn parkour_forward_3_move(ctx: &mut MovesCtx, pos: RelBlockPos) {
     'dir: for dir in CardinalDirection::iter() {
         let gap_1_offset = RelBlockPos::new(dir.x(), 0, dir.z());
         let gap_2_offset = RelBlockPos::new(dir.x() * 2, 0, dir.z() * 2);

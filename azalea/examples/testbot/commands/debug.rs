@@ -10,7 +10,7 @@ use azalea::{
     packet::game,
     pathfinder::{
         ExecutingPath, Pathfinder, custom_state::CustomPathfinderStateRef, mining::MiningCache,
-        moves::PathfinderCtx, positions::RelBlockPos, world::CachedWorld,
+        moves::MovesCtx, positions::RelBlockPos, world::CachedWorld,
     },
 };
 use azalea_core::hit_result::HitResult;
@@ -205,7 +205,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
         let custom_state = CustomPathfinderStateRef::default();
 
         azalea::pathfinder::moves::default_move(
-            &mut PathfinderCtx {
+            &mut MovesCtx {
                 edges: &mut edges,
                 world: &cached_world,
                 mining_cache: &mining_cache,

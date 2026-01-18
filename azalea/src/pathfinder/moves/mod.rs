@@ -34,7 +34,7 @@ use crate::{
 
 type Edge = astar::Edge<RelBlockPos, MoveData>;
 
-pub type SuccessorsFn = fn(&mut PathfinderCtx, RelBlockPos);
+pub type SuccessorsFn = fn(&mut MovesCtx, RelBlockPos);
 
 /// Re-implement certain bugs and quirks that Baritone has, and disable
 /// movements that Baritone doesn't have.
@@ -42,7 +42,7 @@ pub type SuccessorsFn = fn(&mut PathfinderCtx, RelBlockPos);
 /// Meant to help with debugging when directly comparing against Baritone.
 pub const BARITONE_COMPAT: bool = false;
 
-pub fn default_move(ctx: &mut PathfinderCtx, node: RelBlockPos) {
+pub fn default_move(ctx: &mut MovesCtx, node: RelBlockPos) {
     basic::basic_move(ctx, node);
     parkour::parkour_move(ctx, node);
     uncommon::uncommon_move(ctx, node);
@@ -232,10 +232,9 @@ pub fn default_is_reached(
     false
 }
 
-pub struct PathfinderCtx<'a> {
+pub struct MovesCtx<'a> {
     pub edges: &'a mut Vec<Edge>,
     pub world: &'a CachedWorld,
     pub mining_cache: &'a MiningCache,
-
     pub custom_state: &'a CustomPathfinderStateRef,
 }

@@ -7,12 +7,12 @@ use azalea_core::{
     position::{BlockPos, Vec3},
 };
 
-use super::{Edge, ExecuteCtx, IsReachedCtx, MoveData, PathfinderCtx, default_is_reached};
+use super::{Edge, ExecuteCtx, IsReachedCtx, MoveData, MovesCtx, default_is_reached};
 use crate::pathfinder::{
     astar, costs::*, moves::BARITONE_COMPAT, player_pos_to_block_pos, positions::RelBlockPos,
 };
 
-pub fn basic_move(ctx: &mut PathfinderCtx, node: RelBlockPos) {
+pub fn basic_move(ctx: &mut MovesCtx, node: RelBlockPos) {
     forward_move(ctx, node);
     ascend_move(ctx, node);
     descend_move(ctx, node);
@@ -20,7 +20,7 @@ pub fn basic_move(ctx: &mut PathfinderCtx, node: RelBlockPos) {
     downward_move(ctx, node);
 }
 
-fn forward_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
+fn forward_move(ctx: &mut MovesCtx, pos: RelBlockPos) {
     let mut base_cost = SPRINT_ONE_BLOCK_COST;
     // it's for us cheaper to have the water cost be applied when leaving the water
     // rather than when entering
@@ -87,7 +87,7 @@ fn execute_forward_move(mut ctx: ExecuteCtx) {
     ctx.sprint(SprintDirection::Forward);
 }
 
-fn ascend_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
+fn ascend_move(ctx: &mut MovesCtx, pos: RelBlockPos) {
     // the block we're standing on must be solid (so we don't try to ascend from a
     // bottom slab to a normal block in a way that's not possible)
 
@@ -248,7 +248,7 @@ fn cardinal_direction_to_facing_property(dir: CardinalDirection) -> properties::
     }
 }
 
-fn descend_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
+fn descend_move(ctx: &mut MovesCtx, pos: RelBlockPos) {
     for dir in CardinalDirection::iter() {
         let dir_delta = RelBlockPos::new(dir.x(), 0, dir.z());
         let new_horizontal_position = pos + dir_delta;
@@ -397,7 +397,7 @@ pub fn descend_is_reached(
     false
 }
 
-fn diagonal_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
+fn diagonal_move(ctx: &mut MovesCtx, pos: RelBlockPos) {
     let mut base_cost = SPRINT_ONE_BLOCK_COST;
 
     let currently_in_water = ctx.world.is_block_water(pos);
@@ -485,7 +485,7 @@ fn execute_diagonal_move(mut ctx: ExecuteCtx) {
 }
 
 /// Go directly down, usually by mining.
-fn downward_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
+fn downward_move(ctx: &mut MovesCtx, pos: RelBlockPos) {
     // make sure we land on a solid block after breaking the one below us
     if !ctx.world.is_block_solid(pos.down(2)) {
         return;

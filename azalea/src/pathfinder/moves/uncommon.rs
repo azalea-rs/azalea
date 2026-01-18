@@ -6,20 +6,20 @@ use crate::pathfinder::{
     astar::{self, Edge},
     costs::{CENTER_AFTER_FALL_COST, FALL_N_BLOCKS_COST, WALK_OFF_BLOCK_COST, WALK_ONE_BLOCK_COST},
     moves::{
-        BARITONE_COMPAT, MoveData, PathfinderCtx,
+        BARITONE_COMPAT, MoveData, MovesCtx,
         basic::{descend_is_reached, execute_descend_move},
     },
     positions::RelBlockPos,
 };
 
-pub fn uncommon_move(ctx: &mut PathfinderCtx, node: RelBlockPos) {
+pub fn uncommon_move(ctx: &mut MovesCtx, node: RelBlockPos) {
     if BARITONE_COMPAT {
         return;
     }
     descend_forward_1_move(ctx, node);
 }
 
-pub fn descend_forward_1_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
+pub fn descend_forward_1_move(ctx: &mut MovesCtx, pos: RelBlockPos) {
     for dir in CardinalDirection::iter() {
         let dir_delta = RelBlockPos::new(dir.x(), 0, dir.z());
         let gap_horizontal_position = pos + dir_delta;

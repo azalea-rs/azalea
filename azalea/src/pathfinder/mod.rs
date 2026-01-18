@@ -64,7 +64,7 @@ use crate::{
         query::{With, Without},
         system::{Commands, Query, Res},
     },
-    pathfinder::{astar::a_star, moves::PathfinderCtx, world::CachedWorld},
+    pathfinder::{astar::a_star, moves::MovesCtx, world::CachedWorld},
 };
 
 #[derive(Clone, Default)]
@@ -728,7 +728,7 @@ pub fn call_successors_fn(
     pos: RelBlockPos,
 ) -> Vec<astar::Edge<RelBlockPos, moves::MoveData>> {
     let mut edges = Vec::with_capacity(16);
-    let mut ctx = PathfinderCtx {
+    let mut ctx = MovesCtx {
         edges: &mut edges,
         world: cached_world,
         mining_cache,
