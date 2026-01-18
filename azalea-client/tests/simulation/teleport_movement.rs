@@ -1,6 +1,7 @@
 use azalea_client::test_utils::prelude::*;
 use azalea_core::{
     delta::{LpVec3, PositionDelta8},
+    entity_id::MinecraftEntityId,
     position::{BlockPos, ChunkPos, Vec3},
 };
 use azalea_entity::LookDirection;
@@ -16,7 +17,6 @@ use azalea_protocol::{
     },
 };
 use azalea_registry::builtin::BlockKind;
-use azalea_core::entity_id::MinecraftEntityId;
 
 #[test]
 fn test_teleport_movement() {

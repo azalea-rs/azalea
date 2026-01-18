@@ -3,7 +3,15 @@
 //! For the new functions on `Client` that the pathfinder adds, see
 //! [`PathfinderClientExt`].
 //!
-//! Much of this code is based on [Baritone](https://github.com/cabaletta/baritone).
+//! Note that the pathfinder is highly optimized, but it will be very slow if
+//! it's not compiled with optimizations enabled.
+//!
+//! For more efficient and realistic path execution, also see
+//! [`SimulationPathfinderExecutionPlugin`].
+//!
+//! Much of the pathfinder's code is based on [Baritone](https://github.com/cabaletta/baritone). <3
+//!
+//! [`SimulationPathfinderExecutionPlugin`]: execute::simulation::SimulationPathfinderExecutionPlugin
 
 pub mod astar;
 pub mod costs;

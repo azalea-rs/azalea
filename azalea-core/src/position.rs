@@ -126,6 +126,15 @@ macro_rules! vec3_impl {
                 self.x * other.x + self.y * other.y + self.z * other.z
             }
 
+            #[inline]
+            pub fn cross(&self, other: Self) -> Self {
+                Self::new(
+                    self.y * other.z - self.z * other.y,
+                    self.z * other.x - self.x * other.z,
+                    self.x * other.y - self.y * other.x,
+                )
+            }
+
             /// Make a new position with the lower coordinates for each axis.
             pub fn min(&self, other: Self) -> Self {
                 Self {
@@ -333,6 +342,7 @@ impl simdnbt::FromNbtTag for Vec3 {
 impl Vec3 {
     /// Get the distance of this vector to the origin by doing
     /// `sqrt(x^2 + y^2 + z^2)`.
+    #[doc(alias = "modulus")]
     pub fn length(&self) -> f64 {
         f64::sqrt(self.x * self.x + self.y * self.y + self.z * self.z)
     }
@@ -341,6 +351,13 @@ impl Vec3 {
     /// Equivalent to `(self - other).length()`.
     pub fn distance_to(self, other: Self) -> f64 {
         (self - other).length()
+    }
+
+    pub fn horizontal_distance_to(self, other: Self) -> f64 {
+        self.horizontal_distance_squared_to(other).sqrt()
+    }
+    pub fn horizontal_distance(self) -> f64 {
+        self.horizontal_distance_squared().sqrt()
     }
 
     pub fn x_rot(self, radians: f32) -> Vec3 {

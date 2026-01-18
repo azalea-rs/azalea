@@ -1,4 +1,5 @@
 pub mod patching;
+pub mod simulation;
 
 use std::{cmp, time::Duration};
 
@@ -8,7 +9,7 @@ use azalea_client::{
     local_player::WorldHolder,
     mining::{Mining, MiningSystems, StartMiningBlockEvent},
 };
-use azalea_core::tick::GameTick;
+use azalea_core::{position::Vec3, tick::GameTick};
 use azalea_entity::{Physics, Position, inventory::Inventory};
 use azalea_physics::{PhysicsSystems, get_block_pos_below_that_affects_movement};
 use azalea_world::{WorldName, Worlds};
@@ -29,7 +30,7 @@ use crate::{
         astar::PathfinderTimeout,
         custom_state::CustomPathfinderState,
         debug::debug_render_path_with_particles,
-        execute,
+        execute::simulation::SimulatingPathState,
         moves::{ExecuteCtx, IsReachedCtx},
         player_pos_to_block_pos,
     },
@@ -37,18 +38,23 @@ use crate::{
 
 pub struct DefaultPathfinderExecutionPlugin;
 impl Plugin for DefaultPathfinderExecutionPlugin {
-    fn build(&self, app: &mut App) {
+    fn build(&self, _app: &mut App) {}
+
+    fn finish(&self, app: &mut App) {
+        if app.is_plugin_added::<simulation::SimulationPathfinderExecutionPlugin>() {
+            info!("pathfinder simulation executor plugin is enabled, disabling default executor.");
+            return;
+        }
+
         app.add_systems(
-            // putting systems in the GameTick schedule makes them run every Minecraft tick
-            // (every 50 milliseconds).
             GameTick,
             (
-                execute::timeout_movement,
-                execute::patching::check_for_path_obstruction,
-                execute::check_node_reached,
-                execute::tick_execute_path,
-                execute::recalculate_near_end_of_path,
-                execute::recalculate_if_has_goal_but_no_path,
+                timeout_movement,
+                patching::check_for_path_obstruction,
+                check_node_reached,
+                tick_execute_path,
+                recalculate_near_end_of_path,
+                recalculate_if_has_goal_but_no_path,
             )
                 .chain()
                 .after(PhysicsSystems)
@@ -77,15 +83,8 @@ pub fn tick_execute_path(
     mut jump_events: MessageWriter<JumpEvent>,
     mut start_mining_events: MessageWriter<StartMiningBlockEvent>,
 ) {
-    for (
-        entity,
-        mut executing_path,
-        position,
-        physics,
-        mining,
-        world_holder,
-        inventory_component,
-    ) in &mut query
+    for (entity, mut executing_path, position, physics, mining, world_holder, inventory) in
+        &mut query
     {
         executing_path.ticks_since_last_node_reached += 1;
 
@@ -97,8 +96,9 @@ pub fn tick_execute_path(
                 start: executing_path.last_reached_node,
                 physics,
                 is_currently_mining: mining.is_some(),
+                can_mine: true,
                 world: world_holder.shared.clone(),
-                menu: inventory_component.inventory_menu.clone(),
+                menu: inventory.inventory_menu.clone(),
 
                 commands: &mut commands,
                 look_at_events: &mut look_at_events,
@@ -146,7 +146,7 @@ pub fn check_node_reached(
                 .clone()
                 .into_iter()
                 .enumerate()
-                .take(20)
+                .take(30)
                 .rev()
             {
                 let movement = edge.movement;
@@ -184,7 +184,7 @@ pub fn check_node_reached(
                     let z_predicted_offset = (z_difference_from_center + scaled_velocity.z).abs();
 
                     // this is to make sure we don't fall off immediately after finishing the path
-                    physics.on_ground()
+                    (physics.on_ground() || physics.is_in_water())
                         && player_pos_to_block_pos(**position) == movement.target
                         // adding the delta like this isn't a perfect solution but it helps to make
                         // sure we don't keep going if our delta is high
@@ -256,6 +256,7 @@ pub fn timeout_movement(
         &WorldName,
         &Inventory,
         Option<&CustomPathfinderState>,
+        Option<&SimulatingPathState>,
     )>,
     worlds: Res<Worlds>,
 ) {
@@ -268,8 +269,52 @@ pub fn timeout_movement(
         world_name,
         inventory,
         custom_state,
+        simulating_path_state,
     ) in &mut query
     {
+        if !executing_path.path.is_empty() {
+            let (start, end) = if let Some(SimulatingPathState::Simulated(simulating_path_state)) =
+                simulating_path_state
+            {
+                (simulating_path_state.start, simulating_path_state.target)
+            } else {
+                (
+                    executing_path.last_reached_node,
+                    executing_path.path[0].movement.target,
+                )
+            };
+
+            let (start, end) = (start.center_bottom(), end.center_bottom());
+            // TODO: use an actual 2d point-line distance formula here instead of the 3d one
+            // lol
+            let xz_distance =
+                point_line_distance_3d(&position.with_y(0.), &(start.with_y(0.), end.with_y(0.)));
+            let y_distance = point_line_distance_1d(position.y, (start.y, end.y));
+
+            let xz_tolerance = 3.;
+            // longer moves have more y tolerance (in case we're climbing a hill or smth in
+            // a single movement)
+            let y_tolerance = start.horizontal_distance_to(end) / 2. + 1.5;
+
+            if xz_distance > xz_tolerance || y_distance > y_tolerance {
+                warn!(
+                    "pathfinder went too far from path (xz_distance={xz_distance}/{xz_tolerance}, y_distance={y_distance}/{y_tolerance}, line is {start} to {end}, point at {}), trying to patch!",
+                    **position
+                );
+                patch_path_from_timeout(
+                    entity,
+                    &mut executing_path,
+                    &mut pathfinder,
+                    &worlds,
+                    position,
+                    world_name,
+                    custom_state,
+                    inventory,
+                );
+                continue;
+            }
+        }
+
         // don't timeout if we're mining
         if let Some(mining) = mining {
             // also make sure we're close enough to the block that's being mined
@@ -281,44 +326,75 @@ pub fn timeout_movement(
             }
         }
 
-        if executing_path.ticks_since_last_node_reached > (2 * 20)
+        let mut timeout = 2 * 20;
+
+        if simulating_path_state.is_some() {
+            // longer timeout if we're following a simulated path from the other execution
+            // engine
+            timeout = 5 * 20;
+        }
+
+        if executing_path.ticks_since_last_node_reached > timeout
             && !pathfinder.is_calculating
             && !executing_path.path.is_empty()
         {
             warn!("pathfinder timeout, trying to patch path");
-            executing_path.queued_path = None;
-            let cur_pos = player_pos_to_block_pos(**position);
-            executing_path.last_reached_node = cur_pos;
 
-            let world_lock = worlds
-                .get(world_name)
-                .expect("Entity tried to pathfind but the entity isn't in a valid world");
-            let Some(opts) = pathfinder.opts.clone() else {
-                warn!(
-                    "pathfinder was going to patch path because of timeout, but pathfinder.opts was None"
-                );
-                return;
-            };
-
-            let custom_state = custom_state.cloned().unwrap_or_default();
-
-            // try to fix the path without recalculating everything.
-            // (though, it'll still get fully recalculated by `recalculate_near_end_of_path`
-            // if the new path is too short)
-            patching::patch_path(
-                0..=cmp::min(20, executing_path.path.len() - 1),
+            patch_path_from_timeout(
+                entity,
                 &mut executing_path,
                 &mut pathfinder,
-                inventory,
-                entity,
-                world_lock,
+                &worlds,
+                position,
+                world_name,
                 custom_state,
-                opts,
+                inventory,
             );
-            // reset last_node_reached_at so we don't immediately try to patch again
-            executing_path.ticks_since_last_node_reached = 0
         }
     }
+}
+
+fn patch_path_from_timeout(
+    entity: Entity,
+    executing_path: &mut ExecutingPath,
+    pathfinder: &mut Pathfinder,
+    worlds: &Worlds,
+    position: &Position,
+    world_name: &WorldName,
+    custom_state: Option<&CustomPathfinderState>,
+    inventory: &Inventory,
+) {
+    executing_path.queued_path = None;
+    let cur_pos = player_pos_to_block_pos(**position);
+    executing_path.last_reached_node = cur_pos;
+
+    let world_lock = worlds
+        .get(world_name)
+        .expect("Entity tried to pathfind but the entity isn't in a valid world");
+    let Some(opts) = pathfinder.opts.clone() else {
+        warn!(
+            "pathfinder was going to patch path because of timeout, but pathfinder.opts was None"
+        );
+        return;
+    };
+
+    let custom_state = custom_state.cloned().unwrap_or_default();
+
+    // try to fix the path without recalculating everything.
+    // (though, it'll still get fully recalculated by `recalculate_near_end_of_path`
+    // if the new path is too short)
+    patching::patch_path(
+        0..=cmp::min(20, executing_path.path.len() - 1),
+        executing_path,
+        pathfinder,
+        inventory,
+        entity,
+        world_lock,
+        custom_state,
+        opts,
+    );
+    // reset last_node_reached_at so we don't immediately try to patch again
+    executing_path.ticks_since_last_node_reached = 0
 }
 
 pub fn recalculate_near_end_of_path(
@@ -407,5 +483,35 @@ pub fn recalculate_if_has_goal_but_no_path(
             goto_events.write(GotoEvent { entity, goal, opts });
             pathfinder.is_calculating = true;
         }
+    }
+}
+
+// based on https://stackoverflow.com/a/36425155
+/// Returns the distance of a point from a line.
+///
+/// This is used in the pathfinder for checking if the bot is too far from the
+/// current path.
+pub fn point_line_distance_3d(point: &Vec3, (start, end): &(Vec3, Vec3)) -> f64 {
+    let start_to_end = end - start;
+    let start_to_point = point - start;
+
+    if start_to_point.dot(start_to_end) <= 0. {
+        return start_to_point.length();
+    }
+
+    let end_to_point = point - end;
+    if end_to_point.dot(start_to_end) >= 0. {
+        return end_to_point.length();
+    }
+
+    start_to_end.cross(start_to_point).length() / start_to_end.length()
+}
+pub fn point_line_distance_1d(point: f64, (start, end): (f64, f64)) -> f64 {
+    let min = start.min(end);
+    let max = start.max(end);
+    if point < min {
+        min - point
+    } else {
+        point - max
     }
 }

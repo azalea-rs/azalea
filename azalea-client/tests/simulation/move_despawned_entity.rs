@@ -1,9 +1,8 @@
 use azalea_client::test_utils::prelude::*;
-use azalea_core::position::ChunkPos;
+use azalea_core::{entity_id::MinecraftEntityId, position::ChunkPos};
 use azalea_entity::metadata::Cow;
 use azalea_protocol::packets::{ConnectionProtocol, game::ClientboundMoveEntityRot};
 use azalea_registry::builtin::EntityKind;
-use azalea_core::entity_id::MinecraftEntityId;
 use bevy_ecs::query::With;
 use tracing::Level;
 

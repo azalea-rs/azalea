@@ -8,7 +8,7 @@ use azalea_inventory::ItemStack;
 use azalea_physics::{PhysicsSystems, collision::BlockWithShape};
 use azalea_protocol::packets::game::s_player_action::{self, ServerboundPlayerAction};
 use azalea_registry::builtin::{BlockKind, ItemKind};
-use azalea_world::{Worlds, WorldName};
+use azalea_world::{WorldName, Worlds};
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};

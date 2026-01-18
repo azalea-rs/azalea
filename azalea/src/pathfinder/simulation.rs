@@ -130,18 +130,23 @@ fn create_simulation_player(
 pub struct Simulation {
     pub app: App,
     pub entity: Entity,
-    _world: Arc<RwLock<World>>,
+    pub world: Arc<RwLock<World>>,
 }
 
 impl Simulation {
     pub fn new(chunks: ChunkStorage, player: SimulatedPlayerBundle) -> Self {
         let (mut app, world) = create_simulation_world(chunks);
         let entity = create_simulation_player(app.world_mut(), world.clone(), player);
-        Self {
-            app,
-            entity,
-            _world: world,
-        }
+        Self { app, entity, world }
+    }
+
+    /// Despawn the old simulated player and create a new one.
+    ///
+    /// This is cheaper than creating a new [`Simulation`] from scratch.
+    pub fn reset(&mut self, player: SimulatedPlayerBundle) {
+        self.app.world_mut().despawn(self.entity);
+        let entity = create_simulation_player(self.app.world_mut(), self.world.clone(), player);
+        self.entity = entity;
     }
 
     pub fn tick(&mut self) {
@@ -156,6 +161,9 @@ impl Simulation {
     }
     pub fn position(&self) -> Vec3 {
         *self.component::<Position>()
+    }
+    pub fn physics(&self) -> Physics {
+        self.component::<Physics>().clone()
     }
     pub fn is_mining(&self) -> bool {
         // return true if the component is present and Some

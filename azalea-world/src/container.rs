@@ -94,7 +94,7 @@ impl Worlds {
 /// If two entities share the same world name, then Azalea assumes that they're
 /// in the same world.
 #[derive(Clone, Component, Debug, Deref, DerefMut, Eq, Hash, PartialEq)]
-#[doc(alias("worldname", "world name", "dimension"))]
+#[doc(alias("dimension"))]
 pub struct WorldName(pub Identifier);
 impl WorldName {
     /// Create a new `WorldName` with the given name.

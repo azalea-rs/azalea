@@ -1,5 +1,8 @@
 use azalea_client::test_utils::prelude::*;
-use azalea_core::position::{ChunkPos, Vec3};
+use azalea_core::{
+    entity_id::MinecraftEntityId,
+    position::{ChunkPos, Vec3},
+};
 use azalea_protocol::{
     common::movements::{PositionMoveRotation, RelativeMovements},
     packets::{
@@ -8,7 +11,6 @@ use azalea_protocol::{
     },
 };
 use azalea_registry::builtin::EntityKind;
-use azalea_core::entity_id::MinecraftEntityId;
 
 #[test]
 fn test_move_and_despawn_entity() {

@@ -14,6 +14,7 @@ use azalea_client::{
 };
 use azalea_core::position::{BlockPos, Vec3};
 use azalea_inventory::Menu;
+use azalea_registry::builtin::BlockKind;
 use azalea_world::World;
 use bevy_ecs::{entity::Entity, message::MessageWriter, system::Commands, world::EntityWorldMut};
 use parking_lot::RwLock;
@@ -29,7 +30,7 @@ use super::{
 use crate::{
     auto_tool::best_tool_in_hotbar_for_block,
     bot::{JumpEvent, LookAtEvent},
-    pathfinder::{player_pos_to_block_pos, world::is_block_state_water},
+    pathfinder::player_pos_to_block_pos,
 };
 
 type Edge = astar::Edge<RelBlockPos, MoveData>;
@@ -73,6 +74,7 @@ pub struct ExecuteCtx<'s, 'w1, 'w2, 'w3, 'w4, 'w5, 'w6, 'a> {
     pub position: Vec3,
     pub physics: &'a azalea_entity::Physics,
     pub is_currently_mining: bool,
+    pub can_mine: bool,
     pub world: Arc<RwLock<World>>,
     pub menu: Menu,
 
@@ -150,18 +152,17 @@ impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_, '_> {
     /// Returns whether this block could be mined.
     pub fn should_mine(&mut self, block: BlockPos) -> bool {
         let block_state = self.world.read().get_block_state(block).unwrap_or_default();
-        if is_block_state_passable(block_state) || is_block_state_water(block_state) {
-            // block is already passable, no need to mine it
-            return false;
-        }
-
-        true
+        should_mine_block_state(block_state)
     }
 
     /// Mine the block at the given position.
     ///
     /// Returns whether the block is being mined.
     pub fn mine(&mut self, block: BlockPos) -> bool {
+        if !self.can_mine {
+            return false;
+        }
+
         let block_state = self.world.read().get_block_state(block).unwrap_or_default();
         if is_block_state_passable(block_state) {
             // block is already passable, no need to mine it
@@ -215,6 +216,15 @@ impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_, '_> {
     pub fn get_block_state(&self, block: BlockPos) -> BlockState {
         self.world.read().get_block_state(block).unwrap_or_default()
     }
+}
+
+pub fn should_mine_block_state(block_state: BlockState) -> bool {
+    if is_block_state_passable(block_state) || BlockKind::from(block_state) == BlockKind::Water {
+        // block is already passable, no need to mine it
+        return false;
+    }
+
+    true
 }
 
 pub struct IsReachedCtx<'a> {

@@ -113,11 +113,9 @@ impl CachedWorld {
             cached_blocks: Default::default(),
             // this uses about 12mb of memory. it *really* helps though.
             cached_mining_costs: UnsafeCell::new(
-                vec![
-                    (RelBlockPos::new(i16::MAX, i32::MAX, i16::MAX), 0.);
-                    CACHED_MINING_COSTS_SIZE
-                ]
-                .into_boxed_slice(),
+                (0..CACHED_MINING_COSTS_SIZE)
+                    .map(|_| (RelBlockPos::new(i16::MAX, i32::MAX, i16::MAX), 0.))
+                    .collect(),
             ),
         }
     }

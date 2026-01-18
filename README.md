@@ -18,7 +18,7 @@ _Currently supported Minecraft version: `1.21.11`._
 ## Features
 
 - [Accurate physics](https://azalea.matdoes.dev/azalea_physics/) (but some features like entity pushing and elytras aren't implemented yet)
-- [Pathfinder](https://azalea.matdoes.dev/azalea/pathfinder/index.html) (partially based on Baritone and several times faster)
+- [Pathfinder](https://azalea.matdoes.dev/azalea/pathfinder/index.html)
 - [Swarms](https://azalea.matdoes.dev/azalea/swarm/index.html)
 - [Breaking blocks](https://azalea.matdoes.dev/azalea/struct.Client.html#method.mine)
 - [Block interactions & building](https://azalea.matdoes.dev/azalea/struct.Client.html#method.block_interact) (this doesn't predict the block interactions/placement on the client yet, but it's usually fine)

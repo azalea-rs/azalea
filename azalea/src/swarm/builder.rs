@@ -90,13 +90,17 @@ impl SwarmBuilder<NoState, NoSwarmState, (), ()> {
     /// [`DefaultSwarmPlugins`] to this.
     ///
     /// ```
-    /// # use azalea::{prelude::*, swarm::prelude::*};
+    /// # use azalea::{prelude::*, swarm::{prelude::*, DefaultSwarmPlugins}, bot::DefaultBotPlugins};
     /// use azalea::app::PluginGroup;
     ///
     /// let swarm_builder = SwarmBuilder::new_without_plugins()
-    ///     .add_plugins(azalea::DefaultPlugins.build().disable::<azalea::chat_signing::ChatSigningPlugin>())
-    ///     .add_plugins(azalea::bot::DefaultBotPlugins)
-    ///     .add_plugins(azalea::swarm::DefaultSwarmPlugins);
+    ///     .add_plugins((
+    ///         DefaultBotPlugins,
+    ///         DefaultSwarmPlugins,
+    ///         azalea::DefaultPlugins
+    ///             .build()
+    ///             .disable::<azalea::chat_signing::ChatSigningPlugin>(),
+    /// ));
     /// # swarm_builder.set_handler(handle).set_swarm_handler(swarm_handle);
     /// # #[derive(Clone, Component, Default, Resource)]
     /// # pub struct State;

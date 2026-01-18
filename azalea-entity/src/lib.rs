@@ -182,7 +182,7 @@ impl LookDirection {
     pub fn update(&mut self, new: LookDirection) {
         self.update_with_sensitivity(new, 1.);
     }
-    /// Update the `y_rot` to the given value, in degrees.
+    /// Update the `y_rot` (yaw) to the given value, in degrees.
     ///
     /// This is a shortcut for [`Self::update`] while keeping the `x_rot` the
     /// same.
@@ -192,7 +192,7 @@ impl LookDirection {
             x_rot: self.x_rot,
         });
     }
-    /// Update the `x_rot` to the given value, in degrees.
+    /// Update the `x_rot` (pitch) to the given value, in degrees.
     ///
     /// This is a shortcut for [`Self::update`] while keeping the `y_rot` the
     /// same.
