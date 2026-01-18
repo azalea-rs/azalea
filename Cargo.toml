@@ -42,7 +42,7 @@ bevy_tasks = "0.18.0"
 bevy_time = "0.18.0"
 byteorder = "1.5.0"
 cfb8 = "0.8.1"
-chrono = { version = "0.4.42", default-features = false }
+chrono = { version = "0.4.43", default-features = false }
 compact_str = "0.9.0"
 crc32c = "0.6.8"
 criterion = "0.8.1"
@@ -86,7 +86,7 @@ signature = "=3.0.0-rc.5"
 simdnbt = { git = "https://github.com/azalea-rs/simdnbt" }
 socks5-impl = "0.8.0"
 syn = "2.0.114"
-thiserror = "2.0.17"
+thiserror = "2.0.18"
 tokio = "1.49.0"
 tokio-util = "0.7.18"
 tracing = "0.1.44"
