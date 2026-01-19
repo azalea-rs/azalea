@@ -607,9 +607,9 @@ pub struct CubeVoxelShape {
     #[allow(dead_code)]
     faces: Option<Vec<VoxelShape>>,
 
-    x_coords: Vec<f64>,
-    y_coords: Vec<f64>,
-    z_coords: Vec<f64>,
+    x_coords: Box<[f64]>,
+    y_coords: Box<[f64]>,
+    z_coords: Box<[f64]>,
 }
 
 impl ArrayVoxelShape {
@@ -631,9 +631,7 @@ impl ArrayVoxelShape {
             zs,
         }
     }
-}
 
-impl ArrayVoxelShape {
     fn shape(&self) -> &DiscreteVoxelShape {
         &self.shape
     }
@@ -665,13 +663,10 @@ impl CubeVoxelShape {
         &self.shape
     }
 
-    fn calculate_coords(shape: &DiscreteVoxelShape, axis: Axis) -> Vec<f64> {
+    fn calculate_coords(shape: &DiscreteVoxelShape, axis: Axis) -> Box<[f64]> {
         let size = shape.size(axis);
-        let mut parts = Vec::with_capacity(size as usize);
-        for i in 0..=size {
-            parts.push(i as f64 / size as f64);
-        }
-        parts
+
+        (0..=size).map(|i| i as f64 / size as f64).collect()
     }
 
     #[inline]

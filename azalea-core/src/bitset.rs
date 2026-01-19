@@ -8,7 +8,7 @@ use azalea_buf::{AzBuf, BufReadError};
 /// Represents Java's BitSet, a list of bits.
 #[derive(AzBuf, Clone, Debug, Default, Eq, Hash, PartialEq)]
 pub struct BitSet {
-    data: Vec<u64>,
+    data: Box<[u64]>,
 }
 
 /// `log2(64)`.
@@ -19,7 +19,7 @@ impl BitSet {
     #[inline]
     pub fn new(num_bits: usize) -> Self {
         BitSet {
-            data: vec![0; num_bits.div_ceil(64)],
+            data: vec![0; num_bits.div_ceil(64)].into(),
         }
     }
 
@@ -155,7 +155,7 @@ impl BitSet {
 
 impl From<Vec<u64>> for BitSet {
     fn from(data: Vec<u64>) -> Self {
-        BitSet { data }
+        BitSet { data: data.into() }
     }
 }
 
@@ -165,7 +165,7 @@ impl From<Vec<u8>> for BitSet {
         for (i, byte) in data.iter().enumerate() {
             words[i / 8] |= (*byte as u64) << ((i % 8) * 8);
         }
-        BitSet { data: words }
+        BitSet { data: words.into() }
     }
 }
 

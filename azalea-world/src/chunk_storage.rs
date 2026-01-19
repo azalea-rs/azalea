@@ -457,6 +457,9 @@ pub fn get_block_state_from_sections(
         return None;
     };
     let section = &sections[section_index];
+    if section.block_count == 0 {
+        return Some(BlockState::AIR);
+    }
     let chunk_section_pos = ChunkSectionBlockPos::from(pos);
     Some(section.get_block_state(chunk_section_pos))
 }

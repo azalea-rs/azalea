@@ -346,10 +346,10 @@ pub fn local_player_ai_step(
         let new_crouching = !abilities.flying
             && !is_swimming
             && !is_passenger
-            && can_player_fit_within_blocks_and_entities_when(&ctx, Pose::Crouching)
             && (last_sent_input.is_some_and(|i| i.0.shift)
                 || !is_sleeping
-                    && !can_player_fit_within_blocks_and_entities_when(&ctx, Pose::Standing));
+                    && !can_player_fit_within_blocks_and_entities_when(&ctx, Pose::Standing))
+            && can_player_fit_within_blocks_and_entities_when(&ctx, Pose::Crouching);
         if **crouching != new_crouching {
             **crouching = new_crouching;
         }
@@ -650,15 +650,15 @@ struct CanPlayerFitCtx<'world, 'state, 'a, 'b> {
     physics: &'a Physics,
 }
 fn can_player_fit_within_blocks_and_entities_when(ctx: &CanPlayerFitCtx, pose: Pose) -> bool {
-    // return this.level().noCollision(this,
-    // this.getDimensions(var1).makeBoundingBox(this.position()).deflate(1.0E-7));
     no_collision(
         ctx.world,
         Some(ctx.entity),
         ctx.aabb_query,
         ctx.collidable_entity_query,
         ctx.physics,
-        &calculate_dimensions(EntityKind::Player, pose).make_bounding_box(*ctx.position),
+        &calculate_dimensions(EntityKind::Player, pose)
+            .make_bounding_box(*ctx.position)
+            .deflate_all(1.0e-7),
         false,
     )
 }

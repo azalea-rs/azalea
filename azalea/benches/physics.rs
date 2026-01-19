@@ -32,7 +32,7 @@ fn generate_world(partial_chunks: &mut PartialChunkStorage, size: u32) -> ChunkS
                 for z in 0..16_u8 {
                     chunk.set_block_state(
                         &ChunkBlockPos::new(x, 1, z),
-                        BlockKind::OakFence.into(),
+                        BlockKind::Stone.into(),
                         chunks.min_y,
                     );
                 }
@@ -74,7 +74,7 @@ fn run_physics_benchmark(b: &mut Bencher<'_>) {
 
     b.iter(|| {
         let entity = simulation_set.spawn(SimulatedPlayerBundle::new(Vec3::new(0.5, 2.0, 0.5)));
-        for _ in 0..20 {
+        for _ in 0..200 {
             simulation_set.tick();
         }
         simulation_set.despawn(entity);
