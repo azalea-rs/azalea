@@ -190,9 +190,9 @@ impl Shapes {
         } else {
             VoxelShape::Array(ArrayVoxelShape::new(
                 DiscreteVoxelShape::BitSet(var8),
-                var5.get_list(),
-                var6.get_list(),
-                var7.get_list(),
+                var5.get_list().into(),
+                var6.get_list().into(),
+                var7.get_list().into(),
             ))
         }
     }
@@ -595,9 +595,9 @@ pub struct ArrayVoxelShape {
     #[allow(dead_code)]
     faces: Option<Box<[VoxelShape]>>,
 
-    pub xs: Box<[f64]>,
-    pub ys: Box<[f64]>,
-    pub zs: Box<[f64]>,
+    xs: CompactArray<f64>,
+    ys: CompactArray<f64>,
+    zs: CompactArray<f64>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -607,13 +607,18 @@ pub struct CubeVoxelShape {
     #[allow(dead_code)]
     faces: Option<Vec<VoxelShape>>,
 
-    x_coords: Box<[f64]>,
-    y_coords: Box<[f64]>,
-    z_coords: Box<[f64]>,
+    x_coords: CompactArray<f64>,
+    y_coords: CompactArray<f64>,
+    z_coords: CompactArray<f64>,
 }
 
 impl ArrayVoxelShape {
-    pub fn new(shape: DiscreteVoxelShape, xs: Box<[f64]>, ys: Box<[f64]>, zs: Box<[f64]>) -> Self {
+    pub fn new(
+        shape: DiscreteVoxelShape,
+        xs: CompactArray<f64>,
+        ys: CompactArray<f64>,
+        zs: CompactArray<f64>,
+    ) -> Self {
         let x_size = shape.size(Axis::X) + 1;
         let y_size = shape.size(Axis::Y) + 1;
         let z_size = shape.size(Axis::Z) + 1;
@@ -638,7 +643,7 @@ impl ArrayVoxelShape {
 
     #[inline]
     fn get_coords(&self, axis: Axis) -> &[f64] {
-        axis.choose(&self.xs, &self.ys, &self.zs)
+        axis.choose(&self.xs, &self.ys, &self.zs).as_slice()
     }
 }
 
@@ -663,7 +668,7 @@ impl CubeVoxelShape {
         &self.shape
     }
 
-    fn calculate_coords(shape: &DiscreteVoxelShape, axis: Axis) -> Box<[f64]> {
+    fn calculate_coords(shape: &DiscreteVoxelShape, axis: Axis) -> CompactArray<f64> {
         let size = shape.size(axis);
 
         (0..=size).map(|i| i as f64 / size as f64).collect()
@@ -672,6 +677,7 @@ impl CubeVoxelShape {
     #[inline]
     fn get_coords(&self, axis: Axis) -> &[f64] {
         axis.choose(&self.x_coords, &self.y_coords, &self.z_coords)
+            .as_slice()
     }
 
     fn find_index(&self, axis: Axis, coord: f64) -> i32 {
@@ -696,6 +702,49 @@ impl CubePointRange {
 
     pub fn iter(&self) -> Box<[f64]> {
         (0..=self.parts.get()).map(|i| self.get_double(i)).collect()
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum CompactArray<T: Clone + Copy> {
+    Box(Box<[T]>),
+    Inline([T; 1]),
+}
+impl<T: Clone + Copy> CompactArray<T> {
+    fn as_slice(&self) -> &[T] {
+        match self {
+            CompactArray::Box(slice) => slice,
+            CompactArray::Inline(arr) => arr,
+        }
+    }
+    fn len(&self) -> usize {
+        match self {
+            CompactArray::Box(slice) => slice.len(),
+            CompactArray::Inline(arr) => arr.len(),
+        }
+    }
+}
+impl<T: Clone + Copy> From<Box<[T]>> for CompactArray<T> {
+    fn from(value: Box<[T]>) -> Self {
+        if value.len() == 1 {
+            Self::Inline([value[0]])
+        } else {
+            Self::Box(value)
+        }
+    }
+}
+impl<T: Clone + Copy, const N: usize> From<[T; N]> for CompactArray<T> {
+    fn from(value: [T; N]) -> Self {
+        if value.len() == 1 {
+            Self::Inline([value[0]])
+        } else {
+            Self::Box(Box::new(value))
+        }
+    }
+}
+impl<T: Clone + Copy> FromIterator<T> for CompactArray<T> {
+    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
+        Self::from(Box::from_iter(iter))
     }
 }
 
