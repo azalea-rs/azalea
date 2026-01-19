@@ -1,6 +1,8 @@
 use core::f32;
 use std::{
+    array,
     cell::{RefCell, UnsafeCell},
+    mem,
     sync::Arc,
 };
 
@@ -13,9 +15,12 @@ use azalea_physics::collision::BlockWithShape;
 use azalea_registry::{builtin::BlockKind, tags};
 use azalea_world::{World, palette::PalettedContainer};
 use parking_lot::RwLock;
+use rustc_hash::FxHashMap;
 
 use super::{mining::MiningCache, positions::RelBlockPos};
 use crate::pathfinder::positions::SmallChunkSectionPos;
+
+const MAX_VIEW_DISTANCE: usize = 32;
 
 /// An efficient representation of the world used for the pathfinder.
 pub struct CachedWorld {
@@ -28,11 +33,13 @@ pub struct CachedWorld {
     min_y: i32,
     world_lock: Arc<RwLock<World>>,
 
-    cached_chunks: RefCell<Vec<(ChunkPos, CachedChunk)>>,
-    last_chunk_cache_index: RefCell<Option<usize>>,
+    // we use the bounded cache by default and then switch if it gets too big
+    bounded_chunk_cache: RefCell<[(ChunkPos, CachedChunk); MAX_VIEW_DISTANCE * MAX_VIEW_DISTANCE]>,
+    unbounded_chunk_cache: RefCell<FxHashMap<ChunkPos, CachedChunk>>,
 
     cached_blocks: UnsafeCell<CachedSections>,
 
+    #[allow(clippy::type_complexity)]
     cached_mining_costs: UnsafeCell<Option<Box<[(RelBlockPos, f32)]>>>,
 }
 
@@ -108,8 +115,10 @@ impl CachedWorld {
             origin,
             min_y,
             world_lock,
-            cached_chunks: Default::default(),
-            last_chunk_cache_index: Default::default(),
+            bounded_chunk_cache: RefCell::new(array::from_fn(|_| {
+                (ChunkPos::new(i32::MAX, i32::MAX), Default::default())
+            })),
+            unbounded_chunk_cache: Default::default(),
             cached_blocks: Default::default(),
             cached_mining_costs: UnsafeCell::new(None),
         }
@@ -138,41 +147,42 @@ impl CachedWorld {
         let section_index =
             azalea_world::chunk_storage::section_index(section_pos.y * 16, self.min_y) as usize;
 
-        let mut cached_chunks = self.cached_chunks.borrow_mut();
+        let mut cache_idx = 0;
 
-        // optimization: avoid doing the iter lookup if the last chunk we looked up is
-        // the same
-        if let Some(last_chunk_cache_index) = *self.last_chunk_cache_index.borrow()
-            && cached_chunks[last_chunk_cache_index].0 == chunk_pos
-        {
-            // don't bother with the iter lookup
-            let sections = &cached_chunks[last_chunk_cache_index].1;
-            if section_index >= sections.len() {
-                // y position is out of bounds
-                return None;
-            };
-            let section = &sections[section_index];
-            return Some(f(section));
-        }
+        let mut unbounded_chunk_cache = self.unbounded_chunk_cache.borrow_mut();
+        let mut bounded_chunk_cache = self.bounded_chunk_cache.borrow_mut();
+        if unbounded_chunk_cache.is_empty() {
+            const D: i32 = MAX_VIEW_DISTANCE as i32;
+            let cache_x = i32::rem_euclid(chunk_pos.x, D) * D;
+            let cache_z = i32::rem_euclid(chunk_pos.z, D);
+            cache_idx = (cache_x + cache_z) as usize;
 
-        // get section from cache
-        if let Some((chunk_index, sections)) =
-            cached_chunks
-                .iter()
-                .enumerate()
-                .find_map(|(i, (pos, sections))| {
-                    if *pos == chunk_pos {
-                        Some((i, sections))
-                    } else {
-                        None
+            // get section from cache
+            if !bounded_chunk_cache[cache_idx].1.is_empty() {
+                if bounded_chunk_cache[cache_idx].0 != chunk_pos {
+                    // switch to the unbounded cache :(
+
+                    for (moving_chunk_pos, moving_chunk) in bounded_chunk_cache.iter_mut() {
+                        if !moving_chunk.is_empty() {
+                            unbounded_chunk_cache
+                                .insert(*moving_chunk_pos, mem::take(moving_chunk));
+                        }
                     }
-                })
-        {
+                }
+
+                let sections = &bounded_chunk_cache[cache_idx].1;
+                if section_index >= sections.len() {
+                    // y position is out of bounds
+                    return None;
+                };
+                let section = &sections[section_index];
+                return Some(f(section));
+            }
+        } else if let Some(sections) = unbounded_chunk_cache.get(&chunk_pos) {
             if section_index >= sections.len() {
                 // y position is out of bounds
                 return None;
             };
-            *self.last_chunk_cache_index.borrow_mut() = Some(chunk_index);
             let section = &sections[section_index];
             return Some(f(section));
         }
@@ -196,7 +206,11 @@ impl CachedWorld {
         let r = f(section);
 
         // add the sections to the chunk cache
-        cached_chunks.push((chunk_pos, sections));
+        if unbounded_chunk_cache.is_empty() {
+            bounded_chunk_cache[cache_idx] = (chunk_pos, sections);
+        } else {
+            unbounded_chunk_cache.insert(chunk_pos, sections);
+        }
 
         Some(r)
     }
@@ -328,8 +342,10 @@ impl CachedWorld {
         cost
     }
 
+    // this is fine because pathfinding is single-threaded
+    #[allow(clippy::mut_from_ref)]
     fn cached_mining_costs(&self) -> &mut [(RelBlockPos, f32)] {
-        // SAFETY: pathfinding is single-threaded
+        // SAFETY: again, pathfinding is single-threaded
         let cached_mining_costs = unsafe { &mut *self.cached_mining_costs.get() };
         if let Some(cached_mining_costs) = cached_mining_costs {
             return cached_mining_costs;
