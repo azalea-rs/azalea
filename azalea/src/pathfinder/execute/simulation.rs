@@ -149,6 +149,7 @@ pub fn tick_execute_path(
             Cow::Borrowed(simulating_path_state)
         } else {
             let start = Instant::now();
+
             let new_state = run_simulations(
                 &executing_path,
                 world_holder,

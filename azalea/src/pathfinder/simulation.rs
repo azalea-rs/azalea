@@ -118,7 +118,7 @@ fn create_simulation_player_complete_bundle(
     )
 }
 
-fn create_simulation_player(
+pub fn create_simulation_player(
     ecs: &mut bevy_ecs::world::World,
     world: Arc<RwLock<World>>,
     player: SimulatedPlayerBundle,

@@ -33,7 +33,7 @@ pub struct CachedWorld {
 
     cached_blocks: UnsafeCell<CachedSections>,
 
-    cached_mining_costs: UnsafeCell<Box<[(RelBlockPos, f32)]>>,
+    cached_mining_costs: UnsafeCell<Option<Box<[(RelBlockPos, f32)]>>>,
 }
 
 // we store `PalettedContainer`s instead of `Chunk`s or `Section`s because it
@@ -111,12 +111,7 @@ impl CachedWorld {
             cached_chunks: Default::default(),
             last_chunk_cache_index: Default::default(),
             cached_blocks: Default::default(),
-            // this uses about 12mb of memory. it *really* helps though.
-            cached_mining_costs: UnsafeCell::new(
-                (0..CACHED_MINING_COSTS_SIZE)
-                    .map(|_| (RelBlockPos::new(i16::MAX, i32::MAX, i16::MAX), 0.))
-                    .collect(),
-            ),
+            cached_mining_costs: UnsafeCell::new(None),
         }
     }
 
@@ -316,8 +311,7 @@ impl CachedWorld {
     ///
     /// Returns 0 if the block is already passable.
     pub fn cost_for_breaking_block(&self, pos: RelBlockPos, mining_cache: &MiningCache) -> f32 {
-        // SAFETY: pathfinding is single-threaded
-        let cached_mining_costs = unsafe { &mut *self.cached_mining_costs.get() };
+        let cached_mining_costs = self.cached_mining_costs();
 
         let hash_index = calculate_cached_mining_costs_index(pos);
         let &(cached_pos, potential_cost) =
@@ -332,6 +326,23 @@ impl CachedWorld {
         };
 
         cost
+    }
+
+    fn cached_mining_costs(&self) -> &mut [(RelBlockPos, f32)] {
+        // SAFETY: pathfinding is single-threaded
+        let cached_mining_costs = unsafe { &mut *self.cached_mining_costs.get() };
+        if let Some(cached_mining_costs) = cached_mining_costs {
+            return cached_mining_costs;
+        }
+        // delay initialization so we don't have to create this if it's unused
+
+        // this uses about 48mb of memory. it *really* helps though.
+        *cached_mining_costs = Some(
+            vec![(RelBlockPos::new(i16::MAX, i32::MAX, i16::MAX), 0.); CACHED_MINING_COSTS_SIZE]
+                .into(),
+        );
+
+        cached_mining_costs.as_mut().unwrap()
     }
 
     fn uncached_cost_for_breaking_block(

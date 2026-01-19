@@ -6,7 +6,7 @@ use std::{
 };
 
 use azalea_block::BlockState;
-use azalea_core::position::{BlockPos, ChunkPos, Vec3};
+use azalea_core::position::{BlockPos, ChunkPos};
 use azalea_registry::builtin::BlockKind;
 use azalea_world::{Chunk, ChunkStorage, PartialChunkStorage};
 
@@ -73,11 +73,7 @@ fn setup_simulation_world(
         chunks.set_block_state(*block_pos, *block_state);
     }
 
-    let player = SimulatedPlayerBundle::new(Vec3::new(
-        start_pos.x as f64 + 0.5,
-        start_pos.y as f64,
-        start_pos.z as f64 + 0.5,
-    ));
+    let player = SimulatedPlayerBundle::new(start_pos.center_bottom());
     Simulation::new(chunks, player)
 }
 
