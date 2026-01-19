@@ -113,9 +113,14 @@ def generate_block_shapes_code(blocks: dict, shapes: dict, block_states_report):
 
     generated_map_code = f"static COLLISION_SHAPES_MAP: [&LazyLock<VoxelShape>; {len(collision_shapes_map)}] = ["
     empty_shape_match_code = convert_ints_to_rust_ranges(empty_shapes)
-    block_shape_match_code = convert_ints_to_rust_ranges(full_shapes)
+    simple_collision_shapes_map = [2] * len(collision_shapes_map)
     for block_state_id, shape_id in enumerate(collision_shapes_map):
         generated_map_code += f"&SHAPE{shape_id},\n"
+        if shape_id == 0:
+            simple_collision_shapes_map[block_state_id] = 0
+        elif shape_id == 1:
+            simple_collision_shapes_map[block_state_id] = 1
+    simple_collision_shapes_map = ",".join(map(str, simple_collision_shapes_map))
     generated_map_code += "];\n"
 
     generated_map_code += f"static OUTLINE_SHAPES_MAP: [&LazyLock<VoxelShape>; {len(outline_shapes_map)}] = ["
@@ -171,13 +176,15 @@ impl BlockWithShape for BlockState {{
     }}
 
     fn is_collision_shape_empty(&self) -> bool {{
-        matches!(self.id(), {empty_shape_match_code})
+        BASIC_COLLISION_SHAPES_MAP[self.id() as usize] == 0
     }}
 
     fn is_collision_shape_full(&self) -> bool {{
-        matches!(self.id(), {block_shape_match_code})
+        BASIC_COLLISION_SHAPES_MAP[self.id() as usize] == 1
     }}
 }}
+
+static BASIC_COLLISION_SHAPES_MAP: &[u8; {len(collision_shapes_map)}] = &[{simple_collision_shapes_map}];
 
 {generated_map_code}
 """

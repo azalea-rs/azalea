@@ -1,11 +1,15 @@
+use std::hint::black_box;
+
 use azalea::{
     Vec3,
     pathfinder::simulation::{SimulatedPlayerBundle, SimulationSet},
 };
+use azalea_block::BlockState;
 use azalea_core::position::{ChunkBlockPos, ChunkPos};
+use azalea_physics::collision::BlockWithShape;
 use azalea_registry::builtin::BlockKind;
 use azalea_world::{Chunk, ChunkStorage, PartialChunkStorage};
-use criterion::{Bencher, Criterion, criterion_group, criterion_main};
+use criterion::{BatchSize, Bencher, Criterion, criterion_group, criterion_main};
 
 #[allow(dead_code)]
 fn generate_world(partial_chunks: &mut PartialChunkStorage, size: u32) -> ChunkStorage {
@@ -77,11 +81,32 @@ fn run_physics_benchmark(b: &mut Bencher<'_>) {
     })
 }
 
-fn bench_pathfinder(c: &mut Criterion) {
+fn bench_physics(c: &mut Criterion) {
     c.bench_function("physics", |b| {
         run_physics_benchmark(b);
     });
+
+    c.bench_function("is_collision_shape_full", |b| {
+        b.iter_batched(
+            || {
+                let mut blocks = Vec::new();
+                for _ in 0..1024 {
+                    let id = rand::random_range(0..=BlockState::MAX_STATE);
+                    let block = BlockState::try_from(id).unwrap();
+                    blocks.push(block);
+                }
+                blocks
+            },
+            |blocks| {
+                for block in blocks {
+                    black_box(block.is_collision_shape_full());
+                    // black_box(block.collision_shape() == SHAPE1);
+                }
+            },
+            BatchSize::LargeInput,
+        );
+    });
 }
 
-criterion_group!(benches, bench_pathfinder);
+criterion_group!(benches, bench_physics);
 criterion_main!(benches);

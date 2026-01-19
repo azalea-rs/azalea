@@ -40,9 +40,9 @@ pub fn box_shape(
     if x_bits < 0 || y_bits < 0 || z_bits < 0 {
         return VoxelShape::Array(ArrayVoxelShape::new(
             BLOCK_SHAPE.shape().to_owned(),
-            vec![min_x, max_x],
-            vec![min_y, max_y],
-            vec![min_z, max_z],
+            [min_x, max_x].into(),
+            [min_y, max_y].into(),
+            [min_z, max_z].into(),
         ));
     }
     if x_bits == 0 && y_bits == 0 && z_bits == 0 {
@@ -73,9 +73,9 @@ pub fn box_shape(
 pub static EMPTY_SHAPE: LazyLock<VoxelShape> = LazyLock::new(|| {
     VoxelShape::Array(ArrayVoxelShape::new(
         DiscreteVoxelShape::BitSet(BitSetDiscreteVoxelShape::new(0, 0, 0)),
-        vec![0.],
-        vec![0.],
-        vec![0.],
+        [0.].into(),
+        [0.].into(),
+        [0.].into(),
     ))
 });
 
@@ -299,19 +299,19 @@ impl Shapes {
 
         if coords1[var5] < coords2[0] - EPSILON {
             IndexMerger::NonOverlapping {
-                lower: coords1.to_vec(),
-                upper: coords2.to_vec(),
+                lower: coords1.into(),
+                upper: coords2.into(),
                 swap: false,
             }
         } else if coords2[var6] < coords1[0] - EPSILON {
             IndexMerger::NonOverlapping {
-                lower: coords2.to_vec(),
-                upper: coords1.to_vec(),
+                lower: coords2.into(),
+                upper: coords1.into(),
                 swap: true,
             }
         } else if var5 == var6 && coords1 == coords2 {
             IndexMerger::Identical {
-                coords: coords1.to_vec(),
+                coords: coords1.into(),
             }
         } else {
             IndexMerger::new_indirect(coords1, coords2, var3, var4)
@@ -358,6 +358,7 @@ impl VoxelShape {
         }
     }
 
+    #[inline]
     pub fn get_coords(&self, axis: Axis) -> &[f64] {
         match self {
             VoxelShape::Array(s) => s.get_coords(axis),
@@ -592,11 +593,11 @@ pub struct ArrayVoxelShape {
     shape: DiscreteVoxelShape,
     // TODO: check where faces is used in minecraft
     #[allow(dead_code)]
-    faces: Option<Vec<VoxelShape>>,
+    faces: Option<Box<[VoxelShape]>>,
 
-    pub xs: Vec<f64>,
-    pub ys: Vec<f64>,
-    pub zs: Vec<f64>,
+    pub xs: Box<[f64]>,
+    pub ys: Box<[f64]>,
+    pub zs: Box<[f64]>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -612,7 +613,7 @@ pub struct CubeVoxelShape {
 }
 
 impl ArrayVoxelShape {
-    pub fn new(shape: DiscreteVoxelShape, xs: Vec<f64>, ys: Vec<f64>, zs: Vec<f64>) -> Self {
+    pub fn new(shape: DiscreteVoxelShape, xs: Box<[f64]>, ys: Box<[f64]>, zs: Box<[f64]>) -> Self {
         let x_size = shape.size(Axis::X) + 1;
         let y_size = shape.size(Axis::Y) + 1;
         let z_size = shape.size(Axis::Z) + 1;
@@ -698,7 +699,7 @@ impl CubePointRange {
         self.parts.get() + 1
     }
 
-    pub fn iter(&self) -> Vec<f64> {
+    pub fn iter(&self) -> Box<[f64]> {
         (0..=self.parts.get()).map(|i| self.get_double(i)).collect()
     }
 }

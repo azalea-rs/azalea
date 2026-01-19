@@ -84,12 +84,11 @@ impl<'a> BlockCollisionsState<'a> {
 
         let item_chunk_pos = ChunkPos::from(item.pos);
         let block_state: BlockState = if item_chunk_pos == initial_chunk_pos {
-            match &initial_chunk {
-                Some(initial_chunk) => initial_chunk
-                    .get_block_state(&ChunkBlockPos::from(item.pos), self.world.chunks.min_y)
-                    .unwrap_or(BlockState::AIR),
-                _ => BlockState::AIR,
-            }
+            initial_chunk
+                .and_then(|chunk| {
+                    chunk.get_block_state(&ChunkBlockPos::from(item.pos), self.world.chunks.min_y)
+                })
+                .unwrap_or(BlockState::AIR)
         } else {
             self.get_block_state(item.pos)
         };
@@ -99,8 +98,7 @@ impl<'a> BlockCollisionsState<'a> {
             return;
         }
 
-        // TODO: continue if self.only_suffocating_blocks and the block is not
-        // suffocating
+        // TODO: if self.only_suffocating_blocks, return if the block isn't suffocating
 
         // if it's a full block do a faster collision check
         if block_state.is_collision_shape_full() {
@@ -206,10 +204,6 @@ impl<'a> BlockCollisionsState<'a> {
         };
 
         self.cached_sections.push((section_pos, section.clone()));
-
-        // println!("chunk section palette: {:?}", section.states.palette);
-        // println!("chunk section data: {:?}", section.states.storage.data);
-        // println!("biome length: {}", section.biomes.storage.data.len());
 
         section.get_block_state(section_block_pos)
     }
