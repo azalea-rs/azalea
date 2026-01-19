@@ -36,32 +36,28 @@ fn forward_move(ctx: &mut MovesCtx, pos: RelBlockPos) {
     for dir in CardinalDirection::iter() {
         let offset = RelBlockPos::new(dir.x(), 0, dir.z());
 
-        let mut cost = base_cost;
-
-        let new_position = pos + offset;
+        let new_pos = pos + offset;
 
         let break_cost = if currently_in_water {
-            let dest_in_water = ctx.world.is_block_water(new_position);
+            let dest_in_water = ctx.world.is_block_water(new_pos);
             if !dest_in_water {
                 continue;
             }
 
             ctx.world
-                .cost_for_breaking_block(new_position.up(1), ctx.mining_cache)
+                .cost_for_breaking_block(new_pos.up(1), ctx.mining_cache)
         } else {
-            ctx.world.cost_for_standing(new_position, ctx.mining_cache)
+            ctx.world.cost_for_standing(new_pos, ctx.mining_cache)
         };
         if break_cost == f32::INFINITY {
             continue;
         }
 
-        // TODO: benchmark this
-        // cost = cost.algebraic_add(break_cost);
-        cost += break_cost;
+        let cost = base_cost + break_cost;
 
         ctx.edges.push(Edge {
             movement: astar::Movement {
-                target: new_position,
+                target: new_pos,
                 data: MoveData {
                     execute: &execute_forward_move,
                     is_reached: &default_is_reached,
