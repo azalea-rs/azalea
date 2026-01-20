@@ -81,6 +81,11 @@ pub struct Chunk {
 /// A section of a chunk, i.e. a 16*16*16 block area.
 #[derive(Clone, Debug, Default)]
 pub struct Section {
+    /// The number of non-empty blocks in the section, as sent to us by the
+    /// server.
+    ///
+    /// Currently, Azalea does not update this on its own, so it may become out
+    /// of sync.
     pub block_count: u16,
     pub states: PalettedContainer<BlockState>,
     pub biomes: PalettedContainer<Biome>,
@@ -457,9 +462,7 @@ pub fn get_block_state_from_sections(
         return None;
     };
     let section = &sections[section_index];
-    if section.block_count == 0 {
-        return Some(BlockState::AIR);
-    }
+
     let chunk_section_pos = ChunkSectionBlockPos::from(pos);
     Some(section.get_block_state(chunk_section_pos))
 }
