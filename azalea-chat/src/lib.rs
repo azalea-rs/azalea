@@ -1,7 +1,7 @@
 #![doc = include_str!("../README.md")]
 
 pub mod base_component;
-mod click_event;
+pub mod click_event;
 mod component;
 pub mod hover_event;
 #[cfg(feature = "numbers")]
