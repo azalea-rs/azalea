@@ -1301,9 +1301,9 @@ dependencies = [
 
 [[package]]
 name = "crypto-common"
-version = "0.2.0-rc.9"
+version = "0.2.0-rc.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "41b8986f836d4aeb30ccf4c9d3bd562fd716074cfd7fc4a2948359fbd21ed809"
+checksum = "0f4fc0003068acd7e9cb6659fd956dc4d671f102a06cc115990b9e7bb5745c25"
 dependencies = [
  "hybrid-array",
 ]
@@ -1391,13 +1391,13 @@ dependencies = [
 
 [[package]]
 name = "digest"
-version = "0.11.0-rc.5"
+version = "0.11.0-rc.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ebf9423bafb058e4142194330c52273c343f8a5beb7176d052f0e73b17dd35b9"
+checksum = "2778ee7344f47967d6701053913962accf9bfdb0caa4b6d921b7c4a615f658d0"
 dependencies = [
  "block-buffer 0.11.0",
  "const-oid",
- "crypto-common 0.2.0-rc.9",
+ "crypto-common 0.2.0-rc.10",
 ]
 
 [[package]]
@@ -2600,9 +2600,9 @@ dependencies = [
 
 [[package]]
 name = "pkcs8"
-version = "0.11.0-rc.8"
+version = "0.11.0-rc.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "77089aec8290d0b7bb01b671b091095cf1937670725af4fd73d47249f03b12c0"
+checksum = "80f8fa6196ede5a9f9ee95b44ca134bddc9b70e8913f9297bd58c909f5889a09"
 dependencies = [
  "der",
  "spki",
@@ -2956,7 +2956,7 @@ dependencies = [
  "const-oid",
  "crypto-bigint",
  "crypto-primes",
- "digest 0.11.0-rc.5",
+ "digest 0.11.0-rc.6",
  "pkcs1",
  "pkcs8",
  "rand_core 0.10.0-rc-3",
@@ -3211,7 +3211,7 @@ checksum = "aa1ae819b9870cadc959a052363de870944a1646932d274a4e270f64bf79e5ef"
 dependencies = [
  "cfg-if",
  "cpufeatures",
- "digest 0.11.0-rc.5",
+ "digest 0.11.0-rc.6",
 ]
 
 [[package]]
@@ -3222,7 +3222,7 @@ checksum = "19d43dc0354d88b791216bb5c1bfbb60c0814460cc653ae0ebd71f286d0bd927"
 dependencies = [
  "cfg-if",
  "cpufeatures",
- "digest 0.11.0-rc.5",
+ "digest 0.11.0-rc.6",
 ]
 
 [[package]]
@@ -3256,7 +3256,7 @@ version = "3.0.0-rc.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2a0251c9d6468f4ba853b6352b190fb7c1e405087779917c238445eb03993826"
 dependencies = [
- "digest 0.11.0-rc.5",
+ "digest 0.11.0-rc.6",
  "rand_core 0.10.0-rc-3",
 ]
 
@@ -3279,7 +3279,7 @@ dependencies = [
 [[package]]
 name = "simdnbt"
 version = "0.9.0"
-source = "git+https://github.com/azalea-rs/simdnbt#3bdc57cd04f291fbd557d9f6f3481bea75894c53"
+source = "git+https://github.com/azalea-rs/simdnbt#30ef78fa8c03cb13d7d131af5cbd13cae974a466"
 dependencies = [
  "byteorder",
  "flate2",
@@ -3292,7 +3292,7 @@ dependencies = [
 [[package]]
 name = "simdnbt-derive"
 version = "0.9.0"
-source = "git+https://github.com/azalea-rs/simdnbt#3bdc57cd04f291fbd557d9f6f3481bea75894c53"
+source = "git+https://github.com/azalea-rs/simdnbt#30ef78fa8c03cb13d7d131af5cbd13cae974a466"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4460,6 +4460,6 @@ checksum = "40990edd51aae2c2b6907af74ffb635029d5788228222c4bb811e9351c0caad3"
 
 [[package]]
 name = "zmij"
-version = "1.0.15"
+version = "1.0.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "94f63c051f4fe3c1509da62131a678643c5b6fbdc9273b2b79d4378ebda003d2"
+checksum = "dfcd145825aace48cff44a8844de64bf75feec3080e0aa5cdbde72961ae51a65"

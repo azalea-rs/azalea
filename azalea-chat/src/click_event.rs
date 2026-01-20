@@ -1,78 +1,102 @@
 use serde::Serialize;
 #[cfg(feature = "simdnbt")]
-use simdnbt::owned::{Nbt, NbtCompound, NbtTag};
+use simdnbt::{
+    DeserializeError,
+    owned::{Nbt, NbtCompound},
+};
 
-#[derive(Clone, Debug, PartialEq, Serialize)]
-#[serde(rename_all = "snake_case", tag = "action")]
-pub enum ClickEvent {
-    OpenUrl {
+#[cfg(feature = "simdnbt")]
+use crate::get_in_compound;
+
+macro_rules! define_click_event_struct {
+    (
+        $(
+            $action_name:ident : $action_variant:ident {
+                $(
+                    $(#[$meta:meta])* $field:ident : $type:ty
+                ),*
+                $(,)?
+            }
+        ),*
+        $(,)?
+    ) => {
+        #[derive(Clone, Debug, PartialEq, Serialize)]
+        #[serde(rename_all = "snake_case", tag = "action")]
+        pub enum ClickEvent {
+            $(
+                $action_variant {
+                    $(
+                        $(#[$meta])*
+                        $field: $type
+                    ),*
+                }
+            ),*
+        }
+
+        #[cfg(feature = "simdnbt")]
+        impl simdnbt::Serialize for ClickEvent {
+            fn to_compound(self) -> NbtCompound {
+                let mut compound = NbtCompound::new();
+                match self {
+                    $(
+                        Self::$action_variant { $($field),* } => {
+                            compound.insert("action", stringify!($action_name));
+                            $(
+                                compound.insert(stringify!($field), $field);
+                            )*
+                        }
+                    )*
+                };
+                compound
+            }
+        }
+
+        #[cfg(feature = "simdnbt")]
+        impl simdnbt::Deserialize for ClickEvent {
+            fn from_compound(
+                compound: simdnbt::borrow::NbtCompound,
+            ) -> Result<Self, simdnbt::DeserializeError> {
+                let action = get_in_compound::<String>(&compound, "action")?;
+                Ok(match action.as_str() {
+                    $(
+                        stringify!($action_name) => Self::$action_variant {
+                            $(
+                                $field: get_in_compound(&compound, stringify!($field))?
+                            ),*
+                        },
+                    )*
+                    _ => return Err(DeserializeError::MismatchedFieldType(action.to_owned())),
+                })
+            }
+        }
+
+    }
+}
+
+define_click_event_struct! {
+    open_url: OpenUrl {
         url: String,
     },
-    OpenFile {
+    open_file: OpenFile {
         path: String,
     },
-    RunCommand {
+    run_command: RunCommand {
         command: String,
     },
-    SuggestCommand {
+    suggest_command: SuggestCommand {
         command: String,
     },
     // TODO: this uses Dialog.CODEC
-    ShowDialog,
-    ChangePage {
+    show_dialog: ShowDialog {},
+    change_page: ChangePage {
         page: i32,
     },
-    CopyToClipboard {
+    copy_to_clipboard: CopyToClipboard {
         value: String,
     },
-    Custom {
+    custom: Custom {
         id: String,
         #[cfg(feature = "simdnbt")]
         payload: Nbt,
     },
-}
-
-#[cfg(feature = "simdnbt")]
-impl simdnbt::Serialize for ClickEvent {
-    fn to_compound(self) -> NbtCompound {
-        let mut compound = NbtCompound::new();
-        let mut action = |s: &str| {
-            compound.insert("action", s);
-        };
-        match self {
-            ClickEvent::OpenUrl { url } => {
-                action("open_url");
-                compound.insert("url", url);
-            }
-            ClickEvent::OpenFile { path } => {
-                action("open_file");
-                compound.insert("path", path);
-            }
-            ClickEvent::RunCommand { command } => {
-                action("run_command");
-                compound.insert("command", command);
-            }
-            ClickEvent::SuggestCommand { command } => {
-                action("suggest_command");
-                compound.insert("command", command);
-            }
-            ClickEvent::ShowDialog => {
-                action("show_dialog");
-            }
-            ClickEvent::ChangePage { page } => {
-                action("change_page");
-                compound.insert("page", NbtTag::Int(page));
-            }
-            ClickEvent::CopyToClipboard { value } => {
-                action("copy_to_clipboard");
-                compound.insert("value", value);
-            }
-            ClickEvent::Custom { id, payload } => {
-                action("custom");
-                compound.insert("id", id);
-                compound.insert("payload", (**payload).clone());
-            }
-        }
-        compound
-    }
 }
