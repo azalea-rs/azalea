@@ -7,7 +7,7 @@ use azalea_client::{
     connection::RawConnection,
     disconnect::DisconnectEvent,
     join::{ConnectOpts, StartJoinServerEvent},
-    local_player::{Hunger, TabList, WorldHolder},
+    local_player::{Experience, Hunger, TabList, WorldHolder},
     packet::game::SendGamePacketEvent,
     player::{GameProfileComponent, PlayerInfo},
     start_ecs_runner,
@@ -325,6 +325,13 @@ impl Client {
     /// This is a shortcut for `self.component::<Hunger>().to_owned()`.
     pub fn hunger(&self) -> Hunger {
         self.component::<Hunger>().to_owned()
+    }
+
+    /// Get the experience of this client.
+    ///
+    /// This is a shortcut for `self.component::<Experience>().to_owned()`.
+    pub fn experience(&self) -> Experience {
+        self.component::<Experience>().to_owned()
     }
 
     /// Get the username of this client.

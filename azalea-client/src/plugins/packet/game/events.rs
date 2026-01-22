@@ -2,8 +2,8 @@ use std::sync::{Arc, Weak};
 
 use azalea_chat::FormattedText;
 use azalea_protocol::packets::{
-    Packet,
     game::{ClientboundGamePacket, ClientboundPlayerCombatKill, ServerboundGamePacket},
+    Packet,
 };
 use azalea_world::{World, WorldName};
 use bevy_ecs::prelude::*;

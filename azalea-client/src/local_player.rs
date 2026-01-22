@@ -7,7 +7,7 @@ use derive_more::{Deref, DerefMut};
 use parking_lot::RwLock;
 use uuid::Uuid;
 
-use crate::{ClientInformation, player::PlayerInfo};
+use crate::{player::PlayerInfo, ClientInformation};
 
 /// A component that keeps strong references to our [`PartialWorld`] and
 /// [`World`] for local players.
@@ -101,6 +101,27 @@ impl Hunger {
     pub fn is_enough_to_sprint(&self) -> bool {
         // hasEnoughFoodToSprint
         self.food >= 6
+    }
+}
+
+/// The player's experience state.
+#[derive(Clone, Component, Debug)]
+pub struct Experience {
+    /// Progress towards the next level, in the range 0.0..1.0.
+    pub progress: f32,
+    /// The current experience level. You'll mostly be using this.
+    pub level: u32,
+    /// Total experience points accumulated.
+    pub total: u32,
+}
+
+impl Default for Experience {
+    fn default() -> Self {
+        Experience {
+            progress: 0.0,
+            level: 0,
+            total: 0,
+        }
     }
 }
 
