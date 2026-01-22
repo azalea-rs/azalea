@@ -21,32 +21,36 @@ fn default_cache_file() -> PathBuf {
     minecraft_dir.join("azalea-auth.json")
 }
 
-#[derive(Clone, Debug)]
-struct MicrosoftAccountOpts {
-    check_ownership: bool,
-    cache_file: Option<PathBuf>,
-    client_id: Option<String>,
-    scope: Option<String>,
+/// Options for Microsoft authentication in Azalea.
+///
+/// This is used by [`Account::microsoft_with_opts`].
+#[derive(Clone, Debug, Default)]
+pub struct MicrosoftAccountOpts {
+    /// Whether we should check if the user owns the game.
+    pub check_ownership: bool,
+    /// The cache file to use for the auth cache.
+    ///
+    /// If this is `None`, Azalea will default to its standard cache file
+    /// (`~/.minecraft/azalea-auth.json`).
+    pub cache_file: Option<PathBuf>,
+    /// An override for the Microsoft Client ID to authenticate with.
+    pub client_id: Option<String>,
+    /// An override for the OAuth2 scope to authenticate with.
+    pub scope: Option<String>,
 }
 
 impl MicrosoftAccountOpts {
     fn to_auth_opts(&self) -> AuthOpts<'_> {
+        let cache_file = self
+            .cache_file
+            .clone()
+            .or_else(|| Some(default_cache_file()));
+
         AuthOpts {
             check_ownership: self.check_ownership,
-            cache_file: self.cache_file.clone(),
+            cache_file,
             client_id: self.client_id.as_deref(),
             scope: self.scope.as_deref(),
-        }
-    }
-}
-
-impl<'a> From<AuthOpts<'a>> for MicrosoftAccountOpts {
-    fn from(opts: AuthOpts<'a>) -> Self {
-        Self {
-            check_ownership: opts.check_ownership,
-            cache_file: opts.cache_file,
-            client_id: opts.client_id.map(str::to_owned),
-            scope: opts.scope.map(str::to_owned),
         }
     }
 }
@@ -271,13 +275,9 @@ impl Account {
     #[cfg(feature = "online-mode")]
     pub async fn microsoft_with_opts(
         cache_key: &str,
-        mut auth_opts: AuthOpts<'_>,
+        auth_opts: MicrosoftAccountOpts,
     ) -> Result<Self, azalea_auth::AuthError> {
-        if auth_opts.cache_file.is_none() {
-            auth_opts.cache_file = Some(default_cache_file());
-        }
-
-        MicrosoftAccount::new(cache_key, auth_opts.into())
+        MicrosoftAccount::new(cache_key, auth_opts)
             .await
             .map(Account::from)
     }
