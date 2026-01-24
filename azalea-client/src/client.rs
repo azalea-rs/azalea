@@ -29,12 +29,11 @@ use crate::{
     connection::RawConnection,
     cookies::ServerCookies,
     interact::BlockStatePredictionHandler,
-    local_player::{Hunger, PermissionLevel, TabList, WorldHolder},
+    local_player::{Experience, Hunger, PermissionLevel, TabList, WorldHolder},
     mining,
     movement::LastSentLookDirection,
     player::retroactively_add_game_profile_component,
 };
-
 /// A bundle of components that's inserted right when we switch to the `login`
 /// state and stay present on our clients until we disconnect.
 ///
@@ -67,6 +66,7 @@ pub struct JoinedClientBundle {
     pub permission_level: PermissionLevel,
     pub chunk_batch_info: ChunkBatchInfo,
     pub hunger: Hunger,
+    pub experience: Experience,
     pub cookies: ServerCookies,
 
     pub entity_id_index: EntityIdIndex,

@@ -8,15 +8,15 @@ use azalea_core::{
     position::{ChunkPos, Vec3},
 };
 use azalea_entity::{
-    ActiveEffects, Dead, EntityBundle, EntityKindComponent, HasClientLoaded, LoadedBy, LocalEntity,
-    LookDirection, Physics, PlayerAbilities, Position, RelativeEntityUpdate,
     indexing::{EntityIdIndex, EntityUuidIndex},
     inventory::Inventory,
-    metadata::{Health, apply_metadata},
+    metadata::{apply_metadata, Health},
+    ActiveEffects, Dead, EntityBundle, EntityKindComponent, HasClientLoaded, LoadedBy, LocalEntity,
+    LookDirection, Physics, PlayerAbilities, Position, RelativeEntityUpdate,
 };
 use azalea_protocol::{
     common::movements::MoveFlags,
-    packets::{ConnectionProtocol, game::*},
+    packets::{game::*, ConnectionProtocol},
 };
 use azalea_registry::builtin::EntityKind;
 use azalea_world::{PartialWorld, WorldName, Worlds};
@@ -25,7 +25,6 @@ pub use events::*;
 use tracing::{debug, error, trace, warn};
 
 use crate::{
-    ClientInformation,
     block_update::QueuedServerBlockUpdates,
     chat::{ChatPacket, ChatReceivedEvent},
     chunks,
@@ -34,11 +33,12 @@ use crate::{
     disconnect::DisconnectEvent,
     interact::BlockStatePredictionHandler,
     inventory::{ClientsideCloseContainerEvent, MenuOpenedEvent, SetContainerContentEvent},
-    local_player::{Hunger, LocalGameMode, TabList, WorldHolder},
+    local_player::{Experience, Hunger, LocalGameMode, TabList, WorldHolder},
     movement::{KnockbackData, KnockbackEvent},
     packet::{as_system, declare_packet_handlers},
     player::{GameProfileComponent, PlayerInfo},
     tick_counter::TicksConnected,
+    ClientInformation,
 };
 
 pub fn process_packet(ecs: &mut World, player: Entity, packet: &ClientboundGamePacket) {
@@ -781,6 +781,13 @@ impl GamePacketHandler<'_> {
 
     pub fn set_experience(&mut self, p: &ClientboundSetExperience) {
         debug!("Got set experience packet {p:?}");
+
+        as_system::<Query<&mut Experience>>(self.ecs, |mut query| {
+            let mut experience = query.get_mut(self.player).unwrap();
+            experience.progress = p.experience_progress;
+            experience.level = p.experience_level;
+            experience.total = p.total_experience;
+        });
     }
 
     pub fn teleport_entity(&mut self, p: &ClientboundTeleportEntity) {
