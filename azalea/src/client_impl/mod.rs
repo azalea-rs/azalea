@@ -33,8 +33,10 @@ use tokio::sync::mpsc;
 use uuid::Uuid;
 
 use crate::{
+    bot::DefaultBotPlugins,
     entity_ref::EntityRef,
     events::{Event, LocalPlayerEvents},
+    swarm::DefaultSwarmPlugins,
 };
 
 pub mod attack;
@@ -86,7 +88,7 @@ impl StartClientOpts {
         event_sender: Option<mpsc::UnboundedSender<Event>>,
     ) -> StartClientOpts {
         let mut app = App::new();
-        app.add_plugins(DefaultPlugins);
+        app.add_plugins((DefaultPlugins, DefaultBotPlugins, DefaultSwarmPlugins));
 
         // appexit_rx is unused here since the user should be able to handle it
         // themselves if they're using StartClientOpts::new

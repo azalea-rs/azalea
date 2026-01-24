@@ -75,10 +75,11 @@ impl SwarmBuilder<NoState, NoSwarmState, (), ()> {
     /// Start creating the swarm.
     #[must_use]
     pub fn new() -> Self {
-        Self::new_without_plugins()
-            .add_plugins(DefaultPlugins)
-            .add_plugins(DefaultBotPlugins)
-            .add_plugins(DefaultSwarmPlugins)
+        Self::new_without_plugins().add_plugins((
+            DefaultPlugins,
+            DefaultBotPlugins,
+            DefaultSwarmPlugins,
+        ))
     }
 
     /// [`Self::new`] but without adding the plugins by default.

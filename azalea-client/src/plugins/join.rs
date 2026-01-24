@@ -86,7 +86,8 @@ pub struct ConnectOpts {
 #[derive(Message)]
 pub struct ConnectionFailedEvent {
     pub entity: Entity,
-    pub error: ConnectionError,
+    // wrap it in Arc so it can be cloned
+    pub error: Arc<ConnectionError>,
 }
 
 pub fn handle_start_join_server_event(
@@ -197,7 +198,10 @@ pub fn poll_create_connection_task(
                 Ok(conn) => conn,
                 Err(error) => {
                     warn!("failed to create connection: {error}");
-                    connection_failed_events.write(ConnectionFailedEvent { entity, error });
+                    connection_failed_events.write(ConnectionFailedEvent {
+                        entity,
+                        error: Arc::new(error),
+                    });
                     return;
                 }
             };

@@ -4,9 +4,12 @@
 use std::sync::Arc;
 
 use azalea_chat::FormattedText;
+use azalea_client::join::ConnectionFailedEvent;
 use azalea_core::{entity_id::MinecraftEntityId, position::ChunkPos, tick::GameTick};
 use azalea_entity::{Dead, InLoadedChunk};
-use azalea_protocol::packets::game::c_player_combat_kill::ClientboundPlayerCombatKill;
+use azalea_protocol::{
+    connect::ConnectionError, packets::game::c_player_combat_kill::ClientboundPlayerCombatKill,
+};
 use azalea_world::WorldName;
 use bevy_app::{App, Plugin, PreUpdate, Update};
 use bevy_ecs::prelude::*;
@@ -122,7 +125,14 @@ pub enum Event {
     /// A `KeepAlive` packet was sent by the server.
     KeepAlive(u64),
     /// The client disconnected from the server.
+    ///
+    /// Also see [`Event::ConnectionFailed`].
     Disconnect(Option<FormattedText>),
+    /// The initial connection to the server failed.
+    ///
+    /// Also see [`Event::Disconnect`], and the related ECS event
+    /// [`ConnectionFailedEvent`].
+    ConnectionFailed(Arc<ConnectionError>),
     ReceiveChunk(ChunkPos),
 }
 
@@ -151,6 +161,7 @@ impl Plugin for EventsPlugin {
                 keepalive_listener,
                 death_listener.after(azalea_client::packet::death_event_on_0_health),
                 disconnect_listener,
+                connection_failed_listener,
                 receive_chunk_listener,
             ),
         )
@@ -297,6 +308,17 @@ pub fn disconnect_listener(
     for event in events.read() {
         if let Ok(local_player_events) = query.get(event.entity) {
             let _ = local_player_events.send(Event::Disconnect(event.reason.clone()));
+        }
+    }
+}
+
+pub fn connection_failed_listener(
+    query: Query<&LocalPlayerEvents>,
+    mut events: MessageReader<ConnectionFailedEvent>,
+) {
+    for event in events.read() {
+        if let Ok(local_player_events) = query.get(event.entity) {
+            let _ = local_player_events.send(Event::ConnectionFailed(event.error.clone()));
         }
     }
 }
