@@ -1,5 +1,8 @@
+use std::path::PathBuf;
+
 use azalea_auth::{
     AccessTokenResponse,
+    AuthOpts,
     certs::Certificates,
     sessionserver::{self, ClientSessionServerError, SessionServerJoinOpts},
 };
@@ -8,13 +11,68 @@ use uuid::Uuid;
 
 use crate::account::{Account, AccountTrait, BoxFuture};
 
+fn default_cache_file() -> PathBuf {
+    let minecraft_dir = minecraft_folder_path::minecraft_dir().unwrap_or_else(|| {
+        panic!(
+            "No {} environment variable found",
+            minecraft_folder_path::home_env_var()
+        )
+    });
+    minecraft_dir.join("azalea-auth.json")
+}
+
+/// Options for Microsoft authentication in Azalea.
+///
+/// This is used by [`Account::microsoft_with_opts`].
+#[derive(Clone, Debug, Default)]
+pub struct MicrosoftAccountOpts {
+    /// Whether we should check if the user owns the game.
+    pub check_ownership: bool,
+    /// The cache file to use for the auth cache.
+    ///
+    /// If this is `None`, Azalea will default to its standard cache file
+    /// (`~/.minecraft/azalea-auth.json`).
+    pub cache_file: Option<PathBuf>,
+    /// An override for the Microsoft Client ID to authenticate with.
+    pub client_id: Option<String>,
+    /// An override for the OAuth2 scope to authenticate with.
+    pub scope: Option<String>,
+}
+
+impl MicrosoftAccountOpts {
+    fn to_auth_opts(&self) -> AuthOpts<'_> {
+        let cache_file = self
+            .cache_file
+            .clone()
+            .or_else(|| Some(default_cache_file()));
+
+        AuthOpts {
+            check_ownership: self.check_ownership,
+            cache_file,
+            client_id: self.client_id.as_deref(),
+            scope: self.scope.as_deref(),
+        }
+    }
+}
+
+fn default_account_opts(client_id: Option<&str>, scope: Option<&str>) -> MicrosoftAccountOpts {
+    MicrosoftAccountOpts {
+        check_ownership: false,
+        cache_file: Some(default_cache_file()),
+        client_id: client_id.map(str::to_owned),
+        scope: scope.map(str::to_owned),
+    }
+}
+
 /// A type of account that authenticates with Microsoft using Azalea's cache.
 ///
 /// This type is not intended to be used directly by the user. To actually make
-/// an account that authenticates with Microsoft, see [`Account::microsoft`].
+/// an account that authenticates with Microsoft, see [`Account::microsoft`] or
+/// [`Account::microsoft_with_opts`].
 #[derive(Debug)]
 pub struct MicrosoftAccount {
     cache_key: String,
+    auth_opts: MicrosoftAccountOpts,
 
     username: String,
     uuid: Uuid,
@@ -24,31 +82,16 @@ pub struct MicrosoftAccount {
 }
 impl MicrosoftAccount {
     // deliberately private, use `Account::microsoft` or
-    // `Account::microsoft_with_custom_client_id_and_scope` instead.
+    // `Account::microsoft_with_opts` instead.
     async fn new(
         cache_key: &str,
-        client_id: Option<&str>,
-        scope: Option<&str>,
+        auth_opts: MicrosoftAccountOpts,
     ) -> Result<Self, azalea_auth::AuthError> {
-        let minecraft_dir = minecraft_folder_path::minecraft_dir().unwrap_or_else(|| {
-            panic!(
-                "No {} environment variable found",
-                minecraft_folder_path::home_env_var()
-            )
-        });
-        let auth_result = azalea_auth::auth(
-            cache_key,
-            azalea_auth::AuthOpts {
-                cache_file: Some(minecraft_dir.join("azalea-auth.json")),
-                client_id,
-                scope,
-                ..Default::default()
-            },
-        )
-        .await?;
+        let auth_result = azalea_auth::auth(cache_key, auth_opts.to_auth_opts()).await?;
 
         Ok(Self {
             cache_key: cache_key.to_owned(),
+            auth_opts,
             username: auth_result.profile.name,
             uuid: auth_result.profile.id,
             access_token: Mutex::new(auth_result.access_token),
@@ -74,7 +117,7 @@ impl AccountTrait for MicrosoftAccount {
     }
     fn refresh(&self) -> BoxFuture<'_, Result<(), azalea_auth::AuthError>> {
         Box::pin(async {
-            let new_account = MicrosoftAccount::new(&self.cache_key, None, None).await?;
+            let new_account = MicrosoftAccount::new(&self.cache_key, self.auth_opts.clone()).await?;
             let new_access_token = new_account.access_token().unwrap();
             *self.access_token.lock() = new_access_token;
             Ok(())
@@ -215,7 +258,28 @@ impl Account {
     /// typically set to the account email, but it can be any string.
     #[cfg(feature = "online-mode")]
     pub async fn microsoft(cache_key: &str) -> Result<Self, azalea_auth::AuthError> {
-        Self::microsoft_with_custom_client_id_and_scope(cache_key, None, None).await
+        MicrosoftAccount::new(cache_key, default_account_opts(None, None))
+            .await
+            .map(Account::from)
+    }
+
+    /// Similar to [`Account::microsoft`] but you can pass custom auth options
+    /// (including the cache file location).
+    ///
+    /// For a custom cache directory, set
+    /// `auth_opts.cache_file = Some(custom_dir.join("azalea-auth.json"))`.
+    ///
+    /// If `auth_opts.cache_file` is `None`, it will default to Azalea's
+    /// standard cache file (`~/.minecraft/azalea-auth.json`) to match
+    /// [`Account::microsoft`].
+    #[cfg(feature = "online-mode")]
+    pub async fn microsoft_with_opts(
+        cache_key: &str,
+        auth_opts: MicrosoftAccountOpts,
+    ) -> Result<Self, azalea_auth::AuthError> {
+        MicrosoftAccount::new(cache_key, auth_opts)
+            .await
+            .map(Account::from)
     }
 
     /// Similar to [`Account::microsoft`] but you can use your own `client_id`
@@ -223,12 +287,13 @@ impl Account {
     ///
     /// Pass `None` if you want to use default ones.
     #[cfg(feature = "online-mode")]
+    #[deprecated(note = "Use `Account::microsoft_with_opts` instead.")]
     pub async fn microsoft_with_custom_client_id_and_scope(
         cache_key: &str,
         client_id: Option<&str>,
         scope: Option<&str>,
     ) -> Result<Self, azalea_auth::AuthError> {
-        MicrosoftAccount::new(cache_key, client_id, scope)
+        MicrosoftAccount::new(cache_key, default_account_opts(client_id, scope))
             .await
             .map(Account::from)
     }
