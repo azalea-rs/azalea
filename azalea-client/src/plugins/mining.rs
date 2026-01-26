@@ -25,9 +25,9 @@ use crate::{
     packet::game::SendGamePacketEvent,
 };
 
-/// There's a cooldown on breaking blocks of 6 in vanilla (unless it's
+/// There's a cooldown on breaking blocks of 5 in vanilla (unless it's
 /// instabreak)
-const BLOCK_BREAK_DELAY_TICKS: u32 = 6;
+const BLOCK_BREAK_DELAY_TICKS: u32 = 5;
 
 /// A plugin that allows clients to break blocks in the world.
 pub struct MiningPlugin;
