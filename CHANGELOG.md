@@ -13,9 +13,13 @@ is breaking anyways, semantic versioning is not followed.
 - Add `SimulationPathfinderExecutionPlugin`, an alternative execution engine for the pathfinder with smoother movement.
 - The pathfinder can now traverse on the surface of water.
 - `AccountTrait` was implemented, which allows for custom refresh and join behavior for `Account`s.
+- Add `Account::microsoft_with_opts` to make it easier to create accounts with custom cache files. (@ElijahBare)
 - Add an `EntityRef` type to simplify interactions with entities.
 - Add `BlockTrait::set_property` to allow setting properties on blocks generically.
+- You can now access a client's XP with `Client::experience`. (@nebula161)
 - Re-implement `Client::map_component` and `map_get_component`.
+- Add `Client::exit` and `Swarm::exit` to make it easier to return from `ClientBuilder::start` or `SwarmBuilder::start`.
+- Add `Event::ConnectionFailed` for when the client failed to create its initial connection to the server.
 
 ### Changed
 
@@ -27,6 +31,7 @@ is breaking anyways, semantic versioning is not followed.
 - Deprecate pathfinder `InverseGoal`.
 - Add a `bevy_ecs` feature to `azalea-protocol` and related crates to allow disabling the Bevy dependencies.
 - Replace `azalea-buf`'s `AzaleaRead` and `AzaleaWrite` traits with a single `AzBuf` trait.
+- Lots of optimizations for the pathfinder.
 
 ### Fixed
 
@@ -36,6 +41,7 @@ is breaking anyways, semantic versioning is not followed.
 - The pathfinder now avoids magma blocks.
 - Explosion knockback was being applied incorrectly.
 - Fixed several panics, OOMs, and memory leaks in `azalea-protocol`.
+- Click events in chat messages were missing.
 
 ## [0.15.0+mc1.21.11] - 2025-12-18
 
