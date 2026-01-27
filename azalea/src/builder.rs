@@ -150,7 +150,13 @@ where
     /// If this function isn't called, then our client will reconnect after
     /// [`DEFAULT_RECONNECT_DELAY`].
     ///
+    /// Note that disabling auto-reconnecting will not make
+    /// [`ClientBuilder::start`] return on disconnect, because Azalea will keep
+    /// the internal swarm around forever until it's forcibly exited. To learn
+    /// how to do that, see [`Client::exit`].
+    ///
     /// [`DEFAULT_RECONNECT_DELAY`]: crate::auto_reconnect::DEFAULT_RECONNECT_DELAY
+    /// [`Client::exit`]: crate::Client::exit
     #[must_use]
     pub fn reconnect_after(mut self, delay: impl Into<Option<Duration>>) -> Self {
         self.swarm.reconnect_after = delay.into();

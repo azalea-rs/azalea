@@ -26,7 +26,7 @@ use azalea_protocol::{
 };
 use azalea_registry::{DataRegistryKeyRef, identifier::Identifier};
 use azalea_world::{PartialWorld, World, WorldName};
-use bevy_app::App;
+use bevy_app::{App, AppExit};
 use bevy_ecs::{entity::Entity, resource::Resource, world::Mut};
 use parking_lot::RwLock;
 use tokio::sync::mpsc;
@@ -243,11 +243,59 @@ impl Client {
     ///
     /// The OwnedReadHalf for the TCP connection is in one of the tasks, so it
     /// automatically closes the connection when that's dropped.
+    ///
+    /// Note that this will not return from your client builder. If you need
+    /// that, consider using [`Self::exit`] instead.
     pub fn disconnect(&self) {
         self.ecs.write().write_message(DisconnectEvent {
             entity: self.entity,
             reason: None,
         });
+    }
+
+    /// End the entire client or swarm, and return from
+    /// [`ClientBuilder::start`] or [`SwarmBuilder::start`].
+    ///
+    /// You should typically avoid calling this if you intend on creating the
+    /// client again, because creating an entirely new swarm can be a
+    /// relatively expensive process.
+    ///
+    /// If you only want to change the server that the bots are connecting to,
+    /// it may be better to access the client's internal [`Swarm`] and call
+    /// [`Swarm::add_with_opts`] with a different server address.
+    ///
+    /// For convenience, this is also duplicated on `Swarm` as [`Swarm::exit`].
+    ///
+    /// [`ClientBuilder::start`]: crate::ClientBuilder::start
+    /// [`SwarmBuilder::start`]: crate::swarm::SwarmBuilder::start
+    /// [`Swarm`]: crate::swarm::Swarm
+    /// [`Swarm::add_with_opts`]: crate::swarm::Swarm::add_with_opts
+    /// [`Swarm::exit`]: crate::swarm::Swarm::exit
+    ///
+    /// ```
+    /// // a bot that joins a server and prints "done!" when it's disconnected or if it fails to connect.
+    /// use azalea::{NoState, prelude::*};
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let account = Account::offline("bot");
+    ///     ClientBuilder::new()
+    ///         .set_handler(handle)
+    ///         .start(account, "localhost")
+    ///         .await;
+    ///     println!("done!");
+    /// }
+    /// async fn handle(bot: Client, event: Event, _state: NoState) -> anyhow::Result<()> {
+    ///     match event {
+    ///         Event::Disconnect(_) | Event::ConnectionFailed(_) => {
+    ///             bot.exit();
+    ///         }
+    ///         _ => {}
+    ///     }
+    ///     Ok(())
+    /// }
+    /// ```
+    pub fn exit(&self) {
+        self.ecs.write().write_message(AppExit::Success);
     }
 
     pub fn with_raw_connection<R>(&self, f: impl FnOnce(&RawConnection) -> R) -> R {

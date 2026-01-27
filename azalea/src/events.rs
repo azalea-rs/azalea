@@ -161,7 +161,7 @@ impl Plugin for EventsPlugin {
                 keepalive_listener,
                 death_listener.after(azalea_client::packet::death_event_on_0_health),
                 disconnect_listener,
-                connection_failed_listener,
+                connection_failed_listener.after(azalea_client::join::poll_create_connection_task),
                 receive_chunk_listener,
             ),
         )

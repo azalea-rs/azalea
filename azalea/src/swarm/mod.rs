@@ -16,7 +16,7 @@ use azalea_client::{account::Account, chat::ChatPacket, join::ConnectOpts};
 use azalea_entity::LocalEntity;
 use azalea_protocol::address::ResolvedAddr;
 use azalea_world::Worlds;
-use bevy_app::{PluginGroup, PluginGroupBuilder};
+use bevy_app::{AppExit, PluginGroup, PluginGroupBuilder};
 use bevy_ecs::prelude::*;
 pub use builder::SwarmBuilder;
 use futures::future::BoxFuture;
@@ -290,6 +290,21 @@ impl Swarm {
         let mut ecs = self.ecs.write();
         let mut query = ecs.query_filtered::<Entity, With<LocalEntity>>();
         query.iter(&ecs).collect::<Box<[Entity]>>()
+    }
+
+    /// End the entire swarm and return from [`SwarmBuilder::start`].
+    ///
+    /// You should typically avoid calling this if you intend on creating the
+    /// swarm again, because creating an entirely new swarm can be a
+    /// relatively expensive process.
+    ///
+    /// If you only want to change the server that the bots are connecting to,
+    /// it may be better to call [`Swarm::add_with_opts`] with a different
+    /// server address.
+    ///
+    /// This is also implemented on [`Client`] as [`Client::exit`].
+    pub fn exit(&self) {
+        self.ecs.write().write_message(AppExit::Success);
     }
 }
 
