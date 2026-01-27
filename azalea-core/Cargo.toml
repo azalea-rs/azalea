@@ -24,7 +24,7 @@ derive_more = { workspace = true, features = ["deref", "deref_mut"] }
 
 [features]
 bevy_ecs = ["dep:bevy_ecs"]
-serde = ["dep:serde"]
+serde = ["dep:serde", "azalea-registry/serde"]
 strict_registry = []
 
 [lints]
