@@ -176,8 +176,9 @@ where
     /// This will error if the given address is invalid or couldn't be resolved
     /// to a Minecraft server.
     ///
-    /// [`ServerAddr`]: azalea_protocol::address::ServerAddr
-    /// [`ResolvedAddr`]: azalea_protocol::address::ResolvedAddr
+    /// [`ServerAddr`]: ../azalea_protocol/address/struct.ServerAddr.html
+    /// [`ResolvedAddr`]: ../azalea_protocol/address/struct.ResolvedAddr.html
+    /// [`ResolvableAddr`]: ../azalea_protocol/address/trait.ResolvableAddr.html
     pub async fn start(mut self, account: Account, address: impl ResolvableAddr) -> AppExit {
         self.swarm.accounts = vec![(account, JoinOpts::default())];
         if self.swarm.states.is_empty() {

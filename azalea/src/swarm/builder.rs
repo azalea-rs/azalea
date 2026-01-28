@@ -378,7 +378,9 @@ where
     /// The `address` argument can be a `&str`, [`ServerAddr`],
     /// [`ResolvedAddr`], or anything else that implements [`ResolvableAddr`].
     ///
-    /// [`ServerAddr`]: azalea_protocol::address::ServerAddr
+    /// [`ServerAddr`]: ../../azalea_protocol/address/struct.ServerAddr.html
+    /// [`ResolvedAddr`]: ../../azalea_protocol/address/struct.ResolvedAddr.html
+    /// [`ResolvableAddr`]: ../../azalea_protocol/address/trait.ResolvableAddr.html
     pub async fn start(self, address: impl ResolvableAddr) -> AppExit {
         self.start_with_opts(address, JoinOpts::default()).await
     }
