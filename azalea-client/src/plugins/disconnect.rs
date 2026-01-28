@@ -14,7 +14,7 @@ use super::login::IsAuthenticated;
 #[cfg(feature = "online-mode")]
 use crate::chat_signing;
 use crate::{
-    client::JoinedClientBundle, connection::RawConnection, local_player::WorldHolder,
+    client::JoinedClientBundle, connection::RawConnection, local_player::WorldHolder, mining,
     tick_counter::TicksConnected,
 };
 
@@ -79,6 +79,10 @@ pub struct RemoveOnDisconnectBundle {
     pub has_client_loaded: HasClientLoaded,
     // TickCounter is reset on reconnect
     pub ticks_alive: TicksConnected,
+
+    // the rest of the mining components are already removed, as JoinedClientBundle includes
+    // MineBundle
+    pub mining: mining::Mining,
 }
 
 /// A system that removes the several components from our clients when they get
