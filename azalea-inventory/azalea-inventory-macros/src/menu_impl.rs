@@ -26,8 +26,8 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
     let mut inventory_without_hotbar_slots_end = 0;
 
     for menu in &input.menus {
-        slot_mut_match_variants.extend(generate_match_variant_for_slot_mut(menu, true));
-        slot_match_variants.extend(generate_match_variant_for_slot_mut(menu, false));
+        slot_mut_match_variants.extend(generate_match_variant_for_slot(menu, true));
+        slot_match_variants.extend(generate_match_variant_for_slot(menu, false));
         len_match_variants.extend(generate_match_variant_for_len(menu));
         kind_match_variants.extend(generate_match_variant_for_kind(menu));
         slots_match_variants.extend(generate_match_variant_for_slots(menu));
@@ -87,7 +87,8 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
             /// Returns whether the given protocol index is in the player's hotbar.
             ///
             /// Equivalent to `Player::HOTBAR_SLOTS.contains(&i)`.
-            pub fn is_hotbar_slot(i: usize) -> bool {
+            pub fn is_hotbar_slot(i: impl Into<usize>) -> bool {
+                let i = i.into();
                 Self::HOTBAR_SLOTS.contains(&i)
             }
         }
@@ -107,7 +108,8 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
             ///
             /// Returns `None` if the index is out of bounds.
             #[inline]
-            pub fn slot_mut(&mut self, i: usize) -> Option<&mut ItemStack> {
+            pub fn slot_mut(&mut self, i: impl Into<usize>) -> Option<&mut ItemStack> {
+                let i = i.into();
                 Some(match self {
                     #slot_mut_match_variants
                 })
@@ -124,7 +126,8 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
             /// # Errors
             ///
             /// Returns `None` if the index is out of bounds.
-            pub fn slot(&self, i: usize) -> Option<&ItemStack> {
+            pub fn slot(&self, i: impl Into<usize>) -> Option<&ItemStack> {
+                let i = i.into();
                 Some(match self {
                     #slot_match_variants
                 })
@@ -153,7 +156,13 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
             ///
             /// If you *only* want to include the players inventory, then you can filter by only
             /// using the slots in [`Self::player_slots_range`].
-            pub fn slots(&self) -> Vec<ItemStack> {
+            pub fn slots(&self) -> Box<[&ItemStack]> {
+                // TODO: this is probably slow because of the `slot` calls,
+                // maybe benchmark and figure out a way to get the compiler to
+                // optimize it
+                self.slot_indices().into_iter().map(|idx| self.slot(idx).unwrap()).collect()
+            }
+            pub fn slot_indices(&self) -> Box<[u16]> {
                 match self {
                     #slots_match_variants
                 }
@@ -162,7 +171,11 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
             /// Return the contents of the menu, not including the player's inventory.
             ///
             /// If you want to include the player's inventory, use [`Menu::slots`] instead.
-            pub fn contents(&self) -> Vec<ItemStack> {
+            pub fn contents(&self) -> Box<[&ItemStack]> {
+                // TODO: see comment in `slots`
+                self.slot_indices().into_iter().map(|idx| self.slot(idx).unwrap()).collect()
+            }
+            pub fn content_indices(&self) -> Box<[u16]> {
                 match self {
                     #contents_match_variants
                 }
@@ -206,7 +219,8 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
             /// Returns whether the given index would be in the player's hotbar.
             ///
             /// Equivalent to `self.hotbar_slots_range().contains(&i)`.
-            pub fn is_hotbar_slot(&self, i: usize) -> bool {
+            pub fn is_hotbar_slot(&self, i: impl Into<usize>) -> bool {
+                let i = i.into();
                 self.hotbar_slots_range().contains(&i)
             }
         }
@@ -228,7 +242,7 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
 ///         _ => return None,
 ///     }
 /// } // ...
-pub fn generate_match_variant_for_slot_mut(menu: &Menu, mutable: bool) -> TokenStream {
+pub fn generate_match_variant_for_slot(menu: &Menu, mutable: bool) -> TokenStream {
     let mut match_arms = quote! {};
     let mut i = 0;
     for field in &menu.fields {
@@ -298,52 +312,58 @@ pub fn generate_match_variant_for_kind(menu: &Menu) -> TokenStream {
 
 pub fn generate_match_variant_for_slots(menu: &Menu) -> TokenStream {
     let mut instructions = quote! {};
-    let mut length = 0;
+    let mut i = 0_u16;
     for field in &menu.fields {
-        let field_name = &field.name;
+        let start = i;
+        i += u16::try_from(field.length).unwrap();
+
         instructions.extend(if field.length == 1 {
-            quote! { items.push(#field_name.clone()); }
+            quote! { indices.push(#start); }
         } else {
-            quote! { items.extend(#field_name.iter().cloned()); }
+            quote! { indices.extend(#start..#i); }
         });
-        length += field.length;
     }
 
+    let length = i as usize;
     generate_matcher(
         menu,
         &quote! {
-            let mut items = Vec::with_capacity(#length);
+            let mut indices = Vec::with_capacity(#length);
             #instructions
-            items
+            indices.into()
         },
-        true,
+        false,
     )
 }
 
 pub fn generate_match_variant_for_contents(menu: &Menu) -> TokenStream {
     let mut instructions = quote! {};
-    let mut length = 0;
+    let mut i = 0_u16;
     for field in &menu.fields {
+        let start = i;
+        i += u16::try_from(field.length).unwrap();
+
         let field_name = &field.name;
         if field_name == "player" {
             continue;
         }
+
         instructions.extend(if field.length == 1 {
-            quote! { items.push(#field_name.clone()); }
+            quote! { indices.push(#start); }
         } else {
-            quote! { items.extend(#field_name.iter().cloned()); }
+            quote! { indices.extend(#start..#i); }
         });
-        length += field.length;
     }
 
+    let length = i as usize;
     generate_matcher(
         menu,
         &quote! {
-            let mut items = Vec::with_capacity(#length);
+            let mut indices = Vec::with_capacity(#length);
             #instructions
-            items
+            indices.into()
         },
-        true,
+        false,
     )
 }
 
