@@ -1,6 +1,17 @@
 use std::{env, process::Command};
 
 fn main() {
+    check_nightly();
+
+    // save the optimization level, used by the pathfinder to warn if optimizations
+    // are off
+    println!(
+        "cargo::rustc-env=OPT_LEVEL={}",
+        env::var("OPT_LEVEL").unwrap()
+    );
+}
+
+fn check_nightly() {
     // If using `rustup`, check the toolchain via `RUSTUP_TOOLCHAIN`
     if let Ok(toolchain) = env::var("RUSTUP_TOOLCHAIN") {
         if toolchain.contains("nightly") {

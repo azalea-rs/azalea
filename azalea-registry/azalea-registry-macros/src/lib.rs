@@ -153,6 +153,8 @@ pub fn registry(input: TokenStream) -> TokenStream {
         });
     }
     generated.extend(quote! {
+        /// Convert the value to a stringified identifier, formatted like
+        /// `"minecraft:air"`.
         impl std::fmt::Display for #name {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 match self {
@@ -170,6 +172,8 @@ pub fn registry(input: TokenStream) -> TokenStream {
                 }
             }
         }
+        /// Parse the value from a stringified identifier, formatted like
+        /// either `"air"` or `"minecraft:air"`.
         impl std::str::FromStr for #name {
             type Err = ();
 

@@ -32,7 +32,7 @@ use std::{
     collections::VecDeque,
     sync::{
         Arc,
-        atomic::{self, AtomicUsize},
+        atomic::{self, AtomicBool, AtomicUsize},
     },
     thread,
     time::{Duration, Instant},
@@ -305,6 +305,16 @@ pub fn goto_listener(
             warn!("got goto event for an entity that can't pathfind");
             continue;
         };
+
+        // this env variable is set from the build.rs
+        if env!("OPT_LEVEL") == "0" {
+            static WARNED: AtomicBool = AtomicBool::new(false);
+            if !WARNED.swap(true, atomic::Ordering::Relaxed) {
+                warn!(
+                    "Azalea was compiled with no optimizations, which may result in significantly reduced pathfinding performance. Consider following the steps at https://azalea.matdoes.dev/azalea/#optimization for faster performance in debug mode."
+                )
+            }
+        }
 
         let cur_pos = player_pos_to_block_pos(**position);
 

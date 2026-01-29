@@ -1,8 +1,7 @@
 use std::path::PathBuf;
 
 use azalea_auth::{
-    AccessTokenResponse,
-    AuthOpts,
+    AccessTokenResponse, AuthOpts,
     certs::Certificates,
     sessionserver::{self, ClientSessionServerError, SessionServerJoinOpts},
 };
@@ -117,7 +116,8 @@ impl AccountTrait for MicrosoftAccount {
     }
     fn refresh(&self) -> BoxFuture<'_, Result<(), azalea_auth::AuthError>> {
         Box::pin(async {
-            let new_account = MicrosoftAccount::new(&self.cache_key, self.auth_opts.clone()).await?;
+            let new_account =
+                MicrosoftAccount::new(&self.cache_key, self.auth_opts.clone()).await?;
             let new_access_token = new_account.access_token().unwrap();
             *self.access_token.lock() = new_access_token;
             Ok(())

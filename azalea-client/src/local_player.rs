@@ -7,7 +7,7 @@ use derive_more::{Deref, DerefMut};
 use parking_lot::RwLock;
 use uuid::Uuid;
 
-use crate::{player::PlayerInfo, ClientInformation};
+use crate::{ClientInformation, player::PlayerInfo};
 
 /// A component that keeps strong references to our [`PartialWorld`] and
 /// [`World`] for local players.

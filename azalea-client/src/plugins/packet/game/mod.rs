@@ -8,15 +8,15 @@ use azalea_core::{
     position::{ChunkPos, Vec3},
 };
 use azalea_entity::{
-    indexing::{EntityIdIndex, EntityUuidIndex},
-    inventory::Inventory,
-    metadata::{apply_metadata, Health},
     ActiveEffects, Dead, EntityBundle, EntityKindComponent, HasClientLoaded, LoadedBy, LocalEntity,
     LookDirection, Physics, PlayerAbilities, Position, RelativeEntityUpdate,
+    indexing::{EntityIdIndex, EntityUuidIndex},
+    inventory::Inventory,
+    metadata::{Health, apply_metadata},
 };
 use azalea_protocol::{
     common::movements::MoveFlags,
-    packets::{game::*, ConnectionProtocol},
+    packets::{ConnectionProtocol, game::*},
 };
 use azalea_registry::builtin::EntityKind;
 use azalea_world::{PartialWorld, WorldName, Worlds};
@@ -25,6 +25,7 @@ pub use events::*;
 use tracing::{debug, error, trace, warn};
 
 use crate::{
+    ClientInformation,
     block_update::QueuedServerBlockUpdates,
     chat::{ChatPacket, ChatReceivedEvent},
     chunks,
@@ -38,7 +39,6 @@ use crate::{
     packet::{as_system, declare_packet_handlers},
     player::{GameProfileComponent, PlayerInfo},
     tick_counter::TicksConnected,
-    ClientInformation,
 };
 
 pub fn process_packet(ecs: &mut World, player: Entity, packet: &ClientboundGamePacket) {
