@@ -9,6 +9,7 @@ pub use hickory_resolver::ResolveError;
 use hickory_resolver::{
     Name, TokioResolver, config::ResolverConfig, name_server::TokioConnectionProvider,
 };
+use tracing::warn;
 
 use crate::address::ServerAddr;
 
@@ -19,6 +20,7 @@ pub type ResolverError = ResolveError;
 static RESOLVER: LazyLock<TokioResolver> = LazyLock::new(|| {
     TokioResolver::builder(TokioConnectionProvider::default())
         .unwrap_or_else(|_| {
+            warn!("System DNS resolver unavailable; falling back to Google DNS.");
             TokioResolver::builder_with_config(
                 ResolverConfig::google(),
                 TokioConnectionProvider::default(),
