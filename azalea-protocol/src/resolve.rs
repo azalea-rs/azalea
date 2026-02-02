@@ -6,7 +6,9 @@ use std::{
 };
 
 pub use hickory_resolver::ResolveError;
-use hickory_resolver::{Name, TokioResolver, name_server::TokioConnectionProvider};
+use hickory_resolver::{
+    Name, TokioResolver, config::ResolverConfig, name_server::TokioConnectionProvider,
+};
 
 use crate::address::ServerAddr;
 
@@ -16,7 +18,12 @@ pub type ResolverError = ResolveError;
 
 static RESOLVER: LazyLock<TokioResolver> = LazyLock::new(|| {
     TokioResolver::builder(TokioConnectionProvider::default())
-        .unwrap()
+        .unwrap_or_else(|_| {
+            TokioResolver::builder_with_config(
+                ResolverConfig::google(),
+                TokioConnectionProvider::default(),
+            )
+        })
         .build()
 });
 
