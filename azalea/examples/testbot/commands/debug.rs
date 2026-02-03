@@ -14,15 +14,11 @@ use azalea::{
     world::MinecraftEntityId,
 };
 use azalea_core::hit_result::HitResult;
-use azalea_entity::{EntityKindComponent, LocalEntity, metadata};
+use azalea_entity::{Attributes, EntityKindComponent, EntityUuid, metadata};
 use azalea_inventory::components::MaxStackSize;
 use azalea_world::InstanceContainer;
 use bevy_app::AppExit;
-use bevy_ecs::{
-    message::Messages,
-    query::{With, Without},
-    world::EntityRef,
-};
+use bevy_ecs::{message::Messages, query::With, world::EntityRef};
 use parking_lot::Mutex;
 
 use super::{CommandSource, Ctx};
