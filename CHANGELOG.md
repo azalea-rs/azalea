@@ -6,19 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Due to the large scope of Azalea and the fact that almost every Minecraft version
 is breaking anyways, semantic versioning is not followed.
 
-## [Unreleased]
-
-### Added
-
-### Changed
+## [0.15.1+mc1.21.11] - 2026-02-03
 
 ### Fixed
 
+- Fix compilation errors from unstable dependencies.
 - Serializing `FormattedText` with serde was writing `extra` twice.
 - Attack cooldowns were being applied incorrectly for tools.
 - `Identifier` had an incorrect `Hash` and `PartialEq` implementation.
 - Explosion knockback was being applied incorrectly.
-- Click events in chat messages were missing.
 
 ## [0.15.0+mc1.21.11] - 2025-12-18
 
