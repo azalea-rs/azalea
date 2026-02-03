@@ -35,13 +35,19 @@ is breaking anyways, semantic versioning is not followed.
 
 ### Fixed
 
+- The pathfinder now avoids magma blocks.
+- Fixed several panics, OOMs, and memory leaks in `azalea-protocol`.
+- Click events in chat messages were missing.
+
+## [0.15.1+mc1.21.11] - 2026-02-03
+
+### Fixed
+
+- Fix compilation errors from unstable dependencies.
 - Serializing `FormattedText` with serde was writing `extra` twice.
 - Attack cooldowns were being applied incorrectly for tools.
 - `Identifier` had an incorrect `Hash` and `PartialEq` implementation.
-- The pathfinder now avoids magma blocks.
 - Explosion knockback was being applied incorrectly.
-- Fixed several panics, OOMs, and memory leaks in `azalea-protocol`.
-- Click events in chat messages were missing.
 
 ## [0.15.0+mc1.21.11] - 2025-12-18
 
