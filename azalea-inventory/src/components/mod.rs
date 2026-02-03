@@ -1132,6 +1132,8 @@ impl EquipmentSlot {
             3 => Self::Legs,
             4 => Self::Chest,
             5 => Self::Head,
+            6 => Self::Body,
+            7 => Self::Saddle,
             _ => return None,
         };
         Some(value)

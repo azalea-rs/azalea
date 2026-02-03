@@ -52,3 +52,22 @@ impl AzBuf for EquipmentSlots {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::io::Cursor;
+
+    use azalea_buf::AzBuf;
+
+    use super::*;
+
+    #[test]
+    fn test_read_lifesteal_net_set_equipment() {
+        let contents = [1, 128, 0, 129, 0, 130, 0, 131, 0, 132, 0, 133, 0, 7, 0];
+        let mut buf = Cursor::new(contents.as_slice());
+        let packet = ClientboundSetEquipment::azalea_read(&mut buf).unwrap();
+        println!("{packet:?}");
+
+        assert_eq!(buf.position(), contents.len() as u64);
+    }
+}

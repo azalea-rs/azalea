@@ -38,6 +38,7 @@ is breaking anyways, semantic versioning is not followed.
 - The pathfinder now avoids magma blocks.
 - Fixed several panics, OOMs, and memory leaks in `azalea-protocol`.
 - Click events in chat messages were missing.
+- `ClientboundSetEquipment` failed to deserialize if a packet used animal armor slots.
 
 ## [0.15.1+mc1.21.11] - 2026-02-03
 
