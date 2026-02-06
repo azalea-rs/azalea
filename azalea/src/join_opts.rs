@@ -6,11 +6,11 @@ use azalea_protocol::{address::ServerAddr, connect::Proxy};
 #[derive(Clone, Debug, Default)]
 #[non_exhaustive]
 pub struct JoinOpts {
-    /// The SOCKS5 proxy that this bot will use for connecting to the Minecraft
-    /// server.
+    /// The proxy (SOCKS5, SOCKS4, or HTTP) that this bot will use for
+    /// connecting to the Minecraft server.
     pub server_proxy: Option<Proxy>,
-    /// The SOCKS5 proxy that will be used when authenticating the bot's join
-    /// with Mojang.
+    /// The proxy (SOCKS5, SOCKS4, or HTTP) that will be used when
+    /// authenticating the bot's join with Mojang.
     ///
     /// This should typically be either the same as [`Self::server_proxy`] or
     /// `None`.
@@ -48,7 +48,7 @@ impl JoinOpts {
         }
     }
 
-    /// Configure the SOCKS5 proxy used for connecting to the server and for
+    /// Configure the proxy used for connecting to the server and for
     /// authenticating with Mojang.
     ///
     /// To configure these separately, for example to only use the proxy for the
@@ -58,7 +58,7 @@ impl JoinOpts {
     pub fn proxy(self, proxy: Proxy) -> Self {
         self.server_proxy(proxy.clone()).sessionserver_proxy(proxy)
     }
-    /// Configure the SOCKS5 proxy that will be used for connecting to the
+    /// Configure the proxy that will be used for connecting to the
     /// Minecraft server.
     ///
     /// To avoid errors on servers with the "prevent-proxy-connections" option
@@ -70,7 +70,7 @@ impl JoinOpts {
         self.server_proxy = Some(proxy);
         self
     }
-    /// Configure the SOCKS5 proxy that this bot will use for authenticating the
+    /// Configure the proxy that this bot will use for authenticating the
     /// server join with Mojang's API.
     ///
     /// Also see [`Self::proxy`] and [`Self::server_proxy`].

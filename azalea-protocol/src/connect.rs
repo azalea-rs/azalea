@@ -13,14 +13,18 @@ use azalea_auth::{
     sessionserver::{ClientSessionServerError, ServerSessionServerError},
 };
 use azalea_crypto::{Aes128CfbDec, Aes128CfbEnc};
+use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64_STANDARD};
+use http_proxy_client_async::{HeaderMap, HeaderValue, flow as http_proxy_flow};
 use thiserror::Error;
 use tokio::{
-    io::{AsyncWriteExt, BufStream},
+    io::AsyncWriteExt,
     net::{
         TcpStream,
         tcp::{OwnedReadHalf, OwnedWriteHalf, ReuniteError},
     },
 };
+use tokio_socks::tcp::{Socks4Stream, Socks5Stream};
+use tokio_util::compat::TokioAsyncReadCompatExt;
 use tracing::{error, info};
 #[cfg(feature = "online-mode")]
 use uuid::Uuid;
@@ -277,26 +281,140 @@ pub enum ConnectionError {
 
 use socks5_impl::protocol::UserKey;
 
-/// An address and authentication method for connecting to a SOCKS5 proxy.
+/// The proxy protocol used by [`Proxy`].
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
+pub enum ProxyProtocol {
+    Socks5,
+    Socks4,
+    Http,
+}
+
+impl ProxyProtocol {
+    fn scheme(self) -> &'static str {
+        match self {
+            Self::Socks5 => "socks5",
+            Self::Socks4 => "socks4",
+            Self::Http => "http",
+        }
+    }
+}
+
+/// A proxy configuration used for both the Minecraft TCP connection and
+/// sessionserver authentication requests.
+///
+/// Supported protocols are SOCKS5, SOCKS4, and HTTP (CONNECT).
 #[derive(Clone, Debug)]
 pub struct Proxy {
+    pub protocol: ProxyProtocol,
     pub addr: SocketAddr,
     pub auth: Option<UserKey>,
 }
 
 impl Proxy {
+    /// Create a SOCKS5 proxy.
     pub fn new(addr: SocketAddr, auth: Option<UserKey>) -> Self {
-        Self { addr, auth }
+        Self::socks5(addr, auth)
+    }
+
+    pub fn socks5(addr: SocketAddr, auth: Option<UserKey>) -> Self {
+        Self {
+            protocol: ProxyProtocol::Socks5,
+            addr,
+            auth,
+        }
+    }
+
+    /// Create a SOCKS4 proxy without a user id.
+    pub fn socks4(addr: SocketAddr) -> Self {
+        Self {
+            protocol: ProxyProtocol::Socks4,
+            addr,
+            auth: None,
+        }
+    }
+
+    /// Create a SOCKS4 proxy with a user id.
+    pub fn socks4_with_user_id(addr: SocketAddr, user_id: impl Into<String>) -> Self {
+        Self {
+            protocol: ProxyProtocol::Socks4,
+            addr,
+            auth: Some(UserKey::new(user_id, "")),
+        }
+    }
+
+    /// Create an HTTP proxy. The optional auth value is used for basic auth.
+    pub fn http(addr: SocketAddr, auth: Option<UserKey>) -> Self {
+        Self {
+            protocol: ProxyProtocol::Http,
+            addr,
+            auth,
+        }
+    }
+
+    pub fn protocol(&self) -> ProxyProtocol {
+        self.protocol
     }
 }
 impl Display for Proxy {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "socks5://")?;
+        write!(f, "{}://", self.protocol.scheme())?;
         if let Some(auth) = &self.auth {
             write!(f, "{auth}@")?;
         }
         write!(f, "{}", self.addr)
     }
+}
+
+async fn connect_via_http_proxy(
+    stream: TcpStream,
+    address: &SocketAddr,
+    auth: Option<&UserKey>,
+) -> io::Result<TcpStream> {
+    let mut headers = HeaderMap::new();
+    if let Some(auth) = auth {
+        let encoded = BASE64_STANDARD.encode(format!("{}:{}", auth.username, auth.password));
+        let auth_value = HeaderValue::from_str(&format!("Basic {encoded}")).map_err(|err| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
+                format!("invalid HTTP proxy authorization header value: {err}"),
+            )
+        })?;
+        headers.insert("Proxy-Authorization", auth_value);
+    }
+
+    // `http-proxy-client-async` writes `host:port`, so IPv6 needs brackets.
+    let host = match address {
+        SocketAddr::V4(v4) => v4.ip().to_string(),
+        SocketAddr::V6(v6) => format!("[{}]", v6.ip()),
+    };
+
+    let mut compat_stream = stream.compat();
+    // Keep read size minimal to avoid over-reading bytes that belong to the
+    // tunneled Minecraft stream.
+    let mut read_buf = [0u8; 1];
+    let outcome = http_proxy_flow::handshake(
+        &mut compat_stream,
+        &host,
+        address.port(),
+        &headers,
+        &mut read_buf,
+    )
+    .await?;
+
+    if outcome.response_parts.status_code / 100 != 2 {
+        return Err(io::Error::other(format!(
+            "HTTP proxy CONNECT failed: {} {}",
+            outcome.response_parts.status_code, outcome.response_parts.reason_phrase
+        )));
+    }
+    if !outcome.data_after_handshake.is_empty() {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "HTTP proxy returned unexpected extra bytes after CONNECT response",
+        ));
+    }
+
+    Ok(compat_stream.into_inner())
 }
 
 #[cfg(feature = "online-mode")]
@@ -318,21 +436,50 @@ impl Connection<ClientboundHandshakePacket, ServerboundHandshakePacket> {
         Self::new_from_stream(stream).await
     }
 
-    /// Create a new connection to the given address and SOCKS5 proxy.
+    /// Create a new connection to the given address and proxy.
     ///
     /// If you're not using a proxy, use [`Self::new`] instead.
     pub async fn new_with_proxy(
         address: &SocketAddr,
         proxy: Proxy,
     ) -> Result<Self, ConnectionError> {
-        let proxy_stream = TcpStream::connect(proxy.addr).await?;
-        let mut stream = BufStream::new(proxy_stream);
+        let stream = match proxy.protocol {
+            ProxyProtocol::Socks5 => {
+                let stream = if let Some(auth) = proxy.auth.as_ref() {
+                    Socks5Stream::connect_with_password(
+                        proxy.addr,
+                        *address,
+                        &auth.username,
+                        &auth.password,
+                    )
+                    .await
+                } else {
+                    Socks5Stream::connect(proxy.addr, *address).await
+                }
+                .map_err(io::Error::other)?;
+                stream.into_inner()
+            }
+            ProxyProtocol::Socks4 => {
+                let maybe_user_id = proxy
+                    .auth
+                    .as_ref()
+                    .map(|auth| auth.username.as_str())
+                    .filter(|user_id| !user_id.is_empty());
+                let stream = if let Some(user_id) = maybe_user_id {
+                    Socks4Stream::connect_with_userid(proxy.addr, *address, user_id).await
+                } else {
+                    Socks4Stream::connect(proxy.addr, *address).await
+                }
+                .map_err(io::Error::other)?;
+                stream.into_inner()
+            }
+            ProxyProtocol::Http => {
+                let stream = TcpStream::connect(proxy.addr).await?;
+                connect_via_http_proxy(stream, address, proxy.auth.as_ref()).await?
+            }
+        };
 
-        let _ = socks5_impl::client::connect(&mut stream, address, proxy.auth)
-            .await
-            .map_err(io::Error::other)?;
-
-        Self::new_from_stream(stream.into_inner()).await
+        Self::new_from_stream(stream).await
     }
 
     /// Create a new connection from an existing stream.
@@ -654,5 +801,31 @@ where
             .raw
             .read_stream
             .reunite(self.writer.raw.write_stream)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn proxy_display_uses_protocol_scheme() {
+        let addr = SocketAddr::from(([127, 0, 0, 1], 8080));
+        assert_eq!(
+            Proxy::socks5(addr, None).to_string(),
+            "socks5://127.0.0.1:8080"
+        );
+        assert_eq!(Proxy::socks4(addr).to_string(), "socks4://127.0.0.1:8080");
+        assert_eq!(Proxy::http(addr, None).to_string(), "http://127.0.0.1:8080");
+    }
+
+    #[cfg(feature = "online-mode")]
+    #[test]
+    fn reqwest_proxy_supports_all_proxy_schemes() {
+        let addr = SocketAddr::from(([127, 0, 0, 1], 8080));
+
+        let _ = reqwest::Proxy::from(Proxy::socks5(addr, None));
+        let _ = reqwest::Proxy::from(Proxy::socks4(addr));
+        let _ = reqwest::Proxy::from(Proxy::http(addr, None));
     }
 }
