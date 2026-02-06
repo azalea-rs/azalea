@@ -299,6 +299,8 @@ define_data_components!(
     SwingAnimation,
     ZombieNautilusVariant,
     AttackRange,
+    AdditionalTradeCost,
+    Dye,
 );
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
@@ -1891,4 +1893,14 @@ impl Default for AttackRange {
     fn default() -> Self {
         Self::new()
     }
+}
+
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+pub struct AdditionalTradeCost {
+    pub todo: todo!(), // see DataComponents.java
+}
+
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+pub struct Dye {
+    pub todo: todo!(), // see DataComponents.java
 }

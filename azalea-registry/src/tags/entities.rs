@@ -154,6 +154,15 @@ pub static CAN_WEAR_NAUTILUS_ARMOR: LazyLock<RegistryTag<EntityKind>> =
     LazyLock::new(|| RegistryTag::new(vec![EntityKind::Nautilus, EntityKind::ZombieNautilus]));
 pub static CANDIDATE_FOR_IRON_GOLEM_GIFT: LazyLock<RegistryTag<EntityKind>> =
     LazyLock::new(|| RegistryTag::new(vec![EntityKind::CopperGolem, EntityKind::Villager]));
+pub static CANNOT_BE_AGE_LOCKED: LazyLock<RegistryTag<EntityKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        EntityKind::CamelHusk,
+        EntityKind::Hoglin,
+        EntityKind::SkeletonHorse,
+        EntityKind::Villager,
+        EntityKind::ZombieHorse,
+    ])
+});
 pub static CANNOT_BE_PUSHED_ONTO_BOATS: LazyLock<RegistryTag<EntityKind>> = LazyLock::new(|| {
     RegistryTag::new(vec![
         EntityKind::Cod,

@@ -25,13 +25,13 @@ def get_burger():
 
 
 def get_pumpkin_extractor():
-    if not os.path.exists(get_dir_location("__cache__/pumpkin-extractor")):
-        print("\033[92mDownloading Pumpkin-MC/Extractor...\033[m")
+    if not os.path.exists(get_dir_location("__cache__/azalea-pumpkin-extractor")):
+        print("\033[92mDownloading mat-1/azalea-pumpkin-extractor...\033[m")
         os.system(
-            f"cd {get_dir_location('__cache__')} && git clone https://github.com/Pumpkin-MC/Extractor pumpkin-extractor && cd pumpkin-extractor && git pull"
+            f"cd {get_dir_location('__cache__')} && git clone https://github.com/mat-1/azalea-pumpkin-extractor && cd azalea-pumpkin-extractor && git pull"
         )
 
-    return get_dir_location("__cache__/pumpkin-extractor")
+    return get_dir_location("__cache__/azalea-pumpkin-extractor")
 
 
 def get_version_manifest():
@@ -228,7 +228,7 @@ def clear_version_cache():
     burger_path = get_dir_location("__cache__/azalea-burger")
     if os.path.exists(burger_path):
         os.system(f"cd {burger_path} && git pull")
-    pumpkin_path = get_dir_location("__cache__/pumpkin-extractor")
+    pumpkin_path = get_dir_location("__cache__/azalea-pumpkin-extractor")
     if os.path.exists(pumpkin_path):
         os.system(
             f"cd {pumpkin_path} && git add . && git stash && git pull && git stash pop && git checkout HEAD -- src/main/resources/fabric.mod.json"

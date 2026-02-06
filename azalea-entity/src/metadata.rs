@@ -106,10 +106,11 @@
 //!                 - [Mule]
 //!             - [AbstractTameable]
 //!               - [Cat]
-//!               - [Nautilus]
 //!               - [Parrot]
 //!               - [Wolf]
-//!               - [ZombieNautilus]
+//!               - [AbstractNautilus]
+//!                 - [Nautilus]
+//!                 - [ZombieNautilus]
 //!           - [AbstractVillager]
 //!             - [Villager]
 //!             - [WanderingTrader]
@@ -382,10 +383,11 @@ pub struct TicksFrozen(pub i32);
 ///               - [Mule]
 ///           - [AbstractTameable]
 ///             - [Cat]
-///             - [Nautilus]
 ///             - [Parrot]
 ///             - [Wolf]
-///             - [ZombieNautilus]
+///             - [AbstractNautilus]
+///               - [Nautilus]
+///               - [ZombieNautilus]
 ///         - [AbstractVillager]
 ///           - [Villager]
 ///           - [WanderingTrader]
@@ -639,8 +641,8 @@ impl Default for AreaEffectCloudMetadataBundle {
                 pose: Pose::default(),
                 ticks_frozen: TicksFrozen(Default::default()),
             },
-            radius: Radius(3.0),
-            waiting: Waiting(false),
+            radius: Radius(Default::default()),
+            waiting: Waiting(Default::default()),
             particle: Particle::default(),
         }
     }
@@ -855,8 +857,8 @@ impl Default for EndCrystalMetadataBundle {
                 pose: Pose::default(),
                 ticks_frozen: TicksFrozen(Default::default()),
             },
-            beam_target: BeamTarget(None),
-            show_bottom: ShowBottom(true),
+            beam_target: BeamTarget(Default::default()),
+            show_bottom: ShowBottom(Default::default()),
         }
     }
 }
@@ -997,7 +999,7 @@ impl Default for ExperienceOrbMetadataBundle {
                 pose: Pose::default(),
                 ticks_frozen: TicksFrozen(Default::default()),
             },
-            value: Value(0),
+            value: Value(Default::default()),
         }
     }
 }
@@ -1149,7 +1151,7 @@ impl Default for FallingBlockMetadataBundle {
                 pose: Pose::default(),
                 ticks_frozen: TicksFrozen(Default::default()),
             },
-            start_pos: StartPos(BlockPos::new(0, 0, 0)),
+            start_pos: StartPos(Default::default()),
         }
     }
 }
@@ -1318,8 +1320,8 @@ impl Default for FireworkRocketMetadataBundle {
                 ticks_frozen: TicksFrozen(Default::default()),
             },
             fireworks_item: FireworksItem(Default::default()),
-            attached_to_target: AttachedToTarget(OptionalUnsignedInt(None)),
-            shot_at_angle: ShotAtAngle(false),
+            attached_to_target: AttachedToTarget(Default::default()),
+            shot_at_angle: ShotAtAngle(Default::default()),
         }
     }
 }
@@ -1403,8 +1405,8 @@ impl Default for FishingBobberMetadataBundle {
                 pose: Pose::default(),
                 ticks_frozen: TicksFrozen(Default::default()),
             },
-            hooked_entity: HookedEntity(0),
-            biting: Biting(false),
+            hooked_entity: HookedEntity(Default::default()),
+            biting: Biting(Default::default()),
         }
     }
 }
@@ -1496,9 +1498,9 @@ impl Default for InteractionMetadataBundle {
                 pose: Pose::default(),
                 ticks_frozen: TicksFrozen(Default::default()),
             },
-            interaction_width: InteractionWidth(1.0),
-            interaction_height: InteractionHeight(1.0),
-            response: Response(false),
+            interaction_width: InteractionWidth(Default::default()),
+            interaction_height: InteractionHeight(Default::default()),
+            response: Response(Default::default()),
         }
     }
 }
@@ -1667,7 +1669,7 @@ impl Default for ItemFrameMetadataBundle {
             },
             item_frame_direction: ItemFrameDirection(Default::default()),
             item_frame_item: ItemFrameItem(Default::default()),
-            rotation: Rotation(0),
+            rotation: Rotation(Default::default()),
         }
     }
 }
@@ -1738,7 +1740,7 @@ impl Default for GlowItemFrameMetadataBundle {
                 },
                 item_frame_direction: ItemFrameDirection(Default::default()),
                 item_frame_item: ItemFrameItem(Default::default()),
-                rotation: Rotation(0),
+                rotation: Rotation(Default::default()),
             },
         }
     }
@@ -2384,7 +2386,7 @@ impl Default for TntMetadataBundle {
                 pose: Pose::default(),
                 ticks_frozen: TicksFrozen(Default::default()),
             },
-            fuse: Fuse(80),
+            fuse: Fuse(Default::default()),
             tnt_block_state: TntBlockState(Default::default()),
         }
     }
@@ -2526,7 +2528,7 @@ impl Default for WitherSkullMetadataBundle {
                 pose: Pose::default(),
                 ticks_frozen: TicksFrozen(Default::default()),
             },
-            dangerous: Dangerous(false),
+            dangerous: Dangerous(Default::default()),
         }
     }
 }
@@ -2629,8 +2631,8 @@ impl Default for AbstractArrowMetadataBundle {
             },
             crit_arrow: CritArrow(false),
             no_physics: NoPhysics(false),
-            pierce_level: PierceLevel(0),
-            in_ground: InGround(false),
+            pierce_level: PierceLevel(Default::default()),
+            in_ground: InGround(Default::default()),
         }
     }
 }
@@ -2710,10 +2712,10 @@ impl Default for ArrowMetadataBundle {
                 },
                 crit_arrow: CritArrow(false),
                 no_physics: NoPhysics(false),
-                pierce_level: PierceLevel(0),
-                in_ground: InGround(false),
+                pierce_level: PierceLevel(Default::default()),
+                in_ground: InGround(Default::default()),
             },
-            effect_color: EffectColor(-1),
+            effect_color: EffectColor(Default::default()),
         }
     }
 }
@@ -2784,8 +2786,8 @@ impl Default for SpectralArrowMetadataBundle {
                 },
                 crit_arrow: CritArrow(false),
                 no_physics: NoPhysics(false),
-                pierce_level: PierceLevel(0),
-                in_ground: InGround(false),
+                pierce_level: PierceLevel(Default::default()),
+                in_ground: InGround(Default::default()),
             },
         }
     }
@@ -2874,11 +2876,11 @@ impl Default for TridentMetadataBundle {
                 },
                 crit_arrow: CritArrow(false),
                 no_physics: NoPhysics(false),
-                pierce_level: PierceLevel(0),
-                in_ground: InGround(false),
+                pierce_level: PierceLevel(Default::default()),
+                in_ground: InGround(Default::default()),
             },
-            loyalty: Loyalty(0),
-            foil: Foil(false),
+            loyalty: Loyalty(Default::default()),
+            foil: Foil(Default::default()),
         }
     }
 }
@@ -3071,39 +3073,23 @@ impl Default for AbstractDisplayMetadataBundle {
                 ticks_frozen: TicksFrozen(Default::default()),
             },
             transformation_interpolation_start_delta_ticks:
-                TransformationInterpolationStartDeltaTicks(0),
-            transformation_interpolation_duration: TransformationInterpolationDuration(0),
-            pos_rot_interpolation_duration: PosRotInterpolationDuration(0),
-            translation: Translation(Vec3f32 {
-                x: 0.0,
-                y: 0.0,
-                z: 0.0,
-            }),
-            scale: Scale(Vec3f32 {
-                x: 1.0,
-                y: 1.0,
-                z: 1.0,
-            }),
-            left_rotation: LeftRotation(Quaternion {
-                x: 0.0,
-                y: 0.0,
-                z: 0.0,
-                w: 1.0,
-            }),
-            right_rotation: RightRotation(Quaternion {
-                x: 0.0,
-                y: 0.0,
-                z: 0.0,
-                w: 1.0,
-            }),
+                TransformationInterpolationStartDeltaTicks(Default::default()),
+            transformation_interpolation_duration: TransformationInterpolationDuration(
+                Default::default(),
+            ),
+            pos_rot_interpolation_duration: PosRotInterpolationDuration(Default::default()),
+            translation: Translation(Default::default()),
+            scale: Scale(Default::default()),
+            left_rotation: LeftRotation(Default::default()),
+            right_rotation: RightRotation(Default::default()),
             billboard_render_constraints: BillboardRenderConstraints(Default::default()),
-            brightness_override: BrightnessOverride(-1),
-            view_range: ViewRange(1.0),
-            shadow_radius: ShadowRadius(0.0),
-            shadow_strength: ShadowStrength(1.0),
-            abstract_display_width: AbstractDisplayWidth(0.0),
-            abstract_display_height: AbstractDisplayHeight(0.0),
-            glow_color_override: GlowColorOverride(-1),
+            brightness_override: BrightnessOverride(Default::default()),
+            view_range: ViewRange(Default::default()),
+            shadow_radius: ShadowRadius(Default::default()),
+            shadow_strength: ShadowStrength(Default::default()),
+            abstract_display_width: AbstractDisplayWidth(Default::default()),
+            abstract_display_height: AbstractDisplayHeight(Default::default()),
+            glow_color_override: GlowColorOverride(Default::default()),
         }
     }
 }
@@ -3183,39 +3169,23 @@ impl Default for BlockDisplayMetadataBundle {
                     ticks_frozen: TicksFrozen(Default::default()),
                 },
                 transformation_interpolation_start_delta_ticks:
-                    TransformationInterpolationStartDeltaTicks(0),
-                transformation_interpolation_duration: TransformationInterpolationDuration(0),
-                pos_rot_interpolation_duration: PosRotInterpolationDuration(0),
-                translation: Translation(Vec3f32 {
-                    x: 0.0,
-                    y: 0.0,
-                    z: 0.0,
-                }),
-                scale: Scale(Vec3f32 {
-                    x: 1.0,
-                    y: 1.0,
-                    z: 1.0,
-                }),
-                left_rotation: LeftRotation(Quaternion {
-                    x: 0.0,
-                    y: 0.0,
-                    z: 0.0,
-                    w: 1.0,
-                }),
-                right_rotation: RightRotation(Quaternion {
-                    x: 0.0,
-                    y: 0.0,
-                    z: 0.0,
-                    w: 1.0,
-                }),
+                    TransformationInterpolationStartDeltaTicks(Default::default()),
+                transformation_interpolation_duration: TransformationInterpolationDuration(
+                    Default::default(),
+                ),
+                pos_rot_interpolation_duration: PosRotInterpolationDuration(Default::default()),
+                translation: Translation(Default::default()),
+                scale: Scale(Default::default()),
+                left_rotation: LeftRotation(Default::default()),
+                right_rotation: RightRotation(Default::default()),
                 billboard_render_constraints: BillboardRenderConstraints(Default::default()),
-                brightness_override: BrightnessOverride(-1),
-                view_range: ViewRange(1.0),
-                shadow_radius: ShadowRadius(0.0),
-                shadow_strength: ShadowStrength(1.0),
-                abstract_display_width: AbstractDisplayWidth(0.0),
-                abstract_display_height: AbstractDisplayHeight(0.0),
-                glow_color_override: GlowColorOverride(-1),
+                brightness_override: BrightnessOverride(Default::default()),
+                view_range: ViewRange(Default::default()),
+                shadow_radius: ShadowRadius(Default::default()),
+                shadow_strength: ShadowStrength(Default::default()),
+                abstract_display_width: AbstractDisplayWidth(Default::default()),
+                abstract_display_height: AbstractDisplayHeight(Default::default()),
+                glow_color_override: GlowColorOverride(Default::default()),
             },
             block_display_block_state: BlockDisplayBlockState(Default::default()),
         }
@@ -3305,39 +3275,23 @@ impl Default for ItemDisplayMetadataBundle {
                     ticks_frozen: TicksFrozen(Default::default()),
                 },
                 transformation_interpolation_start_delta_ticks:
-                    TransformationInterpolationStartDeltaTicks(0),
-                transformation_interpolation_duration: TransformationInterpolationDuration(0),
-                pos_rot_interpolation_duration: PosRotInterpolationDuration(0),
-                translation: Translation(Vec3f32 {
-                    x: 0.0,
-                    y: 0.0,
-                    z: 0.0,
-                }),
-                scale: Scale(Vec3f32 {
-                    x: 1.0,
-                    y: 1.0,
-                    z: 1.0,
-                }),
-                left_rotation: LeftRotation(Quaternion {
-                    x: 0.0,
-                    y: 0.0,
-                    z: 0.0,
-                    w: 1.0,
-                }),
-                right_rotation: RightRotation(Quaternion {
-                    x: 0.0,
-                    y: 0.0,
-                    z: 0.0,
-                    w: 1.0,
-                }),
+                    TransformationInterpolationStartDeltaTicks(Default::default()),
+                transformation_interpolation_duration: TransformationInterpolationDuration(
+                    Default::default(),
+                ),
+                pos_rot_interpolation_duration: PosRotInterpolationDuration(Default::default()),
+                translation: Translation(Default::default()),
+                scale: Scale(Default::default()),
+                left_rotation: LeftRotation(Default::default()),
+                right_rotation: RightRotation(Default::default()),
                 billboard_render_constraints: BillboardRenderConstraints(Default::default()),
-                brightness_override: BrightnessOverride(-1),
-                view_range: ViewRange(1.0),
-                shadow_radius: ShadowRadius(0.0),
-                shadow_strength: ShadowStrength(1.0),
-                abstract_display_width: AbstractDisplayWidth(0.0),
-                abstract_display_height: AbstractDisplayHeight(0.0),
-                glow_color_override: GlowColorOverride(-1),
+                brightness_override: BrightnessOverride(Default::default()),
+                view_range: ViewRange(Default::default()),
+                shadow_radius: ShadowRadius(Default::default()),
+                shadow_strength: ShadowStrength(Default::default()),
+                abstract_display_width: AbstractDisplayWidth(Default::default()),
+                abstract_display_height: AbstractDisplayHeight(Default::default()),
+                glow_color_override: GlowColorOverride(Default::default()),
             },
             item_display_item_stack: ItemDisplayItemStack(Default::default()),
             item_display_item_display: ItemDisplayItemDisplay(Default::default()),
@@ -3452,45 +3406,29 @@ impl Default for TextDisplayMetadataBundle {
                     ticks_frozen: TicksFrozen(Default::default()),
                 },
                 transformation_interpolation_start_delta_ticks:
-                    TransformationInterpolationStartDeltaTicks(0),
-                transformation_interpolation_duration: TransformationInterpolationDuration(0),
-                pos_rot_interpolation_duration: PosRotInterpolationDuration(0),
-                translation: Translation(Vec3f32 {
-                    x: 0.0,
-                    y: 0.0,
-                    z: 0.0,
-                }),
-                scale: Scale(Vec3f32 {
-                    x: 1.0,
-                    y: 1.0,
-                    z: 1.0,
-                }),
-                left_rotation: LeftRotation(Quaternion {
-                    x: 0.0,
-                    y: 0.0,
-                    z: 0.0,
-                    w: 1.0,
-                }),
-                right_rotation: RightRotation(Quaternion {
-                    x: 0.0,
-                    y: 0.0,
-                    z: 0.0,
-                    w: 1.0,
-                }),
+                    TransformationInterpolationStartDeltaTicks(Default::default()),
+                transformation_interpolation_duration: TransformationInterpolationDuration(
+                    Default::default(),
+                ),
+                pos_rot_interpolation_duration: PosRotInterpolationDuration(Default::default()),
+                translation: Translation(Default::default()),
+                scale: Scale(Default::default()),
+                left_rotation: LeftRotation(Default::default()),
+                right_rotation: RightRotation(Default::default()),
                 billboard_render_constraints: BillboardRenderConstraints(Default::default()),
-                brightness_override: BrightnessOverride(-1),
-                view_range: ViewRange(1.0),
-                shadow_radius: ShadowRadius(0.0),
-                shadow_strength: ShadowStrength(1.0),
-                abstract_display_width: AbstractDisplayWidth(0.0),
-                abstract_display_height: AbstractDisplayHeight(0.0),
-                glow_color_override: GlowColorOverride(-1),
+                brightness_override: BrightnessOverride(Default::default()),
+                view_range: ViewRange(Default::default()),
+                shadow_radius: ShadowRadius(Default::default()),
+                shadow_strength: ShadowStrength(Default::default()),
+                abstract_display_width: AbstractDisplayWidth(Default::default()),
+                abstract_display_height: AbstractDisplayHeight(Default::default()),
+                glow_color_override: GlowColorOverride(Default::default()),
             },
             text: Text(Default::default()),
-            line_width: LineWidth(200),
-            background_color: BackgroundColor(1073741824),
-            text_opacity: TextOpacity(127),
-            style_flags: StyleFlags(0),
+            line_width: LineWidth(Default::default()),
+            background_color: BackgroundColor(Default::default()),
+            text_opacity: TextOpacity(Default::default()),
+            style_flags: StyleFlags(Default::default()),
         }
     }
 }
@@ -3602,10 +3540,11 @@ pub struct SleepingPos(pub Option<BlockPos>);
 ///             - [Mule]
 ///         - [AbstractTameable]
 ///           - [Cat]
-///           - [Nautilus]
 ///           - [Parrot]
 ///           - [Wolf]
-///           - [ZombieNautilus]
+///           - [AbstractNautilus]
+///             - [Nautilus]
+///             - [ZombieNautilus]
 ///       - [AbstractVillager]
 ///         - [Villager]
 ///         - [WanderingTrader]
@@ -3728,12 +3667,12 @@ impl Default for AbstractLivingMetadataBundle {
             },
             auto_spin_attack: AutoSpinAttack(false),
             abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(1.0),
+            health: Health(Default::default()),
             effect_particles: EffectParticles(Default::default()),
-            effect_ambience: EffectAmbience(false),
-            arrow_count: ArrowCount(0),
-            stinger_count: StingerCount(0),
-            sleeping_pos: SleepingPos(None),
+            effect_ambience: EffectAmbience(Default::default()),
+            arrow_count: ArrowCount(Default::default()),
+            stinger_count: StingerCount(Default::default()),
+            sleeping_pos: SleepingPos(Default::default()),
         }
     }
 }
@@ -3881,12 +3820,12 @@ impl Default for ArmorStandMetadataBundle {
                 },
                 auto_spin_attack: AutoSpinAttack(false),
                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                health: Health(1.0),
+                health: Health(Default::default()),
                 effect_particles: EffectParticles(Default::default()),
-                effect_ambience: EffectAmbience(false),
-                arrow_count: ArrowCount(0),
-                stinger_count: StingerCount(0),
-                sleeping_pos: SleepingPos(None),
+                effect_ambience: EffectAmbience(Default::default()),
+                arrow_count: ArrowCount(Default::default()),
+                stinger_count: StingerCount(Default::default()),
+                sleeping_pos: SleepingPos(Default::default()),
             },
             small: Small(false),
             show_arms: ShowArms(false),
@@ -3987,15 +3926,15 @@ impl Default for AbstractAvatarMetadataBundle {
                 },
                 auto_spin_attack: AutoSpinAttack(false),
                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                health: Health(1.0),
+                health: Health(Default::default()),
                 effect_particles: EffectParticles(Default::default()),
-                effect_ambience: EffectAmbience(false),
-                arrow_count: ArrowCount(0),
-                stinger_count: StingerCount(0),
-                sleeping_pos: SleepingPos(None),
+                effect_ambience: EffectAmbience(Default::default()),
+                arrow_count: ArrowCount(Default::default()),
+                stinger_count: StingerCount(Default::default()),
+                sleeping_pos: SleepingPos(Default::default()),
             },
             player_main_hand: PlayerMainHand(Default::default()),
-            player_mode_customisation: PlayerModeCustomisation(0),
+            player_mode_customisation: PlayerModeCustomisation(Default::default()),
         }
     }
 }
@@ -4095,18 +4034,18 @@ impl Default for MannequinMetadataBundle {
                     },
                     auto_spin_attack: AutoSpinAttack(false),
                     abstract_living_using_item: AbstractLivingUsingItem(false),
-                    health: Health(1.0),
+                    health: Health(Default::default()),
                     effect_particles: EffectParticles(Default::default()),
-                    effect_ambience: EffectAmbience(false),
-                    arrow_count: ArrowCount(0),
-                    stinger_count: StingerCount(0),
-                    sleeping_pos: SleepingPos(None),
+                    effect_ambience: EffectAmbience(Default::default()),
+                    arrow_count: ArrowCount(Default::default()),
+                    stinger_count: StingerCount(Default::default()),
+                    sleeping_pos: SleepingPos(Default::default()),
                 },
                 player_main_hand: PlayerMainHand(Default::default()),
-                player_mode_customisation: PlayerModeCustomisation(0),
+                player_mode_customisation: PlayerModeCustomisation(Default::default()),
             },
             profile: Profile(Default::default()),
-            immovable: Immovable(false),
+            immovable: Immovable(Default::default()),
             description: Description(Default::default()),
         }
     }
@@ -4214,20 +4153,20 @@ impl Default for PlayerMetadataBundle {
                     },
                     auto_spin_attack: AutoSpinAttack(false),
                     abstract_living_using_item: AbstractLivingUsingItem(false),
-                    health: Health(1.0),
+                    health: Health(Default::default()),
                     effect_particles: EffectParticles(Default::default()),
-                    effect_ambience: EffectAmbience(false),
-                    arrow_count: ArrowCount(0),
-                    stinger_count: StingerCount(0),
-                    sleeping_pos: SleepingPos(None),
+                    effect_ambience: EffectAmbience(Default::default()),
+                    arrow_count: ArrowCount(Default::default()),
+                    stinger_count: StingerCount(Default::default()),
+                    sleeping_pos: SleepingPos(Default::default()),
                 },
                 player_main_hand: PlayerMainHand(Default::default()),
-                player_mode_customisation: PlayerModeCustomisation(0),
+                player_mode_customisation: PlayerModeCustomisation(Default::default()),
             },
-            player_absorption: PlayerAbsorption(0.0),
-            score: Score(0),
-            shoulder_parrot_left: ShoulderParrotLeft(OptionalUnsignedInt(None)),
-            shoulder_parrot_right: ShoulderParrotRight(OptionalUnsignedInt(None)),
+            player_absorption: PlayerAbsorption(Default::default()),
+            score: Score(Default::default()),
+            shoulder_parrot_left: ShoulderParrotLeft(Default::default()),
+            shoulder_parrot_right: ShoulderParrotRight(Default::default()),
         }
     }
 }
@@ -4315,10 +4254,11 @@ pub struct Aggressive(pub bool);
 ///           - [Mule]
 ///       - [AbstractTameable]
 ///         - [Cat]
-///         - [Nautilus]
 ///         - [Parrot]
 ///         - [Wolf]
-///         - [ZombieNautilus]
+///         - [AbstractNautilus]
+///           - [Nautilus]
+///           - [ZombieNautilus]
 ///     - [AbstractVillager]
 ///       - [Villager]
 ///       - [WanderingTrader]
@@ -4421,12 +4361,12 @@ impl Default for AbstractInsentientMetadataBundle {
                 },
                 auto_spin_attack: AutoSpinAttack(false),
                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                health: Health(1.0),
+                health: Health(Default::default()),
                 effect_particles: EffectParticles(Default::default()),
-                effect_ambience: EffectAmbience(false),
-                arrow_count: ArrowCount(0),
-                stinger_count: StingerCount(0),
-                sleeping_pos: SleepingPos(None),
+                effect_ambience: EffectAmbience(Default::default()),
+                arrow_count: ArrowCount(Default::default()),
+                stinger_count: StingerCount(Default::default()),
+                sleeping_pos: SleepingPos(Default::default()),
             },
             no_ai: NoAi(false),
             left_handed: LeftHanded(false),
@@ -4514,12 +4454,12 @@ impl Default for BatMetadataBundle {
                     },
                     auto_spin_attack: AutoSpinAttack(false),
                     abstract_living_using_item: AbstractLivingUsingItem(false),
-                    health: Health(1.0),
+                    health: Health(Default::default()),
                     effect_particles: EffectParticles(Default::default()),
-                    effect_ambience: EffectAmbience(false),
-                    arrow_count: ArrowCount(0),
-                    stinger_count: StingerCount(0),
-                    sleeping_pos: SleepingPos(None),
+                    effect_ambience: EffectAmbience(Default::default()),
+                    arrow_count: ArrowCount(Default::default()),
+                    stinger_count: StingerCount(Default::default()),
+                    sleeping_pos: SleepingPos(Default::default()),
                 },
                 no_ai: NoAi(false),
                 left_handed: LeftHanded(false),
@@ -4609,12 +4549,12 @@ impl Default for EnderDragonMetadataBundle {
                     },
                     auto_spin_attack: AutoSpinAttack(false),
                     abstract_living_using_item: AbstractLivingUsingItem(false),
-                    health: Health(1.0),
+                    health: Health(Default::default()),
                     effect_particles: EffectParticles(Default::default()),
-                    effect_ambience: EffectAmbience(false),
-                    arrow_count: ArrowCount(0),
-                    stinger_count: StingerCount(0),
-                    sleeping_pos: SleepingPos(None),
+                    effect_ambience: EffectAmbience(Default::default()),
+                    arrow_count: ArrowCount(Default::default()),
+                    stinger_count: StingerCount(Default::default()),
+                    sleeping_pos: SleepingPos(Default::default()),
                 },
                 no_ai: NoAi(false),
                 left_handed: LeftHanded(false),
@@ -4703,18 +4643,18 @@ impl Default for GhastMetadataBundle {
                     },
                     auto_spin_attack: AutoSpinAttack(false),
                     abstract_living_using_item: AbstractLivingUsingItem(false),
-                    health: Health(1.0),
+                    health: Health(Default::default()),
                     effect_particles: EffectParticles(Default::default()),
-                    effect_ambience: EffectAmbience(false),
-                    arrow_count: ArrowCount(0),
-                    stinger_count: StingerCount(0),
-                    sleeping_pos: SleepingPos(None),
+                    effect_ambience: EffectAmbience(Default::default()),
+                    arrow_count: ArrowCount(Default::default()),
+                    stinger_count: StingerCount(Default::default()),
+                    sleeping_pos: SleepingPos(Default::default()),
                 },
                 no_ai: NoAi(false),
                 left_handed: LeftHanded(false),
                 aggressive: Aggressive(false),
             },
-            is_charging: IsCharging(false),
+            is_charging: IsCharging(Default::default()),
         }
     }
 }
@@ -4797,18 +4737,18 @@ impl Default for PhantomMetadataBundle {
                     },
                     auto_spin_attack: AutoSpinAttack(false),
                     abstract_living_using_item: AbstractLivingUsingItem(false),
-                    health: Health(1.0),
+                    health: Health(Default::default()),
                     effect_particles: EffectParticles(Default::default()),
-                    effect_ambience: EffectAmbience(false),
-                    arrow_count: ArrowCount(0),
-                    stinger_count: StingerCount(0),
-                    sleeping_pos: SleepingPos(None),
+                    effect_ambience: EffectAmbience(Default::default()),
+                    arrow_count: ArrowCount(Default::default()),
+                    stinger_count: StingerCount(Default::default()),
+                    sleeping_pos: SleepingPos(Default::default()),
                 },
                 no_ai: NoAi(false),
                 left_handed: LeftHanded(false),
                 aggressive: Aggressive(false),
             },
-            phantom_size: PhantomSize(0),
+            phantom_size: PhantomSize(Default::default()),
         }
     }
 }
@@ -4891,18 +4831,18 @@ impl Default for SlimeMetadataBundle {
                     },
                     auto_spin_attack: AutoSpinAttack(false),
                     abstract_living_using_item: AbstractLivingUsingItem(false),
-                    health: Health(1.0),
+                    health: Health(Default::default()),
                     effect_particles: EffectParticles(Default::default()),
-                    effect_ambience: EffectAmbience(false),
-                    arrow_count: ArrowCount(0),
-                    stinger_count: StingerCount(0),
-                    sleeping_pos: SleepingPos(None),
+                    effect_ambience: EffectAmbience(Default::default()),
+                    arrow_count: ArrowCount(Default::default()),
+                    stinger_count: StingerCount(Default::default()),
+                    sleeping_pos: SleepingPos(Default::default()),
                 },
                 no_ai: NoAi(false),
                 left_handed: LeftHanded(false),
                 aggressive: Aggressive(false),
             },
-            slime_size: SlimeSize(1),
+            slime_size: SlimeSize(Default::default()),
         }
     }
 }
@@ -4979,18 +4919,18 @@ impl Default for MagmaCubeMetadataBundle {
                         },
                         auto_spin_attack: AutoSpinAttack(false),
                         abstract_living_using_item: AbstractLivingUsingItem(false),
-                        health: Health(1.0),
+                        health: Health(Default::default()),
                         effect_particles: EffectParticles(Default::default()),
-                        effect_ambience: EffectAmbience(false),
-                        arrow_count: ArrowCount(0),
-                        stinger_count: StingerCount(0),
-                        sleeping_pos: SleepingPos(None),
+                        effect_ambience: EffectAmbience(Default::default()),
+                        arrow_count: ArrowCount(Default::default()),
+                        stinger_count: StingerCount(Default::default()),
+                        sleeping_pos: SleepingPos(Default::default()),
                     },
                     no_ai: NoAi(false),
                     left_handed: LeftHanded(false),
                     aggressive: Aggressive(false),
                 },
-                slime_size: SlimeSize(1),
+                slime_size: SlimeSize(Default::default()),
             },
         }
     }
@@ -5059,10 +4999,11 @@ impl Default for MagmaCubeMetadataBundle {
 ///         - [Mule]
 ///     - [AbstractTameable]
 ///       - [Cat]
-///       - [Nautilus]
 ///       - [Parrot]
 ///       - [Wolf]
-///       - [ZombieNautilus]
+///       - [AbstractNautilus]
+///         - [Nautilus]
+///         - [ZombieNautilus]
 ///   - [AbstractVillager]
 ///     - [Villager]
 ///     - [WanderingTrader]
@@ -5158,12 +5099,12 @@ impl Default for AbstractCreatureMetadataBundle {
                     },
                     auto_spin_attack: AutoSpinAttack(false),
                     abstract_living_using_item: AbstractLivingUsingItem(false),
-                    health: Health(1.0),
+                    health: Health(Default::default()),
                     effect_particles: EffectParticles(Default::default()),
-                    effect_ambience: EffectAmbience(false),
-                    arrow_count: ArrowCount(0),
-                    stinger_count: StingerCount(0),
-                    sleeping_pos: SleepingPos(None),
+                    effect_ambience: EffectAmbience(Default::default()),
+                    arrow_count: ArrowCount(Default::default()),
+                    stinger_count: StingerCount(Default::default()),
+                    sleeping_pos: SleepingPos(Default::default()),
                 },
                 no_ai: NoAi(false),
                 left_handed: LeftHanded(false),
@@ -5262,20 +5203,20 @@ impl Default for AllayMetadataBundle {
                         },
                         auto_spin_attack: AutoSpinAttack(false),
                         abstract_living_using_item: AbstractLivingUsingItem(false),
-                        health: Health(1.0),
+                        health: Health(Default::default()),
                         effect_particles: EffectParticles(Default::default()),
-                        effect_ambience: EffectAmbience(false),
-                        arrow_count: ArrowCount(0),
-                        stinger_count: StingerCount(0),
-                        sleeping_pos: SleepingPos(None),
+                        effect_ambience: EffectAmbience(Default::default()),
+                        arrow_count: ArrowCount(Default::default()),
+                        stinger_count: StingerCount(Default::default()),
+                        sleeping_pos: SleepingPos(Default::default()),
                     },
                     no_ai: NoAi(false),
                     left_handed: LeftHanded(false),
                     aggressive: Aggressive(false),
                 },
             },
-            dancing: Dancing(false),
-            can_duplicate: CanDuplicate(true),
+            dancing: Dancing(Default::default()),
+            can_duplicate: CanDuplicate(Default::default()),
         }
     }
 }
@@ -5370,12 +5311,12 @@ impl Default for CopperGolemMetadataBundle {
                         },
                         auto_spin_attack: AutoSpinAttack(false),
                         abstract_living_using_item: AbstractLivingUsingItem(false),
-                        health: Health(1.0),
+                        health: Health(Default::default()),
                         effect_particles: EffectParticles(Default::default()),
-                        effect_ambience: EffectAmbience(false),
-                        arrow_count: ArrowCount(0),
-                        stinger_count: StingerCount(0),
-                        sleeping_pos: SleepingPos(None),
+                        effect_ambience: EffectAmbience(Default::default()),
+                        arrow_count: ArrowCount(Default::default()),
+                        stinger_count: StingerCount(Default::default()),
+                        sleeping_pos: SleepingPos(Default::default()),
                     },
                     no_ai: NoAi(false),
                     left_handed: LeftHanded(false),
@@ -5471,12 +5412,12 @@ impl Default for IronGolemMetadataBundle {
                         },
                         auto_spin_attack: AutoSpinAttack(false),
                         abstract_living_using_item: AbstractLivingUsingItem(false),
-                        health: Health(1.0),
+                        health: Health(Default::default()),
                         effect_particles: EffectParticles(Default::default()),
-                        effect_ambience: EffectAmbience(false),
-                        arrow_count: ArrowCount(0),
-                        stinger_count: StingerCount(0),
-                        sleeping_pos: SleepingPos(None),
+                        effect_ambience: EffectAmbience(Default::default()),
+                        arrow_count: ArrowCount(Default::default()),
+                        stinger_count: StingerCount(Default::default()),
+                        sleeping_pos: SleepingPos(Default::default()),
                     },
                     no_ai: NoAi(false),
                     left_handed: LeftHanded(false),
@@ -5578,20 +5519,20 @@ impl Default for PufferfishMetadataBundle {
                         },
                         auto_spin_attack: AutoSpinAttack(false),
                         abstract_living_using_item: AbstractLivingUsingItem(false),
-                        health: Health(1.0),
+                        health: Health(Default::default()),
                         effect_particles: EffectParticles(Default::default()),
-                        effect_ambience: EffectAmbience(false),
-                        arrow_count: ArrowCount(0),
-                        stinger_count: StingerCount(0),
-                        sleeping_pos: SleepingPos(None),
+                        effect_ambience: EffectAmbience(Default::default()),
+                        arrow_count: ArrowCount(Default::default()),
+                        stinger_count: StingerCount(Default::default()),
+                        sleeping_pos: SleepingPos(Default::default()),
                     },
                     no_ai: NoAi(false),
                     left_handed: LeftHanded(false),
                     aggressive: Aggressive(false),
                 },
             },
-            pufferfish_from_bucket: PufferfishFromBucket(false),
-            puff_state: PuffState(0),
+            pufferfish_from_bucket: PufferfishFromBucket(Default::default()),
+            puff_state: PuffState(Default::default()),
         }
     }
 }
@@ -5693,12 +5634,12 @@ impl Default for ShulkerMetadataBundle {
                         },
                         auto_spin_attack: AutoSpinAttack(false),
                         abstract_living_using_item: AbstractLivingUsingItem(false),
-                        health: Health(1.0),
+                        health: Health(Default::default()),
                         effect_particles: EffectParticles(Default::default()),
-                        effect_ambience: EffectAmbience(false),
-                        arrow_count: ArrowCount(0),
-                        stinger_count: StingerCount(0),
-                        sleeping_pos: SleepingPos(None),
+                        effect_ambience: EffectAmbience(Default::default()),
+                        arrow_count: ArrowCount(Default::default()),
+                        stinger_count: StingerCount(Default::default()),
+                        sleeping_pos: SleepingPos(Default::default()),
                     },
                     no_ai: NoAi(false),
                     left_handed: LeftHanded(false),
@@ -5706,8 +5647,8 @@ impl Default for ShulkerMetadataBundle {
                 },
             },
             attach_face: AttachFace(Default::default()),
-            peek: Peek(0),
-            color: Color(16),
+            peek: Peek(Default::default()),
+            color: Color(Default::default()),
         }
     }
 }
@@ -5795,19 +5736,19 @@ impl Default for SnowGolemMetadataBundle {
                         },
                         auto_spin_attack: AutoSpinAttack(false),
                         abstract_living_using_item: AbstractLivingUsingItem(false),
-                        health: Health(1.0),
+                        health: Health(Default::default()),
                         effect_particles: EffectParticles(Default::default()),
-                        effect_ambience: EffectAmbience(false),
-                        arrow_count: ArrowCount(0),
-                        stinger_count: StingerCount(0),
-                        sleeping_pos: SleepingPos(None),
+                        effect_ambience: EffectAmbience(Default::default()),
+                        arrow_count: ArrowCount(Default::default()),
+                        stinger_count: StingerCount(Default::default()),
+                        sleeping_pos: SleepingPos(Default::default()),
                     },
                     no_ai: NoAi(false),
                     left_handed: LeftHanded(false),
                     aggressive: Aggressive(false),
                 },
             },
-            has_pumpkin: HasPumpkin(true),
+            has_pumpkin: HasPumpkin(false),
         }
     }
 }
@@ -5815,6 +5756,9 @@ impl Default for SnowGolemMetadataBundle {
 /// A metadata field for [Tadpole].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct TadpoleFromBucket(pub bool);
+/// A metadata field for [Tadpole].
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
+pub struct TadpoleAgeLocked(pub bool);
 /// The marker component for entities of type `minecraft:tadpole`.
 ///
 /// # Metadata
@@ -5823,6 +5767,7 @@ pub struct TadpoleFromBucket(pub bool);
 /// to have, in addition to the metadata components from parent types:
 ///
 /// - [TadpoleFromBucket]
+/// - [TadpoleAgeLocked]
 ///
 /// # Parents
 ///
@@ -5849,6 +5794,9 @@ impl Tadpole {
             16 => {
                 entity.insert(TadpoleFromBucket(d.value.into_boolean()?));
             }
+            17 => {
+                entity.insert(TadpoleAgeLocked(d.value.into_boolean()?));
+            }
             _ => {}
         }
         Ok(())
@@ -5863,6 +5811,7 @@ pub struct TadpoleMetadataBundle {
     _marker: Tadpole,
     parent: AbstractCreatureMetadataBundle,
     tadpole_from_bucket: TadpoleFromBucket,
+    tadpole_age_locked: TadpoleAgeLocked,
 }
 impl Default for TadpoleMetadataBundle {
     fn default() -> Self {
@@ -5893,19 +5842,20 @@ impl Default for TadpoleMetadataBundle {
                         },
                         auto_spin_attack: AutoSpinAttack(false),
                         abstract_living_using_item: AbstractLivingUsingItem(false),
-                        health: Health(1.0),
+                        health: Health(Default::default()),
                         effect_particles: EffectParticles(Default::default()),
-                        effect_ambience: EffectAmbience(false),
-                        arrow_count: ArrowCount(0),
-                        stinger_count: StingerCount(0),
-                        sleeping_pos: SleepingPos(None),
+                        effect_ambience: EffectAmbience(Default::default()),
+                        arrow_count: ArrowCount(Default::default()),
+                        stinger_count: StingerCount(Default::default()),
+                        sleeping_pos: SleepingPos(Default::default()),
                     },
                     no_ai: NoAi(false),
                     left_handed: LeftHanded(false),
                     aggressive: Aggressive(false),
                 },
             },
-            tadpole_from_bucket: TadpoleFromBucket(false),
+            tadpole_from_bucket: TadpoleFromBucket(Default::default()),
+            tadpole_age_locked: TadpoleAgeLocked(Default::default()),
         }
     }
 }
@@ -5913,6 +5863,9 @@ impl Default for TadpoleMetadataBundle {
 /// A metadata field for [AbstractAgeable].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct AbstractAgeableBaby(pub bool);
+/// A metadata field for [AbstractAgeable].
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
+pub struct AbstractAgeableAgeLocked(pub bool);
 /// An abstract entity marker component.
 ///
 /// # Metadata
@@ -5922,6 +5875,7 @@ pub struct AbstractAgeableBaby(pub bool);
 /// types:
 ///
 /// - [AbstractAgeableBaby]
+/// - [AbstractAgeableAgeLocked]
 ///
 /// # Parents
 ///
@@ -5972,10 +5926,11 @@ pub struct AbstractAgeableBaby(pub bool);
 ///       - [Mule]
 ///   - [AbstractTameable]
 ///     - [Cat]
-///     - [Nautilus]
 ///     - [Parrot]
 ///     - [Wolf]
-///     - [ZombieNautilus]
+///     - [AbstractNautilus]
+///       - [Nautilus]
+///       - [ZombieNautilus]
 /// - [AbstractVillager]
 ///   - [Villager]
 ///   - [WanderingTrader]
@@ -5991,6 +5946,9 @@ impl AbstractAgeable {
             16 => {
                 entity.insert(AbstractAgeableBaby(d.value.into_boolean()?));
             }
+            17 => {
+                entity.insert(AbstractAgeableAgeLocked(d.value.into_boolean()?));
+            }
             _ => {}
         }
         Ok(())
@@ -6005,6 +5963,7 @@ pub struct AbstractAgeableMetadataBundle {
     _marker: AbstractAgeable,
     parent: AbstractCreatureMetadataBundle,
     abstract_ageable_baby: AbstractAgeableBaby,
+    abstract_ageable_age_locked: AbstractAgeableAgeLocked,
 }
 impl Default for AbstractAgeableMetadataBundle {
     fn default() -> Self {
@@ -6035,19 +5994,20 @@ impl Default for AbstractAgeableMetadataBundle {
                         },
                         auto_spin_attack: AutoSpinAttack(false),
                         abstract_living_using_item: AbstractLivingUsingItem(false),
-                        health: Health(1.0),
+                        health: Health(Default::default()),
                         effect_particles: EffectParticles(Default::default()),
-                        effect_ambience: EffectAmbience(false),
-                        arrow_count: ArrowCount(0),
-                        stinger_count: StingerCount(0),
-                        sleeping_pos: SleepingPos(None),
+                        effect_ambience: EffectAmbience(Default::default()),
+                        arrow_count: ArrowCount(Default::default()),
+                        stinger_count: StingerCount(Default::default()),
+                        sleeping_pos: SleepingPos(Default::default()),
                     },
                     no_ai: NoAi(false),
                     left_handed: LeftHanded(false),
                     aggressive: Aggressive(false),
                 },
             },
-            abstract_ageable_baby: AbstractAgeableBaby(false),
+            abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+            abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
         }
     }
 }
@@ -6090,11 +6050,11 @@ impl Dolphin {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAgeable::apply_metadata(entity, d)?,
-            17 => {
+            0..=17 => AbstractAgeable::apply_metadata(entity, d)?,
+            18 => {
                 entity.insert(GotFish(d.value.into_boolean()?));
             }
-            18 => {
+            19 => {
                 entity.insert(MoistnessLevel(d.value.into_int()?));
             }
             _ => {}
@@ -6144,22 +6104,23 @@ impl Default for DolphinMetadataBundle {
                             },
                             auto_spin_attack: AutoSpinAttack(false),
                             abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
+                            health: Health(Default::default()),
                             effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
+                            effect_ambience: EffectAmbience(Default::default()),
+                            arrow_count: ArrowCount(Default::default()),
+                            stinger_count: StingerCount(Default::default()),
+                            sleeping_pos: SleepingPos(Default::default()),
                         },
                         no_ai: NoAi(false),
                         left_handed: LeftHanded(false),
                         aggressive: Aggressive(false),
                     },
                 },
-                abstract_ageable_baby: AbstractAgeableBaby(false),
+                abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
             },
-            got_fish: GotFish(false),
-            moistness_level: MoistnessLevel(2400),
+            got_fish: GotFish(Default::default()),
+            moistness_level: MoistnessLevel(Default::default()),
         }
     }
 }
@@ -6193,7 +6154,7 @@ impl Squid {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAgeable::apply_metadata(entity, d)?,
+            0..=17 => AbstractAgeable::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -6239,19 +6200,20 @@ impl Default for SquidMetadataBundle {
                             },
                             auto_spin_attack: AutoSpinAttack(false),
                             abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
+                            health: Health(Default::default()),
                             effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
+                            effect_ambience: EffectAmbience(Default::default()),
+                            arrow_count: ArrowCount(Default::default()),
+                            stinger_count: StingerCount(Default::default()),
+                            sleeping_pos: SleepingPos(Default::default()),
                         },
                         no_ai: NoAi(false),
                         left_handed: LeftHanded(false),
                         aggressive: Aggressive(false),
                     },
                 },
-                abstract_ageable_baby: AbstractAgeableBaby(false),
+                abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
             },
         }
     }
@@ -6293,8 +6255,8 @@ impl GlowSquid {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => Squid::apply_metadata(entity, d)?,
-            17 => {
+            0..=17 => Squid::apply_metadata(entity, d)?,
+            18 => {
                 entity.insert(DarkTicksRemaining(d.value.into_int()?));
             }
             _ => {}
@@ -6347,22 +6309,23 @@ impl Default for GlowSquidMetadataBundle {
                                 },
                                 auto_spin_attack: AutoSpinAttack(false),
                                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
+                                health: Health(Default::default()),
                                 effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
+                                effect_ambience: EffectAmbience(Default::default()),
+                                arrow_count: ArrowCount(Default::default()),
+                                stinger_count: StingerCount(Default::default()),
+                                sleeping_pos: SleepingPos(Default::default()),
                             },
                             no_ai: NoAi(false),
                             left_handed: LeftHanded(false),
                             aggressive: Aggressive(false),
                         },
                     },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
                 },
             },
-            dark_ticks_remaining: DarkTicksRemaining(0),
+            dark_ticks_remaining: DarkTicksRemaining(Default::default()),
         }
     }
 }
@@ -6420,10 +6383,11 @@ impl Default for GlowSquidMetadataBundle {
 ///     - [Mule]
 /// - [AbstractTameable]
 ///   - [Cat]
-///   - [Nautilus]
 ///   - [Parrot]
 ///   - [Wolf]
-///   - [ZombieNautilus]
+///   - [AbstractNautilus]
+///     - [Nautilus]
+///     - [ZombieNautilus]
 #[derive(Component)]
 pub struct AbstractAnimal;
 impl AbstractAnimal {
@@ -6432,7 +6396,7 @@ impl AbstractAnimal {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAgeable::apply_metadata(entity, d)?,
+            0..=17 => AbstractAgeable::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -6478,19 +6442,20 @@ impl Default for AbstractAnimalMetadataBundle {
                             },
                             auto_spin_attack: AutoSpinAttack(false),
                             abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
+                            health: Health(Default::default()),
                             effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
+                            effect_ambience: EffectAmbience(Default::default()),
+                            arrow_count: ArrowCount(Default::default()),
+                            stinger_count: StingerCount(Default::default()),
+                            sleeping_pos: SleepingPos(Default::default()),
                         },
                         no_ai: NoAi(false),
                         left_handed: LeftHanded(false),
                         aggressive: Aggressive(false),
                     },
                 },
-                abstract_ageable_baby: AbstractAgeableBaby(false),
+                abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
             },
         }
     }
@@ -6532,8 +6497,8 @@ impl Armadillo {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
-            17 => {
+            0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
+            18 => {
                 entity.insert(ArmadilloState(d.value.into_armadillo_state()?));
             }
             _ => {}
@@ -6586,19 +6551,20 @@ impl Default for ArmadilloMetadataBundle {
                                 },
                                 auto_spin_attack: AutoSpinAttack(false),
                                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
+                                health: Health(Default::default()),
                                 effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
+                                effect_ambience: EffectAmbience(Default::default()),
+                                arrow_count: ArrowCount(Default::default()),
+                                stinger_count: StingerCount(Default::default()),
+                                sleeping_pos: SleepingPos(Default::default()),
                             },
                             no_ai: NoAi(false),
                             left_handed: LeftHanded(false),
                             aggressive: Aggressive(false),
                         },
                     },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
                 },
             },
             armadillo_state: ArmadilloState(Default::default()),
@@ -6649,14 +6615,14 @@ impl Axolotl {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
-            17 => {
+            0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
+            18 => {
                 entity.insert(AxolotlVariant(d.value.into_int()?));
             }
-            18 => {
+            19 => {
                 entity.insert(PlayingDead(d.value.into_boolean()?));
             }
-            19 => {
+            20 => {
                 entity.insert(AxolotlFromBucket(d.value.into_boolean()?));
             }
             _ => {}
@@ -6711,24 +6677,25 @@ impl Default for AxolotlMetadataBundle {
                                 },
                                 auto_spin_attack: AutoSpinAttack(false),
                                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
+                                health: Health(Default::default()),
                                 effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
+                                effect_ambience: EffectAmbience(Default::default()),
+                                arrow_count: ArrowCount(Default::default()),
+                                stinger_count: StingerCount(Default::default()),
+                                sleeping_pos: SleepingPos(Default::default()),
                             },
                             no_ai: NoAi(false),
                             left_handed: LeftHanded(false),
                             aggressive: Aggressive(false),
                         },
                     },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
                 },
             },
-            axolotl_variant: AxolotlVariant(0),
-            playing_dead: PlayingDead(false),
-            axolotl_from_bucket: AxolotlFromBucket(false),
+            axolotl_variant: AxolotlVariant(Default::default()),
+            playing_dead: PlayingDead(Default::default()),
+            axolotl_from_bucket: AxolotlFromBucket(Default::default()),
         }
     }
 }
@@ -6780,14 +6747,14 @@ impl Bee {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
-            17 => {
+            0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
+            18 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(HasNectar(bitfield & 0x8 != 0));
                 entity.insert(HasStung(bitfield & 0x4 != 0));
                 entity.insert(BeeRolling(bitfield & 0x2 != 0));
             }
-            18 => {
+            19 => {
                 entity.insert(BeeAngerEndTime(d.value.into_long()?));
             }
             _ => {}
@@ -6843,25 +6810,26 @@ impl Default for BeeMetadataBundle {
                                 },
                                 auto_spin_attack: AutoSpinAttack(false),
                                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
+                                health: Health(Default::default()),
                                 effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
+                                effect_ambience: EffectAmbience(Default::default()),
+                                arrow_count: ArrowCount(Default::default()),
+                                stinger_count: StingerCount(Default::default()),
+                                sleeping_pos: SleepingPos(Default::default()),
                             },
                             no_ai: NoAi(false),
                             left_handed: LeftHanded(false),
                             aggressive: Aggressive(false),
                         },
                     },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
                 },
             },
             has_nectar: HasNectar(false),
             has_stung: HasStung(false),
             bee_rolling: BeeRolling(false),
-            bee_anger_end_time: BeeAngerEndTime(-1),
+            bee_anger_end_time: BeeAngerEndTime(Default::default()),
         }
     }
 }
@@ -6901,8 +6869,8 @@ impl Chicken {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
-            17 => {
+            0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
+            18 => {
                 entity.insert(ChickenVariant(d.value.into_pig_variant()?));
             }
             _ => {}
@@ -6955,19 +6923,20 @@ impl Default for ChickenMetadataBundle {
                                 },
                                 auto_spin_attack: AutoSpinAttack(false),
                                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
+                                health: Health(Default::default()),
                                 effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
+                                effect_ambience: EffectAmbience(Default::default()),
+                                arrow_count: ArrowCount(Default::default()),
+                                stinger_count: StingerCount(Default::default()),
+                                sleeping_pos: SleepingPos(Default::default()),
                             },
                             no_ai: NoAi(false),
                             left_handed: LeftHanded(false),
                             aggressive: Aggressive(false),
                         },
                     },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
                 },
             },
             chicken_variant: ChickenVariant(azalea_registry::data::PigVariant::new_raw(0)),
@@ -7010,8 +6979,8 @@ impl Cow {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
-            17 => {
+            0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
+            18 => {
                 entity.insert(CowVariant(d.value.into_chicken_variant()?));
             }
             _ => {}
@@ -7064,19 +7033,20 @@ impl Default for CowMetadataBundle {
                                 },
                                 auto_spin_attack: AutoSpinAttack(false),
                                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
+                                health: Health(Default::default()),
                                 effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
+                                effect_ambience: EffectAmbience(Default::default()),
+                                arrow_count: ArrowCount(Default::default()),
+                                stinger_count: StingerCount(Default::default()),
+                                sleeping_pos: SleepingPos(Default::default()),
                             },
                             no_ai: NoAi(false),
                             left_handed: LeftHanded(false),
                             aggressive: Aggressive(false),
                         },
                     },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
                 },
             },
             cow_variant: CowVariant(azalea_registry::data::ChickenVariant::new_raw(0)),
@@ -7155,11 +7125,11 @@ impl Fox {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
-            17 => {
+            0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
+            18 => {
                 entity.insert(FoxKind(d.value.into_int()?));
             }
-            18 => {
+            19 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(FoxSitting(bitfield & 0x1 != 0));
                 entity.insert(Faceplanted(bitfield & 0x40 != 0));
@@ -7169,10 +7139,10 @@ impl Fox {
                 entity.insert(FoxCrouching(bitfield & 0x4 != 0));
                 entity.insert(FoxInterested(bitfield & 0x8 != 0));
             }
-            19 => {
+            20 => {
                 entity.insert(TrustedId0(d.value.into_optional_living_entity_reference()?));
             }
-            20 => {
+            21 => {
                 entity.insert(TrustedId1(d.value.into_optional_living_entity_reference()?));
             }
             _ => {}
@@ -7234,19 +7204,20 @@ impl Default for FoxMetadataBundle {
                                 },
                                 auto_spin_attack: AutoSpinAttack(false),
                                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
+                                health: Health(Default::default()),
                                 effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
+                                effect_ambience: EffectAmbience(Default::default()),
+                                arrow_count: ArrowCount(Default::default()),
+                                stinger_count: StingerCount(Default::default()),
+                                sleeping_pos: SleepingPos(Default::default()),
                             },
                             no_ai: NoAi(false),
                             left_handed: LeftHanded(false),
                             aggressive: Aggressive(false),
                         },
                     },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
                 },
             },
             fox_kind: FoxKind(Default::default()),
@@ -7257,8 +7228,8 @@ impl Default for FoxMetadataBundle {
             pouncing: Pouncing(false),
             fox_crouching: FoxCrouching(false),
             fox_interested: FoxInterested(false),
-            trusted_id_0: TrustedId0(None),
-            trusted_id_1: TrustedId1(None),
+            trusted_id_0: TrustedId0(Default::default()),
+            trusted_id_1: TrustedId1(Default::default()),
         }
     }
 }
@@ -7302,11 +7273,11 @@ impl Frog {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
-            17 => {
+            0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
+            18 => {
                 entity.insert(FrogVariant(d.value.into_wolf_sound_variant()?));
             }
-            18 => {
+            19 => {
                 entity.insert(TongueTarget(d.value.into_optional_unsigned_int()?));
             }
             _ => {}
@@ -7360,23 +7331,24 @@ impl Default for FrogMetadataBundle {
                                 },
                                 auto_spin_attack: AutoSpinAttack(false),
                                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
+                                health: Health(Default::default()),
                                 effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
+                                effect_ambience: EffectAmbience(Default::default()),
+                                arrow_count: ArrowCount(Default::default()),
+                                stinger_count: StingerCount(Default::default()),
+                                sleeping_pos: SleepingPos(Default::default()),
                             },
                             no_ai: NoAi(false),
                             left_handed: LeftHanded(false),
                             aggressive: Aggressive(false),
                         },
                     },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
                 },
             },
             frog_variant: FrogVariant(azalea_registry::data::WolfSoundVariant::new_raw(0)),
-            tongue_target: TongueTarget(OptionalUnsignedInt(None)),
+            tongue_target: TongueTarget(Default::default()),
         }
     }
 }
@@ -7424,14 +7396,14 @@ impl Goat {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
-            17 => {
+            0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
+            18 => {
                 entity.insert(IsScreamingGoat(d.value.into_boolean()?));
             }
-            18 => {
+            19 => {
                 entity.insert(HasLeftHorn(d.value.into_boolean()?));
             }
-            19 => {
+            20 => {
                 entity.insert(HasRightHorn(d.value.into_boolean()?));
             }
             _ => {}
@@ -7486,24 +7458,25 @@ impl Default for GoatMetadataBundle {
                                 },
                                 auto_spin_attack: AutoSpinAttack(false),
                                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
+                                health: Health(Default::default()),
                                 effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
+                                effect_ambience: EffectAmbience(Default::default()),
+                                arrow_count: ArrowCount(Default::default()),
+                                stinger_count: StingerCount(Default::default()),
+                                sleeping_pos: SleepingPos(Default::default()),
                             },
                             no_ai: NoAi(false),
                             left_handed: LeftHanded(false),
                             aggressive: Aggressive(false),
                         },
                     },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
                 },
             },
-            is_screaming_goat: IsScreamingGoat(false),
-            has_left_horn: HasLeftHorn(true),
-            has_right_horn: HasRightHorn(true),
+            is_screaming_goat: IsScreamingGoat(Default::default()),
+            has_left_horn: HasLeftHorn(Default::default()),
+            has_right_horn: HasRightHorn(Default::default()),
         }
     }
 }
@@ -7548,11 +7521,11 @@ impl HappyGhast {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
-            17 => {
+            0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
+            18 => {
                 entity.insert(IsLeashHolder(d.value.into_boolean()?));
             }
-            18 => {
+            19 => {
                 entity.insert(StaysStill(d.value.into_boolean()?));
             }
             _ => {}
@@ -7606,23 +7579,24 @@ impl Default for HappyGhastMetadataBundle {
                                 },
                                 auto_spin_attack: AutoSpinAttack(false),
                                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
+                                health: Health(Default::default()),
                                 effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
+                                effect_ambience: EffectAmbience(Default::default()),
+                                arrow_count: ArrowCount(Default::default()),
+                                stinger_count: StingerCount(Default::default()),
+                                sleeping_pos: SleepingPos(Default::default()),
                             },
                             no_ai: NoAi(false),
                             left_handed: LeftHanded(false),
                             aggressive: Aggressive(false),
                         },
                     },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
                 },
             },
-            is_leash_holder: IsLeashHolder(false),
-            stays_still: StaysStill(false),
+            is_leash_holder: IsLeashHolder(Default::default()),
+            stays_still: StaysStill(Default::default()),
         }
     }
 }
@@ -7662,8 +7636,8 @@ impl Hoglin {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
-            17 => {
+            0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
+            18 => {
                 entity.insert(HoglinImmuneToZombification(d.value.into_boolean()?));
             }
             _ => {}
@@ -7716,22 +7690,23 @@ impl Default for HoglinMetadataBundle {
                                 },
                                 auto_spin_attack: AutoSpinAttack(false),
                                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
+                                health: Health(Default::default()),
                                 effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
+                                effect_ambience: EffectAmbience(Default::default()),
+                                arrow_count: ArrowCount(Default::default()),
+                                stinger_count: StingerCount(Default::default()),
+                                sleeping_pos: SleepingPos(Default::default()),
                             },
                             no_ai: NoAi(false),
                             left_handed: LeftHanded(false),
                             aggressive: Aggressive(false),
                         },
                     },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
                 },
             },
-            hoglin_immune_to_zombification: HoglinImmuneToZombification(false),
+            hoglin_immune_to_zombification: HoglinImmuneToZombification(Default::default()),
         }
     }
 }
@@ -7772,8 +7747,8 @@ impl Mooshroom {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
-            17 => {
+            0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
+            18 => {
                 entity.insert(MooshroomKind(d.value.into_int()?));
             }
             _ => {}
@@ -7826,19 +7801,20 @@ impl Default for MooshroomMetadataBundle {
                                 },
                                 auto_spin_attack: AutoSpinAttack(false),
                                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
+                                health: Health(Default::default()),
                                 effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
+                                effect_ambience: EffectAmbience(Default::default()),
+                                arrow_count: ArrowCount(Default::default()),
+                                stinger_count: StingerCount(Default::default()),
+                                sleeping_pos: SleepingPos(Default::default()),
                             },
                             no_ai: NoAi(false),
                             left_handed: LeftHanded(false),
                             aggressive: Aggressive(false),
                         },
                     },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
                 },
             },
             mooshroom_kind: MooshroomKind(Default::default()),
@@ -7881,8 +7857,8 @@ impl Ocelot {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
-            17 => {
+            0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
+            18 => {
                 entity.insert(Trusting(d.value.into_boolean()?));
             }
             _ => {}
@@ -7935,22 +7911,23 @@ impl Default for OcelotMetadataBundle {
                                 },
                                 auto_spin_attack: AutoSpinAttack(false),
                                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
+                                health: Health(Default::default()),
                                 effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
+                                effect_ambience: EffectAmbience(Default::default()),
+                                arrow_count: ArrowCount(Default::default()),
+                                stinger_count: StingerCount(Default::default()),
+                                sleeping_pos: SleepingPos(Default::default()),
                             },
                             no_ai: NoAi(false),
                             left_handed: LeftHanded(false),
                             aggressive: Aggressive(false),
                         },
                     },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
                 },
             },
-            trusting: Trusting(false),
+            trusting: Trusting(Default::default()),
         }
     }
 }
@@ -8022,27 +7999,27 @@ impl Panda {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
-            17 => {
+            0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
+            18 => {
                 entity.insert(PandaUnhappyCounter(d.value.into_int()?));
             }
-            18 => {
+            19 => {
                 entity.insert(SneezeCounter(d.value.into_int()?));
             }
-            19 => {
+            20 => {
                 entity.insert(EatCounter(d.value.into_int()?));
             }
-            20 => {
+            21 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(Sneezing(bitfield & 0x2 != 0));
                 entity.insert(PandaSitting(bitfield & 0x8 != 0));
                 entity.insert(OnBack(bitfield & 0x10 != 0));
                 entity.insert(PandaRolling(bitfield & 0x4 != 0));
             }
-            21 => {
+            22 => {
                 entity.insert(HiddenGene(d.value.into_byte()?));
             }
-            22 => {
+            23 => {
                 entity.insert(PandaFlags(d.value.into_byte()?));
             }
             _ => {}
@@ -8103,30 +8080,31 @@ impl Default for PandaMetadataBundle {
                                 },
                                 auto_spin_attack: AutoSpinAttack(false),
                                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
+                                health: Health(Default::default()),
                                 effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
+                                effect_ambience: EffectAmbience(Default::default()),
+                                arrow_count: ArrowCount(Default::default()),
+                                stinger_count: StingerCount(Default::default()),
+                                sleeping_pos: SleepingPos(Default::default()),
                             },
                             no_ai: NoAi(false),
                             left_handed: LeftHanded(false),
                             aggressive: Aggressive(false),
                         },
                     },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
                 },
             },
-            panda_unhappy_counter: PandaUnhappyCounter(0),
-            sneeze_counter: SneezeCounter(0),
-            eat_counter: EatCounter(0),
+            panda_unhappy_counter: PandaUnhappyCounter(Default::default()),
+            sneeze_counter: SneezeCounter(Default::default()),
+            eat_counter: EatCounter(Default::default()),
             sneezing: Sneezing(false),
             panda_sitting: PandaSitting(false),
             on_back: OnBack(false),
             panda_rolling: PandaRolling(false),
-            hidden_gene: HiddenGene(0),
-            panda_flags: PandaFlags(0),
+            hidden_gene: HiddenGene(Default::default()),
+            panda_flags: PandaFlags(Default::default()),
         }
     }
 }
@@ -8170,11 +8148,11 @@ impl Pig {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
-            17 => {
+            0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
+            18 => {
                 entity.insert(PigBoostTime(d.value.into_int()?));
             }
-            18 => {
+            19 => {
                 entity.insert(PigVariant(d.value.into_frog_variant()?));
             }
             _ => {}
@@ -8228,22 +8206,23 @@ impl Default for PigMetadataBundle {
                                 },
                                 auto_spin_attack: AutoSpinAttack(false),
                                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
+                                health: Health(Default::default()),
                                 effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
+                                effect_ambience: EffectAmbience(Default::default()),
+                                arrow_count: ArrowCount(Default::default()),
+                                stinger_count: StingerCount(Default::default()),
+                                sleeping_pos: SleepingPos(Default::default()),
                             },
                             no_ai: NoAi(false),
                             left_handed: LeftHanded(false),
                             aggressive: Aggressive(false),
                         },
                     },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
                 },
             },
-            pig_boost_time: PigBoostTime(0),
+            pig_boost_time: PigBoostTime(Default::default()),
             pig_variant: PigVariant(azalea_registry::data::FrogVariant::new_raw(0)),
         }
     }
@@ -8285,8 +8264,8 @@ impl PolarBear {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
-            17 => {
+            0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
+            18 => {
                 entity.insert(PolarBearStanding(d.value.into_boolean()?));
             }
             _ => {}
@@ -8339,22 +8318,23 @@ impl Default for PolarBearMetadataBundle {
                                 },
                                 auto_spin_attack: AutoSpinAttack(false),
                                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
+                                health: Health(Default::default()),
                                 effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
+                                effect_ambience: EffectAmbience(Default::default()),
+                                arrow_count: ArrowCount(Default::default()),
+                                stinger_count: StingerCount(Default::default()),
+                                sleeping_pos: SleepingPos(Default::default()),
                             },
                             no_ai: NoAi(false),
                             left_handed: LeftHanded(false),
                             aggressive: Aggressive(false),
                         },
                     },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
                 },
             },
-            polar_bear_standing: PolarBearStanding(false),
+            polar_bear_standing: PolarBearStanding(Default::default()),
         }
     }
 }
@@ -8394,8 +8374,8 @@ impl Rabbit {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
-            17 => {
+            0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
+            18 => {
                 entity.insert(RabbitKind(d.value.into_int()?));
             }
             _ => {}
@@ -8448,19 +8428,20 @@ impl Default for RabbitMetadataBundle {
                                 },
                                 auto_spin_attack: AutoSpinAttack(false),
                                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
+                                health: Health(Default::default()),
                                 effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
+                                effect_ambience: EffectAmbience(Default::default()),
+                                arrow_count: ArrowCount(Default::default()),
+                                stinger_count: StingerCount(Default::default()),
+                                sleeping_pos: SleepingPos(Default::default()),
                             },
                             no_ai: NoAi(false),
                             left_handed: LeftHanded(false),
                             aggressive: Aggressive(false),
                         },
                     },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
                 },
             },
             rabbit_kind: RabbitKind(Default::default()),
@@ -8503,8 +8484,8 @@ impl Sheep {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
-            17 => {
+            0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
+            18 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(SheepSheared(bitfield & 0x10 != 0));
             }
@@ -8558,19 +8539,20 @@ impl Default for SheepMetadataBundle {
                                 },
                                 auto_spin_attack: AutoSpinAttack(false),
                                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
+                                health: Health(Default::default()),
                                 effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
+                                effect_ambience: EffectAmbience(Default::default()),
+                                arrow_count: ArrowCount(Default::default()),
+                                stinger_count: StingerCount(Default::default()),
+                                sleeping_pos: SleepingPos(Default::default()),
                             },
                             no_ai: NoAi(false),
                             left_handed: LeftHanded(false),
                             aggressive: Aggressive(false),
                         },
                     },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
                 },
             },
             sheep_sheared: SheepSheared(false),
@@ -8617,11 +8599,11 @@ impl Sniffer {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
-            17 => {
+            0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
+            18 => {
                 entity.insert(SnifferState(d.value.into_sniffer_state()?));
             }
-            18 => {
+            19 => {
                 entity.insert(DropSeedAtTick(d.value.into_int()?));
             }
             _ => {}
@@ -8675,23 +8657,24 @@ impl Default for SnifferMetadataBundle {
                                 },
                                 auto_spin_attack: AutoSpinAttack(false),
                                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
+                                health: Health(Default::default()),
                                 effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
+                                effect_ambience: EffectAmbience(Default::default()),
+                                arrow_count: ArrowCount(Default::default()),
+                                stinger_count: StingerCount(Default::default()),
+                                sleeping_pos: SleepingPos(Default::default()),
                             },
                             no_ai: NoAi(false),
                             left_handed: LeftHanded(false),
                             aggressive: Aggressive(false),
                         },
                     },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
                 },
             },
             sniffer_state: SnifferState(Default::default()),
-            drop_seed_at_tick: DropSeedAtTick(0),
+            drop_seed_at_tick: DropSeedAtTick(Default::default()),
         }
     }
 }
@@ -8735,11 +8718,11 @@ impl Strider {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
-            17 => {
+            0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
+            18 => {
                 entity.insert(StriderBoostTime(d.value.into_int()?));
             }
-            18 => {
+            19 => {
                 entity.insert(Suffocating(d.value.into_boolean()?));
             }
             _ => {}
@@ -8793,23 +8776,24 @@ impl Default for StriderMetadataBundle {
                                 },
                                 auto_spin_attack: AutoSpinAttack(false),
                                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
+                                health: Health(Default::default()),
                                 effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
+                                effect_ambience: EffectAmbience(Default::default()),
+                                arrow_count: ArrowCount(Default::default()),
+                                stinger_count: StingerCount(Default::default()),
+                                sleeping_pos: SleepingPos(Default::default()),
                             },
                             no_ai: NoAi(false),
                             left_handed: LeftHanded(false),
                             aggressive: Aggressive(false),
                         },
                     },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
                 },
             },
-            strider_boost_time: StriderBoostTime(0),
-            suffocating: Suffocating(false),
+            strider_boost_time: StriderBoostTime(Default::default()),
+            suffocating: Suffocating(Default::default()),
         }
     }
 }
@@ -8853,11 +8837,11 @@ impl Turtle {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
-            17 => {
+            0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
+            18 => {
                 entity.insert(HasEgg(d.value.into_boolean()?));
             }
-            18 => {
+            19 => {
                 entity.insert(LayingEgg(d.value.into_boolean()?));
             }
             _ => {}
@@ -8911,23 +8895,24 @@ impl Default for TurtleMetadataBundle {
                                 },
                                 auto_spin_attack: AutoSpinAttack(false),
                                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
+                                health: Health(Default::default()),
                                 effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
+                                effect_ambience: EffectAmbience(Default::default()),
+                                arrow_count: ArrowCount(Default::default()),
+                                stinger_count: StingerCount(Default::default()),
+                                sleeping_pos: SleepingPos(Default::default()),
                             },
                             no_ai: NoAi(false),
                             left_handed: LeftHanded(false),
                             aggressive: Aggressive(false),
                         },
                     },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
                 },
             },
-            has_egg: HasEgg(false),
-            laying_egg: LayingEgg(false),
+            has_egg: HasEgg(Default::default()),
+            laying_egg: LayingEgg(Default::default()),
         }
     }
 }
@@ -8989,8 +8974,8 @@ impl AbstractHorse {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
-            17 => {
+            0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
+            18 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(Tamed(bitfield & 0x2 != 0));
                 entity.insert(Eating(bitfield & 0x10 != 0));
@@ -9050,19 +9035,20 @@ impl Default for AbstractHorseMetadataBundle {
                                 },
                                 auto_spin_attack: AutoSpinAttack(false),
                                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
+                                health: Health(Default::default()),
                                 effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
+                                effect_ambience: EffectAmbience(Default::default()),
+                                arrow_count: ArrowCount(Default::default()),
+                                stinger_count: StingerCount(Default::default()),
+                                sleeping_pos: SleepingPos(Default::default()),
                             },
                             no_ai: NoAi(false),
                             left_handed: LeftHanded(false),
                             aggressive: Aggressive(false),
                         },
                     },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
                 },
             },
             tamed: Tamed(false),
@@ -9113,11 +9099,11 @@ impl Camel {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=17 => AbstractHorse::apply_metadata(entity, d)?,
-            18 => {
+            0..=18 => AbstractHorse::apply_metadata(entity, d)?,
+            19 => {
                 entity.insert(CamelDash(d.value.into_boolean()?));
             }
-            19 => {
+            20 => {
                 entity.insert(LastPoseChangeTick(d.value.into_long()?));
             }
             _ => {}
@@ -9173,19 +9159,20 @@ impl Default for CamelMetadataBundle {
                                     },
                                     auto_spin_attack: AutoSpinAttack(false),
                                     abstract_living_using_item: AbstractLivingUsingItem(false),
-                                    health: Health(1.0),
+                                    health: Health(Default::default()),
                                     effect_particles: EffectParticles(Default::default()),
-                                    effect_ambience: EffectAmbience(false),
-                                    arrow_count: ArrowCount(0),
-                                    stinger_count: StingerCount(0),
-                                    sleeping_pos: SleepingPos(None),
+                                    effect_ambience: EffectAmbience(Default::default()),
+                                    arrow_count: ArrowCount(Default::default()),
+                                    stinger_count: StingerCount(Default::default()),
+                                    sleeping_pos: SleepingPos(Default::default()),
                                 },
                                 no_ai: NoAi(false),
                                 left_handed: LeftHanded(false),
                                 aggressive: Aggressive(false),
                             },
                         },
-                        abstract_ageable_baby: AbstractAgeableBaby(false),
+                        abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                        abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
                     },
                 },
                 tamed: Tamed(false),
@@ -9193,8 +9180,8 @@ impl Default for CamelMetadataBundle {
                 abstract_horse_standing: AbstractHorseStanding(false),
                 bred: Bred(false),
             },
-            camel_dash: CamelDash(false),
-            last_pose_change_tick: LastPoseChangeTick(0),
+            camel_dash: CamelDash(Default::default()),
+            last_pose_change_tick: LastPoseChangeTick(Default::default()),
         }
     }
 }
@@ -9231,7 +9218,7 @@ impl CamelHusk {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=19 => Camel::apply_metadata(entity, d)?,
+            0..=20 => Camel::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -9286,19 +9273,22 @@ impl Default for CamelHuskMetadataBundle {
                                         },
                                         auto_spin_attack: AutoSpinAttack(false),
                                         abstract_living_using_item: AbstractLivingUsingItem(false),
-                                        health: Health(1.0),
+                                        health: Health(Default::default()),
                                         effect_particles: EffectParticles(Default::default()),
-                                        effect_ambience: EffectAmbience(false),
-                                        arrow_count: ArrowCount(0),
-                                        stinger_count: StingerCount(0),
-                                        sleeping_pos: SleepingPos(None),
+                                        effect_ambience: EffectAmbience(Default::default()),
+                                        arrow_count: ArrowCount(Default::default()),
+                                        stinger_count: StingerCount(Default::default()),
+                                        sleeping_pos: SleepingPos(Default::default()),
                                     },
                                     no_ai: NoAi(false),
                                     left_handed: LeftHanded(false),
                                     aggressive: Aggressive(false),
                                 },
                             },
-                            abstract_ageable_baby: AbstractAgeableBaby(false),
+                            abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                            abstract_ageable_age_locked: AbstractAgeableAgeLocked(
+                                Default::default(),
+                            ),
                         },
                     },
                     tamed: Tamed(false),
@@ -9306,8 +9296,8 @@ impl Default for CamelHuskMetadataBundle {
                     abstract_horse_standing: AbstractHorseStanding(false),
                     bred: Bred(false),
                 },
-                camel_dash: CamelDash(false),
-                last_pose_change_tick: LastPoseChangeTick(0),
+                camel_dash: CamelDash(Default::default()),
+                last_pose_change_tick: LastPoseChangeTick(Default::default()),
             },
         }
     }
@@ -9349,8 +9339,8 @@ impl Horse {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=17 => AbstractHorse::apply_metadata(entity, d)?,
-            18 => {
+            0..=18 => AbstractHorse::apply_metadata(entity, d)?,
+            19 => {
                 entity.insert(HorseTypeVariant(d.value.into_int()?));
             }
             _ => {}
@@ -9405,19 +9395,20 @@ impl Default for HorseMetadataBundle {
                                     },
                                     auto_spin_attack: AutoSpinAttack(false),
                                     abstract_living_using_item: AbstractLivingUsingItem(false),
-                                    health: Health(1.0),
+                                    health: Health(Default::default()),
                                     effect_particles: EffectParticles(Default::default()),
-                                    effect_ambience: EffectAmbience(false),
-                                    arrow_count: ArrowCount(0),
-                                    stinger_count: StingerCount(0),
-                                    sleeping_pos: SleepingPos(None),
+                                    effect_ambience: EffectAmbience(Default::default()),
+                                    arrow_count: ArrowCount(Default::default()),
+                                    stinger_count: StingerCount(Default::default()),
+                                    sleeping_pos: SleepingPos(Default::default()),
                                 },
                                 no_ai: NoAi(false),
                                 left_handed: LeftHanded(false),
                                 aggressive: Aggressive(false),
                             },
                         },
-                        abstract_ageable_baby: AbstractAgeableBaby(false),
+                        abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                        abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
                     },
                 },
                 tamed: Tamed(false),
@@ -9425,7 +9416,7 @@ impl Default for HorseMetadataBundle {
                 abstract_horse_standing: AbstractHorseStanding(false),
                 bred: Bred(false),
             },
-            horse_type_variant: HorseTypeVariant(0),
+            horse_type_variant: HorseTypeVariant(Default::default()),
         }
     }
 }
@@ -9461,7 +9452,7 @@ impl SkeletonHorse {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=17 => AbstractHorse::apply_metadata(entity, d)?,
+            0..=18 => AbstractHorse::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -9513,19 +9504,20 @@ impl Default for SkeletonHorseMetadataBundle {
                                     },
                                     auto_spin_attack: AutoSpinAttack(false),
                                     abstract_living_using_item: AbstractLivingUsingItem(false),
-                                    health: Health(1.0),
+                                    health: Health(Default::default()),
                                     effect_particles: EffectParticles(Default::default()),
-                                    effect_ambience: EffectAmbience(false),
-                                    arrow_count: ArrowCount(0),
-                                    stinger_count: StingerCount(0),
-                                    sleeping_pos: SleepingPos(None),
+                                    effect_ambience: EffectAmbience(Default::default()),
+                                    arrow_count: ArrowCount(Default::default()),
+                                    stinger_count: StingerCount(Default::default()),
+                                    sleeping_pos: SleepingPos(Default::default()),
                                 },
                                 no_ai: NoAi(false),
                                 left_handed: LeftHanded(false),
                                 aggressive: Aggressive(false),
                             },
                         },
-                        abstract_ageable_baby: AbstractAgeableBaby(false),
+                        abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                        abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
                     },
                 },
                 tamed: Tamed(false),
@@ -9568,7 +9560,7 @@ impl ZombieHorse {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=17 => AbstractHorse::apply_metadata(entity, d)?,
+            0..=18 => AbstractHorse::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -9620,19 +9612,20 @@ impl Default for ZombieHorseMetadataBundle {
                                     },
                                     auto_spin_attack: AutoSpinAttack(false),
                                     abstract_living_using_item: AbstractLivingUsingItem(false),
-                                    health: Health(1.0),
+                                    health: Health(Default::default()),
                                     effect_particles: EffectParticles(Default::default()),
-                                    effect_ambience: EffectAmbience(false),
-                                    arrow_count: ArrowCount(0),
-                                    stinger_count: StingerCount(0),
-                                    sleeping_pos: SleepingPos(None),
+                                    effect_ambience: EffectAmbience(Default::default()),
+                                    arrow_count: ArrowCount(Default::default()),
+                                    stinger_count: StingerCount(Default::default()),
+                                    sleeping_pos: SleepingPos(Default::default()),
                                 },
                                 no_ai: NoAi(false),
                                 left_handed: LeftHanded(false),
                                 aggressive: Aggressive(false),
                             },
                         },
-                        abstract_ageable_baby: AbstractAgeableBaby(false),
+                        abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                        abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
                     },
                 },
                 tamed: Tamed(false),
@@ -9684,8 +9677,8 @@ impl AbstractChestedHorse {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=17 => AbstractHorse::apply_metadata(entity, d)?,
-            18 => {
+            0..=18 => AbstractHorse::apply_metadata(entity, d)?,
+            19 => {
                 entity.insert(Chest(d.value.into_boolean()?));
             }
             _ => {}
@@ -9740,19 +9733,20 @@ impl Default for AbstractChestedHorseMetadataBundle {
                                     },
                                     auto_spin_attack: AutoSpinAttack(false),
                                     abstract_living_using_item: AbstractLivingUsingItem(false),
-                                    health: Health(1.0),
+                                    health: Health(Default::default()),
                                     effect_particles: EffectParticles(Default::default()),
-                                    effect_ambience: EffectAmbience(false),
-                                    arrow_count: ArrowCount(0),
-                                    stinger_count: StingerCount(0),
-                                    sleeping_pos: SleepingPos(None),
+                                    effect_ambience: EffectAmbience(Default::default()),
+                                    arrow_count: ArrowCount(Default::default()),
+                                    stinger_count: StingerCount(Default::default()),
+                                    sleeping_pos: SleepingPos(Default::default()),
                                 },
                                 no_ai: NoAi(false),
                                 left_handed: LeftHanded(false),
                                 aggressive: Aggressive(false),
                             },
                         },
-                        abstract_ageable_baby: AbstractAgeableBaby(false),
+                        abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                        abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
                     },
                 },
                 tamed: Tamed(false),
@@ -9760,7 +9754,7 @@ impl Default for AbstractChestedHorseMetadataBundle {
                 abstract_horse_standing: AbstractHorseStanding(false),
                 bred: Bred(false),
             },
-            chest: Chest(false),
+            chest: Chest(Default::default()),
         }
     }
 }
@@ -9797,7 +9791,7 @@ impl Donkey {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=18 => AbstractChestedHorse::apply_metadata(entity, d)?,
+            0..=19 => AbstractChestedHorse::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -9852,19 +9846,22 @@ impl Default for DonkeyMetadataBundle {
                                         },
                                         auto_spin_attack: AutoSpinAttack(false),
                                         abstract_living_using_item: AbstractLivingUsingItem(false),
-                                        health: Health(1.0),
+                                        health: Health(Default::default()),
                                         effect_particles: EffectParticles(Default::default()),
-                                        effect_ambience: EffectAmbience(false),
-                                        arrow_count: ArrowCount(0),
-                                        stinger_count: StingerCount(0),
-                                        sleeping_pos: SleepingPos(None),
+                                        effect_ambience: EffectAmbience(Default::default()),
+                                        arrow_count: ArrowCount(Default::default()),
+                                        stinger_count: StingerCount(Default::default()),
+                                        sleeping_pos: SleepingPos(Default::default()),
                                     },
                                     no_ai: NoAi(false),
                                     left_handed: LeftHanded(false),
                                     aggressive: Aggressive(false),
                                 },
                             },
-                            abstract_ageable_baby: AbstractAgeableBaby(false),
+                            abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                            abstract_ageable_age_locked: AbstractAgeableAgeLocked(
+                                Default::default(),
+                            ),
                         },
                     },
                     tamed: Tamed(false),
@@ -9872,7 +9869,7 @@ impl Default for DonkeyMetadataBundle {
                     abstract_horse_standing: AbstractHorseStanding(false),
                     bred: Bred(false),
                 },
-                chest: Chest(false),
+                chest: Chest(Default::default()),
             },
         }
     }
@@ -9919,11 +9916,11 @@ impl Llama {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=18 => AbstractChestedHorse::apply_metadata(entity, d)?,
-            19 => {
+            0..=19 => AbstractChestedHorse::apply_metadata(entity, d)?,
+            20 => {
                 entity.insert(Strength(d.value.into_int()?));
             }
-            20 => {
+            21 => {
                 entity.insert(LlamaVariant(d.value.into_int()?));
             }
             _ => {}
@@ -9982,19 +9979,22 @@ impl Default for LlamaMetadataBundle {
                                         },
                                         auto_spin_attack: AutoSpinAttack(false),
                                         abstract_living_using_item: AbstractLivingUsingItem(false),
-                                        health: Health(1.0),
+                                        health: Health(Default::default()),
                                         effect_particles: EffectParticles(Default::default()),
-                                        effect_ambience: EffectAmbience(false),
-                                        arrow_count: ArrowCount(0),
-                                        stinger_count: StingerCount(0),
-                                        sleeping_pos: SleepingPos(None),
+                                        effect_ambience: EffectAmbience(Default::default()),
+                                        arrow_count: ArrowCount(Default::default()),
+                                        stinger_count: StingerCount(Default::default()),
+                                        sleeping_pos: SleepingPos(Default::default()),
                                     },
                                     no_ai: NoAi(false),
                                     left_handed: LeftHanded(false),
                                     aggressive: Aggressive(false),
                                 },
                             },
-                            abstract_ageable_baby: AbstractAgeableBaby(false),
+                            abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                            abstract_ageable_age_locked: AbstractAgeableAgeLocked(
+                                Default::default(),
+                            ),
                         },
                     },
                     tamed: Tamed(false),
@@ -10002,10 +10002,10 @@ impl Default for LlamaMetadataBundle {
                     abstract_horse_standing: AbstractHorseStanding(false),
                     bred: Bred(false),
                 },
-                chest: Chest(false),
+                chest: Chest(Default::default()),
             },
-            strength: Strength(0),
-            llama_variant: LlamaVariant(0),
+            strength: Strength(Default::default()),
+            llama_variant: LlamaVariant(Default::default()),
         }
     }
 }
@@ -10043,7 +10043,7 @@ impl TraderLlama {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=20 => Llama::apply_metadata(entity, d)?,
+            0..=21 => Llama::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -10102,19 +10102,22 @@ impl Default for TraderLlamaMetadataBundle {
                                             abstract_living_using_item: AbstractLivingUsingItem(
                                                 false,
                                             ),
-                                            health: Health(1.0),
+                                            health: Health(Default::default()),
                                             effect_particles: EffectParticles(Default::default()),
-                                            effect_ambience: EffectAmbience(false),
-                                            arrow_count: ArrowCount(0),
-                                            stinger_count: StingerCount(0),
-                                            sleeping_pos: SleepingPos(None),
+                                            effect_ambience: EffectAmbience(Default::default()),
+                                            arrow_count: ArrowCount(Default::default()),
+                                            stinger_count: StingerCount(Default::default()),
+                                            sleeping_pos: SleepingPos(Default::default()),
                                         },
                                         no_ai: NoAi(false),
                                         left_handed: LeftHanded(false),
                                         aggressive: Aggressive(false),
                                     },
                                 },
-                                abstract_ageable_baby: AbstractAgeableBaby(false),
+                                abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                                abstract_ageable_age_locked: AbstractAgeableAgeLocked(
+                                    Default::default(),
+                                ),
                             },
                         },
                         tamed: Tamed(false),
@@ -10122,10 +10125,10 @@ impl Default for TraderLlamaMetadataBundle {
                         abstract_horse_standing: AbstractHorseStanding(false),
                         bred: Bred(false),
                     },
-                    chest: Chest(false),
+                    chest: Chest(Default::default()),
                 },
-                strength: Strength(0),
-                llama_variant: LlamaVariant(0),
+                strength: Strength(Default::default()),
+                llama_variant: LlamaVariant(Default::default()),
             },
         }
     }
@@ -10163,7 +10166,7 @@ impl Mule {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=18 => AbstractChestedHorse::apply_metadata(entity, d)?,
+            0..=19 => AbstractChestedHorse::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -10218,19 +10221,22 @@ impl Default for MuleMetadataBundle {
                                         },
                                         auto_spin_attack: AutoSpinAttack(false),
                                         abstract_living_using_item: AbstractLivingUsingItem(false),
-                                        health: Health(1.0),
+                                        health: Health(Default::default()),
                                         effect_particles: EffectParticles(Default::default()),
-                                        effect_ambience: EffectAmbience(false),
-                                        arrow_count: ArrowCount(0),
-                                        stinger_count: StingerCount(0),
-                                        sleeping_pos: SleepingPos(None),
+                                        effect_ambience: EffectAmbience(Default::default()),
+                                        arrow_count: ArrowCount(Default::default()),
+                                        stinger_count: StingerCount(Default::default()),
+                                        sleeping_pos: SleepingPos(Default::default()),
                                     },
                                     no_ai: NoAi(false),
                                     left_handed: LeftHanded(false),
                                     aggressive: Aggressive(false),
                                 },
                             },
-                            abstract_ageable_baby: AbstractAgeableBaby(false),
+                            abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                            abstract_ageable_age_locked: AbstractAgeableAgeLocked(
+                                Default::default(),
+                            ),
                         },
                     },
                     tamed: Tamed(false),
@@ -10238,7 +10244,7 @@ impl Default for MuleMetadataBundle {
                     abstract_horse_standing: AbstractHorseStanding(false),
                     bred: Bred(false),
                 },
-                chest: Chest(false),
+                chest: Chest(Default::default()),
             },
         }
     }
@@ -10280,10 +10286,11 @@ pub struct Owneruuid(pub Option<Uuid>);
 /// # Children
 ///
 /// - [Cat]
-/// - [Nautilus]
 /// - [Parrot]
 /// - [Wolf]
-/// - [ZombieNautilus]
+/// - [AbstractNautilus]
+///   - [Nautilus]
+///   - [ZombieNautilus]
 #[derive(Component)]
 pub struct AbstractTameable;
 impl AbstractTameable {
@@ -10292,13 +10299,13 @@ impl AbstractTameable {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
-            17 => {
+            0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
+            18 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(Tame(bitfield & 0x4 != 0));
                 entity.insert(InSittingPose(bitfield & 0x1 != 0));
             }
-            18 => {
+            19 => {
                 entity.insert(Owneruuid(d.value.into_optional_living_entity_reference()?));
             }
             _ => {}
@@ -10353,24 +10360,25 @@ impl Default for AbstractTameableMetadataBundle {
                                 },
                                 auto_spin_attack: AutoSpinAttack(false),
                                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
+                                health: Health(Default::default()),
                                 effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
+                                effect_ambience: EffectAmbience(Default::default()),
+                                arrow_count: ArrowCount(Default::default()),
+                                stinger_count: StingerCount(Default::default()),
+                                sleeping_pos: SleepingPos(Default::default()),
                             },
                             no_ai: NoAi(false),
                             left_handed: LeftHanded(false),
                             aggressive: Aggressive(false),
                         },
                     },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
                 },
             },
             tame: Tame(false),
             in_sitting_pose: InSittingPose(false),
-            owneruuid: Owneruuid(None),
+            owneruuid: Owneruuid(Default::default()),
         }
     }
 }
@@ -10423,17 +10431,17 @@ impl Cat {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=18 => AbstractTameable::apply_metadata(entity, d)?,
-            19 => {
+            0..=19 => AbstractTameable::apply_metadata(entity, d)?,
+            20 => {
                 entity.insert(CatVariant(d.value.into_cat_variant()?));
             }
-            20 => {
+            21 => {
                 entity.insert(IsLying(d.value.into_boolean()?));
             }
-            21 => {
+            22 => {
                 entity.insert(RelaxStateOne(d.value.into_boolean()?));
             }
-            22 => {
+            23 => {
                 entity.insert(CatCollarColor(d.value.into_int()?));
             }
             _ => {}
@@ -10491,146 +10499,30 @@ impl Default for CatMetadataBundle {
                                     },
                                     auto_spin_attack: AutoSpinAttack(false),
                                     abstract_living_using_item: AbstractLivingUsingItem(false),
-                                    health: Health(1.0),
+                                    health: Health(Default::default()),
                                     effect_particles: EffectParticles(Default::default()),
-                                    effect_ambience: EffectAmbience(false),
-                                    arrow_count: ArrowCount(0),
-                                    stinger_count: StingerCount(0),
-                                    sleeping_pos: SleepingPos(None),
+                                    effect_ambience: EffectAmbience(Default::default()),
+                                    arrow_count: ArrowCount(Default::default()),
+                                    stinger_count: StingerCount(Default::default()),
+                                    sleeping_pos: SleepingPos(Default::default()),
                                 },
                                 no_ai: NoAi(false),
                                 left_handed: LeftHanded(false),
                                 aggressive: Aggressive(false),
                             },
                         },
-                        abstract_ageable_baby: AbstractAgeableBaby(false),
+                        abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                        abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
                     },
                 },
                 tame: Tame(false),
                 in_sitting_pose: InSittingPose(false),
-                owneruuid: Owneruuid(None),
+                owneruuid: Owneruuid(Default::default()),
             },
             cat_variant: CatVariant(azalea_registry::data::CatVariant::new_raw(0)),
-            is_lying: IsLying(false),
-            relax_state_one: RelaxStateOne(false),
+            is_lying: IsLying(Default::default()),
+            relax_state_one: RelaxStateOne(Default::default()),
             cat_collar_color: CatCollarColor(Default::default()),
-        }
-    }
-}
-
-/// A metadata field for [Nautilus].
-#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct NautilusDash(pub bool);
-/// The marker component for entities of type `minecraft:nautilus`.
-///
-/// # Metadata
-///
-/// These are the metadata components that all `Nautilus` entities are
-/// guaranteed to have, in addition to the metadata components from parent
-/// types:
-///
-/// - [NautilusDash]
-///
-/// # Parents
-///
-/// Entities with `Nautilus` will also have the following marker components and
-/// their metadata fields:
-///
-/// - [AbstractTameable]
-/// - [AbstractAnimal]
-/// - [AbstractAgeable]
-/// - [AbstractCreature]
-/// - [AbstractInsentient]
-/// - [AbstractLiving]
-/// - [AbstractEntity]
-///
-/// # Children
-///
-/// This entity type has no children types.
-#[derive(Component)]
-pub struct Nautilus;
-impl Nautilus {
-    pub fn apply_metadata(
-        entity: &mut bevy_ecs::system::EntityCommands,
-        d: EntityDataItem,
-    ) -> Result<(), UpdateMetadataError> {
-        match d.index {
-            0..=18 => AbstractTameable::apply_metadata(entity, d)?,
-            19 => {
-                entity.insert(NautilusDash(d.value.into_boolean()?));
-            }
-            _ => {}
-        }
-        Ok(())
-    }
-}
-
-/// The metadata bundle for [Nautilus].
-///
-/// This type should generally not be used directly.
-#[derive(Bundle)]
-pub struct NautilusMetadataBundle {
-    _marker: Nautilus,
-    parent: AbstractTameableMetadataBundle,
-    nautilus_dash: NautilusDash,
-}
-impl Default for NautilusMetadataBundle {
-    fn default() -> Self {
-        Self {
-            _marker: Nautilus,
-            parent: AbstractTameableMetadataBundle {
-                _marker: AbstractTameable,
-                parent: AbstractAnimalMetadataBundle {
-                    _marker: AbstractAnimal,
-                    parent: AbstractAgeableMetadataBundle {
-                        _marker: AbstractAgeable,
-                        parent: AbstractCreatureMetadataBundle {
-                            _marker: AbstractCreature,
-                            parent: AbstractInsentientMetadataBundle {
-                                _marker: AbstractInsentient,
-                                parent: AbstractLivingMetadataBundle {
-                                    _marker: AbstractLiving,
-                                    parent: AbstractEntityMetadataBundle {
-                                        _marker: AbstractEntity,
-                                        on_fire: OnFire(false),
-                                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                            false,
-                                        ),
-                                        sprinting: Sprinting(false),
-                                        swimming: Swimming(false),
-                                        currently_glowing: CurrentlyGlowing(false),
-                                        invisible: Invisible(false),
-                                        fall_flying: FallFlying(false),
-                                        air_supply: AirSupply(Default::default()),
-                                        custom_name: CustomName(Default::default()),
-                                        custom_name_visible: CustomNameVisible(Default::default()),
-                                        silent: Silent(Default::default()),
-                                        no_gravity: NoGravity(Default::default()),
-                                        pose: Pose::default(),
-                                        ticks_frozen: TicksFrozen(Default::default()),
-                                    },
-                                    auto_spin_attack: AutoSpinAttack(false),
-                                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                                    health: Health(1.0),
-                                    effect_particles: EffectParticles(Default::default()),
-                                    effect_ambience: EffectAmbience(false),
-                                    arrow_count: ArrowCount(0),
-                                    stinger_count: StingerCount(0),
-                                    sleeping_pos: SleepingPos(None),
-                                },
-                                no_ai: NoAi(false),
-                                left_handed: LeftHanded(false),
-                                aggressive: Aggressive(false),
-                            },
-                        },
-                        abstract_ageable_baby: AbstractAgeableBaby(false),
-                    },
-                },
-                tame: Tame(false),
-                in_sitting_pose: InSittingPose(false),
-                owneruuid: Owneruuid(None),
-            },
-            nautilus_dash: NautilusDash(false),
         }
     }
 }
@@ -10671,8 +10563,8 @@ impl Parrot {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=18 => AbstractTameable::apply_metadata(entity, d)?,
-            19 => {
+            0..=19 => AbstractTameable::apply_metadata(entity, d)?,
+            20 => {
                 entity.insert(ParrotVariant(d.value.into_int()?));
             }
             _ => {}
@@ -10727,24 +10619,25 @@ impl Default for ParrotMetadataBundle {
                                     },
                                     auto_spin_attack: AutoSpinAttack(false),
                                     abstract_living_using_item: AbstractLivingUsingItem(false),
-                                    health: Health(1.0),
+                                    health: Health(Default::default()),
                                     effect_particles: EffectParticles(Default::default()),
-                                    effect_ambience: EffectAmbience(false),
-                                    arrow_count: ArrowCount(0),
-                                    stinger_count: StingerCount(0),
-                                    sleeping_pos: SleepingPos(None),
+                                    effect_ambience: EffectAmbience(Default::default()),
+                                    arrow_count: ArrowCount(Default::default()),
+                                    stinger_count: StingerCount(Default::default()),
+                                    sleeping_pos: SleepingPos(Default::default()),
                                 },
                                 no_ai: NoAi(false),
                                 left_handed: LeftHanded(false),
                                 aggressive: Aggressive(false),
                             },
                         },
-                        abstract_ageable_baby: AbstractAgeableBaby(false),
+                        abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                        abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
                     },
                 },
                 tame: Tame(false),
                 in_sitting_pose: InSittingPose(false),
-                owneruuid: Owneruuid(None),
+                owneruuid: Owneruuid(Default::default()),
             },
             parrot_variant: ParrotVariant(Default::default()),
         }
@@ -10803,20 +10696,20 @@ impl Wolf {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=18 => AbstractTameable::apply_metadata(entity, d)?,
-            19 => {
+            0..=19 => AbstractTameable::apply_metadata(entity, d)?,
+            20 => {
                 entity.insert(WolfInterested(d.value.into_boolean()?));
             }
-            20 => {
+            21 => {
                 entity.insert(WolfCollarColor(d.value.into_int()?));
             }
-            21 => {
+            22 => {
                 entity.insert(WolfAngerEndTime(d.value.into_long()?));
             }
-            22 => {
+            23 => {
                 entity.insert(WolfVariant(d.value.into_cow_variant()?));
             }
-            23 => {
+            24 => {
                 entity.insert(SoundVariant(d.value.into_wolf_variant()?));
             }
             _ => {}
@@ -10875,54 +10768,51 @@ impl Default for WolfMetadataBundle {
                                     },
                                     auto_spin_attack: AutoSpinAttack(false),
                                     abstract_living_using_item: AbstractLivingUsingItem(false),
-                                    health: Health(1.0),
+                                    health: Health(Default::default()),
                                     effect_particles: EffectParticles(Default::default()),
-                                    effect_ambience: EffectAmbience(false),
-                                    arrow_count: ArrowCount(0),
-                                    stinger_count: StingerCount(0),
-                                    sleeping_pos: SleepingPos(None),
+                                    effect_ambience: EffectAmbience(Default::default()),
+                                    arrow_count: ArrowCount(Default::default()),
+                                    stinger_count: StingerCount(Default::default()),
+                                    sleeping_pos: SleepingPos(Default::default()),
                                 },
                                 no_ai: NoAi(false),
                                 left_handed: LeftHanded(false),
                                 aggressive: Aggressive(false),
                             },
                         },
-                        abstract_ageable_baby: AbstractAgeableBaby(false),
+                        abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                        abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
                     },
                 },
                 tame: Tame(false),
                 in_sitting_pose: InSittingPose(false),
-                owneruuid: Owneruuid(None),
+                owneruuid: Owneruuid(Default::default()),
             },
-            wolf_interested: WolfInterested(false),
+            wolf_interested: WolfInterested(Default::default()),
             wolf_collar_color: WolfCollarColor(Default::default()),
-            wolf_anger_end_time: WolfAngerEndTime(-1),
+            wolf_anger_end_time: WolfAngerEndTime(Default::default()),
             wolf_variant: WolfVariant(azalea_registry::data::CowVariant::new_raw(0)),
             sound_variant: SoundVariant(azalea_registry::data::WolfVariant::new_raw(0)),
         }
     }
 }
 
-/// A metadata field for [ZombieNautilus].
+/// A metadata field for [AbstractNautilus].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct ZombieNautilusDash(pub bool);
-/// A metadata field for [ZombieNautilus].
-#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct ZombieNautilusVariant(pub azalea_registry::data::ZombieNautilusVariant);
-/// The marker component for entities of type `minecraft:zombie_nautilus`.
+pub struct AbstractNautilusDash(pub bool);
+/// An abstract entity marker component.
 ///
 /// # Metadata
 ///
-/// These are the metadata components that all `ZombieNautilus` entities are
+/// These are the metadata components that all `AbstractNautilus` entities are
 /// guaranteed to have, in addition to the metadata components from parent
 /// types:
 ///
-/// - [ZombieNautilusDash]
-/// - [ZombieNautilusVariant]
+/// - [AbstractNautilusDash]
 ///
 /// # Parents
 ///
-/// Entities with `ZombieNautilus` will also have the following marker
+/// Entities with `AbstractNautilus` will also have the following marker
 /// components and their metadata fields:
 ///
 /// - [AbstractTameable]
@@ -10935,23 +10825,19 @@ pub struct ZombieNautilusVariant(pub azalea_registry::data::ZombieNautilusVarian
 ///
 /// # Children
 ///
-/// This entity type has no children types.
+/// - [Nautilus]
+/// - [ZombieNautilus]
 #[derive(Component)]
-pub struct ZombieNautilus;
-impl ZombieNautilus {
+pub struct AbstractNautilus;
+impl AbstractNautilus {
     pub fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=18 => AbstractTameable::apply_metadata(entity, d)?,
-            19 => {
-                entity.insert(ZombieNautilusDash(d.value.into_boolean()?));
-            }
+            0..=19 => AbstractTameable::apply_metadata(entity, d)?,
             20 => {
-                entity.insert(ZombieNautilusVariant(
-                    d.value.into_zombie_nautilus_variant()?,
-                ));
+                entity.insert(AbstractNautilusDash(d.value.into_boolean()?));
             }
             _ => {}
         }
@@ -10959,20 +10845,19 @@ impl ZombieNautilus {
     }
 }
 
-/// The metadata bundle for [ZombieNautilus].
+/// The metadata bundle for [AbstractNautilus].
 ///
 /// This type should generally not be used directly.
 #[derive(Bundle)]
-pub struct ZombieNautilusMetadataBundle {
-    _marker: ZombieNautilus,
+pub struct AbstractNautilusMetadataBundle {
+    _marker: AbstractNautilus,
     parent: AbstractTameableMetadataBundle,
-    zombie_nautilus_dash: ZombieNautilusDash,
-    zombie_nautilus_variant: ZombieNautilusVariant,
+    abstract_nautilus_dash: AbstractNautilusDash,
 }
-impl Default for ZombieNautilusMetadataBundle {
+impl Default for AbstractNautilusMetadataBundle {
     fn default() -> Self {
         Self {
-            _marker: ZombieNautilus,
+            _marker: AbstractNautilus,
             parent: AbstractTameableMetadataBundle {
                 _marker: AbstractTameable,
                 parent: AbstractAnimalMetadataBundle {
@@ -11006,26 +10891,269 @@ impl Default for ZombieNautilusMetadataBundle {
                                     },
                                     auto_spin_attack: AutoSpinAttack(false),
                                     abstract_living_using_item: AbstractLivingUsingItem(false),
-                                    health: Health(1.0),
+                                    health: Health(Default::default()),
                                     effect_particles: EffectParticles(Default::default()),
-                                    effect_ambience: EffectAmbience(false),
-                                    arrow_count: ArrowCount(0),
-                                    stinger_count: StingerCount(0),
-                                    sleeping_pos: SleepingPos(None),
+                                    effect_ambience: EffectAmbience(Default::default()),
+                                    arrow_count: ArrowCount(Default::default()),
+                                    stinger_count: StingerCount(Default::default()),
+                                    sleeping_pos: SleepingPos(Default::default()),
                                 },
                                 no_ai: NoAi(false),
                                 left_handed: LeftHanded(false),
                                 aggressive: Aggressive(false),
                             },
                         },
-                        abstract_ageable_baby: AbstractAgeableBaby(false),
+                        abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                        abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
                     },
                 },
                 tame: Tame(false),
                 in_sitting_pose: InSittingPose(false),
-                owneruuid: Owneruuid(None),
+                owneruuid: Owneruuid(Default::default()),
             },
-            zombie_nautilus_dash: ZombieNautilusDash(false),
+            abstract_nautilus_dash: AbstractNautilusDash(Default::default()),
+        }
+    }
+}
+
+/// The marker component for entities of type `minecraft:nautilus`.
+///
+/// # Metadata
+///
+/// This entity type does not add any additional metadata. It will still have
+/// metadata from parent types.
+///
+/// # Parents
+///
+/// Entities with `Nautilus` will also have the following marker components and
+/// their metadata fields:
+///
+/// - [AbstractNautilus]
+/// - [AbstractTameable]
+/// - [AbstractAnimal]
+/// - [AbstractAgeable]
+/// - [AbstractCreature]
+/// - [AbstractInsentient]
+/// - [AbstractLiving]
+/// - [AbstractEntity]
+///
+/// # Children
+///
+/// This entity type has no children types.
+#[derive(Component)]
+pub struct Nautilus;
+impl Nautilus {
+    pub fn apply_metadata(
+        entity: &mut bevy_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=20 => AbstractNautilus::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+/// The metadata bundle for [Nautilus].
+///
+/// This type should generally not be used directly.
+#[derive(Bundle)]
+pub struct NautilusMetadataBundle {
+    _marker: Nautilus,
+    parent: AbstractNautilusMetadataBundle,
+}
+impl Default for NautilusMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Nautilus,
+            parent: AbstractNautilusMetadataBundle {
+                _marker: AbstractNautilus,
+                parent: AbstractTameableMetadataBundle {
+                    _marker: AbstractTameable,
+                    parent: AbstractAnimalMetadataBundle {
+                        _marker: AbstractAnimal,
+                        parent: AbstractAgeableMetadataBundle {
+                            _marker: AbstractAgeable,
+                            parent: AbstractCreatureMetadataBundle {
+                                _marker: AbstractCreature,
+                                parent: AbstractInsentientMetadataBundle {
+                                    _marker: AbstractInsentient,
+                                    parent: AbstractLivingMetadataBundle {
+                                        _marker: AbstractLiving,
+                                        parent: AbstractEntityMetadataBundle {
+                                            _marker: AbstractEntity,
+                                            on_fire: OnFire(false),
+                                            abstract_entity_shift_key_down:
+                                                AbstractEntityShiftKeyDown(false),
+                                            sprinting: Sprinting(false),
+                                            swimming: Swimming(false),
+                                            currently_glowing: CurrentlyGlowing(false),
+                                            invisible: Invisible(false),
+                                            fall_flying: FallFlying(false),
+                                            air_supply: AirSupply(Default::default()),
+                                            custom_name: CustomName(Default::default()),
+                                            custom_name_visible: CustomNameVisible(
+                                                Default::default(),
+                                            ),
+                                            silent: Silent(Default::default()),
+                                            no_gravity: NoGravity(Default::default()),
+                                            pose: Pose::default(),
+                                            ticks_frozen: TicksFrozen(Default::default()),
+                                        },
+                                        auto_spin_attack: AutoSpinAttack(false),
+                                        abstract_living_using_item: AbstractLivingUsingItem(false),
+                                        health: Health(Default::default()),
+                                        effect_particles: EffectParticles(Default::default()),
+                                        effect_ambience: EffectAmbience(Default::default()),
+                                        arrow_count: ArrowCount(Default::default()),
+                                        stinger_count: StingerCount(Default::default()),
+                                        sleeping_pos: SleepingPos(Default::default()),
+                                    },
+                                    no_ai: NoAi(false),
+                                    left_handed: LeftHanded(false),
+                                    aggressive: Aggressive(false),
+                                },
+                            },
+                            abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                            abstract_ageable_age_locked: AbstractAgeableAgeLocked(
+                                Default::default(),
+                            ),
+                        },
+                    },
+                    tame: Tame(false),
+                    in_sitting_pose: InSittingPose(false),
+                    owneruuid: Owneruuid(Default::default()),
+                },
+                abstract_nautilus_dash: AbstractNautilusDash(Default::default()),
+            },
+        }
+    }
+}
+
+/// A metadata field for [ZombieNautilus].
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
+pub struct ZombieNautilusVariant(pub azalea_registry::data::ZombieNautilusVariant);
+/// The marker component for entities of type `minecraft:zombie_nautilus`.
+///
+/// # Metadata
+///
+/// These are the metadata components that all `ZombieNautilus` entities are
+/// guaranteed to have, in addition to the metadata components from parent
+/// types:
+///
+/// - [ZombieNautilusVariant]
+///
+/// # Parents
+///
+/// Entities with `ZombieNautilus` will also have the following marker
+/// components and their metadata fields:
+///
+/// - [AbstractNautilus]
+/// - [AbstractTameable]
+/// - [AbstractAnimal]
+/// - [AbstractAgeable]
+/// - [AbstractCreature]
+/// - [AbstractInsentient]
+/// - [AbstractLiving]
+/// - [AbstractEntity]
+///
+/// # Children
+///
+/// This entity type has no children types.
+#[derive(Component)]
+pub struct ZombieNautilus;
+impl ZombieNautilus {
+    pub fn apply_metadata(
+        entity: &mut bevy_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=20 => AbstractNautilus::apply_metadata(entity, d)?,
+            21 => {
+                entity.insert(ZombieNautilusVariant(
+                    d.value.into_zombie_nautilus_variant()?,
+                ));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+/// The metadata bundle for [ZombieNautilus].
+///
+/// This type should generally not be used directly.
+#[derive(Bundle)]
+pub struct ZombieNautilusMetadataBundle {
+    _marker: ZombieNautilus,
+    parent: AbstractNautilusMetadataBundle,
+    zombie_nautilus_variant: ZombieNautilusVariant,
+}
+impl Default for ZombieNautilusMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: ZombieNautilus,
+            parent: AbstractNautilusMetadataBundle {
+                _marker: AbstractNautilus,
+                parent: AbstractTameableMetadataBundle {
+                    _marker: AbstractTameable,
+                    parent: AbstractAnimalMetadataBundle {
+                        _marker: AbstractAnimal,
+                        parent: AbstractAgeableMetadataBundle {
+                            _marker: AbstractAgeable,
+                            parent: AbstractCreatureMetadataBundle {
+                                _marker: AbstractCreature,
+                                parent: AbstractInsentientMetadataBundle {
+                                    _marker: AbstractInsentient,
+                                    parent: AbstractLivingMetadataBundle {
+                                        _marker: AbstractLiving,
+                                        parent: AbstractEntityMetadataBundle {
+                                            _marker: AbstractEntity,
+                                            on_fire: OnFire(false),
+                                            abstract_entity_shift_key_down:
+                                                AbstractEntityShiftKeyDown(false),
+                                            sprinting: Sprinting(false),
+                                            swimming: Swimming(false),
+                                            currently_glowing: CurrentlyGlowing(false),
+                                            invisible: Invisible(false),
+                                            fall_flying: FallFlying(false),
+                                            air_supply: AirSupply(Default::default()),
+                                            custom_name: CustomName(Default::default()),
+                                            custom_name_visible: CustomNameVisible(
+                                                Default::default(),
+                                            ),
+                                            silent: Silent(Default::default()),
+                                            no_gravity: NoGravity(Default::default()),
+                                            pose: Pose::default(),
+                                            ticks_frozen: TicksFrozen(Default::default()),
+                                        },
+                                        auto_spin_attack: AutoSpinAttack(false),
+                                        abstract_living_using_item: AbstractLivingUsingItem(false),
+                                        health: Health(Default::default()),
+                                        effect_particles: EffectParticles(Default::default()),
+                                        effect_ambience: EffectAmbience(Default::default()),
+                                        arrow_count: ArrowCount(Default::default()),
+                                        stinger_count: StingerCount(Default::default()),
+                                        sleeping_pos: SleepingPos(Default::default()),
+                                    },
+                                    no_ai: NoAi(false),
+                                    left_handed: LeftHanded(false),
+                                    aggressive: Aggressive(false),
+                                },
+                            },
+                            abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                            abstract_ageable_age_locked: AbstractAgeableAgeLocked(
+                                Default::default(),
+                            ),
+                        },
+                    },
+                    tame: Tame(false),
+                    in_sitting_pose: InSittingPose(false),
+                    owneruuid: Owneruuid(Default::default()),
+                },
+                abstract_nautilus_dash: AbstractNautilusDash(Default::default()),
+            },
             zombie_nautilus_variant: ZombieNautilusVariant(
                 azalea_registry::data::ZombieNautilusVariant::new_raw(0),
             ),
@@ -11069,8 +11197,8 @@ impl AbstractVillager {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => AbstractAgeable::apply_metadata(entity, d)?,
-            17 => {
+            0..=17 => AbstractAgeable::apply_metadata(entity, d)?,
+            18 => {
                 entity.insert(AbstractVillagerUnhappyCounter(d.value.into_int()?));
             }
             _ => {}
@@ -11119,21 +11247,22 @@ impl Default for AbstractVillagerMetadataBundle {
                             },
                             auto_spin_attack: AutoSpinAttack(false),
                             abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
+                            health: Health(Default::default()),
                             effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
+                            effect_ambience: EffectAmbience(Default::default()),
+                            arrow_count: ArrowCount(Default::default()),
+                            stinger_count: StingerCount(Default::default()),
+                            sleeping_pos: SleepingPos(Default::default()),
                         },
                         no_ai: NoAi(false),
                         left_handed: LeftHanded(false),
                         aggressive: Aggressive(false),
                     },
                 },
-                abstract_ageable_baby: AbstractAgeableBaby(false),
+                abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
             },
-            abstract_villager_unhappy_counter: AbstractVillagerUnhappyCounter(0),
+            abstract_villager_unhappy_counter: AbstractVillagerUnhappyCounter(Default::default()),
         }
     }
 }
@@ -11141,6 +11270,9 @@ impl Default for AbstractVillagerMetadataBundle {
 /// A metadata field for [Villager].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct VillagerVillagerData(pub VillagerData);
+/// A metadata field for [Villager].
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
+pub struct VillagerVillagerDataFinalized(pub bool);
 /// The marker component for entities of type `minecraft:villager`.
 ///
 /// # Metadata
@@ -11150,6 +11282,7 @@ pub struct VillagerVillagerData(pub VillagerData);
 /// types:
 ///
 /// - [VillagerVillagerData]
+/// - [VillagerVillagerDataFinalized]
 ///
 /// # Parents
 ///
@@ -11174,9 +11307,12 @@ impl Villager {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=17 => AbstractVillager::apply_metadata(entity, d)?,
-            18 => {
+            0..=18 => AbstractVillager::apply_metadata(entity, d)?,
+            19 => {
                 entity.insert(VillagerVillagerData(d.value.into_villager_data()?));
+            }
+            20 => {
+                entity.insert(VillagerVillagerDataFinalized(d.value.into_boolean()?));
             }
             _ => {}
         }
@@ -11192,6 +11328,7 @@ pub struct VillagerMetadataBundle {
     _marker: Villager,
     parent: AbstractVillagerMetadataBundle,
     villager_villager_data: VillagerVillagerData,
+    villager_villager_data_finalized: VillagerVillagerDataFinalized,
 }
 impl Default for VillagerMetadataBundle {
     fn default() -> Self {
@@ -11228,27 +11365,31 @@ impl Default for VillagerMetadataBundle {
                                 },
                                 auto_spin_attack: AutoSpinAttack(false),
                                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
+                                health: Health(Default::default()),
                                 effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
+                                effect_ambience: EffectAmbience(Default::default()),
+                                arrow_count: ArrowCount(Default::default()),
+                                stinger_count: StingerCount(Default::default()),
+                                sleeping_pos: SleepingPos(Default::default()),
                             },
                             no_ai: NoAi(false),
                             left_handed: LeftHanded(false),
                             aggressive: Aggressive(false),
                         },
                     },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
                 },
-                abstract_villager_unhappy_counter: AbstractVillagerUnhappyCounter(0),
+                abstract_villager_unhappy_counter: AbstractVillagerUnhappyCounter(
+                    Default::default(),
+                ),
             },
             villager_villager_data: VillagerVillagerData(VillagerData {
                 kind: azalea_registry::builtin::VillagerKind::Plains,
                 profession: azalea_registry::builtin::VillagerProfession::None,
                 level: 0,
             }),
+            villager_villager_data_finalized: VillagerVillagerDataFinalized(Default::default()),
         }
     }
 }
@@ -11283,7 +11424,7 @@ impl WanderingTrader {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=17 => AbstractVillager::apply_metadata(entity, d)?,
+            0..=18 => AbstractVillager::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -11333,21 +11474,24 @@ impl Default for WanderingTraderMetadataBundle {
                                 },
                                 auto_spin_attack: AutoSpinAttack(false),
                                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
+                                health: Health(Default::default()),
                                 effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
+                                effect_ambience: EffectAmbience(Default::default()),
+                                arrow_count: ArrowCount(Default::default()),
+                                stinger_count: StingerCount(Default::default()),
+                                sleeping_pos: SleepingPos(Default::default()),
                             },
                             no_ai: NoAi(false),
                             left_handed: LeftHanded(false),
                             aggressive: Aggressive(false),
                         },
                     },
-                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
+                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
                 },
-                abstract_villager_unhappy_counter: AbstractVillagerUnhappyCounter(0),
+                abstract_villager_unhappy_counter: AbstractVillagerUnhappyCounter(
+                    Default::default(),
+                ),
             },
         }
     }
@@ -11437,19 +11581,19 @@ impl Default for AbstractFishMetadataBundle {
                         },
                         auto_spin_attack: AutoSpinAttack(false),
                         abstract_living_using_item: AbstractLivingUsingItem(false),
-                        health: Health(1.0),
+                        health: Health(Default::default()),
                         effect_particles: EffectParticles(Default::default()),
-                        effect_ambience: EffectAmbience(false),
-                        arrow_count: ArrowCount(0),
-                        stinger_count: StingerCount(0),
-                        sleeping_pos: SleepingPos(None),
+                        effect_ambience: EffectAmbience(Default::default()),
+                        arrow_count: ArrowCount(Default::default()),
+                        stinger_count: StingerCount(Default::default()),
+                        sleeping_pos: SleepingPos(Default::default()),
                     },
                     no_ai: NoAi(false),
                     left_handed: LeftHanded(false),
                     aggressive: Aggressive(false),
                 },
             },
-            abstract_fish_from_bucket: AbstractFishFromBucket(false),
+            abstract_fish_from_bucket: AbstractFishFromBucket(Default::default()),
         }
     }
 }
@@ -11529,19 +11673,19 @@ impl Default for CodMetadataBundle {
                             },
                             auto_spin_attack: AutoSpinAttack(false),
                             abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
+                            health: Health(Default::default()),
                             effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
+                            effect_ambience: EffectAmbience(Default::default()),
+                            arrow_count: ArrowCount(Default::default()),
+                            stinger_count: StingerCount(Default::default()),
+                            sleeping_pos: SleepingPos(Default::default()),
                         },
                         no_ai: NoAi(false),
                         left_handed: LeftHanded(false),
                         aggressive: Aggressive(false),
                     },
                 },
-                abstract_fish_from_bucket: AbstractFishFromBucket(false),
+                abstract_fish_from_bucket: AbstractFishFromBucket(Default::default()),
             },
         }
     }
@@ -11631,19 +11775,19 @@ impl Default for SalmonMetadataBundle {
                             },
                             auto_spin_attack: AutoSpinAttack(false),
                             abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
+                            health: Health(Default::default()),
                             effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
+                            effect_ambience: EffectAmbience(Default::default()),
+                            arrow_count: ArrowCount(Default::default()),
+                            stinger_count: StingerCount(Default::default()),
+                            sleeping_pos: SleepingPos(Default::default()),
                         },
                         no_ai: NoAi(false),
                         left_handed: LeftHanded(false),
                         aggressive: Aggressive(false),
                     },
                 },
-                abstract_fish_from_bucket: AbstractFishFromBucket(false),
+                abstract_fish_from_bucket: AbstractFishFromBucket(Default::default()),
             },
             salmon_kind: SalmonKind(Default::default()),
         }
@@ -11735,19 +11879,19 @@ impl Default for TropicalFishMetadataBundle {
                             },
                             auto_spin_attack: AutoSpinAttack(false),
                             abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
+                            health: Health(Default::default()),
                             effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
+                            effect_ambience: EffectAmbience(Default::default()),
+                            arrow_count: ArrowCount(Default::default()),
+                            stinger_count: StingerCount(Default::default()),
+                            sleeping_pos: SleepingPos(Default::default()),
                         },
                         no_ai: NoAi(false),
                         left_handed: LeftHanded(false),
                         aggressive: Aggressive(false),
                     },
                 },
-                abstract_fish_from_bucket: AbstractFishFromBucket(false),
+                abstract_fish_from_bucket: AbstractFishFromBucket(Default::default()),
             },
             tropical_fish_type_variant: TropicalFishTypeVariant(Default::default()),
         }
@@ -11862,12 +12006,12 @@ impl Default for AbstractMonsterMetadataBundle {
                         },
                         auto_spin_attack: AutoSpinAttack(false),
                         abstract_living_using_item: AbstractLivingUsingItem(false),
-                        health: Health(1.0),
+                        health: Health(Default::default()),
                         effect_particles: EffectParticles(Default::default()),
-                        effect_ambience: EffectAmbience(false),
-                        arrow_count: ArrowCount(0),
-                        stinger_count: StingerCount(0),
-                        sleeping_pos: SleepingPos(None),
+                        effect_ambience: EffectAmbience(Default::default()),
+                        arrow_count: ArrowCount(Default::default()),
+                        stinger_count: StingerCount(Default::default()),
+                        sleeping_pos: SleepingPos(Default::default()),
                     },
                     no_ai: NoAi(false),
                     left_handed: LeftHanded(false),
@@ -11963,12 +12107,12 @@ impl Default for BlazeMetadataBundle {
                             },
                             auto_spin_attack: AutoSpinAttack(false),
                             abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
+                            health: Health(Default::default()),
                             effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
+                            effect_ambience: EffectAmbience(Default::default()),
+                            arrow_count: ArrowCount(Default::default()),
+                            stinger_count: StingerCount(Default::default()),
+                            sleeping_pos: SleepingPos(Default::default()),
                         },
                         no_ai: NoAi(false),
                         left_handed: LeftHanded(false),
@@ -12065,12 +12209,12 @@ impl Default for BoggedMetadataBundle {
                             },
                             auto_spin_attack: AutoSpinAttack(false),
                             abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
+                            health: Health(Default::default()),
                             effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
+                            effect_ambience: EffectAmbience(Default::default()),
+                            arrow_count: ArrowCount(Default::default()),
+                            stinger_count: StingerCount(Default::default()),
+                            sleeping_pos: SleepingPos(Default::default()),
                         },
                         no_ai: NoAi(false),
                         left_handed: LeftHanded(false),
@@ -12078,7 +12222,7 @@ impl Default for BoggedMetadataBundle {
                     },
                 },
             },
-            bogged_sheared: BoggedSheared(false),
+            bogged_sheared: BoggedSheared(Default::default()),
         }
     }
 }
@@ -12158,12 +12302,12 @@ impl Default for BreezeMetadataBundle {
                             },
                             auto_spin_attack: AutoSpinAttack(false),
                             abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
+                            health: Health(Default::default()),
                             effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
+                            effect_ambience: EffectAmbience(Default::default()),
+                            arrow_count: ArrowCount(Default::default()),
+                            stinger_count: StingerCount(Default::default()),
+                            sleeping_pos: SleepingPos(Default::default()),
                         },
                         no_ai: NoAi(false),
                         left_handed: LeftHanded(false),
@@ -12284,12 +12428,12 @@ impl Default for CreakingMetadataBundle {
                             },
                             auto_spin_attack: AutoSpinAttack(false),
                             abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
+                            health: Health(Default::default()),
                             effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
+                            effect_ambience: EffectAmbience(Default::default()),
+                            arrow_count: ArrowCount(Default::default()),
+                            stinger_count: StingerCount(Default::default()),
+                            sleeping_pos: SleepingPos(Default::default()),
                         },
                         no_ai: NoAi(false),
                         left_handed: LeftHanded(false),
@@ -12297,10 +12441,10 @@ impl Default for CreakingMetadataBundle {
                     },
                 },
             },
-            can_move: CanMove(true),
-            is_active: IsActive(false),
-            is_tearing_down: IsTearingDown(false),
-            home_pos: HomePos(None),
+            can_move: CanMove(Default::default()),
+            is_active: IsActive(Default::default()),
+            is_tearing_down: IsTearingDown(Default::default()),
+            home_pos: HomePos(Default::default()),
         }
     }
 }
@@ -12405,12 +12549,12 @@ impl Default for CreeperMetadataBundle {
                             },
                             auto_spin_attack: AutoSpinAttack(false),
                             abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
+                            health: Health(Default::default()),
                             effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
+                            effect_ambience: EffectAmbience(Default::default()),
+                            arrow_count: ArrowCount(Default::default()),
+                            stinger_count: StingerCount(Default::default()),
+                            sleeping_pos: SleepingPos(Default::default()),
                         },
                         no_ai: NoAi(false),
                         left_handed: LeftHanded(false),
@@ -12418,9 +12562,9 @@ impl Default for CreeperMetadataBundle {
                     },
                 },
             },
-            swell_dir: SwellDir(-1),
-            is_powered: IsPowered(false),
-            is_ignited: IsIgnited(false),
+            swell_dir: SwellDir(Default::default()),
+            is_powered: IsPowered(Default::default()),
+            is_ignited: IsIgnited(Default::default()),
         }
     }
 }
@@ -12526,12 +12670,12 @@ impl Default for EndermanMetadataBundle {
                             },
                             auto_spin_attack: AutoSpinAttack(false),
                             abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
+                            health: Health(Default::default()),
                             effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
+                            effect_ambience: EffectAmbience(Default::default()),
+                            arrow_count: ArrowCount(Default::default()),
+                            stinger_count: StingerCount(Default::default()),
+                            sleeping_pos: SleepingPos(Default::default()),
                         },
                         no_ai: NoAi(false),
                         left_handed: LeftHanded(false),
@@ -12539,9 +12683,9 @@ impl Default for EndermanMetadataBundle {
                     },
                 },
             },
-            carry_state: CarryState(azalea_block::BlockState::AIR),
-            creepy: Creepy(false),
-            stared_at: StaredAt(false),
+            carry_state: CarryState(Default::default()),
+            creepy: Creepy(Default::default()),
+            stared_at: StaredAt(Default::default()),
         }
     }
 }
@@ -12621,12 +12765,12 @@ impl Default for EndermiteMetadataBundle {
                             },
                             auto_spin_attack: AutoSpinAttack(false),
                             abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
+                            health: Health(Default::default()),
                             effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
+                            effect_ambience: EffectAmbience(Default::default()),
+                            arrow_count: ArrowCount(Default::default()),
+                            stinger_count: StingerCount(Default::default()),
+                            sleeping_pos: SleepingPos(Default::default()),
                         },
                         no_ai: NoAi(false),
                         left_handed: LeftHanded(false),
@@ -12713,12 +12857,12 @@ impl Default for GiantMetadataBundle {
                             },
                             auto_spin_attack: AutoSpinAttack(false),
                             abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
+                            health: Health(Default::default()),
                             effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
+                            effect_ambience: EffectAmbience(Default::default()),
+                            arrow_count: ArrowCount(Default::default()),
+                            stinger_count: StingerCount(Default::default()),
+                            sleeping_pos: SleepingPos(Default::default()),
                         },
                         no_ai: NoAi(false),
                         left_handed: LeftHanded(false),
@@ -12823,12 +12967,12 @@ impl Default for GuardianMetadataBundle {
                             },
                             auto_spin_attack: AutoSpinAttack(false),
                             abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
+                            health: Health(Default::default()),
                             effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
+                            effect_ambience: EffectAmbience(Default::default()),
+                            arrow_count: ArrowCount(Default::default()),
+                            stinger_count: StingerCount(Default::default()),
+                            sleeping_pos: SleepingPos(Default::default()),
                         },
                         no_ai: NoAi(false),
                         left_handed: LeftHanded(false),
@@ -12836,8 +12980,8 @@ impl Default for GuardianMetadataBundle {
                     },
                 },
             },
-            moving: Moving(false),
-            attack_target: AttackTarget(0),
+            moving: Moving(Default::default()),
+            attack_target: AttackTarget(Default::default()),
         }
     }
 }
@@ -12922,12 +13066,12 @@ impl Default for ElderGuardianMetadataBundle {
                                 },
                                 auto_spin_attack: AutoSpinAttack(false),
                                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
+                                health: Health(Default::default()),
                                 effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
+                                effect_ambience: EffectAmbience(Default::default()),
+                                arrow_count: ArrowCount(Default::default()),
+                                stinger_count: StingerCount(Default::default()),
+                                sleeping_pos: SleepingPos(Default::default()),
                             },
                             no_ai: NoAi(false),
                             left_handed: LeftHanded(false),
@@ -12935,8 +13079,8 @@ impl Default for ElderGuardianMetadataBundle {
                         },
                     },
                 },
-                moving: Moving(false),
-                attack_target: AttackTarget(0),
+                moving: Moving(Default::default()),
+                attack_target: AttackTarget(Default::default()),
             },
         }
     }
@@ -13017,12 +13161,12 @@ impl Default for ParchedMetadataBundle {
                             },
                             auto_spin_attack: AutoSpinAttack(false),
                             abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
+                            health: Health(Default::default()),
                             effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
+                            effect_ambience: EffectAmbience(Default::default()),
+                            arrow_count: ArrowCount(Default::default()),
+                            stinger_count: StingerCount(Default::default()),
+                            sleeping_pos: SleepingPos(Default::default()),
                         },
                         no_ai: NoAi(false),
                         left_handed: LeftHanded(false),
@@ -13109,12 +13253,12 @@ impl Default for SilverfishMetadataBundle {
                             },
                             auto_spin_attack: AutoSpinAttack(false),
                             abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
+                            health: Health(Default::default()),
                             effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
+                            effect_ambience: EffectAmbience(Default::default()),
+                            arrow_count: ArrowCount(Default::default()),
+                            stinger_count: StingerCount(Default::default()),
+                            sleeping_pos: SleepingPos(Default::default()),
                         },
                         no_ai: NoAi(false),
                         left_handed: LeftHanded(false),
@@ -13211,12 +13355,12 @@ impl Default for SkeletonMetadataBundle {
                             },
                             auto_spin_attack: AutoSpinAttack(false),
                             abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
+                            health: Health(Default::default()),
                             effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
+                            effect_ambience: EffectAmbience(Default::default()),
+                            arrow_count: ArrowCount(Default::default()),
+                            stinger_count: StingerCount(Default::default()),
+                            sleeping_pos: SleepingPos(Default::default()),
                         },
                         no_ai: NoAi(false),
                         left_handed: LeftHanded(false),
@@ -13224,7 +13368,7 @@ impl Default for SkeletonMetadataBundle {
                     },
                 },
             },
-            stray_conversion: StrayConversion(false),
+            stray_conversion: StrayConversion(Default::default()),
         }
     }
 }
@@ -13314,12 +13458,12 @@ impl Default for SpiderMetadataBundle {
                             },
                             auto_spin_attack: AutoSpinAttack(false),
                             abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
+                            health: Health(Default::default()),
                             effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
+                            effect_ambience: EffectAmbience(Default::default()),
+                            arrow_count: ArrowCount(Default::default()),
+                            stinger_count: StingerCount(Default::default()),
+                            sleeping_pos: SleepingPos(Default::default()),
                         },
                         no_ai: NoAi(false),
                         left_handed: LeftHanded(false),
@@ -13412,12 +13556,12 @@ impl Default for CaveSpiderMetadataBundle {
                                 },
                                 auto_spin_attack: AutoSpinAttack(false),
                                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
+                                health: Health(Default::default()),
                                 effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
+                                effect_ambience: EffectAmbience(Default::default()),
+                                arrow_count: ArrowCount(Default::default()),
+                                stinger_count: StingerCount(Default::default()),
+                                sleeping_pos: SleepingPos(Default::default()),
                             },
                             no_ai: NoAi(false),
                             left_handed: LeftHanded(false),
@@ -13506,12 +13650,12 @@ impl Default for StrayMetadataBundle {
                             },
                             auto_spin_attack: AutoSpinAttack(false),
                             abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
+                            health: Health(Default::default()),
                             effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
+                            effect_ambience: EffectAmbience(Default::default()),
+                            arrow_count: ArrowCount(Default::default()),
+                            stinger_count: StingerCount(Default::default()),
+                            sleeping_pos: SleepingPos(Default::default()),
                         },
                         no_ai: NoAi(false),
                         left_handed: LeftHanded(false),
@@ -13607,12 +13751,12 @@ impl Default for VexMetadataBundle {
                             },
                             auto_spin_attack: AutoSpinAttack(false),
                             abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
+                            health: Health(Default::default()),
                             effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
+                            effect_ambience: EffectAmbience(Default::default()),
+                            arrow_count: ArrowCount(Default::default()),
+                            stinger_count: StingerCount(Default::default()),
+                            sleeping_pos: SleepingPos(Default::default()),
                         },
                         no_ai: NoAi(false),
                         left_handed: LeftHanded(false),
@@ -13620,7 +13764,7 @@ impl Default for VexMetadataBundle {
                     },
                 },
             },
-            vex_flags: VexFlags(0),
+            vex_flags: VexFlags(Default::default()),
         }
     }
 }
@@ -13709,12 +13853,12 @@ impl Default for WardenMetadataBundle {
                             },
                             auto_spin_attack: AutoSpinAttack(false),
                             abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
+                            health: Health(Default::default()),
                             effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
+                            effect_ambience: EffectAmbience(Default::default()),
+                            arrow_count: ArrowCount(Default::default()),
+                            stinger_count: StingerCount(Default::default()),
+                            sleeping_pos: SleepingPos(Default::default()),
                         },
                         no_ai: NoAi(false),
                         left_handed: LeftHanded(false),
@@ -13722,7 +13866,7 @@ impl Default for WardenMetadataBundle {
                     },
                 },
             },
-            client_anger_level: ClientAngerLevel(0),
+            client_anger_level: ClientAngerLevel(Default::default()),
         }
     }
 }
@@ -13835,12 +13979,12 @@ impl Default for WitherMetadataBundle {
                             },
                             auto_spin_attack: AutoSpinAttack(false),
                             abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
+                            health: Health(Default::default()),
                             effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
+                            effect_ambience: EffectAmbience(Default::default()),
+                            arrow_count: ArrowCount(Default::default()),
+                            stinger_count: StingerCount(Default::default()),
+                            sleeping_pos: SleepingPos(Default::default()),
                         },
                         no_ai: NoAi(false),
                         left_handed: LeftHanded(false),
@@ -13848,10 +13992,10 @@ impl Default for WitherMetadataBundle {
                     },
                 },
             },
-            target_a: TargetA(0),
-            target_b: TargetB(0),
-            target_c: TargetC(0),
-            inv: Inv(0),
+            target_a: TargetA(Default::default()),
+            target_b: TargetB(Default::default()),
+            target_c: TargetC(Default::default()),
+            inv: Inv(Default::default()),
         }
     }
 }
@@ -13931,12 +14075,12 @@ impl Default for WitherSkeletonMetadataBundle {
                             },
                             auto_spin_attack: AutoSpinAttack(false),
                             abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
+                            health: Health(Default::default()),
                             effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
+                            effect_ambience: EffectAmbience(Default::default()),
+                            arrow_count: ArrowCount(Default::default()),
+                            stinger_count: StingerCount(Default::default()),
+                            sleeping_pos: SleepingPos(Default::default()),
                         },
                         no_ai: NoAi(false),
                         left_handed: LeftHanded(false),
@@ -14032,12 +14176,12 @@ impl Default for ZoglinMetadataBundle {
                             },
                             auto_spin_attack: AutoSpinAttack(false),
                             abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
+                            health: Health(Default::default()),
                             effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
+                            effect_ambience: EffectAmbience(Default::default()),
+                            arrow_count: ArrowCount(Default::default()),
+                            stinger_count: StingerCount(Default::default()),
+                            sleeping_pos: SleepingPos(Default::default()),
                         },
                         no_ai: NoAi(false),
                         left_handed: LeftHanded(false),
@@ -14045,7 +14189,7 @@ impl Default for ZoglinMetadataBundle {
                     },
                 },
             },
-            zoglin_baby: ZoglinBaby(false),
+            zoglin_baby: ZoglinBaby(Default::default()),
         }
     }
 }
@@ -14153,12 +14297,12 @@ impl Default for ZombieMetadataBundle {
                             },
                             auto_spin_attack: AutoSpinAttack(false),
                             abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
+                            health: Health(Default::default()),
                             effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
+                            effect_ambience: EffectAmbience(Default::default()),
+                            arrow_count: ArrowCount(Default::default()),
+                            stinger_count: StingerCount(Default::default()),
+                            sleeping_pos: SleepingPos(Default::default()),
                         },
                         no_ai: NoAi(false),
                         left_handed: LeftHanded(false),
@@ -14166,9 +14310,9 @@ impl Default for ZombieMetadataBundle {
                     },
                 },
             },
-            zombie_baby: ZombieBaby(false),
-            special_type: SpecialType(0),
-            drowned_conversion: DrownedConversion(false),
+            zombie_baby: ZombieBaby(Default::default()),
+            special_type: SpecialType(Default::default()),
+            drowned_conversion: DrownedConversion(Default::default()),
         }
     }
 }
@@ -14253,12 +14397,12 @@ impl Default for DrownedMetadataBundle {
                                 },
                                 auto_spin_attack: AutoSpinAttack(false),
                                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
+                                health: Health(Default::default()),
                                 effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
+                                effect_ambience: EffectAmbience(Default::default()),
+                                arrow_count: ArrowCount(Default::default()),
+                                stinger_count: StingerCount(Default::default()),
+                                sleeping_pos: SleepingPos(Default::default()),
                             },
                             no_ai: NoAi(false),
                             left_handed: LeftHanded(false),
@@ -14266,9 +14410,9 @@ impl Default for DrownedMetadataBundle {
                         },
                     },
                 },
-                zombie_baby: ZombieBaby(false),
-                special_type: SpecialType(0),
-                drowned_conversion: DrownedConversion(false),
+                zombie_baby: ZombieBaby(Default::default()),
+                special_type: SpecialType(Default::default()),
+                drowned_conversion: DrownedConversion(Default::default()),
             },
         }
     }
@@ -14354,12 +14498,12 @@ impl Default for HuskMetadataBundle {
                                 },
                                 auto_spin_attack: AutoSpinAttack(false),
                                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
+                                health: Health(Default::default()),
                                 effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
+                                effect_ambience: EffectAmbience(Default::default()),
+                                arrow_count: ArrowCount(Default::default()),
+                                stinger_count: StingerCount(Default::default()),
+                                sleeping_pos: SleepingPos(Default::default()),
                             },
                             no_ai: NoAi(false),
                             left_handed: LeftHanded(false),
@@ -14367,9 +14511,9 @@ impl Default for HuskMetadataBundle {
                         },
                     },
                 },
-                zombie_baby: ZombieBaby(false),
-                special_type: SpecialType(0),
-                drowned_conversion: DrownedConversion(false),
+                zombie_baby: ZombieBaby(Default::default()),
+                special_type: SpecialType(Default::default()),
+                drowned_conversion: DrownedConversion(Default::default()),
             },
         }
     }
@@ -14381,6 +14525,9 @@ pub struct Converting(pub bool);
 /// A metadata field for [ZombieVillager].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct ZombieVillagerVillagerData(pub VillagerData);
+/// A metadata field for [ZombieVillager].
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
+pub struct ZombieVillagerVillagerDataFinalized(pub bool);
 /// The marker component for entities of type `minecraft:zombie_villager`.
 ///
 /// # Metadata
@@ -14391,6 +14538,7 @@ pub struct ZombieVillagerVillagerData(pub VillagerData);
 ///
 /// - [Converting]
 /// - [ZombieVillagerVillagerData]
+/// - [ZombieVillagerVillagerDataFinalized]
 ///
 /// # Parents
 ///
@@ -14422,6 +14570,9 @@ impl ZombieVillager {
             20 => {
                 entity.insert(ZombieVillagerVillagerData(d.value.into_villager_data()?));
             }
+            21 => {
+                entity.insert(ZombieVillagerVillagerDataFinalized(d.value.into_boolean()?));
+            }
             _ => {}
         }
         Ok(())
@@ -14437,6 +14588,7 @@ pub struct ZombieVillagerMetadataBundle {
     parent: ZombieMetadataBundle,
     converting: Converting,
     zombie_villager_villager_data: ZombieVillagerVillagerData,
+    zombie_villager_villager_data_finalized: ZombieVillagerVillagerDataFinalized,
 }
 impl Default for ZombieVillagerMetadataBundle {
     fn default() -> Self {
@@ -14473,12 +14625,12 @@ impl Default for ZombieVillagerMetadataBundle {
                                 },
                                 auto_spin_attack: AutoSpinAttack(false),
                                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
+                                health: Health(Default::default()),
                                 effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
+                                effect_ambience: EffectAmbience(Default::default()),
+                                arrow_count: ArrowCount(Default::default()),
+                                stinger_count: StingerCount(Default::default()),
+                                sleeping_pos: SleepingPos(Default::default()),
                             },
                             no_ai: NoAi(false),
                             left_handed: LeftHanded(false),
@@ -14486,16 +14638,19 @@ impl Default for ZombieVillagerMetadataBundle {
                         },
                     },
                 },
-                zombie_baby: ZombieBaby(false),
-                special_type: SpecialType(0),
-                drowned_conversion: DrownedConversion(false),
+                zombie_baby: ZombieBaby(Default::default()),
+                special_type: SpecialType(Default::default()),
+                drowned_conversion: DrownedConversion(Default::default()),
             },
-            converting: Converting(false),
+            converting: Converting(Default::default()),
             zombie_villager_villager_data: ZombieVillagerVillagerData(VillagerData {
                 kind: azalea_registry::builtin::VillagerKind::Plains,
                 profession: azalea_registry::builtin::VillagerProfession::None,
                 level: 0,
             }),
+            zombie_villager_villager_data_finalized: ZombieVillagerVillagerDataFinalized(
+                Default::default(),
+            ),
         }
     }
 }
@@ -14580,12 +14735,12 @@ impl Default for ZombifiedPiglinMetadataBundle {
                                 },
                                 auto_spin_attack: AutoSpinAttack(false),
                                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
+                                health: Health(Default::default()),
                                 effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
+                                effect_ambience: EffectAmbience(Default::default()),
+                                arrow_count: ArrowCount(Default::default()),
+                                stinger_count: StingerCount(Default::default()),
+                                sleeping_pos: SleepingPos(Default::default()),
                             },
                             no_ai: NoAi(false),
                             left_handed: LeftHanded(false),
@@ -14593,9 +14748,9 @@ impl Default for ZombifiedPiglinMetadataBundle {
                         },
                     },
                 },
-                zombie_baby: ZombieBaby(false),
-                special_type: SpecialType(0),
-                drowned_conversion: DrownedConversion(false),
+                zombie_baby: ZombieBaby(Default::default()),
+                special_type: SpecialType(Default::default()),
+                drowned_conversion: DrownedConversion(Default::default()),
             },
         }
     }
@@ -14687,12 +14842,12 @@ impl Default for AbstractPiglinMetadataBundle {
                             },
                             auto_spin_attack: AutoSpinAttack(false),
                             abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
+                            health: Health(Default::default()),
                             effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
+                            effect_ambience: EffectAmbience(Default::default()),
+                            arrow_count: ArrowCount(Default::default()),
+                            stinger_count: StingerCount(Default::default()),
+                            sleeping_pos: SleepingPos(Default::default()),
                         },
                         no_ai: NoAi(false),
                         left_handed: LeftHanded(false),
@@ -14700,7 +14855,9 @@ impl Default for AbstractPiglinMetadataBundle {
                     },
                 },
             },
-            abstract_piglin_immune_to_zombification: AbstractPiglinImmuneToZombification(false),
+            abstract_piglin_immune_to_zombification: AbstractPiglinImmuneToZombification(
+                Default::default(),
+            ),
         }
     }
 }
@@ -14810,12 +14967,12 @@ impl Default for PiglinMetadataBundle {
                                 },
                                 auto_spin_attack: AutoSpinAttack(false),
                                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
+                                health: Health(Default::default()),
                                 effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
+                                effect_ambience: EffectAmbience(Default::default()),
+                                arrow_count: ArrowCount(Default::default()),
+                                stinger_count: StingerCount(Default::default()),
+                                sleeping_pos: SleepingPos(Default::default()),
                             },
                             no_ai: NoAi(false),
                             left_handed: LeftHanded(false),
@@ -14823,11 +14980,13 @@ impl Default for PiglinMetadataBundle {
                         },
                     },
                 },
-                abstract_piglin_immune_to_zombification: AbstractPiglinImmuneToZombification(false),
+                abstract_piglin_immune_to_zombification: AbstractPiglinImmuneToZombification(
+                    Default::default(),
+                ),
             },
-            piglin_baby: PiglinBaby(false),
-            piglin_is_charging_crossbow: PiglinIsChargingCrossbow(false),
-            is_dancing: IsDancing(false),
+            piglin_baby: PiglinBaby(Default::default()),
+            piglin_is_charging_crossbow: PiglinIsChargingCrossbow(Default::default()),
+            is_dancing: IsDancing(Default::default()),
         }
     }
 }
@@ -14912,12 +15071,12 @@ impl Default for PiglinBruteMetadataBundle {
                                 },
                                 auto_spin_attack: AutoSpinAttack(false),
                                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
+                                health: Health(Default::default()),
                                 effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
+                                effect_ambience: EffectAmbience(Default::default()),
+                                arrow_count: ArrowCount(Default::default()),
+                                stinger_count: StingerCount(Default::default()),
+                                sleeping_pos: SleepingPos(Default::default()),
                             },
                             no_ai: NoAi(false),
                             left_handed: LeftHanded(false),
@@ -14925,7 +15084,9 @@ impl Default for PiglinBruteMetadataBundle {
                         },
                     },
                 },
-                abstract_piglin_immune_to_zombification: AbstractPiglinImmuneToZombification(false),
+                abstract_piglin_immune_to_zombification: AbstractPiglinImmuneToZombification(
+                    Default::default(),
+                ),
             },
         }
     }
@@ -15022,12 +15183,12 @@ impl Default for AbstractRaiderMetadataBundle {
                             },
                             auto_spin_attack: AutoSpinAttack(false),
                             abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(1.0),
+                            health: Health(Default::default()),
                             effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(false),
-                            arrow_count: ArrowCount(0),
-                            stinger_count: StingerCount(0),
-                            sleeping_pos: SleepingPos(None),
+                            effect_ambience: EffectAmbience(Default::default()),
+                            arrow_count: ArrowCount(Default::default()),
+                            stinger_count: StingerCount(Default::default()),
+                            sleeping_pos: SleepingPos(Default::default()),
                         },
                         no_ai: NoAi(false),
                         left_handed: LeftHanded(false),
@@ -15035,7 +15196,7 @@ impl Default for AbstractRaiderMetadataBundle {
                     },
                 },
             },
-            is_celebrating: IsCelebrating(false),
+            is_celebrating: IsCelebrating(Default::default()),
         }
     }
 }
@@ -15130,12 +15291,12 @@ impl Default for PillagerMetadataBundle {
                                 },
                                 auto_spin_attack: AutoSpinAttack(false),
                                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
+                                health: Health(Default::default()),
                                 effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
+                                effect_ambience: EffectAmbience(Default::default()),
+                                arrow_count: ArrowCount(Default::default()),
+                                stinger_count: StingerCount(Default::default()),
+                                sleeping_pos: SleepingPos(Default::default()),
                             },
                             no_ai: NoAi(false),
                             left_handed: LeftHanded(false),
@@ -15143,9 +15304,9 @@ impl Default for PillagerMetadataBundle {
                         },
                     },
                 },
-                is_celebrating: IsCelebrating(false),
+                is_celebrating: IsCelebrating(Default::default()),
             },
-            pillager_is_charging_crossbow: PillagerIsChargingCrossbow(false),
+            pillager_is_charging_crossbow: PillagerIsChargingCrossbow(Default::default()),
         }
     }
 }
@@ -15230,12 +15391,12 @@ impl Default for RavagerMetadataBundle {
                                 },
                                 auto_spin_attack: AutoSpinAttack(false),
                                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
+                                health: Health(Default::default()),
                                 effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
+                                effect_ambience: EffectAmbience(Default::default()),
+                                arrow_count: ArrowCount(Default::default()),
+                                stinger_count: StingerCount(Default::default()),
+                                sleeping_pos: SleepingPos(Default::default()),
                             },
                             no_ai: NoAi(false),
                             left_handed: LeftHanded(false),
@@ -15243,7 +15404,7 @@ impl Default for RavagerMetadataBundle {
                         },
                     },
                 },
-                is_celebrating: IsCelebrating(false),
+                is_celebrating: IsCelebrating(Default::default()),
             },
         }
     }
@@ -15329,12 +15490,12 @@ impl Default for VindicatorMetadataBundle {
                                 },
                                 auto_spin_attack: AutoSpinAttack(false),
                                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
+                                health: Health(Default::default()),
                                 effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
+                                effect_ambience: EffectAmbience(Default::default()),
+                                arrow_count: ArrowCount(Default::default()),
+                                stinger_count: StingerCount(Default::default()),
+                                sleeping_pos: SleepingPos(Default::default()),
                             },
                             no_ai: NoAi(false),
                             left_handed: LeftHanded(false),
@@ -15342,7 +15503,7 @@ impl Default for VindicatorMetadataBundle {
                         },
                     },
                 },
-                is_celebrating: IsCelebrating(false),
+                is_celebrating: IsCelebrating(Default::default()),
             },
         }
     }
@@ -15437,12 +15598,12 @@ impl Default for WitchMetadataBundle {
                                 },
                                 auto_spin_attack: AutoSpinAttack(false),
                                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
+                                health: Health(Default::default()),
                                 effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
+                                effect_ambience: EffectAmbience(Default::default()),
+                                arrow_count: ArrowCount(Default::default()),
+                                stinger_count: StingerCount(Default::default()),
+                                sleeping_pos: SleepingPos(Default::default()),
                             },
                             no_ai: NoAi(false),
                             left_handed: LeftHanded(false),
@@ -15450,9 +15611,9 @@ impl Default for WitchMetadataBundle {
                         },
                     },
                 },
-                is_celebrating: IsCelebrating(false),
+                is_celebrating: IsCelebrating(Default::default()),
             },
-            witch_using_item: WitchUsingItem(false),
+            witch_using_item: WitchUsingItem(Default::default()),
         }
     }
 }
@@ -15548,12 +15709,12 @@ impl Default for AbstractSpellcasterIllagerMetadataBundle {
                                 },
                                 auto_spin_attack: AutoSpinAttack(false),
                                 abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
+                                health: Health(Default::default()),
                                 effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
+                                effect_ambience: EffectAmbience(Default::default()),
+                                arrow_count: ArrowCount(Default::default()),
+                                stinger_count: StingerCount(Default::default()),
+                                sleeping_pos: SleepingPos(Default::default()),
                             },
                             no_ai: NoAi(false),
                             left_handed: LeftHanded(false),
@@ -15561,9 +15722,9 @@ impl Default for AbstractSpellcasterIllagerMetadataBundle {
                         },
                     },
                 },
-                is_celebrating: IsCelebrating(false),
+                is_celebrating: IsCelebrating(Default::default()),
             },
-            spell_casting: SpellCasting(0),
+            spell_casting: SpellCasting(Default::default()),
         }
     }
 }
@@ -15651,12 +15812,12 @@ impl Default for EvokerMetadataBundle {
                                     },
                                     auto_spin_attack: AutoSpinAttack(false),
                                     abstract_living_using_item: AbstractLivingUsingItem(false),
-                                    health: Health(1.0),
+                                    health: Health(Default::default()),
                                     effect_particles: EffectParticles(Default::default()),
-                                    effect_ambience: EffectAmbience(false),
-                                    arrow_count: ArrowCount(0),
-                                    stinger_count: StingerCount(0),
-                                    sleeping_pos: SleepingPos(None),
+                                    effect_ambience: EffectAmbience(Default::default()),
+                                    arrow_count: ArrowCount(Default::default()),
+                                    stinger_count: StingerCount(Default::default()),
+                                    sleeping_pos: SleepingPos(Default::default()),
                                 },
                                 no_ai: NoAi(false),
                                 left_handed: LeftHanded(false),
@@ -15664,9 +15825,9 @@ impl Default for EvokerMetadataBundle {
                             },
                         },
                     },
-                    is_celebrating: IsCelebrating(false),
+                    is_celebrating: IsCelebrating(Default::default()),
                 },
-                spell_casting: SpellCasting(0),
+                spell_casting: SpellCasting(Default::default()),
             },
         }
     }
@@ -15755,12 +15916,12 @@ impl Default for IllusionerMetadataBundle {
                                     },
                                     auto_spin_attack: AutoSpinAttack(false),
                                     abstract_living_using_item: AbstractLivingUsingItem(false),
-                                    health: Health(1.0),
+                                    health: Health(Default::default()),
                                     effect_particles: EffectParticles(Default::default()),
-                                    effect_ambience: EffectAmbience(false),
-                                    arrow_count: ArrowCount(0),
-                                    stinger_count: StingerCount(0),
-                                    sleeping_pos: SleepingPos(None),
+                                    effect_ambience: EffectAmbience(Default::default()),
+                                    arrow_count: ArrowCount(Default::default()),
+                                    stinger_count: StingerCount(Default::default()),
+                                    sleeping_pos: SleepingPos(Default::default()),
                                 },
                                 no_ai: NoAi(false),
                                 left_handed: LeftHanded(false),
@@ -15768,9 +15929,9 @@ impl Default for IllusionerMetadataBundle {
                             },
                         },
                     },
-                    is_celebrating: IsCelebrating(false),
+                    is_celebrating: IsCelebrating(Default::default()),
                 },
-                spell_casting: SpellCasting(0),
+                spell_casting: SpellCasting(Default::default()),
             },
         }
     }
@@ -16408,9 +16569,9 @@ impl Default for AbstractVehicleMetadataBundle {
                 pose: Pose::default(),
                 ticks_frozen: TicksFrozen(Default::default()),
             },
-            hurt: Hurt(0),
-            hurtdir: Hurtdir(1),
-            damage: Damage(0.0),
+            hurt: Hurt(Default::default()),
+            hurtdir: Hurtdir(Default::default()),
+            damage: Damage(Default::default()),
         }
     }
 }
@@ -16524,13 +16685,13 @@ impl Default for AbstractBoatMetadataBundle {
                     pose: Pose::default(),
                     ticks_frozen: TicksFrozen(Default::default()),
                 },
-                hurt: Hurt(0),
-                hurtdir: Hurtdir(1),
-                damage: Damage(0.0),
+                hurt: Hurt(Default::default()),
+                hurtdir: Hurtdir(Default::default()),
+                damage: Damage(Default::default()),
             },
-            paddle_left: PaddleLeft(false),
-            paddle_right: PaddleRight(false),
-            bubble_time: BubbleTime(0),
+            paddle_left: PaddleLeft(Default::default()),
+            paddle_right: PaddleRight(Default::default()),
+            bubble_time: BubbleTime(Default::default()),
         }
     }
 }
@@ -16602,13 +16763,13 @@ impl Default for AcaciaBoatMetadataBundle {
                         pose: Pose::default(),
                         ticks_frozen: TicksFrozen(Default::default()),
                     },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
+                    hurt: Hurt(Default::default()),
+                    hurtdir: Hurtdir(Default::default()),
+                    damage: Damage(Default::default()),
                 },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
+                paddle_left: PaddleLeft(Default::default()),
+                paddle_right: PaddleRight(Default::default()),
+                bubble_time: BubbleTime(Default::default()),
             },
         }
     }
@@ -16681,13 +16842,13 @@ impl Default for AcaciaChestBoatMetadataBundle {
                         pose: Pose::default(),
                         ticks_frozen: TicksFrozen(Default::default()),
                     },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
+                    hurt: Hurt(Default::default()),
+                    hurtdir: Hurtdir(Default::default()),
+                    damage: Damage(Default::default()),
                 },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
+                paddle_left: PaddleLeft(Default::default()),
+                paddle_right: PaddleRight(Default::default()),
+                bubble_time: BubbleTime(Default::default()),
             },
         }
     }
@@ -16760,13 +16921,13 @@ impl Default for BambooChestRaftMetadataBundle {
                         pose: Pose::default(),
                         ticks_frozen: TicksFrozen(Default::default()),
                     },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
+                    hurt: Hurt(Default::default()),
+                    hurtdir: Hurtdir(Default::default()),
+                    damage: Damage(Default::default()),
                 },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
+                paddle_left: PaddleLeft(Default::default()),
+                paddle_right: PaddleRight(Default::default()),
+                bubble_time: BubbleTime(Default::default()),
             },
         }
     }
@@ -16839,13 +17000,13 @@ impl Default for BambooRaftMetadataBundle {
                         pose: Pose::default(),
                         ticks_frozen: TicksFrozen(Default::default()),
                     },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
+                    hurt: Hurt(Default::default()),
+                    hurtdir: Hurtdir(Default::default()),
+                    damage: Damage(Default::default()),
                 },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
+                paddle_left: PaddleLeft(Default::default()),
+                paddle_right: PaddleRight(Default::default()),
+                bubble_time: BubbleTime(Default::default()),
             },
         }
     }
@@ -16918,13 +17079,13 @@ impl Default for BirchBoatMetadataBundle {
                         pose: Pose::default(),
                         ticks_frozen: TicksFrozen(Default::default()),
                     },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
+                    hurt: Hurt(Default::default()),
+                    hurtdir: Hurtdir(Default::default()),
+                    damage: Damage(Default::default()),
                 },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
+                paddle_left: PaddleLeft(Default::default()),
+                paddle_right: PaddleRight(Default::default()),
+                bubble_time: BubbleTime(Default::default()),
             },
         }
     }
@@ -16997,13 +17158,13 @@ impl Default for BirchChestBoatMetadataBundle {
                         pose: Pose::default(),
                         ticks_frozen: TicksFrozen(Default::default()),
                     },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
+                    hurt: Hurt(Default::default()),
+                    hurtdir: Hurtdir(Default::default()),
+                    damage: Damage(Default::default()),
                 },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
+                paddle_left: PaddleLeft(Default::default()),
+                paddle_right: PaddleRight(Default::default()),
+                bubble_time: BubbleTime(Default::default()),
             },
         }
     }
@@ -17076,13 +17237,13 @@ impl Default for CherryBoatMetadataBundle {
                         pose: Pose::default(),
                         ticks_frozen: TicksFrozen(Default::default()),
                     },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
+                    hurt: Hurt(Default::default()),
+                    hurtdir: Hurtdir(Default::default()),
+                    damage: Damage(Default::default()),
                 },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
+                paddle_left: PaddleLeft(Default::default()),
+                paddle_right: PaddleRight(Default::default()),
+                bubble_time: BubbleTime(Default::default()),
             },
         }
     }
@@ -17155,13 +17316,13 @@ impl Default for CherryChestBoatMetadataBundle {
                         pose: Pose::default(),
                         ticks_frozen: TicksFrozen(Default::default()),
                     },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
+                    hurt: Hurt(Default::default()),
+                    hurtdir: Hurtdir(Default::default()),
+                    damage: Damage(Default::default()),
                 },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
+                paddle_left: PaddleLeft(Default::default()),
+                paddle_right: PaddleRight(Default::default()),
+                bubble_time: BubbleTime(Default::default()),
             },
         }
     }
@@ -17234,13 +17395,13 @@ impl Default for DarkOakBoatMetadataBundle {
                         pose: Pose::default(),
                         ticks_frozen: TicksFrozen(Default::default()),
                     },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
+                    hurt: Hurt(Default::default()),
+                    hurtdir: Hurtdir(Default::default()),
+                    damage: Damage(Default::default()),
                 },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
+                paddle_left: PaddleLeft(Default::default()),
+                paddle_right: PaddleRight(Default::default()),
+                bubble_time: BubbleTime(Default::default()),
             },
         }
     }
@@ -17313,13 +17474,13 @@ impl Default for DarkOakChestBoatMetadataBundle {
                         pose: Pose::default(),
                         ticks_frozen: TicksFrozen(Default::default()),
                     },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
+                    hurt: Hurt(Default::default()),
+                    hurtdir: Hurtdir(Default::default()),
+                    damage: Damage(Default::default()),
                 },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
+                paddle_left: PaddleLeft(Default::default()),
+                paddle_right: PaddleRight(Default::default()),
+                bubble_time: BubbleTime(Default::default()),
             },
         }
     }
@@ -17392,13 +17553,13 @@ impl Default for JungleBoatMetadataBundle {
                         pose: Pose::default(),
                         ticks_frozen: TicksFrozen(Default::default()),
                     },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
+                    hurt: Hurt(Default::default()),
+                    hurtdir: Hurtdir(Default::default()),
+                    damage: Damage(Default::default()),
                 },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
+                paddle_left: PaddleLeft(Default::default()),
+                paddle_right: PaddleRight(Default::default()),
+                bubble_time: BubbleTime(Default::default()),
             },
         }
     }
@@ -17471,13 +17632,13 @@ impl Default for JungleChestBoatMetadataBundle {
                         pose: Pose::default(),
                         ticks_frozen: TicksFrozen(Default::default()),
                     },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
+                    hurt: Hurt(Default::default()),
+                    hurtdir: Hurtdir(Default::default()),
+                    damage: Damage(Default::default()),
                 },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
+                paddle_left: PaddleLeft(Default::default()),
+                paddle_right: PaddleRight(Default::default()),
+                bubble_time: BubbleTime(Default::default()),
             },
         }
     }
@@ -17550,13 +17711,13 @@ impl Default for MangroveBoatMetadataBundle {
                         pose: Pose::default(),
                         ticks_frozen: TicksFrozen(Default::default()),
                     },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
+                    hurt: Hurt(Default::default()),
+                    hurtdir: Hurtdir(Default::default()),
+                    damage: Damage(Default::default()),
                 },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
+                paddle_left: PaddleLeft(Default::default()),
+                paddle_right: PaddleRight(Default::default()),
+                bubble_time: BubbleTime(Default::default()),
             },
         }
     }
@@ -17629,13 +17790,13 @@ impl Default for MangroveChestBoatMetadataBundle {
                         pose: Pose::default(),
                         ticks_frozen: TicksFrozen(Default::default()),
                     },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
+                    hurt: Hurt(Default::default()),
+                    hurtdir: Hurtdir(Default::default()),
+                    damage: Damage(Default::default()),
                 },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
+                paddle_left: PaddleLeft(Default::default()),
+                paddle_right: PaddleRight(Default::default()),
+                bubble_time: BubbleTime(Default::default()),
             },
         }
     }
@@ -17708,13 +17869,13 @@ impl Default for OakBoatMetadataBundle {
                         pose: Pose::default(),
                         ticks_frozen: TicksFrozen(Default::default()),
                     },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
+                    hurt: Hurt(Default::default()),
+                    hurtdir: Hurtdir(Default::default()),
+                    damage: Damage(Default::default()),
                 },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
+                paddle_left: PaddleLeft(Default::default()),
+                paddle_right: PaddleRight(Default::default()),
+                bubble_time: BubbleTime(Default::default()),
             },
         }
     }
@@ -17787,13 +17948,13 @@ impl Default for OakChestBoatMetadataBundle {
                         pose: Pose::default(),
                         ticks_frozen: TicksFrozen(Default::default()),
                     },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
+                    hurt: Hurt(Default::default()),
+                    hurtdir: Hurtdir(Default::default()),
+                    damage: Damage(Default::default()),
                 },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
+                paddle_left: PaddleLeft(Default::default()),
+                paddle_right: PaddleRight(Default::default()),
+                bubble_time: BubbleTime(Default::default()),
             },
         }
     }
@@ -17866,13 +18027,13 @@ impl Default for PaleOakBoatMetadataBundle {
                         pose: Pose::default(),
                         ticks_frozen: TicksFrozen(Default::default()),
                     },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
+                    hurt: Hurt(Default::default()),
+                    hurtdir: Hurtdir(Default::default()),
+                    damage: Damage(Default::default()),
                 },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
+                paddle_left: PaddleLeft(Default::default()),
+                paddle_right: PaddleRight(Default::default()),
+                bubble_time: BubbleTime(Default::default()),
             },
         }
     }
@@ -17945,13 +18106,13 @@ impl Default for PaleOakChestBoatMetadataBundle {
                         pose: Pose::default(),
                         ticks_frozen: TicksFrozen(Default::default()),
                     },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
+                    hurt: Hurt(Default::default()),
+                    hurtdir: Hurtdir(Default::default()),
+                    damage: Damage(Default::default()),
                 },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
+                paddle_left: PaddleLeft(Default::default()),
+                paddle_right: PaddleRight(Default::default()),
+                bubble_time: BubbleTime(Default::default()),
             },
         }
     }
@@ -18024,13 +18185,13 @@ impl Default for SpruceBoatMetadataBundle {
                         pose: Pose::default(),
                         ticks_frozen: TicksFrozen(Default::default()),
                     },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
+                    hurt: Hurt(Default::default()),
+                    hurtdir: Hurtdir(Default::default()),
+                    damage: Damage(Default::default()),
                 },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
+                paddle_left: PaddleLeft(Default::default()),
+                paddle_right: PaddleRight(Default::default()),
+                bubble_time: BubbleTime(Default::default()),
             },
         }
     }
@@ -18103,13 +18264,13 @@ impl Default for SpruceChestBoatMetadataBundle {
                         pose: Pose::default(),
                         ticks_frozen: TicksFrozen(Default::default()),
                     },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
+                    hurt: Hurt(Default::default()),
+                    hurtdir: Hurtdir(Default::default()),
+                    damage: Damage(Default::default()),
                 },
-                paddle_left: PaddleLeft(false),
-                paddle_right: PaddleRight(false),
-                bubble_time: BubbleTime(0),
+                paddle_left: PaddleLeft(Default::default()),
+                paddle_right: PaddleRight(Default::default()),
+                bubble_time: BubbleTime(Default::default()),
             },
         }
     }
@@ -18203,11 +18364,11 @@ impl Default for AbstractMinecartMetadataBundle {
                     pose: Pose::default(),
                     ticks_frozen: TicksFrozen(Default::default()),
                 },
-                hurt: Hurt(0),
-                hurtdir: Hurtdir(1),
-                damage: Damage(0.0),
+                hurt: Hurt(Default::default()),
+                hurtdir: Hurtdir(Default::default()),
+                damage: Damage(Default::default()),
             },
-            custom_display_block: CustomDisplayBlock(azalea_block::BlockState::AIR),
+            custom_display_block: CustomDisplayBlock(Default::default()),
             display_offset: DisplayOffset(Default::default()),
         }
     }
@@ -18280,11 +18441,11 @@ impl Default for ChestMinecartMetadataBundle {
                         pose: Pose::default(),
                         ticks_frozen: TicksFrozen(Default::default()),
                     },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
+                    hurt: Hurt(Default::default()),
+                    hurtdir: Hurtdir(Default::default()),
+                    damage: Damage(Default::default()),
                 },
-                custom_display_block: CustomDisplayBlock(azalea_block::BlockState::AIR),
+                custom_display_block: CustomDisplayBlock(Default::default()),
                 display_offset: DisplayOffset(Default::default()),
             },
         }
@@ -18377,14 +18538,14 @@ impl Default for CommandBlockMinecartMetadataBundle {
                         pose: Pose::default(),
                         ticks_frozen: TicksFrozen(Default::default()),
                     },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
+                    hurt: Hurt(Default::default()),
+                    hurtdir: Hurtdir(Default::default()),
+                    damage: Damage(Default::default()),
                 },
-                custom_display_block: CustomDisplayBlock(azalea_block::BlockState::AIR),
+                custom_display_block: CustomDisplayBlock(Default::default()),
                 display_offset: DisplayOffset(Default::default()),
             },
-            command_name: CommandName("".to_owned()),
+            command_name: CommandName(Default::default()),
             last_output: LastOutput(Default::default()),
         }
     }
@@ -18467,14 +18628,14 @@ impl Default for FurnaceMinecartMetadataBundle {
                         pose: Pose::default(),
                         ticks_frozen: TicksFrozen(Default::default()),
                     },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
+                    hurt: Hurt(Default::default()),
+                    hurtdir: Hurtdir(Default::default()),
+                    damage: Damage(Default::default()),
                 },
-                custom_display_block: CustomDisplayBlock(azalea_block::BlockState::AIR),
+                custom_display_block: CustomDisplayBlock(Default::default()),
                 display_offset: DisplayOffset(Default::default()),
             },
-            fuel: Fuel(false),
+            fuel: Fuel(Default::default()),
         }
     }
 }
@@ -18546,11 +18707,11 @@ impl Default for HopperMinecartMetadataBundle {
                         pose: Pose::default(),
                         ticks_frozen: TicksFrozen(Default::default()),
                     },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
+                    hurt: Hurt(Default::default()),
+                    hurtdir: Hurtdir(Default::default()),
+                    damage: Damage(Default::default()),
                 },
-                custom_display_block: CustomDisplayBlock(azalea_block::BlockState::AIR),
+                custom_display_block: CustomDisplayBlock(Default::default()),
                 display_offset: DisplayOffset(Default::default()),
             },
         }
@@ -18624,11 +18785,11 @@ impl Default for MinecartMetadataBundle {
                         pose: Pose::default(),
                         ticks_frozen: TicksFrozen(Default::default()),
                     },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
+                    hurt: Hurt(Default::default()),
+                    hurtdir: Hurtdir(Default::default()),
+                    damage: Damage(Default::default()),
                 },
-                custom_display_block: CustomDisplayBlock(azalea_block::BlockState::AIR),
+                custom_display_block: CustomDisplayBlock(Default::default()),
                 display_offset: DisplayOffset(Default::default()),
             },
         }
@@ -18702,11 +18863,11 @@ impl Default for SpawnerMinecartMetadataBundle {
                         pose: Pose::default(),
                         ticks_frozen: TicksFrozen(Default::default()),
                     },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
+                    hurt: Hurt(Default::default()),
+                    hurtdir: Hurtdir(Default::default()),
+                    damage: Damage(Default::default()),
                 },
-                custom_display_block: CustomDisplayBlock(azalea_block::BlockState::AIR),
+                custom_display_block: CustomDisplayBlock(Default::default()),
                 display_offset: DisplayOffset(Default::default()),
             },
         }
@@ -18780,11 +18941,11 @@ impl Default for TntMinecartMetadataBundle {
                         pose: Pose::default(),
                         ticks_frozen: TicksFrozen(Default::default()),
                     },
-                    hurt: Hurt(0),
-                    hurtdir: Hurtdir(1),
-                    damage: Damage(0.0),
+                    hurt: Hurt(Default::default()),
+                    hurtdir: Hurtdir(Default::default()),
+                    damage: Damage(Default::default()),
                 },
-                custom_display_block: CustomDisplayBlock(azalea_block::BlockState::AIR),
+                custom_display_block: CustomDisplayBlock(Default::default()),
                 display_offset: DisplayOffset(Default::default()),
             },
         }

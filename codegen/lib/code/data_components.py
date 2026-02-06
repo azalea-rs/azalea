@@ -198,7 +198,6 @@ use crate::{
     components_to_item_defaults = {}
 
     for item_resource_id, data in items.items():
-        item_resource_id = item_resource_id.split(":")[1]
         components = data["components"]
         for component_resource_id, component_value in components.items():
             component_resource_id = component_resource_id.split(":")[1]
