@@ -73,5 +73,4 @@ If you've created your own plugin for Azalea, please create a PR to add it to th
 
 ## Funding
 
-Azalea is currently maintained primarily by one person as a hobby project. If you appreciate Azalea, consider [donating on Ko-fi](https://ko-fi.com/matdoesdev).
-
+Azalea is currently maintained primarily by one person as a hobby project. If you appreciate Azalea, please consider sponsoring it with [GitHub Sponsors](https://github.com/sponsors/mat-1) or on [Ko-fi](https://ko-fi.com/matdoesdev).

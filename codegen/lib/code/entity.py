@@ -3,9 +3,7 @@ from typing import Optional
 import re
 
 METADATA_RS_DIR = get_dir_location("../azalea-entity/src/metadata.rs")
-
 DATA_RS_DIR = get_dir_location("../azalea-entity/src/data.rs")
-
 DIMENSIONS_RS_DIR = get_dir_location("../azalea-entity/src/dimensions.rs")
 
 
@@ -386,7 +384,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
         # }
         code.append(f"impl {entity_struct_name} {{")
         code.append(
-            "    pub fn apply_metadata(entity: &mut bevy_ecs::system::EntityCommands, d: EntityDataItem) -> Result<(), UpdateMetadataError> {"
+            "    fn apply_metadata(entity: &mut bevy_ecs::system::EntityCommands, d: EntityDataItem) -> Result<(), UpdateMetadataError> {"
         )
         code.append("        match d.index {")
 
@@ -513,13 +511,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
                 this_entity_parent_ids[1] if len(this_entity_parent_ids) > 1 else None
             )
             if this_entity_parent_id:
-                bundle_struct_name = (
-                    upper_first_letter(to_camel_case(this_entity_parent_id.lstrip("~")))
-                    + "MetadataBundle"
-                )
-                code.append(f"            parent: {bundle_struct_name} {{")
-                generate_fields(this_entity_parent_id)
-                code.append("            },")
+                code.append("            parent: Default::default(),")
 
             for index, name_or_bitfield in get_entity_metadata_names(
                 this_entity_id, burger_entity_metadata
@@ -565,7 +557,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
                             default = "true" if default else "false"
                         elif type_name == "String":
                             string_escaped = default.replace('"', '\\"')
-                            default = f'"{string_escaped}".to_owned()'
+                            default = f'"{string_escaped}".into()'
                         elif type_name == "BlockPos":
                             default = f"BlockPos::new{default}"
                         elif type_name == "OptionalBlockPos":  # Option<BlockPos>
@@ -720,7 +712,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
     code.append("")
 
     code_header.append("")
-    code_header.append("#![allow(clippy::single_match)]")
+    code_header.append("#![allow(clippy::single_match, non_snake_case)]")
 
     with open(METADATA_RS_DIR, "w") as f:
         f.write("\n".join(code_header) + "\n\n")

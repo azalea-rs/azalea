@@ -2,7 +2,7 @@ use std::io::{self, Cursor, Write};
 
 use uuid::Uuid;
 
-use crate::{AzaleaRead, AzaleaWrite, read::BufReadError};
+use crate::{AzBuf, BufReadError};
 
 pub trait SerializableUuid {
     fn to_int_array(&self) -> [u32; 4];
@@ -34,7 +34,7 @@ impl SerializableUuid for Uuid {
     }
 }
 
-impl AzaleaRead for Uuid {
+impl AzBuf for Uuid {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(Uuid::from_int_array([
             u32::azalea_read(buf)?,
@@ -43,9 +43,6 @@ impl AzaleaRead for Uuid {
             u32::azalea_read(buf)?,
         ]))
     }
-}
-
-impl AzaleaWrite for Uuid {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         let [a, b, c, d] = self.to_int_array();
         a.azalea_write(buf)?;

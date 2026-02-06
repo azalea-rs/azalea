@@ -2,7 +2,7 @@ use azalea_buf::AzBuf;
 use azalea_core::sound::CustomSound;
 use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_registry::builtin::SoundEvent;
-use azalea_world::MinecraftEntityId;
+use azalea_core::entity_id::MinecraftEntityId;
 
 use super::c_sound::SoundSource;
 

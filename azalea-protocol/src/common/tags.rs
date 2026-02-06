@@ -3,7 +3,7 @@ use std::{
     ops::Deref,
 };
 
-use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
+use azalea_buf::{AzBuf, AzBufVar, BufReadError};
 use azalea_registry::identifier::Identifier;
 use indexmap::IndexMap;
 
@@ -16,14 +16,14 @@ pub struct Tags {
     pub elements: Vec<i32>,
 }
 
-impl AzaleaRead for TagMap {
+impl AzBuf for TagMap {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let length = u32::azalea_read_var(buf)? as usize;
-        let mut data = IndexMap::with_capacity(length);
+        let mut data = IndexMap::new();
         for _ in 0..length {
             let tag_type = Identifier::azalea_read(buf)?;
             let tags_count = i32::azalea_read_var(buf)? as usize;
-            let mut tags_vec = Vec::with_capacity(tags_count);
+            let mut tags_vec = Vec::new();
             for _ in 0..tags_count {
                 let tags = Tags::azalea_read(buf)?;
                 tags_vec.push(tags);
@@ -32,9 +32,6 @@ impl AzaleaRead for TagMap {
         }
         Ok(TagMap(data))
     }
-}
-
-impl AzaleaWrite for TagMap {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         (self.len() as u32).azalea_write_var(buf)?;
         for (k, v) in &self.0 {
@@ -44,15 +41,12 @@ impl AzaleaWrite for TagMap {
         Ok(())
     }
 }
-impl AzaleaRead for Tags {
+impl AzBuf for Tags {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let name = Identifier::azalea_read(buf)?;
         let elements = Vec::<i32>::azalea_read_var(buf)?;
         Ok(Tags { name, elements })
     }
-}
-
-impl AzaleaWrite for Tags {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         self.name.azalea_write(buf)?;
         self.elements.azalea_write_var(buf)?;

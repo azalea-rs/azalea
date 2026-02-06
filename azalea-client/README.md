@@ -1,5 +1,5 @@
 # `azalea-client`
 
-A library that can mimic everything that a normal Minecraft client can do.
+A library for creating Minecraft clients with Bevy.
 
-To make a bot with higher-level functions, consider using the `azalea` crate instead.
+If you intend on creating a bot, consider using the [`azalea`](https://docs.rs/azalea) crate instead.

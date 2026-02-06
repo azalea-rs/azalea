@@ -25,9 +25,9 @@ pub struct CustomPathfinderState(pub Arc<RwLock<CustomPathfinderStateRef>>);
 /// Arbitrary state that's passed to the pathfinder, intended to be used for
 /// custom moves that need to access things that are usually inaccessible.
 ///
-/// This is included in [`PathfinderCtx`].
+/// This is included in [`MovesCtx`].
 ///
-/// [`PathfinderCtx`]: crate::pathfinder::PathfinderCtx
+/// [`MovesCtx`]: crate::pathfinder::MovesCtx
 #[derive(Debug, Default)]
 pub struct CustomPathfinderStateRef {
     map: FxHashMap<TypeId, Box<dyn Any + Send + Sync>>,

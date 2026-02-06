@@ -3,11 +3,9 @@ use std::time::Duration;
 use azalea::{
     BlockPos, SprintDirection, WalkDirection,
     brigadier::prelude::*,
-    entity::Position,
     pathfinder::goals::{BlockPosGoal, RadiusGoal, XZGoal},
     prelude::*,
 };
-use azalea_entity::dimensions::EntityDimensions;
 use parking_lot::Mutex;
 
 use super::{CommandSource, Ctx};
@@ -17,21 +15,18 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
     commands.register(
         literal("goto")
             .executes(|ctx: &Ctx| {
-                let mut source = ctx.source.lock();
+                let source = ctx.source.lock();
                 println!("got goto");
                 // look for the sender
                 let Some(entity) = source.entity() else {
                     source.reply("I can't see you!");
                     return 0;
                 };
-                let Some(position) = source.bot.get_entity_component::<Position>(entity) else {
-                    source.reply("I can't see you!");
-                    return 0;
-                };
+                let position = entity.position();
                 source.reply("ok");
                 source
                     .bot
-                    .start_goto(BlockPosGoal(BlockPos::from(position)));
+                    .start_goto(BlockPosGoal(BlockPos::from(position.up(0.5))));
                 1
             })
             .then(literal("xz").then(argument("x", integer()).then(
@@ -93,21 +88,13 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
         literal("look")
             .executes(|ctx: &Ctx| {
                 // look for the sender
-                let mut source = ctx.source.lock();
+                let source = ctx.source.lock();
                 let Some(entity) = source.entity() else {
                     source.reply("I can't see you!");
                     return 0;
                 };
-                let Some(position) = source.bot.get_entity_component::<Position>(entity) else {
-                    source.reply("I can't see you!");
-                    return 0;
-                };
-                let eye_height = source
-                    .bot
-                    .get_entity_component::<EntityDimensions>(entity)
-                    .map(|h| h.eye_height)
-                    .unwrap_or_default();
-                source.bot.look_at(position.up(eye_height as f64));
+                let eye_position = entity.eye_position();
+                source.bot.look_at(eye_position);
                 1
             })
             .then(argument("x", integer()).then(argument("y", integer()).then(
@@ -219,6 +206,13 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
     commands.register(literal("stop").executes(|ctx: &Ctx| {
         let source = ctx.source.lock();
         source.bot.stop_pathfinding();
+        source.reply("ok");
+        *source.state.task.lock() = BotTask::None;
+        1
+    }));
+    commands.register(literal("forcestop").executes(|ctx: &Ctx| {
+        let source = ctx.source.lock();
+        source.bot.force_stop_pathfinding();
         source.reply("ok");
         *source.state.task.lock() = BotTask::None;
         1

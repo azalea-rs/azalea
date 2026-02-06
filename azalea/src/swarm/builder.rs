@@ -8,13 +8,9 @@ use std::{
     time::Duration,
 };
 
-use azalea_client::{
-    Account, DefaultPlugins,
-    auto_reconnect::{AutoReconnectDelay, DEFAULT_RECONNECT_DELAY},
-    start_ecs_runner,
-};
+use azalea_client::{DefaultPlugins, account::Account, start_ecs_runner};
 use azalea_protocol::address::{ResolvableAddr, ResolvedAddr};
-use azalea_world::InstanceContainer;
+use azalea_world::Worlds;
 use bevy_app::{App, AppExit, Plugins, SubApp};
 use bevy_ecs::{component::Component, resource::Resource};
 use futures::future::join_all;
@@ -24,6 +20,7 @@ use tracing::{debug, error, warn};
 
 use crate::{
     BoxHandleFn, HandleFn, JoinOpts, NoState,
+    auto_reconnect::{AutoReconnectDelay, DEFAULT_RECONNECT_DELAY},
     bot::DefaultBotPlugins,
     swarm::{
         BoxSwarmHandleFn, DefaultSwarmPlugins, NoSwarmState, Swarm, SwarmEvent, SwarmHandleFn,
@@ -78,10 +75,11 @@ impl SwarmBuilder<NoState, NoSwarmState, (), ()> {
     /// Start creating the swarm.
     #[must_use]
     pub fn new() -> Self {
-        Self::new_without_plugins()
-            .add_plugins(DefaultPlugins)
-            .add_plugins(DefaultBotPlugins)
-            .add_plugins(DefaultSwarmPlugins)
+        Self::new_without_plugins().add_plugins((
+            DefaultPlugins,
+            DefaultBotPlugins,
+            DefaultSwarmPlugins,
+        ))
     }
 
     /// [`Self::new`] but without adding the plugins by default.
@@ -93,13 +91,17 @@ impl SwarmBuilder<NoState, NoSwarmState, (), ()> {
     /// [`DefaultSwarmPlugins`] to this.
     ///
     /// ```
-    /// # use azalea::{prelude::*, swarm::prelude::*};
+    /// # use azalea::{prelude::*, swarm::{prelude::*, DefaultSwarmPlugins}, bot::DefaultBotPlugins};
     /// use azalea::app::PluginGroup;
     ///
     /// let swarm_builder = SwarmBuilder::new_without_plugins()
-    ///     .add_plugins(azalea::DefaultPlugins.build().disable::<azalea::chat_signing::ChatSigningPlugin>())
-    ///     .add_plugins(azalea::bot::DefaultBotPlugins)
-    ///     .add_plugins(azalea::swarm::DefaultSwarmPlugins);
+    ///     .add_plugins((
+    ///         DefaultBotPlugins,
+    ///         DefaultSwarmPlugins,
+    ///         azalea::DefaultPlugins
+    ///             .build()
+    ///             .disable::<azalea::chat_signing::ChatSigningPlugin>(),
+    /// ));
     /// # swarm_builder.set_handler(handle).set_swarm_handler(swarm_handle);
     /// # #[derive(Clone, Component, Default, Resource)]
     /// # pub struct State;
@@ -376,7 +378,9 @@ where
     /// The `address` argument can be a `&str`, [`ServerAddr`],
     /// [`ResolvedAddr`], or anything else that implements [`ResolvableAddr`].
     ///
-    /// [`ServerAddr`]: azalea_protocol::address::ServerAddr
+    /// [`ServerAddr`]: ../../azalea_protocol/address/struct.ServerAddr.html
+    /// [`ResolvedAddr`]: ../../azalea_protocol/address/struct.ResolvedAddr.html
+    /// [`ResolvableAddr`]: ../../azalea_protocol/address/trait.ResolvableAddr.html
     pub async fn start(self, address: impl ResolvableAddr) -> AppExit {
         self.start_with_opts(address, JoinOpts::default()).await
     }
@@ -434,7 +438,7 @@ where
             addr
         };
 
-        let instance_container = Arc::new(RwLock::new(InstanceContainer::default()));
+        let worlds = Arc::new(RwLock::new(Worlds::default()));
 
         // we can't modify the swarm plugins after this
         let (bots_tx, mut bots_rx) = mpsc::unbounded_channel();
@@ -451,10 +455,10 @@ where
             let (ecs_lock, start_running_systems, appexit_rx) = start_ecs_runner(&mut self.app);
 
             let swarm = Swarm {
-                ecs_lock: ecs_lock.clone(),
+                ecs: ecs_lock.clone(),
 
                 address: Arc::new(RwLock::new(address)),
-                instance_container,
+                worlds,
 
                 bots_tx,
 
@@ -463,7 +467,7 @@ where
 
             // run the main schedule so the startup systems run
             {
-                let mut ecs = ecs_lock.lock();
+                let mut ecs = ecs_lock.write();
                 ecs.insert_resource(swarm.clone());
                 ecs.insert_resource(self.swarm_state.clone());
                 if let Some(reconnect_after) = self.reconnect_after {
@@ -548,7 +552,7 @@ where
 
                     if let Some(handler) = &self.handler {
                         let ecs_mutex = first_bot.ecs.clone();
-                        let mut ecs = ecs_mutex.lock();
+                        let mut ecs = ecs_mutex.write();
                         let mut query = ecs.query::<Option<&S>>();
                         let Ok(Some(first_bot_state)) = query.get(&ecs, first_bot.entity) else {
                             error!(

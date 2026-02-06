@@ -16,7 +16,8 @@ crypto-primes.workspace = true # TODO: Remove when rsa is fixed.
 indexmap.workspace = true
 reqwest = { workspace = true, optional = true, default-features = false, features = [
     "json",
-    "rustls-tls",
+    "rustls",
+    "form",
 ] }
 rsa.workspace = true
 signature.workspace = true # TODO: Remove when rsa is fixed.

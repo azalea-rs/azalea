@@ -702,7 +702,7 @@ impl Menu {
 
                 // get the target slot again but mut this time so we can update it
                 let target_slot = self.slot_mut(target_slot_index).unwrap();
-                *target_slot = ItemStack::Present(new_target_slot_data);
+                *target_slot = ItemStack::from(new_target_slot_data);
 
                 item_slot.update_empty();
             }

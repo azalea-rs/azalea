@@ -17,7 +17,8 @@
 
 use std::sync::Arc;
 
-use azalea_world::{MinecraftEntityId, PartialInstance};
+use azalea_core::entity_id::MinecraftEntityId;
+use azalea_world::PartialWorld;
 use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
 use parking_lot::RwLock;
@@ -37,13 +38,13 @@ use crate::LocalEntity;
 /// other clients within render distance will get too. You usually don't need
 /// this when the change isn't relative either.
 pub struct RelativeEntityUpdate {
-    pub partial_world: Arc<RwLock<PartialInstance>>,
+    pub partial_world: Arc<RwLock<PartialWorld>>,
     // a function that takes the entity and updates it
     pub update: Box<dyn FnOnce(&mut EntityWorldMut) + Send + Sync>,
 }
 impl RelativeEntityUpdate {
     pub fn new(
-        partial_world: Arc<RwLock<PartialInstance>>,
+        partial_world: Arc<RwLock<PartialWorld>>,
         update: impl FnOnce(&mut EntityWorldMut) + Send + Sync + 'static,
     ) -> Self {
         Self {

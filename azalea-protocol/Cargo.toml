@@ -17,14 +17,14 @@ azalea-block.workspace = true
 azalea-brigadier = { workspace = true, features = ["azalea-buf"] }
 azalea-buf.workspace = true
 azalea-chat = { workspace = true, features = ["numbers", "azalea-buf"] }
-azalea-core.workspace = true
+azalea-core = { workspace = true }
 azalea-crypto = { workspace = true, features = ["signing"] }
-azalea-entity.workspace = true
+azalea-entity = { workspace = true }
 azalea-inventory.workspace = true
 azalea-protocol-macros.workspace = true
 azalea-registry.workspace = true
-azalea-world.workspace = true
-bevy_ecs.workspace = true
+azalea-world = { workspace = true, optional = true }
+bevy_ecs = { workspace = true, optional = true }
 # byteorder.workspace = true
 flate2.workspace = true
 futures.workspace = true
@@ -44,9 +44,15 @@ indexmap.workspace = true
 reqwest = { workspace = true, optional = true, features = ["socks"] }
 
 [features]
-default = ["online-mode"]
+default = ["online-mode", "connecting"]
 connecting = []
 online-mode = ["azalea-auth/online-mode", "dep:reqwest"]
+bevy_ecs = [
+    "dep:bevy_ecs",
+    "dep:azalea-world",
+    "azalea-entity/bevy_ecs",
+    "azalea-core/bevy_ecs",
+]
 
 [lints]
 workspace = true

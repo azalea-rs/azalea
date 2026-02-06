@@ -43,20 +43,21 @@ def get_packets_report(version_id: str):
 
 def get_items_report(version_id: str):
     generate_data_from_server_jar(version_id)
-    tags_directory = get_dir_location(
-        f"__cache__/generated-{version_id}/reports/minecraft/components/items"
+    items_dir = get_dir_location(
+        f"__cache__/generated-{version_id}/reports/minecraft/components/item"
     )
-    if not os.path.exists(tags_directory):
+    if not os.path.exists(items_dir):
         return {}
     items = {}
-    for root, dirs, files in os.walk(tags_directory, topdown=False):
+    for root, dirs, files in os.walk(items_dir, topdown=False):
         for name in files:
             file = os.path.join(root, name)
-            relative_path = file.replace(tags_directory, "")[1:]
+            relative_path = file.replace(items_dir, "")[1:]
             if not file.endswith(".json"):
                 continue
             with open(file, "r") as f:
                 items[relative_path[:-5]] = json.load(f)
+
     return items
 
 

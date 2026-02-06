@@ -40,9 +40,9 @@ pub fn box_shape(
     if x_bits < 0 || y_bits < 0 || z_bits < 0 {
         return VoxelShape::Array(ArrayVoxelShape::new(
             BLOCK_SHAPE.shape().to_owned(),
-            vec![min_x, max_x],
-            vec![min_y, max_y],
-            vec![min_z, max_z],
+            [min_x, max_x].into(),
+            [min_y, max_y].into(),
+            [min_z, max_z].into(),
         ));
     }
     if x_bits == 0 && y_bits == 0 && z_bits == 0 {
@@ -73,9 +73,9 @@ pub fn box_shape(
 pub static EMPTY_SHAPE: LazyLock<VoxelShape> = LazyLock::new(|| {
     VoxelShape::Array(ArrayVoxelShape::new(
         DiscreteVoxelShape::BitSet(BitSetDiscreteVoxelShape::new(0, 0, 0)),
-        vec![0.],
-        vec![0.],
-        vec![0.],
+        [0.].into(),
+        [0.].into(),
+        [0.].into(),
     ))
 });
 
@@ -190,9 +190,9 @@ impl Shapes {
         } else {
             VoxelShape::Array(ArrayVoxelShape::new(
                 DiscreteVoxelShape::BitSet(var8),
-                var5.get_list(),
-                var6.get_list(),
-                var7.get_list(),
+                var5.get_list().into(),
+                var6.get_list().into(),
+                var7.get_list().into(),
             ))
         }
     }
@@ -299,19 +299,19 @@ impl Shapes {
 
         if coords1[var5] < coords2[0] - EPSILON {
             IndexMerger::NonOverlapping {
-                lower: coords1.to_vec(),
-                upper: coords2.to_vec(),
+                lower: coords1.into(),
+                upper: coords2.into(),
                 swap: false,
             }
         } else if coords2[var6] < coords1[0] - EPSILON {
             IndexMerger::NonOverlapping {
-                lower: coords2.to_vec(),
-                upper: coords1.to_vec(),
+                lower: coords2.into(),
+                upper: coords1.into(),
                 swap: true,
             }
         } else if var5 == var6 && coords1 == coords2 {
             IndexMerger::Identical {
-                coords: coords1.to_vec(),
+                coords: coords1.into(),
             }
         } else {
             IndexMerger::new_indirect(coords1, coords2, var3, var4)
@@ -358,6 +358,7 @@ impl VoxelShape {
         }
     }
 
+    #[inline]
     pub fn get_coords(&self, axis: Axis) -> &[f64] {
         match self {
             VoxelShape::Array(s) => s.get_coords(axis),
@@ -592,11 +593,11 @@ pub struct ArrayVoxelShape {
     shape: DiscreteVoxelShape,
     // TODO: check where faces is used in minecraft
     #[allow(dead_code)]
-    faces: Option<Vec<VoxelShape>>,
+    faces: Option<Box<[VoxelShape]>>,
 
-    pub xs: Vec<f64>,
-    pub ys: Vec<f64>,
-    pub zs: Vec<f64>,
+    xs: CompactArray<f64>,
+    ys: CompactArray<f64>,
+    zs: CompactArray<f64>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -606,13 +607,18 @@ pub struct CubeVoxelShape {
     #[allow(dead_code)]
     faces: Option<Vec<VoxelShape>>,
 
-    x_coords: Vec<f64>,
-    y_coords: Vec<f64>,
-    z_coords: Vec<f64>,
+    x_coords: CompactArray<f64>,
+    y_coords: CompactArray<f64>,
+    z_coords: CompactArray<f64>,
 }
 
 impl ArrayVoxelShape {
-    pub fn new(shape: DiscreteVoxelShape, xs: Vec<f64>, ys: Vec<f64>, zs: Vec<f64>) -> Self {
+    pub fn new(
+        shape: DiscreteVoxelShape,
+        xs: CompactArray<f64>,
+        ys: CompactArray<f64>,
+        zs: CompactArray<f64>,
+    ) -> Self {
         let x_size = shape.size(Axis::X) + 1;
         let y_size = shape.size(Axis::Y) + 1;
         let z_size = shape.size(Axis::Z) + 1;
@@ -630,16 +636,14 @@ impl ArrayVoxelShape {
             zs,
         }
     }
-}
 
-impl ArrayVoxelShape {
     fn shape(&self) -> &DiscreteVoxelShape {
         &self.shape
     }
 
     #[inline]
     fn get_coords(&self, axis: Axis) -> &[f64] {
-        axis.choose(&self.xs, &self.ys, &self.zs)
+        axis.choose(&self.xs, &self.ys, &self.zs).as_slice()
     }
 }
 
@@ -664,18 +668,16 @@ impl CubeVoxelShape {
         &self.shape
     }
 
-    fn calculate_coords(shape: &DiscreteVoxelShape, axis: Axis) -> Vec<f64> {
+    fn calculate_coords(shape: &DiscreteVoxelShape, axis: Axis) -> CompactArray<f64> {
         let size = shape.size(axis);
-        let mut parts = Vec::with_capacity(size as usize);
-        for i in 0..=size {
-            parts.push(i as f64 / size as f64);
-        }
-        parts
+
+        (0..=size).map(|i| i as f64 / size as f64).collect()
     }
 
     #[inline]
     fn get_coords(&self, axis: Axis) -> &[f64] {
         axis.choose(&self.x_coords, &self.y_coords, &self.z_coords)
+            .as_slice()
     }
 
     fn find_index(&self, axis: Axis, coord: f64) -> i32 {
@@ -698,8 +700,51 @@ impl CubePointRange {
         self.parts.get() + 1
     }
 
-    pub fn iter(&self) -> Vec<f64> {
+    pub fn iter(&self) -> Box<[f64]> {
         (0..=self.parts.get()).map(|i| self.get_double(i)).collect()
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum CompactArray<T: Clone + Copy> {
+    Box(Box<[T]>),
+    Inline([T; 1]),
+}
+impl<T: Clone + Copy> CompactArray<T> {
+    fn as_slice(&self) -> &[T] {
+        match self {
+            CompactArray::Box(slice) => slice,
+            CompactArray::Inline(arr) => arr,
+        }
+    }
+    fn len(&self) -> usize {
+        match self {
+            CompactArray::Box(slice) => slice.len(),
+            CompactArray::Inline(arr) => arr.len(),
+        }
+    }
+}
+impl<T: Clone + Copy> From<Box<[T]>> for CompactArray<T> {
+    fn from(value: Box<[T]>) -> Self {
+        if value.len() == 1 {
+            Self::Inline([value[0]])
+        } else {
+            Self::Box(value)
+        }
+    }
+}
+impl<T: Clone + Copy, const N: usize> From<[T; N]> for CompactArray<T> {
+    fn from(value: [T; N]) -> Self {
+        if value.len() == 1 {
+            Self::Inline([value[0]])
+        } else {
+            Self::Box(Box::new(value))
+        }
+    }
+}
+impl<T: Clone + Copy> FromIterator<T> for CompactArray<T> {
+    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
+        Self::from(Box::from_iter(iter))
     }
 }
 

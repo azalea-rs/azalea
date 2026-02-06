@@ -7,7 +7,7 @@ use azalea_entity::{
     Attributes, HasClientLoaded, Jumping, LocalEntity, LookDirection, OnClimbable, Physics,
     PlayerAbilities, Pose, Position, metadata::Sprinting, move_relative,
 };
-use azalea_world::{Instance, InstanceContainer, InstanceName};
+use azalea_world::{World, WorldName, Worlds};
 use bevy_ecs::prelude::*;
 
 use crate::{
@@ -29,7 +29,7 @@ pub fn travel(
         (
             Entity,
             &Attributes,
-            &InstanceName,
+            &WorldName,
             &OnClimbable,
             &Jumping,
             Option<&PhysicsState>,
@@ -42,7 +42,7 @@ pub fn travel(
         ),
         (With<LocalEntity>, With<HasClientLoaded>),
     >,
-    instance_container: Res<InstanceContainer>,
+    worlds: Res<Worlds>,
     aabb_query: AabbQuery,
     collidable_entity_query: CollidableEntityQuery,
 ) {
@@ -61,7 +61,7 @@ pub fn travel(
         position,
     ) in &mut query
     {
-        let Some(world_lock) = instance_container.get(world_name) else {
+        let Some(world_lock) = worlds.get(world_name) else {
             continue;
         };
         let world = world_lock.read();
@@ -252,7 +252,7 @@ fn get_fluid_falling_adjusted_movement(
 }
 
 fn is_free(
-    world: &Instance,
+    world: &World,
     source_entity: Entity,
     aabb_query: &AabbQuery,
     collidable_entity_query: &CollidableEntityQuery,
@@ -274,7 +274,7 @@ fn is_free(
 }
 
 pub fn no_collision(
-    world: &Instance,
+    world: &World,
     source_entity: Option<Entity>,
     aabb_query: &AabbQuery,
     collidable_entity_query: &CollidableEntityQuery,
@@ -323,7 +323,7 @@ fn border_collision(_entity_physics: &Physics, _aabb: &Aabb) -> Option<Aabb> {
     None
 }
 
-fn contains_any_liquid(world: &Instance, bounding_box: Aabb) -> bool {
+fn contains_any_liquid(world: &World, bounding_box: Aabb) -> bool {
     let min = bounding_box.min.to_block_pos_floor();
     let max = bounding_box.max.to_block_pos_ceil();
 

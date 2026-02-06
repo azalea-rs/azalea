@@ -12,19 +12,19 @@ use std::sync::{
     atomic::{self, AtomicBool},
 };
 
-use azalea_client::{Account, Client, Event, StartClientOpts, chat::ChatPacket, join::ConnectOpts};
+use azalea_client::{account::Account, chat::ChatPacket, join::ConnectOpts};
 use azalea_entity::LocalEntity;
 use azalea_protocol::address::ResolvedAddr;
-use azalea_world::InstanceContainer;
-use bevy_app::{PluginGroup, PluginGroupBuilder};
+use azalea_world::Worlds;
+use bevy_app::{AppExit, PluginGroup, PluginGroupBuilder};
 use bevy_ecs::prelude::*;
 pub use builder::SwarmBuilder;
 use futures::future::BoxFuture;
-use parking_lot::{Mutex, RwLock};
+use parking_lot::RwLock;
 use tokio::{sync::mpsc, task};
 use tracing::{debug, error, warn};
 
-use crate::JoinOpts;
+use crate::{Client, JoinOpts, client_impl::StartClientOpts};
 
 /// A swarm is a way to conveniently control many bots at once, while also
 /// being able to control bots at an individual level when desired.
@@ -37,15 +37,20 @@ use crate::JoinOpts;
 /// removed with [`Client::disconnect`].
 #[derive(Clone, Resource)]
 pub struct Swarm {
-    pub ecs_lock: Arc<Mutex<World>>,
+    /// A way to directly access the ECS.
+    ///
+    /// This will not work if called within a system, as the ECS is already
+    /// locked.
+    #[doc(alias = "ecs_lock")] // former type name
+    pub ecs: Arc<RwLock<World>>,
 
     // the address is public and mutable so plugins can change it
     pub address: Arc<RwLock<ResolvedAddr>>,
 
-    pub instance_container: Arc<RwLock<InstanceContainer>>,
+    pub worlds: Arc<RwLock<Worlds>>,
 
     /// This is used internally to make the client handler function work.
-    pub(crate) bots_tx: mpsc::UnboundedSender<(Option<Event>, Client)>,
+    pub(crate) bots_tx: mpsc::UnboundedSender<(Option<crate::Event>, Client)>,
     /// This is used internally to make the swarm handler function work.
     pub(crate) swarm_tx: mpsc::UnboundedSender<SwarmEvent>,
 }
@@ -160,7 +165,7 @@ impl Swarm {
     ) -> Client {
         debug!(
             "add_with_opts called for account {} with opts {join_opts:?}",
-            account.username
+            account.username()
         );
 
         let mut address = self.address.read().clone();
@@ -176,7 +181,7 @@ impl Swarm {
         let (tx, rx) = mpsc::unbounded_channel();
 
         let client = Client::start_client(StartClientOpts {
-            ecs_lock: self.ecs_lock.clone(),
+            ecs_lock: self.ecs.clone(),
             account: account.clone(),
             connect_opts: ConnectOpts {
                 address,
@@ -188,7 +193,7 @@ impl Swarm {
         .await;
         // add the state to the client
         {
-            let mut ecs = self.ecs_lock.lock();
+            let mut ecs = self.ecs.write();
             ecs.entity_mut(client.entity).insert(state);
         }
 
@@ -207,9 +212,9 @@ impl Swarm {
     /// Copy the events from a client's receiver into bots_tx, until the bot is
     /// removed from the ECS.
     async fn event_copying_task(
-        mut rx: mpsc::UnboundedReceiver<Event>,
+        mut rx: mpsc::UnboundedReceiver<crate::Event>,
         swarm_tx: mpsc::UnboundedSender<SwarmEvent>,
-        bots_tx: mpsc::UnboundedSender<(Option<Event>, Client)>,
+        bots_tx: mpsc::UnboundedSender<(Option<crate::Event>, Client)>,
         bot: Client,
         join_opts: JoinOpts,
     ) {
@@ -218,27 +223,27 @@ impl Swarm {
                 static WARNED_1_000: AtomicBool = AtomicBool::new(false);
                 if !WARNED_1_000.swap(true, atomic::Ordering::Relaxed) {
                     warn!(
-                        "the client's Event channel has more than 1,000 items! this is probably fine but if you're concerned about it, maybe consider disabling the packet-event feature in azalea to reduce the number of events?"
+                        "The client's Event channel has more than 1,000 items! If you don't need it, consider disabling the `packet-event` feature for `azalea`."
                     )
                 }
 
                 if rx.len() > 10_000 {
                     static WARNED_10_000: AtomicBool = AtomicBool::new(false);
                     if !WARNED_10_000.swap(true, atomic::Ordering::Relaxed) {
-                        warn!("the client's Event channel has more than 10,000 items!!")
+                        warn!("The client's Event channel has more than 10,000 items!!")
                     }
 
                     if rx.len() > 100_000 {
                         static WARNED_100_000: AtomicBool = AtomicBool::new(false);
                         if !WARNED_100_000.swap(true, atomic::Ordering::Relaxed) {
-                            warn!("the client's Event channel has more than 100,000 items!!!")
+                            warn!("The client's Event channel has more than 100,000 items!!!")
                         }
 
                         if rx.len() > 1_000_000 {
                             static WARNED_1_000_000: AtomicBool = AtomicBool::new(false);
                             if !WARNED_1_000_000.swap(true, atomic::Ordering::Relaxed) {
                                 warn!(
-                                    "the client's Event channel has more than 1,000,000 items!!!! your code is almost certainly leaking memory"
+                                    "The client's Event channel has more than 1,000,000 items!!!! your code is almost certainly leaking memory"
                                 )
                             }
                         }
@@ -246,14 +251,12 @@ impl Swarm {
                 }
             }
 
-            if let Event::Disconnect(_) = event {
+            if let crate::Event::Disconnect(_) = event {
                 debug!(
-                    "sending SwarmEvent::Disconnect due to receiving an Event::Disconnect from client {}",
+                    "Sending SwarmEvent::Disconnect due to receiving an Event::Disconnect from client {}",
                     bot.entity
                 );
-                let account = bot
-                    .get_component::<Account>()
-                    .expect("bot is missing required Account component");
+                let account = bot.account();
                 swarm_tx
                     .send(SwarmEvent::Disconnect(
                         Box::new(account),
@@ -284,9 +287,24 @@ impl Swarm {
     ///
     /// [`LocalEntity`]: azalea_entity::LocalEntity
     pub fn client_entities(&self) -> Box<[Entity]> {
-        let mut ecs = self.ecs_lock.lock();
+        let mut ecs = self.ecs.write();
         let mut query = ecs.query_filtered::<Entity, With<LocalEntity>>();
         query.iter(&ecs).collect::<Box<[Entity]>>()
+    }
+
+    /// End the entire swarm and return from [`SwarmBuilder::start`].
+    ///
+    /// You should typically avoid calling this if you intend on creating the
+    /// swarm again, because creating an entirely new swarm can be a
+    /// relatively expensive process.
+    ///
+    /// If you only want to change the server that the bots are connecting to,
+    /// it may be better to call [`Swarm::add_with_opts`] with a different
+    /// server address.
+    ///
+    /// This is also implemented on [`Client`] as [`Client::exit`].
+    pub fn exit(&self) {
+        self.ecs.write().write_message(AppExit::Success);
     }
 }
 
@@ -312,7 +330,7 @@ impl IntoIterator for Swarm {
 
         client_entities
             .into_iter()
-            .map(|entity| Client::new(entity, self.ecs_lock.clone()))
+            .map(|entity| Client::new(entity, self.ecs.clone()))
             .collect::<Box<[Client]>>()
             .into_iter()
     }

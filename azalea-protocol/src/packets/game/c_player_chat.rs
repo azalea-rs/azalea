@@ -3,7 +3,7 @@ use std::{
     sync::LazyLock,
 };
 
-use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
+use azalea_buf::{AzBuf, AzBufVar, BufReadError};
 use azalea_chat::{
     FormattedText,
     translatable_component::{PrimitiveOrComponent, TranslatableComponent},
@@ -180,7 +180,7 @@ impl ChatTypeBound {
     }
 }
 
-impl AzaleaRead for PackedMessageSignature {
+impl AzBuf for PackedMessageSignature {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let id = u32::azalea_read_var(buf)?;
         if id == 0 {
@@ -191,8 +191,6 @@ impl AzaleaRead for PackedMessageSignature {
             Ok(PackedMessageSignature::Id(id - 1))
         }
     }
-}
-impl AzaleaWrite for PackedMessageSignature {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         match self {
             PackedMessageSignature::Signature(full_signature) => {

@@ -16,7 +16,7 @@ use std::{
     io::{self, Cursor, Write},
 };
 
-use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
+use azalea_buf::{AzBuf, AzBufVar, BufReadError};
 #[cfg(feature = "serde")]
 use serde::Serialize;
 use simdnbt::{FromNbtTag, borrow::NbtTag};
@@ -55,7 +55,7 @@ pub type Block = builtin::BlockKind;
 #[deprecated = "renamed to `azalea_registry::data::DimensionKind`"]
 pub type DimensionType = data::DimensionKind;
 
-pub trait Registry: AzaleaRead + AzaleaWrite + PartialEq + PartialOrd + Ord + Copy + Hash
+pub trait Registry: AzBuf + PartialEq + PartialOrd + Ord + Copy + Hash
 where
     Self: Sized,
 {
@@ -69,7 +69,7 @@ where
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct OptionalRegistry<T: Registry>(pub Option<T>);
 
-impl<T: Registry> AzaleaRead for OptionalRegistry<T> {
+impl<T: Registry> AzBuf for OptionalRegistry<T> {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(OptionalRegistry(match u32::azalea_read_var(buf)? {
             0 => None,
@@ -79,8 +79,6 @@ impl<T: Registry> AzaleaRead for OptionalRegistry<T> {
             ),
         }))
     }
-}
-impl<T: Registry> AzaleaWrite for OptionalRegistry<T> {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         match &self.0 {
             None => 0u32.azalea_write_var(buf),
@@ -91,12 +89,12 @@ impl<T: Registry> AzaleaWrite for OptionalRegistry<T> {
 
 /// A registry that will either take an ID or a resource location.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-pub enum CustomRegistry<D: Registry, C: AzaleaRead + AzaleaWrite> {
+pub enum CustomRegistry<D: Registry, C: AzBuf> {
     Direct(D),
     Custom(C),
 }
 
-impl<D: Registry, C: AzaleaRead + AzaleaWrite> AzaleaRead for CustomRegistry<D, C> {
+impl<D: Registry, C: AzBuf> AzBuf for CustomRegistry<D, C> {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let direct_registry = OptionalRegistry::<D>::azalea_read(buf)?;
         if let Some(direct_registry) = direct_registry.0 {
@@ -104,8 +102,6 @@ impl<D: Registry, C: AzaleaRead + AzaleaWrite> AzaleaRead for CustomRegistry<D, 
         }
         Ok(CustomRegistry::Custom(C::azalea_read(buf)?))
     }
-}
-impl<D: Registry, C: AzaleaRead + AzaleaWrite> AzaleaWrite for CustomRegistry<D, C> {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         match self {
             CustomRegistry::Direct(direct_registry) => {
@@ -122,7 +118,7 @@ impl<D: Registry, C: AzaleaRead + AzaleaWrite> AzaleaWrite for CustomRegistry<D,
 }
 
 #[derive(Clone, PartialEq)]
-pub enum HolderSet<D: Registry, Identifier: AzaleaRead + AzaleaWrite> {
+pub enum HolderSet<D: Registry, Identifier: AzBuf> {
     Direct {
         contents: Vec<D>,
     },
@@ -131,9 +127,9 @@ pub enum HolderSet<D: Registry, Identifier: AzaleaRead + AzaleaWrite> {
         contents: Vec<Identifier>,
     },
 }
-impl<D: Registry, Identifier: AzaleaRead + AzaleaWrite> AzaleaRead for HolderSet<D, Identifier> {
+impl<D: Registry, Identifier: AzBuf> AzBuf for HolderSet<D, Identifier> {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let size = i32::azalea_read_var(buf)? - 1;
+        let size = i32::azalea_read_var(buf)?.wrapping_sub(1);
         if size == -1 {
             let key = Identifier::azalea_read(buf)?;
             Ok(Self::Named {
@@ -148,8 +144,6 @@ impl<D: Registry, Identifier: AzaleaRead + AzaleaWrite> AzaleaRead for HolderSet
             Ok(Self::Direct { contents })
         }
     }
-}
-impl<D: Registry, Identifier: AzaleaRead + AzaleaWrite> AzaleaWrite for HolderSet<D, Identifier> {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         match self {
             Self::Direct { contents } => {
@@ -166,9 +160,7 @@ impl<D: Registry, Identifier: AzaleaRead + AzaleaWrite> AzaleaWrite for HolderSe
         Ok(())
     }
 }
-impl<D: Registry + Debug, Identifier: AzaleaRead + AzaleaWrite + Debug> Debug
-    for HolderSet<D, Identifier>
-{
+impl<D: Registry + Debug, Identifier: AzBuf + Debug> Debug for HolderSet<D, Identifier> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Direct { contents } => f.debug_list().entries(contents).finish(),
@@ -180,13 +172,13 @@ impl<D: Registry + Debug, Identifier: AzaleaRead + AzaleaWrite + Debug> Debug
         }
     }
 }
-impl<D: Registry, Identifier: AzaleaRead + AzaleaWrite> From<Vec<D>> for HolderSet<D, Identifier> {
+impl<D: Registry, Identifier: AzBuf> From<Vec<D>> for HolderSet<D, Identifier> {
     fn from(contents: Vec<D>) -> Self {
         Self::Direct { contents }
     }
 }
 #[cfg(feature = "serde")]
-impl<D: Registry + Serialize, Identifier: AzaleaRead + AzaleaWrite + Serialize> Serialize
+impl<D: Registry + Serialize, Identifier: AzBuf + Serialize> Serialize
     for HolderSet<D, Identifier>
 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -205,7 +197,7 @@ impl<D: Registry + Serialize, Identifier: AzaleaRead + AzaleaWrite + Serialize> 
         }
     }
 }
-impl<D: Registry, Identifier: AzaleaRead + AzaleaWrite> Default for HolderSet<D, Identifier> {
+impl<D: Registry, Identifier: AzBuf> Default for HolderSet<D, Identifier> {
     fn default() -> Self {
         Self::Direct {
             contents: Vec::new(),
@@ -215,11 +207,11 @@ impl<D: Registry, Identifier: AzaleaRead + AzaleaWrite> Default for HolderSet<D,
 
 /// A reference to either a registry or a custom value (usually something with
 /// an `Identifier`).
-pub enum Holder<R: Registry, Direct: AzaleaRead + AzaleaWrite> {
+pub enum Holder<R: Registry, Direct: AzBuf> {
     Reference(R),
     Direct(Direct),
 }
-impl<R: Registry, Direct: AzaleaRead + AzaleaWrite> AzaleaRead for Holder<R, Direct> {
+impl<R: Registry, Direct: AzBuf> AzBuf for Holder<R, Direct> {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let id = u32::azalea_read_var(buf)?;
         if id == 0 {
@@ -232,8 +224,6 @@ impl<R: Registry, Direct: AzaleaRead + AzaleaWrite> AzaleaRead for Holder<R, Dir
             Ok(Self::Reference(value))
         }
     }
-}
-impl<R: Registry, Direct: AzaleaRead + AzaleaWrite> AzaleaWrite for Holder<R, Direct> {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         match self {
             Self::Reference(value) => (value.to_u32() + 1).azalea_write_var(buf),
@@ -244,7 +234,7 @@ impl<R: Registry, Direct: AzaleaRead + AzaleaWrite> AzaleaWrite for Holder<R, Di
         }
     }
 }
-impl<R: Registry + Debug, Direct: AzaleaRead + AzaleaWrite + Debug> Debug for Holder<R, Direct> {
+impl<R: Registry + Debug, Direct: AzBuf + Debug> Debug for Holder<R, Direct> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Reference(value) => f.debug_tuple("Reference").field(value).finish(),
@@ -252,7 +242,7 @@ impl<R: Registry + Debug, Direct: AzaleaRead + AzaleaWrite + Debug> Debug for Ho
         }
     }
 }
-impl<R: Registry + Clone, Direct: AzaleaRead + AzaleaWrite + Clone> Clone for Holder<R, Direct> {
+impl<R: Registry + Clone, Direct: AzBuf + Clone> Clone for Holder<R, Direct> {
     fn clone(&self) -> Self {
         match self {
             Self::Reference(value) => Self::Reference(*value),
@@ -260,9 +250,7 @@ impl<R: Registry + Clone, Direct: AzaleaRead + AzaleaWrite + Clone> Clone for Ho
         }
     }
 }
-impl<R: Registry + PartialEq, Direct: AzaleaRead + AzaleaWrite + PartialEq> PartialEq
-    for Holder<R, Direct>
-{
+impl<R: Registry + PartialEq, Direct: AzBuf + PartialEq> PartialEq for Holder<R, Direct> {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (Self::Reference(a), Self::Reference(b)) => a == b,
@@ -271,15 +259,13 @@ impl<R: Registry + PartialEq, Direct: AzaleaRead + AzaleaWrite + PartialEq> Part
         }
     }
 }
-impl<R: Registry + Default, Direct: AzaleaRead + AzaleaWrite> Default for Holder<R, Direct> {
+impl<R: Registry + Default, Direct: AzBuf> Default for Holder<R, Direct> {
     fn default() -> Self {
         Self::Reference(R::default())
     }
 }
 #[cfg(feature = "serde")]
-impl<R: Registry + Serialize, Direct: AzaleaRead + AzaleaWrite + Serialize> Serialize
-    for Holder<R, Direct>
-{
+impl<R: Registry + Serialize, Direct: AzBuf + Serialize> Serialize for Holder<R, Direct> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -291,11 +277,7 @@ impl<R: Registry + Serialize, Direct: AzaleaRead + AzaleaWrite + Serialize> Seri
     }
 }
 
-impl<
-    R: Registry + Serialize + FromNbtTag,
-    Direct: AzaleaRead + AzaleaWrite + Serialize + FromNbtTag,
-> FromNbtTag for Holder<R, Direct>
-{
+impl<R: Registry + FromNbtTag, Direct: AzBuf + FromNbtTag> FromNbtTag for Holder<R, Direct> {
     fn from_nbt_tag(tag: NbtTag) -> Option<Self> {
         if let Some(reference) = R::from_nbt_tag(tag) {
             return Some(Self::Reference(reference));
@@ -309,9 +291,7 @@ impl<
 ///
 /// These can be resolved into their actual values with
 /// `ResolvableDataRegistry` from azalea-core.
-pub trait DataRegistry:
-    AzaleaRead + AzaleaWrite + PartialEq + PartialOrd + Ord + Copy + Hash
-{
+pub trait DataRegistry: AzBuf + PartialEq + PartialOrd + Ord + Copy + Hash {
     const NAME: &'static str;
     type Key: DataRegistryKey;
 
@@ -321,6 +301,7 @@ pub trait DataRegistry:
 pub trait DataRegistryKey {
     type Borrow<'a>: DataRegistryKeyRef<'a>;
 
+    fn from_ident(ident: Identifier) -> Self;
     fn into_ident(self) -> Identifier;
 }
 pub trait DataRegistryKeyRef<'a> {

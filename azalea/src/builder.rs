@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use azalea_client::{Account, DefaultPlugins};
+use azalea_client::{DefaultPlugins, account::Account};
 use azalea_protocol::address::ResolvableAddr;
 use bevy_app::{AppExit, Plugins};
 use bevy_ecs::component::Component;
@@ -150,7 +150,13 @@ where
     /// If this function isn't called, then our client will reconnect after
     /// [`DEFAULT_RECONNECT_DELAY`].
     ///
-    /// [`DEFAULT_RECONNECT_DELAY`]: azalea_client::auto_reconnect::DEFAULT_RECONNECT_DELAY
+    /// Note that disabling auto-reconnecting will not make
+    /// [`ClientBuilder::start`] return on disconnect, because Azalea will keep
+    /// the internal swarm around forever until it's forcibly exited. To learn
+    /// how to do that, see [`Client::exit`].
+    ///
+    /// [`DEFAULT_RECONNECT_DELAY`]: crate::auto_reconnect::DEFAULT_RECONNECT_DELAY
+    /// [`Client::exit`]: crate::Client::exit
     #[must_use]
     pub fn reconnect_after(mut self, delay: impl Into<Option<Duration>>) -> Self {
         self.swarm.reconnect_after = delay.into();
@@ -170,8 +176,9 @@ where
     /// This will error if the given address is invalid or couldn't be resolved
     /// to a Minecraft server.
     ///
-    /// [`ServerAddr`]: azalea_protocol::address::ServerAddr
-    /// [`ResolvedAddr`]: azalea_protocol::address::ResolvedAddr
+    /// [`ServerAddr`]: ../azalea_protocol/address/struct.ServerAddr.html
+    /// [`ResolvedAddr`]: ../azalea_protocol/address/struct.ResolvedAddr.html
+    /// [`ResolvableAddr`]: ../azalea_protocol/address/trait.ResolvableAddr.html
     pub async fn start(mut self, account: Account, address: impl ResolvableAddr) -> AppExit {
         self.swarm.accounts = vec![(account, JoinOpts::default())];
         if self.swarm.states.is_empty() {

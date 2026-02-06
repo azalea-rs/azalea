@@ -12,12 +12,13 @@ use std::{
     str::FromStr,
 };
 
-use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
+use azalea_buf::{AzBuf, BufReadError};
 use azalea_registry::identifier::Identifier;
-use serde::{Serialize, Serializer};
+#[cfg(feature = "serde")]
+use serde::Serializer;
 use simdnbt::borrow::NbtTag;
 
-use crate::{codec_utils::IntArray, direction::Direction, math};
+use crate::{direction::Direction, math};
 
 macro_rules! vec3_impl {
     ($name:ident, $type:ty) => {
@@ -123,6 +124,15 @@ macro_rules! vec3_impl {
             #[inline]
             pub fn dot(&self, other: Self) -> $type {
                 self.x * other.x + self.y * other.y + self.z * other.z
+            }
+
+            #[inline]
+            pub fn cross(&self, other: Self) -> Self {
+                Self::new(
+                    self.y * other.z - self.z * other.y,
+                    self.z * other.x - self.x * other.z,
+                    self.x * other.y - self.y * other.x,
+                )
             }
 
             /// Make a new position with the lower coordinates for each axis.
@@ -305,7 +315,8 @@ macro_rules! vec3_impl {
 /// Used to represent an exact position in the world where an entity could be.
 ///
 /// For blocks, [`BlockPos`] is used instead.
-#[derive(AzBuf, Clone, Copy, Debug, Default, serde::Deserialize, PartialEq, serde::Serialize)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(AzBuf, Clone, Copy, Debug, Default, PartialEq)]
 pub struct Vec3 {
     pub x: f64,
     pub y: f64,
@@ -314,15 +325,24 @@ pub struct Vec3 {
 vec3_impl!(Vec3, f64);
 impl simdnbt::FromNbtTag for Vec3 {
     fn from_nbt_tag(tag: NbtTag) -> Option<Self> {
-        let pos = tag.list()?.doubles()?;
-        let [x, y, z] = <[f64; 3]>::try_from(pos).ok()?;
-        Some(Self { x, y, z })
+        let pos = tag.list()?;
+        if let Some(pos) = pos.doubles() {
+            let [x, y, z] = <[f64; 3]>::try_from(pos).ok()?;
+            Some(Self { x, y, z })
+        } else if let Some(pos) = pos.floats() {
+            // used on hypixel
+            let [x, y, z] = <[f32; 3]>::try_from(pos).ok()?.map(|f| f as f64);
+            Some(Self { x, y, z })
+        } else {
+            None
+        }
     }
 }
 
 impl Vec3 {
     /// Get the distance of this vector to the origin by doing
     /// `sqrt(x^2 + y^2 + z^2)`.
+    #[doc(alias = "modulus")]
     pub fn length(&self) -> f64 {
         f64::sqrt(self.x * self.x + self.y * self.y + self.z * self.z)
     }
@@ -331,6 +351,13 @@ impl Vec3 {
     /// Equivalent to `(self - other).length()`.
     pub fn distance_to(self, other: Self) -> f64 {
         (self - other).length()
+    }
+
+    pub fn horizontal_distance_to(self, other: Self) -> f64 {
+        self.horizontal_distance_squared_to(other).sqrt()
+    }
+    pub fn horizontal_distance(self) -> f64 {
+        self.horizontal_distance_squared().sqrt()
     }
 
     pub fn x_rot(self, radians: f32) -> Vec3 {
@@ -476,15 +503,19 @@ impl BlockPos {
         (self - other).length()
     }
 }
+#[cfg(feature = "serde")]
 impl serde::Serialize for BlockPos {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
         // makes sure it gets serialized correctly for the checksum
+
+        use crate::codec_utils::IntArray;
         IntArray([self.x, self.y, self.z]).serialize(serializer)
     }
 }
+#[cfg(feature = "serde")]
 impl<'de> serde::Deserialize<'de> for BlockPos {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -570,13 +601,11 @@ impl From<u64> for ChunkPos {
         }
     }
 }
-impl AzaleaRead for ChunkPos {
+impl AzBuf for ChunkPos {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let long = u64::azalea_read(buf)?;
         Ok(ChunkPos::from(long))
     }
-}
-impl AzaleaWrite for ChunkPos {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         u64::from(*self).azalea_write(buf)?;
         Ok(())
@@ -745,7 +774,8 @@ impl From<ChunkSectionBlockPos> for u16 {
 impl nohash_hasher::IsEnabled for ChunkSectionBlockPos {}
 
 /// A block pos with an attached world
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[derive(Clone, Debug, PartialEq)]
 pub struct GlobalPos {
     // this is actually a ResourceKey in Minecraft, but i don't think it matters?
     pub dimension: Identifier,
@@ -774,7 +804,7 @@ impl From<BlockPos> for ChunkPos {
 impl From<BlockPos> for ChunkSectionPos {
     #[inline]
     fn from(pos: BlockPos) -> Self {
-        ChunkSectionPos {
+        Self {
             x: pos.x >> 4,
             y: pos.y >> 4,
             z: pos.z >> 4,
@@ -784,7 +814,7 @@ impl From<BlockPos> for ChunkSectionPos {
 impl From<&BlockPos> for ChunkSectionPos {
     #[inline]
     fn from(pos: &BlockPos) -> Self {
-        ChunkSectionPos {
+        Self {
             x: pos.x >> 4,
             y: pos.y >> 4,
             z: pos.z >> 4,
@@ -903,7 +933,8 @@ impl fmt::Display for Vec3 {
 }
 
 /// A 2D vector.
-#[derive(AzBuf, Clone, Copy, Debug, Default, simdnbt::Deserialize, PartialEq, Serialize)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(AzBuf, Clone, Copy, Debug, Default, PartialEq)]
 pub struct Vec2 {
     pub x: f32,
     pub y: f32,
@@ -970,7 +1001,7 @@ const PACKED_Z_MASK: u64 = (1 << PACKED_Z_LENGTH) - 1;
 const Z_OFFSET: u64 = PACKED_Y_LENGTH;
 const X_OFFSET: u64 = PACKED_Y_LENGTH + PACKED_Z_LENGTH;
 
-impl AzaleaRead for BlockPos {
+impl AzBuf for BlockPos {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let val = i64::azalea_read(buf)?;
         let x = (val << (64 - X_OFFSET - PACKED_X_LENGTH) >> (64 - PACKED_X_LENGTH)) as i32;
@@ -978,29 +1009,6 @@ impl AzaleaRead for BlockPos {
         let z = (val << (64 - Z_OFFSET - PACKED_Z_LENGTH) >> (64 - PACKED_Z_LENGTH)) as i32;
         Ok(BlockPos { x, y, z })
     }
-}
-
-impl AzaleaRead for GlobalPos {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        Ok(GlobalPos {
-            dimension: Identifier::azalea_read(buf)?,
-            pos: BlockPos::azalea_read(buf)?,
-        })
-    }
-}
-
-impl AzaleaRead for ChunkSectionPos {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let long = i64::azalea_read(buf)?;
-        Ok(ChunkSectionPos {
-            x: (long >> 42) as i32,
-            y: (long << 44 >> 44) as i32,
-            z: (long << 22 >> 42) as i32,
-        })
-    }
-}
-
-impl AzaleaWrite for BlockPos {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         let mut val: u64 = 0;
         val |= ((self.x as u64) & PACKED_X_MASK) << X_OFFSET;
@@ -1010,7 +1018,13 @@ impl AzaleaWrite for BlockPos {
     }
 }
 
-impl AzaleaWrite for GlobalPos {
+impl AzBuf for GlobalPos {
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        Ok(GlobalPos {
+            dimension: Identifier::azalea_read(buf)?,
+            pos: BlockPos::azalea_read(buf)?,
+        })
+    }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         Identifier::azalea_write(&self.dimension, buf)?;
         BlockPos::azalea_write(&self.pos, buf)?;
@@ -1019,7 +1033,15 @@ impl AzaleaWrite for GlobalPos {
     }
 }
 
-impl AzaleaWrite for ChunkSectionPos {
+impl AzBuf for ChunkSectionPos {
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let long = i64::azalea_read(buf)?;
+        Ok(ChunkSectionPos {
+            x: (long >> 42) as i32,
+            y: (long << 44 >> 44) as i32,
+            z: (long << 22 >> 42) as i32,
+        })
+    }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         let long = (((self.x & 0x3FFFFF) as i64) << 42)
             | (self.y & 0xFFFFF) as i64

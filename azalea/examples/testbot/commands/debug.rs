@@ -6,17 +6,17 @@ use azalea::{
     BlockPos,
     brigadier::prelude::*,
     chunks::ReceiveChunkEvent,
-    entity::{LookDirection, Position},
-    interact::pick::HitResultComponent,
+    inventory,
     packet::game,
-    pathfinder::{ExecutingPath, Pathfinder},
-    prelude::ContainerClientExt,
-    world::MinecraftEntityId,
+    pathfinder::{
+        ExecutingPath, Pathfinder, custom_state::CustomPathfinderStateRef, mining::MiningCache,
+        moves::MovesCtx, positions::RelBlockPos, world::CachedWorld,
+    },
 };
 use azalea_core::hit_result::HitResult;
-use azalea_entity::{Attributes, EntityKindComponent, EntityUuid, metadata};
-use azalea_inventory::components::MaxStackSize;
-use azalea_world::InstanceContainer;
+use azalea_entity::{EntityKindComponent, metadata};
+use azalea_inventory::{Menu, components::MaxStackSize};
+use azalea_world::Worlds;
 use bevy_app::AppExit;
 use bevy_ecs::{message::Messages, query::With, world::EntityRef};
 use parking_lot::Mutex;
@@ -37,12 +37,12 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
     }));
 
     commands.register(literal("whereami").executes(|ctx: &Ctx| {
-        let mut source = ctx.source.lock();
+        let source = ctx.source.lock();
         let Some(entity) = source.entity() else {
             source.reply("You aren't in render distance!");
             return 0;
         };
-        let position = source.bot.entity_component::<Position>(entity);
+        let position = entity.position();
         source.reply(format!(
             "You are at {}, {}, {}",
             position.x, position.y, position.z
@@ -51,12 +51,12 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
     }));
 
     commands.register(literal("entityid").executes(|ctx: &Ctx| {
-        let mut source = ctx.source.lock();
+        let source = ctx.source.lock();
         let Some(entity) = source.entity() else {
             source.reply("You aren't in render distance!");
             return 0;
         };
-        let entity_id = source.bot.entity_component::<MinecraftEntityId>(entity);
+        let entity_id = entity.minecraft_id();
         source.reply(format!(
             "Your Minecraft ID is {} and your ECS ID is {entity:?}",
             *entity_id
@@ -89,7 +89,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
 
     commands.register(literal("getdirection").executes(|ctx: &Ctx| {
         let source = ctx.source.lock();
-        let direction = source.bot.component::<LookDirection>();
+        let direction = source.bot.direction();
         source.reply(format!(
             "I'm looking at {}, {}",
             direction.y_rot(),
@@ -109,9 +109,9 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
     commands.register(literal("lookingat").executes(|ctx: &Ctx| {
         let source = ctx.source.lock();
 
-        let hit_result = source.bot.component::<HitResultComponent>();
+        let hit_result = source.bot.hit_result();
 
-        match &*hit_result {
+        match &hit_result {
             HitResult::Block(r) => {
                 if r.miss {
                     source.reply("I'm not looking at anything");
@@ -122,7 +122,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
                 source.reply(format!("I'm looking at {block:?} at {block_pos:?}"));
             }
             HitResult::Entity(r) => {
-                let entity_kind = *source.bot.entity_component::<EntityKindComponent>(r.entity);
+                let entity_kind = **source.bot.entity_component::<EntityKindComponent>(r.entity);
                 source.reply(format!(
                     "I'm looking at {entity_kind} ({:?}) at {}",
                     r.entity, r.location
@@ -164,7 +164,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
         let source = ctx.source.lock();
         let pathfinder = source.bot.get_component::<Pathfinder>();
         let Some(pathfinder) = pathfinder else {
-            source.reply("I don't have the Pathfinder ocmponent");
+            source.reply("I don't have the Pathfinder component");
             return 1;
         };
         source.reply(format!(
@@ -181,12 +181,48 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
             "is_path_partial: {}, path.len: {}, queued_path.len: {}",
             executing_path.is_path_partial,
             executing_path.path.len(),
-            if let Some(queued) = executing_path.queued_path {
+            if let Some(queued) = &executing_path.queued_path {
                 queued.len().to_string()
             } else {
                 "n/a".to_owned()
             },
         ));
+        1
+    }));
+    commands.register(literal("pathfindermoves").executes(|ctx: &Ctx| {
+        let source = ctx.source.lock();
+
+        let Some(entity) = source.entity() else {
+            source.reply("You aren't in render distance!");
+            return 0;
+        };
+        let position = entity.position();
+        let position = BlockPos::from(position);
+
+        let mut edges = Vec::new();
+        let cached_world = CachedWorld::new(source.bot.world(), position);
+        let mining_cache = MiningCache::new(Some(Menu::Player(inventory::Player::default())));
+        let custom_state = CustomPathfinderStateRef::default();
+
+        azalea::pathfinder::moves::default_move(
+            &mut MovesCtx {
+                edges: &mut edges,
+                world: &cached_world,
+                mining_cache: &mining_cache,
+                custom_state: &custom_state,
+            },
+            RelBlockPos::from_origin(position, position),
+        );
+
+        if edges.is_empty() {
+            source.reply("No possible moves.");
+        } else {
+            source.reply("Moves:");
+            for (i, edge) in edges.iter().enumerate() {
+                source.reply(format!("{}) {edge:?}", i + 1));
+            }
+        }
+
         1
     }));
 
@@ -221,10 +257,10 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
             .nearest_entities_by::<(), With<metadata::Player>>(|_: ()| true);
         let tab_list = source.bot.tab_list();
         for player_entity in player_entities {
-            let uuid = source.bot.entity_component::<EntityUuid>(player_entity);
+            let uuid = player_entity.uuid();
             source.reply(format!(
                 "{} - {} ({:?})",
-                player_entity,
+                player_entity.id(),
                 tab_list.get(&uuid).map_or("?", |p| p.profile.name.as_str()),
                 uuid
             ));
@@ -243,7 +279,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
 
     commands.register(literal("attributes").executes(|ctx: &Ctx| {
         let source = ctx.source.lock();
-        let attributes = source.bot.component::<Attributes>();
+        let attributes = source.bot.attributes();
         println!("attributes: {attributes:?}");
         1
     }));
@@ -262,9 +298,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
             thread::sleep(Duration::from_secs(1));
             // dump the ecs
 
-            let mut ecs = ecs.lock();
-
-
+            let mut ecs = ecs.write();
 
             let report_path = env::temp_dir().join("azalea-ecs-leak-report.txt");
             let mut report = File::create(&report_path).unwrap();
@@ -298,16 +332,16 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
                 // info.layout().size()).unwrap();
 
                 match name.as_ref() {
-                    "azalea_world::container::InstanceContainer" => {
-                        let instance_container = ecs.resource::<InstanceContainer>();
+                    "azalea_world::container::Worlds" => {
+                        let worlds = ecs.resource::<Worlds>();
 
-                        for (instance_name, instance) in &instance_container.instances {
-                            writeln!(report, "- Name: {instance_name}").unwrap();
-                            writeln!(report, "- Reference count: {}", instance.strong_count())
+                        for (world_name, world) in &worlds.map {
+                            writeln!(report, "- Name: {world_name}").unwrap();
+                            writeln!(report, "- Reference count: {}", world.strong_count())
                                 .unwrap();
-                            if let Some(instance) = instance.upgrade() {
-                                let instance = instance.read();
-                                let strong_chunks = instance
+                            if let Some(world) = world.upgrade() {
+                                let world = world.read();
+                                let strong_chunks = world
                                     .chunks
                                     .map
                                     .iter()
@@ -317,13 +351,13 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
                                     report,
                                     "- Chunks: {} strongly referenced, {} in map",
                                     strong_chunks,
-                                    instance.chunks.map.len()
+                                    world.chunks.map.len()
                                 )
                                 .unwrap();
                                 writeln!(
                                     report,
                                     "- Entities: {}",
-                                    instance.entities_by_chunk.len()
+                                    world.entities_by_chunk.len()
                                 )
                                 .unwrap();
                             }
@@ -358,7 +392,12 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
         thread::spawn(move || {
             thread::sleep(Duration::from_secs(1));
 
-            source.lock().bot.ecs.lock().write_message(AppExit::Success);
+            source
+                .lock()
+                .bot
+                .ecs
+                .write()
+                .write_message(AppExit::Success);
         });
 
         1

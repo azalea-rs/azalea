@@ -36,9 +36,9 @@ nohash-hasher.workspace = true
 num-format.workspace = true
 num-traits.workspace = true
 parking_lot.workspace = true
+radix-heap.workspace = true
 rustc-hash.workspace = true
 serde = { workspace = true, optional = true }
-thiserror.workspace = true
 tokio.workspace = true
 tracing.workspace = true
 uuid.workspace = true

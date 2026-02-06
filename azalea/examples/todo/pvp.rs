@@ -47,7 +47,7 @@ async fn swarm_handle(swarm: Swarm, event: SwarmEvent, state: SwarmState) -> any
                 for (bot, bot_state) in swarm {
                     bot.tick_goto_goal(pathfinder::Goals::Reach(target_bounding_box));
                     // if target.bounding_box.distance(bot.eyes) < bot.reach_distance() {
-                    if azalea::entities::can_reach(bot.entity(), target_bounding_box) {
+                    if bot.can_reach(target_bounding_box) {
                         bot.swing();
                     }
                     if !bot.using_held_item() && bot.hunger() <= 17 {

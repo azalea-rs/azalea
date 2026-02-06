@@ -1,5 +1,6 @@
+use azalea_core::entity_id::MinecraftEntityId;
 use azalea_entity::Position;
-use azalea_world::{InstanceName, MinecraftEntityId};
+use azalea_world::WorldName;
 use bevy_ecs::{
     prelude::Entity,
     query::{QueryFilter, With},
@@ -10,8 +11,8 @@ use bevy_ecs::{
 /// entity, (or several) close to a given position.
 ///
 /// This system parameter allows for additional filtering of entities based off
-/// of ECS marker components, such as `With<>`, `Without<>`, or `Added<>`, etc.
-/// All functions used by this system parameter instance will respect the
+/// of ECS marker components, such as `With<T>`, `Without<T>`, or `Added<T>`,
+/// etc. All functions used by this system parameter instance will respect the
 /// applied filter.
 ///
 /// ```
@@ -49,13 +50,12 @@ pub struct EntityFinder<'w, 's, F = ()>
 where
     F: QueryFilter + 'static,
 {
-    all_entities:
-        Query<'w, 's, (&'static Position, &'static InstanceName), With<MinecraftEntityId>>,
+    all_entities: Query<'w, 's, (&'static Position, &'static WorldName), With<MinecraftEntityId>>,
 
     filtered_entities: Query<
         'w,
         's,
-        (Entity, &'static InstanceName, &'static Position),
+        (Entity, &'static WorldName, &'static Position),
         (With<MinecraftEntityId>, F),
     >,
 }
@@ -64,21 +64,22 @@ impl<'a, F> EntityFinder<'_, '_, F>
 where
     F: QueryFilter + 'static,
 {
-    /// Gets the nearest entity to the given position and world instance name.
+    /// Gets the nearest entity to the given position and with the given world
+    /// name.
     ///
     /// This method will return `None` if there are no entities within range. If
     /// multiple entities are within range, only the closest one is returned.
     pub fn nearest_to_position(
         &'a self,
         position: Position,
-        instance_name: &InstanceName,
+        world_name: &WorldName,
         max_distance: f64,
     ) -> Option<Entity> {
         let mut nearest_entity = None;
         let mut min_distance = max_distance;
 
-        for (target_entity, e_instance, e_pos) in self.filtered_entities.iter() {
-            if e_instance != instance_name {
+        for (target_entity, e_world, e_pos) in self.filtered_entities.iter() {
+            if e_world != world_name {
                 continue;
             }
 
@@ -98,19 +99,19 @@ where
     /// multiple entities are within range, only the closest one is
     /// returned.
     pub fn nearest_to_entity(&'a self, entity: Entity, max_distance: f64) -> Option<Entity> {
-        let Ok((position, instance_name)) = self.all_entities.get(entity) else {
+        let Ok((position, world_name)) = self.all_entities.get(entity) else {
             return None;
         };
 
         let mut nearest_entity = None;
         let mut min_distance = max_distance;
 
-        for (target_entity, e_instance, e_pos) in self.filtered_entities.iter() {
+        for (target_entity, e_world, e_pos) in self.filtered_entities.iter() {
             if entity == target_entity {
                 continue;
             };
 
-            if e_instance != instance_name {
+            if e_world != world_name {
                 continue;
             }
 
@@ -134,13 +135,13 @@ where
     pub fn nearby_entities_to_position(
         &'a self,
         position: &'a Position,
-        instance_name: &'a InstanceName,
+        world_name: &'a WorldName,
         max_distance: f64,
     ) -> impl Iterator<Item = (Entity, f64)> + 'a {
         self.filtered_entities
             .iter()
-            .filter_map(move |(target_entity, e_instance, e_pos)| {
-                if e_instance != instance_name {
+            .filter_map(move |(target_entity, e_world, e_pos)| {
+                if e_world != world_name {
                     return None;
                 }
 
@@ -166,23 +167,23 @@ where
         max_distance: f64,
     ) -> impl Iterator<Item = (Entity, f64)> + 'a {
         let position;
-        let instance_name;
-        if let Ok((pos, instance)) = self.all_entities.get(entity) {
-            position = *pos;
-            instance_name = Some(instance);
+        let world_name;
+        if let Ok((p, w)) = self.all_entities.get(entity) {
+            position = *p;
+            world_name = Some(w);
         } else {
             position = Position::default();
-            instance_name = None;
+            world_name = None;
         };
 
         self.filtered_entities
             .iter()
-            .filter_map(move |(target_entity, e_instance, e_pos)| {
+            .filter_map(move |(target_entity, e_world, e_pos)| {
                 if entity == target_entity {
                     return None;
                 }
 
-                if Some(e_instance) != instance_name {
+                if Some(e_world) != world_name {
                     return None;
                 }
 

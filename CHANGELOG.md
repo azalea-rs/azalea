@@ -10,6 +10,50 @@ is breaking anyways, semantic versioning is not followed.
 
 ### Added
 
+- Add `SimulationPathfinderExecutionPlugin`, an alternative execution engine for the pathfinder with smoother movement.
+- The pathfinder can now traverse on the surface of water.
+- `AccountTrait` was implemented, which allows for custom refresh and join behavior for `Account`s.
+- Add `Account::microsoft_with_opts` to make it easier to create accounts with custom cache files. (@ElijahBare)
+- Add an `EntityRef` type to simplify interactions with entities.
+- Add `BlockTrait::set_property` to allow setting properties on blocks generically.
+- You can now access a client's XP with `Client::experience`. (@nebula161)
+- Re-implement `Client::map_component` and `map_get_component`.
+- Add `Client::exit` and `Swarm::exit` to make it easier to return from `ClientBuilder::start` or `SwarmBuilder::start`.
+- Add `Event::ConnectionFailed` for when the client failed to create its initial connection to the server.
+
+### Changed
+
+- Rename `Instance` to `World` (and rename other related types).
+- Move the `Client` struct out of `azalea-client` into `azalea`.
+- `Client::ecs` is now an `RwLock` instead of a `Mutex`.
+- `Client::component` and `entity_component` now return a mapped RwLock guard instead of cloning the component.
+- Most functions on `Client` that previously returned `Entity` now return `EntityRef` instead.
+- Deprecate pathfinder `InverseGoal`.
+- Add a `bevy_ecs` feature to `azalea-protocol` and related crates to allow disabling the Bevy dependencies.
+- Replace `azalea-buf`'s `AzaleaRead` and `AzaleaWrite` traits with a single `AzBuf` trait.
+- Lots of optimizations for the pathfinder.
+
+### Fixed
+
+- The pathfinder now avoids magma blocks.
+- Fixed several panics, OOMs, and memory leaks in `azalea-protocol`.
+- Click events in chat messages were missing.
+- `ClientboundSetEquipment` failed to deserialize if a packet used animal armor slots.
+
+## [0.15.1+mc1.21.11] - 2026-02-03
+
+### Fixed
+
+- Fix compilation errors from unstable dependencies.
+- Serializing `FormattedText` with serde was writing `extra` twice.
+- Attack cooldowns were being applied incorrectly for tools.
+- `Identifier` had an incorrect `Hash` and `PartialEq` implementation.
+- Explosion knockback was being applied incorrectly.
+
+## [0.15.0+mc1.21.11] - 2025-12-18
+
+### Added
+
 - Add `Client::query_entity` and `try_query_entity` to complement `query_self`.
 - Add `Client::entity_interact` and `EntityInteractEvent` to interact with entities without checking that they're in the crosshair.
 - Allow disabling dependencies related to Microsoft auth with the `online-mode` cargo feature.
@@ -52,6 +96,9 @@ is breaking anyways, semantic versioning is not followed.
 - The WritableBookContent and ResolvableProfile data components had the wrong protocol implementations.
 - Resolving server addresses shouldn't be recursive.
 - A 5 tick mining delay was always being applied after we mined for the first time.
+- Running Azalea on Windows in debug mode would result in a stack overflow error.
+- Wrong packet order when attacking and sprinting in the same tick.
+- Most entity variant components were using the wrong type.
 
 ## [0.14.0+mc1.21.8] - 2025-09-28
 

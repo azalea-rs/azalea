@@ -5,7 +5,7 @@ use bevy_ecs::prelude::*;
 
 use crate::{
     chunks::handle_receive_chunk_event, interact::BlockStatePredictionHandler,
-    local_player::InstanceHolder,
+    local_player::WorldHolder,
 };
 
 pub struct BlockUpdatePlugin;
@@ -34,12 +34,12 @@ pub struct QueuedServerBlockUpdates {
 pub fn handle_block_update_event(
     mut query: Query<(
         &mut QueuedServerBlockUpdates,
-        &InstanceHolder,
+        &WorldHolder,
         &mut BlockStatePredictionHandler,
     )>,
 ) {
-    for (mut queued, instance_holder, mut prediction_handler) in query.iter_mut() {
-        let world = instance_holder.instance.read();
+    for (mut queued, world_holder, mut prediction_handler) in query.iter_mut() {
+        let world = world_holder.shared.read();
         for (pos, block_state) in queued.list.drain(..) {
             if !prediction_handler.update_known_server_state(pos, block_state) {
                 world.chunks.set_block_state(pos, block_state);

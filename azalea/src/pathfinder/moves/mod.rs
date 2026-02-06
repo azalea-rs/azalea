@@ -1,5 +1,6 @@
 pub mod basic;
 pub mod parkour;
+pub mod uncommon;
 
 use std::{
     fmt::{self, Debug},
@@ -8,13 +9,14 @@ use std::{
 
 use azalea_block::BlockState;
 use azalea_client::{
-    SprintDirection, StartSprintEvent, StartWalkEvent, WalkDirection,
+    PhysicsState, SprintDirection, StartSprintEvent, StartWalkEvent, WalkDirection,
     inventory::SetSelectedHotbarSlotEvent, mining::StartMiningBlockEvent,
 };
 use azalea_core::position::{BlockPos, Vec3};
 use azalea_inventory::Menu;
-use azalea_world::Instance;
-use bevy_ecs::{entity::Entity, message::MessageWriter, system::Commands};
+use azalea_registry::builtin::BlockKind;
+use azalea_world::World;
+use bevy_ecs::{entity::Entity, message::MessageWriter, system::Commands, world::EntityWorldMut};
 use parking_lot::RwLock;
 use tracing::debug;
 
@@ -22,7 +24,7 @@ use super::{
     astar,
     custom_state::CustomPathfinderStateRef,
     mining::MiningCache,
-    rel_block_pos::RelBlockPos,
+    positions::RelBlockPos,
     world::{CachedWorld, is_block_state_passable},
 };
 use crate::{
@@ -33,11 +35,18 @@ use crate::{
 
 type Edge = astar::Edge<RelBlockPos, MoveData>;
 
-pub type SuccessorsFn = fn(&mut PathfinderCtx, RelBlockPos);
+pub type SuccessorsFn = fn(&mut MovesCtx, RelBlockPos);
 
-pub fn default_move(ctx: &mut PathfinderCtx, node: RelBlockPos) {
+/// Re-implement certain bugs and quirks that Baritone has, and disable
+/// movements that Baritone doesn't have.
+///
+/// Meant to help with debugging when directly comparing against Baritone.
+pub const BARITONE_COMPAT: bool = false;
+
+pub fn default_move(ctx: &mut MovesCtx, node: RelBlockPos) {
     basic::basic_move(ctx, node);
     parkour::parkour_move(ctx, node);
+    uncommon::uncommon_move(ctx, node);
 }
 
 #[derive(Clone)]
@@ -65,7 +74,8 @@ pub struct ExecuteCtx<'s, 'w1, 'w2, 'w3, 'w4, 'w5, 'w6, 'a> {
     pub position: Vec3,
     pub physics: &'a azalea_entity::Physics,
     pub is_currently_mining: bool,
-    pub instance: Arc<RwLock<Instance>>,
+    pub can_mine: bool,
+    pub world: Arc<RwLock<World>>,
     pub menu: Menu,
 
     pub commands: &'a mut Commands<'w1, 's>,
@@ -77,6 +87,10 @@ pub struct ExecuteCtx<'s, 'w1, 'w2, 'w3, 'w4, 'w5, 'w6, 'a> {
 }
 
 impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_, '_> {
+    pub fn on_tick_start(&mut self) {
+        self.set_sneaking(false);
+    }
+
     pub fn look_at(&mut self, position: Vec3) {
         self.look_at_events.write(LookAtEvent {
             entity: self.entity,
@@ -116,6 +130,19 @@ impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_, '_> {
         });
     }
 
+    fn set_sneaking(&mut self, sneaking: bool) {
+        self.commands
+            .entity(self.entity)
+            .queue(move |mut entity: EntityWorldMut<'_>| {
+                if let Some(mut physics_state) = entity.get_mut::<PhysicsState>() {
+                    physics_state.trying_to_crouch = sneaking;
+                }
+            });
+    }
+    pub fn sneak(&mut self) {
+        self.set_sneaking(true);
+    }
+
     pub fn jump_if_in_water(&mut self) {
         if self.physics.is_in_water() {
             self.jump();
@@ -124,28 +151,19 @@ impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_, '_> {
 
     /// Returns whether this block could be mined.
     pub fn should_mine(&mut self, block: BlockPos) -> bool {
-        let block_state = self
-            .instance
-            .read()
-            .get_block_state(block)
-            .unwrap_or_default();
-        if is_block_state_passable(block_state) {
-            // block is already passable, no need to mine it
-            return false;
-        }
-
-        true
+        let block_state = self.world.read().get_block_state(block).unwrap_or_default();
+        should_mine_block_state(block_state)
     }
 
     /// Mine the block at the given position.
     ///
     /// Returns whether the block is being mined.
     pub fn mine(&mut self, block: BlockPos) -> bool {
-        let block_state = self
-            .instance
-            .read()
-            .get_block_state(block)
-            .unwrap_or_default();
+        if !self.can_mine {
+            return false;
+        }
+
+        let block_state = self.world.read().get_block_state(block).unwrap_or_default();
         if is_block_state_passable(block_state) {
             // block is already passable, no need to mine it
             return false;
@@ -196,11 +214,17 @@ impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_, '_> {
     }
 
     pub fn get_block_state(&self, block: BlockPos) -> BlockState {
-        self.instance
-            .read()
-            .get_block_state(block)
-            .unwrap_or_default()
+        self.world.read().get_block_state(block).unwrap_or_default()
     }
+}
+
+pub fn should_mine_block_state(block_state: BlockState) -> bool {
+    if is_block_state_passable(block_state) || BlockKind::from(block_state) == BlockKind::Water {
+        // block is already passable, no need to mine it
+        return false;
+    }
+
+    true
 }
 
 pub struct IsReachedCtx<'a> {
@@ -217,16 +241,27 @@ pub struct IsReachedCtx<'a> {
 #[must_use]
 pub fn default_is_reached(
     IsReachedCtx {
-        position, target, ..
+        position,
+        target,
+        physics,
+        ..
     }: IsReachedCtx,
 ) -> bool {
-    player_pos_to_block_pos(position) == target
+    let block_pos = player_pos_to_block_pos(position);
+    if block_pos == target {
+        return true;
+    }
+    // it's fine if we go over the target while swimming
+    if physics.is_in_water() && block_pos.down(1) == target {
+        return true;
+    }
+
+    false
 }
 
-pub struct PathfinderCtx<'a> {
+pub struct MovesCtx<'a> {
     pub edges: &'a mut Vec<Edge>,
     pub world: &'a CachedWorld,
     pub mining_cache: &'a MiningCache,
-
     pub custom_state: &'a CustomPathfinderStateRef,
 }

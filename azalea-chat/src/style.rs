@@ -585,22 +585,34 @@ impl simdnbt::Deserialize for Style {
     fn from_compound(
         compound: simdnbt::borrow::NbtCompound,
     ) -> Result<Self, simdnbt::DeserializeError> {
-        let bold = compound.byte("bold").map(|v| v != 0);
-        let italic = compound.byte("italic").map(|v| v != 0);
-        let underlined = compound.byte("underlined").map(|v| v != 0);
-        let strikethrough = compound.byte("strikethrough").map(|v| v != 0);
-        let obfuscated = compound.byte("obfuscated").map(|v| v != 0);
+        use crate::get_in_compound;
+
         let color: Option<TextColor> = compound
             .string("color")
             .and_then(|v| TextColor::parse(&v.to_str()));
+        let shadow_color = get_in_compound(&compound, "shadow_color").ok();
+        let bold = get_in_compound(&compound, "bold").ok();
+        let italic = get_in_compound(&compound, "italic").ok();
+        let underlined = get_in_compound(&compound, "underlined").ok();
+        let strikethrough = get_in_compound(&compound, "strikethrough").ok();
+        let obfuscated = get_in_compound(&compound, "obfuscated").ok();
+        let click_event = get_in_compound(&compound, "click_event").ok();
+        // TODO
+        // let hover_event = get_in_compound(&compound, "hover_event")?;
+        let insertion = get_in_compound(&compound, "insertion").ok();
+        let font = get_in_compound(&compound, "font").ok();
         Ok(Style {
             color,
+            shadow_color,
             bold,
             italic,
             underlined,
             strikethrough,
             obfuscated,
-            ..Style::default()
+            click_event,
+            hover_event: None,
+            insertion,
+            font,
         })
     }
 }

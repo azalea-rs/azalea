@@ -3,7 +3,7 @@ use std::{
     io::{Cursor, Write},
 };
 
-use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
+use azalea_buf::{AzBuf, AzBufVar, BufReadError};
 use azalea_chat::FormattedText;
 use azalea_core::bitset::FixedBitSet;
 use azalea_protocol_macros::ClientboundGamePacket;
@@ -25,7 +25,7 @@ pub enum Operation {
     UpdateProperties(Properties),
 }
 
-impl AzaleaRead for Operation {
+impl AzBuf for Operation {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let operation_id = u32::azalea_read_var(buf)?;
         Ok(match operation_id {
@@ -42,9 +42,6 @@ impl AzaleaRead for Operation {
             }
         })
     }
-}
-
-impl AzaleaWrite for Operation {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         match self {
             Operation::Add(add) => {
@@ -116,7 +113,7 @@ pub struct Properties {
     pub create_world_fog: bool,
 }
 
-impl AzaleaRead for Properties {
+impl AzBuf for Properties {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let set = FixedBitSet::<3>::azalea_read(buf)?;
         Ok(Self {
@@ -125,9 +122,6 @@ impl AzaleaRead for Properties {
             create_world_fog: set.index(2),
         })
     }
-}
-
-impl AzaleaWrite for Properties {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         let mut set = FixedBitSet::<3>::new();
         if self.darken_screen {

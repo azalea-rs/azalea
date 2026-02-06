@@ -1,8 +1,9 @@
-use azalea_client::{chat::SendChatEvent, local_player::InstanceHolder};
+use azalea_client::{chat::SendChatEvent, local_player::WorldHolder};
 use azalea_core::position::Vec3;
 use bevy_ecs::prelude::*;
 
 use super::ExecutingPath;
+use crate::pathfinder::moves::should_mine_block_state;
 
 /// A component that makes bots run /particle commands while pathfinding to show
 /// where they're going.
@@ -22,7 +23,7 @@ use super::ExecutingPath;
 ///     match event {
 ///         azalea::Event::Init => {
 ///             bot.ecs
-///                 .lock()
+///                 .write()
 ///                 .entity_mut(bot.entity)
 ///                 .insert(PathfinderDebugParticles);
 ///         }
@@ -35,7 +36,7 @@ use super::ExecutingPath;
 pub struct PathfinderDebugParticles;
 
 pub fn debug_render_path_with_particles(
-    mut query: Query<(Entity, &ExecutingPath, &InstanceHolder), With<PathfinderDebugParticles>>,
+    mut query: Query<(Entity, &ExecutingPath, &WorldHolder), With<PathfinderDebugParticles>>,
     // chat_events is Option because the tests don't have SendChatEvent
     // and we have to use ResMut<Messages> because bevy doesn't support Option<MessageWriter>
     chat_events: Option<ResMut<Messages<SendChatEvent>>>,
@@ -50,12 +51,12 @@ pub fn debug_render_path_with_particles(
         *tick_count += 1;
         return;
     }
-    for (entity, executing_path, instance_holder) in &mut query {
+    for (entity, executing_path, world_holder) in &mut query {
         if executing_path.path.is_empty() {
             continue;
         }
 
-        let chunks = &instance_holder.instance.read().chunks;
+        let chunks = &world_holder.shared.read().chunks;
 
         let mut start = executing_path.last_reached_node;
         for (i, edge) in executing_path.path.iter().enumerate() {
@@ -74,8 +75,8 @@ pub fn debug_render_path_with_particles(
             // this isn't foolproof, there might be another block that could be mined
             // depending on the move, but it's good enough for debugging
             // purposes
-            let is_mining = !super::world::is_block_state_passable(target_block_state)
-                || !super::world::is_block_state_passable(above_target_block_state);
+            let is_mining = should_mine_block_state(target_block_state)
+                || should_mine_block_state(above_target_block_state);
 
             let (r, g, b): (f64, f64, f64) = if i == 0 {
                 (0., 1., 0.)

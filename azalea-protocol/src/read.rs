@@ -9,7 +9,7 @@ use std::{
     sync::LazyLock,
 };
 
-use azalea_buf::{AzaleaReadVar, BufReadError};
+use azalea_buf::{AzBufVar, BufReadError};
 use azalea_crypto::Aes128CfbDec;
 use flate2::read::ZlibDecoder;
 use futures::StreamExt;
@@ -400,4 +400,58 @@ where
     };
 
     Ok(Some(buf))
+}
+
+#[cfg(test)]
+mod tests {
+    use std::io::Cursor;
+
+    use azalea_buf::AzBuf as _;
+
+    use crate::{packets::game::ClientboundGamePacket, read::deserialize_packet};
+
+    #[test]
+    fn fuzzed_1() {
+        // oom: checks for unbounded TagMap
+        let _ = deserialize_packet::<ClientboundGamePacket>(&mut Cursor::new(
+            [132, 1, 255, 255, 255, 255, 255].as_slice(),
+        ));
+    }
+    #[test]
+    fn fuzzed_2() {
+        // oom: also checks for unbounded TagMap
+        let _ = deserialize_packet::<ClientboundGamePacket>(&mut Cursor::new(
+            [132, 1, 75, 0, 255, 255, 255, 255, 24, 0].as_slice(),
+        ));
+    }
+    #[test]
+    fn fuzzed_3() {
+        // panic: integer overflow in HolderSet::azalea_read
+        let _ = deserialize_packet::<ClientboundGamePacket>(&mut Cursor::new(
+            [
+                94, 44, 157, 38, 61, 37, 37, 37, 37, 37, 37, 65, 128, 128, 1, 1, 255, 252, 128,
+                128, 128, 128, 128, 128, 128, 40, 0,
+            ]
+            .as_slice(),
+        ));
+    }
+    #[test]
+    fn fuzzed_4() {
+        // memory leak in DataComponentPatch
+        let _ = deserialize_packet::<ClientboundGamePacket>(&mut Cursor::new(
+            [94, 94, 70, 52, 0, 6, 0].as_slice(),
+        ));
+    }
+    #[test]
+    fn fuzzed_5() {
+        // also a memory leak in DataComponentPatch
+        let _ = deserialize_packet::<ClientboundGamePacket>(&mut Cursor::new(
+            [94, 94, 70, 52, 0, 6, 0, 6, 0].as_slice(),
+        ));
+    }
+    #[test]
+    fn fuzzed_6() {
+        // memory leak in simdnbt
+        let _ = simdnbt::owned::Nbt::azalea_read(&mut Cursor::new([10, 10, 0, 0, 0].as_slice()));
+    }
 }

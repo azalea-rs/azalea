@@ -194,7 +194,7 @@
 //!       - [SpawnerMinecart]
 //!       - [TntMinecart]
 
-#![allow(clippy::single_match)]
+#![allow(clippy::single_match, non_snake_case)]
 
 use azalea_chat::FormattedText;
 use azalea_core::{
@@ -251,7 +251,7 @@ pub struct FallFlying(pub bool);
 pub struct AirSupply(pub i32);
 /// A metadata field for [AbstractEntity].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct CustomName(pub Option<FormattedText>);
+pub struct CustomName(pub Option<Box<FormattedText>>);
 /// A metadata field for [AbstractEntity].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct CustomNameVisible(pub bool);
@@ -473,7 +473,7 @@ pub struct TicksFrozen(pub i32);
 #[derive(Component)]
 pub struct AbstractEntity;
 impl AbstractEntity {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -588,7 +588,7 @@ pub struct Waiting(pub bool);
 #[derive(Component)]
 pub struct AreaEffectCloud;
 impl AreaEffectCloud {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -624,23 +624,7 @@ impl Default for AreaEffectCloudMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AreaEffectCloud,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             radius: Radius(Default::default()),
             waiting: Waiting(Default::default()),
             particle: Particle::default(),
@@ -668,7 +652,7 @@ impl Default for AreaEffectCloudMetadataBundle {
 #[derive(Component)]
 pub struct BreezeWindCharge;
 impl BreezeWindCharge {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -692,23 +676,7 @@ impl Default for BreezeWindChargeMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: BreezeWindCharge,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -733,7 +701,7 @@ impl Default for BreezeWindChargeMetadataBundle {
 #[derive(Component)]
 pub struct DragonFireball;
 impl DragonFireball {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -757,23 +725,7 @@ impl Default for DragonFireballMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: DragonFireball,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -808,7 +760,7 @@ pub struct ShowBottom(pub bool);
 #[derive(Component)]
 pub struct EndCrystal;
 impl EndCrystal {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -840,23 +792,7 @@ impl Default for EndCrystalMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: EndCrystal,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             beam_target: BeamTarget(Default::default()),
             show_bottom: ShowBottom(Default::default()),
         }
@@ -883,7 +819,7 @@ impl Default for EndCrystalMetadataBundle {
 #[derive(Component)]
 pub struct EvokerFangs;
 impl EvokerFangs {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -907,23 +843,7 @@ impl Default for EvokerFangsMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: EvokerFangs,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -954,7 +874,7 @@ pub struct Value(pub i32);
 #[derive(Component)]
 pub struct ExperienceOrb;
 impl ExperienceOrb {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -982,23 +902,7 @@ impl Default for ExperienceOrbMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: ExperienceOrb,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             value: Value(Default::default()),
         }
     }
@@ -1030,7 +934,7 @@ pub struct EyeOfEnderItemStack(pub ItemStack);
 #[derive(Component)]
 pub struct EyeOfEnder;
 impl EyeOfEnder {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -1058,23 +962,7 @@ impl Default for EyeOfEnderMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: EyeOfEnder,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             eye_of_ender_item_stack: EyeOfEnderItemStack(Default::default()),
         }
     }
@@ -1106,7 +994,7 @@ pub struct StartPos(pub BlockPos);
 #[derive(Component)]
 pub struct FallingBlock;
 impl FallingBlock {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -1134,23 +1022,7 @@ impl Default for FallingBlockMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: FallingBlock,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             start_pos: StartPos(Default::default()),
         }
     }
@@ -1182,7 +1054,7 @@ pub struct FireballItemStack(pub ItemStack);
 #[derive(Component)]
 pub struct Fireball;
 impl Fireball {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -1210,23 +1082,7 @@ impl Default for FireballMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Fireball,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             fireball_item_stack: FireballItemStack(Default::default()),
         }
     }
@@ -1266,7 +1122,7 @@ pub struct ShotAtAngle(pub bool);
 #[derive(Component)]
 pub struct FireworkRocket;
 impl FireworkRocket {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -1302,23 +1158,7 @@ impl Default for FireworkRocketMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: FireworkRocket,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             fireworks_item: FireworksItem(Default::default()),
             attached_to_target: AttachedToTarget(Default::default()),
             shot_at_angle: ShotAtAngle(Default::default()),
@@ -1356,7 +1196,7 @@ pub struct Biting(pub bool);
 #[derive(Component)]
 pub struct FishingBobber;
 impl FishingBobber {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -1388,23 +1228,7 @@ impl Default for FishingBobberMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: FishingBobber,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             hooked_entity: HookedEntity(Default::default()),
             biting: Biting(Default::default()),
         }
@@ -1445,7 +1269,7 @@ pub struct Response(pub bool);
 #[derive(Component)]
 pub struct Interaction;
 impl Interaction {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -1481,23 +1305,7 @@ impl Default for InteractionMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Interaction,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             interaction_width: InteractionWidth(Default::default()),
             interaction_height: InteractionHeight(Default::default()),
             response: Response(Default::default()),
@@ -1530,7 +1338,7 @@ pub struct ItemItem(pub ItemStack);
 #[derive(Component)]
 pub struct Item;
 impl Item {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -1558,23 +1366,7 @@ impl Default for ItemMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Item,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             item_item: ItemItem(Default::default()),
         }
     }
@@ -1614,7 +1406,7 @@ pub struct Rotation(pub i32);
 #[derive(Component)]
 pub struct ItemFrame;
 impl ItemFrame {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -1650,23 +1442,7 @@ impl Default for ItemFrameMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: ItemFrame,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             item_frame_direction: ItemFrameDirection(Default::default()),
             item_frame_item: ItemFrameItem(Default::default()),
             rotation: Rotation(Default::default()),
@@ -1695,7 +1471,7 @@ impl Default for ItemFrameMetadataBundle {
 #[derive(Component)]
 pub struct GlowItemFrame;
 impl GlowItemFrame {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -1719,29 +1495,7 @@ impl Default for GlowItemFrameMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: GlowItemFrame,
-            parent: ItemFrameMetadataBundle {
-                _marker: ItemFrame,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
-                },
-                item_frame_direction: ItemFrameDirection(Default::default()),
-                item_frame_item: ItemFrameItem(Default::default()),
-                rotation: Rotation(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -1766,7 +1520,7 @@ impl Default for GlowItemFrameMetadataBundle {
 #[derive(Component)]
 pub struct LeashKnot;
 impl LeashKnot {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -1790,23 +1544,7 @@ impl Default for LeashKnotMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: LeashKnot,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -1831,7 +1569,7 @@ impl Default for LeashKnotMetadataBundle {
 #[derive(Component)]
 pub struct LightningBolt;
 impl LightningBolt {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -1855,23 +1593,7 @@ impl Default for LightningBoltMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: LightningBolt,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -1896,7 +1618,7 @@ impl Default for LightningBoltMetadataBundle {
 #[derive(Component)]
 pub struct LlamaSpit;
 impl LlamaSpit {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -1920,23 +1642,7 @@ impl Default for LlamaSpitMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: LlamaSpit,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -1961,7 +1667,7 @@ impl Default for LlamaSpitMetadataBundle {
 #[derive(Component)]
 pub struct Marker;
 impl Marker {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -1985,23 +1691,7 @@ impl Default for MarkerMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Marker,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -2032,7 +1722,7 @@ pub struct OminousItemSpawnerItem(pub ItemStack);
 #[derive(Component)]
 pub struct OminousItemSpawner;
 impl OminousItemSpawner {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -2060,23 +1750,7 @@ impl Default for OminousItemSpawnerMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: OminousItemSpawner,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             ominous_item_spawner_item: OminousItemSpawnerItem(Default::default()),
         }
     }
@@ -2112,7 +1786,7 @@ pub struct PaintingVariant(pub azalea_registry::data::PaintingVariant);
 #[derive(Component)]
 pub struct Painting;
 impl Painting {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -2144,23 +1818,7 @@ impl Default for PaintingMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Painting,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             painting_direction: PaintingDirection(Default::default()),
             painting_variant: PaintingVariant(azalea_registry::data::PaintingVariant::new_raw(0)),
         }
@@ -2187,7 +1845,7 @@ impl Default for PaintingMetadataBundle {
 #[derive(Component)]
 pub struct ShulkerBullet;
 impl ShulkerBullet {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -2211,23 +1869,7 @@ impl Default for ShulkerBulletMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: ShulkerBullet,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -2258,7 +1900,7 @@ pub struct SmallFireballItemStack(pub ItemStack);
 #[derive(Component)]
 pub struct SmallFireball;
 impl SmallFireball {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -2286,23 +1928,7 @@ impl Default for SmallFireballMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: SmallFireball,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             small_fireball_item_stack: SmallFireballItemStack(Default::default()),
         }
     }
@@ -2337,7 +1963,7 @@ pub struct TntBlockState(pub azalea_block::BlockState);
 #[derive(Component)]
 pub struct Tnt;
 impl Tnt {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -2369,23 +1995,7 @@ impl Default for TntMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Tnt,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             fuse: Fuse(Default::default()),
             tnt_block_state: TntBlockState(Default::default()),
         }
@@ -2412,7 +2022,7 @@ impl Default for TntMetadataBundle {
 #[derive(Component)]
 pub struct WindCharge;
 impl WindCharge {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -2436,23 +2046,7 @@ impl Default for WindChargeMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: WindCharge,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -2483,7 +2077,7 @@ pub struct Dangerous(pub bool);
 #[derive(Component)]
 pub struct WitherSkull;
 impl WitherSkull {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -2511,23 +2105,7 @@ impl Default for WitherSkullMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: WitherSkull,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             dangerous: Dangerous(Default::default()),
         }
     }
@@ -2573,7 +2151,7 @@ pub struct InGround(pub bool);
 #[derive(Component)]
 pub struct AbstractArrow;
 impl AbstractArrow {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -2612,23 +2190,7 @@ impl Default for AbstractArrowMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractArrow,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             crit_arrow: CritArrow(false),
             no_physics: NoPhysics(false),
             pierce_level: PierceLevel(Default::default()),
@@ -2663,7 +2225,7 @@ pub struct EffectColor(pub i32);
 #[derive(Component)]
 pub struct Arrow;
 impl Arrow {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -2691,30 +2253,7 @@ impl Default for ArrowMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Arrow,
-            parent: AbstractArrowMetadataBundle {
-                _marker: AbstractArrow,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
-                },
-                crit_arrow: CritArrow(false),
-                no_physics: NoPhysics(false),
-                pierce_level: PierceLevel(Default::default()),
-                in_ground: InGround(Default::default()),
-            },
+            parent: Default::default(),
             effect_color: EffectColor(Default::default()),
         }
     }
@@ -2741,7 +2280,7 @@ impl Default for ArrowMetadataBundle {
 #[derive(Component)]
 pub struct SpectralArrow;
 impl SpectralArrow {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -2765,30 +2304,7 @@ impl Default for SpectralArrowMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: SpectralArrow,
-            parent: AbstractArrowMetadataBundle {
-                _marker: AbstractArrow,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
-                },
-                crit_arrow: CritArrow(false),
-                no_physics: NoPhysics(false),
-                pierce_level: PierceLevel(Default::default()),
-                in_ground: InGround(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -2823,7 +2339,7 @@ pub struct Foil(pub bool);
 #[derive(Component)]
 pub struct Trident;
 impl Trident {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -2855,30 +2371,7 @@ impl Default for TridentMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Trident,
-            parent: AbstractArrowMetadataBundle {
-                _marker: AbstractArrow,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
-                },
-                crit_arrow: CritArrow(false),
-                no_physics: NoPhysics(false),
-                pierce_level: PierceLevel(Default::default()),
-                in_ground: InGround(Default::default()),
-            },
+            parent: Default::default(),
             loyalty: Loyalty(Default::default()),
             foil: Foil(Default::default()),
         }
@@ -2969,7 +2462,7 @@ pub struct GlowColorOverride(pub i32);
 #[derive(Component)]
 pub struct AbstractDisplay;
 impl AbstractDisplay {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -3055,23 +2548,7 @@ impl Default for AbstractDisplayMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractDisplay,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             transformation_interpolation_start_delta_ticks:
                 TransformationInterpolationStartDeltaTicks(Default::default()),
             transformation_interpolation_duration: TransformationInterpolationDuration(
@@ -3121,7 +2598,7 @@ pub struct BlockDisplayBlockState(pub azalea_block::BlockState);
 #[derive(Component)]
 pub struct BlockDisplay;
 impl BlockDisplay {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -3149,44 +2626,7 @@ impl Default for BlockDisplayMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: BlockDisplay,
-            parent: AbstractDisplayMetadataBundle {
-                _marker: AbstractDisplay,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
-                },
-                transformation_interpolation_start_delta_ticks:
-                    TransformationInterpolationStartDeltaTicks(Default::default()),
-                transformation_interpolation_duration: TransformationInterpolationDuration(
-                    Default::default(),
-                ),
-                pos_rot_interpolation_duration: PosRotInterpolationDuration(Default::default()),
-                translation: Translation(Default::default()),
-                scale: Scale(Default::default()),
-                left_rotation: LeftRotation(Default::default()),
-                right_rotation: RightRotation(Default::default()),
-                billboard_render_constraints: BillboardRenderConstraints(Default::default()),
-                brightness_override: BrightnessOverride(Default::default()),
-                view_range: ViewRange(Default::default()),
-                shadow_radius: ShadowRadius(Default::default()),
-                shadow_strength: ShadowStrength(Default::default()),
-                abstract_display_width: AbstractDisplayWidth(Default::default()),
-                abstract_display_height: AbstractDisplayHeight(Default::default()),
-                glow_color_override: GlowColorOverride(Default::default()),
-            },
+            parent: Default::default(),
             block_display_block_state: BlockDisplayBlockState(Default::default()),
         }
     }
@@ -3223,7 +2663,7 @@ pub struct ItemDisplayItemDisplay(pub u8);
 #[derive(Component)]
 pub struct ItemDisplay;
 impl ItemDisplay {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -3255,44 +2695,7 @@ impl Default for ItemDisplayMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: ItemDisplay,
-            parent: AbstractDisplayMetadataBundle {
-                _marker: AbstractDisplay,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
-                },
-                transformation_interpolation_start_delta_ticks:
-                    TransformationInterpolationStartDeltaTicks(Default::default()),
-                transformation_interpolation_duration: TransformationInterpolationDuration(
-                    Default::default(),
-                ),
-                pos_rot_interpolation_duration: PosRotInterpolationDuration(Default::default()),
-                translation: Translation(Default::default()),
-                scale: Scale(Default::default()),
-                left_rotation: LeftRotation(Default::default()),
-                right_rotation: RightRotation(Default::default()),
-                billboard_render_constraints: BillboardRenderConstraints(Default::default()),
-                brightness_override: BrightnessOverride(Default::default()),
-                view_range: ViewRange(Default::default()),
-                shadow_radius: ShadowRadius(Default::default()),
-                shadow_strength: ShadowStrength(Default::default()),
-                abstract_display_width: AbstractDisplayWidth(Default::default()),
-                abstract_display_height: AbstractDisplayHeight(Default::default()),
-                glow_color_override: GlowColorOverride(Default::default()),
-            },
+            parent: Default::default(),
             item_display_item_stack: ItemDisplayItemStack(Default::default()),
             item_display_item_display: ItemDisplayItemDisplay(Default::default()),
         }
@@ -3301,7 +2704,7 @@ impl Default for ItemDisplayMetadataBundle {
 
 /// A metadata field for [TextDisplay].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct Text(pub FormattedText);
+pub struct Text(pub Box<FormattedText>);
 /// A metadata field for [TextDisplay].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct LineWidth(pub i32);
@@ -3342,7 +2745,7 @@ pub struct StyleFlags(pub u8);
 #[derive(Component)]
 pub struct TextDisplay;
 impl TextDisplay {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -3386,44 +2789,7 @@ impl Default for TextDisplayMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: TextDisplay,
-            parent: AbstractDisplayMetadataBundle {
-                _marker: AbstractDisplay,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
-                },
-                transformation_interpolation_start_delta_ticks:
-                    TransformationInterpolationStartDeltaTicks(Default::default()),
-                transformation_interpolation_duration: TransformationInterpolationDuration(
-                    Default::default(),
-                ),
-                pos_rot_interpolation_duration: PosRotInterpolationDuration(Default::default()),
-                translation: Translation(Default::default()),
-                scale: Scale(Default::default()),
-                left_rotation: LeftRotation(Default::default()),
-                right_rotation: RightRotation(Default::default()),
-                billboard_render_constraints: BillboardRenderConstraints(Default::default()),
-                brightness_override: BrightnessOverride(Default::default()),
-                view_range: ViewRange(Default::default()),
-                shadow_radius: ShadowRadius(Default::default()),
-                shadow_strength: ShadowStrength(Default::default()),
-                abstract_display_width: AbstractDisplayWidth(Default::default()),
-                abstract_display_height: AbstractDisplayHeight(Default::default()),
-                glow_color_override: GlowColorOverride(Default::default()),
-            },
+            parent: Default::default(),
             text: Text(Default::default()),
             line_width: LineWidth(Default::default()),
             background_color: BackgroundColor(Default::default()),
@@ -3444,7 +2810,7 @@ pub struct AbstractLivingUsingItem(pub bool);
 pub struct Health(pub f32);
 /// A metadata field for [AbstractLiving].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct EffectParticles(pub Vec<Particle>);
+pub struct EffectParticles(pub Box<[Particle]>);
 /// A metadata field for [AbstractLiving].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct EffectAmbience(pub bool);
@@ -3593,7 +2959,7 @@ pub struct SleepingPos(pub Option<BlockPos>);
 #[derive(Component)]
 pub struct AbstractLiving;
 impl AbstractLiving {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -3648,23 +3014,7 @@ impl Default for AbstractLivingMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractLiving,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             auto_spin_attack: AutoSpinAttack(false),
             abstract_living_using_item: AbstractLivingUsingItem(false),
             health: Health(Default::default()),
@@ -3740,7 +3090,7 @@ pub struct RightLegPose(pub Rotations);
 #[derive(Component)]
 pub struct ArmorStand;
 impl ArmorStand {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -3799,34 +3149,7 @@ impl Default for ArmorStandMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: ArmorStand,
-            parent: AbstractLivingMetadataBundle {
-                _marker: AbstractLiving,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
-                },
-                auto_spin_attack: AutoSpinAttack(false),
-                abstract_living_using_item: AbstractLivingUsingItem(false),
-                health: Health(Default::default()),
-                effect_particles: EffectParticles(Default::default()),
-                effect_ambience: EffectAmbience(Default::default()),
-                arrow_count: ArrowCount(Default::default()),
-                stinger_count: StingerCount(Default::default()),
-                sleeping_pos: SleepingPos(Default::default()),
-            },
+            parent: Default::default(),
             small: Small(false),
             show_arms: ShowArms(false),
             show_base_plate: ShowBasePlate(false),
@@ -3873,7 +3196,7 @@ pub struct PlayerModeCustomisation(pub u8);
 #[derive(Component)]
 pub struct AbstractAvatar;
 impl AbstractAvatar {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -3905,34 +3228,7 @@ impl Default for AbstractAvatarMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractAvatar,
-            parent: AbstractLivingMetadataBundle {
-                _marker: AbstractLiving,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
-                },
-                auto_spin_attack: AutoSpinAttack(false),
-                abstract_living_using_item: AbstractLivingUsingItem(false),
-                health: Health(Default::default()),
-                effect_particles: EffectParticles(Default::default()),
-                effect_ambience: EffectAmbience(Default::default()),
-                arrow_count: ArrowCount(Default::default()),
-                stinger_count: StingerCount(Default::default()),
-                sleeping_pos: SleepingPos(Default::default()),
-            },
+            parent: Default::default(),
             player_main_hand: PlayerMainHand(Default::default()),
             player_mode_customisation: PlayerModeCustomisation(Default::default()),
         }
@@ -3947,7 +3243,7 @@ pub struct Profile(pub components::Profile);
 pub struct Immovable(pub bool);
 /// A metadata field for [Mannequin].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct Description(pub Option<FormattedText>);
+pub struct Description(pub Option<Box<FormattedText>>);
 /// The marker component for entities of type `minecraft:mannequin`.
 ///
 /// # Metadata
@@ -3975,7 +3271,7 @@ pub struct Description(pub Option<FormattedText>);
 #[derive(Component)]
 pub struct Mannequin;
 impl Mannequin {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -4011,39 +3307,7 @@ impl Default for MannequinMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Mannequin,
-            parent: AbstractAvatarMetadataBundle {
-                _marker: AbstractAvatar,
-                parent: AbstractLivingMetadataBundle {
-                    _marker: AbstractLiving,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    auto_spin_attack: AutoSpinAttack(false),
-                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                    health: Health(Default::default()),
-                    effect_particles: EffectParticles(Default::default()),
-                    effect_ambience: EffectAmbience(Default::default()),
-                    arrow_count: ArrowCount(Default::default()),
-                    stinger_count: StingerCount(Default::default()),
-                    sleeping_pos: SleepingPos(Default::default()),
-                },
-                player_main_hand: PlayerMainHand(Default::default()),
-                player_mode_customisation: PlayerModeCustomisation(Default::default()),
-            },
+            parent: Default::default(),
             profile: Profile(Default::default()),
             immovable: Immovable(Default::default()),
             description: Description(Default::default()),
@@ -4090,7 +3354,7 @@ pub struct ShoulderParrotRight(pub OptionalUnsignedInt);
 #[derive(Component)]
 pub struct Player;
 impl Player {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -4130,39 +3394,7 @@ impl Default for PlayerMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Player,
-            parent: AbstractAvatarMetadataBundle {
-                _marker: AbstractAvatar,
-                parent: AbstractLivingMetadataBundle {
-                    _marker: AbstractLiving,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    auto_spin_attack: AutoSpinAttack(false),
-                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                    health: Health(Default::default()),
-                    effect_particles: EffectParticles(Default::default()),
-                    effect_ambience: EffectAmbience(Default::default()),
-                    arrow_count: ArrowCount(Default::default()),
-                    stinger_count: StingerCount(Default::default()),
-                    sleeping_pos: SleepingPos(Default::default()),
-                },
-                player_main_hand: PlayerMainHand(Default::default()),
-                player_mode_customisation: PlayerModeCustomisation(Default::default()),
-            },
+            parent: Default::default(),
             player_absorption: PlayerAbsorption(Default::default()),
             score: Score(Default::default()),
             shoulder_parrot_left: ShoulderParrotLeft(Default::default()),
@@ -4307,7 +3539,7 @@ pub struct Aggressive(pub bool);
 #[derive(Component)]
 pub struct AbstractInsentient;
 impl AbstractInsentient {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -4340,34 +3572,7 @@ impl Default for AbstractInsentientMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractInsentient,
-            parent: AbstractLivingMetadataBundle {
-                _marker: AbstractLiving,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
-                },
-                auto_spin_attack: AutoSpinAttack(false),
-                abstract_living_using_item: AbstractLivingUsingItem(false),
-                health: Health(Default::default()),
-                effect_particles: EffectParticles(Default::default()),
-                effect_ambience: EffectAmbience(Default::default()),
-                arrow_count: ArrowCount(Default::default()),
-                stinger_count: StingerCount(Default::default()),
-                sleeping_pos: SleepingPos(Default::default()),
-            },
+            parent: Default::default(),
             no_ai: NoAi(false),
             left_handed: LeftHanded(false),
             aggressive: Aggressive(false),
@@ -4402,7 +3607,7 @@ pub struct Resting(pub bool);
 #[derive(Component)]
 pub struct Bat;
 impl Bat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -4431,40 +3636,7 @@ impl Default for BatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Bat,
-            parent: AbstractInsentientMetadataBundle {
-                _marker: AbstractInsentient,
-                parent: AbstractLivingMetadataBundle {
-                    _marker: AbstractLiving,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    auto_spin_attack: AutoSpinAttack(false),
-                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                    health: Health(Default::default()),
-                    effect_particles: EffectParticles(Default::default()),
-                    effect_ambience: EffectAmbience(Default::default()),
-                    arrow_count: ArrowCount(Default::default()),
-                    stinger_count: StingerCount(Default::default()),
-                    sleeping_pos: SleepingPos(Default::default()),
-                },
-                no_ai: NoAi(false),
-                left_handed: LeftHanded(false),
-                aggressive: Aggressive(false),
-            },
+            parent: Default::default(),
             resting: Resting(false),
         }
     }
@@ -4498,7 +3670,7 @@ pub struct Phase(pub i32);
 #[derive(Component)]
 pub struct EnderDragon;
 impl EnderDragon {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -4526,40 +3698,7 @@ impl Default for EnderDragonMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: EnderDragon,
-            parent: AbstractInsentientMetadataBundle {
-                _marker: AbstractInsentient,
-                parent: AbstractLivingMetadataBundle {
-                    _marker: AbstractLiving,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    auto_spin_attack: AutoSpinAttack(false),
-                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                    health: Health(Default::default()),
-                    effect_particles: EffectParticles(Default::default()),
-                    effect_ambience: EffectAmbience(Default::default()),
-                    arrow_count: ArrowCount(Default::default()),
-                    stinger_count: StingerCount(Default::default()),
-                    sleeping_pos: SleepingPos(Default::default()),
-                },
-                no_ai: NoAi(false),
-                left_handed: LeftHanded(false),
-                aggressive: Aggressive(false),
-            },
+            parent: Default::default(),
             phase: Phase(Default::default()),
         }
     }
@@ -4592,7 +3731,7 @@ pub struct IsCharging(pub bool);
 #[derive(Component)]
 pub struct Ghast;
 impl Ghast {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -4620,40 +3759,7 @@ impl Default for GhastMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Ghast,
-            parent: AbstractInsentientMetadataBundle {
-                _marker: AbstractInsentient,
-                parent: AbstractLivingMetadataBundle {
-                    _marker: AbstractLiving,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    auto_spin_attack: AutoSpinAttack(false),
-                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                    health: Health(Default::default()),
-                    effect_particles: EffectParticles(Default::default()),
-                    effect_ambience: EffectAmbience(Default::default()),
-                    arrow_count: ArrowCount(Default::default()),
-                    stinger_count: StingerCount(Default::default()),
-                    sleeping_pos: SleepingPos(Default::default()),
-                },
-                no_ai: NoAi(false),
-                left_handed: LeftHanded(false),
-                aggressive: Aggressive(false),
-            },
+            parent: Default::default(),
             is_charging: IsCharging(Default::default()),
         }
     }
@@ -4686,7 +3792,7 @@ pub struct PhantomSize(pub i32);
 #[derive(Component)]
 pub struct Phantom;
 impl Phantom {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -4714,40 +3820,7 @@ impl Default for PhantomMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Phantom,
-            parent: AbstractInsentientMetadataBundle {
-                _marker: AbstractInsentient,
-                parent: AbstractLivingMetadataBundle {
-                    _marker: AbstractLiving,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    auto_spin_attack: AutoSpinAttack(false),
-                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                    health: Health(Default::default()),
-                    effect_particles: EffectParticles(Default::default()),
-                    effect_ambience: EffectAmbience(Default::default()),
-                    arrow_count: ArrowCount(Default::default()),
-                    stinger_count: StingerCount(Default::default()),
-                    sleeping_pos: SleepingPos(Default::default()),
-                },
-                no_ai: NoAi(false),
-                left_handed: LeftHanded(false),
-                aggressive: Aggressive(false),
-            },
+            parent: Default::default(),
             phantom_size: PhantomSize(Default::default()),
         }
     }
@@ -4780,7 +3853,7 @@ pub struct SlimeSize(pub i32);
 #[derive(Component)]
 pub struct Slime;
 impl Slime {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -4808,40 +3881,7 @@ impl Default for SlimeMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Slime,
-            parent: AbstractInsentientMetadataBundle {
-                _marker: AbstractInsentient,
-                parent: AbstractLivingMetadataBundle {
-                    _marker: AbstractLiving,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    auto_spin_attack: AutoSpinAttack(false),
-                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                    health: Health(Default::default()),
-                    effect_particles: EffectParticles(Default::default()),
-                    effect_ambience: EffectAmbience(Default::default()),
-                    arrow_count: ArrowCount(Default::default()),
-                    stinger_count: StingerCount(Default::default()),
-                    sleeping_pos: SleepingPos(Default::default()),
-                },
-                no_ai: NoAi(false),
-                left_handed: LeftHanded(false),
-                aggressive: Aggressive(false),
-            },
+            parent: Default::default(),
             slime_size: SlimeSize(Default::default()),
         }
     }
@@ -4870,7 +3910,7 @@ impl Default for SlimeMetadataBundle {
 #[derive(Component)]
 pub struct MagmaCube;
 impl MagmaCube {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -4894,44 +3934,7 @@ impl Default for MagmaCubeMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: MagmaCube,
-            parent: SlimeMetadataBundle {
-                _marker: Slime,
-                parent: AbstractInsentientMetadataBundle {
-                    _marker: AbstractInsentient,
-                    parent: AbstractLivingMetadataBundle {
-                        _marker: AbstractLiving,
-                        parent: AbstractEntityMetadataBundle {
-                            _marker: AbstractEntity,
-                            on_fire: OnFire(false),
-                            abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                            sprinting: Sprinting(false),
-                            swimming: Swimming(false),
-                            currently_glowing: CurrentlyGlowing(false),
-                            invisible: Invisible(false),
-                            fall_flying: FallFlying(false),
-                            air_supply: AirSupply(Default::default()),
-                            custom_name: CustomName(Default::default()),
-                            custom_name_visible: CustomNameVisible(Default::default()),
-                            silent: Silent(Default::default()),
-                            no_gravity: NoGravity(Default::default()),
-                            pose: Pose::default(),
-                            ticks_frozen: TicksFrozen(Default::default()),
-                        },
-                        auto_spin_attack: AutoSpinAttack(false),
-                        abstract_living_using_item: AbstractLivingUsingItem(false),
-                        health: Health(Default::default()),
-                        effect_particles: EffectParticles(Default::default()),
-                        effect_ambience: EffectAmbience(Default::default()),
-                        arrow_count: ArrowCount(Default::default()),
-                        stinger_count: StingerCount(Default::default()),
-                        sleeping_pos: SleepingPos(Default::default()),
-                    },
-                    no_ai: NoAi(false),
-                    left_handed: LeftHanded(false),
-                    aggressive: Aggressive(false),
-                },
-                slime_size: SlimeSize(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -5052,7 +4055,7 @@ impl Default for MagmaCubeMetadataBundle {
 #[derive(Component)]
 pub struct AbstractCreature;
 impl AbstractCreature {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -5076,40 +4079,7 @@ impl Default for AbstractCreatureMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractCreature,
-            parent: AbstractInsentientMetadataBundle {
-                _marker: AbstractInsentient,
-                parent: AbstractLivingMetadataBundle {
-                    _marker: AbstractLiving,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    auto_spin_attack: AutoSpinAttack(false),
-                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                    health: Health(Default::default()),
-                    effect_particles: EffectParticles(Default::default()),
-                    effect_ambience: EffectAmbience(Default::default()),
-                    arrow_count: ArrowCount(Default::default()),
-                    stinger_count: StingerCount(Default::default()),
-                    sleeping_pos: SleepingPos(Default::default()),
-                },
-                no_ai: NoAi(false),
-                left_handed: LeftHanded(false),
-                aggressive: Aggressive(false),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -5146,7 +4116,7 @@ pub struct CanDuplicate(pub bool);
 #[derive(Component)]
 pub struct Allay;
 impl Allay {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -5178,43 +4148,7 @@ impl Default for AllayMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Allay,
-            parent: AbstractCreatureMetadataBundle {
-                _marker: AbstractCreature,
-                parent: AbstractInsentientMetadataBundle {
-                    _marker: AbstractInsentient,
-                    parent: AbstractLivingMetadataBundle {
-                        _marker: AbstractLiving,
-                        parent: AbstractEntityMetadataBundle {
-                            _marker: AbstractEntity,
-                            on_fire: OnFire(false),
-                            abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                            sprinting: Sprinting(false),
-                            swimming: Swimming(false),
-                            currently_glowing: CurrentlyGlowing(false),
-                            invisible: Invisible(false),
-                            fall_flying: FallFlying(false),
-                            air_supply: AirSupply(Default::default()),
-                            custom_name: CustomName(Default::default()),
-                            custom_name_visible: CustomNameVisible(Default::default()),
-                            silent: Silent(Default::default()),
-                            no_gravity: NoGravity(Default::default()),
-                            pose: Pose::default(),
-                            ticks_frozen: TicksFrozen(Default::default()),
-                        },
-                        auto_spin_attack: AutoSpinAttack(false),
-                        abstract_living_using_item: AbstractLivingUsingItem(false),
-                        health: Health(Default::default()),
-                        effect_particles: EffectParticles(Default::default()),
-                        effect_ambience: EffectAmbience(Default::default()),
-                        arrow_count: ArrowCount(Default::default()),
-                        stinger_count: StingerCount(Default::default()),
-                        sleeping_pos: SleepingPos(Default::default()),
-                    },
-                    no_ai: NoAi(false),
-                    left_handed: LeftHanded(false),
-                    aggressive: Aggressive(false),
-                },
-            },
+            parent: Default::default(),
             dancing: Dancing(Default::default()),
             can_duplicate: CanDuplicate(Default::default()),
         }
@@ -5254,7 +4188,7 @@ pub struct CopperGolemState(pub CopperGolemStateKind);
 #[derive(Component)]
 pub struct CopperGolem;
 impl CopperGolem {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -5286,43 +4220,7 @@ impl Default for CopperGolemMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: CopperGolem,
-            parent: AbstractCreatureMetadataBundle {
-                _marker: AbstractCreature,
-                parent: AbstractInsentientMetadataBundle {
-                    _marker: AbstractInsentient,
-                    parent: AbstractLivingMetadataBundle {
-                        _marker: AbstractLiving,
-                        parent: AbstractEntityMetadataBundle {
-                            _marker: AbstractEntity,
-                            on_fire: OnFire(false),
-                            abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                            sprinting: Sprinting(false),
-                            swimming: Swimming(false),
-                            currently_glowing: CurrentlyGlowing(false),
-                            invisible: Invisible(false),
-                            fall_flying: FallFlying(false),
-                            air_supply: AirSupply(Default::default()),
-                            custom_name: CustomName(Default::default()),
-                            custom_name_visible: CustomNameVisible(Default::default()),
-                            silent: Silent(Default::default()),
-                            no_gravity: NoGravity(Default::default()),
-                            pose: Pose::default(),
-                            ticks_frozen: TicksFrozen(Default::default()),
-                        },
-                        auto_spin_attack: AutoSpinAttack(false),
-                        abstract_living_using_item: AbstractLivingUsingItem(false),
-                        health: Health(Default::default()),
-                        effect_particles: EffectParticles(Default::default()),
-                        effect_ambience: EffectAmbience(Default::default()),
-                        arrow_count: ArrowCount(Default::default()),
-                        stinger_count: StingerCount(Default::default()),
-                        sleeping_pos: SleepingPos(Default::default()),
-                    },
-                    no_ai: NoAi(false),
-                    left_handed: LeftHanded(false),
-                    aggressive: Aggressive(false),
-                },
-            },
+            parent: Default::default(),
             weather_state: WeatherState(Default::default()),
             copper_golem_state: CopperGolemState(Default::default()),
         }
@@ -5358,7 +4256,7 @@ pub struct PlayerCreated(pub bool);
 #[derive(Component)]
 pub struct IronGolem;
 impl IronGolem {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -5387,43 +4285,7 @@ impl Default for IronGolemMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: IronGolem,
-            parent: AbstractCreatureMetadataBundle {
-                _marker: AbstractCreature,
-                parent: AbstractInsentientMetadataBundle {
-                    _marker: AbstractInsentient,
-                    parent: AbstractLivingMetadataBundle {
-                        _marker: AbstractLiving,
-                        parent: AbstractEntityMetadataBundle {
-                            _marker: AbstractEntity,
-                            on_fire: OnFire(false),
-                            abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                            sprinting: Sprinting(false),
-                            swimming: Swimming(false),
-                            currently_glowing: CurrentlyGlowing(false),
-                            invisible: Invisible(false),
-                            fall_flying: FallFlying(false),
-                            air_supply: AirSupply(Default::default()),
-                            custom_name: CustomName(Default::default()),
-                            custom_name_visible: CustomNameVisible(Default::default()),
-                            silent: Silent(Default::default()),
-                            no_gravity: NoGravity(Default::default()),
-                            pose: Pose::default(),
-                            ticks_frozen: TicksFrozen(Default::default()),
-                        },
-                        auto_spin_attack: AutoSpinAttack(false),
-                        abstract_living_using_item: AbstractLivingUsingItem(false),
-                        health: Health(Default::default()),
-                        effect_particles: EffectParticles(Default::default()),
-                        effect_ambience: EffectAmbience(Default::default()),
-                        arrow_count: ArrowCount(Default::default()),
-                        stinger_count: StingerCount(Default::default()),
-                        sleeping_pos: SleepingPos(Default::default()),
-                    },
-                    no_ai: NoAi(false),
-                    left_handed: LeftHanded(false),
-                    aggressive: Aggressive(false),
-                },
-            },
+            parent: Default::default(),
             player_created: PlayerCreated(false),
         }
     }
@@ -5462,7 +4324,7 @@ pub struct PuffState(pub i32);
 #[derive(Component)]
 pub struct Pufferfish;
 impl Pufferfish {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -5494,43 +4356,7 @@ impl Default for PufferfishMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Pufferfish,
-            parent: AbstractCreatureMetadataBundle {
-                _marker: AbstractCreature,
-                parent: AbstractInsentientMetadataBundle {
-                    _marker: AbstractInsentient,
-                    parent: AbstractLivingMetadataBundle {
-                        _marker: AbstractLiving,
-                        parent: AbstractEntityMetadataBundle {
-                            _marker: AbstractEntity,
-                            on_fire: OnFire(false),
-                            abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                            sprinting: Sprinting(false),
-                            swimming: Swimming(false),
-                            currently_glowing: CurrentlyGlowing(false),
-                            invisible: Invisible(false),
-                            fall_flying: FallFlying(false),
-                            air_supply: AirSupply(Default::default()),
-                            custom_name: CustomName(Default::default()),
-                            custom_name_visible: CustomNameVisible(Default::default()),
-                            silent: Silent(Default::default()),
-                            no_gravity: NoGravity(Default::default()),
-                            pose: Pose::default(),
-                            ticks_frozen: TicksFrozen(Default::default()),
-                        },
-                        auto_spin_attack: AutoSpinAttack(false),
-                        abstract_living_using_item: AbstractLivingUsingItem(false),
-                        health: Health(Default::default()),
-                        effect_particles: EffectParticles(Default::default()),
-                        effect_ambience: EffectAmbience(Default::default()),
-                        arrow_count: ArrowCount(Default::default()),
-                        stinger_count: StingerCount(Default::default()),
-                        sleeping_pos: SleepingPos(Default::default()),
-                    },
-                    no_ai: NoAi(false),
-                    left_handed: LeftHanded(false),
-                    aggressive: Aggressive(false),
-                },
-            },
+            parent: Default::default(),
             pufferfish_from_bucket: PufferfishFromBucket(Default::default()),
             puff_state: PuffState(Default::default()),
         }
@@ -5573,7 +4399,7 @@ pub struct Color(pub u8);
 #[derive(Component)]
 pub struct Shulker;
 impl Shulker {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -5609,43 +4435,7 @@ impl Default for ShulkerMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Shulker,
-            parent: AbstractCreatureMetadataBundle {
-                _marker: AbstractCreature,
-                parent: AbstractInsentientMetadataBundle {
-                    _marker: AbstractInsentient,
-                    parent: AbstractLivingMetadataBundle {
-                        _marker: AbstractLiving,
-                        parent: AbstractEntityMetadataBundle {
-                            _marker: AbstractEntity,
-                            on_fire: OnFire(false),
-                            abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                            sprinting: Sprinting(false),
-                            swimming: Swimming(false),
-                            currently_glowing: CurrentlyGlowing(false),
-                            invisible: Invisible(false),
-                            fall_flying: FallFlying(false),
-                            air_supply: AirSupply(Default::default()),
-                            custom_name: CustomName(Default::default()),
-                            custom_name_visible: CustomNameVisible(Default::default()),
-                            silent: Silent(Default::default()),
-                            no_gravity: NoGravity(Default::default()),
-                            pose: Pose::default(),
-                            ticks_frozen: TicksFrozen(Default::default()),
-                        },
-                        auto_spin_attack: AutoSpinAttack(false),
-                        abstract_living_using_item: AbstractLivingUsingItem(false),
-                        health: Health(Default::default()),
-                        effect_particles: EffectParticles(Default::default()),
-                        effect_ambience: EffectAmbience(Default::default()),
-                        arrow_count: ArrowCount(Default::default()),
-                        stinger_count: StingerCount(Default::default()),
-                        sleeping_pos: SleepingPos(Default::default()),
-                    },
-                    no_ai: NoAi(false),
-                    left_handed: LeftHanded(false),
-                    aggressive: Aggressive(false),
-                },
-            },
+            parent: Default::default(),
             attach_face: AttachFace(Default::default()),
             peek: Peek(Default::default()),
             color: Color(Default::default()),
@@ -5682,7 +4472,7 @@ pub struct HasPumpkin(pub bool);
 #[derive(Component)]
 pub struct SnowGolem;
 impl SnowGolem {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -5711,43 +4501,7 @@ impl Default for SnowGolemMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: SnowGolem,
-            parent: AbstractCreatureMetadataBundle {
-                _marker: AbstractCreature,
-                parent: AbstractInsentientMetadataBundle {
-                    _marker: AbstractInsentient,
-                    parent: AbstractLivingMetadataBundle {
-                        _marker: AbstractLiving,
-                        parent: AbstractEntityMetadataBundle {
-                            _marker: AbstractEntity,
-                            on_fire: OnFire(false),
-                            abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                            sprinting: Sprinting(false),
-                            swimming: Swimming(false),
-                            currently_glowing: CurrentlyGlowing(false),
-                            invisible: Invisible(false),
-                            fall_flying: FallFlying(false),
-                            air_supply: AirSupply(Default::default()),
-                            custom_name: CustomName(Default::default()),
-                            custom_name_visible: CustomNameVisible(Default::default()),
-                            silent: Silent(Default::default()),
-                            no_gravity: NoGravity(Default::default()),
-                            pose: Pose::default(),
-                            ticks_frozen: TicksFrozen(Default::default()),
-                        },
-                        auto_spin_attack: AutoSpinAttack(false),
-                        abstract_living_using_item: AbstractLivingUsingItem(false),
-                        health: Health(Default::default()),
-                        effect_particles: EffectParticles(Default::default()),
-                        effect_ambience: EffectAmbience(Default::default()),
-                        arrow_count: ArrowCount(Default::default()),
-                        stinger_count: StingerCount(Default::default()),
-                        sleeping_pos: SleepingPos(Default::default()),
-                    },
-                    no_ai: NoAi(false),
-                    left_handed: LeftHanded(false),
-                    aggressive: Aggressive(false),
-                },
-            },
+            parent: Default::default(),
             has_pumpkin: HasPumpkin(false),
         }
     }
@@ -5785,7 +4539,7 @@ pub struct TadpoleAgeLocked(pub bool);
 #[derive(Component)]
 pub struct Tadpole;
 impl Tadpole {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -5817,43 +4571,7 @@ impl Default for TadpoleMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Tadpole,
-            parent: AbstractCreatureMetadataBundle {
-                _marker: AbstractCreature,
-                parent: AbstractInsentientMetadataBundle {
-                    _marker: AbstractInsentient,
-                    parent: AbstractLivingMetadataBundle {
-                        _marker: AbstractLiving,
-                        parent: AbstractEntityMetadataBundle {
-                            _marker: AbstractEntity,
-                            on_fire: OnFire(false),
-                            abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                            sprinting: Sprinting(false),
-                            swimming: Swimming(false),
-                            currently_glowing: CurrentlyGlowing(false),
-                            invisible: Invisible(false),
-                            fall_flying: FallFlying(false),
-                            air_supply: AirSupply(Default::default()),
-                            custom_name: CustomName(Default::default()),
-                            custom_name_visible: CustomNameVisible(Default::default()),
-                            silent: Silent(Default::default()),
-                            no_gravity: NoGravity(Default::default()),
-                            pose: Pose::default(),
-                            ticks_frozen: TicksFrozen(Default::default()),
-                        },
-                        auto_spin_attack: AutoSpinAttack(false),
-                        abstract_living_using_item: AbstractLivingUsingItem(false),
-                        health: Health(Default::default()),
-                        effect_particles: EffectParticles(Default::default()),
-                        effect_ambience: EffectAmbience(Default::default()),
-                        arrow_count: ArrowCount(Default::default()),
-                        stinger_count: StingerCount(Default::default()),
-                        sleeping_pos: SleepingPos(Default::default()),
-                    },
-                    no_ai: NoAi(false),
-                    left_handed: LeftHanded(false),
-                    aggressive: Aggressive(false),
-                },
-            },
+            parent: Default::default(),
             tadpole_from_bucket: TadpoleFromBucket(Default::default()),
             tadpole_age_locked: TadpoleAgeLocked(Default::default()),
         }
@@ -5937,7 +4655,7 @@ pub struct AbstractAgeableAgeLocked(pub bool);
 #[derive(Component)]
 pub struct AbstractAgeable;
 impl AbstractAgeable {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -5969,43 +4687,7 @@ impl Default for AbstractAgeableMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractAgeable,
-            parent: AbstractCreatureMetadataBundle {
-                _marker: AbstractCreature,
-                parent: AbstractInsentientMetadataBundle {
-                    _marker: AbstractInsentient,
-                    parent: AbstractLivingMetadataBundle {
-                        _marker: AbstractLiving,
-                        parent: AbstractEntityMetadataBundle {
-                            _marker: AbstractEntity,
-                            on_fire: OnFire(false),
-                            abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                            sprinting: Sprinting(false),
-                            swimming: Swimming(false),
-                            currently_glowing: CurrentlyGlowing(false),
-                            invisible: Invisible(false),
-                            fall_flying: FallFlying(false),
-                            air_supply: AirSupply(Default::default()),
-                            custom_name: CustomName(Default::default()),
-                            custom_name_visible: CustomNameVisible(Default::default()),
-                            silent: Silent(Default::default()),
-                            no_gravity: NoGravity(Default::default()),
-                            pose: Pose::default(),
-                            ticks_frozen: TicksFrozen(Default::default()),
-                        },
-                        auto_spin_attack: AutoSpinAttack(false),
-                        abstract_living_using_item: AbstractLivingUsingItem(false),
-                        health: Health(Default::default()),
-                        effect_particles: EffectParticles(Default::default()),
-                        effect_ambience: EffectAmbience(Default::default()),
-                        arrow_count: ArrowCount(Default::default()),
-                        stinger_count: StingerCount(Default::default()),
-                        sleeping_pos: SleepingPos(Default::default()),
-                    },
-                    no_ai: NoAi(false),
-                    left_handed: LeftHanded(false),
-                    aggressive: Aggressive(false),
-                },
-            },
+            parent: Default::default(),
             abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
             abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
         }
@@ -6045,7 +4727,7 @@ pub struct MoistnessLevel(pub i32);
 #[derive(Component)]
 pub struct Dolphin;
 impl Dolphin {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -6077,48 +4759,7 @@ impl Default for DolphinMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Dolphin,
-            parent: AbstractAgeableMetadataBundle {
-                _marker: AbstractAgeable,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(Default::default()),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(Default::default()),
-                            arrow_count: ArrowCount(Default::default()),
-                            stinger_count: StingerCount(Default::default()),
-                            sleeping_pos: SleepingPos(Default::default()),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-                abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
-            },
+            parent: Default::default(),
             got_fish: GotFish(Default::default()),
             moistness_level: MoistnessLevel(Default::default()),
         }
@@ -6149,7 +4790,7 @@ impl Default for DolphinMetadataBundle {
 #[derive(Component)]
 pub struct Squid;
 impl Squid {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -6173,48 +4814,7 @@ impl Default for SquidMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Squid,
-            parent: AbstractAgeableMetadataBundle {
-                _marker: AbstractAgeable,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(Default::default()),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(Default::default()),
-                            arrow_count: ArrowCount(Default::default()),
-                            stinger_count: StingerCount(Default::default()),
-                            sleeping_pos: SleepingPos(Default::default()),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-                abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -6250,7 +4850,7 @@ pub struct DarkTicksRemaining(pub i32);
 #[derive(Component)]
 pub struct GlowSquid;
 impl GlowSquid {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -6278,53 +4878,7 @@ impl Default for GlowSquidMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: GlowSquid,
-            parent: SquidMetadataBundle {
-                _marker: Squid,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(Default::default()),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(Default::default()),
-                                arrow_count: ArrowCount(Default::default()),
-                                stinger_count: StingerCount(Default::default()),
-                                sleeping_pos: SleepingPos(Default::default()),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
-                },
-            },
+            parent: Default::default(),
             dark_ticks_remaining: DarkTicksRemaining(Default::default()),
         }
     }
@@ -6391,7 +4945,7 @@ impl Default for GlowSquidMetadataBundle {
 #[derive(Component)]
 pub struct AbstractAnimal;
 impl AbstractAnimal {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -6415,48 +4969,7 @@ impl Default for AbstractAnimalMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractAnimal,
-            parent: AbstractAgeableMetadataBundle {
-                _marker: AbstractAgeable,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(Default::default()),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(Default::default()),
-                            arrow_count: ArrowCount(Default::default()),
-                            stinger_count: StingerCount(Default::default()),
-                            sleeping_pos: SleepingPos(Default::default()),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-                abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -6492,7 +5005,7 @@ pub struct ArmadilloState(pub ArmadilloStateKind);
 #[derive(Component)]
 pub struct Armadillo;
 impl Armadillo {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -6520,53 +5033,7 @@ impl Default for ArmadilloMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Armadillo,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(Default::default()),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(Default::default()),
-                                arrow_count: ArrowCount(Default::default()),
-                                stinger_count: StingerCount(Default::default()),
-                                sleeping_pos: SleepingPos(Default::default()),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
-                },
-            },
+            parent: Default::default(),
             armadillo_state: ArmadilloState(Default::default()),
         }
     }
@@ -6610,7 +5077,7 @@ pub struct AxolotlFromBucket(pub bool);
 #[derive(Component)]
 pub struct Axolotl;
 impl Axolotl {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -6646,53 +5113,7 @@ impl Default for AxolotlMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Axolotl,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(Default::default()),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(Default::default()),
-                                arrow_count: ArrowCount(Default::default()),
-                                stinger_count: StingerCount(Default::default()),
-                                sleeping_pos: SleepingPos(Default::default()),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
-                },
-            },
+            parent: Default::default(),
             axolotl_variant: AxolotlVariant(Default::default()),
             playing_dead: PlayingDead(Default::default()),
             axolotl_from_bucket: AxolotlFromBucket(Default::default()),
@@ -6742,7 +5163,7 @@ pub struct BeeAngerEndTime(pub i64);
 #[derive(Component)]
 pub struct Bee;
 impl Bee {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -6779,53 +5200,7 @@ impl Default for BeeMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Bee,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(Default::default()),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(Default::default()),
-                                arrow_count: ArrowCount(Default::default()),
-                                stinger_count: StingerCount(Default::default()),
-                                sleeping_pos: SleepingPos(Default::default()),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
-                },
-            },
+            parent: Default::default(),
             has_nectar: HasNectar(false),
             has_stung: HasStung(false),
             bee_rolling: BeeRolling(false),
@@ -6836,7 +5211,7 @@ impl Default for BeeMetadataBundle {
 
 /// A metadata field for [Chicken].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct ChickenVariant(pub azalea_registry::data::PigVariant);
+pub struct ChickenVariant(pub azalea_registry::data::ChickenVariant);
 /// The marker component for entities of type `minecraft:chicken`.
 ///
 /// # Metadata
@@ -6864,14 +5239,14 @@ pub struct ChickenVariant(pub azalea_registry::data::PigVariant);
 #[derive(Component)]
 pub struct Chicken;
 impl Chicken {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
             18 => {
-                entity.insert(ChickenVariant(d.value.into_pig_variant()?));
+                entity.insert(ChickenVariant(d.value.into_chicken_variant()?));
             }
             _ => {}
         }
@@ -6892,61 +5267,15 @@ impl Default for ChickenMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Chicken,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(Default::default()),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(Default::default()),
-                                arrow_count: ArrowCount(Default::default()),
-                                stinger_count: StingerCount(Default::default()),
-                                sleeping_pos: SleepingPos(Default::default()),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
-                },
-            },
-            chicken_variant: ChickenVariant(azalea_registry::data::PigVariant::new_raw(0)),
+            parent: Default::default(),
+            chicken_variant: ChickenVariant(azalea_registry::data::ChickenVariant::new_raw(0)),
         }
     }
 }
 
 /// A metadata field for [Cow].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct CowVariant(pub azalea_registry::data::ChickenVariant);
+pub struct CowVariant(pub azalea_registry::data::CowVariant);
 /// The marker component for entities of type `minecraft:cow`.
 ///
 /// # Metadata
@@ -6974,14 +5303,14 @@ pub struct CowVariant(pub azalea_registry::data::ChickenVariant);
 #[derive(Component)]
 pub struct Cow;
 impl Cow {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
             18 => {
-                entity.insert(CowVariant(d.value.into_chicken_variant()?));
+                entity.insert(CowVariant(d.value.into_cow_variant()?));
             }
             _ => {}
         }
@@ -7002,54 +5331,8 @@ impl Default for CowMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Cow,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(Default::default()),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(Default::default()),
-                                arrow_count: ArrowCount(Default::default()),
-                                stinger_count: StingerCount(Default::default()),
-                                sleeping_pos: SleepingPos(Default::default()),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
-                },
-            },
-            cow_variant: CowVariant(azalea_registry::data::ChickenVariant::new_raw(0)),
+            parent: Default::default(),
+            cow_variant: CowVariant(azalea_registry::data::CowVariant::new_raw(0)),
         }
     }
 }
@@ -7120,7 +5403,7 @@ pub struct TrustedId1(pub Option<Uuid>);
 #[derive(Component)]
 pub struct Fox;
 impl Fox {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -7173,53 +5456,7 @@ impl Default for FoxMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Fox,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(Default::default()),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(Default::default()),
-                                arrow_count: ArrowCount(Default::default()),
-                                stinger_count: StingerCount(Default::default()),
-                                sleeping_pos: SleepingPos(Default::default()),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
-                },
-            },
+            parent: Default::default(),
             fox_kind: FoxKind(Default::default()),
             fox_sitting: FoxSitting(false),
             faceplanted: Faceplanted(false),
@@ -7236,7 +5473,7 @@ impl Default for FoxMetadataBundle {
 
 /// A metadata field for [Frog].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct FrogVariant(pub azalea_registry::data::WolfSoundVariant);
+pub struct FrogVariant(pub azalea_registry::data::FrogVariant);
 /// A metadata field for [Frog].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct TongueTarget(pub OptionalUnsignedInt);
@@ -7268,14 +5505,14 @@ pub struct TongueTarget(pub OptionalUnsignedInt);
 #[derive(Component)]
 pub struct Frog;
 impl Frog {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
             18 => {
-                entity.insert(FrogVariant(d.value.into_wolf_sound_variant()?));
+                entity.insert(FrogVariant(d.value.into_frog_variant()?));
             }
             19 => {
                 entity.insert(TongueTarget(d.value.into_optional_unsigned_int()?));
@@ -7300,54 +5537,8 @@ impl Default for FrogMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Frog,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(Default::default()),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(Default::default()),
-                                arrow_count: ArrowCount(Default::default()),
-                                stinger_count: StingerCount(Default::default()),
-                                sleeping_pos: SleepingPos(Default::default()),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
-                },
-            },
-            frog_variant: FrogVariant(azalea_registry::data::WolfSoundVariant::new_raw(0)),
+            parent: Default::default(),
+            frog_variant: FrogVariant(azalea_registry::data::FrogVariant::new_raw(0)),
             tongue_target: TongueTarget(Default::default()),
         }
     }
@@ -7391,7 +5582,7 @@ pub struct HasRightHorn(pub bool);
 #[derive(Component)]
 pub struct Goat;
 impl Goat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -7427,53 +5618,7 @@ impl Default for GoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Goat,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(Default::default()),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(Default::default()),
-                                arrow_count: ArrowCount(Default::default()),
-                                stinger_count: StingerCount(Default::default()),
-                                sleeping_pos: SleepingPos(Default::default()),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
-                },
-            },
+            parent: Default::default(),
             is_screaming_goat: IsScreamingGoat(Default::default()),
             has_left_horn: HasLeftHorn(Default::default()),
             has_right_horn: HasRightHorn(Default::default()),
@@ -7516,7 +5661,7 @@ pub struct StaysStill(pub bool);
 #[derive(Component)]
 pub struct HappyGhast;
 impl HappyGhast {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -7548,53 +5693,7 @@ impl Default for HappyGhastMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: HappyGhast,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(Default::default()),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(Default::default()),
-                                arrow_count: ArrowCount(Default::default()),
-                                stinger_count: StingerCount(Default::default()),
-                                sleeping_pos: SleepingPos(Default::default()),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
-                },
-            },
+            parent: Default::default(),
             is_leash_holder: IsLeashHolder(Default::default()),
             stays_still: StaysStill(Default::default()),
         }
@@ -7631,7 +5730,7 @@ pub struct HoglinImmuneToZombification(pub bool);
 #[derive(Component)]
 pub struct Hoglin;
 impl Hoglin {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -7659,53 +5758,7 @@ impl Default for HoglinMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Hoglin,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(Default::default()),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(Default::default()),
-                                arrow_count: ArrowCount(Default::default()),
-                                stinger_count: StingerCount(Default::default()),
-                                sleeping_pos: SleepingPos(Default::default()),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
-                },
-            },
+            parent: Default::default(),
             hoglin_immune_to_zombification: HoglinImmuneToZombification(Default::default()),
         }
     }
@@ -7742,7 +5795,7 @@ pub struct MooshroomKind(pub i32);
 #[derive(Component)]
 pub struct Mooshroom;
 impl Mooshroom {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -7770,53 +5823,7 @@ impl Default for MooshroomMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Mooshroom,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(Default::default()),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(Default::default()),
-                                arrow_count: ArrowCount(Default::default()),
-                                stinger_count: StingerCount(Default::default()),
-                                sleeping_pos: SleepingPos(Default::default()),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
-                },
-            },
+            parent: Default::default(),
             mooshroom_kind: MooshroomKind(Default::default()),
         }
     }
@@ -7852,7 +5859,7 @@ pub struct Trusting(pub bool);
 #[derive(Component)]
 pub struct Ocelot;
 impl Ocelot {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -7880,53 +5887,7 @@ impl Default for OcelotMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Ocelot,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(Default::default()),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(Default::default()),
-                                arrow_count: ArrowCount(Default::default()),
-                                stinger_count: StingerCount(Default::default()),
-                                sleeping_pos: SleepingPos(Default::default()),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
-                },
-            },
+            parent: Default::default(),
             trusting: Trusting(Default::default()),
         }
     }
@@ -7994,7 +5955,7 @@ pub struct PandaFlags(pub u8);
 #[derive(Component)]
 pub struct Panda;
 impl Panda {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -8049,53 +6010,7 @@ impl Default for PandaMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Panda,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(Default::default()),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(Default::default()),
-                                arrow_count: ArrowCount(Default::default()),
-                                stinger_count: StingerCount(Default::default()),
-                                sleeping_pos: SleepingPos(Default::default()),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
-                },
-            },
+            parent: Default::default(),
             panda_unhappy_counter: PandaUnhappyCounter(Default::default()),
             sneeze_counter: SneezeCounter(Default::default()),
             eat_counter: EatCounter(Default::default()),
@@ -8114,7 +6029,7 @@ impl Default for PandaMetadataBundle {
 pub struct PigBoostTime(pub i32);
 /// A metadata field for [Pig].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct PigVariant(pub azalea_registry::data::FrogVariant);
+pub struct PigVariant(pub azalea_registry::data::PigVariant);
 /// The marker component for entities of type `minecraft:pig`.
 ///
 /// # Metadata
@@ -8143,7 +6058,7 @@ pub struct PigVariant(pub azalea_registry::data::FrogVariant);
 #[derive(Component)]
 pub struct Pig;
 impl Pig {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -8153,7 +6068,7 @@ impl Pig {
                 entity.insert(PigBoostTime(d.value.into_int()?));
             }
             19 => {
-                entity.insert(PigVariant(d.value.into_frog_variant()?));
+                entity.insert(PigVariant(d.value.into_pig_variant()?));
             }
             _ => {}
         }
@@ -8175,55 +6090,9 @@ impl Default for PigMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Pig,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(Default::default()),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(Default::default()),
-                                arrow_count: ArrowCount(Default::default()),
-                                stinger_count: StingerCount(Default::default()),
-                                sleeping_pos: SleepingPos(Default::default()),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
-                },
-            },
+            parent: Default::default(),
             pig_boost_time: PigBoostTime(Default::default()),
-            pig_variant: PigVariant(azalea_registry::data::FrogVariant::new_raw(0)),
+            pig_variant: PigVariant(azalea_registry::data::PigVariant::new_raw(0)),
         }
     }
 }
@@ -8259,7 +6128,7 @@ pub struct PolarBearStanding(pub bool);
 #[derive(Component)]
 pub struct PolarBear;
 impl PolarBear {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -8287,53 +6156,7 @@ impl Default for PolarBearMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: PolarBear,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(Default::default()),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(Default::default()),
-                                arrow_count: ArrowCount(Default::default()),
-                                stinger_count: StingerCount(Default::default()),
-                                sleeping_pos: SleepingPos(Default::default()),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
-                },
-            },
+            parent: Default::default(),
             polar_bear_standing: PolarBearStanding(Default::default()),
         }
     }
@@ -8369,7 +6192,7 @@ pub struct RabbitKind(pub i32);
 #[derive(Component)]
 pub struct Rabbit;
 impl Rabbit {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -8397,53 +6220,7 @@ impl Default for RabbitMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Rabbit,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(Default::default()),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(Default::default()),
-                                arrow_count: ArrowCount(Default::default()),
-                                stinger_count: StingerCount(Default::default()),
-                                sleeping_pos: SleepingPos(Default::default()),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
-                },
-            },
+            parent: Default::default(),
             rabbit_kind: RabbitKind(Default::default()),
         }
     }
@@ -8479,7 +6256,7 @@ pub struct SheepSheared(pub bool);
 #[derive(Component)]
 pub struct Sheep;
 impl Sheep {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -8508,53 +6285,7 @@ impl Default for SheepMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Sheep,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(Default::default()),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(Default::default()),
-                                arrow_count: ArrowCount(Default::default()),
-                                stinger_count: StingerCount(Default::default()),
-                                sleeping_pos: SleepingPos(Default::default()),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
-                },
-            },
+            parent: Default::default(),
             sheep_sheared: SheepSheared(false),
         }
     }
@@ -8594,7 +6325,7 @@ pub struct DropSeedAtTick(pub i32);
 #[derive(Component)]
 pub struct Sniffer;
 impl Sniffer {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -8626,53 +6357,7 @@ impl Default for SnifferMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Sniffer,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(Default::default()),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(Default::default()),
-                                arrow_count: ArrowCount(Default::default()),
-                                stinger_count: StingerCount(Default::default()),
-                                sleeping_pos: SleepingPos(Default::default()),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
-                },
-            },
+            parent: Default::default(),
             sniffer_state: SnifferState(Default::default()),
             drop_seed_at_tick: DropSeedAtTick(Default::default()),
         }
@@ -8713,7 +6398,7 @@ pub struct Suffocating(pub bool);
 #[derive(Component)]
 pub struct Strider;
 impl Strider {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -8745,53 +6430,7 @@ impl Default for StriderMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Strider,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(Default::default()),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(Default::default()),
-                                arrow_count: ArrowCount(Default::default()),
-                                stinger_count: StingerCount(Default::default()),
-                                sleeping_pos: SleepingPos(Default::default()),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
-                },
-            },
+            parent: Default::default(),
             strider_boost_time: StriderBoostTime(Default::default()),
             suffocating: Suffocating(Default::default()),
         }
@@ -8832,7 +6471,7 @@ pub struct LayingEgg(pub bool);
 #[derive(Component)]
 pub struct Turtle;
 impl Turtle {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -8864,53 +6503,7 @@ impl Default for TurtleMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Turtle,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(Default::default()),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(Default::default()),
-                                arrow_count: ArrowCount(Default::default()),
-                                stinger_count: StingerCount(Default::default()),
-                                sleeping_pos: SleepingPos(Default::default()),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
-                },
-            },
+            parent: Default::default(),
             has_egg: HasEgg(Default::default()),
             laying_egg: LayingEgg(Default::default()),
         }
@@ -8969,7 +6562,7 @@ pub struct Bred(pub bool);
 #[derive(Component)]
 pub struct AbstractHorse;
 impl AbstractHorse {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -9004,53 +6597,7 @@ impl Default for AbstractHorseMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractHorse,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(Default::default()),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(Default::default()),
-                                arrow_count: ArrowCount(Default::default()),
-                                stinger_count: StingerCount(Default::default()),
-                                sleeping_pos: SleepingPos(Default::default()),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
-                },
-            },
+            parent: Default::default(),
             tamed: Tamed(false),
             eating: Eating(false),
             abstract_horse_standing: AbstractHorseStanding(false),
@@ -9094,7 +6641,7 @@ pub struct LastPoseChangeTick(pub i64);
 #[derive(Component)]
 pub struct Camel;
 impl Camel {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -9126,60 +6673,7 @@ impl Default for CamelMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Camel,
-            parent: AbstractHorseMetadataBundle {
-                _marker: AbstractHorse,
-                parent: AbstractAnimalMetadataBundle {
-                    _marker: AbstractAnimal,
-                    parent: AbstractAgeableMetadataBundle {
-                        _marker: AbstractAgeable,
-                        parent: AbstractCreatureMetadataBundle {
-                            _marker: AbstractCreature,
-                            parent: AbstractInsentientMetadataBundle {
-                                _marker: AbstractInsentient,
-                                parent: AbstractLivingMetadataBundle {
-                                    _marker: AbstractLiving,
-                                    parent: AbstractEntityMetadataBundle {
-                                        _marker: AbstractEntity,
-                                        on_fire: OnFire(false),
-                                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                            false,
-                                        ),
-                                        sprinting: Sprinting(false),
-                                        swimming: Swimming(false),
-                                        currently_glowing: CurrentlyGlowing(false),
-                                        invisible: Invisible(false),
-                                        fall_flying: FallFlying(false),
-                                        air_supply: AirSupply(Default::default()),
-                                        custom_name: CustomName(Default::default()),
-                                        custom_name_visible: CustomNameVisible(Default::default()),
-                                        silent: Silent(Default::default()),
-                                        no_gravity: NoGravity(Default::default()),
-                                        pose: Pose::default(),
-                                        ticks_frozen: TicksFrozen(Default::default()),
-                                    },
-                                    auto_spin_attack: AutoSpinAttack(false),
-                                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                                    health: Health(Default::default()),
-                                    effect_particles: EffectParticles(Default::default()),
-                                    effect_ambience: EffectAmbience(Default::default()),
-                                    arrow_count: ArrowCount(Default::default()),
-                                    stinger_count: StingerCount(Default::default()),
-                                    sleeping_pos: SleepingPos(Default::default()),
-                                },
-                                no_ai: NoAi(false),
-                                left_handed: LeftHanded(false),
-                                aggressive: Aggressive(false),
-                            },
-                        },
-                        abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                        abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
-                    },
-                },
-                tamed: Tamed(false),
-                eating: Eating(false),
-                abstract_horse_standing: AbstractHorseStanding(false),
-                bred: Bred(false),
-            },
+            parent: Default::default(),
             camel_dash: CamelDash(Default::default()),
             last_pose_change_tick: LastPoseChangeTick(Default::default()),
         }
@@ -9213,7 +6707,7 @@ impl Default for CamelMetadataBundle {
 #[derive(Component)]
 pub struct CamelHusk;
 impl CamelHusk {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -9237,68 +6731,7 @@ impl Default for CamelHuskMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: CamelHusk,
-            parent: CamelMetadataBundle {
-                _marker: Camel,
-                parent: AbstractHorseMetadataBundle {
-                    _marker: AbstractHorse,
-                    parent: AbstractAnimalMetadataBundle {
-                        _marker: AbstractAnimal,
-                        parent: AbstractAgeableMetadataBundle {
-                            _marker: AbstractAgeable,
-                            parent: AbstractCreatureMetadataBundle {
-                                _marker: AbstractCreature,
-                                parent: AbstractInsentientMetadataBundle {
-                                    _marker: AbstractInsentient,
-                                    parent: AbstractLivingMetadataBundle {
-                                        _marker: AbstractLiving,
-                                        parent: AbstractEntityMetadataBundle {
-                                            _marker: AbstractEntity,
-                                            on_fire: OnFire(false),
-                                            abstract_entity_shift_key_down:
-                                                AbstractEntityShiftKeyDown(false),
-                                            sprinting: Sprinting(false),
-                                            swimming: Swimming(false),
-                                            currently_glowing: CurrentlyGlowing(false),
-                                            invisible: Invisible(false),
-                                            fall_flying: FallFlying(false),
-                                            air_supply: AirSupply(Default::default()),
-                                            custom_name: CustomName(Default::default()),
-                                            custom_name_visible: CustomNameVisible(
-                                                Default::default(),
-                                            ),
-                                            silent: Silent(Default::default()),
-                                            no_gravity: NoGravity(Default::default()),
-                                            pose: Pose::default(),
-                                            ticks_frozen: TicksFrozen(Default::default()),
-                                        },
-                                        auto_spin_attack: AutoSpinAttack(false),
-                                        abstract_living_using_item: AbstractLivingUsingItem(false),
-                                        health: Health(Default::default()),
-                                        effect_particles: EffectParticles(Default::default()),
-                                        effect_ambience: EffectAmbience(Default::default()),
-                                        arrow_count: ArrowCount(Default::default()),
-                                        stinger_count: StingerCount(Default::default()),
-                                        sleeping_pos: SleepingPos(Default::default()),
-                                    },
-                                    no_ai: NoAi(false),
-                                    left_handed: LeftHanded(false),
-                                    aggressive: Aggressive(false),
-                                },
-                            },
-                            abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                            abstract_ageable_age_locked: AbstractAgeableAgeLocked(
-                                Default::default(),
-                            ),
-                        },
-                    },
-                    tamed: Tamed(false),
-                    eating: Eating(false),
-                    abstract_horse_standing: AbstractHorseStanding(false),
-                    bred: Bred(false),
-                },
-                camel_dash: CamelDash(Default::default()),
-                last_pose_change_tick: LastPoseChangeTick(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -9334,7 +6767,7 @@ pub struct HorseTypeVariant(pub i32);
 #[derive(Component)]
 pub struct Horse;
 impl Horse {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -9362,60 +6795,7 @@ impl Default for HorseMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Horse,
-            parent: AbstractHorseMetadataBundle {
-                _marker: AbstractHorse,
-                parent: AbstractAnimalMetadataBundle {
-                    _marker: AbstractAnimal,
-                    parent: AbstractAgeableMetadataBundle {
-                        _marker: AbstractAgeable,
-                        parent: AbstractCreatureMetadataBundle {
-                            _marker: AbstractCreature,
-                            parent: AbstractInsentientMetadataBundle {
-                                _marker: AbstractInsentient,
-                                parent: AbstractLivingMetadataBundle {
-                                    _marker: AbstractLiving,
-                                    parent: AbstractEntityMetadataBundle {
-                                        _marker: AbstractEntity,
-                                        on_fire: OnFire(false),
-                                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                            false,
-                                        ),
-                                        sprinting: Sprinting(false),
-                                        swimming: Swimming(false),
-                                        currently_glowing: CurrentlyGlowing(false),
-                                        invisible: Invisible(false),
-                                        fall_flying: FallFlying(false),
-                                        air_supply: AirSupply(Default::default()),
-                                        custom_name: CustomName(Default::default()),
-                                        custom_name_visible: CustomNameVisible(Default::default()),
-                                        silent: Silent(Default::default()),
-                                        no_gravity: NoGravity(Default::default()),
-                                        pose: Pose::default(),
-                                        ticks_frozen: TicksFrozen(Default::default()),
-                                    },
-                                    auto_spin_attack: AutoSpinAttack(false),
-                                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                                    health: Health(Default::default()),
-                                    effect_particles: EffectParticles(Default::default()),
-                                    effect_ambience: EffectAmbience(Default::default()),
-                                    arrow_count: ArrowCount(Default::default()),
-                                    stinger_count: StingerCount(Default::default()),
-                                    sleeping_pos: SleepingPos(Default::default()),
-                                },
-                                no_ai: NoAi(false),
-                                left_handed: LeftHanded(false),
-                                aggressive: Aggressive(false),
-                            },
-                        },
-                        abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                        abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
-                    },
-                },
-                tamed: Tamed(false),
-                eating: Eating(false),
-                abstract_horse_standing: AbstractHorseStanding(false),
-                bred: Bred(false),
-            },
+            parent: Default::default(),
             horse_type_variant: HorseTypeVariant(Default::default()),
         }
     }
@@ -9447,7 +6827,7 @@ impl Default for HorseMetadataBundle {
 #[derive(Component)]
 pub struct SkeletonHorse;
 impl SkeletonHorse {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -9471,60 +6851,7 @@ impl Default for SkeletonHorseMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: SkeletonHorse,
-            parent: AbstractHorseMetadataBundle {
-                _marker: AbstractHorse,
-                parent: AbstractAnimalMetadataBundle {
-                    _marker: AbstractAnimal,
-                    parent: AbstractAgeableMetadataBundle {
-                        _marker: AbstractAgeable,
-                        parent: AbstractCreatureMetadataBundle {
-                            _marker: AbstractCreature,
-                            parent: AbstractInsentientMetadataBundle {
-                                _marker: AbstractInsentient,
-                                parent: AbstractLivingMetadataBundle {
-                                    _marker: AbstractLiving,
-                                    parent: AbstractEntityMetadataBundle {
-                                        _marker: AbstractEntity,
-                                        on_fire: OnFire(false),
-                                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                            false,
-                                        ),
-                                        sprinting: Sprinting(false),
-                                        swimming: Swimming(false),
-                                        currently_glowing: CurrentlyGlowing(false),
-                                        invisible: Invisible(false),
-                                        fall_flying: FallFlying(false),
-                                        air_supply: AirSupply(Default::default()),
-                                        custom_name: CustomName(Default::default()),
-                                        custom_name_visible: CustomNameVisible(Default::default()),
-                                        silent: Silent(Default::default()),
-                                        no_gravity: NoGravity(Default::default()),
-                                        pose: Pose::default(),
-                                        ticks_frozen: TicksFrozen(Default::default()),
-                                    },
-                                    auto_spin_attack: AutoSpinAttack(false),
-                                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                                    health: Health(Default::default()),
-                                    effect_particles: EffectParticles(Default::default()),
-                                    effect_ambience: EffectAmbience(Default::default()),
-                                    arrow_count: ArrowCount(Default::default()),
-                                    stinger_count: StingerCount(Default::default()),
-                                    sleeping_pos: SleepingPos(Default::default()),
-                                },
-                                no_ai: NoAi(false),
-                                left_handed: LeftHanded(false),
-                                aggressive: Aggressive(false),
-                            },
-                        },
-                        abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                        abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
-                    },
-                },
-                tamed: Tamed(false),
-                eating: Eating(false),
-                abstract_horse_standing: AbstractHorseStanding(false),
-                bred: Bred(false),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -9555,7 +6882,7 @@ impl Default for SkeletonHorseMetadataBundle {
 #[derive(Component)]
 pub struct ZombieHorse;
 impl ZombieHorse {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -9579,60 +6906,7 @@ impl Default for ZombieHorseMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: ZombieHorse,
-            parent: AbstractHorseMetadataBundle {
-                _marker: AbstractHorse,
-                parent: AbstractAnimalMetadataBundle {
-                    _marker: AbstractAnimal,
-                    parent: AbstractAgeableMetadataBundle {
-                        _marker: AbstractAgeable,
-                        parent: AbstractCreatureMetadataBundle {
-                            _marker: AbstractCreature,
-                            parent: AbstractInsentientMetadataBundle {
-                                _marker: AbstractInsentient,
-                                parent: AbstractLivingMetadataBundle {
-                                    _marker: AbstractLiving,
-                                    parent: AbstractEntityMetadataBundle {
-                                        _marker: AbstractEntity,
-                                        on_fire: OnFire(false),
-                                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                            false,
-                                        ),
-                                        sprinting: Sprinting(false),
-                                        swimming: Swimming(false),
-                                        currently_glowing: CurrentlyGlowing(false),
-                                        invisible: Invisible(false),
-                                        fall_flying: FallFlying(false),
-                                        air_supply: AirSupply(Default::default()),
-                                        custom_name: CustomName(Default::default()),
-                                        custom_name_visible: CustomNameVisible(Default::default()),
-                                        silent: Silent(Default::default()),
-                                        no_gravity: NoGravity(Default::default()),
-                                        pose: Pose::default(),
-                                        ticks_frozen: TicksFrozen(Default::default()),
-                                    },
-                                    auto_spin_attack: AutoSpinAttack(false),
-                                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                                    health: Health(Default::default()),
-                                    effect_particles: EffectParticles(Default::default()),
-                                    effect_ambience: EffectAmbience(Default::default()),
-                                    arrow_count: ArrowCount(Default::default()),
-                                    stinger_count: StingerCount(Default::default()),
-                                    sleeping_pos: SleepingPos(Default::default()),
-                                },
-                                no_ai: NoAi(false),
-                                left_handed: LeftHanded(false),
-                                aggressive: Aggressive(false),
-                            },
-                        },
-                        abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                        abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
-                    },
-                },
-                tamed: Tamed(false),
-                eating: Eating(false),
-                abstract_horse_standing: AbstractHorseStanding(false),
-                bred: Bred(false),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -9672,7 +6946,7 @@ pub struct Chest(pub bool);
 #[derive(Component)]
 pub struct AbstractChestedHorse;
 impl AbstractChestedHorse {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -9700,60 +6974,7 @@ impl Default for AbstractChestedHorseMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractChestedHorse,
-            parent: AbstractHorseMetadataBundle {
-                _marker: AbstractHorse,
-                parent: AbstractAnimalMetadataBundle {
-                    _marker: AbstractAnimal,
-                    parent: AbstractAgeableMetadataBundle {
-                        _marker: AbstractAgeable,
-                        parent: AbstractCreatureMetadataBundle {
-                            _marker: AbstractCreature,
-                            parent: AbstractInsentientMetadataBundle {
-                                _marker: AbstractInsentient,
-                                parent: AbstractLivingMetadataBundle {
-                                    _marker: AbstractLiving,
-                                    parent: AbstractEntityMetadataBundle {
-                                        _marker: AbstractEntity,
-                                        on_fire: OnFire(false),
-                                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                            false,
-                                        ),
-                                        sprinting: Sprinting(false),
-                                        swimming: Swimming(false),
-                                        currently_glowing: CurrentlyGlowing(false),
-                                        invisible: Invisible(false),
-                                        fall_flying: FallFlying(false),
-                                        air_supply: AirSupply(Default::default()),
-                                        custom_name: CustomName(Default::default()),
-                                        custom_name_visible: CustomNameVisible(Default::default()),
-                                        silent: Silent(Default::default()),
-                                        no_gravity: NoGravity(Default::default()),
-                                        pose: Pose::default(),
-                                        ticks_frozen: TicksFrozen(Default::default()),
-                                    },
-                                    auto_spin_attack: AutoSpinAttack(false),
-                                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                                    health: Health(Default::default()),
-                                    effect_particles: EffectParticles(Default::default()),
-                                    effect_ambience: EffectAmbience(Default::default()),
-                                    arrow_count: ArrowCount(Default::default()),
-                                    stinger_count: StingerCount(Default::default()),
-                                    sleeping_pos: SleepingPos(Default::default()),
-                                },
-                                no_ai: NoAi(false),
-                                left_handed: LeftHanded(false),
-                                aggressive: Aggressive(false),
-                            },
-                        },
-                        abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                        abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
-                    },
-                },
-                tamed: Tamed(false),
-                eating: Eating(false),
-                abstract_horse_standing: AbstractHorseStanding(false),
-                bred: Bred(false),
-            },
+            parent: Default::default(),
             chest: Chest(Default::default()),
         }
     }
@@ -9786,7 +7007,7 @@ impl Default for AbstractChestedHorseMetadataBundle {
 #[derive(Component)]
 pub struct Donkey;
 impl Donkey {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -9810,67 +7031,7 @@ impl Default for DonkeyMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Donkey,
-            parent: AbstractChestedHorseMetadataBundle {
-                _marker: AbstractChestedHorse,
-                parent: AbstractHorseMetadataBundle {
-                    _marker: AbstractHorse,
-                    parent: AbstractAnimalMetadataBundle {
-                        _marker: AbstractAnimal,
-                        parent: AbstractAgeableMetadataBundle {
-                            _marker: AbstractAgeable,
-                            parent: AbstractCreatureMetadataBundle {
-                                _marker: AbstractCreature,
-                                parent: AbstractInsentientMetadataBundle {
-                                    _marker: AbstractInsentient,
-                                    parent: AbstractLivingMetadataBundle {
-                                        _marker: AbstractLiving,
-                                        parent: AbstractEntityMetadataBundle {
-                                            _marker: AbstractEntity,
-                                            on_fire: OnFire(false),
-                                            abstract_entity_shift_key_down:
-                                                AbstractEntityShiftKeyDown(false),
-                                            sprinting: Sprinting(false),
-                                            swimming: Swimming(false),
-                                            currently_glowing: CurrentlyGlowing(false),
-                                            invisible: Invisible(false),
-                                            fall_flying: FallFlying(false),
-                                            air_supply: AirSupply(Default::default()),
-                                            custom_name: CustomName(Default::default()),
-                                            custom_name_visible: CustomNameVisible(
-                                                Default::default(),
-                                            ),
-                                            silent: Silent(Default::default()),
-                                            no_gravity: NoGravity(Default::default()),
-                                            pose: Pose::default(),
-                                            ticks_frozen: TicksFrozen(Default::default()),
-                                        },
-                                        auto_spin_attack: AutoSpinAttack(false),
-                                        abstract_living_using_item: AbstractLivingUsingItem(false),
-                                        health: Health(Default::default()),
-                                        effect_particles: EffectParticles(Default::default()),
-                                        effect_ambience: EffectAmbience(Default::default()),
-                                        arrow_count: ArrowCount(Default::default()),
-                                        stinger_count: StingerCount(Default::default()),
-                                        sleeping_pos: SleepingPos(Default::default()),
-                                    },
-                                    no_ai: NoAi(false),
-                                    left_handed: LeftHanded(false),
-                                    aggressive: Aggressive(false),
-                                },
-                            },
-                            abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                            abstract_ageable_age_locked: AbstractAgeableAgeLocked(
-                                Default::default(),
-                            ),
-                        },
-                    },
-                    tamed: Tamed(false),
-                    eating: Eating(false),
-                    abstract_horse_standing: AbstractHorseStanding(false),
-                    bred: Bred(false),
-                },
-                chest: Chest(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -9911,7 +7072,7 @@ pub struct LlamaVariant(pub i32);
 #[derive(Component)]
 pub struct Llama;
 impl Llama {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -9943,67 +7104,7 @@ impl Default for LlamaMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Llama,
-            parent: AbstractChestedHorseMetadataBundle {
-                _marker: AbstractChestedHorse,
-                parent: AbstractHorseMetadataBundle {
-                    _marker: AbstractHorse,
-                    parent: AbstractAnimalMetadataBundle {
-                        _marker: AbstractAnimal,
-                        parent: AbstractAgeableMetadataBundle {
-                            _marker: AbstractAgeable,
-                            parent: AbstractCreatureMetadataBundle {
-                                _marker: AbstractCreature,
-                                parent: AbstractInsentientMetadataBundle {
-                                    _marker: AbstractInsentient,
-                                    parent: AbstractLivingMetadataBundle {
-                                        _marker: AbstractLiving,
-                                        parent: AbstractEntityMetadataBundle {
-                                            _marker: AbstractEntity,
-                                            on_fire: OnFire(false),
-                                            abstract_entity_shift_key_down:
-                                                AbstractEntityShiftKeyDown(false),
-                                            sprinting: Sprinting(false),
-                                            swimming: Swimming(false),
-                                            currently_glowing: CurrentlyGlowing(false),
-                                            invisible: Invisible(false),
-                                            fall_flying: FallFlying(false),
-                                            air_supply: AirSupply(Default::default()),
-                                            custom_name: CustomName(Default::default()),
-                                            custom_name_visible: CustomNameVisible(
-                                                Default::default(),
-                                            ),
-                                            silent: Silent(Default::default()),
-                                            no_gravity: NoGravity(Default::default()),
-                                            pose: Pose::default(),
-                                            ticks_frozen: TicksFrozen(Default::default()),
-                                        },
-                                        auto_spin_attack: AutoSpinAttack(false),
-                                        abstract_living_using_item: AbstractLivingUsingItem(false),
-                                        health: Health(Default::default()),
-                                        effect_particles: EffectParticles(Default::default()),
-                                        effect_ambience: EffectAmbience(Default::default()),
-                                        arrow_count: ArrowCount(Default::default()),
-                                        stinger_count: StingerCount(Default::default()),
-                                        sleeping_pos: SleepingPos(Default::default()),
-                                    },
-                                    no_ai: NoAi(false),
-                                    left_handed: LeftHanded(false),
-                                    aggressive: Aggressive(false),
-                                },
-                            },
-                            abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                            abstract_ageable_age_locked: AbstractAgeableAgeLocked(
-                                Default::default(),
-                            ),
-                        },
-                    },
-                    tamed: Tamed(false),
-                    eating: Eating(false),
-                    abstract_horse_standing: AbstractHorseStanding(false),
-                    bred: Bred(false),
-                },
-                chest: Chest(Default::default()),
-            },
+            parent: Default::default(),
             strength: Strength(Default::default()),
             llama_variant: LlamaVariant(Default::default()),
         }
@@ -10038,7 +7139,7 @@ impl Default for LlamaMetadataBundle {
 #[derive(Component)]
 pub struct TraderLlama;
 impl TraderLlama {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -10062,74 +7163,7 @@ impl Default for TraderLlamaMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: TraderLlama,
-            parent: LlamaMetadataBundle {
-                _marker: Llama,
-                parent: AbstractChestedHorseMetadataBundle {
-                    _marker: AbstractChestedHorse,
-                    parent: AbstractHorseMetadataBundle {
-                        _marker: AbstractHorse,
-                        parent: AbstractAnimalMetadataBundle {
-                            _marker: AbstractAnimal,
-                            parent: AbstractAgeableMetadataBundle {
-                                _marker: AbstractAgeable,
-                                parent: AbstractCreatureMetadataBundle {
-                                    _marker: AbstractCreature,
-                                    parent: AbstractInsentientMetadataBundle {
-                                        _marker: AbstractInsentient,
-                                        parent: AbstractLivingMetadataBundle {
-                                            _marker: AbstractLiving,
-                                            parent: AbstractEntityMetadataBundle {
-                                                _marker: AbstractEntity,
-                                                on_fire: OnFire(false),
-                                                abstract_entity_shift_key_down:
-                                                    AbstractEntityShiftKeyDown(false),
-                                                sprinting: Sprinting(false),
-                                                swimming: Swimming(false),
-                                                currently_glowing: CurrentlyGlowing(false),
-                                                invisible: Invisible(false),
-                                                fall_flying: FallFlying(false),
-                                                air_supply: AirSupply(Default::default()),
-                                                custom_name: CustomName(Default::default()),
-                                                custom_name_visible: CustomNameVisible(
-                                                    Default::default(),
-                                                ),
-                                                silent: Silent(Default::default()),
-                                                no_gravity: NoGravity(Default::default()),
-                                                pose: Pose::default(),
-                                                ticks_frozen: TicksFrozen(Default::default()),
-                                            },
-                                            auto_spin_attack: AutoSpinAttack(false),
-                                            abstract_living_using_item: AbstractLivingUsingItem(
-                                                false,
-                                            ),
-                                            health: Health(Default::default()),
-                                            effect_particles: EffectParticles(Default::default()),
-                                            effect_ambience: EffectAmbience(Default::default()),
-                                            arrow_count: ArrowCount(Default::default()),
-                                            stinger_count: StingerCount(Default::default()),
-                                            sleeping_pos: SleepingPos(Default::default()),
-                                        },
-                                        no_ai: NoAi(false),
-                                        left_handed: LeftHanded(false),
-                                        aggressive: Aggressive(false),
-                                    },
-                                },
-                                abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                                abstract_ageable_age_locked: AbstractAgeableAgeLocked(
-                                    Default::default(),
-                                ),
-                            },
-                        },
-                        tamed: Tamed(false),
-                        eating: Eating(false),
-                        abstract_horse_standing: AbstractHorseStanding(false),
-                        bred: Bred(false),
-                    },
-                    chest: Chest(Default::default()),
-                },
-                strength: Strength(Default::default()),
-                llama_variant: LlamaVariant(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -10161,7 +7195,7 @@ impl Default for TraderLlamaMetadataBundle {
 #[derive(Component)]
 pub struct Mule;
 impl Mule {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -10185,67 +7219,7 @@ impl Default for MuleMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Mule,
-            parent: AbstractChestedHorseMetadataBundle {
-                _marker: AbstractChestedHorse,
-                parent: AbstractHorseMetadataBundle {
-                    _marker: AbstractHorse,
-                    parent: AbstractAnimalMetadataBundle {
-                        _marker: AbstractAnimal,
-                        parent: AbstractAgeableMetadataBundle {
-                            _marker: AbstractAgeable,
-                            parent: AbstractCreatureMetadataBundle {
-                                _marker: AbstractCreature,
-                                parent: AbstractInsentientMetadataBundle {
-                                    _marker: AbstractInsentient,
-                                    parent: AbstractLivingMetadataBundle {
-                                        _marker: AbstractLiving,
-                                        parent: AbstractEntityMetadataBundle {
-                                            _marker: AbstractEntity,
-                                            on_fire: OnFire(false),
-                                            abstract_entity_shift_key_down:
-                                                AbstractEntityShiftKeyDown(false),
-                                            sprinting: Sprinting(false),
-                                            swimming: Swimming(false),
-                                            currently_glowing: CurrentlyGlowing(false),
-                                            invisible: Invisible(false),
-                                            fall_flying: FallFlying(false),
-                                            air_supply: AirSupply(Default::default()),
-                                            custom_name: CustomName(Default::default()),
-                                            custom_name_visible: CustomNameVisible(
-                                                Default::default(),
-                                            ),
-                                            silent: Silent(Default::default()),
-                                            no_gravity: NoGravity(Default::default()),
-                                            pose: Pose::default(),
-                                            ticks_frozen: TicksFrozen(Default::default()),
-                                        },
-                                        auto_spin_attack: AutoSpinAttack(false),
-                                        abstract_living_using_item: AbstractLivingUsingItem(false),
-                                        health: Health(Default::default()),
-                                        effect_particles: EffectParticles(Default::default()),
-                                        effect_ambience: EffectAmbience(Default::default()),
-                                        arrow_count: ArrowCount(Default::default()),
-                                        stinger_count: StingerCount(Default::default()),
-                                        sleeping_pos: SleepingPos(Default::default()),
-                                    },
-                                    no_ai: NoAi(false),
-                                    left_handed: LeftHanded(false),
-                                    aggressive: Aggressive(false),
-                                },
-                            },
-                            abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                            abstract_ageable_age_locked: AbstractAgeableAgeLocked(
-                                Default::default(),
-                            ),
-                        },
-                    },
-                    tamed: Tamed(false),
-                    eating: Eating(false),
-                    abstract_horse_standing: AbstractHorseStanding(false),
-                    bred: Bred(false),
-                },
-                chest: Chest(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -10294,7 +7268,7 @@ pub struct Owneruuid(pub Option<Uuid>);
 #[derive(Component)]
 pub struct AbstractTameable;
 impl AbstractTameable {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -10329,53 +7303,7 @@ impl Default for AbstractTameableMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractTameable,
-            parent: AbstractAnimalMetadataBundle {
-                _marker: AbstractAnimal,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(Default::default()),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(Default::default()),
-                                arrow_count: ArrowCount(Default::default()),
-                                stinger_count: StingerCount(Default::default()),
-                                sleeping_pos: SleepingPos(Default::default()),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
-                },
-            },
+            parent: Default::default(),
             tame: Tame(false),
             in_sitting_pose: InSittingPose(false),
             owneruuid: Owneruuid(Default::default()),
@@ -10426,7 +7354,7 @@ pub struct CatCollarColor(pub i32);
 #[derive(Component)]
 pub struct Cat;
 impl Cat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -10466,59 +7394,7 @@ impl Default for CatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Cat,
-            parent: AbstractTameableMetadataBundle {
-                _marker: AbstractTameable,
-                parent: AbstractAnimalMetadataBundle {
-                    _marker: AbstractAnimal,
-                    parent: AbstractAgeableMetadataBundle {
-                        _marker: AbstractAgeable,
-                        parent: AbstractCreatureMetadataBundle {
-                            _marker: AbstractCreature,
-                            parent: AbstractInsentientMetadataBundle {
-                                _marker: AbstractInsentient,
-                                parent: AbstractLivingMetadataBundle {
-                                    _marker: AbstractLiving,
-                                    parent: AbstractEntityMetadataBundle {
-                                        _marker: AbstractEntity,
-                                        on_fire: OnFire(false),
-                                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                            false,
-                                        ),
-                                        sprinting: Sprinting(false),
-                                        swimming: Swimming(false),
-                                        currently_glowing: CurrentlyGlowing(false),
-                                        invisible: Invisible(false),
-                                        fall_flying: FallFlying(false),
-                                        air_supply: AirSupply(Default::default()),
-                                        custom_name: CustomName(Default::default()),
-                                        custom_name_visible: CustomNameVisible(Default::default()),
-                                        silent: Silent(Default::default()),
-                                        no_gravity: NoGravity(Default::default()),
-                                        pose: Pose::default(),
-                                        ticks_frozen: TicksFrozen(Default::default()),
-                                    },
-                                    auto_spin_attack: AutoSpinAttack(false),
-                                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                                    health: Health(Default::default()),
-                                    effect_particles: EffectParticles(Default::default()),
-                                    effect_ambience: EffectAmbience(Default::default()),
-                                    arrow_count: ArrowCount(Default::default()),
-                                    stinger_count: StingerCount(Default::default()),
-                                    sleeping_pos: SleepingPos(Default::default()),
-                                },
-                                no_ai: NoAi(false),
-                                left_handed: LeftHanded(false),
-                                aggressive: Aggressive(false),
-                            },
-                        },
-                        abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                        abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
-                    },
-                },
-                tame: Tame(false),
-                in_sitting_pose: InSittingPose(false),
-                owneruuid: Owneruuid(Default::default()),
-            },
+            parent: Default::default(),
             cat_variant: CatVariant(azalea_registry::data::CatVariant::new_raw(0)),
             is_lying: IsLying(Default::default()),
             relax_state_one: RelaxStateOne(Default::default()),
@@ -10558,7 +7434,7 @@ pub struct ParrotVariant(pub i32);
 #[derive(Component)]
 pub struct Parrot;
 impl Parrot {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -10586,59 +7462,7 @@ impl Default for ParrotMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Parrot,
-            parent: AbstractTameableMetadataBundle {
-                _marker: AbstractTameable,
-                parent: AbstractAnimalMetadataBundle {
-                    _marker: AbstractAnimal,
-                    parent: AbstractAgeableMetadataBundle {
-                        _marker: AbstractAgeable,
-                        parent: AbstractCreatureMetadataBundle {
-                            _marker: AbstractCreature,
-                            parent: AbstractInsentientMetadataBundle {
-                                _marker: AbstractInsentient,
-                                parent: AbstractLivingMetadataBundle {
-                                    _marker: AbstractLiving,
-                                    parent: AbstractEntityMetadataBundle {
-                                        _marker: AbstractEntity,
-                                        on_fire: OnFire(false),
-                                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                            false,
-                                        ),
-                                        sprinting: Sprinting(false),
-                                        swimming: Swimming(false),
-                                        currently_glowing: CurrentlyGlowing(false),
-                                        invisible: Invisible(false),
-                                        fall_flying: FallFlying(false),
-                                        air_supply: AirSupply(Default::default()),
-                                        custom_name: CustomName(Default::default()),
-                                        custom_name_visible: CustomNameVisible(Default::default()),
-                                        silent: Silent(Default::default()),
-                                        no_gravity: NoGravity(Default::default()),
-                                        pose: Pose::default(),
-                                        ticks_frozen: TicksFrozen(Default::default()),
-                                    },
-                                    auto_spin_attack: AutoSpinAttack(false),
-                                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                                    health: Health(Default::default()),
-                                    effect_particles: EffectParticles(Default::default()),
-                                    effect_ambience: EffectAmbience(Default::default()),
-                                    arrow_count: ArrowCount(Default::default()),
-                                    stinger_count: StingerCount(Default::default()),
-                                    sleeping_pos: SleepingPos(Default::default()),
-                                },
-                                no_ai: NoAi(false),
-                                left_handed: LeftHanded(false),
-                                aggressive: Aggressive(false),
-                            },
-                        },
-                        abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                        abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
-                    },
-                },
-                tame: Tame(false),
-                in_sitting_pose: InSittingPose(false),
-                owneruuid: Owneruuid(Default::default()),
-            },
+            parent: Default::default(),
             parrot_variant: ParrotVariant(Default::default()),
         }
     }
@@ -10655,10 +7479,10 @@ pub struct WolfCollarColor(pub i32);
 pub struct WolfAngerEndTime(pub i64);
 /// A metadata field for [Wolf].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct WolfVariant(pub azalea_registry::data::CowVariant);
+pub struct WolfVariant(pub azalea_registry::data::WolfVariant);
 /// A metadata field for [Wolf].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct SoundVariant(pub azalea_registry::data::WolfVariant);
+pub struct SoundVariant(pub azalea_registry::data::WolfSoundVariant);
 /// The marker component for entities of type `minecraft:wolf`.
 ///
 /// # Metadata
@@ -10691,7 +7515,7 @@ pub struct SoundVariant(pub azalea_registry::data::WolfVariant);
 #[derive(Component)]
 pub struct Wolf;
 impl Wolf {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -10707,10 +7531,10 @@ impl Wolf {
                 entity.insert(WolfAngerEndTime(d.value.into_long()?));
             }
             23 => {
-                entity.insert(WolfVariant(d.value.into_cow_variant()?));
+                entity.insert(WolfVariant(d.value.into_wolf_variant()?));
             }
             24 => {
-                entity.insert(SoundVariant(d.value.into_wolf_variant()?));
+                entity.insert(SoundVariant(d.value.into_wolf_sound_variant()?));
             }
             _ => {}
         }
@@ -10735,64 +7559,12 @@ impl Default for WolfMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Wolf,
-            parent: AbstractTameableMetadataBundle {
-                _marker: AbstractTameable,
-                parent: AbstractAnimalMetadataBundle {
-                    _marker: AbstractAnimal,
-                    parent: AbstractAgeableMetadataBundle {
-                        _marker: AbstractAgeable,
-                        parent: AbstractCreatureMetadataBundle {
-                            _marker: AbstractCreature,
-                            parent: AbstractInsentientMetadataBundle {
-                                _marker: AbstractInsentient,
-                                parent: AbstractLivingMetadataBundle {
-                                    _marker: AbstractLiving,
-                                    parent: AbstractEntityMetadataBundle {
-                                        _marker: AbstractEntity,
-                                        on_fire: OnFire(false),
-                                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                            false,
-                                        ),
-                                        sprinting: Sprinting(false),
-                                        swimming: Swimming(false),
-                                        currently_glowing: CurrentlyGlowing(false),
-                                        invisible: Invisible(false),
-                                        fall_flying: FallFlying(false),
-                                        air_supply: AirSupply(Default::default()),
-                                        custom_name: CustomName(Default::default()),
-                                        custom_name_visible: CustomNameVisible(Default::default()),
-                                        silent: Silent(Default::default()),
-                                        no_gravity: NoGravity(Default::default()),
-                                        pose: Pose::default(),
-                                        ticks_frozen: TicksFrozen(Default::default()),
-                                    },
-                                    auto_spin_attack: AutoSpinAttack(false),
-                                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                                    health: Health(Default::default()),
-                                    effect_particles: EffectParticles(Default::default()),
-                                    effect_ambience: EffectAmbience(Default::default()),
-                                    arrow_count: ArrowCount(Default::default()),
-                                    stinger_count: StingerCount(Default::default()),
-                                    sleeping_pos: SleepingPos(Default::default()),
-                                },
-                                no_ai: NoAi(false),
-                                left_handed: LeftHanded(false),
-                                aggressive: Aggressive(false),
-                            },
-                        },
-                        abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                        abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
-                    },
-                },
-                tame: Tame(false),
-                in_sitting_pose: InSittingPose(false),
-                owneruuid: Owneruuid(Default::default()),
-            },
+            parent: Default::default(),
             wolf_interested: WolfInterested(Default::default()),
             wolf_collar_color: WolfCollarColor(Default::default()),
             wolf_anger_end_time: WolfAngerEndTime(Default::default()),
-            wolf_variant: WolfVariant(azalea_registry::data::CowVariant::new_raw(0)),
-            sound_variant: SoundVariant(azalea_registry::data::WolfVariant::new_raw(0)),
+            wolf_variant: WolfVariant(azalea_registry::data::WolfVariant::new_raw(0)),
+            sound_variant: SoundVariant(azalea_registry::data::WolfSoundVariant::new_raw(0)),
         }
     }
 }
@@ -10830,7 +7602,7 @@ pub struct AbstractNautilusDash(pub bool);
 #[derive(Component)]
 pub struct AbstractNautilus;
 impl AbstractNautilus {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -10858,59 +7630,7 @@ impl Default for AbstractNautilusMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractNautilus,
-            parent: AbstractTameableMetadataBundle {
-                _marker: AbstractTameable,
-                parent: AbstractAnimalMetadataBundle {
-                    _marker: AbstractAnimal,
-                    parent: AbstractAgeableMetadataBundle {
-                        _marker: AbstractAgeable,
-                        parent: AbstractCreatureMetadataBundle {
-                            _marker: AbstractCreature,
-                            parent: AbstractInsentientMetadataBundle {
-                                _marker: AbstractInsentient,
-                                parent: AbstractLivingMetadataBundle {
-                                    _marker: AbstractLiving,
-                                    parent: AbstractEntityMetadataBundle {
-                                        _marker: AbstractEntity,
-                                        on_fire: OnFire(false),
-                                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                            false,
-                                        ),
-                                        sprinting: Sprinting(false),
-                                        swimming: Swimming(false),
-                                        currently_glowing: CurrentlyGlowing(false),
-                                        invisible: Invisible(false),
-                                        fall_flying: FallFlying(false),
-                                        air_supply: AirSupply(Default::default()),
-                                        custom_name: CustomName(Default::default()),
-                                        custom_name_visible: CustomNameVisible(Default::default()),
-                                        silent: Silent(Default::default()),
-                                        no_gravity: NoGravity(Default::default()),
-                                        pose: Pose::default(),
-                                        ticks_frozen: TicksFrozen(Default::default()),
-                                    },
-                                    auto_spin_attack: AutoSpinAttack(false),
-                                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                                    health: Health(Default::default()),
-                                    effect_particles: EffectParticles(Default::default()),
-                                    effect_ambience: EffectAmbience(Default::default()),
-                                    arrow_count: ArrowCount(Default::default()),
-                                    stinger_count: StingerCount(Default::default()),
-                                    sleeping_pos: SleepingPos(Default::default()),
-                                },
-                                no_ai: NoAi(false),
-                                left_handed: LeftHanded(false),
-                                aggressive: Aggressive(false),
-                            },
-                        },
-                        abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                        abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
-                    },
-                },
-                tame: Tame(false),
-                in_sitting_pose: InSittingPose(false),
-                owneruuid: Owneruuid(Default::default()),
-            },
+            parent: Default::default(),
             abstract_nautilus_dash: AbstractNautilusDash(Default::default()),
         }
     }
@@ -10943,7 +7663,7 @@ impl Default for AbstractNautilusMetadataBundle {
 #[derive(Component)]
 pub struct Nautilus;
 impl Nautilus {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -10967,66 +7687,7 @@ impl Default for NautilusMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Nautilus,
-            parent: AbstractNautilusMetadataBundle {
-                _marker: AbstractNautilus,
-                parent: AbstractTameableMetadataBundle {
-                    _marker: AbstractTameable,
-                    parent: AbstractAnimalMetadataBundle {
-                        _marker: AbstractAnimal,
-                        parent: AbstractAgeableMetadataBundle {
-                            _marker: AbstractAgeable,
-                            parent: AbstractCreatureMetadataBundle {
-                                _marker: AbstractCreature,
-                                parent: AbstractInsentientMetadataBundle {
-                                    _marker: AbstractInsentient,
-                                    parent: AbstractLivingMetadataBundle {
-                                        _marker: AbstractLiving,
-                                        parent: AbstractEntityMetadataBundle {
-                                            _marker: AbstractEntity,
-                                            on_fire: OnFire(false),
-                                            abstract_entity_shift_key_down:
-                                                AbstractEntityShiftKeyDown(false),
-                                            sprinting: Sprinting(false),
-                                            swimming: Swimming(false),
-                                            currently_glowing: CurrentlyGlowing(false),
-                                            invisible: Invisible(false),
-                                            fall_flying: FallFlying(false),
-                                            air_supply: AirSupply(Default::default()),
-                                            custom_name: CustomName(Default::default()),
-                                            custom_name_visible: CustomNameVisible(
-                                                Default::default(),
-                                            ),
-                                            silent: Silent(Default::default()),
-                                            no_gravity: NoGravity(Default::default()),
-                                            pose: Pose::default(),
-                                            ticks_frozen: TicksFrozen(Default::default()),
-                                        },
-                                        auto_spin_attack: AutoSpinAttack(false),
-                                        abstract_living_using_item: AbstractLivingUsingItem(false),
-                                        health: Health(Default::default()),
-                                        effect_particles: EffectParticles(Default::default()),
-                                        effect_ambience: EffectAmbience(Default::default()),
-                                        arrow_count: ArrowCount(Default::default()),
-                                        stinger_count: StingerCount(Default::default()),
-                                        sleeping_pos: SleepingPos(Default::default()),
-                                    },
-                                    no_ai: NoAi(false),
-                                    left_handed: LeftHanded(false),
-                                    aggressive: Aggressive(false),
-                                },
-                            },
-                            abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                            abstract_ageable_age_locked: AbstractAgeableAgeLocked(
-                                Default::default(),
-                            ),
-                        },
-                    },
-                    tame: Tame(false),
-                    in_sitting_pose: InSittingPose(false),
-                    owneruuid: Owneruuid(Default::default()),
-                },
-                abstract_nautilus_dash: AbstractNautilusDash(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -11064,7 +7725,7 @@ pub struct ZombieNautilusVariant(pub azalea_registry::data::ZombieNautilusVarian
 #[derive(Component)]
 pub struct ZombieNautilus;
 impl ZombieNautilus {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -11094,66 +7755,7 @@ impl Default for ZombieNautilusMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: ZombieNautilus,
-            parent: AbstractNautilusMetadataBundle {
-                _marker: AbstractNautilus,
-                parent: AbstractTameableMetadataBundle {
-                    _marker: AbstractTameable,
-                    parent: AbstractAnimalMetadataBundle {
-                        _marker: AbstractAnimal,
-                        parent: AbstractAgeableMetadataBundle {
-                            _marker: AbstractAgeable,
-                            parent: AbstractCreatureMetadataBundle {
-                                _marker: AbstractCreature,
-                                parent: AbstractInsentientMetadataBundle {
-                                    _marker: AbstractInsentient,
-                                    parent: AbstractLivingMetadataBundle {
-                                        _marker: AbstractLiving,
-                                        parent: AbstractEntityMetadataBundle {
-                                            _marker: AbstractEntity,
-                                            on_fire: OnFire(false),
-                                            abstract_entity_shift_key_down:
-                                                AbstractEntityShiftKeyDown(false),
-                                            sprinting: Sprinting(false),
-                                            swimming: Swimming(false),
-                                            currently_glowing: CurrentlyGlowing(false),
-                                            invisible: Invisible(false),
-                                            fall_flying: FallFlying(false),
-                                            air_supply: AirSupply(Default::default()),
-                                            custom_name: CustomName(Default::default()),
-                                            custom_name_visible: CustomNameVisible(
-                                                Default::default(),
-                                            ),
-                                            silent: Silent(Default::default()),
-                                            no_gravity: NoGravity(Default::default()),
-                                            pose: Pose::default(),
-                                            ticks_frozen: TicksFrozen(Default::default()),
-                                        },
-                                        auto_spin_attack: AutoSpinAttack(false),
-                                        abstract_living_using_item: AbstractLivingUsingItem(false),
-                                        health: Health(Default::default()),
-                                        effect_particles: EffectParticles(Default::default()),
-                                        effect_ambience: EffectAmbience(Default::default()),
-                                        arrow_count: ArrowCount(Default::default()),
-                                        stinger_count: StingerCount(Default::default()),
-                                        sleeping_pos: SleepingPos(Default::default()),
-                                    },
-                                    no_ai: NoAi(false),
-                                    left_handed: LeftHanded(false),
-                                    aggressive: Aggressive(false),
-                                },
-                            },
-                            abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                            abstract_ageable_age_locked: AbstractAgeableAgeLocked(
-                                Default::default(),
-                            ),
-                        },
-                    },
-                    tame: Tame(false),
-                    in_sitting_pose: InSittingPose(false),
-                    owneruuid: Owneruuid(Default::default()),
-                },
-                abstract_nautilus_dash: AbstractNautilusDash(Default::default()),
-            },
+            parent: Default::default(),
             zombie_nautilus_variant: ZombieNautilusVariant(
                 azalea_registry::data::ZombieNautilusVariant::new_raw(0),
             ),
@@ -11192,7 +7794,7 @@ pub struct AbstractVillagerUnhappyCounter(pub i32);
 #[derive(Component)]
 pub struct AbstractVillager;
 impl AbstractVillager {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -11220,48 +7822,7 @@ impl Default for AbstractVillagerMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractVillager,
-            parent: AbstractAgeableMetadataBundle {
-                _marker: AbstractAgeable,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(Default::default()),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(Default::default()),
-                            arrow_count: ArrowCount(Default::default()),
-                            stinger_count: StingerCount(Default::default()),
-                            sleeping_pos: SleepingPos(Default::default()),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-                abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
-            },
+            parent: Default::default(),
             abstract_villager_unhappy_counter: AbstractVillagerUnhappyCounter(Default::default()),
         }
     }
@@ -11302,7 +7863,7 @@ pub struct VillagerVillagerDataFinalized(pub bool);
 #[derive(Component)]
 pub struct Villager;
 impl Villager {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -11334,56 +7895,7 @@ impl Default for VillagerMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Villager,
-            parent: AbstractVillagerMetadataBundle {
-                _marker: AbstractVillager,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(Default::default()),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(Default::default()),
-                                arrow_count: ArrowCount(Default::default()),
-                                stinger_count: StingerCount(Default::default()),
-                                sleeping_pos: SleepingPos(Default::default()),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
-                },
-                abstract_villager_unhappy_counter: AbstractVillagerUnhappyCounter(
-                    Default::default(),
-                ),
-            },
+            parent: Default::default(),
             villager_villager_data: VillagerVillagerData(VillagerData {
                 kind: azalea_registry::builtin::VillagerKind::Plains,
                 profession: azalea_registry::builtin::VillagerProfession::None,
@@ -11419,7 +7931,7 @@ impl Default for VillagerMetadataBundle {
 #[derive(Component)]
 pub struct WanderingTrader;
 impl WanderingTrader {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -11443,56 +7955,7 @@ impl Default for WanderingTraderMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: WanderingTrader,
-            parent: AbstractVillagerMetadataBundle {
-                _marker: AbstractVillager,
-                parent: AbstractAgeableMetadataBundle {
-                    _marker: AbstractAgeable,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(Default::default()),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(Default::default()),
-                                arrow_count: ArrowCount(Default::default()),
-                                stinger_count: StingerCount(Default::default()),
-                                sleeping_pos: SleepingPos(Default::default()),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                    abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-                    abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
-                },
-                abstract_villager_unhappy_counter: AbstractVillagerUnhappyCounter(
-                    Default::default(),
-                ),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -11528,7 +7991,7 @@ pub struct AbstractFishFromBucket(pub bool);
 #[derive(Component)]
 pub struct AbstractFish;
 impl AbstractFish {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -11556,43 +8019,7 @@ impl Default for AbstractFishMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractFish,
-            parent: AbstractCreatureMetadataBundle {
-                _marker: AbstractCreature,
-                parent: AbstractInsentientMetadataBundle {
-                    _marker: AbstractInsentient,
-                    parent: AbstractLivingMetadataBundle {
-                        _marker: AbstractLiving,
-                        parent: AbstractEntityMetadataBundle {
-                            _marker: AbstractEntity,
-                            on_fire: OnFire(false),
-                            abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                            sprinting: Sprinting(false),
-                            swimming: Swimming(false),
-                            currently_glowing: CurrentlyGlowing(false),
-                            invisible: Invisible(false),
-                            fall_flying: FallFlying(false),
-                            air_supply: AirSupply(Default::default()),
-                            custom_name: CustomName(Default::default()),
-                            custom_name_visible: CustomNameVisible(Default::default()),
-                            silent: Silent(Default::default()),
-                            no_gravity: NoGravity(Default::default()),
-                            pose: Pose::default(),
-                            ticks_frozen: TicksFrozen(Default::default()),
-                        },
-                        auto_spin_attack: AutoSpinAttack(false),
-                        abstract_living_using_item: AbstractLivingUsingItem(false),
-                        health: Health(Default::default()),
-                        effect_particles: EffectParticles(Default::default()),
-                        effect_ambience: EffectAmbience(Default::default()),
-                        arrow_count: ArrowCount(Default::default()),
-                        stinger_count: StingerCount(Default::default()),
-                        sleeping_pos: SleepingPos(Default::default()),
-                    },
-                    no_ai: NoAi(false),
-                    left_handed: LeftHanded(false),
-                    aggressive: Aggressive(false),
-                },
-            },
+            parent: Default::default(),
             abstract_fish_from_bucket: AbstractFishFromBucket(Default::default()),
         }
     }
@@ -11622,7 +8049,7 @@ impl Default for AbstractFishMetadataBundle {
 #[derive(Component)]
 pub struct Cod;
 impl Cod {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -11646,47 +8073,7 @@ impl Default for CodMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Cod,
-            parent: AbstractFishMetadataBundle {
-                _marker: AbstractFish,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(Default::default()),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(Default::default()),
-                            arrow_count: ArrowCount(Default::default()),
-                            stinger_count: StingerCount(Default::default()),
-                            sleeping_pos: SleepingPos(Default::default()),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-                abstract_fish_from_bucket: AbstractFishFromBucket(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -11720,7 +8107,7 @@ pub struct SalmonKind(pub i32);
 #[derive(Component)]
 pub struct Salmon;
 impl Salmon {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -11748,47 +8135,7 @@ impl Default for SalmonMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Salmon,
-            parent: AbstractFishMetadataBundle {
-                _marker: AbstractFish,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(Default::default()),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(Default::default()),
-                            arrow_count: ArrowCount(Default::default()),
-                            stinger_count: StingerCount(Default::default()),
-                            sleeping_pos: SleepingPos(Default::default()),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-                abstract_fish_from_bucket: AbstractFishFromBucket(Default::default()),
-            },
+            parent: Default::default(),
             salmon_kind: SalmonKind(Default::default()),
         }
     }
@@ -11824,7 +8171,7 @@ pub struct TropicalFishTypeVariant(pub i32);
 #[derive(Component)]
 pub struct TropicalFish;
 impl TropicalFish {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -11852,47 +8199,7 @@ impl Default for TropicalFishMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: TropicalFish,
-            parent: AbstractFishMetadataBundle {
-                _marker: AbstractFish,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(Default::default()),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(Default::default()),
-                            arrow_count: ArrowCount(Default::default()),
-                            stinger_count: StingerCount(Default::default()),
-                            sleeping_pos: SleepingPos(Default::default()),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-                abstract_fish_from_bucket: AbstractFishFromBucket(Default::default()),
-            },
+            parent: Default::default(),
             tropical_fish_type_variant: TropicalFishTypeVariant(Default::default()),
         }
     }
@@ -11957,7 +8264,7 @@ impl Default for TropicalFishMetadataBundle {
 #[derive(Component)]
 pub struct AbstractMonster;
 impl AbstractMonster {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -11981,43 +8288,7 @@ impl Default for AbstractMonsterMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractMonster,
-            parent: AbstractCreatureMetadataBundle {
-                _marker: AbstractCreature,
-                parent: AbstractInsentientMetadataBundle {
-                    _marker: AbstractInsentient,
-                    parent: AbstractLivingMetadataBundle {
-                        _marker: AbstractLiving,
-                        parent: AbstractEntityMetadataBundle {
-                            _marker: AbstractEntity,
-                            on_fire: OnFire(false),
-                            abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                            sprinting: Sprinting(false),
-                            swimming: Swimming(false),
-                            currently_glowing: CurrentlyGlowing(false),
-                            invisible: Invisible(false),
-                            fall_flying: FallFlying(false),
-                            air_supply: AirSupply(Default::default()),
-                            custom_name: CustomName(Default::default()),
-                            custom_name_visible: CustomNameVisible(Default::default()),
-                            silent: Silent(Default::default()),
-                            no_gravity: NoGravity(Default::default()),
-                            pose: Pose::default(),
-                            ticks_frozen: TicksFrozen(Default::default()),
-                        },
-                        auto_spin_attack: AutoSpinAttack(false),
-                        abstract_living_using_item: AbstractLivingUsingItem(false),
-                        health: Health(Default::default()),
-                        effect_particles: EffectParticles(Default::default()),
-                        effect_ambience: EffectAmbience(Default::default()),
-                        arrow_count: ArrowCount(Default::default()),
-                        stinger_count: StingerCount(Default::default()),
-                        sleeping_pos: SleepingPos(Default::default()),
-                    },
-                    no_ai: NoAi(false),
-                    left_handed: LeftHanded(false),
-                    aggressive: Aggressive(false),
-                },
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -12051,7 +8322,7 @@ pub struct Charged(pub bool);
 #[derive(Component)]
 pub struct Blaze;
 impl Blaze {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -12080,46 +8351,7 @@ impl Default for BlazeMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Blaze,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(Default::default()),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(Default::default()),
-                            arrow_count: ArrowCount(Default::default()),
-                            stinger_count: StingerCount(Default::default()),
-                            sleeping_pos: SleepingPos(Default::default()),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
             charged: Charged(false),
         }
     }
@@ -12154,7 +8386,7 @@ pub struct BoggedSheared(pub bool);
 #[derive(Component)]
 pub struct Bogged;
 impl Bogged {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -12182,46 +8414,7 @@ impl Default for BoggedMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Bogged,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(Default::default()),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(Default::default()),
-                            arrow_count: ArrowCount(Default::default()),
-                            stinger_count: StingerCount(Default::default()),
-                            sleeping_pos: SleepingPos(Default::default()),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
             bogged_sheared: BoggedSheared(Default::default()),
         }
     }
@@ -12251,7 +8444,7 @@ impl Default for BoggedMetadataBundle {
 #[derive(Component)]
 pub struct Breeze;
 impl Breeze {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -12275,46 +8468,7 @@ impl Default for BreezeMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Breeze,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(Default::default()),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(Default::default()),
-                            arrow_count: ArrowCount(Default::default()),
-                            stinger_count: StingerCount(Default::default()),
-                            sleeping_pos: SleepingPos(Default::default()),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -12361,7 +8515,7 @@ pub struct HomePos(pub Option<BlockPos>);
 #[derive(Component)]
 pub struct Creaking;
 impl Creaking {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -12401,46 +8555,7 @@ impl Default for CreakingMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Creaking,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(Default::default()),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(Default::default()),
-                            arrow_count: ArrowCount(Default::default()),
-                            stinger_count: StingerCount(Default::default()),
-                            sleeping_pos: SleepingPos(Default::default()),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
             can_move: CanMove(Default::default()),
             is_active: IsActive(Default::default()),
             is_tearing_down: IsTearingDown(Default::default()),
@@ -12486,7 +8601,7 @@ pub struct IsIgnited(pub bool);
 #[derive(Component)]
 pub struct Creeper;
 impl Creeper {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -12522,46 +8637,7 @@ impl Default for CreeperMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Creeper,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(Default::default()),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(Default::default()),
-                            arrow_count: ArrowCount(Default::default()),
-                            stinger_count: StingerCount(Default::default()),
-                            sleeping_pos: SleepingPos(Default::default()),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
             swell_dir: SwellDir(Default::default()),
             is_powered: IsPowered(Default::default()),
             is_ignited: IsIgnited(Default::default()),
@@ -12607,7 +8683,7 @@ pub struct StaredAt(pub bool);
 #[derive(Component)]
 pub struct Enderman;
 impl Enderman {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -12643,46 +8719,7 @@ impl Default for EndermanMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Enderman,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(Default::default()),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(Default::default()),
-                            arrow_count: ArrowCount(Default::default()),
-                            stinger_count: StingerCount(Default::default()),
-                            sleeping_pos: SleepingPos(Default::default()),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
             carry_state: CarryState(Default::default()),
             creepy: Creepy(Default::default()),
             stared_at: StaredAt(Default::default()),
@@ -12714,7 +8751,7 @@ impl Default for EndermanMetadataBundle {
 #[derive(Component)]
 pub struct Endermite;
 impl Endermite {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -12738,46 +8775,7 @@ impl Default for EndermiteMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Endermite,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(Default::default()),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(Default::default()),
-                            arrow_count: ArrowCount(Default::default()),
-                            stinger_count: StingerCount(Default::default()),
-                            sleeping_pos: SleepingPos(Default::default()),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -12806,7 +8804,7 @@ impl Default for EndermiteMetadataBundle {
 #[derive(Component)]
 pub struct Giant;
 impl Giant {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -12830,46 +8828,7 @@ impl Default for GiantMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Giant,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(Default::default()),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(Default::default()),
-                            arrow_count: ArrowCount(Default::default()),
-                            stinger_count: StingerCount(Default::default()),
-                            sleeping_pos: SleepingPos(Default::default()),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -12908,7 +8867,7 @@ pub struct AttackTarget(pub i32);
 #[derive(Component)]
 pub struct Guardian;
 impl Guardian {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -12940,46 +8899,7 @@ impl Default for GuardianMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Guardian,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(Default::default()),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(Default::default()),
-                            arrow_count: ArrowCount(Default::default()),
-                            stinger_count: StingerCount(Default::default()),
-                            sleeping_pos: SleepingPos(Default::default()),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
             moving: Moving(Default::default()),
             attack_target: AttackTarget(Default::default()),
         }
@@ -13011,7 +8931,7 @@ impl Default for GuardianMetadataBundle {
 #[derive(Component)]
 pub struct ElderGuardian;
 impl ElderGuardian {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -13035,53 +8955,7 @@ impl Default for ElderGuardianMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: ElderGuardian,
-            parent: GuardianMetadataBundle {
-                _marker: Guardian,
-                parent: AbstractMonsterMetadataBundle {
-                    _marker: AbstractMonster,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(Default::default()),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(Default::default()),
-                                arrow_count: ArrowCount(Default::default()),
-                                stinger_count: StingerCount(Default::default()),
-                                sleeping_pos: SleepingPos(Default::default()),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                },
-                moving: Moving(Default::default()),
-                attack_target: AttackTarget(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -13110,7 +8984,7 @@ impl Default for ElderGuardianMetadataBundle {
 #[derive(Component)]
 pub struct Parched;
 impl Parched {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -13134,46 +9008,7 @@ impl Default for ParchedMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Parched,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(Default::default()),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(Default::default()),
-                            arrow_count: ArrowCount(Default::default()),
-                            stinger_count: StingerCount(Default::default()),
-                            sleeping_pos: SleepingPos(Default::default()),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -13202,7 +9037,7 @@ impl Default for ParchedMetadataBundle {
 #[derive(Component)]
 pub struct Silverfish;
 impl Silverfish {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -13226,46 +9061,7 @@ impl Default for SilverfishMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Silverfish,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(Default::default()),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(Default::default()),
-                            arrow_count: ArrowCount(Default::default()),
-                            stinger_count: StingerCount(Default::default()),
-                            sleeping_pos: SleepingPos(Default::default()),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -13300,7 +9096,7 @@ pub struct StrayConversion(pub bool);
 #[derive(Component)]
 pub struct Skeleton;
 impl Skeleton {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -13328,46 +9124,7 @@ impl Default for SkeletonMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Skeleton,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(Default::default()),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(Default::default()),
-                            arrow_count: ArrowCount(Default::default()),
-                            stinger_count: StingerCount(Default::default()),
-                            sleeping_pos: SleepingPos(Default::default()),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
             stray_conversion: StrayConversion(Default::default()),
         }
     }
@@ -13402,7 +9159,7 @@ pub struct Climbing(pub bool);
 #[derive(Component)]
 pub struct Spider;
 impl Spider {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -13431,46 +9188,7 @@ impl Default for SpiderMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Spider,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(Default::default()),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(Default::default()),
-                            arrow_count: ArrowCount(Default::default()),
-                            stinger_count: StingerCount(Default::default()),
-                            sleeping_pos: SleepingPos(Default::default()),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
             climbing: Climbing(false),
         }
     }
@@ -13501,7 +9219,7 @@ impl Default for SpiderMetadataBundle {
 #[derive(Component)]
 pub struct CaveSpider;
 impl CaveSpider {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -13525,52 +9243,7 @@ impl Default for CaveSpiderMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: CaveSpider,
-            parent: SpiderMetadataBundle {
-                _marker: Spider,
-                parent: AbstractMonsterMetadataBundle {
-                    _marker: AbstractMonster,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(Default::default()),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(Default::default()),
-                                arrow_count: ArrowCount(Default::default()),
-                                stinger_count: StingerCount(Default::default()),
-                                sleeping_pos: SleepingPos(Default::default()),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                },
-                climbing: Climbing(false),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -13599,7 +9272,7 @@ impl Default for CaveSpiderMetadataBundle {
 #[derive(Component)]
 pub struct Stray;
 impl Stray {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -13623,46 +9296,7 @@ impl Default for StrayMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Stray,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(Default::default()),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(Default::default()),
-                            arrow_count: ArrowCount(Default::default()),
-                            stinger_count: StingerCount(Default::default()),
-                            sleeping_pos: SleepingPos(Default::default()),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -13696,7 +9330,7 @@ pub struct VexFlags(pub u8);
 #[derive(Component)]
 pub struct Vex;
 impl Vex {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -13724,46 +9358,7 @@ impl Default for VexMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Vex,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(Default::default()),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(Default::default()),
-                            arrow_count: ArrowCount(Default::default()),
-                            stinger_count: StingerCount(Default::default()),
-                            sleeping_pos: SleepingPos(Default::default()),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
             vex_flags: VexFlags(Default::default()),
         }
     }
@@ -13798,7 +9393,7 @@ pub struct ClientAngerLevel(pub i32);
 #[derive(Component)]
 pub struct Warden;
 impl Warden {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -13826,46 +9421,7 @@ impl Default for WardenMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Warden,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(Default::default()),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(Default::default()),
-                            arrow_count: ArrowCount(Default::default()),
-                            stinger_count: StingerCount(Default::default()),
-                            sleeping_pos: SleepingPos(Default::default()),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
             client_anger_level: ClientAngerLevel(Default::default()),
         }
     }
@@ -13912,7 +9468,7 @@ pub struct Inv(pub i32);
 #[derive(Component)]
 pub struct Wither;
 impl Wither {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -13952,46 +9508,7 @@ impl Default for WitherMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Wither,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(Default::default()),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(Default::default()),
-                            arrow_count: ArrowCount(Default::default()),
-                            stinger_count: StingerCount(Default::default()),
-                            sleeping_pos: SleepingPos(Default::default()),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
             target_a: TargetA(Default::default()),
             target_b: TargetB(Default::default()),
             target_c: TargetC(Default::default()),
@@ -14024,7 +9541,7 @@ impl Default for WitherMetadataBundle {
 #[derive(Component)]
 pub struct WitherSkeleton;
 impl WitherSkeleton {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -14048,46 +9565,7 @@ impl Default for WitherSkeletonMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: WitherSkeleton,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(Default::default()),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(Default::default()),
-                            arrow_count: ArrowCount(Default::default()),
-                            stinger_count: StingerCount(Default::default()),
-                            sleeping_pos: SleepingPos(Default::default()),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -14121,7 +9599,7 @@ pub struct ZoglinBaby(pub bool);
 #[derive(Component)]
 pub struct Zoglin;
 impl Zoglin {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -14149,46 +9627,7 @@ impl Default for ZoglinMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Zoglin,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(Default::default()),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(Default::default()),
-                            arrow_count: ArrowCount(Default::default()),
-                            stinger_count: StingerCount(Default::default()),
-                            sleeping_pos: SleepingPos(Default::default()),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
             zoglin_baby: ZoglinBaby(Default::default()),
         }
     }
@@ -14234,7 +9673,7 @@ pub struct DrownedConversion(pub bool);
 #[derive(Component)]
 pub struct Zombie;
 impl Zombie {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -14270,46 +9709,7 @@ impl Default for ZombieMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Zombie,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(Default::default()),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(Default::default()),
-                            arrow_count: ArrowCount(Default::default()),
-                            stinger_count: StingerCount(Default::default()),
-                            sleeping_pos: SleepingPos(Default::default()),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
             zombie_baby: ZombieBaby(Default::default()),
             special_type: SpecialType(Default::default()),
             drowned_conversion: DrownedConversion(Default::default()),
@@ -14342,7 +9742,7 @@ impl Default for ZombieMetadataBundle {
 #[derive(Component)]
 pub struct Drowned;
 impl Drowned {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -14366,54 +9766,7 @@ impl Default for DrownedMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Drowned,
-            parent: ZombieMetadataBundle {
-                _marker: Zombie,
-                parent: AbstractMonsterMetadataBundle {
-                    _marker: AbstractMonster,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(Default::default()),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(Default::default()),
-                                arrow_count: ArrowCount(Default::default()),
-                                stinger_count: StingerCount(Default::default()),
-                                sleeping_pos: SleepingPos(Default::default()),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                },
-                zombie_baby: ZombieBaby(Default::default()),
-                special_type: SpecialType(Default::default()),
-                drowned_conversion: DrownedConversion(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -14443,7 +9796,7 @@ impl Default for DrownedMetadataBundle {
 #[derive(Component)]
 pub struct Husk;
 impl Husk {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -14467,54 +9820,7 @@ impl Default for HuskMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Husk,
-            parent: ZombieMetadataBundle {
-                _marker: Zombie,
-                parent: AbstractMonsterMetadataBundle {
-                    _marker: AbstractMonster,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(Default::default()),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(Default::default()),
-                                arrow_count: ArrowCount(Default::default()),
-                                stinger_count: StingerCount(Default::default()),
-                                sleeping_pos: SleepingPos(Default::default()),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                },
-                zombie_baby: ZombieBaby(Default::default()),
-                special_type: SpecialType(Default::default()),
-                drowned_conversion: DrownedConversion(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -14558,7 +9864,7 @@ pub struct ZombieVillagerVillagerDataFinalized(pub bool);
 #[derive(Component)]
 pub struct ZombieVillager;
 impl ZombieVillager {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -14594,54 +9900,7 @@ impl Default for ZombieVillagerMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: ZombieVillager,
-            parent: ZombieMetadataBundle {
-                _marker: Zombie,
-                parent: AbstractMonsterMetadataBundle {
-                    _marker: AbstractMonster,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(Default::default()),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(Default::default()),
-                                arrow_count: ArrowCount(Default::default()),
-                                stinger_count: StingerCount(Default::default()),
-                                sleeping_pos: SleepingPos(Default::default()),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                },
-                zombie_baby: ZombieBaby(Default::default()),
-                special_type: SpecialType(Default::default()),
-                drowned_conversion: DrownedConversion(Default::default()),
-            },
+            parent: Default::default(),
             converting: Converting(Default::default()),
             zombie_villager_villager_data: ZombieVillagerVillagerData(VillagerData {
                 kind: azalea_registry::builtin::VillagerKind::Plains,
@@ -14680,7 +9939,7 @@ impl Default for ZombieVillagerMetadataBundle {
 #[derive(Component)]
 pub struct ZombifiedPiglin;
 impl ZombifiedPiglin {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -14704,54 +9963,7 @@ impl Default for ZombifiedPiglinMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: ZombifiedPiglin,
-            parent: ZombieMetadataBundle {
-                _marker: Zombie,
-                parent: AbstractMonsterMetadataBundle {
-                    _marker: AbstractMonster,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(Default::default()),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(Default::default()),
-                                arrow_count: ArrowCount(Default::default()),
-                                stinger_count: StingerCount(Default::default()),
-                                sleeping_pos: SleepingPos(Default::default()),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                },
-                zombie_baby: ZombieBaby(Default::default()),
-                special_type: SpecialType(Default::default()),
-                drowned_conversion: DrownedConversion(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -14787,7 +9999,7 @@ pub struct AbstractPiglinImmuneToZombification(pub bool);
 #[derive(Component)]
 pub struct AbstractPiglin;
 impl AbstractPiglin {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -14815,46 +10027,7 @@ impl Default for AbstractPiglinMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractPiglin,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(Default::default()),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(Default::default()),
-                            arrow_count: ArrowCount(Default::default()),
-                            stinger_count: StingerCount(Default::default()),
-                            sleeping_pos: SleepingPos(Default::default()),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
             abstract_piglin_immune_to_zombification: AbstractPiglinImmuneToZombification(
                 Default::default(),
             ),
@@ -14900,7 +10073,7 @@ pub struct IsDancing(pub bool);
 #[derive(Component)]
 pub struct Piglin;
 impl Piglin {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -14936,54 +10109,7 @@ impl Default for PiglinMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Piglin,
-            parent: AbstractPiglinMetadataBundle {
-                _marker: AbstractPiglin,
-                parent: AbstractMonsterMetadataBundle {
-                    _marker: AbstractMonster,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(Default::default()),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(Default::default()),
-                                arrow_count: ArrowCount(Default::default()),
-                                stinger_count: StingerCount(Default::default()),
-                                sleeping_pos: SleepingPos(Default::default()),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                },
-                abstract_piglin_immune_to_zombification: AbstractPiglinImmuneToZombification(
-                    Default::default(),
-                ),
-            },
+            parent: Default::default(),
             piglin_baby: PiglinBaby(Default::default()),
             piglin_is_charging_crossbow: PiglinIsChargingCrossbow(Default::default()),
             is_dancing: IsDancing(Default::default()),
@@ -15016,7 +10142,7 @@ impl Default for PiglinMetadataBundle {
 #[derive(Component)]
 pub struct PiglinBrute;
 impl PiglinBrute {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -15040,54 +10166,7 @@ impl Default for PiglinBruteMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: PiglinBrute,
-            parent: AbstractPiglinMetadataBundle {
-                _marker: AbstractPiglin,
-                parent: AbstractMonsterMetadataBundle {
-                    _marker: AbstractMonster,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(Default::default()),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(Default::default()),
-                                arrow_count: ArrowCount(Default::default()),
-                                stinger_count: StingerCount(Default::default()),
-                                sleeping_pos: SleepingPos(Default::default()),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                },
-                abstract_piglin_immune_to_zombification: AbstractPiglinImmuneToZombification(
-                    Default::default(),
-                ),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -15128,7 +10207,7 @@ pub struct IsCelebrating(pub bool);
 #[derive(Component)]
 pub struct AbstractRaider;
 impl AbstractRaider {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -15156,46 +10235,7 @@ impl Default for AbstractRaiderMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractRaider,
-            parent: AbstractMonsterMetadataBundle {
-                _marker: AbstractMonster,
-                parent: AbstractCreatureMetadataBundle {
-                    _marker: AbstractCreature,
-                    parent: AbstractInsentientMetadataBundle {
-                        _marker: AbstractInsentient,
-                        parent: AbstractLivingMetadataBundle {
-                            _marker: AbstractLiving,
-                            parent: AbstractEntityMetadataBundle {
-                                _marker: AbstractEntity,
-                                on_fire: OnFire(false),
-                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                                sprinting: Sprinting(false),
-                                swimming: Swimming(false),
-                                currently_glowing: CurrentlyGlowing(false),
-                                invisible: Invisible(false),
-                                fall_flying: FallFlying(false),
-                                air_supply: AirSupply(Default::default()),
-                                custom_name: CustomName(Default::default()),
-                                custom_name_visible: CustomNameVisible(Default::default()),
-                                silent: Silent(Default::default()),
-                                no_gravity: NoGravity(Default::default()),
-                                pose: Pose::default(),
-                                ticks_frozen: TicksFrozen(Default::default()),
-                            },
-                            auto_spin_attack: AutoSpinAttack(false),
-                            abstract_living_using_item: AbstractLivingUsingItem(false),
-                            health: Health(Default::default()),
-                            effect_particles: EffectParticles(Default::default()),
-                            effect_ambience: EffectAmbience(Default::default()),
-                            arrow_count: ArrowCount(Default::default()),
-                            stinger_count: StingerCount(Default::default()),
-                            sleeping_pos: SleepingPos(Default::default()),
-                        },
-                        no_ai: NoAi(false),
-                        left_handed: LeftHanded(false),
-                        aggressive: Aggressive(false),
-                    },
-                },
-            },
+            parent: Default::default(),
             is_celebrating: IsCelebrating(Default::default()),
         }
     }
@@ -15232,7 +10272,7 @@ pub struct PillagerIsChargingCrossbow(pub bool);
 #[derive(Component)]
 pub struct Pillager;
 impl Pillager {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -15260,52 +10300,7 @@ impl Default for PillagerMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Pillager,
-            parent: AbstractRaiderMetadataBundle {
-                _marker: AbstractRaider,
-                parent: AbstractMonsterMetadataBundle {
-                    _marker: AbstractMonster,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(Default::default()),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(Default::default()),
-                                arrow_count: ArrowCount(Default::default()),
-                                stinger_count: StingerCount(Default::default()),
-                                sleeping_pos: SleepingPos(Default::default()),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                },
-                is_celebrating: IsCelebrating(Default::default()),
-            },
+            parent: Default::default(),
             pillager_is_charging_crossbow: PillagerIsChargingCrossbow(Default::default()),
         }
     }
@@ -15336,7 +10331,7 @@ impl Default for PillagerMetadataBundle {
 #[derive(Component)]
 pub struct Ravager;
 impl Ravager {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -15360,52 +10355,7 @@ impl Default for RavagerMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Ravager,
-            parent: AbstractRaiderMetadataBundle {
-                _marker: AbstractRaider,
-                parent: AbstractMonsterMetadataBundle {
-                    _marker: AbstractMonster,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(Default::default()),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(Default::default()),
-                                arrow_count: ArrowCount(Default::default()),
-                                stinger_count: StingerCount(Default::default()),
-                                sleeping_pos: SleepingPos(Default::default()),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                },
-                is_celebrating: IsCelebrating(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -15435,7 +10385,7 @@ impl Default for RavagerMetadataBundle {
 #[derive(Component)]
 pub struct Vindicator;
 impl Vindicator {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -15459,52 +10409,7 @@ impl Default for VindicatorMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Vindicator,
-            parent: AbstractRaiderMetadataBundle {
-                _marker: AbstractRaider,
-                parent: AbstractMonsterMetadataBundle {
-                    _marker: AbstractMonster,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(Default::default()),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(Default::default()),
-                                arrow_count: ArrowCount(Default::default()),
-                                stinger_count: StingerCount(Default::default()),
-                                sleeping_pos: SleepingPos(Default::default()),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                },
-                is_celebrating: IsCelebrating(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -15539,7 +10444,7 @@ pub struct WitchUsingItem(pub bool);
 #[derive(Component)]
 pub struct Witch;
 impl Witch {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -15567,52 +10472,7 @@ impl Default for WitchMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Witch,
-            parent: AbstractRaiderMetadataBundle {
-                _marker: AbstractRaider,
-                parent: AbstractMonsterMetadataBundle {
-                    _marker: AbstractMonster,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(Default::default()),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(Default::default()),
-                                arrow_count: ArrowCount(Default::default()),
-                                stinger_count: StingerCount(Default::default()),
-                                sleeping_pos: SleepingPos(Default::default()),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                },
-                is_celebrating: IsCelebrating(Default::default()),
-            },
+            parent: Default::default(),
             witch_using_item: WitchUsingItem(Default::default()),
         }
     }
@@ -15650,7 +10510,7 @@ pub struct SpellCasting(pub u8);
 #[derive(Component)]
 pub struct AbstractSpellcasterIllager;
 impl AbstractSpellcasterIllager {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -15678,52 +10538,7 @@ impl Default for AbstractSpellcasterIllagerMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractSpellcasterIllager,
-            parent: AbstractRaiderMetadataBundle {
-                _marker: AbstractRaider,
-                parent: AbstractMonsterMetadataBundle {
-                    _marker: AbstractMonster,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                        false,
-                                    ),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(Default::default()),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(Default::default()),
-                                arrow_count: ArrowCount(Default::default()),
-                                stinger_count: StingerCount(Default::default()),
-                                sleeping_pos: SleepingPos(Default::default()),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                },
-                is_celebrating: IsCelebrating(Default::default()),
-            },
+            parent: Default::default(),
             spell_casting: SpellCasting(Default::default()),
         }
     }
@@ -15755,7 +10570,7 @@ impl Default for AbstractSpellcasterIllagerMetadataBundle {
 #[derive(Component)]
 pub struct Evoker;
 impl Evoker {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -15779,56 +10594,7 @@ impl Default for EvokerMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Evoker,
-            parent: AbstractSpellcasterIllagerMetadataBundle {
-                _marker: AbstractSpellcasterIllager,
-                parent: AbstractRaiderMetadataBundle {
-                    _marker: AbstractRaider,
-                    parent: AbstractMonsterMetadataBundle {
-                        _marker: AbstractMonster,
-                        parent: AbstractCreatureMetadataBundle {
-                            _marker: AbstractCreature,
-                            parent: AbstractInsentientMetadataBundle {
-                                _marker: AbstractInsentient,
-                                parent: AbstractLivingMetadataBundle {
-                                    _marker: AbstractLiving,
-                                    parent: AbstractEntityMetadataBundle {
-                                        _marker: AbstractEntity,
-                                        on_fire: OnFire(false),
-                                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                            false,
-                                        ),
-                                        sprinting: Sprinting(false),
-                                        swimming: Swimming(false),
-                                        currently_glowing: CurrentlyGlowing(false),
-                                        invisible: Invisible(false),
-                                        fall_flying: FallFlying(false),
-                                        air_supply: AirSupply(Default::default()),
-                                        custom_name: CustomName(Default::default()),
-                                        custom_name_visible: CustomNameVisible(Default::default()),
-                                        silent: Silent(Default::default()),
-                                        no_gravity: NoGravity(Default::default()),
-                                        pose: Pose::default(),
-                                        ticks_frozen: TicksFrozen(Default::default()),
-                                    },
-                                    auto_spin_attack: AutoSpinAttack(false),
-                                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                                    health: Health(Default::default()),
-                                    effect_particles: EffectParticles(Default::default()),
-                                    effect_ambience: EffectAmbience(Default::default()),
-                                    arrow_count: ArrowCount(Default::default()),
-                                    stinger_count: StingerCount(Default::default()),
-                                    sleeping_pos: SleepingPos(Default::default()),
-                                },
-                                no_ai: NoAi(false),
-                                left_handed: LeftHanded(false),
-                                aggressive: Aggressive(false),
-                            },
-                        },
-                    },
-                    is_celebrating: IsCelebrating(Default::default()),
-                },
-                spell_casting: SpellCasting(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -15859,7 +10625,7 @@ impl Default for EvokerMetadataBundle {
 #[derive(Component)]
 pub struct Illusioner;
 impl Illusioner {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -15883,56 +10649,7 @@ impl Default for IllusionerMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Illusioner,
-            parent: AbstractSpellcasterIllagerMetadataBundle {
-                _marker: AbstractSpellcasterIllager,
-                parent: AbstractRaiderMetadataBundle {
-                    _marker: AbstractRaider,
-                    parent: AbstractMonsterMetadataBundle {
-                        _marker: AbstractMonster,
-                        parent: AbstractCreatureMetadataBundle {
-                            _marker: AbstractCreature,
-                            parent: AbstractInsentientMetadataBundle {
-                                _marker: AbstractInsentient,
-                                parent: AbstractLivingMetadataBundle {
-                                    _marker: AbstractLiving,
-                                    parent: AbstractEntityMetadataBundle {
-                                        _marker: AbstractEntity,
-                                        on_fire: OnFire(false),
-                                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
-                                            false,
-                                        ),
-                                        sprinting: Sprinting(false),
-                                        swimming: Swimming(false),
-                                        currently_glowing: CurrentlyGlowing(false),
-                                        invisible: Invisible(false),
-                                        fall_flying: FallFlying(false),
-                                        air_supply: AirSupply(Default::default()),
-                                        custom_name: CustomName(Default::default()),
-                                        custom_name_visible: CustomNameVisible(Default::default()),
-                                        silent: Silent(Default::default()),
-                                        no_gravity: NoGravity(Default::default()),
-                                        pose: Pose::default(),
-                                        ticks_frozen: TicksFrozen(Default::default()),
-                                    },
-                                    auto_spin_attack: AutoSpinAttack(false),
-                                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                                    health: Health(Default::default()),
-                                    effect_particles: EffectParticles(Default::default()),
-                                    effect_ambience: EffectAmbience(Default::default()),
-                                    arrow_count: ArrowCount(Default::default()),
-                                    stinger_count: StingerCount(Default::default()),
-                                    sleeping_pos: SleepingPos(Default::default()),
-                                },
-                                no_ai: NoAi(false),
-                                left_handed: LeftHanded(false),
-                                aggressive: Aggressive(false),
-                            },
-                        },
-                    },
-                    is_celebrating: IsCelebrating(Default::default()),
-                },
-                spell_casting: SpellCasting(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -15968,7 +10685,7 @@ pub struct AbstractThrownItemProjectileItemStack(pub ItemStack);
 #[derive(Component)]
 pub struct AbstractThrownItemProjectile;
 impl AbstractThrownItemProjectile {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -15998,23 +10715,7 @@ impl Default for AbstractThrownItemProjectileMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractThrownItemProjectile,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             abstract_thrown_item_projectile_item_stack: AbstractThrownItemProjectileItemStack(
                 Default::default(),
             ),
@@ -16043,7 +10744,7 @@ impl Default for AbstractThrownItemProjectileMetadataBundle {
 #[derive(Component)]
 pub struct Egg;
 impl Egg {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -16067,29 +10768,7 @@ impl Default for EggMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Egg,
-            parent: AbstractThrownItemProjectileMetadataBundle {
-                _marker: AbstractThrownItemProjectile,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
-                },
-                abstract_thrown_item_projectile_item_stack: AbstractThrownItemProjectileItemStack(
-                    Default::default(),
-                ),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -16115,7 +10794,7 @@ impl Default for EggMetadataBundle {
 #[derive(Component)]
 pub struct EnderPearl;
 impl EnderPearl {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -16139,29 +10818,7 @@ impl Default for EnderPearlMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: EnderPearl,
-            parent: AbstractThrownItemProjectileMetadataBundle {
-                _marker: AbstractThrownItemProjectile,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
-                },
-                abstract_thrown_item_projectile_item_stack: AbstractThrownItemProjectileItemStack(
-                    Default::default(),
-                ),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -16187,7 +10844,7 @@ impl Default for EnderPearlMetadataBundle {
 #[derive(Component)]
 pub struct ExperienceBottle;
 impl ExperienceBottle {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -16211,29 +10868,7 @@ impl Default for ExperienceBottleMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: ExperienceBottle,
-            parent: AbstractThrownItemProjectileMetadataBundle {
-                _marker: AbstractThrownItemProjectile,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
-                },
-                abstract_thrown_item_projectile_item_stack: AbstractThrownItemProjectileItemStack(
-                    Default::default(),
-                ),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -16259,7 +10894,7 @@ impl Default for ExperienceBottleMetadataBundle {
 #[derive(Component)]
 pub struct LingeringPotion;
 impl LingeringPotion {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -16283,29 +10918,7 @@ impl Default for LingeringPotionMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: LingeringPotion,
-            parent: AbstractThrownItemProjectileMetadataBundle {
-                _marker: AbstractThrownItemProjectile,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
-                },
-                abstract_thrown_item_projectile_item_stack: AbstractThrownItemProjectileItemStack(
-                    Default::default(),
-                ),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -16331,7 +10944,7 @@ impl Default for LingeringPotionMetadataBundle {
 #[derive(Component)]
 pub struct Snowball;
 impl Snowball {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -16355,29 +10968,7 @@ impl Default for SnowballMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Snowball,
-            parent: AbstractThrownItemProjectileMetadataBundle {
-                _marker: AbstractThrownItemProjectile,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
-                },
-                abstract_thrown_item_projectile_item_stack: AbstractThrownItemProjectileItemStack(
-                    Default::default(),
-                ),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -16403,7 +10994,7 @@ impl Default for SnowballMetadataBundle {
 #[derive(Component)]
 pub struct SplashPotion;
 impl SplashPotion {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -16427,29 +11018,7 @@ impl Default for SplashPotionMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: SplashPotion,
-            parent: AbstractThrownItemProjectileMetadataBundle {
-                _marker: AbstractThrownItemProjectile,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
-                },
-                abstract_thrown_item_projectile_item_stack: AbstractThrownItemProjectileItemStack(
-                    Default::default(),
-                ),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -16516,7 +11085,7 @@ pub struct Damage(pub f32);
 #[derive(Component)]
 pub struct AbstractVehicle;
 impl AbstractVehicle {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -16552,23 +11121,7 @@ impl Default for AbstractVehicleMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractVehicle,
-            parent: AbstractEntityMetadataBundle {
-                _marker: AbstractEntity,
-                on_fire: OnFire(false),
-                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                sprinting: Sprinting(false),
-                swimming: Swimming(false),
-                currently_glowing: CurrentlyGlowing(false),
-                invisible: Invisible(false),
-                fall_flying: FallFlying(false),
-                air_supply: AirSupply(Default::default()),
-                custom_name: CustomName(Default::default()),
-                custom_name_visible: CustomNameVisible(Default::default()),
-                silent: Silent(Default::default()),
-                no_gravity: NoGravity(Default::default()),
-                pose: Pose::default(),
-                ticks_frozen: TicksFrozen(Default::default()),
-            },
+            parent: Default::default(),
             hurt: Hurt(Default::default()),
             hurtdir: Hurtdir(Default::default()),
             damage: Damage(Default::default()),
@@ -16630,7 +11183,7 @@ pub struct BubbleTime(pub i32);
 #[derive(Component)]
 pub struct AbstractBoat;
 impl AbstractBoat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -16666,29 +11219,7 @@ impl Default for AbstractBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractBoat,
-            parent: AbstractVehicleMetadataBundle {
-                _marker: AbstractVehicle,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
-                },
-                hurt: Hurt(Default::default()),
-                hurtdir: Hurtdir(Default::default()),
-                damage: Damage(Default::default()),
-            },
+            parent: Default::default(),
             paddle_left: PaddleLeft(Default::default()),
             paddle_right: PaddleRight(Default::default()),
             bubble_time: BubbleTime(Default::default()),
@@ -16718,7 +11249,7 @@ impl Default for AbstractBoatMetadataBundle {
 #[derive(Component)]
 pub struct AcaciaBoat;
 impl AcaciaBoat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -16742,35 +11273,7 @@ impl Default for AcaciaBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AcaciaBoat,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(Default::default()),
-                    hurtdir: Hurtdir(Default::default()),
-                    damage: Damage(Default::default()),
-                },
-                paddle_left: PaddleLeft(Default::default()),
-                paddle_right: PaddleRight(Default::default()),
-                bubble_time: BubbleTime(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -16797,7 +11300,7 @@ impl Default for AcaciaBoatMetadataBundle {
 #[derive(Component)]
 pub struct AcaciaChestBoat;
 impl AcaciaChestBoat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -16821,35 +11324,7 @@ impl Default for AcaciaChestBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AcaciaChestBoat,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(Default::default()),
-                    hurtdir: Hurtdir(Default::default()),
-                    damage: Damage(Default::default()),
-                },
-                paddle_left: PaddleLeft(Default::default()),
-                paddle_right: PaddleRight(Default::default()),
-                bubble_time: BubbleTime(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -16876,7 +11351,7 @@ impl Default for AcaciaChestBoatMetadataBundle {
 #[derive(Component)]
 pub struct BambooChestRaft;
 impl BambooChestRaft {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -16900,35 +11375,7 @@ impl Default for BambooChestRaftMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: BambooChestRaft,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(Default::default()),
-                    hurtdir: Hurtdir(Default::default()),
-                    damage: Damage(Default::default()),
-                },
-                paddle_left: PaddleLeft(Default::default()),
-                paddle_right: PaddleRight(Default::default()),
-                bubble_time: BubbleTime(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -16955,7 +11402,7 @@ impl Default for BambooChestRaftMetadataBundle {
 #[derive(Component)]
 pub struct BambooRaft;
 impl BambooRaft {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -16979,35 +11426,7 @@ impl Default for BambooRaftMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: BambooRaft,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(Default::default()),
-                    hurtdir: Hurtdir(Default::default()),
-                    damage: Damage(Default::default()),
-                },
-                paddle_left: PaddleLeft(Default::default()),
-                paddle_right: PaddleRight(Default::default()),
-                bubble_time: BubbleTime(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -17034,7 +11453,7 @@ impl Default for BambooRaftMetadataBundle {
 #[derive(Component)]
 pub struct BirchBoat;
 impl BirchBoat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -17058,35 +11477,7 @@ impl Default for BirchBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: BirchBoat,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(Default::default()),
-                    hurtdir: Hurtdir(Default::default()),
-                    damage: Damage(Default::default()),
-                },
-                paddle_left: PaddleLeft(Default::default()),
-                paddle_right: PaddleRight(Default::default()),
-                bubble_time: BubbleTime(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -17113,7 +11504,7 @@ impl Default for BirchBoatMetadataBundle {
 #[derive(Component)]
 pub struct BirchChestBoat;
 impl BirchChestBoat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -17137,35 +11528,7 @@ impl Default for BirchChestBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: BirchChestBoat,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(Default::default()),
-                    hurtdir: Hurtdir(Default::default()),
-                    damage: Damage(Default::default()),
-                },
-                paddle_left: PaddleLeft(Default::default()),
-                paddle_right: PaddleRight(Default::default()),
-                bubble_time: BubbleTime(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -17192,7 +11555,7 @@ impl Default for BirchChestBoatMetadataBundle {
 #[derive(Component)]
 pub struct CherryBoat;
 impl CherryBoat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -17216,35 +11579,7 @@ impl Default for CherryBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: CherryBoat,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(Default::default()),
-                    hurtdir: Hurtdir(Default::default()),
-                    damage: Damage(Default::default()),
-                },
-                paddle_left: PaddleLeft(Default::default()),
-                paddle_right: PaddleRight(Default::default()),
-                bubble_time: BubbleTime(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -17271,7 +11606,7 @@ impl Default for CherryBoatMetadataBundle {
 #[derive(Component)]
 pub struct CherryChestBoat;
 impl CherryChestBoat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -17295,35 +11630,7 @@ impl Default for CherryChestBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: CherryChestBoat,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(Default::default()),
-                    hurtdir: Hurtdir(Default::default()),
-                    damage: Damage(Default::default()),
-                },
-                paddle_left: PaddleLeft(Default::default()),
-                paddle_right: PaddleRight(Default::default()),
-                bubble_time: BubbleTime(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -17350,7 +11657,7 @@ impl Default for CherryChestBoatMetadataBundle {
 #[derive(Component)]
 pub struct DarkOakBoat;
 impl DarkOakBoat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -17374,35 +11681,7 @@ impl Default for DarkOakBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: DarkOakBoat,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(Default::default()),
-                    hurtdir: Hurtdir(Default::default()),
-                    damage: Damage(Default::default()),
-                },
-                paddle_left: PaddleLeft(Default::default()),
-                paddle_right: PaddleRight(Default::default()),
-                bubble_time: BubbleTime(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -17429,7 +11708,7 @@ impl Default for DarkOakBoatMetadataBundle {
 #[derive(Component)]
 pub struct DarkOakChestBoat;
 impl DarkOakChestBoat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -17453,35 +11732,7 @@ impl Default for DarkOakChestBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: DarkOakChestBoat,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(Default::default()),
-                    hurtdir: Hurtdir(Default::default()),
-                    damage: Damage(Default::default()),
-                },
-                paddle_left: PaddleLeft(Default::default()),
-                paddle_right: PaddleRight(Default::default()),
-                bubble_time: BubbleTime(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -17508,7 +11759,7 @@ impl Default for DarkOakChestBoatMetadataBundle {
 #[derive(Component)]
 pub struct JungleBoat;
 impl JungleBoat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -17532,35 +11783,7 @@ impl Default for JungleBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: JungleBoat,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(Default::default()),
-                    hurtdir: Hurtdir(Default::default()),
-                    damage: Damage(Default::default()),
-                },
-                paddle_left: PaddleLeft(Default::default()),
-                paddle_right: PaddleRight(Default::default()),
-                bubble_time: BubbleTime(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -17587,7 +11810,7 @@ impl Default for JungleBoatMetadataBundle {
 #[derive(Component)]
 pub struct JungleChestBoat;
 impl JungleChestBoat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -17611,35 +11834,7 @@ impl Default for JungleChestBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: JungleChestBoat,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(Default::default()),
-                    hurtdir: Hurtdir(Default::default()),
-                    damage: Damage(Default::default()),
-                },
-                paddle_left: PaddleLeft(Default::default()),
-                paddle_right: PaddleRight(Default::default()),
-                bubble_time: BubbleTime(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -17666,7 +11861,7 @@ impl Default for JungleChestBoatMetadataBundle {
 #[derive(Component)]
 pub struct MangroveBoat;
 impl MangroveBoat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -17690,35 +11885,7 @@ impl Default for MangroveBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: MangroveBoat,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(Default::default()),
-                    hurtdir: Hurtdir(Default::default()),
-                    damage: Damage(Default::default()),
-                },
-                paddle_left: PaddleLeft(Default::default()),
-                paddle_right: PaddleRight(Default::default()),
-                bubble_time: BubbleTime(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -17745,7 +11912,7 @@ impl Default for MangroveBoatMetadataBundle {
 #[derive(Component)]
 pub struct MangroveChestBoat;
 impl MangroveChestBoat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -17769,35 +11936,7 @@ impl Default for MangroveChestBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: MangroveChestBoat,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(Default::default()),
-                    hurtdir: Hurtdir(Default::default()),
-                    damage: Damage(Default::default()),
-                },
-                paddle_left: PaddleLeft(Default::default()),
-                paddle_right: PaddleRight(Default::default()),
-                bubble_time: BubbleTime(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -17824,7 +11963,7 @@ impl Default for MangroveChestBoatMetadataBundle {
 #[derive(Component)]
 pub struct OakBoat;
 impl OakBoat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -17848,35 +11987,7 @@ impl Default for OakBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: OakBoat,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(Default::default()),
-                    hurtdir: Hurtdir(Default::default()),
-                    damage: Damage(Default::default()),
-                },
-                paddle_left: PaddleLeft(Default::default()),
-                paddle_right: PaddleRight(Default::default()),
-                bubble_time: BubbleTime(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -17903,7 +12014,7 @@ impl Default for OakBoatMetadataBundle {
 #[derive(Component)]
 pub struct OakChestBoat;
 impl OakChestBoat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -17927,35 +12038,7 @@ impl Default for OakChestBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: OakChestBoat,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(Default::default()),
-                    hurtdir: Hurtdir(Default::default()),
-                    damage: Damage(Default::default()),
-                },
-                paddle_left: PaddleLeft(Default::default()),
-                paddle_right: PaddleRight(Default::default()),
-                bubble_time: BubbleTime(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -17982,7 +12065,7 @@ impl Default for OakChestBoatMetadataBundle {
 #[derive(Component)]
 pub struct PaleOakBoat;
 impl PaleOakBoat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -18006,35 +12089,7 @@ impl Default for PaleOakBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: PaleOakBoat,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(Default::default()),
-                    hurtdir: Hurtdir(Default::default()),
-                    damage: Damage(Default::default()),
-                },
-                paddle_left: PaddleLeft(Default::default()),
-                paddle_right: PaddleRight(Default::default()),
-                bubble_time: BubbleTime(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -18061,7 +12116,7 @@ impl Default for PaleOakBoatMetadataBundle {
 #[derive(Component)]
 pub struct PaleOakChestBoat;
 impl PaleOakChestBoat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -18085,35 +12140,7 @@ impl Default for PaleOakChestBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: PaleOakChestBoat,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(Default::default()),
-                    hurtdir: Hurtdir(Default::default()),
-                    damage: Damage(Default::default()),
-                },
-                paddle_left: PaddleLeft(Default::default()),
-                paddle_right: PaddleRight(Default::default()),
-                bubble_time: BubbleTime(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -18140,7 +12167,7 @@ impl Default for PaleOakChestBoatMetadataBundle {
 #[derive(Component)]
 pub struct SpruceBoat;
 impl SpruceBoat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -18164,35 +12191,7 @@ impl Default for SpruceBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: SpruceBoat,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(Default::default()),
-                    hurtdir: Hurtdir(Default::default()),
-                    damage: Damage(Default::default()),
-                },
-                paddle_left: PaddleLeft(Default::default()),
-                paddle_right: PaddleRight(Default::default()),
-                bubble_time: BubbleTime(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -18219,7 +12218,7 @@ impl Default for SpruceBoatMetadataBundle {
 #[derive(Component)]
 pub struct SpruceChestBoat;
 impl SpruceChestBoat {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -18243,35 +12242,7 @@ impl Default for SpruceChestBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: SpruceChestBoat,
-            parent: AbstractBoatMetadataBundle {
-                _marker: AbstractBoat,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(Default::default()),
-                    hurtdir: Hurtdir(Default::default()),
-                    damage: Damage(Default::default()),
-                },
-                paddle_left: PaddleLeft(Default::default()),
-                paddle_right: PaddleRight(Default::default()),
-                bubble_time: BubbleTime(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -18313,7 +12284,7 @@ pub struct DisplayOffset(pub i32);
 #[derive(Component)]
 pub struct AbstractMinecart;
 impl AbstractMinecart {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -18345,29 +12316,7 @@ impl Default for AbstractMinecartMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: AbstractMinecart,
-            parent: AbstractVehicleMetadataBundle {
-                _marker: AbstractVehicle,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
-                },
-                hurt: Hurt(Default::default()),
-                hurtdir: Hurtdir(Default::default()),
-                damage: Damage(Default::default()),
-            },
+            parent: Default::default(),
             custom_display_block: CustomDisplayBlock(Default::default()),
             display_offset: DisplayOffset(Default::default()),
         }
@@ -18396,7 +12345,7 @@ impl Default for AbstractMinecartMetadataBundle {
 #[derive(Component)]
 pub struct ChestMinecart;
 impl ChestMinecart {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -18420,44 +12369,17 @@ impl Default for ChestMinecartMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: ChestMinecart,
-            parent: AbstractMinecartMetadataBundle {
-                _marker: AbstractMinecart,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(Default::default()),
-                    hurtdir: Hurtdir(Default::default()),
-                    damage: Damage(Default::default()),
-                },
-                custom_display_block: CustomDisplayBlock(Default::default()),
-                display_offset: DisplayOffset(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
 
 /// A metadata field for [CommandBlockMinecart].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct CommandName(pub String);
+pub struct CommandName(pub Box<str>);
 /// A metadata field for [CommandBlockMinecart].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct LastOutput(pub FormattedText);
+pub struct LastOutput(pub Box<FormattedText>);
 /// The marker component for entities of type
 /// `minecraft:command_block_minecart`.
 ///
@@ -18485,7 +12407,7 @@ pub struct LastOutput(pub FormattedText);
 #[derive(Component)]
 pub struct CommandBlockMinecart;
 impl CommandBlockMinecart {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -18517,34 +12439,7 @@ impl Default for CommandBlockMinecartMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: CommandBlockMinecart,
-            parent: AbstractMinecartMetadataBundle {
-                _marker: AbstractMinecart,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(Default::default()),
-                    hurtdir: Hurtdir(Default::default()),
-                    damage: Damage(Default::default()),
-                },
-                custom_display_block: CustomDisplayBlock(Default::default()),
-                display_offset: DisplayOffset(Default::default()),
-            },
+            parent: Default::default(),
             command_name: CommandName(Default::default()),
             last_output: LastOutput(Default::default()),
         }
@@ -18579,7 +12474,7 @@ pub struct Fuel(pub bool);
 #[derive(Component)]
 pub struct FurnaceMinecart;
 impl FurnaceMinecart {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -18607,34 +12502,7 @@ impl Default for FurnaceMinecartMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: FurnaceMinecart,
-            parent: AbstractMinecartMetadataBundle {
-                _marker: AbstractMinecart,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(Default::default()),
-                    hurtdir: Hurtdir(Default::default()),
-                    damage: Damage(Default::default()),
-                },
-                custom_display_block: CustomDisplayBlock(Default::default()),
-                display_offset: DisplayOffset(Default::default()),
-            },
+            parent: Default::default(),
             fuel: Fuel(Default::default()),
         }
     }
@@ -18662,7 +12530,7 @@ impl Default for FurnaceMinecartMetadataBundle {
 #[derive(Component)]
 pub struct HopperMinecart;
 impl HopperMinecart {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -18686,34 +12554,7 @@ impl Default for HopperMinecartMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: HopperMinecart,
-            parent: AbstractMinecartMetadataBundle {
-                _marker: AbstractMinecart,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(Default::default()),
-                    hurtdir: Hurtdir(Default::default()),
-                    damage: Damage(Default::default()),
-                },
-                custom_display_block: CustomDisplayBlock(Default::default()),
-                display_offset: DisplayOffset(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -18740,7 +12581,7 @@ impl Default for HopperMinecartMetadataBundle {
 #[derive(Component)]
 pub struct Minecart;
 impl Minecart {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -18764,34 +12605,7 @@ impl Default for MinecartMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Minecart,
-            parent: AbstractMinecartMetadataBundle {
-                _marker: AbstractMinecart,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(Default::default()),
-                    hurtdir: Hurtdir(Default::default()),
-                    damage: Damage(Default::default()),
-                },
-                custom_display_block: CustomDisplayBlock(Default::default()),
-                display_offset: DisplayOffset(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -18818,7 +12632,7 @@ impl Default for MinecartMetadataBundle {
 #[derive(Component)]
 pub struct SpawnerMinecart;
 impl SpawnerMinecart {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -18842,34 +12656,7 @@ impl Default for SpawnerMinecartMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: SpawnerMinecart,
-            parent: AbstractMinecartMetadataBundle {
-                _marker: AbstractMinecart,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(Default::default()),
-                    hurtdir: Hurtdir(Default::default()),
-                    damage: Damage(Default::default()),
-                },
-                custom_display_block: CustomDisplayBlock(Default::default()),
-                display_offset: DisplayOffset(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }
@@ -18896,7 +12683,7 @@ impl Default for SpawnerMinecartMetadataBundle {
 #[derive(Component)]
 pub struct TntMinecart;
 impl TntMinecart {
-    pub fn apply_metadata(
+    fn apply_metadata(
         entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
@@ -18920,34 +12707,7 @@ impl Default for TntMinecartMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: TntMinecart,
-            parent: AbstractMinecartMetadataBundle {
-                _marker: AbstractMinecart,
-                parent: AbstractVehicleMetadataBundle {
-                    _marker: AbstractVehicle,
-                    parent: AbstractEntityMetadataBundle {
-                        _marker: AbstractEntity,
-                        on_fire: OnFire(false),
-                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                        sprinting: Sprinting(false),
-                        swimming: Swimming(false),
-                        currently_glowing: CurrentlyGlowing(false),
-                        invisible: Invisible(false),
-                        fall_flying: FallFlying(false),
-                        air_supply: AirSupply(Default::default()),
-                        custom_name: CustomName(Default::default()),
-                        custom_name_visible: CustomNameVisible(Default::default()),
-                        silent: Silent(Default::default()),
-                        no_gravity: NoGravity(Default::default()),
-                        pose: Pose::default(),
-                        ticks_frozen: TicksFrozen(Default::default()),
-                    },
-                    hurt: Hurt(Default::default()),
-                    hurtdir: Hurtdir(Default::default()),
-                    damage: Damage(Default::default()),
-                },
-                custom_display_block: CustomDisplayBlock(Default::default()),
-                display_offset: DisplayOffset(Default::default()),
-            },
+            parent: Default::default(),
         }
     }
 }

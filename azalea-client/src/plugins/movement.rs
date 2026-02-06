@@ -1,4 +1,5 @@
 use azalea_core::{
+    entity_id::MinecraftEntityId,
     game_type::GameMode,
     position::{Vec2, Vec3},
     tick::GameTick,
@@ -30,13 +31,12 @@ use azalea_protocol::{
     },
 };
 use azalea_registry::builtin::EntityKind;
-use azalea_world::{Instance, MinecraftEntityId};
+use azalea_world::World;
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 
 use crate::{
-    client::Client,
-    local_player::{Hunger, InstanceHolder, LocalGameMode},
+    local_player::{Hunger, LocalGameMode, WorldHolder},
     packet::game::SendGamePacketEvent,
 };
 
@@ -76,55 +76,6 @@ impl Plugin for MovementPlugin {
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq, SystemSet)]
 pub struct MoveEventsSystems;
-
-impl Client {
-    /// Set whether we're jumping. This acts as if you held space in
-    /// vanilla.
-    ///
-    /// If you want to jump once, use the `jump` function in `azalea`.
-    ///
-    /// If you're making a realistic client, calling this function every tick is
-    /// recommended.
-    pub fn set_jumping(&self, jumping: bool) {
-        self.query_self::<&mut Jumping, _>(|mut j| **j = jumping);
-    }
-
-    /// Returns whether the player will try to jump next tick.
-    pub fn jumping(&self) -> bool {
-        *self.component::<Jumping>()
-    }
-
-    pub fn set_crouching(&self, crouching: bool) {
-        self.query_self::<&mut PhysicsState, _>(|mut p| p.trying_to_crouch = crouching);
-    }
-
-    /// Whether the client is currently trying to sneak.
-    ///
-    /// You may want to check the [`Pose`] instead.
-    pub fn crouching(&self) -> bool {
-        self.query_self::<&PhysicsState, _>(|p| p.trying_to_crouch)
-    }
-
-    /// Sets the direction the client is looking.
-    ///
-    /// `y_rot` is yaw (looking to the side, between -180 to 180), and `x_rot`
-    /// is pitch (looking up and down, between -90 to 90).
-    ///
-    /// You can get these numbers from the vanilla f3 screen.
-    pub fn set_direction(&self, y_rot: f32, x_rot: f32) {
-        self.query_self::<&mut LookDirection, _>(|mut ld| {
-            ld.update(LookDirection::new(y_rot, x_rot));
-        });
-    }
-
-    /// Returns the direction the client is looking.
-    ///
-    /// See [`Self::set_direction`] for more details.
-    pub fn direction(&self) -> (f32, f32) {
-        let look_direction: LookDirection = self.component::<LookDirection>();
-        (look_direction.y_rot(), look_direction.x_rot())
-    }
-}
 
 /// A component that contains the look direction that was last sent over the
 /// network.
@@ -345,7 +296,7 @@ pub fn local_player_ai_step(
             &PlayerAbilities,
             &metadata::Swimming,
             &metadata::SleepingPos,
-            &InstanceHolder,
+            &WorldHolder,
             &Position,
             Option<&Hunger>,
             Option<&LastSentInput>,
@@ -365,7 +316,7 @@ pub fn local_player_ai_step(
         abilities,
         swimming,
         sleeping_pos,
-        instance_holder,
+        world_holder,
         position,
         hunger,
         last_sent_input,
@@ -382,7 +333,7 @@ pub fn local_player_ai_step(
         let is_passenger = false;
         let is_sleeping = sleeping_pos.is_some();
 
-        let world = instance_holder.instance.read();
+        let world = world_holder.shared.read();
         let ctx = CanPlayerFitCtx {
             world: &world,
             entity,
@@ -395,10 +346,10 @@ pub fn local_player_ai_step(
         let new_crouching = !abilities.flying
             && !is_swimming
             && !is_passenger
-            && can_player_fit_within_blocks_and_entities_when(&ctx, Pose::Crouching)
             && (last_sent_input.is_some_and(|i| i.0.shift)
                 || !is_sleeping
-                    && !can_player_fit_within_blocks_and_entities_when(&ctx, Pose::Standing));
+                    && !can_player_fit_within_blocks_and_entities_when(&ctx, Pose::Standing))
+            && can_player_fit_within_blocks_and_entities_when(&ctx, Pose::Crouching);
         if **crouching != new_crouching {
             **crouching = new_crouching;
         }
@@ -513,57 +464,6 @@ fn distance_to_unit_square(v: Vec2) -> f32 {
     let y = v.y.abs();
     let ratio = if y > x { x / y } else { y / x };
     (1. + ratio * ratio).sqrt()
-}
-
-impl Client {
-    /// Start walking in the given direction.
-    ///
-    /// To sprint, use [`Client::sprint`]. To stop walking, call walk with
-    /// [`WalkDirection::None`].
-    ///
-    /// # Example
-    ///
-    /// ```rust,no_run
-    /// # use azalea_client::{Client, WalkDirection};
-    /// # use std::time::Duration;
-    /// # async fn example(mut bot: Client) {
-    /// // walk for one second
-    /// bot.walk(WalkDirection::Forward);
-    /// tokio::time::sleep(Duration::from_secs(1)).await;
-    /// bot.walk(WalkDirection::None);
-    /// # }
-    /// ```
-    pub fn walk(&self, direction: WalkDirection) {
-        let mut ecs = self.ecs.lock();
-        ecs.write_message(StartWalkEvent {
-            entity: self.entity,
-            direction,
-        });
-    }
-
-    /// Start sprinting in the given direction.
-    ///
-    /// o stop moving, call [`bot.walk(WalkDirection::None)`](Self::walk)
-    ///
-    /// # Example
-    ///
-    /// ```rust,no_run
-    /// # use azalea_client::{Client, WalkDirection, SprintDirection};
-    /// # use std::time::Duration;
-    /// # async fn example(mut bot: Client) {
-    /// // sprint for one second
-    /// bot.sprint(SprintDirection::Forward);
-    /// tokio::time::sleep(Duration::from_secs(1)).await;
-    /// bot.walk(WalkDirection::None);
-    /// # }
-    /// ```
-    pub fn sprint(&self, direction: SprintDirection) {
-        let mut ecs = self.ecs.lock();
-        ecs.write_message(StartSprintEvent {
-            entity: self.entity,
-            direction,
-        });
-    }
 }
 
 /// An event sent when the client starts walking.
@@ -687,16 +587,16 @@ pub fn update_pose(
         &Physics,
         &PhysicsState,
         &LocalGameMode,
-        &InstanceHolder,
+        &WorldHolder,
         &Position,
     )>,
     aabb_query: AabbQuery,
     collidable_entity_query: CollidableEntityQuery,
 ) {
-    for (entity, mut pose, physics, physics_state, game_mode, instance_holder, position) in
+    for (entity, mut pose, physics, physics_state, game_mode, world_holder, position) in
         query.iter_mut()
     {
-        let world = instance_holder.instance.read();
+        let world = world_holder.shared.read();
         let world = &*world;
         let ctx = CanPlayerFitCtx {
             world,
@@ -742,7 +642,7 @@ pub fn update_pose(
 }
 
 struct CanPlayerFitCtx<'world, 'state, 'a, 'b> {
-    world: &'a Instance,
+    world: &'a World,
     entity: Entity,
     position: Position,
     aabb_query: &'a AabbQuery<'world, 'state, 'b>,
@@ -750,15 +650,15 @@ struct CanPlayerFitCtx<'world, 'state, 'a, 'b> {
     physics: &'a Physics,
 }
 fn can_player_fit_within_blocks_and_entities_when(ctx: &CanPlayerFitCtx, pose: Pose) -> bool {
-    // return this.level().noCollision(this,
-    // this.getDimensions(var1).makeBoundingBox(this.position()).deflate(1.0E-7));
     no_collision(
         ctx.world,
         Some(ctx.entity),
         ctx.aabb_query,
         ctx.collidable_entity_query,
         ctx.physics,
-        &calculate_dimensions(EntityKind::Player, pose).make_bounding_box(*ctx.position),
+        &calculate_dimensions(EntityKind::Player, pose)
+            .make_bounding_box(*ctx.position)
+            .deflate_all(1.0e-7),
         false,
     )
 }

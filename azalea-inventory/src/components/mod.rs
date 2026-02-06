@@ -9,7 +9,7 @@ use std::{
     mem::ManuallyDrop,
 };
 
-use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
+use azalea_buf::{AzBuf, BufReadError};
 use azalea_chat::FormattedText;
 use azalea_core::{
     attribute_modifier_operation::AttributeModifierOperation,
@@ -54,7 +54,7 @@ pub trait EncodableDataComponent: Send + Sync + Any {
 
 impl<T> EncodableDataComponent for T
 where
-    T: DataComponentTrait + Clone + AzaleaWrite + AzaleaRead + PartialEq,
+    T: DataComponentTrait + Clone + AzBuf + PartialEq,
 {
     fn encode(&self, buf: &mut Vec<u8>) -> io::Result<()> {
         self.azalea_write(buf)
@@ -128,7 +128,8 @@ macro_rules! define_data_components {
 
                 Ok(match kind {
                     $( DataComponentKind::$x => {
-                        Self { $x: ManuallyDrop::new($x::azalea_read(buf)?) }
+                        let v = $x::azalea_read(buf)?;
+                        Self { $x: ManuallyDrop::new(v) }
                     }, )*
                 })
             }
@@ -1133,6 +1134,8 @@ impl EquipmentSlot {
             3 => Self::Legs,
             4 => Self::Chest,
             5 => Self::Head,
+            6 => Self::Body,
+            7 => Self::Saddle,
             _ => return None,
         };
         Some(value)
@@ -1897,10 +1900,11 @@ impl Default for AttackRange {
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct AdditionalTradeCost {
-    pub todo: todo!(), // see DataComponents.java
+    #[var]
+    pub cost: i32,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct Dye {
-    pub todo: todo!(), // see DataComponents.java
+    pub color: DyeColor,
 }

@@ -41,9 +41,9 @@ impl<R: Registry + 'static> RegistryTag<R> {
         // TODO: tune this number; when does binary search actually start making a
         // difference?
         if self.entries.len() > 64 {
-            self.linear_search_find(value)
-        } else {
             self.binary_search_find(value)
+        } else {
+            self.linear_search_find(value)
         }
     }
     fn linear_search_find(&self, value: &R) -> Option<usize> {

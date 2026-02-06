@@ -5,8 +5,8 @@ use std::{
     fmt::{self, Debug},
 };
 
-use azalea_core::position::ChunkPos;
-use azalea_world::{Instance, InstanceContainer, InstanceName, MinecraftEntityId};
+use azalea_core::{entity_id::MinecraftEntityId, position::ChunkPos};
+use azalea_world::{World, WorldName, Worlds};
 use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
 use nohash_hasher::IntMap;
@@ -48,10 +48,10 @@ impl EntityUuidIndex {
 /// An index of Minecraft entity IDs to Azalea ECS entities.
 ///
 /// This is a `Component` so local players can keep track of entity IDs
-/// independently from the instance.
+/// independently from the world.
 ///
-/// If you need a per-instance instead of per-client version of this, you can
-/// use [`Instance::entity_by_id`].
+/// If you need a per-world instead of per-client version of this, you can
+/// use [`World::entity_by_id`].
 #[derive(Component, Default)]
 pub struct EntityIdIndex {
     /// An index of entities by their MinecraftEntityId
@@ -105,7 +105,7 @@ impl EntityIdIndex {
         } else {
             // this is expected to happen when despawning entities if it was already
             // despawned for another reason (like because the client received a
-            // remove_entities packet, or if we're in a shared instance where entity ids are
+            // remove_entities packet, or if we're in a shared world where entity ids are
             // different for each client)
             trace!(
                 "Failed to remove {entity:?} from a client's EntityIdIndex (using EntityIdIndex::remove_by_ecs_entity). This may be expected behavior."
@@ -125,30 +125,30 @@ impl Debug for EntityUuidIndex {
 #[derive(Component, Debug, Deref, DerefMut)]
 pub struct EntityChunkPos(pub ChunkPos);
 
-/// Update the chunk position indexes in [`Instance::entities_by_chunk`].
+/// Update the chunk position indexes in [`World::entities_by_chunk`].
 ///
-/// [`Instance::entities_by_chunk`]: azalea_world::Instance::entities_by_chunk
+/// [`World::entities_by_chunk`]: azalea_world::World::entities_by_chunk
 pub fn update_entity_chunk_positions(
-    mut query: Query<(Entity, &Position, &InstanceName, &mut EntityChunkPos), Changed<Position>>,
-    instance_container: Res<InstanceContainer>,
+    mut query: Query<(Entity, &Position, &WorldName, &mut EntityChunkPos), Changed<Position>>,
+    worlds: Res<Worlds>,
 ) {
-    for (entity, pos, instance_name, mut entity_chunk_pos) in query.iter_mut() {
+    for (entity, pos, world_name, mut entity_chunk_pos) in query.iter_mut() {
         let old_chunk = **entity_chunk_pos;
         let new_chunk = ChunkPos::from(*pos);
         if old_chunk != new_chunk {
             **entity_chunk_pos = new_chunk;
 
             if old_chunk != new_chunk {
-                let Some(instance_lock) = instance_container.get(instance_name) else {
+                let Some(world_lock) = worlds.get(world_name) else {
                     continue;
                 };
-                let mut instance = instance_lock.write();
+                let mut world = world_lock.write();
 
                 // move the entity from the old chunk to the new one
-                if let Some(entities) = instance.entities_by_chunk.get_mut(&old_chunk) {
+                if let Some(entities) = world.entities_by_chunk.get_mut(&old_chunk) {
                     entities.remove(&entity);
                 }
-                instance
+                world
                     .entities_by_chunk
                     .entry(new_chunk)
                     .or_default()
@@ -159,20 +159,20 @@ pub fn update_entity_chunk_positions(
     }
 }
 
-/// Insert new entities into [`Instance::entities_by_chunk`].
+/// Insert new entities into [`World::entities_by_chunk`].
 pub fn insert_entity_chunk_position(
-    query: Query<(Entity, &Position, &InstanceName), Added<EntityChunkPos>>,
-    instance_container: Res<InstanceContainer>,
+    query: Query<(Entity, &Position, &WorldName), Added<EntityChunkPos>>,
+    worlds: Res<Worlds>,
 ) {
     for (entity, pos, world_name) in query.iter() {
-        let Some(instance_lock) = instance_container.get(world_name) else {
+        let Some(world_lock) = worlds.get(world_name) else {
             // entity must've been despawned already
             continue;
         };
-        let mut instance = instance_lock.write();
+        let mut world = world_lock.write();
 
         let chunk = ChunkPos::from(*pos);
-        instance
+        world
             .entities_by_chunk
             .entry(chunk)
             .or_default()
@@ -185,26 +185,24 @@ pub fn insert_entity_chunk_position(
 pub fn remove_despawned_entities_from_indexes(
     mut commands: Commands,
     mut entity_uuid_index: ResMut<EntityUuidIndex>,
-    instance_container: Res<InstanceContainer>,
+    worlds: Res<Worlds>,
     query: Query<
         (
             Entity,
             &EntityUuid,
             &MinecraftEntityId,
             &Position,
-            &InstanceName,
+            &WorldName,
             &LoadedBy,
         ),
         (Changed<LoadedBy>, Without<LocalEntity>),
     >,
     mut entity_id_index_query: Query<&mut EntityIdIndex>,
 ) {
-    for (entity, uuid, minecraft_id, position, instance_name, loaded_by) in &query {
-        let Some(instance_lock) = instance_container.get(instance_name) else {
-            // the instance isn't even loaded by us, so we can safely delete the entity
-            debug!(
-                "Despawned entity {entity:?} because it's in an instance that isn't loaded anymore"
-            );
+    for (entity, uuid, minecraft_id, position, world_name, loaded_by) in &query {
+        let Some(world_lock) = worlds.get(world_name) else {
+            // the world isn't even loaded by us, so we can safely delete the entity
+            debug!("Despawned entity {entity:?} because it's in a world that isn't loaded anymore");
             if entity_uuid_index.entity_by_uuid.remove(uuid).is_none() {
                 warn!(
                     "Tried to remove entity {entity:?} from the uuid index but it was not there."
@@ -216,7 +214,7 @@ pub fn remove_despawned_entities_from_indexes(
             continue;
         };
 
-        let mut instance = instance_lock.write();
+        let mut world = world_lock.write();
 
         // if the entity is being loaded by any of our clients, don't despawn it
         if !loaded_by.is_empty() {
@@ -225,17 +223,17 @@ pub fn remove_despawned_entities_from_indexes(
 
         // remove the entity from the chunk index
         let chunk = ChunkPos::from(position);
-        match instance.entities_by_chunk.get_mut(&chunk) {
+        match world.entities_by_chunk.get_mut(&chunk) {
             Some(entities_in_chunk) => {
                 if entities_in_chunk.remove(&entity) {
                     // remove the chunk if there's no entities in it anymore
                     if entities_in_chunk.is_empty() {
-                        instance.entities_by_chunk.remove(&chunk);
+                        world.entities_by_chunk.remove(&chunk);
                     }
                 } else {
                     // search all the other chunks for it :(
                     let mut found_in_other_chunks = HashSet::new();
-                    for (other_chunk, entities_in_other_chunk) in &mut instance.entities_by_chunk {
+                    for (other_chunk, entities_in_other_chunk) in &mut world.entities_by_chunk {
                         if entities_in_other_chunk.remove(&entity) {
                             found_in_other_chunks.insert(other_chunk);
                         }
@@ -253,7 +251,7 @@ pub fn remove_despawned_entities_from_indexes(
             }
             _ => {
                 let mut found_in_other_chunks = HashSet::new();
-                for (other_chunk, entities_in_other_chunk) in &mut instance.entities_by_chunk {
+                for (other_chunk, entities_in_other_chunk) in &mut world.entities_by_chunk {
                     if entities_in_other_chunk.remove(&entity) {
                         found_in_other_chunks.insert(other_chunk);
                     }
@@ -273,9 +271,9 @@ pub fn remove_despawned_entities_from_indexes(
         if entity_uuid_index.entity_by_uuid.remove(uuid).is_none() {
             warn!("Tried to remove entity {entity:?} from the uuid index but it was not there.");
         }
-        if instance.entity_by_id.remove(minecraft_id).is_none() {
+        if world.entity_by_id.remove(minecraft_id).is_none() {
             debug!(
-                "Tried to remove entity {entity:?} from the per-instance entity id index but it was not there. This may be expected if you're in a shared instance."
+                "Tried to remove entity {entity:?} from the per-world entity id index but it was not there. This may be expected if you're in a shared world."
             );
         }
 
@@ -296,16 +294,16 @@ pub fn add_entity_to_indexes(
     entity_uuid: Option<Uuid>,
     entity_id_index: &mut EntityIdIndex,
     entity_uuid_index: &mut EntityUuidIndex,
-    instance: &mut Instance,
+    world: &mut World,
 ) {
     // per-client id index
     entity_id_index.insert(entity_id, ecs_entity);
 
-    // per-instance id index
-    instance.entity_by_id.insert(entity_id, ecs_entity);
+    // per-world id index
+    world.entity_by_id.insert(entity_id, ecs_entity);
 
     if let Some(uuid) = entity_uuid {
-        // per-instance uuid index
+        // per-world uuid index
         entity_uuid_index.insert(uuid, ecs_entity);
     }
 }

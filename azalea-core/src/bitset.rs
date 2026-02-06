@@ -3,12 +3,12 @@ use std::{
     ops::Range,
 };
 
-use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
+use azalea_buf::{AzBuf, BufReadError};
 
 /// Represents Java's BitSet, a list of bits.
 #[derive(AzBuf, Clone, Debug, Default, Eq, Hash, PartialEq)]
 pub struct BitSet {
-    data: Vec<u64>,
+    data: Box<[u64]>,
 }
 
 /// `log2(64)`.
@@ -19,7 +19,7 @@ impl BitSet {
     #[inline]
     pub fn new(num_bits: usize) -> Self {
         BitSet {
-            data: vec![0; num_bits.div_ceil(64)],
+            data: vec![0; num_bits.div_ceil(64)].into(),
         }
     }
 
@@ -155,7 +155,7 @@ impl BitSet {
 
 impl From<Vec<u64>> for BitSet {
     fn from(data: Vec<u64>) -> Self {
-        BitSet { data }
+        BitSet { data: data.into() }
     }
 }
 
@@ -165,7 +165,7 @@ impl From<Vec<u8>> for BitSet {
         for (i, byte) in data.iter().enumerate() {
             words[i / 8] |= (*byte as u64) << ((i % 8) * 8);
         }
-        BitSet { data: words }
+        BitSet { data: words.into() }
     }
 }
 
@@ -176,8 +176,8 @@ impl From<Vec<u8>> for BitSet {
 ///
 /// Note that this is optimized for fast serialization and deserialization for
 /// Minecraft, and may not be as performant as it could be for other purposes.
-/// Consider using [`FastFixedBitSet`] if you don't need the
-/// `AzaleaRead`/`AzaleaWrite` implementation.
+/// Consider using [`FastFixedBitSet`] if you don't need the `AzBuf`
+/// implementation.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct FixedBitSet<const N: usize>
 where
@@ -211,7 +211,7 @@ where
     }
 }
 
-impl<const N: usize> AzaleaRead for FixedBitSet<N>
+impl<const N: usize> AzBuf for FixedBitSet<N>
 where
     [u8; bits_to_bytes(N)]: Sized,
 {
@@ -222,11 +222,6 @@ where
         }
         Ok(FixedBitSet { data })
     }
-}
-impl<const N: usize> AzaleaWrite for FixedBitSet<N>
-where
-    [u8; bits_to_bytes(N)]: Sized,
-{
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         for i in 0..bits_to_bytes(N) {
             self.data[i].azalea_write(buf)?;
@@ -253,7 +248,7 @@ pub const fn bits_to_bytes(n: usize) -> usize {
 /// use it like `FastFixedBitSet<20>` if you need 20 bits.
 ///
 /// This is almost identical to [`FixedBitSet`], but more efficient (~20% faster
-/// access) and doesn't implement `AzaleaRead`/`AzaleaWrite`.
+/// access) and doesn't implement `AzBuf`.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct FastFixedBitSet<const N: usize>
 where

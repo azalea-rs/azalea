@@ -6,7 +6,7 @@ use bevy_ecs::{
 };
 
 use self::game::DeathEvent;
-use crate::{chat::ChatReceivedEvent, events::death_listener};
+use crate::chat::ChatReceivedEvent;
 
 pub mod config;
 pub mod game;
@@ -33,7 +33,7 @@ impl Plugin for PacketPlugin {
         app.add_observer(game::handle_outgoing_packets_observer)
             .add_observer(config::handle_outgoing_packets_observer)
             .add_observer(login::handle_outgoing_packets_observer)
-            .add_systems(Update, death_event_on_0_health.before(death_listener))
+            .add_systems(Update, death_event_on_0_health)
             .add_message::<game::ReceiveGamePacketEvent>()
             .add_message::<config::ReceiveConfigPacketEvent>()
             .add_message::<login::ReceiveLoginPacketEvent>()
@@ -45,7 +45,7 @@ impl Plugin for PacketPlugin {
             .add_message::<game::DeathEvent>()
             .add_message::<game::KeepAliveEvent>()
             .add_message::<game::ResourcePackEvent>()
-            .add_message::<game::InstanceLoadedEvent>()
+            .add_message::<game::WorldLoadedEvent>()
             .add_message::<login::ReceiveCustomQueryEvent>();
     }
 }

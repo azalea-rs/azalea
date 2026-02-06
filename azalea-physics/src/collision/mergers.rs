@@ -7,7 +7,7 @@ use super::CubePointRange;
 #[derive(Debug)]
 pub enum IndexMerger {
     Identical {
-        coords: Vec<f64>,
+        coords: Box<[f64]>,
     },
     DiscreteCube {
         result: CubePointRange,
@@ -15,20 +15,20 @@ pub enum IndexMerger {
         second_div: u32,
     },
     NonOverlapping {
-        lower: Vec<f64>,
-        upper: Vec<f64>,
+        lower: Box<[f64]>,
+        upper: Box<[f64]>,
         swap: bool,
     },
     Indirect {
-        result: Vec<f64>,
-        first_indices: Vec<isize>,
-        second_indices: Vec<isize>,
+        result: Box<[f64]>,
+        first_indices: Box<[isize]>,
+        second_indices: Box<[isize]>,
         result_length: usize,
     },
 }
 
 impl IndexMerger {
-    pub fn get_list(&self) -> Vec<f64> {
+    pub fn get_list(&self) -> Box<[f64]> {
         match self {
             IndexMerger::Identical { coords } => coords.clone(),
             IndexMerger::DiscreteCube { result, .. } => result.iter(),
@@ -47,9 +47,9 @@ impl IndexMerger {
                 ..
             } => {
                 if *result_length <= 1 {
-                    vec![]
+                    Box::new([])
                 } else {
-                    result[..*result_length].to_vec()
+                    result[..*result_length].into()
                 }
             }
         }
@@ -141,9 +141,9 @@ impl IndexMerger {
         let coords1_len = coords1.len();
         let coords2_len = coords2.len();
         let number_of_indices = coords1_len + coords2_len;
-        let mut result = vec![0.0; number_of_indices];
-        let mut first_indices: Vec<isize> = vec![0; number_of_indices];
-        let mut second_indices: Vec<isize> = vec![0; number_of_indices];
+        let mut result = Box::<[f64]>::from(vec![0.; number_of_indices]);
+        let mut first_indices = Box::<[isize]>::from(vec![0; number_of_indices]);
+        let mut second_indices = Box::<[isize]>::from(vec![0; number_of_indices]);
         let var10 = !var3;
         let var11 = !var4;
         let mut var12 = 0;

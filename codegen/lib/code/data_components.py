@@ -359,7 +359,7 @@ use crate::{
                 )
             elif target_rust_type == "ItemStack":
                 item_rust_value = python_to_rust_value(python_value["id"], "ItemKind")
-                count = python_value["count"]
+                count = python_value.get("count", 1)
                 if count == 1:
                     return f"ItemStack::from({item_rust_value})"
                 else:

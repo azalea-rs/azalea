@@ -2,9 +2,10 @@ use std::{
     any::Any,
     fmt::{self, Debug},
     io::{self, Cursor, Write},
+    mem::ManuallyDrop,
 };
 
-use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
+use azalea_buf::{AzBuf, BufReadError};
 use azalea_inventory::{
     DataComponentPatch, ItemStack, ItemStackData,
     components::{self, DataComponentUnion},
@@ -54,8 +55,13 @@ impl ItemCost {
     pub fn into_item_stack(self) -> ItemStackData {
         let mut component_patch = DataComponentPatch::default();
         for component in self.components.expected {
+            let component = ManuallyDrop::new(component);
+            // SAFETY: DataComponentUnion does not run any destructors unless it's dropped
+            // through drop_as, so since TypedDataComponent is now ManuallyDrop, the value
+            // will stay in memory.
+            let value = unsafe { std::ptr::read(&component.value) };
             unsafe {
-                component_patch.unchecked_insert_component(component.kind, Some(component.value));
+                component_patch.unchecked_insert_component(component.kind, Some(value));
             }
         }
         // TODO: add a fast way to iterate over default components, and insert the ones
@@ -101,14 +107,12 @@ impl TypedDataComponent {
         component_any.downcast_ref::<T>()
     }
 }
-impl AzaleaRead for TypedDataComponent {
+impl AzBuf for TypedDataComponent {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let kind = DataComponentKind::azalea_read(buf)?;
         let value = DataComponentUnion::azalea_read_as(kind, buf)?;
         Ok(Self { kind, value })
     }
-}
-impl AzaleaWrite for TypedDataComponent {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         self.kind.azalea_write(buf)?;
         unsafe { self.value.azalea_write_as(self.kind, buf) }
@@ -127,6 +131,11 @@ impl Clone for TypedDataComponent {
             kind: self.kind,
             value: unsafe { self.value.clone_as(self.kind) },
         }
+    }
+}
+impl Drop for TypedDataComponent {
+    fn drop(&mut self) {
+        unsafe { self.value.drop_as(self.kind) };
     }
 }
 impl PartialEq for TypedDataComponent {

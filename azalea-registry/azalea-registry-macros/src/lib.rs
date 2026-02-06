@@ -146,13 +146,15 @@ pub fn registry(input: TokenStream) -> TokenStream {
         let name = &item.name;
         let id = &item.id;
         display_items.extend(quote! {
-            Self::#name => write!(f, #id),
+            Self::#name => write!(f, concat!("minecraft:", #id)),
         });
         from_str_items.extend(quote! {
             #id => Ok(Self::#name),
         });
     }
     generated.extend(quote! {
+        /// Convert the value to a stringified identifier, formatted like
+        /// `"minecraft:air"`.
         impl std::fmt::Display for #name {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 match self {
@@ -160,14 +162,23 @@ pub fn registry(input: TokenStream) -> TokenStream {
                 }
             }
         }
+        impl<'a> TryFrom<&'a crate::Identifier> for #name {
+            type Error = ();
+            fn try_from(ident: &'a crate::Identifier) -> Result<Self, Self::Error> {
+                if ident.namespace() != "minecraft" { return Err(()) }
+                match ident.path() {
+                    #from_str_items
+                    _ => return Err(()),
+                }
+            }
+        }
+        /// Parse the value from a stringified identifier, formatted like
+        /// either `"air"` or `"minecraft:air"`.
         impl std::str::FromStr for #name {
-            type Err = String;
+            type Err = ();
 
             fn from_str(s: &str) -> Result<Self, Self::Err> {
-                match s {
-                    #from_str_items
-                    _ => Err(format!("{s:?} is not a valid {name}", s = s, name = stringify!(#name))),
-                }
+                Self::try_from(&crate::Identifier::new(s))
             }
         }
 
@@ -187,7 +198,9 @@ pub fn registry(input: TokenStream) -> TokenStream {
                 D: serde::Deserializer<'de>,
             {
                 let s = String::deserialize(deserializer)?;
-                s.parse().map_err(serde::de::Error::custom)
+                s.parse().map_err(|_| serde::de::Error::custom(
+                    format!("{s:?} is not a valid {name}", s = s, name = stringify!(#name))
+                ))
             }
         }
 

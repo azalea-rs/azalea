@@ -3,11 +3,11 @@ use std::{hint::black_box, sync::Arc, time::Duration};
 use azalea::{
     BlockPos,
     pathfinder::{
-        astar::{self, PathfinderTimeout, WeightedNode, a_star},
+        astar::{self, PathfinderTimeout, a_star, heap::WeightedNode},
         custom_state::CustomPathfinderStateRef,
         goals::{BlockPosGoal, Goal},
         mining::MiningCache,
-        rel_block_pos::RelBlockPos,
+        positions::RelBlockPos,
         world::CachedWorld,
     },
 };
@@ -148,6 +148,7 @@ fn run_pathfinder_benchmark(
         let astar::Path {
             movements,
             is_partial: partial,
+            ..
         } = a_star(
             RelBlockPos::get_origin(origin),
             |n| goal.heuristic(n.apply(origin)),

@@ -3,7 +3,7 @@ use std::{
     ops::Add,
 };
 
-use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
+use azalea_buf::{AzBuf, BufReadError};
 use azalea_core::{bitset::FixedBitSet, math, position::Vec3};
 use azalea_entity::{LookDirection, Physics, Position};
 
@@ -91,7 +91,7 @@ fn apply_change<T: Add<Output = T>>(base: T, condition: bool, change: T) -> T {
     if condition { base + change } else { change }
 }
 
-impl AzaleaRead for RelativeMovements {
+impl AzBuf for RelativeMovements {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         // yes minecraft seriously wastes that many bits, smh
         let set = u32::azalea_read(buf)?;
@@ -108,9 +108,6 @@ impl AzaleaRead for RelativeMovements {
             rotate_delta: set.index(8),
         })
     }
-}
-
-impl AzaleaWrite for RelativeMovements {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         let mut set = FixedBitSet::<32>::new();
         let mut set_bit = |index: usize, value: bool| {
@@ -138,7 +135,16 @@ pub struct MoveFlags {
     pub on_ground: bool,
     pub horizontal_collision: bool,
 }
-impl AzaleaWrite for MoveFlags {
+impl AzBuf for MoveFlags {
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let bitset = FixedBitSet::<8>::azalea_read(buf)?;
+        let on_ground = bitset.index(0);
+        let horizontal_collision = bitset.index(1);
+        Ok(Self {
+            on_ground,
+            horizontal_collision,
+        })
+    }
     fn azalea_write(&self, buf: &mut impl io::Write) -> Result<(), io::Error> {
         let mut bitset = FixedBitSet::<8>::new();
         if self.on_ground {
@@ -149,16 +155,5 @@ impl AzaleaWrite for MoveFlags {
         }
         bitset.azalea_write(buf)?;
         Ok(())
-    }
-}
-impl AzaleaRead for MoveFlags {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let bitset = FixedBitSet::<8>::azalea_read(buf)?;
-        let on_ground = bitset.index(0);
-        let horizontal_collision = bitset.index(1);
-        Ok(Self {
-            on_ground,
-            horizontal_collision,
-        })
     }
 }

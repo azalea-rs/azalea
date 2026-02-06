@@ -30,15 +30,13 @@ use azalea_protocol::packets::game::{
     s_swing::ServerboundSwing,
     s_use_item_on::ServerboundUseItemOn,
 };
-use azalea_registry::builtin::ItemKind;
-use azalea_world::Instance;
+use azalea_world::World;
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 use tracing::warn;
 
 use super::mining::Mining;
 use crate::{
-    Client,
     attack::handle_attack_event,
     interact::pick::{HitResultComponent, update_hit_result_component},
     inventory::InventorySystems,
@@ -56,12 +54,7 @@ impl Plugin for InteractPlugin {
             .add_systems(
                 Update,
                 (
-                    (
-                        update_attributes_for_held_item,
-                        update_attributes_for_gamemode,
-                    )
-                        .in_set(UpdateAttributesSystems)
-                        .chain(),
+                    update_attributes_for_gamemode,
                     handle_start_use_item_event,
                     update_hit_result_component
                         .after(clamp_look_direction)
@@ -79,55 +72,6 @@ impl Plugin for InteractPlugin {
             )
             .add_observer(handle_entity_interact)
             .add_observer(handle_swing_arm_trigger);
-    }
-}
-
-#[derive(Clone, Debug, Eq, Hash, PartialEq, SystemSet)]
-pub struct UpdateAttributesSystems;
-
-impl Client {
-    /// Right-click a block.
-    ///
-    /// The behavior of this depends on the target block,
-    /// and it'll either place the block you're holding in your hand or use the
-    /// block you clicked (like toggling a lever).
-    ///
-    /// Note that this may trigger anticheats as it doesn't take into account
-    /// whether you're actually looking at the block.
-    pub fn block_interact(&self, position: BlockPos) {
-        self.ecs.lock().write_message(StartUseItemEvent {
-            entity: self.entity,
-            hand: InteractionHand::MainHand,
-            force_block: Some(position),
-        });
-    }
-
-    /// Right-click an entity.
-    ///
-    /// This can click through walls, which may trigger anticheats. If that
-    /// behavior isn't desired, consider using [`Client::start_use_item`]
-    /// instead.
-    pub fn entity_interact(&self, entity: Entity) {
-        self.ecs.lock().trigger(EntityInteractEvent {
-            client: self.entity,
-            target: entity,
-            location: None,
-        });
-    }
-
-    /// Right-click the currently held item.
-    ///
-    /// If the item is consumable, then it'll act as if right-click was held
-    /// until the item finishes being consumed. You can use this to eat food.
-    ///
-    /// If we're looking at a block or entity, then it will be clicked. Also see
-    /// [`Client::block_interact`] and [`Client::entity_interact`].
-    pub fn start_use_item(&self) {
-        self.ecs.lock().write_message(StartUseItemEvent {
-            entity: self.entity,
-            hand: InteractionHand::MainHand,
-            force_block: None,
-        });
     }
 }
 
@@ -196,7 +140,7 @@ impl BlockStatePredictionHandler {
         }
     }
 
-    pub fn end_prediction_up_to(&mut self, seq: u32, world: &Instance) {
+    pub fn end_prediction_up_to(&mut self, seq: u32, world: &World) {
         let mut to_remove = Vec::new();
         for (pos, state) in &self.server_state {
             if state.seq > seq {
@@ -433,10 +377,10 @@ pub fn handle_entity_interact(
 ///
 /// If this is false, then we can interact with the block.
 ///
-/// Passing the inventory, block position, and instance is necessary for the
-/// adventure mode check.
+/// The world, block position, and inventory are used for the adventure mode
+/// check.
 pub fn check_is_interaction_restricted(
-    instance: &Instance,
+    world: &World,
     block_pos: BlockPos,
     game_mode: &GameMode,
     inventory: &Inventory,
@@ -449,7 +393,7 @@ pub fn check_is_interaction_restricted(
             let held_item = inventory.held_item();
             match &held_item {
                 ItemStack::Present(item) => {
-                    let block = instance.chunks.get_block_state(block_pos);
+                    let block = world.chunks.get_block_state(block_pos);
                     let Some(block) = block else {
                         // block isn't loaded so just say that it is restricted
                         return true;
@@ -509,65 +453,6 @@ pub fn handle_swing_arm_trigger(swing_arm: On<SwingArmEvent>, mut commands: Comm
             hand: InteractionHand::MainHand,
         },
     ));
-}
-
-#[allow(clippy::type_complexity)]
-fn update_attributes_for_held_item(
-    mut query: Query<(&mut Attributes, &Inventory), (With<LocalEntity>, Changed<Inventory>)>,
-) {
-    for (mut attributes, inventory) in &mut query {
-        let held_item = inventory.held_item();
-
-        let added_attack_speed = added_attack_speed_for_item(held_item.kind());
-        attributes
-            .attack_speed
-            .insert(azalea_entity::attributes::base_attack_speed_modifier(
-                added_attack_speed,
-            ));
-    }
-}
-
-fn added_attack_speed_for_item(item: ItemKind) -> f64 {
-    match item {
-        ItemKind::WoodenSword => -2.4,
-        ItemKind::WoodenShovel => -3.0,
-        ItemKind::WoodenPickaxe => -2.8,
-        ItemKind::WoodenAxe => -3.2,
-        ItemKind::WoodenHoe => -3.0,
-
-        ItemKind::StoneSword => -2.4,
-        ItemKind::StoneShovel => -3.0,
-        ItemKind::StonePickaxe => -2.8,
-        ItemKind::StoneAxe => -3.2,
-        ItemKind::StoneHoe => -2.0,
-
-        ItemKind::GoldenSword => -2.4,
-        ItemKind::GoldenShovel => -3.0,
-        ItemKind::GoldenPickaxe => -2.8,
-        ItemKind::GoldenAxe => -3.0,
-        ItemKind::GoldenHoe => -3.0,
-
-        ItemKind::IronSword => -2.4,
-        ItemKind::IronShovel => -3.0,
-        ItemKind::IronPickaxe => -2.8,
-        ItemKind::IronAxe => -3.1,
-        ItemKind::IronHoe => -1.0,
-
-        ItemKind::DiamondSword => -2.4,
-        ItemKind::DiamondShovel => -3.0,
-        ItemKind::DiamondPickaxe => -2.8,
-        ItemKind::DiamondAxe => -3.0,
-        ItemKind::DiamondHoe => 0.0,
-
-        ItemKind::NetheriteSword => -2.4,
-        ItemKind::NetheriteShovel => -3.0,
-        ItemKind::NetheritePickaxe => -2.8,
-        ItemKind::NetheriteAxe => -3.0,
-        ItemKind::NetheriteHoe => 0.0,
-
-        ItemKind::Trident => -2.9,
-        _ => 0.,
-    }
 }
 
 #[allow(clippy::type_complexity)]

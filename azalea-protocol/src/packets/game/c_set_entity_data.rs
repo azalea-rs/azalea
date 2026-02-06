@@ -1,7 +1,7 @@
 use azalea_buf::AzBuf;
+use azalea_core::entity_id::MinecraftEntityId;
 use azalea_entity::EntityMetadataItems;
 use azalea_protocol_macros::ClientboundGamePacket;
-use azalea_world::MinecraftEntityId;
 
 #[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundSetEntityData {
@@ -14,7 +14,7 @@ pub struct ClientboundSetEntityData {
 mod tests {
     use std::io::Cursor;
 
-    use azalea_buf::AzaleaRead;
+    use azalea_buf::AzBuf;
 
     use super::*;
 

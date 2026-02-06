@@ -1,5 +1,5 @@
-use azalea_client::local_player::InstanceHolder;
-use azalea_world::MinecraftEntityId;
+use azalea_client::local_player::WorldHolder;
+use azalea_core::entity_id::MinecraftEntityId;
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
@@ -21,7 +21,7 @@ pub struct SwarmReadyEvent;
 struct IsSwarmReady(bool);
 
 fn check_ready(
-    query: Query<Option<&MinecraftEntityId>, With<InstanceHolder>>,
+    query: Query<Option<&MinecraftEntityId>, With<WorldHolder>>,
     mut is_swarm_ready: ResMut<IsSwarmReady>,
     mut ready_events: MessageWriter<SwarmReadyEvent>,
 ) {

@@ -11,6 +11,10 @@ use azalea_world::ChunkStorage;
 use serde::{Deserialize, Serialize};
 
 use super::costs::{COST_HEURISTIC, FALL_N_BLOCKS_COST, JUMP_ONE_BLOCK_COST};
+use crate::pathfinder::{
+    costs::{JUMP_PENALTY, SPRINT_ONE_BLOCK_COST, WALK_ONE_BLOCK_COST},
+    moves::BARITONE_COMPAT,
+};
 
 pub trait Goal: Debug + Send + Sync {
     #[must_use]
@@ -20,6 +24,17 @@ pub trait Goal: Debug + Send + Sync {
 }
 
 /// Move to the given block position.
+///
+/// If you're converting to a `BlockPosGoal` from a [`Vec3`], you should move
+/// the Y up by 0.5 to avoid the pathfinding destroying the final block if it's
+/// non-full like farmland.
+///
+/// ```
+/// # use azalea::{prelude::*, pathfinder::goals::BlockPosGoal};
+/// # fn example(bot: &Client, entity_position: azalea::Vec3) {
+/// bot.start_goto(BlockPosGoal(entity_position.up(0.5).into()));
+/// # }
+/// ```
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct BlockPosGoal(pub BlockPos);
@@ -32,9 +47,7 @@ impl Goal for BlockPosGoal {
         xz_heuristic(dx, dz) + y_heuristic(dy)
     }
     fn success(&self, n: BlockPos) -> bool {
-        // the second half of this condition is intended to fix issues when pathing to
-        // non-full blocks
-        n == self.0 || n.down(1) == self.0
+        n == self.0
     }
 }
 
@@ -73,12 +86,33 @@ impl Goal for XZGoal {
         n.x == self.x && n.z == self.z
     }
 }
+impl From<BlockPos> for XZGoal {
+    fn from(block: BlockPos) -> Self {
+        Self {
+            x: block.x,
+            z: block.z,
+        }
+    }
+}
 
 fn y_heuristic(dy: f32) -> f32 {
-    if dy > 0.0 {
-        *JUMP_ONE_BLOCK_COST * dy
+    if dy > 0. {
+        if BARITONE_COMPAT {
+            // this is wrong because it can be an overestimate
+            return *JUMP_ONE_BLOCK_COST * dy;
+        }
+
+        // forward+up is the main way to ascend, so make sure to match that. we subtract
+        // SPRINT_ONE_BLOCK_COST to cancel out the value that should've been
+        // added by the xz heuristic.
+        (f32::max(*JUMP_ONE_BLOCK_COST, WALK_ONE_BLOCK_COST) + JUMP_PENALTY - SPRINT_ONE_BLOCK_COST)
+            * dy
+    } else if dy < 0. {
+        // this is also an overestimate (copied from baritone), but fixing it makes perf
+        // too much worse
+        (FALL_N_BLOCKS_COST[2] / 2.) * -dy
     } else {
-        FALL_N_BLOCKS_COST[2] / 2. * -dy
+        0.
     }
 }
 
@@ -95,6 +129,11 @@ impl Goal for YGoal {
     }
     fn success(&self, n: BlockPos) -> bool {
         n.y == self.y
+    }
+}
+impl From<BlockPos> for YGoal {
+    fn from(block: BlockPos) -> Self {
+        Self { y: block.y }
     }
 }
 
@@ -116,7 +155,8 @@ impl Goal for RadiusGoal {
         let dx = (self.pos.x - n.x) as f32;
         let dy = (self.pos.y - n.y) as f32;
         let dz = (self.pos.z - n.z) as f32;
-        dx.powi(2) + dy.powi(2) + dz.powi(2)
+
+        xz_heuristic(dx, dz) + y_heuristic(dy)
     }
     fn success(&self, n: BlockPos) -> bool {
         let n = n.center();
@@ -129,7 +169,9 @@ impl Goal for RadiusGoal {
 
 /// Do the opposite of the given goal.
 #[derive(Debug)]
+#[deprecated = "`InverseGoal` has poor performance and often doesn't work as expected, consider using different goals."]
 pub struct InverseGoal<T: Goal>(pub T);
+#[allow(deprecated)]
 impl<T: Goal> Goal for InverseGoal<T> {
     fn heuristic(&self, n: BlockPos) -> f32 {
         -self.0.heuristic(n)

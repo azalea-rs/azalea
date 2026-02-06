@@ -8,7 +8,7 @@ use std::{
     io::{self, Cursor, Write},
 };
 
-use azalea_buf::{AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
+use azalea_buf::{AzBufVar, BufReadError};
 pub use container::*;
 
 /// A representation of the different types of chunk palettes Minecraft uses.
@@ -34,8 +34,8 @@ impl<S: PalletedContainerKind> Palette<S> {
     }
 }
 
-impl<S: PalletedContainerKind> AzaleaWrite for Palette<S> {
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+impl<S: PalletedContainerKind> Palette<S> {
+    pub fn write(&self, buf: &mut impl Write) -> io::Result<()> {
         match self {
             Palette::SingleValue(value) => {
                 (*value).into().azalea_write_var(buf)?;

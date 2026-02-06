@@ -3,7 +3,7 @@ use std::{
     io::{self, Cursor, Write},
 };
 
-use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
+use azalea_buf::{AzBuf, AzBufVar, BufReadError};
 use azalea_registry::builtin::BlockKind;
 
 use crate::BlockTrait;
@@ -113,15 +113,13 @@ impl From<BlockState> for u32 {
     }
 }
 
-impl AzaleaRead for BlockState {
+impl AzBuf for BlockState {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let state_id = u32::azalea_read_var(buf)?;
         Self::try_from(state_id).map_err(|_| BufReadError::UnexpectedEnumVariant {
             id: state_id as i32,
         })
     }
-}
-impl AzaleaWrite for BlockState {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         u32::azalea_write_var(&(self.id as u32), buf)
     }

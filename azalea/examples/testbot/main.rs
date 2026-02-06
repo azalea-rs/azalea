@@ -19,6 +19,8 @@
 //!   /particle a ton of times to show where it's pathfinding to. You should
 //!   only have this on if the bot has operator permissions, otherwise it'll
 //!   just spam the server console unnecessarily.
+//! - `--simulation-pathfinder`: Use the alternative simulation-based execution
+//!   engine for the pathfinder.
 
 mod commands;
 pub mod killaura;
@@ -26,8 +28,14 @@ pub mod killaura;
 use std::{env, process, sync::Arc, thread, time::Duration};
 
 use azalea::{
-    ClientInformation, brigadier::command_dispatcher::CommandDispatcher, ecs::prelude::*,
-    pathfinder::debug::PathfinderDebugParticles, prelude::*, swarm::prelude::*,
+    ClientInformation,
+    brigadier::command_dispatcher::CommandDispatcher,
+    ecs::prelude::*,
+    pathfinder::{
+        debug::PathfinderDebugParticles, execute::simulation::SimulationPathfinderExecutionPlugin,
+    },
+    prelude::*,
+    swarm::prelude::*,
 };
 use commands::{CommandSource, register_commands};
 use parking_lot::Mutex;
@@ -43,6 +51,10 @@ async fn main() -> AppExit {
     let mut builder = SwarmBuilder::new()
         .set_handler(handle)
         .set_swarm_handler(swarm_handle);
+
+    if args.simulation_pathfinder {
+        builder = builder.add_plugins(SimulationPathfinderExecutionPlugin);
+    }
 
     for username_or_email in &args.accounts {
         let account = if username_or_email.contains('@') {
@@ -129,7 +141,7 @@ async fn handle(bot: Client, event: azalea::Event, state: State) -> anyhow::Resu
             });
             if swarm.args.pathfinder_debug_particles {
                 bot.ecs
-                    .lock()
+                    .write()
                     .entity_mut(bot.entity)
                     .insert(PathfinderDebugParticles);
             }
@@ -190,7 +202,7 @@ async fn handle(bot: Client, event: azalea::Event, state: State) -> anyhow::Resu
 async fn swarm_handle(_swarm: Swarm, event: SwarmEvent, _state: SwarmState) -> anyhow::Result<()> {
     match &event {
         SwarmEvent::Disconnect(account, _join_opts) => {
-            println!("bot got kicked! {}", account.username);
+            println!("bot got kicked! {}", account.username());
         }
         SwarmEvent::Chat(chat) => {
             if chat.message().to_string() == "The particle was not visible for anybody" {
@@ -210,6 +222,7 @@ pub struct Args {
     pub accounts: Vec<String>,
     pub server: String,
     pub pathfinder_debug_particles: bool,
+    pub simulation_pathfinder: bool,
 }
 
 fn parse_args() -> Args {
@@ -217,6 +230,7 @@ fn parse_args() -> Args {
     let mut accounts = Vec::new();
     let mut server = "localhost".to_owned();
     let mut pathfinder_debug_particles = false;
+    let mut simulation_pathfinder = false;
 
     let mut args = env::args().skip(1);
     while let Some(arg) = args.next() {
@@ -235,6 +249,9 @@ fn parse_args() -> Args {
             "--pathfinder-debug-particles" | "-P" => {
                 pathfinder_debug_particles = true;
             }
+            "--simulation-pathfinder" => {
+                simulation_pathfinder = true;
+            }
             _ => {
                 eprintln!("Unknown argument: {arg}");
                 process::exit(1);
@@ -251,5 +268,6 @@ fn parse_args() -> Args {
         accounts,
         server,
         pathfinder_debug_particles,
+        simulation_pathfinder,
     }
 }

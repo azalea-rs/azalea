@@ -1,19 +1,26 @@
+use core::f32;
 use std::{
+    array,
     cell::{RefCell, UnsafeCell},
+    mem,
     sync::Arc,
 };
 
 use azalea_block::{BlockState, properties};
 use azalea_core::{
     bitset::FastFixedBitSet,
-    position::{BlockPos, ChunkPos, ChunkSectionBlockPos, ChunkSectionPos},
+    position::{BlockPos, ChunkPos, ChunkSectionBlockPos},
 };
 use azalea_physics::collision::BlockWithShape;
 use azalea_registry::{builtin::BlockKind, tags};
-use azalea_world::{Instance, palette::PalettedContainer};
+use azalea_world::{World, palette::PalettedContainer};
 use parking_lot::RwLock;
+use rustc_hash::FxHashMap;
 
-use super::{mining::MiningCache, rel_block_pos::RelBlockPos};
+use super::{mining::MiningCache, positions::RelBlockPos};
+use crate::pathfinder::positions::SmallChunkSectionPos;
+
+const MAX_VIEW_DISTANCE: usize = 32;
 
 /// An efficient representation of the world used for the pathfinder.
 pub struct CachedWorld {
@@ -24,22 +31,21 @@ pub struct CachedWorld {
     origin: BlockPos,
 
     min_y: i32,
-    world_lock: Arc<RwLock<Instance>>,
+    world_lock: Arc<RwLock<World>>,
 
-    // we store `PalettedContainer`s instead of `Chunk`s or `Section`s because it doesn't contain
-    // any unnecessary data like heightmaps or biomes.
-    cached_chunks: RefCell<
-        Vec<(
-            ChunkPos,
-            Vec<azalea_world::palette::PalettedContainer<BlockState>>,
-        )>,
-    >,
-    last_chunk_cache_index: RefCell<Option<usize>>,
+    // we use the bounded cache by default and then switch if it gets too big
+    bounded_chunk_cache: RefCell<[(ChunkPos, CachedChunk); MAX_VIEW_DISTANCE * MAX_VIEW_DISTANCE]>,
+    unbounded_chunk_cache: RefCell<FxHashMap<ChunkPos, CachedChunk>>,
 
     cached_blocks: UnsafeCell<CachedSections>,
 
-    cached_mining_costs: UnsafeCell<Box<[(RelBlockPos, f32)]>>,
+    #[allow(clippy::type_complexity)]
+    cached_mining_costs: UnsafeCell<Option<Box<[(RelBlockPos, f32)]>>>,
 }
+
+// we store `PalettedContainer`s instead of `Chunk`s or `Section`s because it
+// doesn't contain any unnecessary data like heightmaps or biomes.
+type CachedChunk = Box<[PalettedContainer<BlockState>]>;
 
 #[derive(Default)]
 pub struct CachedSections {
@@ -50,7 +56,7 @@ pub struct CachedSections {
 
 impl CachedSections {
     #[inline]
-    pub fn get_mut(&mut self, pos: ChunkSectionPos) -> Option<&mut CachedSection> {
+    pub fn get_mut(&mut self, pos: SmallChunkSectionPos) -> Option<&mut CachedSection> {
         if let Some(last_item) = self.sections.get(self.last_index) {
             if last_item.pos == pos {
                 return Some(&mut self.sections[self.last_index]);
@@ -87,30 +93,34 @@ impl CachedSections {
 }
 
 pub struct CachedSection {
-    pub pos: ChunkSectionPos,
+    pub pos: SmallChunkSectionPos,
+    pub bitsets: Box<SectionBitsets>,
+}
+#[derive(Default)]
+pub struct SectionBitsets {
     /// Blocks that we can fully pass through (like air).
-    pub passable_bitset: FastFixedBitSet<4096>,
+    pub passable: FastFixedBitSet<4096>,
     /// Blocks that we can stand on and do parkour from.
-    pub solid_bitset: FastFixedBitSet<4096>,
+    pub solid: FastFixedBitSet<4096>,
     /// Blocks that we can stand on but might not be able to parkour from.
-    pub standable_bitset: FastFixedBitSet<4096>,
+    pub standable: FastFixedBitSet<4096>,
+    /// Water source blocks.
+    pub water: FastFixedBitSet<4096>,
 }
 
 impl CachedWorld {
-    pub fn new(world_lock: Arc<RwLock<Instance>>, origin: BlockPos) -> Self {
+    pub fn new(world_lock: Arc<RwLock<World>>, origin: BlockPos) -> Self {
         let min_y = world_lock.read().chunks.min_y;
         Self {
             origin,
             min_y,
             world_lock,
-            cached_chunks: Default::default(),
-            last_chunk_cache_index: Default::default(),
+            bounded_chunk_cache: RefCell::new(array::from_fn(|_| {
+                (ChunkPos::new(i32::MAX, i32::MAX), Default::default())
+            })),
+            unbounded_chunk_cache: Default::default(),
             cached_blocks: Default::default(),
-            // this uses about 12mb of memory. it *really* helps though.
-            cached_mining_costs: UnsafeCell::new(
-                vec![(RelBlockPos::new(i16::MAX, i32::MAX, i16::MAX), 0.); 2usize.pow(20)]
-                    .into_boxed_slice(),
-            ),
+            cached_mining_costs: UnsafeCell::new(None),
         }
     }
 
@@ -125,7 +135,7 @@ impl CachedWorld {
 
     fn with_section<T>(
         &self,
-        section_pos: ChunkSectionPos,
+        section_pos: SmallChunkSectionPos,
         f: impl FnOnce(&azalea_world::palette::PalettedContainer<BlockState>) -> T,
     ) -> Option<T> {
         if section_pos.y * 16 < self.min_y {
@@ -133,45 +143,46 @@ impl CachedWorld {
             return None;
         }
 
-        let chunk_pos = ChunkPos::from(section_pos);
+        let chunk_pos = ChunkPos::new(section_pos.x as i32, section_pos.z as i32);
         let section_index =
             azalea_world::chunk_storage::section_index(section_pos.y * 16, self.min_y) as usize;
 
-        let mut cached_chunks = self.cached_chunks.borrow_mut();
+        let mut cache_idx = 0;
 
-        // optimization: avoid doing the iter lookup if the last chunk we looked up is
-        // the same
-        if let Some(last_chunk_cache_index) = *self.last_chunk_cache_index.borrow()
-            && cached_chunks[last_chunk_cache_index].0 == chunk_pos
-        {
-            // don't bother with the iter lookup
-            let sections = &cached_chunks[last_chunk_cache_index].1;
-            if section_index >= sections.len() {
-                // y position is out of bounds
-                return None;
-            };
-            let section = &sections[section_index];
-            return Some(f(section));
-        }
+        let mut unbounded_chunk_cache = self.unbounded_chunk_cache.borrow_mut();
+        let mut bounded_chunk_cache = self.bounded_chunk_cache.borrow_mut();
+        if unbounded_chunk_cache.is_empty() {
+            const D: i32 = MAX_VIEW_DISTANCE as i32;
+            let cache_x = i32::rem_euclid(chunk_pos.x, D) * D;
+            let cache_z = i32::rem_euclid(chunk_pos.z, D);
+            cache_idx = (cache_x + cache_z) as usize;
 
-        // get section from cache
-        if let Some((chunk_index, sections)) =
-            cached_chunks
-                .iter()
-                .enumerate()
-                .find_map(|(i, (pos, sections))| {
-                    if *pos == chunk_pos {
-                        Some((i, sections))
-                    } else {
-                        None
+            // get section from cache
+            if !bounded_chunk_cache[cache_idx].1.is_empty() {
+                if bounded_chunk_cache[cache_idx].0 != chunk_pos {
+                    // switch to the unbounded cache :(
+
+                    for (moving_chunk_pos, moving_chunk) in bounded_chunk_cache.iter_mut() {
+                        if !moving_chunk.is_empty() {
+                            unbounded_chunk_cache
+                                .insert(*moving_chunk_pos, mem::take(moving_chunk));
+                        }
                     }
-                })
-        {
+                }
+
+                let sections = &bounded_chunk_cache[cache_idx].1;
+                if section_index >= sections.len() {
+                    // y position is out of bounds
+                    return None;
+                };
+                let section = &sections[section_index];
+                return Some(f(section));
+            }
+        } else if let Some(sections) = unbounded_chunk_cache.get(&chunk_pos) {
             if section_index >= sections.len() {
                 // y position is out of bounds
                 return None;
             };
-            *self.last_chunk_cache_index.borrow_mut() = Some(chunk_index);
             let section = &sections[section_index];
             return Some(f(section));
         }
@@ -184,7 +195,7 @@ impl CachedWorld {
             .sections
             .iter()
             .map(|section| section.states.clone())
-            .collect::<Vec<PalettedContainer<BlockState>>>();
+            .collect::<Box<[PalettedContainer<BlockState>]>>();
 
         if section_index >= sections.len() {
             // y position is out of bounds
@@ -195,57 +206,87 @@ impl CachedWorld {
         let r = f(section);
 
         // add the sections to the chunk cache
-        cached_chunks.push((chunk_pos, sections));
+        if unbounded_chunk_cache.is_empty() {
+            bounded_chunk_cache[cache_idx] = (chunk_pos, sections);
+        } else {
+            unbounded_chunk_cache.insert(chunk_pos, sections);
+        }
 
         Some(r)
     }
 
-    fn calculate_bitsets_for_section(&self, section_pos: ChunkSectionPos) -> Option<CachedSection> {
-        self.with_section(section_pos, |section| {
-            let mut passable_bitset = FastFixedBitSet::<4096>::new();
-            let mut solid_bitset = FastFixedBitSet::<4096>::new();
-            let mut standable_bitset = FastFixedBitSet::<4096>::new();
-            for i in 0..4096 {
-                let block_state = section.get_at_index(i);
-                if is_block_state_passable(block_state) {
-                    passable_bitset.set(i);
+    fn calculate_bitsets_for_section(&self, section_pos: SmallChunkSectionPos) -> CachedSection {
+        let bitsets = self
+            .with_section(section_pos, |section| {
+                let mut passable_bitset = FastFixedBitSet::<4096>::new();
+                let mut solid_bitset = FastFixedBitSet::<4096>::new();
+                let mut standable_bitset = FastFixedBitSet::<4096>::new();
+                let mut water_bitset = FastFixedBitSet::<4096>::new();
+
+                for i in 0..4096 {
+                    let block_state = section.get_at_index(i);
+                    if is_block_state_passable(block_state) {
+                        passable_bitset.set(i);
+                    }
+                    if is_block_state_solid(block_state) {
+                        solid_bitset.set(i);
+                    }
+                    if is_block_state_standable(block_state) {
+                        standable_bitset.set(i);
+                    }
+                    if is_block_state_water(block_state) {
+                        water_bitset.set(i);
+                    }
                 }
-                if is_block_state_solid(block_state) {
-                    solid_bitset.set(i);
-                }
-                if is_block_state_standable(block_state) {
-                    standable_bitset.set(i);
-                }
-            }
-            CachedSection {
-                pos: section_pos,
-                passable_bitset,
-                solid_bitset,
-                standable_bitset,
-            }
-        })
+                Box::new(SectionBitsets {
+                    passable: passable_bitset,
+                    solid: solid_bitset,
+                    standable: standable_bitset,
+                    water: water_bitset,
+                })
+            })
+            .unwrap_or_default();
+
+        CachedSection {
+            pos: section_pos,
+            bitsets,
+        }
+    }
+
+    fn check_bitset_for_block(
+        &self,
+        pos: BlockPos,
+        cb: impl FnOnce(&SectionBitsets, usize) -> bool,
+    ) -> bool {
+        let (section_pos, section_block_pos) = (
+            SmallChunkSectionPos::from(pos),
+            ChunkSectionBlockPos::from(pos),
+        );
+        let index = u16::from(section_block_pos) as usize;
+        // SAFETY: we're only accessing this from one thread
+        let cached_blocks = unsafe { &mut *self.cached_blocks.get() };
+        if let Some(cached) = cached_blocks.get_mut(section_pos) {
+            return cb(&cached.bitsets, index);
+        }
+
+        let cached = self.calculate_bitsets_for_section(section_pos);
+        let passable = cb(&cached.bitsets, index);
+        cached_blocks.insert(cached);
+        passable
     }
 
     pub fn is_block_passable(&self, pos: RelBlockPos) -> bool {
         self.is_block_pos_passable(pos.apply(self.origin))
     }
-
     fn is_block_pos_passable(&self, pos: BlockPos) -> bool {
-        let (section_pos, section_block_pos) =
-            (ChunkSectionPos::from(pos), ChunkSectionBlockPos::from(pos));
-        let index = u16::from(section_block_pos) as usize;
-        // SAFETY: we're only accessing this from one thread
-        let cached_blocks = unsafe { &mut *self.cached_blocks.get() };
-        if let Some(cached) = cached_blocks.get_mut(section_pos) {
-            return cached.passable_bitset.index(index);
-        }
+        self.check_bitset_for_block(pos, |bitsets, index| bitsets.passable.index(index))
+    }
 
-        let Some(cached) = self.calculate_bitsets_for_section(section_pos) else {
-            return false;
-        };
-        let passable = cached.passable_bitset.index(index);
-        cached_blocks.insert(cached);
-        passable
+    pub fn is_block_water(&self, pos: RelBlockPos) -> bool {
+        self.is_block_pos_water(pos.apply(self.origin))
+    }
+    fn is_block_pos_water(&self, pos: BlockPos) -> bool {
+        self.check_bitset_for_block(pos, |bitsets, index| bitsets.water.index(index))
     }
 
     /// Get the block state at the given position.
@@ -256,8 +297,10 @@ impl CachedWorld {
     }
 
     fn get_block_state_at_pos(&self, pos: BlockPos) -> BlockState {
-        let (section_pos, section_block_pos) =
-            (ChunkSectionPos::from(pos), ChunkSectionBlockPos::from(pos));
+        let (section_pos, section_block_pos) = (
+            SmallChunkSectionPos::from(pos),
+            ChunkSectionBlockPos::from(pos),
+        );
         let index = u16::from(section_block_pos) as usize;
 
         self.with_section(section_pos, |section| section.get_at_index(index))
@@ -272,52 +315,19 @@ impl CachedWorld {
     }
 
     fn is_block_pos_solid(&self, pos: BlockPos) -> bool {
-        let (section_pos, section_block_pos) =
-            (ChunkSectionPos::from(pos), ChunkSectionBlockPos::from(pos));
-        let index = u16::from(section_block_pos) as usize;
-        // SAFETY: we're only accessing this from one thread
-        let cached_blocks = unsafe { &mut *self.cached_blocks.get() };
-        if let Some(cached) = cached_blocks.get_mut(section_pos) {
-            return cached.solid_bitset.index(index);
-        }
-
-        let Some(cached) = self.calculate_bitsets_for_section(section_pos) else {
-            return false;
-        };
-        let solid = cached.solid_bitset.index(index);
-        cached_blocks.insert(cached);
-        solid
+        self.check_bitset_for_block(pos, |bitsets, index| bitsets.solid.index(index))
     }
     fn is_block_pos_standable(&self, pos: BlockPos) -> bool {
-        let (section_pos, section_block_pos) =
-            (ChunkSectionPos::from(pos), ChunkSectionBlockPos::from(pos));
-        let index = u16::from(section_block_pos) as usize;
-        // SAFETY: we're only accessing this from one thread
-        let cached_blocks = unsafe { &mut *self.cached_blocks.get() };
-        if let Some(cached) = cached_blocks.get_mut(section_pos) {
-            return cached.standable_bitset.index(index);
-        }
-
-        let Some(cached) = self.calculate_bitsets_for_section(section_pos) else {
-            return false;
-        };
-        let solid = cached.standable_bitset.index(index);
-        cached_blocks.insert(cached);
-        solid
+        self.check_bitset_for_block(pos, |bitsets, index| bitsets.standable.index(index))
     }
 
     /// Returns how much it costs to break this block.
     ///
     /// Returns 0 if the block is already passable.
     pub fn cost_for_breaking_block(&self, pos: RelBlockPos, mining_cache: &MiningCache) -> f32 {
-        // SAFETY: pathfinding is single-threaded
-        let cached_mining_costs = unsafe { &mut *self.cached_mining_costs.get() };
-        // 20 bits total:
-        // 8 bits for x, 4 bits for y, 8 bits for z
-        let hash_index = ((pos.x as usize & 0xff) << 12)
-            | ((pos.y as usize & 0xf) << 8)
-            | (pos.z as usize & 0xff);
-        debug_assert!(hash_index < 1048576);
+        let cached_mining_costs = self.cached_mining_costs();
+
+        let hash_index = calculate_cached_mining_costs_index(pos);
         let &(cached_pos, potential_cost) =
             unsafe { cached_mining_costs.get_unchecked(hash_index) };
         if cached_pos == pos {
@@ -332,6 +342,25 @@ impl CachedWorld {
         cost
     }
 
+    // this is fine because pathfinding is single-threaded
+    #[allow(clippy::mut_from_ref)]
+    fn cached_mining_costs(&self) -> &mut [(RelBlockPos, f32)] {
+        // SAFETY: again, pathfinding is single-threaded
+        let cached_mining_costs = unsafe { &mut *self.cached_mining_costs.get() };
+        if let Some(cached_mining_costs) = cached_mining_costs {
+            return cached_mining_costs;
+        }
+        // delay initialization so we don't have to create this if it's unused
+
+        // this uses about 48mb of memory. it *really* helps though.
+        *cached_mining_costs = Some(
+            vec![(RelBlockPos::new(i16::MAX, i32::MAX, i16::MAX), 0.); CACHED_MINING_COSTS_SIZE]
+                .into(),
+        );
+
+        cached_mining_costs.as_mut().unwrap()
+    }
+
     fn uncached_cost_for_breaking_block(
         &self,
         pos: RelBlockPos,
@@ -342,10 +371,13 @@ impl CachedWorld {
             return 0.;
         }
 
+        let rel_pos = pos;
         let pos = pos.apply(self.origin);
 
-        let (section_pos, section_block_pos) =
-            (ChunkSectionPos::from(pos), ChunkSectionBlockPos::from(pos));
+        let (section_pos, section_block_pos) = (
+            SmallChunkSectionPos::from(pos),
+            ChunkSectionBlockPos::from(pos),
+        );
 
         // we use this as an optimization to avoid getting the section again if the
         // block is in the same section
@@ -355,7 +387,9 @@ impl CachedWorld {
         let south_is_in_same_section = section_block_pos.z != 15;
         let west_is_in_same_section = section_block_pos.x != 0;
 
-        let Some(mining_cost) = self.with_section(section_pos, |section| {
+        let mut is_falling_block_above = false;
+
+        let Some(mut mining_cost) = self.with_section(section_pos, |section| {
             let block_state = section.get_at_index(u16::from(section_block_pos) as usize);
             let mining_cost = mining_cache.cost_for(block_state);
 
@@ -367,8 +401,11 @@ impl CachedWorld {
             // if there's a falling block or liquid above this block, abort
             if up_is_in_same_section {
                 let up_block = section.get_at_index(u16::from(section_block_pos.up(1)) as usize);
-                if mining_cache.is_liquid(up_block) || mining_cache.is_falling_block(up_block) {
+                if mining_cache.is_liquid(up_block) {
                     return f32::INFINITY;
+                }
+                if mining_cache.is_falling_block(up_block) {
+                    is_falling_block_above = true;
                 }
             }
 
@@ -427,42 +464,53 @@ impl CachedWorld {
             return f32::INFINITY;
         }
 
-        let check_should_avoid_this_block = |pos: BlockPos, check: &dyn Fn(BlockState) -> bool| {
-            let block_state = self
-                .with_section(ChunkSectionPos::from(pos), |section| {
+        fn check_should_avoid_this_block(
+            world: &CachedWorld,
+            pos: BlockPos,
+            check: impl FnOnce(BlockState) -> bool,
+        ) -> bool {
+            let block_state = world
+                .with_section(SmallChunkSectionPos::from(pos), |section| {
                     section.get_at_index(u16::from(ChunkSectionBlockPos::from(pos)) as usize)
                 })
                 .unwrap_or_default();
             check(block_state)
-        };
+        }
 
         // check the adjacent blocks that weren't in the same section
         if !up_is_in_same_section
-            && check_should_avoid_this_block(pos.up(1), &|b| {
-                mining_cache.is_liquid(b) || mining_cache.is_falling_block(b)
+            && check_should_avoid_this_block(self, pos.up(1), |b| {
+                if mining_cache.is_falling_block(b) {
+                    is_falling_block_above = true;
+                }
+                mining_cache.is_liquid(b)
             })
         {
             return f32::INFINITY;
         }
         if !north_is_in_same_section
-            && check_should_avoid_this_block(pos.north(1), &|b| mining_cache.is_liquid(b))
+            && check_should_avoid_this_block(self, pos.north(1), |b| mining_cache.is_liquid(b))
         {
             return f32::INFINITY;
         }
         if !east_is_in_same_section
-            && check_should_avoid_this_block(pos.east(1), &|b| mining_cache.is_liquid(b))
+            && check_should_avoid_this_block(self, pos.east(1), |b| mining_cache.is_liquid(b))
         {
             return f32::INFINITY;
         }
         if !south_is_in_same_section
-            && check_should_avoid_this_block(pos.south(1), &|b| mining_cache.is_liquid(b))
+            && check_should_avoid_this_block(self, pos.south(1), |b| mining_cache.is_liquid(b))
         {
             return f32::INFINITY;
         }
         if !west_is_in_same_section
-            && check_should_avoid_this_block(pos.west(1), &|b| mining_cache.is_liquid(b))
+            && check_should_avoid_this_block(self, pos.west(1), |b| mining_cache.is_liquid(b))
         {
             return f32::INFINITY;
+        }
+
+        if is_falling_block_above {
+            mining_cost += self.cost_for_breaking_block(rel_pos.up(1), mining_cache);
         }
 
         mining_cost
@@ -499,7 +547,8 @@ impl CachedWorld {
         self.cost_for_passing(pos, mining_cache)
     }
 
-    /// Get the amount of air blocks until the next solid block below this one.
+    /// Get the amount of air/passable blocks until the next non-passable block
+    /// below this one.
     pub fn fall_distance(&self, pos: RelBlockPos) -> u32 {
         let mut distance = 0;
         let mut current_pos = pos.down(1);
@@ -517,6 +566,25 @@ impl CachedWorld {
     pub fn origin(&self) -> BlockPos {
         self.origin
     }
+}
+
+const CACHED_MINING_COSTS_SIZE: usize = 2usize.pow(22);
+fn calculate_cached_mining_costs_index(pos: RelBlockPos) -> usize {
+    // create a 22-bit index by taking the bottom bits from each axis
+
+    const X_BITS: usize = 8;
+    const Y_BITS: usize = 6;
+    const Z_BITS: usize = 8;
+
+    const X_MASK: usize = (1 << X_BITS) - 1;
+    const Y_MASK: usize = (1 << Y_BITS) - 1;
+    const Z_MASK: usize = (1 << Z_BITS) - 1;
+
+    let hash_index = ((pos.x as usize & X_MASK) << (Y_BITS + Z_BITS))
+        | ((pos.z as usize & Z_MASK) << Y_BITS)
+        | (pos.y as usize & Y_MASK);
+    debug_assert!(hash_index < CACHED_MINING_COSTS_SIZE);
+    hash_index
 }
 
 /// Whether our client could pass through this block.
@@ -576,6 +644,12 @@ pub fn is_block_state_solid(block_state: BlockState) -> bool {
         // fast path
         return false;
     }
+
+    // hazard
+    if block_state == BlockState::from(BlockKind::MagmaBlock) {
+        return false;
+    };
+
     if block_state.is_collision_shape_full() {
         return true;
     }
@@ -612,15 +686,20 @@ pub fn is_block_state_standable(block_state: BlockState) -> bool {
     false
 }
 
+pub fn is_block_state_water(block_state: BlockState) -> bool {
+    // only the default blockstate, which is source blocks
+    block_state == BlockState::from(BlockKind::Water)
+}
+
 #[cfg(test)]
 mod tests {
-    use azalea_world::{Chunk, ChunkStorage, PartialInstance};
+    use azalea_world::{Chunk, ChunkStorage, PartialWorld};
 
     use super::*;
 
     #[test]
     fn test_is_passable() {
-        let mut partial_world = PartialInstance::default();
+        let mut partial_world = PartialWorld::default();
         let mut world = ChunkStorage::default();
 
         partial_world
@@ -637,12 +716,12 @@ mod tests {
 
         let ctx = CachedWorld::new(Arc::new(RwLock::new(world.into())), BlockPos::default());
         assert!(!ctx.is_block_pos_passable(BlockPos::new(0, 0, 0)));
-        assert!(ctx.is_block_pos_passable(BlockPos::new(0, 1, 0),));
+        assert!(ctx.is_block_pos_passable(BlockPos::new(0, 1, 0)));
     }
 
     #[test]
     fn test_is_solid() {
-        let mut partial_world = PartialInstance::default();
+        let mut partial_world = PartialWorld::default();
         let mut world = ChunkStorage::default();
         partial_world
             .chunks
@@ -663,7 +742,7 @@ mod tests {
 
     #[test]
     fn test_is_standable() {
-        let mut partial_world = PartialInstance::default();
+        let mut partial_world = PartialWorld::default();
         let mut world = ChunkStorage::default();
         partial_world
             .chunks

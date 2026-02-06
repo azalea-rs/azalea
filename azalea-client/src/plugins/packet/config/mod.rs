@@ -17,7 +17,7 @@ use crate::{
     connection::RawConnection,
     cookies::{RequestCookieEvent, StoreCookieEvent},
     disconnect::DisconnectEvent,
-    local_player::InstanceHolder,
+    local_player::WorldHolder,
     packet::game::{KeepAliveEvent, ResourcePackEvent},
 };
 
@@ -69,12 +69,12 @@ pub struct ConfigPacketHandler<'a> {
 }
 impl ConfigPacketHandler<'_> {
     pub fn registry_data(&mut self, p: &ClientboundRegistryData) {
-        as_system::<Query<&InstanceHolder>>(self.ecs, |mut query| {
-            let instance_holder = query.get_mut(self.player).unwrap();
-            let mut instance = instance_holder.instance.write();
+        as_system::<Query<&WorldHolder>>(self.ecs, |mut query| {
+            let world_holder = query.get_mut(self.player).unwrap();
+            let mut world = world_holder.shared.write();
 
             // add the new registry data
-            instance
+            world
                 .registries
                 .append(p.registry_id.clone(), p.entries.clone());
         });

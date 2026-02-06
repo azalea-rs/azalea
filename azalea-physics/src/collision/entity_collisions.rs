@@ -3,7 +3,7 @@ use azalea_entity::{
     Physics,
     metadata::{AbstractBoat, Shulker},
 };
-use azalea_world::Instance;
+use azalea_world::World;
 use bevy_ecs::{
     component::Component,
     entity::Entity,
@@ -51,7 +51,7 @@ pub fn update_last_bounding_box(
 }
 
 pub fn get_entity_collisions(
-    world: &Instance,
+    world: &World,
     aabb: &Aabb,
     source_entity: Option<Entity>,
     aabb_query: &AabbQuery,
@@ -83,7 +83,7 @@ pub fn get_entity_collisions(
 /// `source_entity` is the entity that the bounding box belongs to, and won't be
 /// one of the returned entities.
 pub fn get_entities(
-    world: &Instance,
+    world: &World,
     source_entity: Option<Entity>,
     aabb: &Aabb,
     predicate: &dyn Fn(Entity) -> bool,

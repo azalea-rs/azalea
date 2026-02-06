@@ -27,7 +27,9 @@ def generate_builtin_registries(registries: dict):
             registry["entries"].items(), key=lambda x: x[1]["protocol_id"]
         )
         for variant_name, _variant in registry_entries:
-            variant_struct_name = to_camel_case(variant_name.split(":")[-1])
+            # strip out the "minecraft:" prefix
+            variant_name = variant_name.split(":")[-1]
+            variant_struct_name = to_camel_case(variant_name)
             registry_code.append(f'\t{variant_struct_name} => "{variant_name}",')
         registry_code.append("}")
 

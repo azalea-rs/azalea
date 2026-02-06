@@ -5,7 +5,7 @@
 
 use std::io::{self, Cursor, Write};
 
-use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
+use azalea_buf::{AzBuf, AzBufVar, BufReadError};
 use azalea_chat::FormattedText;
 use azalea_core::{
     direction::Direction,
@@ -13,7 +13,6 @@ use azalea_core::{
 };
 use azalea_inventory::{ItemStack, components};
 use azalea_registry::builtin::{VillagerKind, VillagerProfession};
-use bevy_ecs::component::Component;
 use derive_more::Deref;
 use enum_as_inner::EnumAsInner;
 use uuid::Uuid;
@@ -31,7 +30,7 @@ pub struct EntityDataItem {
     pub value: EntityDataValue,
 }
 
-impl AzaleaRead for EntityMetadataItems {
+impl AzBuf for EntityMetadataItems {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let mut metadata = Vec::new();
         loop {
@@ -44,9 +43,6 @@ impl AzaleaRead for EntityMetadataItems {
         }
         Ok(EntityMetadataItems(metadata))
     }
-}
-
-impl AzaleaWrite for EntityMetadataItems {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         for item in &self.0 {
             item.index.azalea_write(buf)?;
@@ -65,9 +61,9 @@ pub enum EntityDataValue {
     Int(#[var] i32),
     Long(#[var] i64),
     Float(f32),
-    String(String),
-    FormattedText(FormattedText),
-    OptionalFormattedText(Option<FormattedText>),
+    String(Box<str>),
+    FormattedText(Box<FormattedText>),
+    OptionalFormattedText(Option<Box<FormattedText>>),
     ItemStack(ItemStack),
     Boolean(bool),
     Rotations(Rotations),
@@ -79,20 +75,20 @@ pub enum EntityDataValue {
     /// If this is air, that means it's absent,
     OptionalBlockState(azalea_block::BlockState),
     Particle(Particle),
-    Particles(Vec<Particle>),
+    Particles(Box<[Particle]>),
     VillagerData(VillagerData),
     // 0 for absent; 1 + actual value otherwise. Used for entity IDs.
     OptionalUnsignedInt(OptionalUnsignedInt),
     Pose(Pose),
     CatVariant(azalea_registry::data::CatVariant),
-    ChickenVariant(azalea_registry::data::ChickenVariant),
     CowVariant(azalea_registry::data::CowVariant),
     WolfVariant(azalea_registry::data::WolfVariant),
     WolfSoundVariant(azalea_registry::data::WolfSoundVariant),
     FrogVariant(azalea_registry::data::FrogVariant),
     PigVariant(azalea_registry::data::PigVariant),
+    ChickenVariant(azalea_registry::data::ChickenVariant),
     ZombieNautilusVariant(azalea_registry::data::ZombieNautilusVariant),
-    OptionalGlobalPos(Option<GlobalPos>),
+    OptionalGlobalPos(Option<Box<GlobalPos>>),
     PaintingVariant(azalea_registry::data::PaintingVariant),
     SnifferState(SnifferStateKind),
     ArmadilloState(ArmadilloStateKind),
@@ -104,10 +100,12 @@ pub enum EntityDataValue {
     HumanoidArm(HumanoidArm),
 }
 
-#[derive(Clone, Debug, PartialEq)]
+const _: () = assert!(size_of::<EntityDataValue>() == 24);
+
+#[derive(Clone, Debug, PartialEq, Default)]
 pub struct OptionalUnsignedInt(pub Option<u32>);
 
-#[derive(AzBuf, Clone, Debug, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Default)]
 pub struct Quaternion {
     pub x: f32,
     pub y: f32,
@@ -125,7 +123,7 @@ pub enum ArmadilloStateKind {
     Scared,
 }
 
-impl AzaleaRead for OptionalUnsignedInt {
+impl AzBuf for OptionalUnsignedInt {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let val = u32::azalea_read_var(buf)?;
         Ok(OptionalUnsignedInt(if val == 0 {
@@ -134,8 +132,6 @@ impl AzaleaRead for OptionalUnsignedInt {
             Some(val - 1)
         }))
     }
-}
-impl AzaleaWrite for OptionalUnsignedInt {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         match self.0 {
             Some(val) => (val + 1).azalea_write_var(buf),
@@ -152,7 +148,8 @@ pub struct Rotations {
     pub z: f32,
 }
 
-#[derive(AzBuf, Clone, Component, Copy, Debug, Default, Eq, PartialEq)]
+#[cfg_attr(feature = "bevy_ecs", derive(bevy_ecs::component::Component))]
+#[derive(AzBuf, Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub enum Pose {
     #[default]
     Standing = 0,

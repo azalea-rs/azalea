@@ -1,11 +1,12 @@
 use azalea_client::{SprintDirection, WalkDirection};
 use azalea_core::{direction::CardinalDirection, position::BlockPos};
+use azalea_physics::collision::BlockWithShape;
 use tracing::trace;
 
-use super::{Edge, ExecuteCtx, IsReachedCtx, MoveData, PathfinderCtx};
-use crate::pathfinder::{astar, costs::*, player_pos_to_block_pos, rel_block_pos::RelBlockPos};
+use super::{Edge, ExecuteCtx, IsReachedCtx, MoveData, MovesCtx};
+use crate::pathfinder::{astar, costs::*, player_pos_to_block_pos, positions::RelBlockPos};
 
-pub fn parkour_move(ctx: &mut PathfinderCtx, node: RelBlockPos) {
+pub fn parkour_move(ctx: &mut MovesCtx, node: RelBlockPos) {
     if !ctx.world.is_block_solid(node.down(1)) {
         // we can only parkour from solid blocks (not just standable blocks like slabs)
         return;
@@ -16,13 +17,13 @@ pub fn parkour_move(ctx: &mut PathfinderCtx, node: RelBlockPos) {
     parkour_forward_3_move(ctx, node);
 }
 
-fn parkour_forward_1_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
+fn parkour_forward_1_move(ctx: &mut MovesCtx, pos: RelBlockPos) {
     for dir in CardinalDirection::iter() {
         let gap_offset = RelBlockPos::new(dir.x(), 0, dir.z());
         let offset = RelBlockPos::new(dir.x() * 2, 0, dir.z() * 2);
 
         // make sure we actually have to jump
-        if ctx.world.is_block_solid((pos + gap_offset).down(1)) {
+        if ctx.world.is_block_standable((pos + gap_offset).down(1)) {
             continue;
         }
         if !ctx.world.is_passable(pos + gap_offset) {
@@ -34,6 +35,9 @@ fn parkour_forward_1_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
             1
         } else if ctx.world.is_standable(pos + offset) {
             // forward
+
+            // no FALL_N_BLOCKS_COST[1] added here because we mostly don't have to wait for
+            // falling
             0
         } else {
             continue;
@@ -52,8 +56,7 @@ fn parkour_forward_1_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
         if !ctx.world.is_block_passable((pos + offset).up(2)) {
             continue;
         }
-
-        let cost = JUMP_PENALTY + WALK_ONE_BLOCK_COST * 2. + CENTER_AFTER_FALL_COST;
+        let cost = JUMP_PENALTY + WALK_ONE_BLOCK_COST * 2.;
 
         ctx.edges.push(Edge {
             movement: astar::Movement {
@@ -68,28 +71,28 @@ fn parkour_forward_1_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
     }
 }
 
-fn parkour_forward_2_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
+fn parkour_forward_2_move(ctx: &mut MovesCtx, pos: RelBlockPos) {
     'dir: for dir in CardinalDirection::iter() {
         let gap_1_offset = RelBlockPos::new(dir.x(), 0, dir.z());
         let gap_2_offset = RelBlockPos::new(dir.x() * 2, 0, dir.z() * 2);
         let offset = RelBlockPos::new(dir.x() * 3, 0, dir.z() * 3);
 
         // make sure we actually have to jump
-        if ctx.world.is_block_solid((pos + gap_1_offset).down(1))
-            || ctx.world.is_block_solid((pos + gap_2_offset).down(1))
+        if ctx.world.is_block_standable((pos + gap_1_offset).down(1))
+            || ctx.world.is_block_standable((pos + gap_2_offset).down(1))
         {
             continue;
         }
 
-        let mut cost = JUMP_PENALTY + WALK_ONE_BLOCK_COST * 3. + CENTER_AFTER_FALL_COST;
+        let mut cost = JUMP_PENALTY + WALK_ONE_BLOCK_COST * 3.;
 
         let ascend: i32 = if ctx.world.is_standable(pos + offset.up(1)) {
             1
         } else if ctx.world.is_standable(pos + offset) {
-            cost += FALL_N_BLOCKS_COST[1];
             0
         } else if ctx.world.is_standable(pos + offset.down(1)) {
-            cost += FALL_N_BLOCKS_COST[2];
+            // we mostly don't really wait for falling during parkour except here
+            cost += FALL_N_BLOCKS_COST[2] / 2.;
             -1
         } else {
             continue;
@@ -126,7 +129,7 @@ fn parkour_forward_2_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
     }
 }
 
-fn parkour_forward_3_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
+fn parkour_forward_3_move(ctx: &mut MovesCtx, pos: RelBlockPos) {
     'dir: for dir in CardinalDirection::iter() {
         let gap_1_offset = RelBlockPos::new(dir.x(), 0, dir.z());
         let gap_2_offset = RelBlockPos::new(dir.x() * 2, 0, dir.z() * 2);
@@ -134,9 +137,9 @@ fn parkour_forward_3_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
         let offset = RelBlockPos::new(dir.x() * 4, 0, dir.z() * 4);
 
         // make sure we actually have to jump
-        if ctx.world.is_block_solid((pos + gap_1_offset).down(1))
-            || ctx.world.is_block_solid((pos + gap_2_offset).down(1))
-            || ctx.world.is_block_solid((pos + gap_3_offset).down(1))
+        if ctx.world.is_block_standable((pos + gap_1_offset).down(1))
+            || ctx.world.is_block_standable((pos + gap_2_offset).down(1))
+            || ctx.world.is_block_standable((pos + gap_3_offset).down(1))
         {
             continue;
         }
@@ -163,7 +166,7 @@ fn parkour_forward_3_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
             continue;
         }
 
-        let cost = JUMP_PENALTY + SPRINT_ONE_BLOCK_COST * 4. + CENTER_AFTER_FALL_COST;
+        let cost = JUMP_PENALTY + SPRINT_ONE_BLOCK_COST * 4.;
 
         ctx.edges.push(Edge {
             movement: astar::Movement {
@@ -230,6 +233,30 @@ fn execute_parkour_move(mut ctx: ExecuteCtx) {
     } else {
         ctx.look_at(target_center);
         trace!("looking at target_center");
+
+        // it's possible to hit our heads on a block when doing certain jumps (which
+        // resets our horizontal velocity), but we can avoid that by sneaking
+        if !ctx.physics.on_ground() && ctx.physics.velocity.y.abs() < 0.1 {
+            let should_sneak = {
+                let world = ctx.world.read();
+                let pos_above = ctx.position.up(1.8 + 0.1);
+                let block_pos_above = BlockPos::from(pos_above);
+                let block_pos_above_plus_velocity =
+                    BlockPos::from(pos_above + ctx.physics.velocity.with_y(0.) * 4.);
+
+                let block_above = world.get_block_state(block_pos_above).unwrap_or_default();
+                let block_above_plus_velocity = world
+                    .get_block_state(block_pos_above_plus_velocity)
+                    .unwrap_or_default();
+
+                // these checks are overly lenient but it doesn't matter much
+                !block_above.is_collision_shape_full()
+                    && !block_above_plus_velocity.is_collision_shape_empty()
+            };
+            if should_sneak {
+                ctx.sneak();
+            }
+        }
     }
 
     if !is_at_start_block && is_at_jump_block && distance_from_start > required_distance_from_center

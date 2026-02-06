@@ -2,9 +2,10 @@ use std::{any, collections::VecDeque, fmt::Debug, sync::Arc};
 
 use azalea_auth::game_profile::GameProfile;
 use azalea_block::BlockState;
-use azalea_buf::AzaleaWrite;
+use azalea_buf::AzBuf;
 use azalea_core::{
     delta::LpVec3,
+    entity_id::MinecraftEntityId,
     game_type::{GameMode, OptionalGameType},
     position::{BlockPos, ChunkPos, Vec3},
     tick::GameTick,
@@ -30,7 +31,7 @@ use azalea_registry::{
     data::{Biome, DimensionKind},
     identifier::Identifier,
 };
-use azalea_world::{Chunk, Instance, MinecraftEntityId, Section, palette::PalettedContainer};
+use azalea_world::{Chunk, Section, World, palette::PalettedContainer};
 use bevy_app::App;
 use bevy_ecs::{
     component::Mutable,
@@ -44,7 +45,7 @@ use uuid::Uuid;
 
 use crate::{
     InConfigState, LocalPlayerBundle, connection::RawConnection, disconnect::DisconnectEvent,
-    local_player::InstanceHolder, packet::game::SendGamePacketEvent, player::GameProfileComponent,
+    local_player::WorldHolder, packet::game::SendGamePacketEvent, player::GameProfileComponent,
 };
 
 /// A way to simulate a client in a server, used for some internal tests.
@@ -57,8 +58,9 @@ pub struct Simulation {
 }
 
 impl Simulation {
-    pub fn new(initial_connection_protocol: ConnectionProtocol) -> Self {
+    pub fn new(conn_protocol: ConnectionProtocol) -> Self {
         let mut app = create_simulation_app();
+
         let mut entity = app.world_mut().spawn_empty();
         let (player, rt) =
             create_local_player_bundle(entity.id(), ConnectionProtocol::Configuration);
@@ -78,7 +80,7 @@ impl Simulation {
         let mut simulation = Self { app, entity, rt };
 
         #[allow(clippy::single_match)]
-        match initial_connection_protocol {
+        match conn_protocol {
             ConnectionProtocol::Configuration => {}
             ConnectionProtocol::Game => {
                 simulation.receive_packet(ClientboundRegistryData {
@@ -97,7 +99,7 @@ impl Simulation {
                 simulation.receive_packet(ClientboundFinishConfiguration);
                 simulation.tick();
             }
-            _ => unimplemented!("unsupported ConnectionProtocol {initial_connection_protocol:?}"),
+            _ => unimplemented!("unsupported ConnectionProtocol {conn_protocol:?}"),
         }
 
         simulation
@@ -173,15 +175,15 @@ impl Simulation {
     }
 
     pub fn chunk(&self, chunk_pos: ChunkPos) -> Option<Arc<RwLock<Chunk>>> {
-        self.component::<InstanceHolder>()
-            .instance
+        self.component::<WorldHolder>()
+            .shared
             .read()
             .chunks
             .get(&chunk_pos)
     }
     pub fn get_block_state(&self, pos: BlockPos) -> Option<BlockState> {
-        self.component::<InstanceHolder>()
-            .instance
+        self.component::<WorldHolder>()
+            .shared
             .read()
             .get_block_state(pos)
     }
@@ -285,12 +287,12 @@ fn create_local_player_bundle(
 
     let raw_connection = RawConnection::new_networkless(connection_protocol);
 
-    let instance = Instance::default();
-    let instance_holder = InstanceHolder::new(entity, Arc::new(RwLock::new(instance)));
+    let world = World::default();
+    let world_holder = WorldHolder::new(entity, Arc::new(RwLock::new(world)));
 
     let local_player_bundle = LocalPlayerBundle {
         raw_connection,
-        instance_holder,
+        world_holder,
         metadata: PlayerMetadataBundle::default(),
     };
 
@@ -300,10 +302,13 @@ fn create_local_player_bundle(
 fn create_simulation_app() -> App {
     let mut app = App::new();
 
+    let mut plugins = bevy_app::PluginGroup::build(crate::DefaultPlugins);
     #[cfg(feature = "log")]
-    app.add_plugins(
-        bevy_app::PluginGroup::build(crate::DefaultPlugins).disable::<bevy_log::LogPlugin>(),
-    );
+    {
+        plugins = plugins.disable::<bevy_log::LogPlugin>();
+    }
+
+    app.add_plugins(plugins);
 
     app.edit_schedule(bevy_app::Main, |schedule| {
         // makes test results more reproducible

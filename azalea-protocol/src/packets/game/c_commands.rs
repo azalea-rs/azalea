@@ -1,6 +1,6 @@
 use std::io::{self, Cursor, Write};
 
-use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
+use azalea_buf::{AzBuf, AzBufVar, BufReadError};
 use azalea_core::bitset::FixedBitSet;
 use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_registry::identifier::Identifier;
@@ -46,7 +46,7 @@ impl<T: PartialEq> PartialEq for BrigadierNumber<T> {
     }
 }
 
-impl<T: AzaleaRead> AzaleaRead for BrigadierNumber<T> {
+impl<T: AzBuf> AzBuf for BrigadierNumber<T> {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let flags = FixedBitSet::<2>::azalea_read(buf)?;
         let min = if flags.index(0) {
@@ -61,8 +61,6 @@ impl<T: AzaleaRead> AzaleaRead for BrigadierNumber<T> {
         };
         Ok(BrigadierNumber { min, max })
     }
-}
-impl<T: AzaleaWrite> AzaleaWrite for BrigadierNumber<T> {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         let mut flags = FixedBitSet::<2>::new();
         if self.min.is_some() {
@@ -160,7 +158,7 @@ pub struct EntityParser {
     pub single: bool,
     pub players_only: bool,
 }
-impl AzaleaRead for EntityParser {
+impl AzBuf for EntityParser {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let flags = FixedBitSet::<2>::azalea_read(buf)?;
         Ok(EntityParser {
@@ -168,8 +166,6 @@ impl AzaleaRead for EntityParser {
             players_only: flags.index(1),
         })
     }
-}
-impl AzaleaWrite for EntityParser {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         let mut flags = FixedBitSet::<2>::new();
         if self.single {
@@ -184,7 +180,7 @@ impl AzaleaWrite for EntityParser {
 }
 
 // TODO: BrigadierNodeStub should have more stuff
-impl AzaleaRead for BrigadierNodeStub {
+impl AzBuf for BrigadierNodeStub {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let flags = FixedBitSet::<8>::azalea_read(buf)?;
         if flags.index(6) || flags.index(7) {
@@ -247,9 +243,6 @@ impl AzaleaRead for BrigadierNodeStub {
             })
         }
     }
-}
-
-impl AzaleaWrite for BrigadierNodeStub {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         let mut flags = FixedBitSet::<4>::new();
         if self.is_executable {

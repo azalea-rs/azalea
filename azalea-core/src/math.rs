@@ -6,8 +6,14 @@ use std::{
 
 pub const EPSILON: f64 = 1.0e-7;
 
-pub static SIN: LazyLock<[f32; 65536]> =
-    LazyLock::new(|| std::array::from_fn(|i| f64::sin((i as f64) * PI * 2. / 65536.) as f32));
+// has to be boxed to avoid a stack overflow on windows when run in debug mode
+pub static SIN: LazyLock<Box<[f32; 65536]>> = LazyLock::new(|| {
+    (0..65536)
+        .map(|i| f64::sin((i as f64) * PI * 2. / 65536.) as f32)
+        .collect::<Box<[f32]>>()
+        .try_into()
+        .unwrap()
+});
 
 /// A sine function that uses a lookup table.
 pub fn sin(x: f32) -> f32 {
