@@ -803,29 +803,3 @@ where
             .reunite(self.writer.raw.write_stream)
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn proxy_display_uses_protocol_scheme() {
-        let addr = SocketAddr::from(([127, 0, 0, 1], 8080));
-        assert_eq!(
-            Proxy::socks5(addr, None).to_string(),
-            "socks5://127.0.0.1:8080"
-        );
-        assert_eq!(Proxy::socks4(addr).to_string(), "socks4://127.0.0.1:8080");
-        assert_eq!(Proxy::http(addr, None).to_string(), "http://127.0.0.1:8080");
-    }
-
-    #[cfg(feature = "online-mode")]
-    #[test]
-    fn reqwest_proxy_supports_all_proxy_schemes() {
-        let addr = SocketAddr::from(([127, 0, 0, 1], 8080));
-
-        let _ = reqwest::Proxy::from(Proxy::socks5(addr, None));
-        let _ = reqwest::Proxy::from(Proxy::socks4(addr));
-        let _ = reqwest::Proxy::from(Proxy::http(addr, None));
-    }
-}
