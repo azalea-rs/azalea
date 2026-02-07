@@ -398,6 +398,7 @@ impl Attributes {
             block_interaction_range: AttributeInstance::new(4.5),
             entity_interaction_range: AttributeInstance::new(3.0),
             step_height: AttributeInstance::new(0.6),
+            block_break_speed: AttributeInstance::new(1.0),
         }
     }
 }
