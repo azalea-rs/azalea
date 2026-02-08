@@ -170,7 +170,7 @@ impl From<EntityKind> for EntityDimensions {
             EntityKind::Player => EntityDimensions::new(0.6, 1.8).eye_height(1.62),
             EntityKind::PolarBear => EntityDimensions::new(1.4, 1.4),
             EntityKind::Pufferfish => EntityDimensions::new(0.7, 0.7).eye_height(0.455),
-            EntityKind::Rabbit => EntityDimensions::new(0.4, 0.5),
+            EntityKind::Rabbit => EntityDimensions::new(0.49, 0.6).eye_height(0.63),
             EntityKind::Ravager => EntityDimensions::new(1.95, 2.2),
             EntityKind::Salmon => EntityDimensions::new(0.7, 0.4).eye_height(0.26),
             EntityKind::Sheep => EntityDimensions::new(0.9, 1.3).eye_height(1.235),

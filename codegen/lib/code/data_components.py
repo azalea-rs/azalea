@@ -198,7 +198,6 @@ use crate::{
     components_to_item_defaults = {}
 
     for item_resource_id, data in items.items():
-        item_resource_id = item_resource_id.split(":")[1]
         components = data["components"]
         for component_resource_id, component_value in components.items():
             component_resource_id = component_resource_id.split(":")[1]
@@ -360,7 +359,7 @@ use crate::{
                 )
             elif target_rust_type == "ItemStack":
                 item_rust_value = python_to_rust_value(python_value["id"], "ItemKind")
-                count = python_value["count"]
+                count = python_value.get("count", 1)
                 if count == 1:
                     return f"ItemStack::from({item_rust_value})"
                 else:
