@@ -6,7 +6,9 @@ use azalea_core::{
     direction::Direction,
     position::{BlockPos, Vec3},
 };
-use azalea_entity::{HasClientLoaded, LocalEntity, Physics, Position};
+use azalea_entity::{
+    HasClientLoaded, LocalEntity, Physics, Position, dimensions::EntityDimensions,
+};
 use azalea_registry::builtin::BlockKind;
 use azalea_world::{World, WorldName, Worlds};
 use bevy_ecs::prelude::*;
@@ -175,8 +177,60 @@ fn update_fluid_height_and_do_fluid_pushing(
     touching_fluid
 }
 
-pub fn update_swimming() {
-    // TODO: swimming
+#[allow(clippy::type_complexity)]
+pub fn update_swimming(
+    mut query: Query<
+        (
+            &Physics,
+            &Position,
+            &WorldName,
+            &EntityDimensions,
+            &azalea_entity::metadata::Sprinting,
+            &mut azalea_entity::metadata::Swimming,
+        ),
+        (With<LocalEntity>, With<HasClientLoaded>),
+    >,
+    worlds: Res<Worlds>,
+) {
+    for (physics, position, world_name, dimensions, sprinting, mut swimming) in &mut query {
+        let Some(world_lock) = worlds.get(world_name) else {
+            continue;
+        };
+        let world = world_lock.read();
+
+        let is_sprinting = **sprinting;
+        let is_in_water = physics.was_touching_water;
+        let is_passenger = false; // TODO: implement passengers
+
+        // Check if eye is in water
+        let eye_pos = position.up(dimensions.eye_height as f64);
+        let eye_block_pos = BlockPos::new(
+            eye_pos.x.floor() as i32,
+            eye_pos.y.floor() as i32,
+            eye_pos.z.floor() as i32,
+        );
+        let fluid_state = world.get_fluid_state(eye_block_pos).unwrap_or_default();
+        let fluid_height = eye_block_pos.y as f64 + fluid_state.height() as f64;
+        let is_eye_in_water = fluid_state.kind == FluidKind::Water && fluid_height > eye_pos.y;
+        let is_underwater = is_eye_in_water && is_in_water;
+
+        // Check if block at position is water
+        let block_pos = BlockPos::new(
+            position.x.floor() as i32,
+            position.y.floor() as i32,
+            position.z.floor() as i32,
+        );
+        let block_at_pos_is_water = world
+            .get_fluid_state(block_pos)
+            .map(|fluid| fluid.kind == FluidKind::Water)
+            .unwrap_or(false);
+
+        if **swimming {
+            **swimming = is_sprinting && is_in_water && !is_passenger;
+        } else {
+            **swimming = is_sprinting && is_underwater && !is_passenger && block_at_pos_is_water;
+        }
+    }
 }
 
 // FlowingFluid.getFlow

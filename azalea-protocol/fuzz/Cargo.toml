@@ -8,34 +8,51 @@ edition = "2024"
 cargo-fuzz = true
 
 [dependencies]
-libfuzzer-sys = "0.4"
 azalea-protocol = { path = "..", default-features = false }
 
+[dependencies.arbitrary]
+version = "1"
+features = ["derive"]
+optional = true
+
+[dependencies.libfuzzer-sys]
+version = "0.4"
+optional = true
+
+[features]
+default = []
+fuzz = ["dep:arbitrary", "dep:libfuzzer-sys"]
+
 [[bin]]
+required-features = ["fuzz"]
 name = "clientbound_config"
 path = "fuzz_targets/clientbound_config.rs"
 test = false
 doc = false
 bench = false
 [[bin]]
+required-features = ["fuzz"]
 name = "clientbound_game"
 path = "fuzz_targets/clientbound_game.rs"
 test = false
 doc = false
 bench = false
 [[bin]]
+required-features = ["fuzz"]
 name = "clientbound_handshake"
 path = "fuzz_targets/clientbound_handshake.rs"
 test = false
 doc = false
 bench = false
 [[bin]]
+required-features = ["fuzz"]
 name = "clientbound_login"
 path = "fuzz_targets/clientbound_login.rs"
 test = false
 doc = false
 bench = false
 [[bin]]
+required-features = ["fuzz"]
 name = "clientbound_status"
 path = "fuzz_targets/clientbound_status.rs"
 test = false
@@ -44,30 +61,35 @@ bench = false
 
 
 [[bin]]
+required-features = ["fuzz"]
 name = "serverbound_config"
 path = "fuzz_targets/serverbound_config.rs"
 test = false
 doc = false
 bench = false
 [[bin]]
+required-features = ["fuzz"]
 name = "serverbound_game"
 path = "fuzz_targets/serverbound_game.rs"
 test = false
 doc = false
 bench = false
 [[bin]]
+required-features = ["fuzz"]
 name = "serverbound_handshake"
 path = "fuzz_targets/serverbound_handshake.rs"
 test = false
 doc = false
 bench = false
 [[bin]]
+required-features = ["fuzz"]
 name = "serverbound_login"
 path = "fuzz_targets/serverbound_login.rs"
 test = false
 doc = false
 bench = false
 [[bin]]
+required-features = ["fuzz"]
 name = "serverbound_status"
 path = "fuzz_targets/serverbound_status.rs"
 test = false
