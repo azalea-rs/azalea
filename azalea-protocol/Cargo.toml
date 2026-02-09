@@ -17,6 +17,7 @@ azalea-block.workspace = true
 azalea-brigadier = { workspace = true, features = ["azalea-buf"] }
 azalea-buf.workspace = true
 azalea-chat = { workspace = true, features = ["numbers", "azalea-buf"] }
+base64.workspace = true
 azalea-core = { workspace = true }
 azalea-crypto = { workspace = true, features = ["signing"] }
 azalea-entity = { workspace = true }
@@ -30,13 +31,15 @@ flate2.workspace = true
 futures.workspace = true
 futures-lite.workspace = true
 # futures-util.workspace = true
+http-proxy-client-async.workspace = true
 serde = { workspace = true, features = ["serde_derive"] }
 serde_json.workspace = true
 simdnbt.workspace = true
-socks5-impl = { workspace = true, features = ["client"] }
+socks5-impl.workspace = true
 thiserror.workspace = true
 tokio = { workspace = true, features = ["io-util", "net", "macros"] }
-tokio-util = { workspace = true, features = ["codec"] }
+tokio-socks.workspace = true
+tokio-util = { workspace = true, features = ["codec", "compat"] }
 tracing.workspace = true
 hickory-resolver = { workspace = true, features = ["tokio", "system-config"] }
 uuid.workspace = true

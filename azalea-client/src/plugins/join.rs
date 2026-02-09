@@ -64,10 +64,11 @@ pub struct StartJoinServerEvent {
 #[derive(Clone, Component, Debug)]
 pub struct ConnectOpts {
     pub address: ResolvedAddr,
-    /// The SOCKS5 proxy used for connecting to the Minecraft server.
+    /// The proxy (SOCKS5, SOCKS4, or HTTP) used for connecting to the
+    /// Minecraft server.
     pub server_proxy: Option<Proxy>,
-    /// The SOCKS5 proxy that will be used when authenticating our server join
-    /// with Mojang.
+    /// The proxy (SOCKS5, SOCKS4, or HTTP) that will be used when
+    /// authenticating our server join with Mojang.
     ///
     /// This should typically be either the same as [`Self::server_proxy`], or
     /// `None`.
