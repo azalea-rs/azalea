@@ -204,6 +204,14 @@ impl<D: Registry, Identifier: AzBuf> Default for HolderSet<D, Identifier> {
         }
     }
 }
+impl<D: Registry, Identifier: AzBuf + From<D> + PartialEq> HolderSet<D, Identifier> {
+    pub fn contains(&self, value: D) -> bool {
+        match self {
+            HolderSet::Direct { contents } => contents.contains(&value),
+            HolderSet::Named { key: _, contents } => contents.contains(&Identifier::from(value)),
+        }
+    }
+}
 
 /// A reference to either a registry or a custom value (usually something with
 /// an `Identifier`).

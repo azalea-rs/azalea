@@ -2,7 +2,7 @@ use azalea_block::{BlockState, BlockTrait, fluid_state::FluidKind};
 use azalea_core::position::BlockPos;
 use azalea_entity::{ActiveEffects, Attributes, FluidOnEyes, Physics, inventory::Inventory};
 use azalea_inventory::{ItemStack, Menu, components};
-use azalea_registry::builtin::{BlockKind, EntityKind, ItemKind};
+use azalea_registry::builtin::{BlockKind, EntityKind};
 
 use crate::Client;
 
@@ -92,13 +92,13 @@ pub fn accurate_best_tool_in_hotbar_for_block(
     }
 
     // find the first slot that has an item without durability
-    for (i, item_slot) in hotbar_slots.iter().enumerate() {
+    for (i, item_stack_data) in hotbar_slots.iter().enumerate() {
         let this_item_speed;
-        match item_slot {
+        match item_stack_data {
             ItemStack::Empty => {
                 this_item_speed = Some(azalea_entity::mining::get_mine_progress(
                     block.as_ref(),
-                    ItemKind::Air,
+                    &ItemStack::Empty,
                     fluid_on_eyes,
                     physics,
                     attributes,
@@ -111,7 +111,7 @@ pub fn accurate_best_tool_in_hotbar_for_block(
                 if !item_stack.component_patch.has::<components::Damage>() {
                     this_item_speed = Some(azalea_entity::mining::get_mine_progress(
                         block.as_ref(),
-                        item_stack.kind,
+                        item_stack_data,
                         fluid_on_eyes,
                         physics,
                         attributes,
@@ -131,11 +131,11 @@ pub fn accurate_best_tool_in_hotbar_for_block(
     }
 
     // now check every item
-    for (i, item_slot) in hotbar_slots.iter().enumerate() {
-        if let ItemStack::Present(item_slot) = item_slot {
+    for (i, item_stack) in hotbar_slots.iter().enumerate() {
+        if item_stack.is_present() {
             let this_item_speed = azalea_entity::mining::get_mine_progress(
                 block.as_ref(),
-                item_slot.kind,
+                item_stack,
                 fluid_on_eyes,
                 physics,
                 attributes,

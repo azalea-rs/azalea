@@ -342,7 +342,7 @@ pub fn handle_mining_queued(
             if block_is_solid
                 && get_mine_progress(
                     block.as_ref(),
-                    held_item.kind(),
+                    held_item,
                     fluid_on_eyes,
                     physics,
                     attributes,
@@ -657,7 +657,7 @@ pub fn continue_mining_block(
             let block = Box::<dyn BlockTrait>::from(target_block_state);
             **mine_progress += get_mine_progress(
                 block.as_ref(),
-                current_mining_item.kind(),
+                current_mining_item,
                 fluid_on_eyes,
                 physics,
                 attributes,
