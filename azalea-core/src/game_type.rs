@@ -87,7 +87,7 @@ impl GameMode {
 impl GameMode {
     /// Whether the player can't interact with blocks while in this game mode.
     ///
-    /// (Returns true if you're in adventure or spectator.)
+    /// Returns true if you're in adventure or spectator.
     pub fn is_block_placing_restricted(&self) -> bool {
         matches!(self, GameMode::Adventure | GameMode::Spectator)
     }
