@@ -102,10 +102,10 @@ pub enum EntityDataValue {
 
 const _: () = assert!(size_of::<EntityDataValue>() == 24);
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Default)]
 pub struct OptionalUnsignedInt(pub Option<u32>);
 
-#[derive(AzBuf, Clone, Debug, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Default)]
 pub struct Quaternion {
     pub x: f32,
     pub y: f32,

@@ -300,6 +300,8 @@ define_data_components!(
     SwingAnimation,
     ZombieNautilusVariant,
     AttackRange,
+    AdditionalTradeCost,
+    Dye,
 );
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
@@ -1894,4 +1896,15 @@ impl Default for AttackRange {
     fn default() -> Self {
         Self::new()
     }
+}
+
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+pub struct AdditionalTradeCost {
+    #[var]
+    pub cost: i32,
+}
+
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+pub struct Dye {
+    pub color: DyeColor,
 }
