@@ -11,11 +11,8 @@ impl World {
     ///
     /// ```
     /// # use azalea_registry::builtin::BlockKind;
-    /// # fn example(client: &azalea::Client) {
-    /// client
-    ///     .world()
-    ///     .read()
-    ///     .find_block(client.position(), &BlockKind::Chest.into());
+    /// # fn example(world: &World) {
+    /// let pos = world.find_block(client.position(), &BlockKind::Chest.into());
     /// # }
     /// ```
     pub fn find_block(

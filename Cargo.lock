@@ -587,7 +587,6 @@ dependencies = [
 name = "azalea-world"
 version = "0.15.0+mc1.21.11"
 dependencies = [
- "azalea",
  "azalea-block",
  "azalea-buf",
  "azalea-core",
@@ -597,6 +596,7 @@ dependencies = [
  "derive_more",
  "nohash-hasher",
  "parking_lot",
+ "rand 0.10.0-rc.7",
  "rustc-hash",
  "serde",
  "tracing",
