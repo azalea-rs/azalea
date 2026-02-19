@@ -1,3 +1,5 @@
+mod slot_ref;
+
 use std::{fmt, fmt::Debug};
 
 use azalea_chat::FormattedText;
@@ -17,7 +19,7 @@ use bevy_app::{App, Plugin, Update};
 use bevy_ecs::{component::Component, prelude::MessageReader, system::Commands};
 use derive_more::Deref;
 
-use crate::Client;
+use crate::{Client, container::slot_ref::SlotRef};
 
 pub struct ContainerPlugin;
 impl Plugin for ContainerPlugin {
@@ -170,6 +172,7 @@ impl Client {
 ///
 /// This does not close the container when it's dropped. See [`ContainerHandle`]
 /// if that behavior is desired.
+#[derive(Clone)]
 pub struct ContainerHandleRef {
     id: i32,
     client: Client,
@@ -220,29 +223,39 @@ impl ContainerHandleRef {
     }
 
     fn map_inventory<R>(&self, f: impl FnOnce(&Inventory) -> R) -> Option<R> {
-        self.client.query_self::<&Inventory, _>(|inv| {
-            if inv.id == self.id {
-                Some(f(inv))
-            } else {
-                // a different inventory is open
-                None
-            }
-        })
+        let inv = self.client.component::<Inventory>();
+        if inv.id == self.id {
+            Some(f(&inv))
+        } else {
+            // a different inventory is open
+            None
+        }
     }
 
     /// Returns the item slots in the container, not including the player's
     /// inventory.
     ///
     /// If the container is closed, this will return `None`.
-    pub fn contents(&self) -> Option<Vec<ItemStack>> {
-        self.menu().map(|menu| menu.contents())
+    pub fn contents(&self) -> Option<Box<[SlotRef]>> {
+        self.menu().map(|menu| {
+            menu.content_indices()
+                .into_iter()
+                .map(|s| self.slot_ref_for(s))
+                .collect()
+        })
     }
 
-    /// Return the contents of the menu, including the player's inventory.
+    /// Return the contents of the entire menu, including the player's
+    /// inventory.
     ///
     /// If the container is closed, this will return `None`.
-    pub fn slots(&self) -> Option<Vec<ItemStack>> {
-        self.menu().map(|menu| menu.slots())
+    pub fn slots(&self) -> Option<Box<[SlotRef]>> {
+        self.menu().map(|menu| {
+            menu.slot_indices()
+                .into_iter()
+                .map(|s| self.slot_ref_for(s))
+                .collect()
+        })
     }
 
     /// Returns the title of the container, or `None` if no container is open.
@@ -289,6 +302,10 @@ impl ContainerHandleRef {
             window_id: self.id,
             operation,
         });
+    }
+
+    pub fn slot_ref_for(&self, slot: impl Into<usize>) -> SlotRef {
+        SlotRef::new(self.clone(), slot.into() as u16)
     }
 }
 
