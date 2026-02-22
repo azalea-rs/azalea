@@ -9,7 +9,7 @@ use azalea_core::{
 };
 use azalea_entity::{
     ActiveEffects, Dead, EntityBundle, EntityKindComponent, HasClientLoaded, LoadedBy, LocalEntity,
-    LookDirection, Physics, PlayerAbilities, Position, RelativeEntityUpdate,
+    LookDirection, Physics, PlayerAbilities, Position,
     indexing::{EntityIdIndex, EntityUuidIndex},
     inventory::Inventory,
     metadata::{Health, apply_metadata},
@@ -36,7 +36,10 @@ use crate::{
     inventory::{ClientsideCloseContainerEvent, MenuOpenedEvent, SetContainerContentEvent},
     local_player::{Experience, Hunger, LocalGameMode, TabList, WorldHolder},
     movement::{KnockbackData, KnockbackEvent},
-    packet::{as_system, declare_packet_handlers},
+    packet::{
+        as_system, declare_packet_handlers,
+        relative_updates::{EntityUpdateQuery, RelativeEntityUpdate, should_apply_entity_update},
+    },
     player::{GameProfileComponent, PlayerInfo},
     tick_counter::TicksConnected,
 };
@@ -716,36 +719,37 @@ impl GamePacketHandler<'_> {
         // vanilla servers use this packet for knockback, but note that the Explode
         // packet is also sometimes used by servers for knockback
 
-        as_system::<(Commands, Query<(&EntityIdIndex, &WorldHolder)>)>(
-            self.ecs,
-            |(mut commands, query)| {
-                let (entity_id_index, world_holder) = query.get(self.player).unwrap();
+        as_system::<(
+            Commands,
+            Query<(&EntityIdIndex, &WorldHolder)>,
+            EntityUpdateQuery,
+        )>(self.ecs, |(mut commands, query, entity_update_query)| {
+            let (entity_id_index, world_holder) = query.get(self.player).unwrap();
 
-                let Some(entity) = entity_id_index.get_by_minecraft_entity(p.id) else {
-                    // note that this log (and some other ones like the one in RemoveEntities)
-                    // sometimes happens when killing mobs. it seems to be a vanilla bug, which is
-                    // why it's a debug log instead of a warning
-                    debug!(
-                        "Got set entity motion packet for unknown entity id {}",
-                        p.id
-                    );
-                    return;
-                };
+            let Some(entity) = entity_id_index.get_by_minecraft_entity(p.id) else {
+                // note that this log (and some other ones like the one in RemoveEntities)
+                // sometimes happens when killing mobs. it seems to be a vanilla bug, which is
+                // why it's a debug log instead of a warning
+                debug!(
+                    "Got set entity motion packet for unknown entity id {}",
+                    p.id
+                );
+                return;
+            };
 
-                // this is to make sure the same entity velocity update doesn't get sent
-                // multiple times when in swarms
+            let data = KnockbackData::Set(p.delta.to_vec3());
 
-                let data = KnockbackData::Set(p.delta.to_vec3());
-
-                commands.entity(entity).queue(RelativeEntityUpdate::new(
-                    world_holder.partial.clone(),
-                    move |entity_mut| {
-                        entity_mut
-                            .world_scope(|world| world.trigger(KnockbackEvent { entity, data }));
-                    },
-                ));
-            },
-        );
+            // this is to make sure the same entity velocity update doesn't get sent
+            // multiple times when in swarms
+            if should_apply_entity_update(
+                &mut commands,
+                &mut world_holder.partial.write(),
+                entity,
+                entity_update_query,
+            ) {
+                commands.trigger(KnockbackEvent { entity, data });
+            }
+        });
     }
 
     pub fn set_entity_link(&mut self, p: &ClientboundSetEntityLink) {
@@ -795,8 +799,8 @@ impl GamePacketHandler<'_> {
 
         as_system::<(Commands, Query<(&EntityIdIndex, &WorldHolder)>)>(
             self.ecs,
-            |(mut commands, mut query)| {
-                let (entity_id_index, world_holder) = query.get_mut(self.player).unwrap();
+            |(mut commands, query)| {
+                let (entity_id_index, world_holder) = query.get(self.player).unwrap();
 
                 let Some(entity) = entity_id_index.get_by_minecraft_entity(p.id) else {
                     warn!("Got teleport entity packet for unknown entity id {}", p.id);
@@ -840,8 +844,8 @@ impl GamePacketHandler<'_> {
     pub fn move_entity_pos(&mut self, p: &ClientboundMoveEntityPos) {
         as_system::<(Commands, Query<(&EntityIdIndex, &WorldHolder)>)>(
             self.ecs,
-            |(mut commands, mut query)| {
-                let (entity_id_index, world_holder) = query.get_mut(self.player).unwrap();
+            |(mut commands, query)| {
+                let (entity_id_index, world_holder) = query.get(self.player).unwrap();
 
                 debug!("Got move entity pos packet {p:?}");
 
@@ -879,8 +883,8 @@ impl GamePacketHandler<'_> {
     pub fn move_entity_pos_rot(&mut self, p: &ClientboundMoveEntityPosRot) {
         as_system::<(Commands, Query<(&EntityIdIndex, &WorldHolder)>)>(
             self.ecs,
-            |(mut commands, mut query)| {
-                let (entity_id_index, world_holder) = query.get_mut(self.player).unwrap();
+            |(mut commands, query)| {
+                let (entity_id_index, world_holder) = query.get(self.player).unwrap();
 
                 debug!("Got move entity pos rot packet {p:?}");
 
@@ -929,8 +933,8 @@ impl GamePacketHandler<'_> {
     pub fn move_entity_rot(&mut self, p: &ClientboundMoveEntityRot) {
         as_system::<(Commands, Query<(&EntityIdIndex, &WorldHolder)>)>(
             self.ecs,
-            |(mut commands, mut query)| {
-                let (entity_id_index, world_holder) = query.get_mut(self.player).unwrap();
+            |(mut commands, query)| {
+                let (entity_id_index, world_holder) = query.get(self.player).unwrap();
 
                 let entity = entity_id_index.get_by_minecraft_entity(p.entity_id);
                 if let Some(entity) = entity {
@@ -1527,10 +1531,28 @@ impl GamePacketHandler<'_> {
     }
 
     pub fn entity_position_sync(&mut self, p: &ClientboundEntityPositionSync) {
-        as_system::<(Commands, Query<(&EntityIdIndex, &WorldHolder)>)>(
+        as_system::<(
+            Commands,
+            Query<(
+                &EntityIdIndex,
+                &WorldHolder,
+                Option<&LocalEntity>,
+                &mut Physics,
+                &mut Position,
+                &mut LookDirection,
+            )>,
+            EntityUpdateQuery,
+        )>(
             self.ecs,
-            |(mut commands, mut query)| {
-                let (entity_id_index, world_holder) = query.get_mut(self.player).unwrap();
+            |(mut commands, mut query, entity_update_query)| {
+                let (
+                    entity_id_index,
+                    world_holder,
+                    local_entity,
+                    mut physics,
+                    mut position,
+                    mut look_direction,
+                ) = query.get_mut(self.player).unwrap();
 
                 let Some(entity) = entity_id_index.get_by_minecraft_entity(p.id) else {
                     debug!("Got teleport entity packet for unknown entity id {}", p.id);
@@ -1541,28 +1563,32 @@ impl GamePacketHandler<'_> {
                 let new_on_ground = p.on_ground;
                 let new_look_direction = p.values.look_direction;
 
-                commands.entity(entity).queue(RelativeEntityUpdate::new(
-                    world_holder.partial.clone(),
-                    move |entity_mut| {
-                        let is_local_entity = entity_mut.get::<LocalEntity>().is_some();
-                        let mut physics = entity_mut.get_mut::<Physics>().unwrap();
+                if !should_apply_entity_update(
+                    &mut commands,
+                    &mut world_holder.partial.write(),
+                    entity,
+                    entity_update_query,
+                ) {
+                    return;
+                }
+                let is_local_entity = local_entity.is_some();
 
-                        physics.vec_delta_codec.set_base(new_position);
+                physics.vec_delta_codec.set_base(new_position);
 
-                        if is_local_entity {
-                            debug!("Ignoring entity position sync packet for local player");
-                            return;
-                        }
+                if is_local_entity {
+                    debug!("Ignoring entity position sync packet for local player");
+                    return;
+                }
 
-                        physics.set_on_ground(new_on_ground);
+                physics.set_on_ground(new_on_ground);
 
-                        let mut position = entity_mut.get_mut::<Position>().unwrap();
-                        **position = new_position;
+                if **position != new_position {
+                    **position = new_position;
+                }
 
-                        let mut look_direction = entity_mut.get_mut::<LookDirection>().unwrap();
-                        *look_direction = new_look_direction;
-                    },
-                ));
+                if *look_direction != new_look_direction {
+                    *look_direction = new_look_direction;
+                }
             },
         );
     }

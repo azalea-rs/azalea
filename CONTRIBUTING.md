@@ -18,6 +18,8 @@ If you're working with low-level physics or packet related code, it's quite easy
 
 The second major thing to watch out for is accidentally introducing performance regressions. Certain parts of Azalea are highly performance sensitive (notably, the pathfinder), so most changes in these areas should be benchmarked to avoid accidentally hurting performance.
 
+You're encouraged to write relevant tests and benchmarks.
+
 ## Profiling
 
 Please see [the chapter about profiling in the Rust performance book](https://nnethercote.github.io/perf-book/profiling.html).
@@ -29,12 +31,10 @@ cargo install flamegraph
 RUSTFLAGS="-C force-frame-pointers=yes" cargo r -r --example testbot
 # wait a few seconds so chunks being loaded doesn't affect the flamegraph, and
 # then run this in a separate window:
-flamegraph -p $(pidof testbot)
+flamegraph -p $(pidof testbot) --deterministic
 # wait about 15 seconds, then ctrl+c, and view the flamegraph.svg
 ```
 
 ## AI Policy
 
 Please avoid using generative AI to make contributions to Azalea. We do not enjoy working with code that wasn't written by people.
-
-

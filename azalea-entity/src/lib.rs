@@ -424,6 +424,10 @@ pub struct PlayerAbilities {
 
 /// The type of fluid that is at an entity's eye position, while also accounting
 /// for fluid height.
+///
+/// This is only updated for [`AbstractLiving`] entities.
+///
+/// [`AbstractLiving`]: metadata::AbstractLiving
 #[cfg_attr(feature = "bevy_ecs", derive(bevy_ecs::component::Component))]
 #[derive(Clone, Copy, Debug, Deref, DerefMut, PartialEq)]
 pub struct FluidOnEyes(FluidKind);

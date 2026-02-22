@@ -94,8 +94,8 @@ pub struct OnClimbable(bool);
 
 /// A component that indicates whether the player is currently sneaking.
 ///
-/// If the entity isn't a local player, then this is just a shortcut for
-/// checking if the [`Pose`] is `Crouching`.
+/// If the entity is a player but isn't a local player, then this is just a
+/// shortcut for checking if the [`Pose`] is `Crouching`.
 ///
 /// If you need to modify this value, use
 /// `azalea_client::PhysicsState::trying_to_crouch` or `Client::set_crouching`

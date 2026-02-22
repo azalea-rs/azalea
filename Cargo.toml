@@ -135,7 +135,7 @@ cargo-args = ["-Zunstable-options", "-Zrustdoc-scrape-examples"]
 # --- Profile Settings ---
 
 [profile.release]
-debug = true
+debug = "line-tables-only"
 
 # decoding packets takes forever if we don't do this
 [profile.dev.package.azalea-crypto]
