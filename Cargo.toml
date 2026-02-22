@@ -35,7 +35,9 @@ anyhow = "1.0.100"
 async-compat = "0.2.5"
 base64 = "0.22.1"
 bevy_app = "0.18.0"
-bevy_ecs = { version = "0.18.0", default-features = false }
+bevy_ecs = { version = "0.18.0", default-features = false, features = [
+    "multi_threaded",
+] }
 bevy_utils = { version = "0.18.0", default-features = false }
 bevy_log = "0.18.0"
 bevy_tasks = "0.18.0"

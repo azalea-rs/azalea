@@ -254,10 +254,10 @@ pub struct InLoadedChunk;
 /// Update the [`InLoadedChunk`] component for all entities in the world.
 pub fn update_in_loaded_chunk(
     mut commands: bevy_ecs::system::Commands,
-    query: Query<(Entity, &WorldName, &Position)>,
+    query: Query<(Entity, &WorldName, &Position, Option<&InLoadedChunk>)>,
     worlds: Res<Worlds>,
 ) {
-    for (entity, world_name, position) in &query {
+    for (entity, world_name, position, last_in_loaded_chunk) in &query {
         let player_chunk_pos = ChunkPos::from(position);
         let Some(world_lock) = worlds.get(world_name) else {
             commands.entity(entity).remove::<InLoadedChunk>();
@@ -266,9 +266,13 @@ pub fn update_in_loaded_chunk(
 
         let in_loaded_chunk = world_lock.read().chunks.get(&player_chunk_pos).is_some();
         if in_loaded_chunk {
-            commands.entity(entity).insert(InLoadedChunk);
+            if last_in_loaded_chunk.is_none() {
+                commands.entity(entity).insert(InLoadedChunk);
+            }
         } else {
-            commands.entity(entity).remove::<InLoadedChunk>();
+            if last_in_loaded_chunk.is_some() {
+                commands.entity(entity).remove::<InLoadedChunk>();
+            }
         }
     }
 }
