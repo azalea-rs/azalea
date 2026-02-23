@@ -192,6 +192,8 @@ pub fn process_packet(ecs: &mut World, player: Entity, packet: &ClientboundGameP
             debug_entity_value,
             debug_event,
             game_test_highlight_pos,
+            low_disk_space_warning,
+            game_rule_values,
         ]
     );
 }
@@ -1706,5 +1708,13 @@ impl GamePacketHandler<'_> {
     }
     pub fn game_test_highlight_pos(&mut self, p: &ClientboundGameTestHighlightPos) {
         debug!("Got game test highlight pos packet {p:?}");
+    }
+
+    pub fn low_disk_space_warning(&mut self, p: &ClientboundLowDiskSpaceWarning) {
+        debug!("Got low disk space warning packet {p:?}");
+    }
+
+    pub fn game_rule_values(&mut self, p: &ClientboundGameRuleValues) {
+        debug!("Got game rule values packet {p:?}");
     }
 }

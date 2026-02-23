@@ -4,7 +4,15 @@ use std::sync::LazyLock;
 
 use crate::{builtin::Fluid, tags::RegistryTag};
 
+pub static BUBBLE_COLUMN_CAN_OCCUPY: LazyLock<RegistryTag<Fluid>> =
+    LazyLock::new(|| RegistryTag::new(vec![Fluid::Water]));
 pub static LAVA: LazyLock<RegistryTag<Fluid>> =
     LazyLock::new(|| RegistryTag::new(vec![Fluid::FlowingLava, Fluid::Lava]));
+pub static SUPPORTS_FROGSPAWN: LazyLock<RegistryTag<Fluid>> =
+    LazyLock::new(|| RegistryTag::new(vec![Fluid::Water]));
+pub static SUPPORTS_LILY_PAD: LazyLock<RegistryTag<Fluid>> =
+    LazyLock::new(|| RegistryTag::new(vec![Fluid::Water]));
+pub static SUPPORTS_SUGAR_CANE_ADJACENTLY: LazyLock<RegistryTag<Fluid>> =
+    LazyLock::new(|| RegistryTag::new(vec![Fluid::FlowingWater, Fluid::Water]));
 pub static WATER: LazyLock<RegistryTag<Fluid>> =
     LazyLock::new(|| RegistryTag::new(vec![Fluid::FlowingWater, Fluid::Water]));

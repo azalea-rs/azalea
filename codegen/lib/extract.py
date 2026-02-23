@@ -5,7 +5,6 @@ from lib.download import (
     get_latest_fabric_api_version,
     get_latest_fabric_kotlin_version,
     get_latest_fabric_loom_version,
-    get_mappings_for_version,
     get_pumpkin_extractor,
     get_server_jar,
     get_burger,
@@ -43,7 +42,23 @@ def get_packets_report(version_id: str):
 
 
 def get_items_report(version_id: str):
-    return get_report(version_id, "items")
+    generate_data_from_server_jar(version_id)
+    items_dir = get_dir_location(
+        f"__cache__/generated-{version_id}/reports/minecraft/components/item"
+    )
+    if not os.path.exists(items_dir):
+        return {}
+    items = {}
+    for root, dirs, files in os.walk(items_dir, topdown=False):
+        for name in files:
+            file = os.path.join(root, name)
+            relative_path = file.replace(items_dir, "")[1:]
+            if not file.endswith(".json"):
+                continue
+            with open(file, "r") as f:
+                items[relative_path[:-5]] = json.load(f)
+
+    return items
 
 
 def get_report(version_id: str, name: str):
@@ -143,14 +158,12 @@ def get_burger_data_for_version(version_id: str):
     if not os.path.exists(get_dir_location(f"__cache__/burger-{version_id}.json")):
         get_burger()
         get_client_jar(version_id)
-        get_mappings_for_version(version_id)
 
-        print("\033[92mRunning Burger...\033[m")
+        print("\033[92mRunning azalea-burger...\033[m")
         run_python_command_and_download_deps(
-            f"cd {get_dir_location('__cache__/Burger')} && "
+            f"cd {get_dir_location('__cache__/azalea-burger')} && "
             f"venv/bin/python munch.py {get_dir_location('__cache__')}/client-{version_id}.jar "
             f"--output {get_dir_location('__cache__')}/burger-{version_id}.json "
-            f"--mappings {get_dir_location('__cache__')}/mappings-{version_id}.txt"
         )
     with open(get_dir_location(f"__cache__/burger-{version_id}.json"), "r") as f:
         return json.load(f)
@@ -184,12 +197,11 @@ def get_pumpkin_data(version_id: str, category: str):
     fabric_loom_version = get_latest_fabric_loom_version()
 
     gradle_properties = f"""# Done to increase the memory available to gradle.
-org.gradle.jvmargs=-Xmx1G
+org.gradle.jvmargs=-Xmx2G
 org.gradle.parallel=true
 # Fabric Properties
-# check these on https://modmuss50.me/fabric.html
+# check these on https://fabricmc.net/develop/
 minecraft_version={version_id}
-yarn_mappings={fabric_data["mappings"]["version"]}
 loader_version={fabric_data["loader"]["version"]}
 kotlin_loader_version={fabric_kotlin_version}
 # Mod Properties
@@ -201,33 +213,9 @@ fabric_version={fabric_api_version}
     with open(f"{pumpkin_dir}/gradle.properties", "w") as f:
         f.write(gradle_properties)
 
-    # update the minecraft version dependency in src/main/resources/fabric.mod.json
-    fabric_mod_json_path = f"{pumpkin_dir}/src/main/resources/fabric.mod.json"
-    with open(fabric_mod_json_path, "r") as f:
-        fabric_mod_json = f.read()
-    with open(fabric_mod_json_path, "w") as f:
-        fabric_mod_json = fabric_mod_json.replace(
-            '"minecraft": "${minecraft_version}"', '"minecraft": "*"'
-        )
-        f.write(fabric_mod_json)
-    with open(f"{pumpkin_dir}/build.gradle.kts", "r") as f:
-        build_gradle_kts = f.read()
-    with open(f"{pumpkin_dir}/build.gradle.kts", "w") as f:
-        build_gradle_kts = re.sub(
-            r'(id\("fabric-loom"\) version )"[^"]+"',
-            rf'\1"{fabric_loom_version}"',
-            build_gradle_kts,
-        )
-        # kotlin complains about nullable types if we don't add this
-        build_gradle_kts = re.sub(
-            r'(to project.property\("\w+"\))([\n,])', r"\1!!\2", build_gradle_kts
-        )
-        f.write(build_gradle_kts)
-
     # run ./gradlew runServer until it logs "(pumpkin_extractor) Done"
     p = subprocess.Popen(
-        # the gradle wrapper (./gradlew) is sometimes on the wrong version so just prefer the system's gradle installation
-        f"cd {pumpkin_dir} && gradle clean && gradle runServer",
+        f"cd {pumpkin_dir} && ./gradlew clean && ./gradlew runServer",
         stderr=subprocess.PIPE,
         stdout=subprocess.PIPE,
         shell=True,
@@ -263,34 +251,3 @@ def get_file_from_jar(version_id: str, file_dir: str):
 
 def get_en_us_lang(version_id: str):
     return json.loads(get_file_from_jar(version_id, "assets/minecraft/lang/en_us.json"))
-
-
-# burger packet id extraction is broken since 1.20.5 (always returns -1, so we have to determine packet id ourselves from the mappings).
-# this is very much not ideal.
-
-
-def get_packet_list(version_id: str):
-    if version_id != "1.21":
-        return []
-
-    generate_data_from_server_jar(version_id)
-    with open(
-        get_dir_location(f"__cache__/generated-{version_id}/reports/packets.json"), "r"
-    ) as f:
-        packets_report = json.load(f)
-    packet_list = []
-    for state, state_value in packets_report.items():
-        for direction, direction_value in state_value.items():
-            for packet_identifier, packet_value in direction_value.items():
-                assert packet_identifier.startswith("minecraft:")
-                packet_identifier = upper_first_letter(
-                    to_camel_case(packet_identifier[len("minecraft:") :])
-                )
-                packet_list.append(
-                    {
-                        "state": state,
-                        "direction": direction,
-                        "name": packet_identifier,
-                        "id": packet_value["protocol_id"],
-                    }
-                )

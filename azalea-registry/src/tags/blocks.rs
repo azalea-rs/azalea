@@ -229,27 +229,6 @@ pub static BADLANDS_TERRACOTTA: LazyLock<RegistryTag<BlockKind>> = LazyLock::new
 pub static BAMBOO_BLOCKS: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
     RegistryTag::new(vec![BlockKind::BambooBlock, BlockKind::StrippedBambooBlock])
 });
-pub static BAMBOO_PLANTABLE_ON: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
-    RegistryTag::new(vec![
-        BlockKind::GrassBlock,
-        BlockKind::Dirt,
-        BlockKind::CoarseDirt,
-        BlockKind::Podzol,
-        BlockKind::Sand,
-        BlockKind::SuspiciousSand,
-        BlockKind::RedSand,
-        BlockKind::Gravel,
-        BlockKind::SuspiciousGravel,
-        BlockKind::MuddyMangroveRoots,
-        BlockKind::Mycelium,
-        BlockKind::BambooSapling,
-        BlockKind::Bamboo,
-        BlockKind::MossBlock,
-        BlockKind::RootedDirt,
-        BlockKind::Mud,
-        BlockKind::PaleMossBlock,
-    ])
-});
 pub static BANNERS: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
     RegistryTag::new(vec![
         BlockKind::WhiteBanner,
@@ -405,22 +384,36 @@ pub static BEE_GROWABLES: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
 });
 pub static BEEHIVES: LazyLock<RegistryTag<BlockKind>> =
     LazyLock::new(|| RegistryTag::new(vec![BlockKind::BeeNest, BlockKind::Beehive]));
-pub static BIG_DRIPLEAF_PLACEABLE: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
-    RegistryTag::new(vec![
-        BlockKind::GrassBlock,
-        BlockKind::Dirt,
-        BlockKind::CoarseDirt,
-        BlockKind::Podzol,
-        BlockKind::MuddyMangroveRoots,
-        BlockKind::Farmland,
-        BlockKind::Clay,
-        BlockKind::Mycelium,
-        BlockKind::MossBlock,
-        BlockKind::MossBlock,
-        BlockKind::RootedDirt,
-        BlockKind::Mud,
-    ])
-});
+pub static BENEATH_BAMBOO_PODZOL_REPLACEABLE: LazyLock<RegistryTag<BlockKind>> =
+    LazyLock::new(|| {
+        RegistryTag::new(vec![
+            BlockKind::GrassBlock,
+            BlockKind::Dirt,
+            BlockKind::CoarseDirt,
+            BlockKind::Podzol,
+            BlockKind::MuddyMangroveRoots,
+            BlockKind::Mycelium,
+            BlockKind::MossBlock,
+            BlockKind::RootedDirt,
+            BlockKind::Mud,
+            BlockKind::PaleMossBlock,
+        ])
+    });
+pub static BENEATH_TREE_PODZOL_REPLACEABLE: LazyLock<RegistryTag<BlockKind>> =
+    LazyLock::new(|| {
+        RegistryTag::new(vec![
+            BlockKind::GrassBlock,
+            BlockKind::Dirt,
+            BlockKind::CoarseDirt,
+            BlockKind::Podzol,
+            BlockKind::MuddyMangroveRoots,
+            BlockKind::Mycelium,
+            BlockKind::MossBlock,
+            BlockKind::RootedDirt,
+            BlockKind::Mud,
+            BlockKind::PaleMossBlock,
+        ])
+    });
 pub static BIRCH_LOGS: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
     RegistryTag::new(vec![
         BlockKind::BirchLog,
@@ -532,6 +525,30 @@ pub static CANDLES: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
         BlockKind::GreenCandle,
         BlockKind::RedCandle,
         BlockKind::BlackCandle,
+    ])
+});
+pub static CANNOT_REPLACE_BELOW_TREE_TRUNK: LazyLock<RegistryTag<BlockKind>> =
+    LazyLock::new(|| {
+        RegistryTag::new(vec![
+            BlockKind::Dirt,
+            BlockKind::CoarseDirt,
+            BlockKind::Podzol,
+            BlockKind::MuddyMangroveRoots,
+            BlockKind::MossBlock,
+            BlockKind::RootedDirt,
+            BlockKind::Mud,
+            BlockKind::PaleMossBlock,
+        ])
+    });
+pub static CANNOT_SUPPORT_KELP: LazyLock<RegistryTag<BlockKind>> =
+    LazyLock::new(|| RegistryTag::new(vec![BlockKind::MagmaBlock]));
+pub static CANNOT_SUPPORT_SEAGRASS: LazyLock<RegistryTag<BlockKind>> =
+    LazyLock::new(|| RegistryTag::new(vec![BlockKind::MagmaBlock]));
+pub static CANNOT_SUPPORT_SNOW_LAYER: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        BlockKind::Ice,
+        BlockKind::Barrier,
+        BlockKind::PackedIce,
     ])
 });
 pub static CAULDRONS: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
@@ -853,16 +870,9 @@ pub static DIAMOND_ORES: LazyLock<RegistryTag<BlockKind>> =
     LazyLock::new(|| RegistryTag::new(vec![BlockKind::DiamondOre, BlockKind::DeepslateDiamondOre]));
 pub static DIRT: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
     RegistryTag::new(vec![
-        BlockKind::GrassBlock,
         BlockKind::Dirt,
         BlockKind::CoarseDirt,
-        BlockKind::Podzol,
-        BlockKind::MuddyMangroveRoots,
-        BlockKind::Mycelium,
-        BlockKind::MossBlock,
         BlockKind::RootedDirt,
-        BlockKind::Mud,
-        BlockKind::PaleMossBlock,
     ])
 });
 pub static DOES_NOT_BLOCK_HOPPERS: LazyLock<RegistryTag<BlockKind>> =
@@ -928,41 +938,6 @@ pub static DRIPSTONE_REPLACEABLE_BLOCKS: LazyLock<RegistryTag<BlockKind>> = Lazy
         BlockKind::Deepslate,
     ])
 });
-pub static DRY_VEGETATION_MAY_PLACE_ON: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
-    RegistryTag::new(vec![
-        BlockKind::GrassBlock,
-        BlockKind::Dirt,
-        BlockKind::CoarseDirt,
-        BlockKind::Podzol,
-        BlockKind::Sand,
-        BlockKind::SuspiciousSand,
-        BlockKind::RedSand,
-        BlockKind::MuddyMangroveRoots,
-        BlockKind::Farmland,
-        BlockKind::Mycelium,
-        BlockKind::WhiteTerracotta,
-        BlockKind::OrangeTerracotta,
-        BlockKind::MagentaTerracotta,
-        BlockKind::LightBlueTerracotta,
-        BlockKind::YellowTerracotta,
-        BlockKind::LimeTerracotta,
-        BlockKind::PinkTerracotta,
-        BlockKind::GrayTerracotta,
-        BlockKind::LightGrayTerracotta,
-        BlockKind::CyanTerracotta,
-        BlockKind::PurpleTerracotta,
-        BlockKind::BlueTerracotta,
-        BlockKind::BrownTerracotta,
-        BlockKind::GreenTerracotta,
-        BlockKind::RedTerracotta,
-        BlockKind::BlackTerracotta,
-        BlockKind::Terracotta,
-        BlockKind::MossBlock,
-        BlockKind::RootedDirt,
-        BlockKind::Mud,
-        BlockKind::PaleMossBlock,
-    ])
-});
 pub static EDIBLE_FOR_SHEEP: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
     RegistryTag::new(vec![
         BlockKind::ShortGrass,
@@ -973,6 +948,10 @@ pub static EDIBLE_FOR_SHEEP: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(||
 });
 pub static EMERALD_ORES: LazyLock<RegistryTag<BlockKind>> =
     LazyLock::new(|| RegistryTag::new(vec![BlockKind::EmeraldOre, BlockKind::DeepslateEmeraldOre]));
+pub static ENABLES_BUBBLE_COLUMN_DRAG_DOWN: LazyLock<RegistryTag<BlockKind>> =
+    LazyLock::new(|| RegistryTag::new(vec![BlockKind::MagmaBlock]));
+pub static ENABLES_BUBBLE_COLUMN_PUSH_UP: LazyLock<RegistryTag<BlockKind>> =
+    LazyLock::new(|| RegistryTag::new(vec![BlockKind::SoulSand]));
 pub static ENCHANTMENT_POWER_PROVIDER: LazyLock<RegistryTag<BlockKind>> =
     LazyLock::new(|| RegistryTag::new(vec![BlockKind::Bookshelf]));
 pub static ENCHANTMENT_POWER_TRANSMITTER: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
@@ -1019,6 +998,7 @@ pub static ENDERMAN_HOLDABLE: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|
         BlockKind::Gravel,
         BlockKind::MuddyMangroveRoots,
         BlockKind::Dandelion,
+        BlockKind::GoldenDandelion,
         BlockKind::Torchflower,
         BlockKind::Poppy,
         BlockKind::BlueOrchid,
@@ -1132,6 +1112,7 @@ pub static FLOWER_POTS: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
         BlockKind::PottedMangrovePropagule,
         BlockKind::PottedFern,
         BlockKind::PottedDandelion,
+        BlockKind::PottedGoldenDandelion,
         BlockKind::PottedPoppy,
         BlockKind::PottedBlueOrchid,
         BlockKind::PottedAllium,
@@ -1165,6 +1146,7 @@ pub static FLOWERS: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
         BlockKind::CherryLeaves,
         BlockKind::FloweringAzaleaLeaves,
         BlockKind::Dandelion,
+        BlockKind::GoldenDandelion,
         BlockKind::Torchflower,
         BlockKind::Poppy,
         BlockKind::BlueOrchid,
@@ -1191,6 +1173,26 @@ pub static FLOWERS: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
         BlockKind::Wildflowers,
         BlockKind::OpenEyeblossom,
         BlockKind::ClosedEyeblossom,
+    ])
+});
+pub static FOREST_ROCK_CAN_PLACE_ON: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        BlockKind::Stone,
+        BlockKind::Granite,
+        BlockKind::Diorite,
+        BlockKind::Andesite,
+        BlockKind::GrassBlock,
+        BlockKind::Dirt,
+        BlockKind::CoarseDirt,
+        BlockKind::Podzol,
+        BlockKind::MuddyMangroveRoots,
+        BlockKind::Mycelium,
+        BlockKind::Tuff,
+        BlockKind::MossBlock,
+        BlockKind::RootedDirt,
+        BlockKind::Mud,
+        BlockKind::Deepslate,
+        BlockKind::PaleMossBlock,
     ])
 });
 pub static FOXES_SPAWNABLE_ON: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
@@ -1239,6 +1241,15 @@ pub static GOLD_ORES: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
         BlockKind::NetherGoldOre,
     ])
 });
+pub static GRASS_BLOCKS: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        BlockKind::GrassBlock,
+        BlockKind::Podzol,
+        BlockKind::Mycelium,
+    ])
+});
+pub static GROWS_CROPS: LazyLock<RegistryTag<BlockKind>> =
+    LazyLock::new(|| RegistryTag::new(vec![BlockKind::Farmland]));
 pub static GUARDED_BY_PIGLINS: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
     RegistryTag::new(vec![
         BlockKind::GoldOre,
@@ -1296,12 +1307,65 @@ pub static HOGLIN_REPELLENTS: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|
         BlockKind::PottedWarpedFungus,
     ])
 });
+pub static HUGE_BROWN_MUSHROOM_CAN_PLACE_ON: LazyLock<RegistryTag<BlockKind>> =
+    LazyLock::new(|| {
+        RegistryTag::new(vec![
+            BlockKind::GrassBlock,
+            BlockKind::Dirt,
+            BlockKind::CoarseDirt,
+            BlockKind::Podzol,
+            BlockKind::Podzol,
+            BlockKind::MuddyMangroveRoots,
+            BlockKind::Mycelium,
+            BlockKind::Mycelium,
+            BlockKind::WarpedNylium,
+            BlockKind::CrimsonNylium,
+            BlockKind::MossBlock,
+            BlockKind::RootedDirt,
+            BlockKind::Mud,
+            BlockKind::PaleMossBlock,
+        ])
+    });
+pub static HUGE_RED_MUSHROOM_CAN_PLACE_ON: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        BlockKind::GrassBlock,
+        BlockKind::Dirt,
+        BlockKind::CoarseDirt,
+        BlockKind::Podzol,
+        BlockKind::Podzol,
+        BlockKind::MuddyMangroveRoots,
+        BlockKind::Mycelium,
+        BlockKind::Mycelium,
+        BlockKind::WarpedNylium,
+        BlockKind::CrimsonNylium,
+        BlockKind::MossBlock,
+        BlockKind::RootedDirt,
+        BlockKind::Mud,
+        BlockKind::PaleMossBlock,
+    ])
+});
 pub static ICE: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
     RegistryTag::new(vec![
         BlockKind::Ice,
         BlockKind::PackedIce,
         BlockKind::FrostedIce,
         BlockKind::BlueIce,
+    ])
+});
+pub static ICE_SPIKE_REPLACEABLE: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        BlockKind::GrassBlock,
+        BlockKind::Dirt,
+        BlockKind::CoarseDirt,
+        BlockKind::Podzol,
+        BlockKind::MuddyMangroveRoots,
+        BlockKind::Ice,
+        BlockKind::SnowBlock,
+        BlockKind::Mycelium,
+        BlockKind::MossBlock,
+        BlockKind::RootedDirt,
+        BlockKind::Mud,
+        BlockKind::PaleMossBlock,
     ])
 });
 pub static IMPERMEABLE: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
@@ -1865,17 +1929,30 @@ pub static LUSH_GROUND_REPLACEABLE: LazyLock<RegistryTag<BlockKind>> = LazyLock:
 });
 pub static MAINTAINS_FARMLAND: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
     RegistryTag::new(vec![
+        BlockKind::MovingPiston,
         BlockKind::Torchflower,
         BlockKind::Wheat,
         BlockKind::AttachedPumpkinStem,
         BlockKind::AttachedMelonStem,
         BlockKind::PumpkinStem,
         BlockKind::MelonStem,
+        BlockKind::OakFenceGate,
         BlockKind::Carrots,
         BlockKind::Potatoes,
+        BlockKind::SpruceFenceGate,
+        BlockKind::BirchFenceGate,
+        BlockKind::JungleFenceGate,
+        BlockKind::AcaciaFenceGate,
+        BlockKind::CherryFenceGate,
+        BlockKind::DarkOakFenceGate,
+        BlockKind::PaleOakFenceGate,
+        BlockKind::MangroveFenceGate,
+        BlockKind::BambooFenceGate,
         BlockKind::TorchflowerCrop,
         BlockKind::PitcherCrop,
         BlockKind::Beetroots,
+        BlockKind::CrimsonFenceGate,
+        BlockKind::WarpedFenceGate,
     ])
 });
 pub static MANGROVE_LOGS: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
@@ -2789,6 +2866,8 @@ pub static MOB_INTERACTABLE_DOORS: LazyLock<RegistryTag<BlockKind>> = LazyLock::
 });
 pub static MOOSHROOMS_SPAWNABLE_ON: LazyLock<RegistryTag<BlockKind>> =
     LazyLock::new(|| RegistryTag::new(vec![BlockKind::Mycelium]));
+pub static MOSS_BLOCKS: LazyLock<RegistryTag<BlockKind>> =
+    LazyLock::new(|| RegistryTag::new(vec![BlockKind::MossBlock, BlockKind::PaleMossBlock]));
 pub static MOSS_REPLACEABLE: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
     RegistryTag::new(vec![
         BlockKind::Stone,
@@ -2811,14 +2890,8 @@ pub static MOSS_REPLACEABLE: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(||
         BlockKind::PaleMossBlock,
     ])
 });
-pub static MUSHROOM_GROW_BLOCK: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
-    RegistryTag::new(vec![
-        BlockKind::Podzol,
-        BlockKind::Mycelium,
-        BlockKind::WarpedNylium,
-        BlockKind::CrimsonNylium,
-    ])
-});
+pub static MUD: LazyLock<RegistryTag<BlockKind>> =
+    LazyLock::new(|| RegistryTag::new(vec![BlockKind::MuddyMangroveRoots, BlockKind::Mud]));
 pub static NEEDS_DIAMOND_TOOL: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
     RegistryTag::new(vec![
         BlockKind::Obsidian,
@@ -2998,6 +3071,15 @@ pub static OCCLUDES_VIBRATION_SIGNALS: LazyLock<RegistryTag<BlockKind>> = LazyLo
         BlockKind::BlackWool,
     ])
 });
+pub static OVERRIDES_MUSHROOM_LIGHT_REQUIREMENT: LazyLock<RegistryTag<BlockKind>> =
+    LazyLock::new(|| {
+        RegistryTag::new(vec![
+            BlockKind::Podzol,
+            BlockKind::Mycelium,
+            BlockKind::WarpedNylium,
+            BlockKind::CrimsonNylium,
+        ])
+    });
 pub static OVERWORLD_CARVER_REPLACEABLES: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
     RegistryTag::new(vec![
         BlockKind::Stone,
@@ -3276,6 +3358,7 @@ pub static REPLACEABLE_BY_MUSHROOMS: LazyLock<RegistryTag<BlockKind>> = LazyLock
         BlockKind::Seagrass,
         BlockKind::TallSeagrass,
         BlockKind::Dandelion,
+        BlockKind::GoldenDandelion,
         BlockKind::Torchflower,
         BlockKind::Poppy,
         BlockKind::BlueOrchid,
@@ -3336,6 +3419,7 @@ pub static REPLACEABLE_BY_TREES: LazyLock<RegistryTag<BlockKind>> = LazyLock::ne
         BlockKind::Seagrass,
         BlockKind::TallSeagrass,
         BlockKind::Dandelion,
+        BlockKind::GoldenDandelion,
         BlockKind::Torchflower,
         BlockKind::Poppy,
         BlockKind::BlueOrchid,
@@ -3620,11 +3704,10 @@ pub static SLABS: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
         BlockKind::DeepslateBrickSlab,
     ])
 });
-pub static SMALL_DRIPLEAF_PLACEABLE: LazyLock<RegistryTag<BlockKind>> =
-    LazyLock::new(|| RegistryTag::new(vec![BlockKind::Clay, BlockKind::MossBlock]));
 pub static SMALL_FLOWERS: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
     RegistryTag::new(vec![
         BlockKind::Dandelion,
+        BlockKind::GoldenDandelion,
         BlockKind::Torchflower,
         BlockKind::Poppy,
         BlockKind::BlueOrchid,
@@ -3683,20 +3766,6 @@ pub static SNOW: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
         BlockKind::Snow,
         BlockKind::SnowBlock,
         BlockKind::PowderSnow,
-    ])
-});
-pub static SNOW_LAYER_CAN_SURVIVE_ON: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
-    RegistryTag::new(vec![
-        BlockKind::SoulSand,
-        BlockKind::HoneyBlock,
-        BlockKind::Mud,
-    ])
-});
-pub static SNOW_LAYER_CANNOT_SURVIVE_ON: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
-    RegistryTag::new(vec![
-        BlockKind::Ice,
-        BlockKind::Barrier,
-        BlockKind::PackedIce,
     ])
 });
 pub static SOUL_FIRE_BASE_BLOCKS: LazyLock<RegistryTag<BlockKind>> =
@@ -3819,6 +3888,359 @@ pub static STONE_PRESSURE_PLATES: LazyLock<RegistryTag<BlockKind>> = LazyLock::n
 });
 pub static STRIDER_WARM_BLOCKS: LazyLock<RegistryTag<BlockKind>> =
     LazyLock::new(|| RegistryTag::new(vec![BlockKind::Lava]));
+pub static SUBSTRATE_OVERWORLD: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        BlockKind::GrassBlock,
+        BlockKind::Dirt,
+        BlockKind::CoarseDirt,
+        BlockKind::Podzol,
+        BlockKind::MuddyMangroveRoots,
+        BlockKind::Mycelium,
+        BlockKind::MossBlock,
+        BlockKind::RootedDirt,
+        BlockKind::Mud,
+        BlockKind::PaleMossBlock,
+    ])
+});
+pub static SUPPORT_OVERRIDE_CACTUS_FLOWER: LazyLock<RegistryTag<BlockKind>> =
+    LazyLock::new(|| RegistryTag::new(vec![BlockKind::Farmland, BlockKind::Cactus]));
+pub static SUPPORT_OVERRIDE_SNOW_LAYER: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        BlockKind::SoulSand,
+        BlockKind::HoneyBlock,
+        BlockKind::Mud,
+    ])
+});
+pub static SUPPORTS_AZALEA: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        BlockKind::GrassBlock,
+        BlockKind::Dirt,
+        BlockKind::CoarseDirt,
+        BlockKind::Podzol,
+        BlockKind::MuddyMangroveRoots,
+        BlockKind::Farmland,
+        BlockKind::Clay,
+        BlockKind::Mycelium,
+        BlockKind::MossBlock,
+        BlockKind::RootedDirt,
+        BlockKind::Mud,
+        BlockKind::PaleMossBlock,
+    ])
+});
+pub static SUPPORTS_BAMBOO: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        BlockKind::GrassBlock,
+        BlockKind::Dirt,
+        BlockKind::CoarseDirt,
+        BlockKind::Podzol,
+        BlockKind::Sand,
+        BlockKind::SuspiciousSand,
+        BlockKind::RedSand,
+        BlockKind::Gravel,
+        BlockKind::SuspiciousGravel,
+        BlockKind::MuddyMangroveRoots,
+        BlockKind::Mycelium,
+        BlockKind::BambooSapling,
+        BlockKind::Bamboo,
+        BlockKind::MossBlock,
+        BlockKind::RootedDirt,
+        BlockKind::Mud,
+        BlockKind::PaleMossBlock,
+    ])
+});
+pub static SUPPORTS_BIG_DRIPLEAF: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        BlockKind::GrassBlock,
+        BlockKind::Dirt,
+        BlockKind::CoarseDirt,
+        BlockKind::Podzol,
+        BlockKind::MuddyMangroveRoots,
+        BlockKind::Farmland,
+        BlockKind::Clay,
+        BlockKind::Mycelium,
+        BlockKind::MossBlock,
+        BlockKind::MossBlock,
+        BlockKind::RootedDirt,
+        BlockKind::Mud,
+    ])
+});
+pub static SUPPORTS_CACTUS: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        BlockKind::Sand,
+        BlockKind::SuspiciousSand,
+        BlockKind::RedSand,
+    ])
+});
+pub static SUPPORTS_CHORUS_FLOWER: LazyLock<RegistryTag<BlockKind>> =
+    LazyLock::new(|| RegistryTag::new(vec![BlockKind::EndStone]));
+pub static SUPPORTS_CHORUS_PLANT: LazyLock<RegistryTag<BlockKind>> =
+    LazyLock::new(|| RegistryTag::new(vec![BlockKind::EndStone]));
+pub static SUPPORTS_COCOA: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        BlockKind::JungleLog,
+        BlockKind::StrippedJungleLog,
+        BlockKind::JungleWood,
+        BlockKind::StrippedJungleWood,
+    ])
+});
+pub static SUPPORTS_CRIMSON_FUNGUS: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        BlockKind::GrassBlock,
+        BlockKind::Dirt,
+        BlockKind::CoarseDirt,
+        BlockKind::Podzol,
+        BlockKind::MuddyMangroveRoots,
+        BlockKind::Farmland,
+        BlockKind::SoulSoil,
+        BlockKind::Mycelium,
+        BlockKind::Mycelium,
+        BlockKind::WarpedNylium,
+        BlockKind::CrimsonNylium,
+        BlockKind::MossBlock,
+        BlockKind::RootedDirt,
+        BlockKind::Mud,
+        BlockKind::PaleMossBlock,
+    ])
+});
+pub static SUPPORTS_CRIMSON_ROOTS: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        BlockKind::GrassBlock,
+        BlockKind::Dirt,
+        BlockKind::CoarseDirt,
+        BlockKind::Podzol,
+        BlockKind::MuddyMangroveRoots,
+        BlockKind::Farmland,
+        BlockKind::SoulSoil,
+        BlockKind::Mycelium,
+        BlockKind::WarpedNylium,
+        BlockKind::CrimsonNylium,
+        BlockKind::MossBlock,
+        BlockKind::RootedDirt,
+        BlockKind::Mud,
+        BlockKind::PaleMossBlock,
+    ])
+});
+pub static SUPPORTS_CROPS: LazyLock<RegistryTag<BlockKind>> =
+    LazyLock::new(|| RegistryTag::new(vec![BlockKind::Farmland]));
+pub static SUPPORTS_DRY_VEGETATION: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        BlockKind::GrassBlock,
+        BlockKind::Dirt,
+        BlockKind::CoarseDirt,
+        BlockKind::Podzol,
+        BlockKind::Sand,
+        BlockKind::SuspiciousSand,
+        BlockKind::RedSand,
+        BlockKind::MuddyMangroveRoots,
+        BlockKind::Farmland,
+        BlockKind::Mycelium,
+        BlockKind::WhiteTerracotta,
+        BlockKind::OrangeTerracotta,
+        BlockKind::MagentaTerracotta,
+        BlockKind::LightBlueTerracotta,
+        BlockKind::YellowTerracotta,
+        BlockKind::LimeTerracotta,
+        BlockKind::PinkTerracotta,
+        BlockKind::GrayTerracotta,
+        BlockKind::LightGrayTerracotta,
+        BlockKind::CyanTerracotta,
+        BlockKind::PurpleTerracotta,
+        BlockKind::BlueTerracotta,
+        BlockKind::BrownTerracotta,
+        BlockKind::GreenTerracotta,
+        BlockKind::RedTerracotta,
+        BlockKind::BlackTerracotta,
+        BlockKind::Terracotta,
+        BlockKind::MossBlock,
+        BlockKind::RootedDirt,
+        BlockKind::Mud,
+        BlockKind::PaleMossBlock,
+    ])
+});
+pub static SUPPORTS_FROGSPAWN: LazyLock<RegistryTag<BlockKind>> =
+    LazyLock::new(|| RegistryTag::new(vec![]));
+pub static SUPPORTS_HANGING_MANGROVE_PROPAGULE: LazyLock<RegistryTag<BlockKind>> =
+    LazyLock::new(|| RegistryTag::new(vec![BlockKind::MangroveLeaves]));
+pub static SUPPORTS_LILY_PAD: LazyLock<RegistryTag<BlockKind>> =
+    LazyLock::new(|| RegistryTag::new(vec![BlockKind::Ice, BlockKind::FrostedIce]));
+pub static SUPPORTS_MANGROVE_PROPAGULE: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        BlockKind::GrassBlock,
+        BlockKind::Dirt,
+        BlockKind::CoarseDirt,
+        BlockKind::Podzol,
+        BlockKind::MuddyMangroveRoots,
+        BlockKind::Farmland,
+        BlockKind::Clay,
+        BlockKind::Mycelium,
+        BlockKind::MossBlock,
+        BlockKind::RootedDirt,
+        BlockKind::Mud,
+        BlockKind::PaleMossBlock,
+    ])
+});
+pub static SUPPORTS_MELON_STEM: LazyLock<RegistryTag<BlockKind>> =
+    LazyLock::new(|| RegistryTag::new(vec![BlockKind::Farmland]));
+pub static SUPPORTS_MELON_STEM_FRUIT: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        BlockKind::GrassBlock,
+        BlockKind::Dirt,
+        BlockKind::CoarseDirt,
+        BlockKind::Podzol,
+        BlockKind::MuddyMangroveRoots,
+        BlockKind::Farmland,
+        BlockKind::Mycelium,
+        BlockKind::MossBlock,
+        BlockKind::RootedDirt,
+        BlockKind::Mud,
+        BlockKind::PaleMossBlock,
+    ])
+});
+pub static SUPPORTS_NETHER_SPROUTS: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        BlockKind::GrassBlock,
+        BlockKind::Dirt,
+        BlockKind::CoarseDirt,
+        BlockKind::Podzol,
+        BlockKind::MuddyMangroveRoots,
+        BlockKind::Farmland,
+        BlockKind::SoulSoil,
+        BlockKind::Mycelium,
+        BlockKind::WarpedNylium,
+        BlockKind::CrimsonNylium,
+        BlockKind::MossBlock,
+        BlockKind::RootedDirt,
+        BlockKind::Mud,
+        BlockKind::PaleMossBlock,
+    ])
+});
+pub static SUPPORTS_NETHER_WART: LazyLock<RegistryTag<BlockKind>> =
+    LazyLock::new(|| RegistryTag::new(vec![BlockKind::SoulSand]));
+pub static SUPPORTS_PUMPKIN_STEM: LazyLock<RegistryTag<BlockKind>> =
+    LazyLock::new(|| RegistryTag::new(vec![BlockKind::Farmland]));
+pub static SUPPORTS_PUMPKIN_STEM_FRUIT: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        BlockKind::GrassBlock,
+        BlockKind::Dirt,
+        BlockKind::CoarseDirt,
+        BlockKind::Podzol,
+        BlockKind::MuddyMangroveRoots,
+        BlockKind::Farmland,
+        BlockKind::Mycelium,
+        BlockKind::MossBlock,
+        BlockKind::RootedDirt,
+        BlockKind::Mud,
+        BlockKind::PaleMossBlock,
+    ])
+});
+pub static SUPPORTS_SMALL_DRIPLEAF: LazyLock<RegistryTag<BlockKind>> =
+    LazyLock::new(|| RegistryTag::new(vec![BlockKind::Clay, BlockKind::MossBlock]));
+pub static SUPPORTS_STEM_CROPS: LazyLock<RegistryTag<BlockKind>> =
+    LazyLock::new(|| RegistryTag::new(vec![BlockKind::Farmland]));
+pub static SUPPORTS_STEM_FRUIT: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        BlockKind::GrassBlock,
+        BlockKind::Dirt,
+        BlockKind::CoarseDirt,
+        BlockKind::Podzol,
+        BlockKind::MuddyMangroveRoots,
+        BlockKind::Farmland,
+        BlockKind::Mycelium,
+        BlockKind::MossBlock,
+        BlockKind::RootedDirt,
+        BlockKind::Mud,
+        BlockKind::PaleMossBlock,
+    ])
+});
+pub static SUPPORTS_SUGAR_CANE: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        BlockKind::GrassBlock,
+        BlockKind::Dirt,
+        BlockKind::CoarseDirt,
+        BlockKind::Podzol,
+        BlockKind::Sand,
+        BlockKind::SuspiciousSand,
+        BlockKind::RedSand,
+        BlockKind::MuddyMangroveRoots,
+        BlockKind::Mycelium,
+        BlockKind::MossBlock,
+        BlockKind::RootedDirt,
+        BlockKind::Mud,
+        BlockKind::PaleMossBlock,
+    ])
+});
+pub static SUPPORTS_SUGAR_CANE_ADJACENTLY: LazyLock<RegistryTag<BlockKind>> =
+    LazyLock::new(|| RegistryTag::new(vec![BlockKind::FrostedIce]));
+pub static SUPPORTS_VEGETATION: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        BlockKind::GrassBlock,
+        BlockKind::Dirt,
+        BlockKind::CoarseDirt,
+        BlockKind::Podzol,
+        BlockKind::MuddyMangroveRoots,
+        BlockKind::Farmland,
+        BlockKind::Mycelium,
+        BlockKind::MossBlock,
+        BlockKind::RootedDirt,
+        BlockKind::Mud,
+        BlockKind::PaleMossBlock,
+    ])
+});
+pub static SUPPORTS_WARPED_FUNGUS: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        BlockKind::GrassBlock,
+        BlockKind::Dirt,
+        BlockKind::CoarseDirt,
+        BlockKind::Podzol,
+        BlockKind::MuddyMangroveRoots,
+        BlockKind::Farmland,
+        BlockKind::SoulSoil,
+        BlockKind::Mycelium,
+        BlockKind::Mycelium,
+        BlockKind::WarpedNylium,
+        BlockKind::CrimsonNylium,
+        BlockKind::MossBlock,
+        BlockKind::RootedDirt,
+        BlockKind::Mud,
+        BlockKind::PaleMossBlock,
+    ])
+});
+pub static SUPPORTS_WARPED_ROOTS: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        BlockKind::GrassBlock,
+        BlockKind::Dirt,
+        BlockKind::CoarseDirt,
+        BlockKind::Podzol,
+        BlockKind::MuddyMangroveRoots,
+        BlockKind::Farmland,
+        BlockKind::SoulSoil,
+        BlockKind::Mycelium,
+        BlockKind::WarpedNylium,
+        BlockKind::CrimsonNylium,
+        BlockKind::MossBlock,
+        BlockKind::RootedDirt,
+        BlockKind::Mud,
+        BlockKind::PaleMossBlock,
+    ])
+});
+pub static SUPPORTS_WITHER_ROSE: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        BlockKind::GrassBlock,
+        BlockKind::Dirt,
+        BlockKind::CoarseDirt,
+        BlockKind::Podzol,
+        BlockKind::MuddyMangroveRoots,
+        BlockKind::Farmland,
+        BlockKind::Netherrack,
+        BlockKind::SoulSand,
+        BlockKind::SoulSoil,
+        BlockKind::Mycelium,
+        BlockKind::MossBlock,
+        BlockKind::RootedDirt,
+        BlockKind::Mud,
+        BlockKind::PaleMossBlock,
+    ])
+});
 pub static SWORD_EFFICIENT: LazyLock<RegistryTag<BlockKind>> = LazyLock::new(|| {
     RegistryTag::new(vec![
         BlockKind::OakLeaves,

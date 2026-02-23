@@ -24,11 +24,9 @@ if len(sys.argv) == 1:
 
 
 old_version_id = lib.code.version.get_version_id()
-old_mappings = lib.download.get_mappings_for_version(old_version_id)
 old_burger_data = lib.extract.get_burger_data_for_version(old_version_id)
 
 new_version_id = sys.argv[1]
-new_mappings = lib.download.get_mappings_for_version(new_version_id)
 new_burger_data = lib.extract.get_burger_data_for_version(new_version_id)
 
 new_packets_report = lib.extract.get_packets_report(new_version_id)
@@ -63,7 +61,7 @@ genregistries.generate(new_version_id)
 
 print("Generating entity data...")
 burger_entities_data = new_burger_data[0]["entities"]
-lib.code.entity.generate_entity_metadata(burger_entities_data, new_mappings)
+lib.code.entity.generate_entity_metadata(burger_entities_data)
 lib.code.entity.generate_entity_dimensions(burger_entities_data)
 
 print("Generating item components...")
