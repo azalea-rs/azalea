@@ -842,10 +842,15 @@ impl GamePacketHandler<'_> {
     pub fn rotate_head(&mut self, _p: &ClientboundRotateHead) {}
 
     pub fn move_entity_pos(&mut self, p: &ClientboundMoveEntityPos) {
-        as_system::<(Commands, Query<(&EntityIdIndex, &WorldHolder)>)>(
+        as_system::<(
+            Commands,
+            Query<(&EntityIdIndex, &WorldHolder)>,
+            Query<(&mut Physics, &mut Position)>,
+            EntityUpdateQuery,
+        )>(
             self.ecs,
-            |(mut commands, query)| {
-                let (entity_id_index, world_holder) = query.get(self.player).unwrap();
+            |(mut commands, player_query, mut entity_query, entity_update_query)| {
+                let (entity_id_index, world_holder) = player_query.get(self.player).unwrap();
 
                 debug!("Got move entity pos packet {p:?}");
 
@@ -857,34 +862,41 @@ impl GamePacketHandler<'_> {
 
                 let new_delta = p.delta.clone();
                 let new_on_ground = p.on_ground;
-                commands.entity(entity).queue(RelativeEntityUpdate::new(
-                    world_holder.partial.clone(),
-                    move |entity_mut| {
-                        let mut physics = entity_mut.get_mut::<Physics>().unwrap();
-                        let new_pos = physics.vec_delta_codec.decode(&new_delta);
-                        physics.vec_delta_codec.set_base(new_pos);
-                        physics.set_on_ground(new_on_ground);
 
-                        let mut position = entity_mut.get_mut::<Position>().unwrap();
-                        if new_pos != **position {
-                            **position = new_pos;
-                        }
+                let (mut physics, mut position) = entity_query.get_mut(entity).unwrap();
 
-                        trace!(
-                            "Applied movement update for {entity_id} / {entity}",
-                            entity = entity_mut.id()
-                        );
-                    },
-                ));
+                if !should_apply_entity_update(
+                    &mut commands,
+                    &mut world_holder.partial.write(),
+                    entity,
+                    entity_update_query,
+                ) {
+                    return;
+                }
+
+                let new_pos = physics.vec_delta_codec.decode(&new_delta);
+                physics.vec_delta_codec.set_base(new_pos);
+                physics.set_on_ground(new_on_ground);
+
+                if new_pos != **position {
+                    **position = new_pos;
+                }
+
+                trace!("Applied movement update for {entity_id} / {entity}");
             },
         );
     }
 
     pub fn move_entity_pos_rot(&mut self, p: &ClientboundMoveEntityPosRot) {
-        as_system::<(Commands, Query<(&EntityIdIndex, &WorldHolder)>)>(
+        as_system::<(
+            Commands,
+            Query<(&EntityIdIndex, &WorldHolder)>,
+            Query<(&mut Physics, &mut Position, &mut LookDirection)>,
+            EntityUpdateQuery,
+        )>(
             self.ecs,
-            |(mut commands, query)| {
-                let (entity_id_index, world_holder) = query.get(self.player).unwrap();
+            |(mut commands, player_query, mut entity_query, entity_update_query)| {
+                let (entity_id_index, world_holder) = player_query.get(self.player).unwrap();
 
                 debug!("Got move entity pos rot packet {p:?}");
 
@@ -907,25 +919,29 @@ impl GamePacketHandler<'_> {
 
                 let new_on_ground = p.on_ground;
 
-                commands.entity(entity).queue(RelativeEntityUpdate::new(
-                    world_holder.partial.clone(),
-                    move |entity_mut| {
-                        let mut physics = entity_mut.get_mut::<Physics>().unwrap();
-                        let new_position = physics.vec_delta_codec.decode(&new_delta);
-                        physics.vec_delta_codec.set_base(new_position);
-                        physics.set_on_ground(new_on_ground);
+                let (mut physics, mut position, mut look_direction) =
+                    entity_query.get_mut(entity).unwrap();
 
-                        let mut position = entity_mut.get_mut::<Position>().unwrap();
-                        if new_position != **position {
-                            **position = new_position;
-                        }
+                if !should_apply_entity_update(
+                    &mut commands,
+                    &mut world_holder.partial.write(),
+                    entity,
+                    entity_update_query,
+                ) {
+                    return;
+                }
 
-                        let mut look_direction = entity_mut.get_mut::<LookDirection>().unwrap();
-                        if new_look_direction != *look_direction {
-                            *look_direction = new_look_direction;
-                        }
-                    },
-                ));
+                let new_position = physics.vec_delta_codec.decode(&new_delta);
+                physics.vec_delta_codec.set_base(new_position);
+                physics.set_on_ground(new_on_ground);
+
+                if new_position != **position {
+                    **position = new_position;
+                }
+
+                if new_look_direction != *look_direction {
+                    *look_direction = new_look_direction;
+                }
             },
         );
     }

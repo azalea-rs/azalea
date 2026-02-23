@@ -23,7 +23,7 @@ use azalea_world::PartialWorld;
 use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
 use parking_lot::RwLock;
-use tracing::warn;
+use tracing::{debug, warn};
 
 use crate::packet::as_system;
 
@@ -94,7 +94,9 @@ pub fn should_apply_entity_update(
 
     let Ok((minecraft_entity_id, updates_received, local_entity)) = entity_update_query.get(entity)
     else {
-        warn!("called should_apply_entity_update on an entity with missing components");
+        // this can happen when the entity despawns in the same Update that we got a
+        // relative update for it
+        debug!("called should_apply_entity_update on an entity with missing components {entity:?}");
         return false;
     };
 
