@@ -231,6 +231,7 @@ pub fn update_dimensions(
     }
 }
 
+#[allow(clippy::type_complexity)]
 pub fn update_crouching(
     query: Query<(&mut Crouching, &Pose), (Without<LocalEntity>, With<Player>)>,
 ) {

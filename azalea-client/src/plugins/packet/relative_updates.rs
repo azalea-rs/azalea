@@ -107,7 +107,7 @@ pub fn should_apply_entity_update(
 
     let this_client_updates_received = partial_entity_infos
         .updates_received
-        .get(&minecraft_entity_id)
+        .get(minecraft_entity_id)
         .copied();
 
     let can_update = if let Some(updates_received) = updates_received {

@@ -12,7 +12,7 @@ use tracing::{debug, warn};
 use super::{Palette, PaletteKind};
 use crate::BitStorage;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct PalettedContainer<S: PalletedContainerKind> {
     pub bits_per_entry: u8,
     /// This is usually a list of unique values that appear in the container so
@@ -25,7 +25,9 @@ pub struct PalettedContainer<S: PalletedContainerKind> {
     pub storage: BitStorage,
 }
 
-pub trait PalletedContainerKind: Copy + Clone + Debug + Default + TryFrom<u32> + Into<u32> {
+pub trait PalletedContainerKind:
+    Copy + Clone + Debug + Default + PartialEq + TryFrom<u32> + Into<u32>
+{
     type SectionPos: SectionPos;
 
     fn size_bits() -> usize;
@@ -295,7 +297,10 @@ impl<S: PalletedContainerKind> PalettedContainer<S> {
     pub fn write(&self, buf: &mut impl Write) -> io::Result<()> {
         self.bits_per_entry.azalea_write(buf)?;
         self.palette.write(buf)?;
-        self.storage.data.azalea_write(buf)?;
+        for word in &self.storage.data {
+            word.azalea_write(buf)?;
+        }
+
         Ok(())
     }
 }

@@ -79,7 +79,7 @@ pub struct Chunk {
 }
 
 /// A section of a chunk, i.e. a 16*16*16 block area.
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct Section {
     /// The number of non-empty blocks in the section, as sent to us by the
     /// server.
@@ -579,6 +579,7 @@ pub fn section_index(y: i32, min_y: i32) -> u32 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::palette::SectionPos;
 
     #[test]
     fn test_section_index() {
@@ -638,5 +639,34 @@ mod tests {
             ),
             ChunkPos::new(2, -1),
         );
+    }
+
+    #[test]
+    fn serialize_and_deserialize_section() {
+        let mut states = PalettedContainer::new();
+
+        states.set(
+            SectionPos::new(1, 2, 3),
+            BlockState::try_from(BlockState::MAX_STATE).unwrap(),
+        );
+        states.set(
+            SectionPos::new(4, 5, 6),
+            BlockState::try_from(BlockState::MAX_STATE).unwrap(),
+        );
+        let biomes = PalettedContainer::new();
+        let section = Section {
+            block_count: 2,
+            states,
+            biomes,
+        };
+
+        let mut buf = Vec::new();
+        section.azalea_write(&mut buf).unwrap();
+
+        let mut cur = Cursor::new(buf.as_slice());
+        let deserialized_section = Section::azalea_read(&mut cur).unwrap();
+        assert_eq!(cur.position(), buf.len() as u64);
+
+        assert_eq!(section, deserialized_section);
     }
 }

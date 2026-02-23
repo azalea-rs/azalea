@@ -71,7 +71,7 @@ const MAGIC: [(i32, i32, u32); 64] = [
 ];
 
 /// A compact list of integers with the given number of bits per entry.
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct BitStorage {
     pub data: Box<[u64]>,
     bits: usize,
