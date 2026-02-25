@@ -600,9 +600,9 @@ impl Menu {
     fn try_move_item_to_slots_or_toggle_hotbar(
         &mut self,
         slot_index: usize,
-        target_slot_indexes: RangeInclusive<usize>,
+        target_slot_indices: RangeInclusive<usize>,
     ) {
-        if !self.try_move_item_to_slots(slot_index, target_slot_indexes) {
+        if !self.try_move_item_to_slots(slot_index, target_slot_indices) {
             self.try_move_item_to_slots(
                 slot_index,
                 if self.is_hotbar_slot(slot_index) {
@@ -651,13 +651,13 @@ impl Menu {
     fn try_move_item_to_slots(
         &mut self,
         item_slot_index: usize,
-        target_slot_indexes: RangeInclusive<usize>,
+        target_slot_indices: RangeInclusive<usize>,
     ) -> bool {
         let mut item_slot = self.slot(item_slot_index).unwrap().clone();
 
         // first see if we can stack it with another item
         if item_slot.kind().stackable() {
-            for target_slot_index in target_slot_indexes.clone() {
+            for target_slot_index in target_slot_indices.clone() {
                 self.move_item_to_slot_if_stackable(&mut item_slot, target_slot_index);
                 if item_slot.is_empty() {
                     break;
@@ -667,7 +667,7 @@ impl Menu {
 
         // and if not then just try putting it in an empty slot
         if item_slot.is_present() {
-            for target_slot_index in target_slot_indexes {
+            for target_slot_index in target_slot_indices {
                 self.move_item_to_slot_if_empty(&mut item_slot, target_slot_index);
                 if item_slot.is_empty() {
                     break;
