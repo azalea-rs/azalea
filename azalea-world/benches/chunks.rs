@@ -3,7 +3,7 @@ use std::hint::black_box;
 use azalea_core::position::ChunkBlockPos;
 use azalea_registry::builtin::BlockKind;
 use azalea_world::{BitStorage, Chunk};
-use criterion::{Criterion, criterion_group, criterion_main};
+use criterion::{BatchSize, Bencher, Criterion, criterion_group, criterion_main};
 
 fn bench_chunks(c: &mut Criterion) {
     c.bench_function("Chunk::set", |b| {
@@ -25,13 +25,36 @@ fn bench_chunks(c: &mut Criterion) {
     });
 }
 
+fn bench_bitstorage_with(b: &mut Bencher, bits: usize, size: usize) {
+    let mut storage = BitStorage::new(bits, size, None).unwrap();
+    b.iter_batched(
+        || {
+            // let index = rand
+            let mut vec = Vec::with_capacity(size);
+            for _ in 0..size {
+                vec.push(rand::random_range(0..size));
+            }
+            vec
+        },
+        |indices| {
+            for index in indices {
+                storage.set(index, 1);
+            }
+        },
+        BatchSize::SmallInput,
+    );
+    black_box(storage);
+}
+
 fn bench_bitstorage(c: &mut Criterion) {
-    c.bench_function("BitStorage::set", |b| {
-        let mut storage = BitStorage::new(1, 4096, None).unwrap();
-        b.iter(|| {
-            storage.set(136, 1);
-        });
-        black_box(storage);
+    c.bench_function("BitStorage::set (1 bit per entry)", |b| {
+        bench_bitstorage_with(b, 1, 4096)
+    });
+    c.bench_function("BitStorage::set (2 bits per entry)", |b| {
+        bench_bitstorage_with(b, 2, 4096)
+    });
+    c.bench_function("BitStorage::set (3 bits per entry)", |b| {
+        bench_bitstorage_with(b, 3, 4096)
     });
 }
 

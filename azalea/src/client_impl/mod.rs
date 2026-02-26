@@ -272,7 +272,7 @@ impl Client {
     /// [`Swarm::add_with_opts`]: crate::swarm::Swarm::add_with_opts
     /// [`Swarm::exit`]: crate::swarm::Swarm::exit
     ///
-    /// ```
+    /// ```no_run
     /// // a bot that joins a server and prints "done!" when it's disconnected or if it fails to connect.
     /// use azalea::{NoState, prelude::*};
     /// #[tokio::main]

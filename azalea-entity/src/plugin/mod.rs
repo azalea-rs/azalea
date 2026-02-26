@@ -1,6 +1,5 @@
 mod components;
 pub mod indexing;
-mod relative_updates;
 
 use std::collections::HashSet;
 
@@ -17,13 +16,12 @@ use bevy_ecs::prelude::*;
 pub use components::*;
 use derive_more::{Deref, DerefMut};
 use indexing::EntityUuidIndex;
-pub use relative_updates::RelativeEntityUpdate;
 use tracing::debug;
 
 use crate::{
     FluidOnEyes, LookDirection, Physics, Pose, Position,
     dimensions::{EntityDimensions, calculate_dimensions},
-    metadata::Health,
+    metadata::{self, Health, Player},
 };
 
 /// A Bevy [`SystemSet`] for various types of entity updates.
@@ -57,7 +55,6 @@ impl Plugin for EntityPlugin {
                     .chain()
                     .in_set(EntityUpdateSystems::Index),
                 (
-                    relative_updates::debug_detect_updates_received_on_local_entities,
                     debug_new_entity,
                     add_dead,
                     clamp_look_direction,
@@ -97,27 +94,32 @@ pub fn add_dead(mut commands: Commands, query: Query<(Entity, &Health), Changed<
 }
 
 pub fn update_fluid_on_eyes(
-    mut query: Query<(&mut FluidOnEyes, &Position, &EntityDimensions, &WorldName)>,
+    mut query: Query<
+        (&mut FluidOnEyes, &Position, &EntityDimensions, &WorldName),
+        With<metadata::AbstractLiving>,
+    >,
     worlds: Res<Worlds>,
 ) {
-    for (mut fluid_on_eyes, position, dimensions, world_name) in query.iter_mut() {
-        let Some(world) = worlds.get(world_name) else {
-            continue;
-        };
+    query
+        .par_iter_mut()
+        .for_each(|(mut fluid_on_eyes, position, dimensions, world_name)| {
+            let Some(world) = worlds.get(world_name) else {
+                return;
+            };
 
-        let adjusted_eye_y = position.y + (dimensions.eye_height as f64) - 0.1111111119389534;
-        let eye_block_pos = BlockPos::from(position.with_y(adjusted_eye_y));
-        let fluid_at_eye = world
-            .read()
-            .get_fluid_state(eye_block_pos)
-            .unwrap_or_default();
-        let fluid_cutoff_y = (eye_block_pos.y as f32 + fluid_at_eye.height()) as f64;
-        if fluid_cutoff_y > adjusted_eye_y {
-            **fluid_on_eyes = fluid_at_eye.kind;
-        } else {
-            **fluid_on_eyes = FluidKind::Empty;
-        }
-    }
+            let adjusted_eye_y = position.y + (dimensions.eye_height as f64) - 0.1111111119389534;
+            let eye_block_pos = BlockPos::from(position.with_y(adjusted_eye_y));
+            let fluid_at_eye = world
+                .read()
+                .get_fluid_state(eye_block_pos)
+                .unwrap_or_default();
+            let fluid_cutoff_y = (eye_block_pos.y as f32 + fluid_at_eye.height()) as f64;
+            if fluid_cutoff_y > adjusted_eye_y {
+                **fluid_on_eyes = fluid_at_eye.kind;
+            } else {
+                **fluid_on_eyes = FluidKind::Empty;
+            }
+        });
 }
 
 pub fn update_on_climbable(
@@ -229,7 +231,10 @@ pub fn update_dimensions(
     }
 }
 
-pub fn update_crouching(query: Query<(&mut Crouching, &Pose), Without<LocalEntity>>) {
+#[allow(clippy::type_complexity)]
+pub fn update_crouching(
+    query: Query<(&mut Crouching, &Pose), (Without<LocalEntity>, With<Player>)>,
+) {
     for (mut crouching, pose) in query {
         let new_crouching = *pose == Pose::Crouching;
         // avoid triggering change detection
@@ -250,10 +255,10 @@ pub struct InLoadedChunk;
 /// Update the [`InLoadedChunk`] component for all entities in the world.
 pub fn update_in_loaded_chunk(
     mut commands: bevy_ecs::system::Commands,
-    query: Query<(Entity, &WorldName, &Position)>,
+    query: Query<(Entity, &WorldName, &Position, Option<&InLoadedChunk>)>,
     worlds: Res<Worlds>,
 ) {
-    for (entity, world_name, position) in &query {
+    for (entity, world_name, position, last_in_loaded_chunk) in &query {
         let player_chunk_pos = ChunkPos::from(position);
         let Some(world_lock) = worlds.get(world_name) else {
             commands.entity(entity).remove::<InLoadedChunk>();
@@ -262,9 +267,13 @@ pub fn update_in_loaded_chunk(
 
         let in_loaded_chunk = world_lock.read().chunks.get(&player_chunk_pos).is_some();
         if in_loaded_chunk {
-            commands.entity(entity).insert(InLoadedChunk);
+            if last_in_loaded_chunk.is_none() {
+                commands.entity(entity).insert(InLoadedChunk);
+            }
         } else {
-            commands.entity(entity).remove::<InLoadedChunk>();
+            if last_in_loaded_chunk.is_some() {
+                commands.entity(entity).remove::<InLoadedChunk>();
+            }
         }
     }
 }

@@ -7,8 +7,8 @@ license.workspace = true
 repository.workspace = true
 
 [dev-dependencies]
-azalea.path = "../azalea"
 criterion.workspace = true
+rand.workspace = true
 
 [dependencies]
 azalea-block.workspace = true

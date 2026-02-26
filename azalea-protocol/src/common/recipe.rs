@@ -1,8 +1,8 @@
 use azalea_buf::AzBuf;
 use azalea_inventory::ItemStack;
-use azalea_registry::{HolderSet, builtin::ItemKind, identifier::Identifier};
+use azalea_registry::{HolderSet, builtin::ItemKind, data::TrimPattern, identifier::Identifier};
 
-/// [`azalea_registry::RecipeDisplay`]
+/// [`azalea_registry::builtin::RecipeDisplay`]
 #[derive(AzBuf, Clone, Debug, PartialEq)]
 pub enum RecipeDisplayData {
     Shapeless(ShapelessCraftingRecipeDisplay),
@@ -58,21 +58,21 @@ pub struct Ingredient {
     pub allowed: HolderSet<ItemKind, Identifier>,
 }
 
-/// [`azalea_registry::SlotDisplay`]
+/// [`azalea_registry::builtin::SlotDisplay`]
 #[derive(AzBuf, Clone, Debug, PartialEq)]
 pub enum SlotDisplayData {
     Empty,
     AnyFuel,
-    ItemKind(ItemStackDisplay),
+    Item(ItemSlotDisplay),
     ItemStack(ItemStackSlotDisplay),
-    Tag(Identifier),
+    Tag(TagSlotDisplay),
     SmithingTrim(Box<SmithingTrimDemoSlotDisplay>),
     WithRemainder(Box<WithRemainderSlotDisplay>),
     Composite(CompositeSlotDisplay),
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq)]
-pub struct ItemStackDisplay {
+pub struct ItemSlotDisplay {
     pub item: ItemKind,
 }
 #[derive(AzBuf, Clone, Debug, PartialEq)]
@@ -81,13 +81,13 @@ pub struct ItemStackSlotDisplay {
 }
 #[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct TagSlotDisplay {
-    pub tag: ItemKind,
+    pub tag: Identifier,
 }
 #[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct SmithingTrimDemoSlotDisplay {
     pub base: SlotDisplayData,
     pub material: SlotDisplayData,
-    pub pattern: SlotDisplayData,
+    pub pattern: TrimPattern,
 }
 #[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct WithRemainderSlotDisplay {
