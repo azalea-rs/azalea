@@ -817,8 +817,11 @@ impl GamePacketHandler<'_> {
                         entity.world_scope(move |world| {
                             let mut query =
                                 world.query::<(&mut Physics, &mut LookDirection, &mut Position)>();
-                            let (mut physics, mut look_direction, mut position) =
-                                query.get_mut(world, entity_id).unwrap();
+                            let Ok((mut physics, mut look_direction, mut position)) =
+                                query.get_mut(world, entity_id) else {
+                                warn!("Entity {:?} doesn't have required Physics, LookDirection, or Position components", entity_id);
+                                return;
+                            };
                             let old_position = *position;
                             relative.apply(
                                 &change,
@@ -863,7 +866,10 @@ impl GamePacketHandler<'_> {
                 let new_delta = p.delta.clone();
                 let new_on_ground = p.on_ground;
 
-                let (mut physics, mut position) = entity_query.get_mut(entity).unwrap();
+                let Ok((mut physics, mut position)) = entity_query.get_mut(entity) else {
+                    debug!("Entity {:?} doesn't have required Physics or Position components", entity_id);
+                    return;
+                };
 
                 if !should_apply_entity_update(
                     &mut commands,
@@ -919,8 +925,11 @@ impl GamePacketHandler<'_> {
 
                 let new_on_ground = p.on_ground;
 
-                let (mut physics, mut position, mut look_direction) =
-                    entity_query.get_mut(entity).unwrap();
+                let Ok((mut physics, mut position, mut look_direction)) =
+                    entity_query.get_mut(entity) else {
+                    warn!("Entity {:?} doesn't have required Physics, Position, or LookDirection components", entity);
+                    return;
+                };
 
                 if !should_apply_entity_update(
                     &mut commands,
