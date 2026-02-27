@@ -819,7 +819,7 @@ impl GamePacketHandler<'_> {
                                 world.query::<(&mut Physics, &mut LookDirection, &mut Position)>();
                             let Ok((mut physics, mut look_direction, mut position)) =
                                 query.get_mut(world, entity_id) else {
-                                warn!("Entity {:?} doesn't have required Physics, LookDirection, or Position components", entity_id);
+                                debug!("Entity {:?} is indexed but missing Physics/LookDirection/Position components (likely mid-server-transfer), skipping teleport", entity_id);
                                 return;
                             };
                             let old_position = *position;
@@ -866,11 +866,11 @@ impl GamePacketHandler<'_> {
                 let new_delta = p.delta.clone();
                 let new_on_ground = p.on_ground;
 
-                let Ok((mut physics, mut position)) = entity_query.get_mut(entity) else {
-                    debug!("Entity {:?} doesn't have required Physics or Position components", entity_id);
-                    return;
-                };
-
+                // Call should_apply_entity_update BEFORE the entity query so
+                // the dedup counter is always incremented, even when the entity
+                // is temporarily missing Physics/Position (e.g. during a
+                // server transfer). Skipping this caused UpdatesReceived
+                // counter desync across swarm clients.
                 if !should_apply_entity_update(
                     &mut commands,
                     &mut world_holder.partial.write(),
@@ -879,6 +879,11 @@ impl GamePacketHandler<'_> {
                 ) {
                     return;
                 }
+
+                let Ok((mut physics, mut position)) = entity_query.get_mut(entity) else {
+                    debug!("Entity {entity_id:?} is indexed but missing Physics/Position components (likely mid-server-transfer), skipping position update");
+                    return;
+                };
 
                 let new_pos = physics.vec_delta_codec.decode(&new_delta);
                 physics.vec_delta_codec.set_base(new_pos);
@@ -925,12 +930,11 @@ impl GamePacketHandler<'_> {
 
                 let new_on_ground = p.on_ground;
 
-                let Ok((mut physics, mut position, mut look_direction)) =
-                    entity_query.get_mut(entity) else {
-                    warn!("Entity {:?} doesn't have required Physics, Position, or LookDirection components", entity);
-                    return;
-                };
-
+                // Call should_apply_entity_update BEFORE the entity query so
+                // the dedup counter is always incremented, even when the entity
+                // is temporarily missing components (e.g. during a server
+                // transfer). Skipping this caused UpdatesReceived counter
+                // desync across swarm clients.
                 if !should_apply_entity_update(
                     &mut commands,
                     &mut world_holder.partial.write(),
@@ -939,6 +943,12 @@ impl GamePacketHandler<'_> {
                 ) {
                     return;
                 }
+
+                let Ok((mut physics, mut position, mut look_direction)) =
+                    entity_query.get_mut(entity) else {
+                    debug!("Entity {:?} is indexed but missing Physics/Position/LookDirection components (likely mid-server-transfer), skipping pos+rot update", entity);
+                    return;
+                };
 
                 let new_position = physics.vec_delta_codec.decode(&new_delta);
                 physics.vec_delta_codec.set_base(new_position);
