@@ -1,10 +1,9 @@
 use azalea_core::{game_type::GameMode, tick::GameTick};
 use azalea_entity::{
-    Attributes, Crouching, Physics, indexing::EntityIdIndex, metadata::Sprinting,
-    update_bounding_box,
+    Attributes, Physics, indexing::EntityIdIndex, metadata::Sprinting, update_bounding_box,
 };
 use azalea_physics::PhysicsSystems;
-use azalea_protocol::packets::game::s_interact::{self, ServerboundInteract};
+use azalea_protocol::packets::game::ServerboundAttack;
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
@@ -59,7 +58,6 @@ pub fn handle_attack_queued(
         &mut Sprinting,
         &AttackQueued,
         &LocalGameMode,
-        &Crouching,
         &EntityIdIndex,
     )>,
 ) {
@@ -70,7 +68,6 @@ pub fn handle_attack_queued(
         mut sprinting,
         attack_queued,
         game_mode,
-        crouching,
         entity_id_index,
     ) in &mut query
     {
@@ -84,10 +81,8 @@ pub fn handle_attack_queued(
 
         commands.trigger(SendGamePacketEvent::new(
             client_entity,
-            ServerboundInteract {
+            ServerboundAttack {
                 entity_id: target_entity_id,
-                action: s_interact::ActionType::Attack,
-                using_secondary_action: **crouching,
             },
         ));
         commands.trigger(SwingArmEvent {

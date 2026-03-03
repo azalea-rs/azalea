@@ -87,6 +87,10 @@ pub struct Section {
     /// Currently, Azalea does not update this on its own, so it may become out
     /// of sync.
     pub block_count: u16,
+    /// Similar to [`Self::block_count`], but for fluids.
+    ///
+    /// Like `block_count`, this is also currently not updated by Azalea.
+    pub fluid_count: u16,
     pub states: PalettedContainer<BlockState>,
     pub biomes: PalettedContainer<Biome>,
 }
@@ -491,6 +495,7 @@ impl Debug for PartialChunkStorage {
 impl AzBuf for Section {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let block_count = u16::azalea_read(buf)?;
+        let fluid_count = u16::azalea_read(buf)?;
 
         // this is commented out because the vanilla server is wrong
         // TODO: ^ this comment was written ages ago. needs more investigation.
@@ -513,6 +518,7 @@ impl AzBuf for Section {
         let biomes = PalettedContainer::<Biome>::read(buf)?;
         Ok(Section {
             block_count,
+            fluid_count,
             states,
             biomes,
         })

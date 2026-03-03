@@ -81,12 +81,16 @@ pub enum EntityDataValue {
     OptionalUnsignedInt(OptionalUnsignedInt),
     Pose(Pose),
     CatVariant(azalea_registry::data::CatVariant),
+    CatSoundVariant(azalea_registry::data::CatSoundVariant),
     CowVariant(azalea_registry::data::CowVariant),
+    CowSoundVariant(azalea_registry::data::CowSoundVariant),
     WolfVariant(azalea_registry::data::WolfVariant),
     WolfSoundVariant(azalea_registry::data::WolfSoundVariant),
     FrogVariant(azalea_registry::data::FrogVariant),
     PigVariant(azalea_registry::data::PigVariant),
+    PigSoundVariant(azalea_registry::data::PigSoundVariant),
     ChickenVariant(azalea_registry::data::ChickenVariant),
+    ChickenSoundVariant(azalea_registry::data::ChickenSoundVariant),
     ZombieNautilusVariant(azalea_registry::data::ZombieNautilusVariant),
     OptionalGlobalPos(Option<Box<GlobalPos>>),
     PaintingVariant(azalea_registry::data::PaintingVariant),
@@ -102,10 +106,10 @@ pub enum EntityDataValue {
 
 const _: () = assert!(size_of::<EntityDataValue>() == 24);
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Default)]
 pub struct OptionalUnsignedInt(pub Option<u32>);
 
-#[derive(AzBuf, Clone, Debug, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Default)]
 pub struct Quaternion {
     pub x: f32,
     pub y: f32,

@@ -288,8 +288,38 @@ pub static CANDLES: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
         ItemKind::BlackCandle,
     ])
 });
+pub static CAT_COLLAR_DYES: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        ItemKind::WhiteDye,
+        ItemKind::OrangeDye,
+        ItemKind::MagentaDye,
+        ItemKind::LightBlueDye,
+        ItemKind::YellowDye,
+        ItemKind::LimeDye,
+        ItemKind::PinkDye,
+        ItemKind::GrayDye,
+        ItemKind::LightGrayDye,
+        ItemKind::CyanDye,
+        ItemKind::PurpleDye,
+        ItemKind::BlueDye,
+        ItemKind::BrownDye,
+        ItemKind::GreenDye,
+        ItemKind::RedDye,
+        ItemKind::BlackDye,
+    ])
+});
 pub static CAT_FOOD: LazyLock<RegistryTag<ItemKind>> =
     LazyLock::new(|| RegistryTag::new(vec![ItemKind::Cod, ItemKind::Salmon]));
+pub static CAULDRON_CAN_REMOVE_DYE: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        ItemKind::WolfArmor,
+        ItemKind::LeatherHelmet,
+        ItemKind::LeatherChestplate,
+        ItemKind::LeatherLeggings,
+        ItemKind::LeatherBoots,
+        ItemKind::LeatherHorseArmor,
+    ])
+});
 pub static CHAINS: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
     RegistryTag::new(vec![
         ItemKind::IronChain,
@@ -597,16 +627,9 @@ pub static DIAMOND_TOOL_MATERIALS: LazyLock<RegistryTag<ItemKind>> =
     LazyLock::new(|| RegistryTag::new(vec![ItemKind::Diamond]));
 pub static DIRT: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
     RegistryTag::new(vec![
-        ItemKind::GrassBlock,
         ItemKind::Dirt,
         ItemKind::CoarseDirt,
-        ItemKind::Podzol,
         ItemKind::RootedDirt,
-        ItemKind::Mud,
-        ItemKind::MuddyMangroveRoots,
-        ItemKind::MossBlock,
-        ItemKind::PaleMossBlock,
-        ItemKind::Mycelium,
     ])
 });
 pub static DOORS: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
@@ -638,14 +661,24 @@ pub static DROWNED_PREFERRED_WEAPONS: LazyLock<RegistryTag<ItemKind>> =
     LazyLock::new(|| RegistryTag::new(vec![ItemKind::Trident]));
 pub static DUPLICATES_ALLAYS: LazyLock<RegistryTag<ItemKind>> =
     LazyLock::new(|| RegistryTag::new(vec![ItemKind::AmethystShard]));
-pub static DYEABLE: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
+pub static DYES: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
     RegistryTag::new(vec![
-        ItemKind::WolfArmor,
-        ItemKind::LeatherHelmet,
-        ItemKind::LeatherChestplate,
-        ItemKind::LeatherLeggings,
-        ItemKind::LeatherBoots,
-        ItemKind::LeatherHorseArmor,
+        ItemKind::WhiteDye,
+        ItemKind::OrangeDye,
+        ItemKind::MagentaDye,
+        ItemKind::LightBlueDye,
+        ItemKind::YellowDye,
+        ItemKind::LimeDye,
+        ItemKind::PinkDye,
+        ItemKind::GrayDye,
+        ItemKind::LightGrayDye,
+        ItemKind::CyanDye,
+        ItemKind::PurpleDye,
+        ItemKind::BlueDye,
+        ItemKind::BrownDye,
+        ItemKind::GreenDye,
+        ItemKind::RedDye,
+        ItemKind::BlackDye,
     ])
 });
 pub static EGGS: LazyLock<RegistryTag<ItemKind>> =
@@ -1190,6 +1223,7 @@ pub static FLOWERS: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
         ItemKind::FloweringAzaleaLeaves,
         ItemKind::FloweringAzalea,
         ItemKind::Dandelion,
+        ItemKind::GoldenDandelion,
         ItemKind::OpenEyeblossom,
         ItemKind::ClosedEyeblossom,
         ItemKind::Poppy,
@@ -1256,6 +1290,13 @@ pub static GOLD_ORES: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
 });
 pub static GOLD_TOOL_MATERIALS: LazyLock<RegistryTag<ItemKind>> =
     LazyLock::new(|| RegistryTag::new(vec![ItemKind::GoldIngot]));
+pub static GRASS_BLOCKS: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        ItemKind::GrassBlock,
+        ItemKind::Podzol,
+        ItemKind::Mycelium,
+    ])
+});
 pub static HANGING_SIGNS: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
     RegistryTag::new(vec![
         ItemKind::OakHangingSign,
@@ -1521,6 +1562,40 @@ pub static LOGS_THAT_BURN: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
         ItemKind::MangroveWood,
     ])
 });
+pub static LOOM_DYES: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        ItemKind::WhiteDye,
+        ItemKind::OrangeDye,
+        ItemKind::MagentaDye,
+        ItemKind::LightBlueDye,
+        ItemKind::YellowDye,
+        ItemKind::LimeDye,
+        ItemKind::PinkDye,
+        ItemKind::GrayDye,
+        ItemKind::LightGrayDye,
+        ItemKind::CyanDye,
+        ItemKind::PurpleDye,
+        ItemKind::BlueDye,
+        ItemKind::BrownDye,
+        ItemKind::GreenDye,
+        ItemKind::RedDye,
+        ItemKind::BlackDye,
+    ])
+});
+pub static LOOM_PATTERNS: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        ItemKind::FlowerBannerPattern,
+        ItemKind::CreeperBannerPattern,
+        ItemKind::SkullBannerPattern,
+        ItemKind::MojangBannerPattern,
+        ItemKind::GlobeBannerPattern,
+        ItemKind::PiglinBannerPattern,
+        ItemKind::FlowBannerPattern,
+        ItemKind::GusterBannerPattern,
+        ItemKind::FieldMasonedBannerPattern,
+        ItemKind::BordureIndentedBannerPattern,
+    ])
+});
 pub static MANGROVE_LOGS: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
     RegistryTag::new(vec![
         ItemKind::MangroveLog,
@@ -1546,6 +1621,17 @@ pub static MEAT: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
         ItemKind::CookedMutton,
     ])
 });
+pub static METAL_NUGGETS: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        ItemKind::GoldNugget,
+        ItemKind::IronNugget,
+        ItemKind::CopperNugget,
+    ])
+});
+pub static MOSS_BLOCKS: LazyLock<RegistryTag<ItemKind>> =
+    LazyLock::new(|| RegistryTag::new(vec![ItemKind::MossBlock, ItemKind::PaleMossBlock]));
+pub static MUD: LazyLock<RegistryTag<ItemKind>> =
+    LazyLock::new(|| RegistryTag::new(vec![ItemKind::Mud, ItemKind::MuddyMangroveRoots]));
 pub static NAUTILUS_BUCKET_FOOD: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
     RegistryTag::new(vec![
         ItemKind::PufferfishBucket,
@@ -1676,6 +1762,7 @@ pub static PIGLIN_LOVED: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
         ItemKind::NetherGoldOre,
         ItemKind::RawGoldBlock,
         ItemKind::GoldBlock,
+        ItemKind::GoldenDandelion,
         ItemKind::LightWeightedPressurePlate,
         ItemKind::RawGold,
         ItemKind::GoldIngot,
@@ -1926,6 +2013,7 @@ pub static SLABS: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
 pub static SMALL_FLOWERS: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
     RegistryTag::new(vec![
         ItemKind::Dandelion,
+        ItemKind::GoldenDandelion,
         ItemKind::OpenEyeblossom,
         ItemKind::ClosedEyeblossom,
         ItemKind::Poppy,
@@ -2235,6 +2323,26 @@ pub static WART_BLOCKS: LazyLock<RegistryTag<ItemKind>> =
     LazyLock::new(|| RegistryTag::new(vec![ItemKind::NetherWartBlock, ItemKind::WarpedWartBlock]));
 pub static WITHER_SKELETON_DISLIKED_WEAPONS: LazyLock<RegistryTag<ItemKind>> =
     LazyLock::new(|| RegistryTag::new(vec![ItemKind::Bow, ItemKind::Crossbow]));
+pub static WOLF_COLLAR_DYES: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        ItemKind::WhiteDye,
+        ItemKind::OrangeDye,
+        ItemKind::MagentaDye,
+        ItemKind::LightBlueDye,
+        ItemKind::YellowDye,
+        ItemKind::LimeDye,
+        ItemKind::PinkDye,
+        ItemKind::GrayDye,
+        ItemKind::LightGrayDye,
+        ItemKind::CyanDye,
+        ItemKind::PurpleDye,
+        ItemKind::BlueDye,
+        ItemKind::BrownDye,
+        ItemKind::GreenDye,
+        ItemKind::RedDye,
+        ItemKind::BlackDye,
+    ])
+});
 pub static WOLF_FOOD: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
     RegistryTag::new(vec![
         ItemKind::Porkchop,
