@@ -1,7 +1,6 @@
 use azalea_core::{game_type::GameMode, tick::GameTick};
 use azalea_entity::{
-    Attributes, Crouching, Physics, indexing::EntityIdIndex, metadata::Sprinting,
-    update_bounding_box,
+    Attributes, Physics, indexing::EntityIdIndex, metadata::Sprinting, update_bounding_box,
 };
 use azalea_physics::PhysicsSystems;
 use azalea_protocol::packets::game::ServerboundAttack;
@@ -59,7 +58,6 @@ pub fn handle_attack_queued(
         &mut Sprinting,
         &AttackQueued,
         &LocalGameMode,
-        &Crouching,
         &EntityIdIndex,
     )>,
 ) {
@@ -70,7 +68,6 @@ pub fn handle_attack_queued(
         mut sprinting,
         attack_queued,
         game_mode,
-        crouching,
         entity_id_index,
     ) in &mut query
     {

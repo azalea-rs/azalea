@@ -156,8 +156,6 @@ pub static CANDIDATE_FOR_IRON_GOLEM_GIFT: LazyLock<RegistryTag<EntityKind>> =
     LazyLock::new(|| RegistryTag::new(vec![EntityKind::CopperGolem, EntityKind::Villager]));
 pub static CANNOT_BE_AGE_LOCKED: LazyLock<RegistryTag<EntityKind>> = LazyLock::new(|| {
     RegistryTag::new(vec![
-        EntityKind::CamelHusk,
-        EntityKind::Hoglin,
         EntityKind::SkeletonHorse,
         EntityKind::Villager,
         EntityKind::ZombieHorse,

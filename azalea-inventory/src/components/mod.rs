@@ -302,6 +302,10 @@ define_data_components!(
     AttackRange,
     AdditionalTradeCost,
     Dye,
+    PigSoundVariant,
+    CowSoundVariant,
+    ChickenSoundVariant,
+    CatSoundVariant,
 );
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
@@ -1890,4 +1894,24 @@ pub struct AdditionalTradeCost {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct Dye {
     pub color: DyeColor,
+}
+
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+pub struct PigSoundVariant {
+    pub value: azalea_registry::data::PigSoundVariant,
+}
+
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+pub struct CowSoundVariant {
+    pub value: azalea_registry::data::CowSoundVariant,
+}
+
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+pub struct ChickenSoundVariant {
+    pub value: azalea_registry::data::ChickenSoundVariant,
+}
+
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+pub struct CatSoundVariant {
+    pub value: azalea_registry::data::CatSoundVariant,
 }

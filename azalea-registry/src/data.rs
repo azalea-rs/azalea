@@ -791,6 +791,7 @@ enum RecipeKey {
     ChiseledCopperFromCutCopperStonecutting => "chiseled_copper_from_cut_copper_stonecutting",
     ChiseledDeepslate => "chiseled_deepslate",
     ChiseledDeepslateFromCobbledDeepslateStonecutting => "chiseled_deepslate_from_cobbled_deepslate_stonecutting",
+    ChiseledDeepslateFromDeepslateStonecutting => "chiseled_deepslate_from_deepslate_stonecutting",
     ChiseledNetherBricks => "chiseled_nether_bricks",
     ChiseledNetherBricksFromNetherBricksStonecutting => "chiseled_nether_bricks_from_nether_bricks_stonecutting",
     ChiseledPolishedBlackstone => "chiseled_polished_blackstone",
@@ -824,18 +825,26 @@ enum RecipeKey {
     CoarseDirt => "coarse_dirt",
     CoastArmorTrimSmithingTemplate => "coast_armor_trim_smithing_template",
     CoastArmorTrimSmithingTemplateSmithingTrim => "coast_armor_trim_smithing_template_smithing_trim",
+    CobbledDeepslateFromDeepslateStonecutting => "cobbled_deepslate_from_deepslate_stonecutting",
     CobbledDeepslateSlab => "cobbled_deepslate_slab",
     CobbledDeepslateSlabFromCobbledDeepslateStonecutting => "cobbled_deepslate_slab_from_cobbled_deepslate_stonecutting",
+    CobbledDeepslateSlabFromDeepslateStonecutting => "cobbled_deepslate_slab_from_deepslate_stonecutting",
     CobbledDeepslateStairs => "cobbled_deepslate_stairs",
     CobbledDeepslateStairsFromCobbledDeepslateStonecutting => "cobbled_deepslate_stairs_from_cobbled_deepslate_stonecutting",
+    CobbledDeepslateStairsFromDeepslateStonecutting => "cobbled_deepslate_stairs_from_deepslate_stonecutting",
     CobbledDeepslateWall => "cobbled_deepslate_wall",
     CobbledDeepslateWallFromCobbledDeepslateStonecutting => "cobbled_deepslate_wall_from_cobbled_deepslate_stonecutting",
+    CobbledDeepslateWallFromDeepslateStonecutting => "cobbled_deepslate_wall_from_deepslate_stonecutting",
+    CobblestoneFromStoneStonecutting => "cobblestone_from_stone_stonecutting",
     CobblestoneSlab => "cobblestone_slab",
     CobblestoneSlabFromCobblestoneStonecutting => "cobblestone_slab_from_cobblestone_stonecutting",
+    CobblestoneSlabFromStoneStonecutting => "cobblestone_slab_from_stone_stonecutting",
     CobblestoneStairs => "cobblestone_stairs",
     CobblestoneStairsFromCobblestoneStonecutting => "cobblestone_stairs_from_cobblestone_stonecutting",
+    CobblestoneStairsFromStoneStonecutting => "cobblestone_stairs_from_stone_stonecutting",
     CobblestoneWall => "cobblestone_wall",
     CobblestoneWallFromCobblestoneStonecutting => "cobblestone_wall_from_cobblestone_stonecutting",
+    CobblestoneWallFromStoneStonecutting => "cobblestone_wall_from_stone_stonecutting",
     Comparator => "comparator",
     Compass => "compass",
     Composter => "composter",
@@ -979,36 +988,44 @@ enum RecipeKey {
     DeepslateBrickSlab => "deepslate_brick_slab",
     DeepslateBrickSlabFromCobbledDeepslateStonecutting => "deepslate_brick_slab_from_cobbled_deepslate_stonecutting",
     DeepslateBrickSlabFromDeepslateBricksStonecutting => "deepslate_brick_slab_from_deepslate_bricks_stonecutting",
+    DeepslateBrickSlabFromDeepslateStonecutting => "deepslate_brick_slab_from_deepslate_stonecutting",
     DeepslateBrickSlabFromPolishedDeepslateStonecutting => "deepslate_brick_slab_from_polished_deepslate_stonecutting",
     DeepslateBrickStairs => "deepslate_brick_stairs",
     DeepslateBrickStairsFromCobbledDeepslateStonecutting => "deepslate_brick_stairs_from_cobbled_deepslate_stonecutting",
     DeepslateBrickStairsFromDeepslateBricksStonecutting => "deepslate_brick_stairs_from_deepslate_bricks_stonecutting",
+    DeepslateBrickStairsFromDeepslateStonecutting => "deepslate_brick_stairs_from_deepslate_stonecutting",
     DeepslateBrickStairsFromPolishedDeepslateStonecutting => "deepslate_brick_stairs_from_polished_deepslate_stonecutting",
     DeepslateBrickWall => "deepslate_brick_wall",
     DeepslateBrickWallFromCobbledDeepslateStonecutting => "deepslate_brick_wall_from_cobbled_deepslate_stonecutting",
     DeepslateBrickWallFromDeepslateBricksStonecutting => "deepslate_brick_wall_from_deepslate_bricks_stonecutting",
+    DeepslateBrickWallFromDeepslateStonecutting => "deepslate_brick_wall_from_deepslate_stonecutting",
     DeepslateBrickWallFromPolishedDeepslateStonecutting => "deepslate_brick_wall_from_polished_deepslate_stonecutting",
     DeepslateBricks => "deepslate_bricks",
     DeepslateBricksFromCobbledDeepslateStonecutting => "deepslate_bricks_from_cobbled_deepslate_stonecutting",
+    DeepslateBricksFromDeepslateStonecutting => "deepslate_bricks_from_deepslate_stonecutting",
     DeepslateBricksFromPolishedDeepslateStonecutting => "deepslate_bricks_from_polished_deepslate_stonecutting",
     DeepslateTileSlab => "deepslate_tile_slab",
     DeepslateTileSlabFromCobbledDeepslateStonecutting => "deepslate_tile_slab_from_cobbled_deepslate_stonecutting",
     DeepslateTileSlabFromDeepslateBricksStonecutting => "deepslate_tile_slab_from_deepslate_bricks_stonecutting",
+    DeepslateTileSlabFromDeepslateStonecutting => "deepslate_tile_slab_from_deepslate_stonecutting",
     DeepslateTileSlabFromDeepslateTilesStonecutting => "deepslate_tile_slab_from_deepslate_tiles_stonecutting",
     DeepslateTileSlabFromPolishedDeepslateStonecutting => "deepslate_tile_slab_from_polished_deepslate_stonecutting",
     DeepslateTileStairs => "deepslate_tile_stairs",
     DeepslateTileStairsFromCobbledDeepslateStonecutting => "deepslate_tile_stairs_from_cobbled_deepslate_stonecutting",
     DeepslateTileStairsFromDeepslateBricksStonecutting => "deepslate_tile_stairs_from_deepslate_bricks_stonecutting",
+    DeepslateTileStairsFromDeepslateStonecutting => "deepslate_tile_stairs_from_deepslate_stonecutting",
     DeepslateTileStairsFromDeepslateTilesStonecutting => "deepslate_tile_stairs_from_deepslate_tiles_stonecutting",
     DeepslateTileStairsFromPolishedDeepslateStonecutting => "deepslate_tile_stairs_from_polished_deepslate_stonecutting",
     DeepslateTileWall => "deepslate_tile_wall",
     DeepslateTileWallFromCobbledDeepslateStonecutting => "deepslate_tile_wall_from_cobbled_deepslate_stonecutting",
     DeepslateTileWallFromDeepslateBricksStonecutting => "deepslate_tile_wall_from_deepslate_bricks_stonecutting",
+    DeepslateTileWallFromDeepslateStonecutting => "deepslate_tile_wall_from_deepslate_stonecutting",
     DeepslateTileWallFromDeepslateTilesStonecutting => "deepslate_tile_wall_from_deepslate_tiles_stonecutting",
     DeepslateTileWallFromPolishedDeepslateStonecutting => "deepslate_tile_wall_from_polished_deepslate_stonecutting",
     DeepslateTiles => "deepslate_tiles",
     DeepslateTilesFromCobbledDeepslateStonecutting => "deepslate_tiles_from_cobbled_deepslate_stonecutting",
     DeepslateTilesFromDeepslateBricksStonecutting => "deepslate_tiles_from_deepslate_bricks_stonecutting",
+    DeepslateTilesFromDeepslateStonecutting => "deepslate_tiles_from_deepslate_stonecutting",
     DeepslateTilesFromPolishedDeepslateStonecutting => "deepslate_tiles_from_polished_deepslate_stonecutting",
     DetectorRail => "detector_rail",
     Diamond => "diamond",
@@ -1595,14 +1612,18 @@ enum RecipeKey {
     PolishedBlackstoneWallFromPolishedBlackstoneStonecutting => "polished_blackstone_wall_from_polished_blackstone_stonecutting",
     PolishedDeepslate => "polished_deepslate",
     PolishedDeepslateFromCobbledDeepslateStonecutting => "polished_deepslate_from_cobbled_deepslate_stonecutting",
+    PolishedDeepslateFromDeepslateStonecutting => "polished_deepslate_from_deepslate_stonecutting",
     PolishedDeepslateSlab => "polished_deepslate_slab",
     PolishedDeepslateSlabFromCobbledDeepslateStonecutting => "polished_deepslate_slab_from_cobbled_deepslate_stonecutting",
+    PolishedDeepslateSlabFromDeepslateStonecutting => "polished_deepslate_slab_from_deepslate_stonecutting",
     PolishedDeepslateSlabFromPolishedDeepslateStonecutting => "polished_deepslate_slab_from_polished_deepslate_stonecutting",
     PolishedDeepslateStairs => "polished_deepslate_stairs",
     PolishedDeepslateStairsFromCobbledDeepslateStonecutting => "polished_deepslate_stairs_from_cobbled_deepslate_stonecutting",
+    PolishedDeepslateStairsFromDeepslateStonecutting => "polished_deepslate_stairs_from_deepslate_stonecutting",
     PolishedDeepslateStairsFromPolishedDeepslateStonecutting => "polished_deepslate_stairs_from_polished_deepslate_stonecutting",
     PolishedDeepslateWall => "polished_deepslate_wall",
     PolishedDeepslateWallFromCobbledDeepslateStonecutting => "polished_deepslate_wall_from_cobbled_deepslate_stonecutting",
+    PolishedDeepslateWallFromDeepslateStonecutting => "polished_deepslate_wall_from_deepslate_stonecutting",
     PolishedDeepslateWallFromPolishedDeepslateStonecutting => "polished_deepslate_wall_from_polished_deepslate_stonecutting",
     PolishedDiorite => "polished_diorite",
     PolishedDioriteFromDioriteStonecutting => "polished_diorite_from_diorite_stonecutting",
@@ -2190,5 +2211,38 @@ WorldClock => "world_clock",
 enum WorldClockKey {
     Overworld => "overworld",
     TheEnd => "the_end",
+}
+}
+
+data_registry! {
+PigSoundVariant => "pig_sound_variant",
+enum PigSoundVariantKey {
+    Big => "big",
+    Classic => "classic",
+    Mini => "mini",
+}
+}
+
+data_registry! {
+CatSoundVariant => "cat_sound_variant",
+enum CatSoundVariantKey {
+    Classic => "classic",
+    Royal => "royal",
+}
+}
+
+data_registry! {
+CowSoundVariant => "cow_sound_variant",
+enum CowSoundVariantKey {
+    Classic => "classic",
+    Moody => "moody",
+}
+}
+
+data_registry! {
+ChickenSoundVariant => "chicken_sound_variant",
+enum ChickenSoundVariantKey {
+    Classic => "classic",
+    Picky => "picky",
 }
 }

@@ -625,8 +625,8 @@ impl Default for AreaEffectCloudMetadataBundle {
         Self {
             _marker: AreaEffectCloud,
             parent: Default::default(),
-            radius: Radius(Default::default()),
-            waiting: Waiting(Default::default()),
+            radius: Radius(3.0),
+            waiting: Waiting(false),
             particle: Particle::default(),
         }
     }
@@ -793,8 +793,8 @@ impl Default for EndCrystalMetadataBundle {
         Self {
             _marker: EndCrystal,
             parent: Default::default(),
-            beam_target: BeamTarget(Default::default()),
-            show_bottom: ShowBottom(Default::default()),
+            beam_target: BeamTarget(None),
+            show_bottom: ShowBottom(true),
         }
     }
 }
@@ -903,7 +903,7 @@ impl Default for ExperienceOrbMetadataBundle {
         Self {
             _marker: ExperienceOrb,
             parent: Default::default(),
-            value: Value(Default::default()),
+            value: Value(0),
         }
     }
 }
@@ -1023,7 +1023,7 @@ impl Default for FallingBlockMetadataBundle {
         Self {
             _marker: FallingBlock,
             parent: Default::default(),
-            start_pos: StartPos(Default::default()),
+            start_pos: StartPos(BlockPos::new(0, 0, 0)),
         }
     }
 }
@@ -1160,8 +1160,8 @@ impl Default for FireworkRocketMetadataBundle {
             _marker: FireworkRocket,
             parent: Default::default(),
             fireworks_item: FireworksItem(Default::default()),
-            attached_to_target: AttachedToTarget(Default::default()),
-            shot_at_angle: ShotAtAngle(Default::default()),
+            attached_to_target: AttachedToTarget(OptionalUnsignedInt(None)),
+            shot_at_angle: ShotAtAngle(false),
         }
     }
 }
@@ -1229,8 +1229,8 @@ impl Default for FishingBobberMetadataBundle {
         Self {
             _marker: FishingBobber,
             parent: Default::default(),
-            hooked_entity: HookedEntity(Default::default()),
-            biting: Biting(Default::default()),
+            hooked_entity: HookedEntity(0),
+            biting: Biting(false),
         }
     }
 }
@@ -1306,9 +1306,9 @@ impl Default for InteractionMetadataBundle {
         Self {
             _marker: Interaction,
             parent: Default::default(),
-            interaction_width: InteractionWidth(Default::default()),
-            interaction_height: InteractionHeight(Default::default()),
-            response: Response(Default::default()),
+            interaction_width: InteractionWidth(1.0),
+            interaction_height: InteractionHeight(1.0),
+            response: Response(false),
         }
     }
 }
@@ -1445,7 +1445,7 @@ impl Default for ItemFrameMetadataBundle {
             parent: Default::default(),
             item_frame_direction: ItemFrameDirection(Default::default()),
             item_frame_item: ItemFrameItem(Default::default()),
-            rotation: Rotation(Default::default()),
+            rotation: Rotation(0),
         }
     }
 }
@@ -1996,7 +1996,7 @@ impl Default for TntMetadataBundle {
         Self {
             _marker: Tnt,
             parent: Default::default(),
-            fuse: Fuse(Default::default()),
+            fuse: Fuse(80),
             tnt_block_state: TntBlockState(Default::default()),
         }
     }
@@ -2106,7 +2106,7 @@ impl Default for WitherSkullMetadataBundle {
         Self {
             _marker: WitherSkull,
             parent: Default::default(),
-            dangerous: Dangerous(Default::default()),
+            dangerous: Dangerous(false),
         }
     }
 }
@@ -2193,8 +2193,8 @@ impl Default for AbstractArrowMetadataBundle {
             parent: Default::default(),
             crit_arrow: CritArrow(false),
             no_physics: NoPhysics(false),
-            pierce_level: PierceLevel(Default::default()),
-            in_ground: InGround(Default::default()),
+            pierce_level: PierceLevel(0),
+            in_ground: InGround(false),
         }
     }
 }
@@ -2254,7 +2254,7 @@ impl Default for ArrowMetadataBundle {
         Self {
             _marker: Arrow,
             parent: Default::default(),
-            effect_color: EffectColor(Default::default()),
+            effect_color: EffectColor(-1),
         }
     }
 }
@@ -2372,8 +2372,8 @@ impl Default for TridentMetadataBundle {
         Self {
             _marker: Trident,
             parent: Default::default(),
-            loyalty: Loyalty(Default::default()),
-            foil: Foil(Default::default()),
+            loyalty: Loyalty(0),
+            foil: Foil(false),
         }
     }
 }
@@ -2550,23 +2550,39 @@ impl Default for AbstractDisplayMetadataBundle {
             _marker: AbstractDisplay,
             parent: Default::default(),
             transformation_interpolation_start_delta_ticks:
-                TransformationInterpolationStartDeltaTicks(Default::default()),
-            transformation_interpolation_duration: TransformationInterpolationDuration(
-                Default::default(),
-            ),
-            pos_rot_interpolation_duration: PosRotInterpolationDuration(Default::default()),
-            translation: Translation(Default::default()),
-            scale: Scale(Default::default()),
-            left_rotation: LeftRotation(Default::default()),
-            right_rotation: RightRotation(Default::default()),
+                TransformationInterpolationStartDeltaTicks(0),
+            transformation_interpolation_duration: TransformationInterpolationDuration(0),
+            pos_rot_interpolation_duration: PosRotInterpolationDuration(0),
+            translation: Translation(Vec3f32 {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            }),
+            scale: Scale(Vec3f32 {
+                x: 1.0,
+                y: 1.0,
+                z: 1.0,
+            }),
+            left_rotation: LeftRotation(Quaternion {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+                w: 1.0,
+            }),
+            right_rotation: RightRotation(Quaternion {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+                w: 1.0,
+            }),
             billboard_render_constraints: BillboardRenderConstraints(Default::default()),
-            brightness_override: BrightnessOverride(Default::default()),
-            view_range: ViewRange(Default::default()),
-            shadow_radius: ShadowRadius(Default::default()),
-            shadow_strength: ShadowStrength(Default::default()),
-            abstract_display_width: AbstractDisplayWidth(Default::default()),
-            abstract_display_height: AbstractDisplayHeight(Default::default()),
-            glow_color_override: GlowColorOverride(Default::default()),
+            brightness_override: BrightnessOverride(-1),
+            view_range: ViewRange(1.0),
+            shadow_radius: ShadowRadius(0.0),
+            shadow_strength: ShadowStrength(1.0),
+            abstract_display_width: AbstractDisplayWidth(0.0),
+            abstract_display_height: AbstractDisplayHeight(0.0),
+            glow_color_override: GlowColorOverride(-1),
         }
     }
 }
@@ -2791,10 +2807,10 @@ impl Default for TextDisplayMetadataBundle {
             _marker: TextDisplay,
             parent: Default::default(),
             text: Text(Default::default()),
-            line_width: LineWidth(Default::default()),
-            background_color: BackgroundColor(Default::default()),
-            text_opacity: TextOpacity(Default::default()),
-            style_flags: StyleFlags(Default::default()),
+            line_width: LineWidth(200),
+            background_color: BackgroundColor(1073741824),
+            text_opacity: TextOpacity(127),
+            style_flags: StyleFlags(0),
         }
     }
 }
@@ -3017,12 +3033,12 @@ impl Default for AbstractLivingMetadataBundle {
             parent: Default::default(),
             auto_spin_attack: AutoSpinAttack(false),
             abstract_living_using_item: AbstractLivingUsingItem(false),
-            health: Health(Default::default()),
+            health: Health(1.0),
             effect_particles: EffectParticles(Default::default()),
-            effect_ambience: EffectAmbience(Default::default()),
-            arrow_count: ArrowCount(Default::default()),
-            stinger_count: StingerCount(Default::default()),
-            sleeping_pos: SleepingPos(Default::default()),
+            effect_ambience: EffectAmbience(false),
+            arrow_count: ArrowCount(0),
+            stinger_count: StingerCount(0),
+            sleeping_pos: SleepingPos(None),
         }
     }
 }
@@ -3230,7 +3246,7 @@ impl Default for AbstractAvatarMetadataBundle {
             _marker: AbstractAvatar,
             parent: Default::default(),
             player_main_hand: PlayerMainHand(Default::default()),
-            player_mode_customisation: PlayerModeCustomisation(Default::default()),
+            player_mode_customisation: PlayerModeCustomisation(0),
         }
     }
 }
@@ -3309,7 +3325,7 @@ impl Default for MannequinMetadataBundle {
             _marker: Mannequin,
             parent: Default::default(),
             profile: Profile(Default::default()),
-            immovable: Immovable(Default::default()),
+            immovable: Immovable(false),
             description: Description(Default::default()),
         }
     }
@@ -3395,10 +3411,10 @@ impl Default for PlayerMetadataBundle {
         Self {
             _marker: Player,
             parent: Default::default(),
-            player_absorption: PlayerAbsorption(Default::default()),
-            score: Score(Default::default()),
-            shoulder_parrot_left: ShoulderParrotLeft(Default::default()),
-            shoulder_parrot_right: ShoulderParrotRight(Default::default()),
+            player_absorption: PlayerAbsorption(0.0),
+            score: Score(0),
+            shoulder_parrot_left: ShoulderParrotLeft(OptionalUnsignedInt(None)),
+            shoulder_parrot_right: ShoulderParrotRight(OptionalUnsignedInt(None)),
         }
     }
 }
@@ -3760,7 +3776,7 @@ impl Default for GhastMetadataBundle {
         Self {
             _marker: Ghast,
             parent: Default::default(),
-            is_charging: IsCharging(Default::default()),
+            is_charging: IsCharging(false),
         }
     }
 }
@@ -3821,7 +3837,7 @@ impl Default for PhantomMetadataBundle {
         Self {
             _marker: Phantom,
             parent: Default::default(),
-            phantom_size: PhantomSize(Default::default()),
+            phantom_size: PhantomSize(0),
         }
     }
 }
@@ -3882,7 +3898,7 @@ impl Default for SlimeMetadataBundle {
         Self {
             _marker: Slime,
             parent: Default::default(),
-            slime_size: SlimeSize(Default::default()),
+            slime_size: SlimeSize(1),
         }
     }
 }
@@ -4149,8 +4165,8 @@ impl Default for AllayMetadataBundle {
         Self {
             _marker: Allay,
             parent: Default::default(),
-            dancing: Dancing(Default::default()),
-            can_duplicate: CanDuplicate(Default::default()),
+            dancing: Dancing(false),
+            can_duplicate: CanDuplicate(true),
         }
     }
 }
@@ -4357,8 +4373,8 @@ impl Default for PufferfishMetadataBundle {
         Self {
             _marker: Pufferfish,
             parent: Default::default(),
-            pufferfish_from_bucket: PufferfishFromBucket(Default::default()),
-            puff_state: PuffState(Default::default()),
+            pufferfish_from_bucket: PufferfishFromBucket(false),
+            puff_state: PuffState(0),
         }
     }
 }
@@ -4437,8 +4453,8 @@ impl Default for ShulkerMetadataBundle {
             _marker: Shulker,
             parent: Default::default(),
             attach_face: AttachFace(Default::default()),
-            peek: Peek(Default::default()),
-            color: Color(Default::default()),
+            peek: Peek(0),
+            color: Color(16),
         }
     }
 }
@@ -4502,7 +4518,7 @@ impl Default for SnowGolemMetadataBundle {
         Self {
             _marker: SnowGolem,
             parent: Default::default(),
-            has_pumpkin: HasPumpkin(false),
+            has_pumpkin: HasPumpkin(true),
         }
     }
 }
@@ -4572,8 +4588,8 @@ impl Default for TadpoleMetadataBundle {
         Self {
             _marker: Tadpole,
             parent: Default::default(),
-            tadpole_from_bucket: TadpoleFromBucket(Default::default()),
-            tadpole_age_locked: TadpoleAgeLocked(Default::default()),
+            tadpole_from_bucket: TadpoleFromBucket(false),
+            tadpole_age_locked: TadpoleAgeLocked(false),
         }
     }
 }
@@ -4688,8 +4704,8 @@ impl Default for AbstractAgeableMetadataBundle {
         Self {
             _marker: AbstractAgeable,
             parent: Default::default(),
-            abstract_ageable_baby: AbstractAgeableBaby(Default::default()),
-            abstract_ageable_age_locked: AbstractAgeableAgeLocked(Default::default()),
+            abstract_ageable_baby: AbstractAgeableBaby(false),
+            abstract_ageable_age_locked: AbstractAgeableAgeLocked(false),
         }
     }
 }
@@ -4760,8 +4776,8 @@ impl Default for DolphinMetadataBundle {
         Self {
             _marker: Dolphin,
             parent: Default::default(),
-            got_fish: GotFish(Default::default()),
-            moistness_level: MoistnessLevel(Default::default()),
+            got_fish: GotFish(false),
+            moistness_level: MoistnessLevel(2400),
         }
     }
 }
@@ -4879,7 +4895,7 @@ impl Default for GlowSquidMetadataBundle {
         Self {
             _marker: GlowSquid,
             parent: Default::default(),
-            dark_ticks_remaining: DarkTicksRemaining(Default::default()),
+            dark_ticks_remaining: DarkTicksRemaining(0),
         }
     }
 }
@@ -5114,9 +5130,9 @@ impl Default for AxolotlMetadataBundle {
         Self {
             _marker: Axolotl,
             parent: Default::default(),
-            axolotl_variant: AxolotlVariant(Default::default()),
-            playing_dead: PlayingDead(Default::default()),
-            axolotl_from_bucket: AxolotlFromBucket(Default::default()),
+            axolotl_variant: AxolotlVariant(0),
+            playing_dead: PlayingDead(false),
+            axolotl_from_bucket: AxolotlFromBucket(false),
         }
     }
 }
@@ -5204,7 +5220,7 @@ impl Default for BeeMetadataBundle {
             has_nectar: HasNectar(false),
             has_stung: HasStung(false),
             bee_rolling: BeeRolling(false),
-            bee_anger_end_time: BeeAngerEndTime(Default::default()),
+            bee_anger_end_time: BeeAngerEndTime(-1),
         }
     }
 }
@@ -5212,6 +5228,9 @@ impl Default for BeeMetadataBundle {
 /// A metadata field for [Chicken].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct ChickenVariant(pub azalea_registry::data::ChickenVariant);
+/// A metadata field for [Chicken].
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
+pub struct ChickenSoundVariant(pub azalea_registry::data::ChickenSoundVariant);
 /// The marker component for entities of type `minecraft:chicken`.
 ///
 /// # Metadata
@@ -5220,6 +5239,7 @@ pub struct ChickenVariant(pub azalea_registry::data::ChickenVariant);
 /// to have, in addition to the metadata components from parent types:
 ///
 /// - [ChickenVariant]
+/// - [ChickenSoundVariant]
 ///
 /// # Parents
 ///
@@ -5248,6 +5268,9 @@ impl Chicken {
             18 => {
                 entity.insert(ChickenVariant(d.value.into_chicken_variant()?));
             }
+            19 => {
+                entity.insert(ChickenSoundVariant(d.value.into_chicken_sound_variant()?));
+            }
             _ => {}
         }
         Ok(())
@@ -5262,6 +5285,7 @@ pub struct ChickenMetadataBundle {
     _marker: Chicken,
     parent: AbstractAnimalMetadataBundle,
     chicken_variant: ChickenVariant,
+    chicken_sound_variant: ChickenSoundVariant,
 }
 impl Default for ChickenMetadataBundle {
     fn default() -> Self {
@@ -5269,6 +5293,9 @@ impl Default for ChickenMetadataBundle {
             _marker: Chicken,
             parent: Default::default(),
             chicken_variant: ChickenVariant(azalea_registry::data::ChickenVariant::new_raw(0)),
+            chicken_sound_variant: ChickenSoundVariant(
+                azalea_registry::data::ChickenSoundVariant::new_raw(0),
+            ),
         }
     }
 }
@@ -5276,6 +5303,9 @@ impl Default for ChickenMetadataBundle {
 /// A metadata field for [Cow].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct CowVariant(pub azalea_registry::data::CowVariant);
+/// A metadata field for [Cow].
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
+pub struct CowSoundVariant(pub azalea_registry::data::CowSoundVariant);
 /// The marker component for entities of type `minecraft:cow`.
 ///
 /// # Metadata
@@ -5284,6 +5314,7 @@ pub struct CowVariant(pub azalea_registry::data::CowVariant);
 /// have, in addition to the metadata components from parent types:
 ///
 /// - [CowVariant]
+/// - [CowSoundVariant]
 ///
 /// # Parents
 ///
@@ -5312,6 +5343,9 @@ impl Cow {
             18 => {
                 entity.insert(CowVariant(d.value.into_cow_variant()?));
             }
+            19 => {
+                entity.insert(CowSoundVariant(d.value.into_cow_sound_variant()?));
+            }
             _ => {}
         }
         Ok(())
@@ -5326,6 +5360,7 @@ pub struct CowMetadataBundle {
     _marker: Cow,
     parent: AbstractAnimalMetadataBundle,
     cow_variant: CowVariant,
+    cow_sound_variant: CowSoundVariant,
 }
 impl Default for CowMetadataBundle {
     fn default() -> Self {
@@ -5333,6 +5368,7 @@ impl Default for CowMetadataBundle {
             _marker: Cow,
             parent: Default::default(),
             cow_variant: CowVariant(azalea_registry::data::CowVariant::new_raw(0)),
+            cow_sound_variant: CowSoundVariant(azalea_registry::data::CowSoundVariant::new_raw(0)),
         }
     }
 }
@@ -5465,8 +5501,8 @@ impl Default for FoxMetadataBundle {
             pouncing: Pouncing(false),
             fox_crouching: FoxCrouching(false),
             fox_interested: FoxInterested(false),
-            trusted_id_0: TrustedId0(Default::default()),
-            trusted_id_1: TrustedId1(Default::default()),
+            trusted_id_0: TrustedId0(None),
+            trusted_id_1: TrustedId1(None),
         }
     }
 }
@@ -5539,7 +5575,7 @@ impl Default for FrogMetadataBundle {
             _marker: Frog,
             parent: Default::default(),
             frog_variant: FrogVariant(azalea_registry::data::FrogVariant::new_raw(0)),
-            tongue_target: TongueTarget(Default::default()),
+            tongue_target: TongueTarget(OptionalUnsignedInt(None)),
         }
     }
 }
@@ -5619,9 +5655,9 @@ impl Default for GoatMetadataBundle {
         Self {
             _marker: Goat,
             parent: Default::default(),
-            is_screaming_goat: IsScreamingGoat(Default::default()),
-            has_left_horn: HasLeftHorn(Default::default()),
-            has_right_horn: HasRightHorn(Default::default()),
+            is_screaming_goat: IsScreamingGoat(false),
+            has_left_horn: HasLeftHorn(true),
+            has_right_horn: HasRightHorn(true),
         }
     }
 }
@@ -5694,8 +5730,8 @@ impl Default for HappyGhastMetadataBundle {
         Self {
             _marker: HappyGhast,
             parent: Default::default(),
-            is_leash_holder: IsLeashHolder(Default::default()),
-            stays_still: StaysStill(Default::default()),
+            is_leash_holder: IsLeashHolder(false),
+            stays_still: StaysStill(false),
         }
     }
 }
@@ -5759,7 +5795,7 @@ impl Default for HoglinMetadataBundle {
         Self {
             _marker: Hoglin,
             parent: Default::default(),
-            hoglin_immune_to_zombification: HoglinImmuneToZombification(Default::default()),
+            hoglin_immune_to_zombification: HoglinImmuneToZombification(false),
         }
     }
 }
@@ -5888,7 +5924,7 @@ impl Default for OcelotMetadataBundle {
         Self {
             _marker: Ocelot,
             parent: Default::default(),
-            trusting: Trusting(Default::default()),
+            trusting: Trusting(false),
         }
     }
 }
@@ -6011,15 +6047,15 @@ impl Default for PandaMetadataBundle {
         Self {
             _marker: Panda,
             parent: Default::default(),
-            panda_unhappy_counter: PandaUnhappyCounter(Default::default()),
-            sneeze_counter: SneezeCounter(Default::default()),
-            eat_counter: EatCounter(Default::default()),
+            panda_unhappy_counter: PandaUnhappyCounter(0),
+            sneeze_counter: SneezeCounter(0),
+            eat_counter: EatCounter(0),
             sneezing: Sneezing(false),
             panda_sitting: PandaSitting(false),
             on_back: OnBack(false),
             panda_rolling: PandaRolling(false),
-            hidden_gene: HiddenGene(Default::default()),
-            panda_flags: PandaFlags(Default::default()),
+            hidden_gene: HiddenGene(0),
+            panda_flags: PandaFlags(0),
         }
     }
 }
@@ -6030,6 +6066,9 @@ pub struct PigBoostTime(pub i32);
 /// A metadata field for [Pig].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct PigVariant(pub azalea_registry::data::PigVariant);
+/// A metadata field for [Pig].
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
+pub struct PigSoundVariant(pub azalea_registry::data::PigSoundVariant);
 /// The marker component for entities of type `minecraft:pig`.
 ///
 /// # Metadata
@@ -6039,6 +6078,7 @@ pub struct PigVariant(pub azalea_registry::data::PigVariant);
 ///
 /// - [PigBoostTime]
 /// - [PigVariant]
+/// - [PigSoundVariant]
 ///
 /// # Parents
 ///
@@ -6070,6 +6110,9 @@ impl Pig {
             19 => {
                 entity.insert(PigVariant(d.value.into_pig_variant()?));
             }
+            20 => {
+                entity.insert(PigSoundVariant(d.value.into_pig_sound_variant()?));
+            }
             _ => {}
         }
         Ok(())
@@ -6085,14 +6128,16 @@ pub struct PigMetadataBundle {
     parent: AbstractAnimalMetadataBundle,
     pig_boost_time: PigBoostTime,
     pig_variant: PigVariant,
+    pig_sound_variant: PigSoundVariant,
 }
 impl Default for PigMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Pig,
             parent: Default::default(),
-            pig_boost_time: PigBoostTime(Default::default()),
+            pig_boost_time: PigBoostTime(0),
             pig_variant: PigVariant(azalea_registry::data::PigVariant::new_raw(0)),
+            pig_sound_variant: PigSoundVariant(azalea_registry::data::PigSoundVariant::new_raw(0)),
         }
     }
 }
@@ -6157,7 +6202,7 @@ impl Default for PolarBearMetadataBundle {
         Self {
             _marker: PolarBear,
             parent: Default::default(),
-            polar_bear_standing: PolarBearStanding(Default::default()),
+            polar_bear_standing: PolarBearStanding(false),
         }
     }
 }
@@ -6359,7 +6404,7 @@ impl Default for SnifferMetadataBundle {
             _marker: Sniffer,
             parent: Default::default(),
             sniffer_state: SnifferState(Default::default()),
-            drop_seed_at_tick: DropSeedAtTick(Default::default()),
+            drop_seed_at_tick: DropSeedAtTick(0),
         }
     }
 }
@@ -6431,8 +6476,8 @@ impl Default for StriderMetadataBundle {
         Self {
             _marker: Strider,
             parent: Default::default(),
-            strider_boost_time: StriderBoostTime(Default::default()),
-            suffocating: Suffocating(Default::default()),
+            strider_boost_time: StriderBoostTime(0),
+            suffocating: Suffocating(false),
         }
     }
 }
@@ -6504,8 +6549,8 @@ impl Default for TurtleMetadataBundle {
         Self {
             _marker: Turtle,
             parent: Default::default(),
-            has_egg: HasEgg(Default::default()),
-            laying_egg: LayingEgg(Default::default()),
+            has_egg: HasEgg(false),
+            laying_egg: LayingEgg(false),
         }
     }
 }
@@ -6674,8 +6719,8 @@ impl Default for CamelMetadataBundle {
         Self {
             _marker: Camel,
             parent: Default::default(),
-            camel_dash: CamelDash(Default::default()),
-            last_pose_change_tick: LastPoseChangeTick(Default::default()),
+            camel_dash: CamelDash(false),
+            last_pose_change_tick: LastPoseChangeTick(0),
         }
     }
 }
@@ -6796,7 +6841,7 @@ impl Default for HorseMetadataBundle {
         Self {
             _marker: Horse,
             parent: Default::default(),
-            horse_type_variant: HorseTypeVariant(Default::default()),
+            horse_type_variant: HorseTypeVariant(0),
         }
     }
 }
@@ -6975,7 +7020,7 @@ impl Default for AbstractChestedHorseMetadataBundle {
         Self {
             _marker: AbstractChestedHorse,
             parent: Default::default(),
-            chest: Chest(Default::default()),
+            chest: Chest(false),
         }
     }
 }
@@ -7105,8 +7150,8 @@ impl Default for LlamaMetadataBundle {
         Self {
             _marker: Llama,
             parent: Default::default(),
-            strength: Strength(Default::default()),
-            llama_variant: LlamaVariant(Default::default()),
+            strength: Strength(0),
+            llama_variant: LlamaVariant(0),
         }
     }
 }
@@ -7306,7 +7351,7 @@ impl Default for AbstractTameableMetadataBundle {
             parent: Default::default(),
             tame: Tame(false),
             in_sitting_pose: InSittingPose(false),
-            owneruuid: Owneruuid(Default::default()),
+            owneruuid: Owneruuid(None),
         }
     }
 }
@@ -7323,6 +7368,9 @@ pub struct RelaxStateOne(pub bool);
 /// A metadata field for [Cat].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct CatCollarColor(pub i32);
+/// A metadata field for [Cat].
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
+pub struct CatSoundVariant(pub azalea_registry::data::CatSoundVariant);
 /// The marker component for entities of type `minecraft:cat`.
 ///
 /// # Metadata
@@ -7334,6 +7382,7 @@ pub struct CatCollarColor(pub i32);
 /// - [IsLying]
 /// - [RelaxStateOne]
 /// - [CatCollarColor]
+/// - [CatSoundVariant]
 ///
 /// # Parents
 ///
@@ -7372,6 +7421,9 @@ impl Cat {
             23 => {
                 entity.insert(CatCollarColor(d.value.into_int()?));
             }
+            24 => {
+                entity.insert(CatSoundVariant(d.value.into_cat_sound_variant()?));
+            }
             _ => {}
         }
         Ok(())
@@ -7389,6 +7441,7 @@ pub struct CatMetadataBundle {
     is_lying: IsLying,
     relax_state_one: RelaxStateOne,
     cat_collar_color: CatCollarColor,
+    cat_sound_variant: CatSoundVariant,
 }
 impl Default for CatMetadataBundle {
     fn default() -> Self {
@@ -7396,9 +7449,10 @@ impl Default for CatMetadataBundle {
             _marker: Cat,
             parent: Default::default(),
             cat_variant: CatVariant(azalea_registry::data::CatVariant::new_raw(0)),
-            is_lying: IsLying(Default::default()),
-            relax_state_one: RelaxStateOne(Default::default()),
+            is_lying: IsLying(false),
+            relax_state_one: RelaxStateOne(false),
             cat_collar_color: CatCollarColor(Default::default()),
+            cat_sound_variant: CatSoundVariant(azalea_registry::data::CatSoundVariant::new_raw(0)),
         }
     }
 }
@@ -7482,7 +7536,7 @@ pub struct WolfAngerEndTime(pub i64);
 pub struct WolfVariant(pub azalea_registry::data::WolfVariant);
 /// A metadata field for [Wolf].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct SoundVariant(pub azalea_registry::data::WolfSoundVariant);
+pub struct WolfSoundVariant(pub azalea_registry::data::WolfSoundVariant);
 /// The marker component for entities of type `minecraft:wolf`.
 ///
 /// # Metadata
@@ -7494,7 +7548,7 @@ pub struct SoundVariant(pub azalea_registry::data::WolfSoundVariant);
 /// - [WolfCollarColor]
 /// - [WolfAngerEndTime]
 /// - [WolfVariant]
-/// - [SoundVariant]
+/// - [WolfSoundVariant]
 ///
 /// # Parents
 ///
@@ -7534,7 +7588,7 @@ impl Wolf {
                 entity.insert(WolfVariant(d.value.into_wolf_variant()?));
             }
             24 => {
-                entity.insert(SoundVariant(d.value.into_wolf_sound_variant()?));
+                entity.insert(WolfSoundVariant(d.value.into_wolf_sound_variant()?));
             }
             _ => {}
         }
@@ -7553,18 +7607,20 @@ pub struct WolfMetadataBundle {
     wolf_collar_color: WolfCollarColor,
     wolf_anger_end_time: WolfAngerEndTime,
     wolf_variant: WolfVariant,
-    sound_variant: SoundVariant,
+    wolf_sound_variant: WolfSoundVariant,
 }
 impl Default for WolfMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Wolf,
             parent: Default::default(),
-            wolf_interested: WolfInterested(Default::default()),
+            wolf_interested: WolfInterested(false),
             wolf_collar_color: WolfCollarColor(Default::default()),
-            wolf_anger_end_time: WolfAngerEndTime(Default::default()),
+            wolf_anger_end_time: WolfAngerEndTime(-1),
             wolf_variant: WolfVariant(azalea_registry::data::WolfVariant::new_raw(0)),
-            sound_variant: SoundVariant(azalea_registry::data::WolfSoundVariant::new_raw(0)),
+            wolf_sound_variant: WolfSoundVariant(azalea_registry::data::WolfSoundVariant::new_raw(
+                0,
+            )),
         }
     }
 }
@@ -7631,7 +7687,7 @@ impl Default for AbstractNautilusMetadataBundle {
         Self {
             _marker: AbstractNautilus,
             parent: Default::default(),
-            abstract_nautilus_dash: AbstractNautilusDash(Default::default()),
+            abstract_nautilus_dash: AbstractNautilusDash(false),
         }
     }
 }
@@ -7823,7 +7879,7 @@ impl Default for AbstractVillagerMetadataBundle {
         Self {
             _marker: AbstractVillager,
             parent: Default::default(),
-            abstract_villager_unhappy_counter: AbstractVillagerUnhappyCounter(Default::default()),
+            abstract_villager_unhappy_counter: AbstractVillagerUnhappyCounter(0),
         }
     }
 }
@@ -7901,7 +7957,7 @@ impl Default for VillagerMetadataBundle {
                 profession: azalea_registry::builtin::VillagerProfession::None,
                 level: 0,
             }),
-            villager_villager_data_finalized: VillagerVillagerDataFinalized(Default::default()),
+            villager_villager_data_finalized: VillagerVillagerDataFinalized(false),
         }
     }
 }
@@ -8020,7 +8076,7 @@ impl Default for AbstractFishMetadataBundle {
         Self {
             _marker: AbstractFish,
             parent: Default::default(),
-            abstract_fish_from_bucket: AbstractFishFromBucket(Default::default()),
+            abstract_fish_from_bucket: AbstractFishFromBucket(false),
         }
     }
 }
@@ -8415,7 +8471,7 @@ impl Default for BoggedMetadataBundle {
         Self {
             _marker: Bogged,
             parent: Default::default(),
-            bogged_sheared: BoggedSheared(Default::default()),
+            bogged_sheared: BoggedSheared(false),
         }
     }
 }
@@ -8556,10 +8612,10 @@ impl Default for CreakingMetadataBundle {
         Self {
             _marker: Creaking,
             parent: Default::default(),
-            can_move: CanMove(Default::default()),
-            is_active: IsActive(Default::default()),
-            is_tearing_down: IsTearingDown(Default::default()),
-            home_pos: HomePos(Default::default()),
+            can_move: CanMove(true),
+            is_active: IsActive(false),
+            is_tearing_down: IsTearingDown(false),
+            home_pos: HomePos(None),
         }
     }
 }
@@ -8638,9 +8694,9 @@ impl Default for CreeperMetadataBundle {
         Self {
             _marker: Creeper,
             parent: Default::default(),
-            swell_dir: SwellDir(Default::default()),
-            is_powered: IsPowered(Default::default()),
-            is_ignited: IsIgnited(Default::default()),
+            swell_dir: SwellDir(-1),
+            is_powered: IsPowered(false),
+            is_ignited: IsIgnited(false),
         }
     }
 }
@@ -8720,9 +8776,9 @@ impl Default for EndermanMetadataBundle {
         Self {
             _marker: Enderman,
             parent: Default::default(),
-            carry_state: CarryState(Default::default()),
-            creepy: Creepy(Default::default()),
-            stared_at: StaredAt(Default::default()),
+            carry_state: CarryState(azalea_block::BlockState::AIR),
+            creepy: Creepy(false),
+            stared_at: StaredAt(false),
         }
     }
 }
@@ -8900,8 +8956,8 @@ impl Default for GuardianMetadataBundle {
         Self {
             _marker: Guardian,
             parent: Default::default(),
-            moving: Moving(Default::default()),
-            attack_target: AttackTarget(Default::default()),
+            moving: Moving(false),
+            attack_target: AttackTarget(0),
         }
     }
 }
@@ -9125,7 +9181,7 @@ impl Default for SkeletonMetadataBundle {
         Self {
             _marker: Skeleton,
             parent: Default::default(),
-            stray_conversion: StrayConversion(Default::default()),
+            stray_conversion: StrayConversion(false),
         }
     }
 }
@@ -9359,7 +9415,7 @@ impl Default for VexMetadataBundle {
         Self {
             _marker: Vex,
             parent: Default::default(),
-            vex_flags: VexFlags(Default::default()),
+            vex_flags: VexFlags(0),
         }
     }
 }
@@ -9422,7 +9478,7 @@ impl Default for WardenMetadataBundle {
         Self {
             _marker: Warden,
             parent: Default::default(),
-            client_anger_level: ClientAngerLevel(Default::default()),
+            client_anger_level: ClientAngerLevel(0),
         }
     }
 }
@@ -9509,10 +9565,10 @@ impl Default for WitherMetadataBundle {
         Self {
             _marker: Wither,
             parent: Default::default(),
-            target_a: TargetA(Default::default()),
-            target_b: TargetB(Default::default()),
-            target_c: TargetC(Default::default()),
-            inv: Inv(Default::default()),
+            target_a: TargetA(0),
+            target_b: TargetB(0),
+            target_c: TargetC(0),
+            inv: Inv(0),
         }
     }
 }
@@ -9628,7 +9684,7 @@ impl Default for ZoglinMetadataBundle {
         Self {
             _marker: Zoglin,
             parent: Default::default(),
-            zoglin_baby: ZoglinBaby(Default::default()),
+            zoglin_baby: ZoglinBaby(false),
         }
     }
 }
@@ -9710,9 +9766,9 @@ impl Default for ZombieMetadataBundle {
         Self {
             _marker: Zombie,
             parent: Default::default(),
-            zombie_baby: ZombieBaby(Default::default()),
-            special_type: SpecialType(Default::default()),
-            drowned_conversion: DrownedConversion(Default::default()),
+            zombie_baby: ZombieBaby(false),
+            special_type: SpecialType(0),
+            drowned_conversion: DrownedConversion(false),
         }
     }
 }
@@ -9901,15 +9957,13 @@ impl Default for ZombieVillagerMetadataBundle {
         Self {
             _marker: ZombieVillager,
             parent: Default::default(),
-            converting: Converting(Default::default()),
+            converting: Converting(false),
             zombie_villager_villager_data: ZombieVillagerVillagerData(VillagerData {
                 kind: azalea_registry::builtin::VillagerKind::Plains,
                 profession: azalea_registry::builtin::VillagerProfession::None,
                 level: 0,
             }),
-            zombie_villager_villager_data_finalized: ZombieVillagerVillagerDataFinalized(
-                Default::default(),
-            ),
+            zombie_villager_villager_data_finalized: ZombieVillagerVillagerDataFinalized(false),
         }
     }
 }
@@ -10028,9 +10082,7 @@ impl Default for AbstractPiglinMetadataBundle {
         Self {
             _marker: AbstractPiglin,
             parent: Default::default(),
-            abstract_piglin_immune_to_zombification: AbstractPiglinImmuneToZombification(
-                Default::default(),
-            ),
+            abstract_piglin_immune_to_zombification: AbstractPiglinImmuneToZombification(false),
         }
     }
 }
@@ -10110,9 +10162,9 @@ impl Default for PiglinMetadataBundle {
         Self {
             _marker: Piglin,
             parent: Default::default(),
-            piglin_baby: PiglinBaby(Default::default()),
-            piglin_is_charging_crossbow: PiglinIsChargingCrossbow(Default::default()),
-            is_dancing: IsDancing(Default::default()),
+            piglin_baby: PiglinBaby(false),
+            piglin_is_charging_crossbow: PiglinIsChargingCrossbow(false),
+            is_dancing: IsDancing(false),
         }
     }
 }
@@ -10236,7 +10288,7 @@ impl Default for AbstractRaiderMetadataBundle {
         Self {
             _marker: AbstractRaider,
             parent: Default::default(),
-            is_celebrating: IsCelebrating(Default::default()),
+            is_celebrating: IsCelebrating(false),
         }
     }
 }
@@ -10301,7 +10353,7 @@ impl Default for PillagerMetadataBundle {
         Self {
             _marker: Pillager,
             parent: Default::default(),
-            pillager_is_charging_crossbow: PillagerIsChargingCrossbow(Default::default()),
+            pillager_is_charging_crossbow: PillagerIsChargingCrossbow(false),
         }
     }
 }
@@ -10473,7 +10525,7 @@ impl Default for WitchMetadataBundle {
         Self {
             _marker: Witch,
             parent: Default::default(),
-            witch_using_item: WitchUsingItem(Default::default()),
+            witch_using_item: WitchUsingItem(false),
         }
     }
 }
@@ -10539,7 +10591,7 @@ impl Default for AbstractSpellcasterIllagerMetadataBundle {
         Self {
             _marker: AbstractSpellcasterIllager,
             parent: Default::default(),
-            spell_casting: SpellCasting(Default::default()),
+            spell_casting: SpellCasting(0),
         }
     }
 }
@@ -11122,9 +11174,9 @@ impl Default for AbstractVehicleMetadataBundle {
         Self {
             _marker: AbstractVehicle,
             parent: Default::default(),
-            hurt: Hurt(Default::default()),
-            hurtdir: Hurtdir(Default::default()),
-            damage: Damage(Default::default()),
+            hurt: Hurt(0),
+            hurtdir: Hurtdir(1),
+            damage: Damage(0.0),
         }
     }
 }
@@ -11220,9 +11272,9 @@ impl Default for AbstractBoatMetadataBundle {
         Self {
             _marker: AbstractBoat,
             parent: Default::default(),
-            paddle_left: PaddleLeft(Default::default()),
-            paddle_right: PaddleRight(Default::default()),
-            bubble_time: BubbleTime(Default::default()),
+            paddle_left: PaddleLeft(false),
+            paddle_right: PaddleRight(false),
+            bubble_time: BubbleTime(0),
         }
     }
 }
@@ -12317,7 +12369,7 @@ impl Default for AbstractMinecartMetadataBundle {
         Self {
             _marker: AbstractMinecart,
             parent: Default::default(),
-            custom_display_block: CustomDisplayBlock(Default::default()),
+            custom_display_block: CustomDisplayBlock(azalea_block::BlockState::AIR),
             display_offset: DisplayOffset(Default::default()),
         }
     }
@@ -12440,7 +12492,7 @@ impl Default for CommandBlockMinecartMetadataBundle {
         Self {
             _marker: CommandBlockMinecart,
             parent: Default::default(),
-            command_name: CommandName(Default::default()),
+            command_name: CommandName("".into()),
             last_output: LastOutput(Default::default()),
         }
     }
@@ -12503,7 +12555,7 @@ impl Default for FurnaceMinecartMetadataBundle {
         Self {
             _marker: FurnaceMinecart,
             parent: Default::default(),
-            fuel: Fuel(Default::default()),
+            fuel: Fuel(false),
         }
     }
 }
