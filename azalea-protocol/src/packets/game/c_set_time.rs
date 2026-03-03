@@ -1,9 +1,17 @@
 use azalea_buf::AzBuf;
 use azalea_protocol_macros::ClientboundGamePacket;
+use azalea_registry::data::WorldClock;
+use indexmap::IndexMap;
 
 #[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundSetTime {
     pub game_time: u64,
-    pub day_time: u64,
-    pub tick_day_time: bool,
+    pub clock_updates: IndexMap<WorldClock, ClockState>,
+}
+
+#[derive(AzBuf, Clone, Debug, PartialEq)]
+pub struct ClockState {
+    #[var]
+    pub total_ticks: u64,
+    pub paused: bool,
 }

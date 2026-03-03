@@ -2078,38 +2078,72 @@ impl DefaultableComponent for ItemName {
 impl DefaultableComponent for JukeboxPlayable {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::MusicDiscChirp => JukeboxPlayable::Referenced("minecraft:chirp".into()),
-            ItemKind::MusicDiscFar => JukeboxPlayable::Referenced("minecraft:far".into()),
-            ItemKind::MusicDisc5 => JukeboxPlayable::Referenced("minecraft:5".into()),
+            ItemKind::MusicDiscChirp => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDiscFar => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDisc5 => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
             ItemKind::MusicDiscCreatorMusicBox => {
-                JukeboxPlayable::Referenced("minecraft:creator_music_box".into())
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
             }
-            ItemKind::MusicDiscRelic => JukeboxPlayable::Referenced("minecraft:relic".into()),
-            ItemKind::MusicDiscWait => JukeboxPlayable::Referenced("minecraft:wait".into()),
-            ItemKind::MusicDiscStrad => JukeboxPlayable::Referenced("minecraft:strad".into()),
-            ItemKind::MusicDiscStal => JukeboxPlayable::Referenced("minecraft:stal".into()),
-            ItemKind::MusicDiscTears => JukeboxPlayable::Referenced("minecraft:tears".into()),
-            ItemKind::MusicDiscCreator => JukeboxPlayable::Referenced("minecraft:creator".into()),
+            ItemKind::MusicDiscRelic => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDiscWait => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDiscStrad => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDiscStal => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDiscTears => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDiscCreator => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
             ItemKind::MusicDiscOtherside => {
-                JukeboxPlayable::Referenced("minecraft:otherside".into())
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
             }
-            ItemKind::MusicDiscWard => JukeboxPlayable::Referenced("minecraft:ward".into()),
-            ItemKind::MusicDiscMall => JukeboxPlayable::Referenced("minecraft:mall".into()),
-            ItemKind::MusicDisc13 => JukeboxPlayable::Referenced("minecraft:13".into()),
-            ItemKind::MusicDiscCat => JukeboxPlayable::Referenced("minecraft:cat".into()),
+            ItemKind::MusicDiscWard => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDiscMall => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDisc13 => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDiscCat => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
             ItemKind::MusicDiscLavaChicken => {
-                JukeboxPlayable::Referenced("minecraft:lava_chicken".into())
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
             }
-            ItemKind::MusicDiscBlocks => JukeboxPlayable::Referenced("minecraft:blocks".into()),
-            ItemKind::MusicDiscPigstep => JukeboxPlayable::Referenced("minecraft:pigstep".into()),
+            ItemKind::MusicDiscBlocks => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDiscPigstep => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
             ItemKind::MusicDiscPrecipice => {
-                JukeboxPlayable::Referenced("minecraft:precipice".into())
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
             }
-            ItemKind::MusicDisc11 => JukeboxPlayable::Referenced("minecraft:11".into()),
-            ItemKind::MusicDiscMellohi => JukeboxPlayable::Referenced("minecraft:mellohi".into()),
+            ItemKind::MusicDisc11 => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDiscMellohi => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
             _ => return None,
         };
-        Some(value)
+        Some(JukeboxPlayable { value: value })
     }
 }
 impl DefaultableComponent for Lore {
@@ -5825,29 +5859,29 @@ impl DefaultableComponent for DamageType {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
             ItemKind::NetheriteSpear => {
-                DamageType::Registry(azalea_registry::data::DamageKind::new_raw(0))
+                azalea_registry::Holder::Reference(azalea_registry::data::DamageKind::new_raw(0))
             }
             ItemKind::DiamondSpear => {
-                DamageType::Registry(azalea_registry::data::DamageKind::new_raw(0))
+                azalea_registry::Holder::Reference(azalea_registry::data::DamageKind::new_raw(0))
             }
             ItemKind::StoneSpear => {
-                DamageType::Registry(azalea_registry::data::DamageKind::new_raw(0))
+                azalea_registry::Holder::Reference(azalea_registry::data::DamageKind::new_raw(0))
             }
             ItemKind::GoldenSpear => {
-                DamageType::Registry(azalea_registry::data::DamageKind::new_raw(0))
+                azalea_registry::Holder::Reference(azalea_registry::data::DamageKind::new_raw(0))
             }
             ItemKind::WoodenSpear => {
-                DamageType::Registry(azalea_registry::data::DamageKind::new_raw(0))
+                azalea_registry::Holder::Reference(azalea_registry::data::DamageKind::new_raw(0))
             }
             ItemKind::CopperSpear => {
-                DamageType::Registry(azalea_registry::data::DamageKind::new_raw(0))
+                azalea_registry::Holder::Reference(azalea_registry::data::DamageKind::new_raw(0))
             }
             ItemKind::IronSpear => {
-                DamageType::Registry(azalea_registry::data::DamageKind::new_raw(0))
+                azalea_registry::Holder::Reference(azalea_registry::data::DamageKind::new_raw(0))
             }
             _ => return None,
         };
-        Some(value)
+        Some(DamageType { value: value })
     }
 }
 impl DefaultableComponent for KineticWeapon {
@@ -6140,24 +6174,42 @@ impl DefaultableComponent for ChargedProjectiles {
 impl DefaultableComponent for ProvidesTrimMaterial {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::CopperIngot => ProvidesTrimMaterial::Referenced("minecraft:copper".into()),
-            ItemKind::GoldIngot => ProvidesTrimMaterial::Referenced("minecraft:gold".into()),
-            ItemKind::IronIngot => ProvidesTrimMaterial::Referenced("minecraft:iron".into()),
+            ItemKind::CopperIngot => {
+                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
+            }
+            ItemKind::GoldIngot => {
+                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
+            }
+            ItemKind::IronIngot => {
+                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
+            }
             ItemKind::AmethystShard => {
-                ProvidesTrimMaterial::Referenced("minecraft:amethyst".into())
+                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
             }
             ItemKind::NetheriteIngot => {
-                ProvidesTrimMaterial::Referenced("minecraft:netherite".into())
+                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
             }
-            ItemKind::Emerald => ProvidesTrimMaterial::Referenced("minecraft:emerald".into()),
-            ItemKind::Redstone => ProvidesTrimMaterial::Referenced("minecraft:redstone".into()),
-            ItemKind::ResinBrick => ProvidesTrimMaterial::Referenced("minecraft:resin".into()),
-            ItemKind::LapisLazuli => ProvidesTrimMaterial::Referenced("minecraft:lapis".into()),
-            ItemKind::Diamond => ProvidesTrimMaterial::Referenced("minecraft:diamond".into()),
-            ItemKind::Quartz => ProvidesTrimMaterial::Referenced("minecraft:quartz".into()),
+            ItemKind::Emerald => {
+                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
+            }
+            ItemKind::Redstone => {
+                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
+            }
+            ItemKind::ResinBrick => {
+                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
+            }
+            ItemKind::LapisLazuli => {
+                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
+            }
+            ItemKind::Diamond => {
+                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
+            }
+            ItemKind::Quartz => {
+                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
+            }
             _ => return None,
         };
-        Some(value)
+        Some(ProvidesTrimMaterial { value: value })
     }
 }
 impl DefaultableComponent for Dye {
@@ -6344,12 +6396,12 @@ impl DefaultableComponent for PotionContents {
 impl DefaultableComponent for ChickenVariant {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::Egg => ChickenVariant::Referenced("minecraft:temperate".into()),
-            ItemKind::BrownEgg => ChickenVariant::Referenced("minecraft:warm".into()),
-            ItemKind::BlueEgg => ChickenVariant::Referenced("minecraft:cold".into()),
+            ItemKind::Egg => azalea_registry::data::ChickenVariant::new_raw(0),
+            ItemKind::BrownEgg => azalea_registry::data::ChickenVariant::new_raw(0),
+            ItemKind::BlueEgg => azalea_registry::data::ChickenVariant::new_raw(0),
             _ => return None,
         };
-        Some(value)
+        Some(ChickenVariant { data: value })
     }
 }
 impl DefaultableComponent for PotDecorations {
@@ -6409,11 +6461,11 @@ impl DefaultableComponent for Instrument {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
             ItemKind::GoatHorn => {
-                Instrument::Registry(azalea_registry::data::Instrument::new_raw(0))
+                azalea_registry::Holder::Reference(azalea_registry::data::Instrument::new_raw(0))
             }
             _ => return None,
         };
-        Some(value)
+        Some(Instrument { value: value })
     }
 }
 impl DefaultableComponent for Glider {

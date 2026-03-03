@@ -1,14 +1,15 @@
 use azalea_buf::AzBuf;
 use azalea_protocol_macros::ServerboundGamePacket;
-use azalea_registry::builtin::GameRule;
+use azalea_registry::identifier::Identifier;
 
 #[derive(Clone, Debug, AzBuf, PartialEq, ServerboundGamePacket)]
 pub struct ServerboundSetGameRule {
-    pub entries: GameRuleEntry,
+    pub entries: Vec<GameRuleEntry>,
 }
 
 #[derive(Clone, Debug, AzBuf, PartialEq)]
 pub struct GameRuleEntry {
-    pub key: GameRule,
+    /// An identifier for a [`GameRule`](azalea_registry::builtin::GameRule).
+    pub key: Identifier,
     pub value: String,
 }

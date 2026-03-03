@@ -4,5 +4,5 @@ use azalea_protocol_macros::ServerboundGamePacket;
 
 #[derive(Clone, Debug, AzBuf, PartialEq, ServerboundGamePacket)]
 pub struct ServerboundSpectateEntity {
-    pub entity: MinecraftEntityId,
+    pub entity_id: MinecraftEntityId,
 }
