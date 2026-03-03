@@ -3,10 +3,11 @@ use azalea_inventory::ItemStack;
 use azalea_registry::{
     HolderSet,
     builtin::{DataComponentKind, ItemKind},
+    data::TrimPattern,
     identifier::Identifier,
 };
 
-/// [`azalea_registry::RecipeDisplay`]
+/// [`azalea_registry::builtin::RecipeDisplay`]
 #[derive(AzBuf, Clone, Debug, PartialEq)]
 pub enum RecipeDisplayData {
     Shapeless(ShapelessCraftingRecipeDisplay),
@@ -69,9 +70,9 @@ pub enum SlotDisplayData {
     AnyFuel,
     WithAnyPotion(Box<WithAnyPotionSlotDisplay>),
     OnlyWithComponent(Box<OnlyWithComponentSlotDisplay>),
-    ItemKind(ItemStackDisplay),
+    Item(ItemSlotDisplay),
     ItemStack(ItemStackSlotDisplay),
-    Tag(Identifier),
+    Tag(TagSlotDisplay),
     Dyed(Box<DyedSlotDemo>),
     SmithingTrim(Box<SmithingTrimDemoSlotDisplay>),
     WithRemainder(Box<WithRemainderSlotDisplay>),
@@ -89,7 +90,7 @@ pub struct OnlyWithComponentSlotDisplay {
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq)]
-pub struct ItemStackDisplay {
+pub struct ItemSlotDisplay {
     pub item: ItemKind,
 }
 #[derive(AzBuf, Clone, Debug, PartialEq)]
@@ -102,10 +103,14 @@ pub struct DyedSlotDemo {
     pub target: SlotDisplayData,
 }
 #[derive(AzBuf, Clone, Debug, PartialEq)]
+pub struct TagSlotDisplay {
+    pub tag: Identifier,
+}
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct SmithingTrimDemoSlotDisplay {
     pub base: SlotDisplayData,
     pub material: SlotDisplayData,
-    pub pattern: SlotDisplayData,
+    pub pattern: TrimPattern,
 }
 #[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct WithRemainderSlotDisplay {

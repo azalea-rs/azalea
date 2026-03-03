@@ -66,3 +66,15 @@ def group_packets(packets: list[PacketIdentifier]):
 
 def get_dir_location(name: str):
     return os.path.join(os.path.dirname(os.path.dirname(__file__)), name)
+
+def identifier_to_namespace(ident: str):
+    return ident.split(":")[0]
+def identifier_to_path(ident: str):
+    if ":" not in ident:
+        return ident
+
+    namespace, path = ident.lstrip("#").split(":")
+    if namespace in {"minecraft", "brigadier"}:
+        return path
+    # support for mods
+    return f"{namespace}_{path}"

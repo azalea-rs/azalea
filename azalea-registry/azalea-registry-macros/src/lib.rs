@@ -140,26 +140,33 @@ pub fn registry(input: TokenStream) -> TokenStream {
     });
 
     // Display that uses registry ids
-    let mut display_items = quote! {};
+    let mut to_str_items = quote! {};
     let mut from_str_items = quote! {};
     for item in &input.items {
         let name = &item.name;
         let id = &item.id;
-        display_items.extend(quote! {
-            Self::#name => write!(f, concat!("minecraft:", #id)),
+        to_str_items.extend(quote! {
+            Self::#name => concat!("minecraft:", #id),
         });
         from_str_items.extend(quote! {
             #id => Ok(Self::#name),
         });
     }
     generated.extend(quote! {
-        /// Convert the value to a stringified identifier, formatted like
-        /// `"minecraft:air"`.
-        impl std::fmt::Display for #name {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        impl #name {
+            /// Convert the value to a stringified identifier, formatted like
+            /// `"minecraft:air"`.
+            pub fn to_str(&self) -> &'static str {
                 match self {
-                    #display_items
+                    #to_str_items
                 }
+            }
+        }
+        impl std::fmt::Display for #name {
+            /// Convert the value to a stringified identifier, formatted like
+            /// `"minecraft:air"`.
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(f, "{}", self.to_str())
             }
         }
         impl<'a> TryFrom<&'a crate::Identifier> for #name {
@@ -170,6 +177,11 @@ pub fn registry(input: TokenStream) -> TokenStream {
                     #from_str_items
                     _ => return Err(()),
                 }
+            }
+        }
+        impl<'a> From<#name> for crate::Identifier {
+            fn from(value: #name) -> Self {
+                Self::new(value.to_str())
             }
         }
         /// Parse the value from a stringified identifier, formatted like

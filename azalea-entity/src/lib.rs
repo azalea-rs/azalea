@@ -398,6 +398,7 @@ impl Attributes {
             block_interaction_range: AttributeInstance::new(4.5),
             entity_interaction_range: AttributeInstance::new(3.0),
             step_height: AttributeInstance::new(0.6),
+            block_break_speed: AttributeInstance::new(1.0),
         }
     }
 }
@@ -423,6 +424,10 @@ pub struct PlayerAbilities {
 
 /// The type of fluid that is at an entity's eye position, while also accounting
 /// for fluid height.
+///
+/// This is only updated for [`AbstractLiving`] entities.
+///
+/// [`AbstractLiving`]: metadata::AbstractLiving
 #[cfg_attr(feature = "bevy_ecs", derive(bevy_ecs::component::Component))]
 #[derive(Clone, Copy, Debug, Deref, DerefMut, PartialEq)]
 pub struct FluidOnEyes(FluidKind);

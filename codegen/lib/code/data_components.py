@@ -1,7 +1,7 @@
 from typing import Any, Optional
 import lib.code.utils
 import lib.extract
-import lib.utils
+from lib.utils import identifier_to_path, to_camel_case, to_snake_case
 
 
 DATA_COMPONENTS_DIR = "azalea-inventory/src/components/mod.rs"
@@ -54,7 +54,7 @@ def get_expected_variants(version_id: str):
         registry["entries"].items(), key=lambda x: x[1]["protocol_id"]
     )
     for variant_name, _variant in registry_entries:
-        variant_struct_name = lib.utils.to_camel_case(variant_name.split(":")[-1])
+        variant_struct_name = to_camel_case(identifier_to_path(variant_name))
         expected_variants.append(variant_struct_name)
 
     return expected_variants
@@ -198,9 +198,10 @@ use crate::{
     components_to_item_defaults = {}
 
     for item_resource_id, data in items.items():
+        item_resource_id = identifier_to_path(item_resource_id)
         components = data["components"]
         for component_resource_id, component_value in components.items():
-            component_resource_id = component_resource_id.split(":")[1]
+            component_resource_id = identifier_to_path(component_resource_id)
             if component_resource_id not in components_to_item_defaults:
                 components_to_item_defaults[component_resource_id] = {}
             components_to_item_defaults[component_resource_id][item_resource_id] = (
@@ -211,7 +212,7 @@ use crate::{
     item_resource_id_to_protocol_id = {}
     item_resource_ids = [None] * len(registries["minecraft:item"]["entries"])
     for item_resource_id, item_data in registries["minecraft:item"]["entries"].items():
-        item_resource_id = item_resource_id.split(":")[-1]
+        item_resource_id = identifier_to_path(item_resource_id)
         item_protocol_id = item_data["protocol_id"]
         item_resource_id_to_protocol_id[item_resource_id] = item_protocol_id
         item_resource_ids[item_protocol_id] = item_resource_id
@@ -248,7 +249,7 @@ use crate::{
         # manual implementations
         if isinstance(python_value, dict) and len(python_value) > 0:
             if target_rust_type == "ConsumeEffect":
-                variant = lib.utils.to_camel_case(python_value["type"].split(":")[-1])
+                variant = to_camel_case(python_value["type"].split(":")[-1])
                 type_with_variant = f"ConsumeEffect::{variant}"
                 details_without_type = python_value.copy()
                 del details_without_type["type"]
@@ -328,7 +329,7 @@ use crate::{
 
             if entity_id and entity_id.startswith("minecraft:"):
                 entity_name = entity_id[10:]  # Remove "minecraft:" prefix
-                entity_name_camel = lib.utils.to_camel_case(entity_name)
+                entity_name_camel = to_camel_case(entity_name)
                 return f"EntityKind::{entity_name_camel}"
             raise ValueError(f"Unknown or missing EntityKind: {python_value}")
         elif target_rust_type == "NbtCompound":
@@ -431,7 +432,7 @@ use crate::{
                 return f"{target_rust_type}::new_raw(0)"
             else:
                 # enum variant
-                return f"{target_rust_type}::{lib.utils.to_camel_case(python_value.split(':')[-1])}"
+                return f"{target_rust_type}::{to_camel_case(identifier_to_path(python_value))}"
         if isinstance(python_value, list):
             # convert Vec<Thing> into Thing
             main_vec = "vec!["
@@ -459,7 +460,7 @@ use crate::{
             for v in python_value:
                 # handle tags correctly
                 if isinstance(v, str) and v.startswith("#minecraft:"):
-                    tag_name = lib.utils.to_snake_case(v.split(":")[-1]).upper()
+                    tag_name = to_snake_case(identifier_to_path(v)).upper()
                     if inner_type == "EntityKind":
                         tag_module = "entities"
                     elif inner_type == "ItemKind":
@@ -490,7 +491,7 @@ use crate::{
         return str(python_value)
 
     for component_resource_id, item_defaults in components_to_item_defaults.items():
-        component_struct_name = lib.utils.to_camel_case(component_resource_id)
+        component_struct_name = to_camel_case(component_resource_id)
         component_struct_fields = enum_and_struct_fields[component_struct_name]
 
         if len(component_struct_fields) == 1 and isinstance(
@@ -604,7 +605,7 @@ use crate::{
                 for item_resource_id, value in item_defaults.items():
                     if value == most_common_default_value:
                         continue
-                    item_variant_name = lib.utils.to_camel_case(item_resource_id)
+                    item_variant_name = to_camel_case(item_resource_id)
                     code.append(
                         f"            ItemKind::{item_variant_name} => {value},"
                     )
@@ -625,7 +626,7 @@ use crate::{
             code.append("    fn default_for_item(item: ItemKind) -> Option<Self> {")
             code.append("        let value = match item {")
             for item_resource_id, value in item_defaults.items():
-                item_variant_name = lib.utils.to_camel_case(item_resource_id)
+                item_variant_name = to_camel_case(item_resource_id)
                 code.append(f"            ItemKind::{item_variant_name} => {value},")
             code.append("            _ => return None,")
             code.append("        };")

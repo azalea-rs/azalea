@@ -1,4 +1,4 @@
-from lib.utils import to_snake_case, to_camel_case, get_dir_location
+from lib.utils import identifier_to_path, to_snake_case, to_camel_case, get_dir_location
 from lib.code.utils import burger_type_to_rust_type, write_packet_file
 from typing import Optional
 import os
@@ -119,7 +119,7 @@ def packet_direction_report_to_packet_names(report):
     name_to_id = {}
     for identifier, packet in report.items():
         packet_id = packet["protocol_id"]
-        name_to_id[identifier.split(":")[-1]] = packet_id
+        name_to_id[identifier_to_path(identifier)] = packet_id
 
     names_sorted = [name for name in sorted(name_to_id, key=lambda x: name_to_id[x])]
     return names_sorted

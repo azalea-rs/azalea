@@ -12,7 +12,7 @@ use azalea_buf::{AzBufVar, BufReadError};
 pub use container::*;
 
 /// A representation of the different types of chunk palettes Minecraft uses.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Palette<S: PalletedContainerKind> {
     /// ID of the corresponding entry in its global palette
     SingleValue(S),

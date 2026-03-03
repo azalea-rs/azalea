@@ -24,6 +24,7 @@
 
 mod commands;
 pub mod killaura;
+pub mod mspt;
 
 use std::{env, process, sync::Arc, thread, time::Duration};
 
@@ -75,6 +76,7 @@ async fn main() -> AppExit {
             args,
             commands: Arc::new(commands),
         })
+        // .add_plugins(mspt::MsptPlugin)
         .start(join_address)
         .await
 }
