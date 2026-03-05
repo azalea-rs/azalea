@@ -674,6 +674,11 @@ pub fn is_block_state_solid(block_state: BlockState) -> bool {
 /// Whether we can stand on this block (but not necessarily do parkour jumps
 /// from it).
 pub fn is_block_state_standable(block_state: BlockState) -> bool {
+    if block_state.is_air() {
+        // fast path
+        return false;
+    }
+
     if is_block_state_solid(block_state) {
         return true;
     }
