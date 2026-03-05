@@ -20,6 +20,7 @@ is breaking anyways, semantic versioning is not followed.
 - Re-implement `Client::map_component` and `map_get_component`.
 - Add `Client::exit` and `Swarm::exit` to make it easier to return from `ClientBuilder::start` or `SwarmBuilder::start`.
 - Add `Event::ConnectionFailed` for when the client failed to create its initial connection to the server.
+- Setting blocks now updates `Section::block_count`.
 
 ### Changed
 
@@ -31,7 +32,7 @@ is breaking anyways, semantic versioning is not followed.
 - Deprecate pathfinder `InverseGoal`.
 - Add a `bevy_ecs` feature to `azalea-protocol` and related crates to allow disabling the Bevy dependencies.
 - Replace `azalea-buf`'s `AzaleaRead` and `AzaleaWrite` traits with a single `AzBuf` trait.
-- Lots of optimizations for the pathfinder.
+- Lots of optimizations, especially for the pathfinder.
 
 ### Fixed
 
@@ -39,7 +40,9 @@ is breaking anyways, semantic versioning is not followed.
 - Fixed several panics, OOMs, and memory leaks in `azalea-protocol`.
 - Click events in chat messages were missing.
 - `ClientboundSetEquipment` failed to deserialize if a packet used animal armor slots.
-- Incorrect protocol implementations for `ClientboundPlayerInfoUpdate` and recipe data.
+- Incorrect protocol implementations for `ClientboundPlayerInfoUpdate`, recipe data, and when writing chunks.
+- Block break speeds are now influenced by the `Tool` data component.
+- Fall back to Google DNS when the system resolver is unavailable. (@thesalam4ik)
 
 ## [0.15.1+mc1.21.11] - 2026-02-03
 
