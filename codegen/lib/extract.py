@@ -2,7 +2,7 @@
 
 import shutil
 from lib.download import (
-    get_latest_fabric_api_version,
+    get_fabric_api_version,
     get_latest_fabric_kotlin_version,
     get_latest_fabric_loom_version,
     get_mappings_for_version,
@@ -179,9 +179,8 @@ def get_pumpkin_data(version_id: str, category: str):
         f.write("server-port=0")
 
     fabric_data = get_fabric_data(version_id)[0]
-    fabric_api_version = get_latest_fabric_api_version()
+    fabric_api_version = get_fabric_api_version(version_id)
     fabric_kotlin_version = get_latest_fabric_kotlin_version()
-    fabric_loom_version = get_latest_fabric_loom_version()
 
     gradle_properties = f"""# Done to increase the memory available to gradle.
 org.gradle.jvmargs=-Xmx1G
@@ -205,23 +204,14 @@ fabric_version={fabric_api_version}
     fabric_mod_json_path = f"{pumpkin_dir}/src/main/resources/fabric.mod.json"
     with open(fabric_mod_json_path, "r") as f:
         fabric_mod_json = f.read()
-    with open(fabric_mod_json_path, "w") as f:
-        fabric_mod_json = fabric_mod_json.replace(
-            '"minecraft": "${minecraft_version}"', '"minecraft": "*"'
-        )
-        f.write(fabric_mod_json)
     with open(f"{pumpkin_dir}/build.gradle.kts", "r") as f:
         build_gradle_kts = f.read()
     with open(f"{pumpkin_dir}/build.gradle.kts", "w") as f:
-        build_gradle_kts = re.sub(
-            r'(id\("fabric-loom"\) version )"[^"]+"',
-            rf'\1"{fabric_loom_version}"',
-            build_gradle_kts,
-        )
-        # kotlin complains about nullable types if we don't add this
-        build_gradle_kts = re.sub(
-            r'(to project.property\("\w+"\))([\n,])', r"\1!!\2", build_gradle_kts
-        )
+        # build_gradle_kts = re.sub(
+        #     r'(id\("fabric-loom"\) version )"[^"]+"',
+        #     rf'\1"{fabric_loom_version}"',
+        #     build_gradle_kts,
+        # )
         f.write(build_gradle_kts)
 
     # run ./gradlew runServer until it logs "(pumpkin_extractor) Done"

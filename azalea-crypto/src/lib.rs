@@ -8,7 +8,7 @@ use aes::{
     Aes128,
     cipher::{BlockDecryptMut, BlockEncryptMut, KeyIvInit, inout::InOutBuf},
 };
-use rand::{TryRngCore, rngs::SysRng};
+use rand::{TryRng, rngs::SysRng};
 use sha1::{Digest, Sha1};
 
 #[cfg(feature = "signing")]

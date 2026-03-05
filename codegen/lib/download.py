@@ -5,6 +5,9 @@ import requests
 import json
 import os
 
+PUMPKIN_EXTRACTOR_COMMIT = "82926545925baf5f50414cc9374f1cc340b7de0f"
+BURGER_COMMIT = "366d6e4bed0e9e6505d9c40c83628ab80a5fe001"
+
 # make sure the cache directory exists
 print("Making __cache__")
 if not os.path.exists(get_dir_location("__cache__")):
@@ -16,7 +19,7 @@ def get_burger():
     if not os.path.exists(get_dir_location("__cache__/Burger")):
         print("\033[92mDownloading Burger...\033[m")
         os.system(
-            f"cd {get_dir_location('__cache__')} && git clone https://github.com/mat-1/Burger && cd Burger && git pull"
+            f"cd {get_dir_location('__cache__')} && git clone https://github.com/mat-1/Burger && cd Burger && git pull && git reset --hard {BURGER_COMMIT}"
         )
 
         print("\033[92mInstalling dependencies...\033[m")
@@ -29,7 +32,7 @@ def get_pumpkin_extractor():
     if not os.path.exists(get_dir_location("__cache__/pumpkin-extractor")):
         print("\033[92mDownloading Pumpkin-MC/Extractor...\033[m")
         os.system(
-            f"cd {get_dir_location('__cache__')} && git clone https://github.com/Pumpkin-MC/Extractor pumpkin-extractor && cd pumpkin-extractor && git pull"
+            f"cd {get_dir_location('__cache__')} && git clone https://github.com/Pumpkin-MC/Extractor pumpkin-extractor && cd pumpkin-extractor && git pull && git reset --hard {PUMPKIN_EXTRACTOR_COMMIT}"
         )
 
     return get_dir_location("__cache__/pumpkin-extractor")
@@ -123,7 +126,7 @@ def get_fabric_data(version_id: str):
     return yarn_versions_data
 
 
-def get_latest_fabric_api_version():
+def get_fabric_api_version(version_id: str):
     path = get_dir_location("__cache__/fabric-api-maven-metadata.xml")
 
     if not os.path.exists(path):
@@ -137,10 +140,12 @@ def get_latest_fabric_api_version():
             maven_metadata_xml = json.load(f)
 
     tree = ET.ElementTree(ET.fromstring(maven_metadata_xml))
-    name = tree.find(".//latest").text
-    if name.endswith('_unobfuscated'):
-        name = name[:-len('_unobfuscated')]
-    return name
+    expected_suffix = "+" + version_id.split("-")[0]
+    versions = tree.findall(".//version")
+    for candidate in reversed(versions):
+        candidate = candidate.text
+        if candidate.endswith(expected_suffix):
+            return candidate
 
 
 def get_latest_fabric_kotlin_version():
@@ -244,9 +249,9 @@ def clear_version_cache():
 
     burger_path = get_dir_location("__cache__/Burger")
     if os.path.exists(burger_path):
-        os.system(f"cd {burger_path} && git pull")
+        os.system(f"cd {burger_path} && git pull && git reset --hard {BURGER_COMMIT}")
     pumpkin_path = get_dir_location("__cache__/pumpkin-extractor")
     if os.path.exists(pumpkin_path):
         os.system(
-            f"cd {pumpkin_path} && git add . && git stash && git pull && git stash pop && git checkout HEAD -- src/main/resources/fabric.mod.json"
+            f"cd {pumpkin_path} && git add . && git stash && git checkout master && git pull && git stash pop && git reset --hard {PUMPKIN_EXTRACTOR_COMMIT}"
         )

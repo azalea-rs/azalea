@@ -1,5 +1,5 @@
 from lib.code.registry import registry_name_to_enum_name
-from lib.utils import to_snake_case, upper_first_letter, get_dir_location, to_camel_case
+from lib.utils import identifier_to_namespace, identifier_to_path, to_snake_case, upper_first_letter, get_dir_location, to_camel_case
 
 TAGS_DIR = get_dir_location("../azalea-registry/src/tags")
 
@@ -19,14 +19,15 @@ use crate::{{builtin::{struct_name}, tags::RegistryTag}};
 
     protocol_ids = {}
     for k, v in registries["minecraft:" + registry_name]["entries"].items():
-        protocol_ids[k.split(":")[1]] = v["protocol_id"]
+        protocol_ids[identifier_to_path(k)] = v["protocol_id"]
 
     for tag_name, tag in sorted(tags.items(), key=lambda x: x[0]):
         entries = []
         queue = tag["values"].copy()
         while queue != []:
             ident = queue.pop(0)
-            namespace, entry_name = ident.split(":")
+            namespace = identifier_to_namespace(ident)
+            entry_name = identifier_to_path(ident)
             if namespace[0] == "#":
                 queue += tags[entry_name]["values"]
                 continue

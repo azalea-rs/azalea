@@ -1,4 +1,4 @@
-from lib.utils import get_dir_location, to_camel_case
+from lib.utils import get_dir_location, identifier_to_path, to_camel_case
 
 BUILTIN_REGISTRIES_DIR = get_dir_location("../azalea-registry/src/builtin.rs")
 DATA_REGISTRIES_DIR = get_dir_location("../azalea-registry/src/data.rs")
@@ -16,7 +16,7 @@ def generate_builtin_registries(registries: dict):
         #     Stone => "minecraft:stone"
         # });
 
-        registry_name = registry_name.split(":")[1]
+        registry_name = identifier_to_path(registry_name)
         registry_enum_name = registry_name_to_enum_name(registry_name)
 
         existing_registry_enum_names.add(registry_enum_name)
@@ -27,8 +27,7 @@ def generate_builtin_registries(registries: dict):
             registry["entries"].items(), key=lambda x: x[1]["protocol_id"]
         )
         for variant_name, _variant in registry_entries:
-            # strip out the "minecraft:" prefix
-            variant_name = variant_name.split(":")[-1]
+            variant_name = identifier_to_path(variant_name)
             variant_struct_name = to_camel_case(variant_name)
             registry_code.append(f'\t{variant_struct_name} => "{variant_name}",')
         registry_code.append("}")
@@ -117,7 +116,7 @@ def generate_data_registries(data_registries: dict):
         registry_code.append(f"enum {registry_enum_name}Key {{")
         registry_entries.sort()
         for variant_name in registry_entries:
-            variant_struct_name = to_camel_case(variant_name.split(":")[-1])
+            variant_struct_name = to_camel_case(identifier_to_path(variant_name))
             registry_code.append(f'    {variant_struct_name} => "{variant_name}",')
         registry_code.append("}")
 
@@ -146,7 +145,7 @@ def generate_data_registries(data_registries: dict):
 
 
 def registry_name_to_enum_name(registry_name: str) -> str:
-    registry_name = registry_name.split(":")[-1]
+    registry_name = identifier_to_path(registry_name)
 
     if registry_name == "block_type":
         # avoid conflicting with BlockKind

@@ -1,5 +1,5 @@
 from typing import Any
-from lib.utils import to_camel_case, get_dir_location
+from lib.utils import identifier_to_path, to_camel_case, get_dir_location
 
 # The directory where declare_menus! {} is done
 inventory_menus_dir = get_dir_location("../azalea-inventory/src/lib.rs")
@@ -128,4 +128,4 @@ def update_menus(initial_menu_entries: dict[str, Any]):
 
 
 def menu_name_to_enum_name(menu_name: str) -> str:
-    return to_camel_case(menu_name.split(":")[-1])
+    return to_camel_case(identifier_to_path(menu_name))

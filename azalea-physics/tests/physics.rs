@@ -440,9 +440,9 @@ fn test_afk_pool() {
             .set_block_state(BlockPos { x, y, z }, b);
     };
 
-    let stone = azalea_block::blocks::Stone {}.into();
+    let stone = azalea_block::blocks::Stone.into();
     let sign = azalea_block::blocks::OakSign {
-        rotation: azalea_block::properties::OakSignRotation::_0,
+        rotation: azalea_block::properties::Rotation::_0,
         waterlogged: false,
     }
     .into();
