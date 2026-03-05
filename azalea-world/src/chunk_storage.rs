@@ -81,11 +81,11 @@ pub struct Chunk {
 /// A section of a chunk, i.e. a 16*16*16 block area.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Section {
-    /// The number of non-empty blocks in the section, as sent to us by the
-    /// server.
+    /// The number of non-empty blocks in the section, which is initialized
+    /// based on a value sent to us by the server.
     ///
-    /// Currently, Azalea does not update this on its own, so it may become out
-    /// of sync.
+    /// This may be updated every time [`Self::get_and_set_block_state`] is
+    /// called.
     pub block_count: u16,
     pub states: PalettedContainer<BlockState>,
     pub biomes: PalettedContainer<Biome>,
@@ -421,7 +421,7 @@ impl Chunk {
             return;
         };
         let chunk_section_pos = ChunkSectionBlockPos::from(pos);
-        section.set_block_state(chunk_section_pos, state);
+        section.get_and_set_block_state(chunk_section_pos, state);
 
         for heightmap in self.heightmaps.values_mut() {
             heightmap.update(pos, state, &self.sections);
@@ -534,10 +534,15 @@ impl Section {
         pos: ChunkSectionBlockPos,
         state: BlockState,
     ) -> BlockState {
-        self.states.get_and_set(pos, state)
-    }
-    pub fn set_block_state(&mut self, pos: ChunkSectionBlockPos, state: BlockState) {
-        self.states.set(pos, state);
+        let previous_state = self.states.get_and_set(pos, state);
+
+        if previous_state.is_air() && !state.is_air() {
+            self.block_count += 1;
+        } else if !previous_state.is_air() && state.is_air() {
+            self.block_count -= 1;
+        }
+
+        previous_state
     }
 
     pub fn get_biome(&self, pos: ChunkSectionBiomePos) -> Biome {
