@@ -104,7 +104,7 @@ pub fn registry(input: TokenStream) -> TokenStream {
             }
 
             #[inline]
-            pub fn is_valid_id(id: u32) -> bool {
+            pub const fn is_valid_id(id: u32) -> bool {
                 id <= #max_id
             }
         }

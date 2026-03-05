@@ -1,4 +1,4 @@
-use azalea_block::{BlockState, BlockTrait};
+use azalea_block::BlockState;
 use azalea_core::{heightmap_kind::HeightmapKind as HeightmapKind_, math, position::ChunkBlockPos};
 use azalea_registry::tags::blocks::LEAVES;
 use tracing::warn;
@@ -31,8 +31,7 @@ fn motion_blocking(block_state: BlockState) -> bool {
 }
 
 pub fn is_heightmap_opaque(heightmap: HeightmapKind_, block_state: BlockState) -> bool {
-    let block = Box::<dyn BlockTrait>::from(block_state);
-    let registry_block = block.as_registry_block();
+    let registry_block = block_state.as_block_kind();
     type K = HeightmapKind_;
     match heightmap {
         K::WorldSurfaceWg => !block_state.is_air(),

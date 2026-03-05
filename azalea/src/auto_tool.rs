@@ -81,7 +81,7 @@ pub fn accurate_best_tool_in_hotbar_for_block(
     let mut best_slot = None;
 
     let block = Box::<dyn BlockTrait>::from(block);
-    let registry_block = block.as_registry_block();
+    let registry_block = block.as_block_kind();
 
     if matches!(registry_block, BlockKind::Water | BlockKind::Lava) {
         // can't mine fluids
