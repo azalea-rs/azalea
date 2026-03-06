@@ -1549,26 +1549,18 @@ impl GamePacketHandler<'_> {
     pub fn entity_position_sync(&mut self, p: &ClientboundEntityPositionSync) {
         as_system::<(
             Commands,
+            Query<(&EntityIdIndex, &WorldHolder)>,
             Query<(
-                &EntityIdIndex,
-                &WorldHolder,
-                Option<&LocalEntity>,
                 &mut Physics,
                 &mut Position,
                 &mut LookDirection,
+                Option<&LocalEntity>,
             )>,
             EntityUpdateQuery,
         )>(
             self.ecs,
-            |(mut commands, mut query, entity_update_query)| {
-                let (
-                    entity_id_index,
-                    world_holder,
-                    local_entity,
-                    mut physics,
-                    mut position,
-                    mut look_direction,
-                ) = query.get_mut(self.player).unwrap();
+            |(mut commands, mut query, mut entity_query, entity_update_query)| {
+                let (entity_id_index, world_holder) = query.get_mut(self.player).unwrap();
 
                 let Some(entity) = entity_id_index.get_by_minecraft_entity(p.id) else {
                     debug!("Got teleport entity packet for unknown entity id {}", p.id);
@@ -1587,6 +1579,12 @@ impl GamePacketHandler<'_> {
                 ) {
                     return;
                 }
+
+                let Ok((mut physics, mut position, mut look_direction, local_entity)) =
+                    entity_query.get_mut(entity)
+                else {
+                    return;
+                };
                 let is_local_entity = local_entity.is_some();
 
                 physics.vec_delta_codec.set_base(new_position);

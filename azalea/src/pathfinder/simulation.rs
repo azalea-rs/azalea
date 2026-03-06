@@ -152,9 +152,17 @@ impl Simulation {
     }
 
     pub fn tick(&mut self) {
+        self.run_update_schedule();
+        self.run_gametick_schedule();
+    }
+
+    pub fn run_update_schedule(&mut self) {
         self.app.update();
+    }
+    pub fn run_gametick_schedule(&mut self) {
         self.app.world_mut().run_schedule(GameTick);
     }
+
     pub fn component<T: Component + Clone>(&self) -> T {
         self.app.world().get::<T>(self.entity).unwrap().clone()
     }

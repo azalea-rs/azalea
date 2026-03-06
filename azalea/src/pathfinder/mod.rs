@@ -82,8 +82,11 @@ impl Plugin for PathfinderPlugin {
         app.add_message::<GotoEvent>()
             .add_message::<PathFoundEvent>()
             .add_message::<StopPathfindingEvent>()
-            .add_systems(GameTick, debug_render_path_with_particles)
-            .add_systems(PreUpdate, add_default_pathfinder)
+            .add_systems(
+                GameTick,
+                debug_render_path_with_particles.in_set(PathfinderSystems),
+            )
+            .add_systems(PreUpdate, add_default_pathfinder.in_set(PathfinderSystems))
             .add_systems(
                 Update,
                 (
@@ -95,11 +98,15 @@ impl Plugin for PathfinderPlugin {
                 )
                     .chain()
                     .before(MoveEventsSystems)
-                    .before(InventorySystems),
+                    .before(InventorySystems)
+                    .in_set(PathfinderSystems),
             )
             .add_plugins(DefaultPathfinderExecutionPlugin);
     }
 }
+
+#[derive(Clone, Debug, Eq, Hash, PartialEq, SystemSet)]
+pub struct PathfinderSystems;
 
 /// A component that makes this client able to pathfind.
 #[derive(Clone, Component, Default)]
