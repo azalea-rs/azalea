@@ -151,15 +151,19 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
     let mut block_structs = quote! {};
 
     let mut from_state_to_block_match = quote! {};
-    let mut from_registry_block_to_block_match = quote! {};
-    let mut from_registry_block_to_blockstate_match = quote! {};
-    let mut from_registry_block_to_blockstates_match = quote! {};
+    let mut from_kind_to_block_match = quote! {};
+    let mut from_kind_to_state_match = quote! {};
+    let mut from_kind_to_states_match = quote! {};
+
+    let mut from_state_to_kind_table = quote! {};
 
     // keys are enum names like Waterlogged
     let mut properties_to_state_ids = HashMap::<String, Vec<PropertyVariantData>>::new();
 
+    let last_block_kind_id = u32::try_from(input.blocks.blocks.len() - 1).unwrap();
+
     let mut state_id: BlockStateIntegerRepr = 0;
-    for block in &input.blocks.blocks {
+    for (block_kind_id, block) in input.blocks.blocks.iter().enumerate() {
         let block_property_names = &block
             .properties_and_defaults
             .iter()
@@ -423,15 +427,19 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             }
         });
 
-        from_registry_block_to_block_match.extend(quote! {
+        from_kind_to_block_match.extend(quote! {
             BlockKind::#block_name_pascal_case => Box::new(#block_struct_name::default()),
         });
-        from_registry_block_to_blockstate_match.extend(quote! {
+        from_kind_to_state_match.extend(quote! {
             BlockKind::#block_name_pascal_case => BlockState::new_const(#default_state_id),
         });
-        from_registry_block_to_blockstates_match.extend(quote! {
+        from_kind_to_states_match.extend(quote! {
             BlockKind::#block_name_pascal_case => BlockStates::from(#first_state_id..=#last_state_id),
         });
+        for _ in first_state_id..=last_state_id {
+            let block_kind_id = block_kind_id as u32;
+            from_state_to_kind_table.extend(quote! { #block_kind_id, });
+        }
 
         let mut property_map_inner = quote! {};
         let mut get_property_match_inner = quote! {};
@@ -512,7 +520,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 fn as_block_state(&self) -> BlockState {
                     #as_block_state
                 }
-                fn as_registry_block(&self) -> BlockKind {
+                fn as_block_kind(&self) -> BlockKind {
                     BlockKind::#block_name_pascal_case
                 }
 
@@ -566,6 +574,17 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             pub fn property<P: Property>(self) -> Option<P::Value> {
                 P::try_from_block_state(self)
             }
+
+            pub fn as_block_kind(self) -> BlockKind {
+                static TABLE: &[u32] = &[
+                    #from_state_to_kind_table
+                ];
+                const _: () = assert!(BlockKind::is_valid_id(#last_block_kind_id));
+
+                // SAFETY: the table was constructed from trusted values, and
+                // we just checked that the highest one must be valid
+                unsafe { BlockKind::from_u32(TABLE[self.id() as usize]).unwrap_unchecked() }
+            }
         }
     };
 
@@ -597,7 +616,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             impl From<BlockKind> for Box<dyn BlockTrait> {
                 fn from(block: BlockKind) -> Self {
                     match block {
-                        #from_registry_block_to_block_match
+                        #from_kind_to_block_match
                         _ => unreachable!("There should always be a block struct for every BlockKind variant")
                     }
                 }
@@ -605,7 +624,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             impl From<BlockKind> for BlockState {
                 fn from(block: BlockKind) -> Self {
                     match block {
-                        #from_registry_block_to_blockstate_match
+                        #from_kind_to_state_match
                         _ => unreachable!("There should always be a block state for every BlockKind variant")
                     }
                 }
@@ -613,7 +632,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             impl From<BlockKind> for BlockStates {
                 fn from(block: BlockKind) -> Self {
                     match block {
-                        #from_registry_block_to_blockstates_match
+                        #from_kind_to_states_match
                         _ => unreachable!("There should always be a block state for every BlockKind variant")
                     }
                 }

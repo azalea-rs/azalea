@@ -3,6 +3,7 @@
 use std::{fmt::Debug, str::FromStr};
 
 use azalea_block_macros::make_block_states;
+use azalea_registry::{Registry, builtin::BlockKind};
 
 use crate::{
     BlockBehavior, BlockState, BlockStates, BlockTrait, InvalidPropertyError, Property,
