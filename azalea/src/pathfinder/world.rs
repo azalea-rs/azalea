@@ -352,7 +352,7 @@ impl CachedWorld {
         }
         // delay initialization so we don't have to create this if it's unused
 
-        // this uses about 48mb of memory. it *really* helps though.
+        // this uses about 2mb of memory. it *really* helps though.
         *cached_mining_costs = Some(
             vec![(RelBlockPos::new(i16::MAX, i32::MAX, i16::MAX), 0.); CACHED_MINING_COSTS_SIZE]
                 .into(),
@@ -568,13 +568,13 @@ impl CachedWorld {
     }
 }
 
-const CACHED_MINING_COSTS_SIZE: usize = 2usize.pow(22);
+const CACHED_MINING_COSTS_SIZE: usize = 2usize.pow(18);
 fn calculate_cached_mining_costs_index(pos: RelBlockPos) -> usize {
-    // create a 22-bit index by taking the bottom bits from each axis
+    // create an 18-bit index by taking the bottom bits from each axis
 
-    const X_BITS: usize = 8;
+    const X_BITS: usize = 6;
     const Y_BITS: usize = 6;
-    const Z_BITS: usize = 8;
+    const Z_BITS: usize = 6;
 
     const X_MASK: usize = (1 << X_BITS) - 1;
     const Y_MASK: usize = (1 << Y_BITS) - 1;
