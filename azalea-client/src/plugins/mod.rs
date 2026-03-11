@@ -25,6 +25,9 @@ pub mod task_pool;
 pub mod tick_counter;
 pub mod tick_end;
 
+// Re-export packet budget resources for convenience
+pub use connection::{PacketProcessingBudget, PacketProcessingState};
+
 /// This plugin group will add all the default plugins necessary for Azalea to
 /// work.
 pub struct DefaultPlugins;

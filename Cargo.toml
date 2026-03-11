@@ -72,6 +72,7 @@ proc-macro2 = "1.0.106"
 quote = "1.0.44"
 rand = "0.10.0"
 rand_core = "0.10.0"
+rayon = "1.10"
 regex = "1.12.3"
 reqwest = { version = "0.13.2", default-features = false }
 rsa = "0.10.0-rc.16"

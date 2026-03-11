@@ -31,6 +31,7 @@ indexmap.workspace = true
 minecraft_folder_path.workspace = true
 parking_lot.workspace = true
 pastey.workspace = true
+rayon.workspace = true
 regex.workspace = true
 reqwest = { workspace = true, optional = true, features = ["socks"] }
 simdnbt.workspace = true
