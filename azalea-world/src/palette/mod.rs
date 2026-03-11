@@ -24,6 +24,7 @@ pub enum Palette<S: PalletedContainerKind> {
 }
 
 impl<S: PalletedContainerKind> Palette<S> {
+    #[inline]
     pub fn value_for(&self, id: usize) -> S {
         match self {
             Palette::SingleValue(v) => *v,
