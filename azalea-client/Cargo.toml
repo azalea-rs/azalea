@@ -30,7 +30,6 @@ derive_more = { workspace = true, features = ["deref", "deref_mut"] }
 indexmap.workspace = true
 minecraft_folder_path.workspace = true
 parking_lot.workspace = true
-pastey.workspace = true
 regex.workspace = true
 reqwest = { workspace = true, optional = true, features = ["socks"] }
 simdnbt.workspace = true

@@ -390,7 +390,6 @@ dependencies = [
  "indexmap",
  "minecraft_folder_path",
  "parking_lot",
- "pastey",
  "regex",
  "reqwest",
  "simdnbt",
@@ -2568,12 +2567,6 @@ dependencies = [
  "smallvec",
  "windows-link",
 ]
-
-[[package]]
-name = "pastey"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b867cad97c0791bbd3aaa6472142568c6c9e8f71937e98379f584cfb0cf35bec"
 
 [[package]]
 name = "pem-rfc7468"

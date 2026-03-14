@@ -55,25 +55,7 @@ impl Plugin for PacketPlugin {
     }
 }
 
-#[doc(hidden)]
-macro_rules! __declare_packet_handlers {
-    (
-        $packetenum:ident,
-        $packetvar:expr,
-        $handler:ident,
-        [$($packet:path),+ $(,)?]
-    ) => {
-        pastey::paste! {
-           match $packetvar {
-                $(
-                    $packetenum::[< $packet:camel >](p) => $handler.$packet(p),
-                )+
-            }
-        }
-    };
-}
-
-pub(crate) use __declare_packet_handlers as declare_packet_handlers;
+pub(crate) use azalea_protocol::azalea_protocol_macros::declare_packet_handlers;
 
 #[derive(Resource)]
 struct CachedSystemState<T: SystemParam + 'static>(SystemState<T>);
