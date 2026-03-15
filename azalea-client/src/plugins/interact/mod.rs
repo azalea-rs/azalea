@@ -25,8 +25,9 @@ use azalea_physics::{
     local_player::PhysicsState,
 };
 use azalea_protocol::packets::game::{
-    ServerboundInteract, ServerboundUseItem,
+    ServerboundInteract, ServerboundPlayerAction, ServerboundUseItem,
     s_interact::{self, InteractionHand},
+    s_player_action::Action,
     s_swing::ServerboundSwing,
     s_use_item_on::ServerboundUseItemOn,
 };
@@ -44,6 +45,7 @@ use crate::{
     movement::MoveEventsSystems,
     packet::game::SendGamePacketEvent,
     respawn::perform_respawn,
+    tick_counter::TicksConnected,
 };
 
 /// A plugin that allows clients to interact with blocks in the world.
@@ -68,7 +70,10 @@ impl Plugin for InteractPlugin {
             )
             .add_systems(
                 GameTick,
-                handle_start_use_item_queued.before(PhysicsSystems),
+                (
+                    handle_start_use_item_queued.before(PhysicsSystems),
+                    handle_using_item.before(PhysicsSystems),
+                ),
             )
             .add_observer(handle_entity_interact)
             .add_observer(handle_swing_arm_trigger);
@@ -208,6 +213,21 @@ pub struct StartUseItemQueued {
     /// it, but should be avoided to stay compatible with anticheats.
     pub force_block: Option<BlockPos>,
 }
+/// A component that tracks ongoing item use, like eating food.
+///
+/// While this component exists, the client will send [`ServerboundUseItem`]
+/// packets every tick. When the use duration expires, it sends
+/// [`ServerboundPlayerAction`] with [`ReleaseUseItem`] and removes this
+/// component.
+#[derive(Component, Debug)]
+pub struct UsingItem {
+    pub hand: InteractionHand,
+    /// The tick when the use started.
+    pub start_tick: u64,
+    /// The duration in seconds.
+    pub duration_seconds: f32,
+}
+
 #[allow(clippy::type_complexity)]
 pub fn handle_start_use_item_queued(
     mut commands: Commands,
@@ -217,11 +237,21 @@ pub fn handle_start_use_item_queued(
         &mut BlockStatePredictionHandler,
         &HitResultComponent,
         &LookDirection,
+        &Inventory,
+        &TicksConnected,
         Option<&Mining>,
     )>,
 ) {
-    for (entity, start_use_item, mut prediction_handler, hit_result, look_direction, mining) in
-        query
+    for (
+        entity,
+        start_use_item,
+        mut prediction_handler,
+        hit_result,
+        look_direction,
+        inventory,
+        ticks_connected,
+        mining,
+    ) in query
     {
         commands.entity(entity).remove::<StartUseItemQueued>();
 
@@ -258,6 +288,23 @@ pub fn handle_start_use_item_queued(
             HitResult::Block(r) => {
                 let seq = prediction_handler.start_predicting();
                 if r.miss {
+                    // Check if the held item is consumable (like food)
+                    let held_item = inventory.held_item();
+                    let is_consumable = matches!(held_item, ItemStack::Present(item) if item.get_component::<components::Consumable>().is_some());
+
+                    if is_consumable {
+                        // Start consuming the item
+                        let consume_seconds = held_item
+                            .get_component::<components::Consumable>()
+                            .map(|c| c.consume_seconds)
+                            .unwrap_or(1.6);
+                        commands.entity(entity).insert(UsingItem {
+                            hand: start_use_item.hand,
+                            start_tick: ticks_connected.0,
+                            duration_seconds: consume_seconds,
+                        });
+                    }
+
                     commands.trigger(SendGamePacketEvent::new(
                         entity,
                         ServerboundUseItem {
@@ -289,6 +336,49 @@ pub fn handle_start_use_item_queued(
                     location: Some(r.location),
                 });
             }
+        }
+    }
+}
+
+pub fn handle_using_item(
+    mut commands: Commands,
+    query: Query<(
+        Entity,
+        &UsingItem,
+        &mut BlockStatePredictionHandler,
+        &LookDirection,
+        &TicksConnected,
+    )>,
+) {
+    for (entity, using_item, mut prediction_handler, look_direction, ticks_connected) in query {
+        let ticks_elapsed = ticks_connected.0 - using_item.start_tick;
+        let duration_ticks = (using_item.duration_seconds * 20.0) as u64; // 20 ticks per second
+
+        if ticks_elapsed >= duration_ticks {
+            // Finished using the item, send release packet
+            let seq = prediction_handler.start_predicting();
+            commands.trigger(SendGamePacketEvent::new(
+                entity,
+                ServerboundPlayerAction {
+                    action: Action::ReleaseUseItem,
+                    pos: BlockPos::new(0, 0, 0), // Not used for ReleaseUseItem
+                    direction: Direction::Down,  // Not used for ReleaseUseItem
+                    seq,
+                },
+            ));
+            commands.entity(entity).remove::<UsingItem>();
+        } else {
+            // Continue using the item, send use packet
+            let seq = prediction_handler.start_predicting();
+            commands.trigger(SendGamePacketEvent::new(
+                entity,
+                ServerboundUseItem {
+                    hand: using_item.hand,
+                    seq,
+                    x_rot: look_direction.x_rot(),
+                    y_rot: look_direction.y_rot(),
+                },
+            ));
         }
     }
 }
