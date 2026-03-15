@@ -10,7 +10,10 @@ use azalea_core::{
     registry_holder::RegistryHolder,
     tick::GameTick,
 };
-use azalea_entity::{EntityBundle, EntityPlugin, HasClientLoaded, LocalEntity, Physics, Position};
+use azalea_entity::{
+    EntityBundle, EntityPlugin, HasClientLoaded, LocalEntity, Physics, Position,
+    metadata::{Sprinting, Swimming},
+};
 use azalea_physics::PhysicsPlugin;
 use azalea_registry::builtin::{BlockKind, EntityKind};
 use azalea_world::{Chunk, PartialWorld, World, WorldName, Worlds};
@@ -555,4 +558,77 @@ fn test_afk_pool() {
         ]
     );
     assert_eq!(loops_done, 1);
+}
+
+#[test]
+fn test_swimming() {
+    let mut app = make_test_app();
+    let world_lock = insert_overworld(&mut app);
+    let mut partial_world = PartialWorld::default();
+
+    partial_world.chunks.set(
+        &ChunkPos { x: 0, z: 0 },
+        Some(Chunk::default()),
+        &mut world_lock.write().chunks,
+    );
+
+    // Set water blocks at (0, 64, 0) and (0, 65, 0)
+    let water = BlockState::from(azalea_block::blocks::Water {
+        level: WaterLevel::from(to_or_from_legacy_fluid_level(8) as BlockStateIntegerRepr),
+    });
+    world_lock
+        .write()
+        .chunks
+        .set_block_state(BlockPos { x: 0, y: 64, z: 0 }, water);
+    world_lock
+        .write()
+        .chunks
+        .set_block_state(BlockPos { x: 0, y: 65, z: 0 }, water);
+
+    let entity = app
+        .world_mut()
+        .spawn((
+            EntityBundle::new(
+                Uuid::nil(),
+                Vec3 {
+                    x: 0.5,
+                    y: 64.0, // Eye at ~65.62, in water at y=65
+                    z: 0.5,
+                },
+                EntityKind::Player,
+                WorldName::new("minecraft:overworld"),
+            ),
+            MinecraftEntityId(0),
+            LocalEntity,
+            HasClientLoaded,
+            Sprinting(false),
+            Swimming(false),
+        ))
+        .id();
+
+    // Run initial tick to set up physics
+    app.world_mut().run_schedule(GameTick);
+    app.update();
+
+    // Initially not swimming
+    assert!(!app.world().get::<Swimming>(entity).unwrap().0);
+    // Should be touching water
+    assert!(
+        app.world()
+            .get::<Physics>(entity)
+            .unwrap()
+            .was_touching_water
+    );
+
+    // Set sprinting, should start swimming
+    *app.world_mut().get_mut::<Sprinting>(entity).unwrap() = Sprinting(true);
+    app.world_mut().run_schedule(GameTick);
+    app.update();
+    assert!(app.world().get::<Swimming>(entity).unwrap().0);
+
+    // Stop sprinting, should stop swimming
+    *app.world_mut().get_mut::<Sprinting>(entity).unwrap() = Sprinting(false);
+    app.world_mut().run_schedule(GameTick);
+    app.update();
+    assert!(!app.world().get::<Swimming>(entity).unwrap().0);
 }
