@@ -3,6 +3,7 @@ mod events;
 use std::{collections::HashSet, sync::Arc};
 
 use azalea_core::{
+    delta::PositionDelta8,
     entity_id::MinecraftEntityId,
     game_type::GameMode,
     position::{ChunkPos, Vec3},
@@ -16,13 +17,16 @@ use azalea_entity::{
 };
 use azalea_protocol::{
     common::movements::MoveFlags,
-    packets::{ConnectionProtocol, game::*},
+    packets::{
+        ConnectionProtocol,
+        game::{c_move_entity_pos_rot::CompactLookDirection, *},
+    },
 };
 use azalea_registry::builtin::EntityKind;
 use azalea_world::{PartialWorld, WorldName, Worlds};
 use bevy_ecs::{prelude::*, system::SystemState};
 pub use events::*;
-use tracing::{debug, error, trace, warn};
+use tracing::{debug, error, warn};
 
 use crate::{
     ClientInformation,
@@ -845,142 +849,78 @@ impl GamePacketHandler<'_> {
         as_system::<(
             Commands,
             Query<(&EntityIdIndex, &WorldHolder)>,
-            Query<(&mut Physics, &mut Position)>,
+            MoveEntityQuery,
             EntityUpdateQuery,
         )>(
             self.ecs,
-            |(mut commands, player_query, mut entity_query, entity_update_query)| {
-                let (entity_id_index, world_holder) = player_query.get(self.player).unwrap();
-
-                debug!("Got move entity pos packet {p:?}");
-
-                let entity_id = p.entity_id;
-                let Some(entity) = entity_id_index.get_by_minecraft_entity(entity_id) else {
-                    debug!("Got move entity pos packet for unknown entity id {entity_id}");
-                    return;
-                };
-
-                let new_delta = p.delta.clone();
-                let new_on_ground = p.on_ground;
-
-                let (mut physics, mut position) = entity_query.get_mut(entity).unwrap();
-
-                if !should_apply_entity_update(
-                    &mut commands,
-                    &mut world_holder.partial.write(),
-                    entity,
+            |(commands, player_query, entity_query, entity_update_query)| {
+                move_entity(
+                    self.player,
+                    commands,
+                    MoveEntity {
+                        entity_id: p.entity_id,
+                        delta: Some(p.delta),
+                        look_direction: None,
+                        on_ground: p.on_ground,
+                    },
+                    player_query,
+                    entity_query,
                     entity_update_query,
-                ) {
-                    return;
-                }
-
-                let new_pos = physics.vec_delta_codec.decode(&new_delta);
-                physics.vec_delta_codec.set_base(new_pos);
-                physics.set_on_ground(new_on_ground);
-
-                if new_pos != **position {
-                    **position = new_pos;
-                }
-
-                trace!("Applied movement update for {entity_id} / {entity}");
+                );
             },
         );
     }
-
     pub fn move_entity_pos_rot(&mut self, p: &ClientboundMoveEntityPosRot) {
         as_system::<(
             Commands,
             Query<(&EntityIdIndex, &WorldHolder)>,
-            Query<(&mut Physics, &mut Position, &mut LookDirection)>,
+            MoveEntityQuery,
             EntityUpdateQuery,
         )>(
             self.ecs,
-            |(mut commands, player_query, mut entity_query, entity_update_query)| {
-                let (entity_id_index, world_holder) = player_query.get(self.player).unwrap();
-
-                debug!("Got move entity pos rot packet {p:?}");
-
-                let entity = entity_id_index.get_by_minecraft_entity(p.entity_id);
-
-                let Some(entity) = entity else {
-                    // often triggered by hypixel :(
-                    debug!(
-                        "Got move entity pos rot packet for unknown entity id {}",
-                        p.entity_id
-                    );
-                    return;
-                };
-
-                let new_delta = p.delta.clone();
-                let new_look_direction = LookDirection::new(
-                    (p.y_rot as i32 * 360) as f32 / 256.,
-                    (p.x_rot as i32 * 360) as f32 / 256.,
-                );
-
-                let new_on_ground = p.on_ground;
-
-                let (mut physics, mut position, mut look_direction) =
-                    entity_query.get_mut(entity).unwrap();
-
-                if !should_apply_entity_update(
-                    &mut commands,
-                    &mut world_holder.partial.write(),
-                    entity,
+            |(commands, player_query, entity_query, entity_update_query)| {
+                move_entity(
+                    self.player,
+                    commands,
+                    MoveEntity {
+                        entity_id: p.entity_id,
+                        delta: Some(p.delta),
+                        look_direction: Some(p.look_direction),
+                        on_ground: p.on_ground,
+                    },
+                    player_query,
+                    entity_query,
                     entity_update_query,
-                ) {
-                    return;
-                }
-
-                let new_position = physics.vec_delta_codec.decode(&new_delta);
-                physics.vec_delta_codec.set_base(new_position);
-                physics.set_on_ground(new_on_ground);
-
-                if new_position != **position {
-                    **position = new_position;
-                }
-
-                if new_look_direction != *look_direction {
-                    *look_direction = new_look_direction;
-                }
+                );
             },
         );
     }
-
     pub fn move_entity_rot(&mut self, p: &ClientboundMoveEntityRot) {
-        as_system::<(Commands, Query<(&EntityIdIndex, &WorldHolder)>)>(
+        as_system::<(
+            Commands,
+            Query<(&EntityIdIndex, &WorldHolder)>,
+            MoveEntityQuery,
+            EntityUpdateQuery,
+        )>(
             self.ecs,
-            |(mut commands, query)| {
-                let (entity_id_index, world_holder) = query.get(self.player).unwrap();
-
-                let entity = entity_id_index.get_by_minecraft_entity(p.entity_id);
-                if let Some(entity) = entity {
-                    let new_look_direction = LookDirection::new(
-                        (p.y_rot as i32 * 360) as f32 / 256.,
-                        (p.x_rot as i32 * 360) as f32 / 256.,
-                    );
-                    let new_on_ground = p.on_ground;
-
-                    commands.entity(entity).queue(RelativeEntityUpdate::new(
-                        world_holder.partial.clone(),
-                        move |entity_mut| {
-                            let mut physics = entity_mut.get_mut::<Physics>().unwrap();
-                            physics.set_on_ground(new_on_ground);
-
-                            let mut look_direction = entity_mut.get_mut::<LookDirection>().unwrap();
-                            if new_look_direction != *look_direction {
-                                *look_direction = new_look_direction;
-                            }
-                        },
-                    ));
-                } else {
-                    warn!(
-                        "Got move entity rot packet for unknown entity id {}",
-                        p.entity_id
-                    );
-                }
+            |(commands, player_query, entity_query, entity_update_query)| {
+                move_entity(
+                    self.player,
+                    commands,
+                    MoveEntity {
+                        entity_id: p.entity_id,
+                        delta: None,
+                        look_direction: Some(p.look_direction),
+                        on_ground: p.on_ground,
+                    },
+                    player_query,
+                    entity_query,
+                    entity_update_query,
+                );
             },
         );
     }
+
     pub fn keep_alive(&mut self, p: &ClientboundKeepAlive) {
         debug!("Got keep alive packet {p:?} for {:?}", self.player);
 
@@ -1585,11 +1525,11 @@ impl GamePacketHandler<'_> {
                 else {
                     return;
                 };
-                let is_local_entity = local_entity.is_some();
 
                 physics.vec_delta_codec.set_base(new_position);
 
-                if is_local_entity {
+                let is_client_authoritative = local_entity.is_some();
+                if is_client_authoritative {
                     debug!("Ignoring entity position sync packet for local player");
                     return;
                 }
@@ -1705,4 +1645,63 @@ impl GamePacketHandler<'_> {
     pub fn game_test_highlight_pos(&mut self, p: &ClientboundGameTestHighlightPos) {
         debug!("Got game test highlight pos packet {p:?}");
     }
+}
+
+struct MoveEntity {
+    pub entity_id: MinecraftEntityId,
+    pub delta: Option<PositionDelta8>,
+    pub look_direction: Option<CompactLookDirection>,
+    pub on_ground: bool,
+}
+
+type MoveEntityQuery<'world, 'state, 'a> =
+    Query<'world, 'state, (&'a mut Physics, &'a mut Position, &'a mut LookDirection)>;
+
+fn move_entity(
+    player_entity: Entity,
+    mut commands: Commands,
+    p: MoveEntity,
+    player_query: Query<(&EntityIdIndex, &WorldHolder)>,
+    mut entity_query: MoveEntityQuery,
+    entity_update_query: EntityUpdateQuery,
+) {
+    let (entity_id_index, world_holder) = player_query.get(player_entity).unwrap();
+
+    let entity_id = p.entity_id;
+    let entity = entity_id_index.get_by_minecraft_entity(entity_id);
+
+    let Some(entity) = entity else {
+        // often triggered by hypixel :(
+        debug!("Got move move entity packet for unknown entity id {entity_id}");
+        return;
+    };
+
+    let (mut physics, mut position, mut look_direction) = entity_query.get_mut(entity).unwrap();
+
+    if !should_apply_entity_update(
+        &mut commands,
+        &mut world_holder.partial.write(),
+        entity,
+        entity_update_query,
+    ) {
+        return;
+    }
+
+    if let Some(new_delta) = p.delta {
+        let new_position = physics.vec_delta_codec.decode(&new_delta);
+        physics.vec_delta_codec.set_base(new_position);
+
+        if new_position != **position {
+            **position = new_position;
+        }
+    }
+
+    if let Some(new_look_direction) = p.look_direction {
+        let new_look_direction = new_look_direction.into();
+        if new_look_direction != *look_direction {
+            *look_direction = new_look_direction;
+        }
+    }
+
+    physics.set_on_ground(p.on_ground);
 }

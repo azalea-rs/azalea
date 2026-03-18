@@ -1,6 +1,5 @@
 #![doc = include_str!("../README.md")]
 #![feature(type_changing_struct_update)]
-#![feature(float_algebraic)]
 
 pub mod accept_resource_packs;
 pub mod auto_reconnect;

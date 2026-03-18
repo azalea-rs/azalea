@@ -12,7 +12,7 @@ pub trait PositionDeltaTrait {
 }
 
 /// Only works for up to 8 blocks
-#[derive(AzBuf, Clone, Debug, Default, PartialEq)]
+#[derive(AzBuf, Clone, Copy, Debug, Default, PartialEq)]
 pub struct PositionDelta8 {
     pub xa: i16,
     pub ya: i16,
