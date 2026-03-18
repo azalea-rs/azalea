@@ -252,22 +252,22 @@ impl Inventory {
 
         match operation {
             // left clicking outside inventory
-            ClickOperation::Pickup(PickupClick::Left { slot: None }) => {
-                if self.carried.is_present() {
-                    // vanilla has `player.drop`s but they're only used
-                    // server-side
-                    // they're included as comments here in case you want to adapt this for a server
-                    // implementation
+            ClickOperation::Pickup(PickupClick::Left { slot: None })
+                if self.carried.is_present() =>
+            {
+                // vanilla has `player.drop`s but they're only used
+                // server-side
+                // they're included as comments here in case you want to adapt this for a server
+                // implementation
 
-                    // player.drop(self.carried, true);
-                    self.carried = ItemStack::Empty;
-                }
+                // player.drop(self.carried, true);
+                self.carried = ItemStack::Empty;
             }
-            ClickOperation::Pickup(PickupClick::Right { slot: None }) => {
-                if self.carried.is_present() {
-                    let _item = self.carried.split(1);
-                    // player.drop(item, true);
-                }
+            ClickOperation::Pickup(PickupClick::Right { slot: None })
+                if self.carried.is_present() =>
+            {
+                let _item = self.carried.split(1);
+                // player.drop(item, true);
             }
             &ClickOperation::Pickup(
                 // lol
