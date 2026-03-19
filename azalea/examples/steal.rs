@@ -24,7 +24,7 @@ struct State {
     pub checked_chests: Arc<Mutex<Vec<BlockPos>>>,
 }
 
-async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
+async fn handle(bot: Client, event: Event, state: State) -> eyre::Result<()> {
     if let Event::Chat(m) = event {
         if m.sender() == Some(bot.username()) {
             return Ok(());
@@ -39,7 +39,7 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn steal(bot: Client, state: State) -> anyhow::Result<()> {
+async fn steal(bot: Client, state: State) -> eyre::Result<()> {
     {
         let mut is_stealing = state.is_stealing.lock();
         if *is_stealing {

@@ -16,7 +16,7 @@ async fn main() -> AppExit {
 #[derive(Clone, Component, Default)]
 pub struct State {}
 
-async fn handle(bot: Client, event: Event, _state: State) -> anyhow::Result<()> {
+async fn handle(bot: Client, event: Event, _state: State) -> eyre::Result<()> {
     if let Event::Chat(m) = event
         && let (Some(sender), content) = m.split_sender_and_content()
     {

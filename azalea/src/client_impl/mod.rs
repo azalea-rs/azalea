@@ -284,7 +284,7 @@ impl Client {
     ///         .await;
     ///     println!("done!");
     /// }
-    /// async fn handle(bot: Client, event: Event, _state: NoState) -> anyhow::Result<()> {
+    /// async fn handle(bot: Client, event: Event, _state: NoState) -> eyreResult<()> {
     ///     match event {
     ///         Event::Disconnect(_) | Event::ConnectionFailed(_) => {
     ///             bot.exit();

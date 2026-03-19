@@ -373,7 +373,7 @@ impl Chunk {
 
         let mut heightmaps = HashMap::new();
         for (kind, data) in heightmaps_data {
-            let data: Box<[u64]> = data.clone();
+            let data = data.clone();
             let heightmap = Heightmap::new(*kind, dimension_height, min_y, data);
             heightmaps.insert(*kind, heightmap);
         }

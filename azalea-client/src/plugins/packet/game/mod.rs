@@ -925,19 +925,16 @@ impl GamePacketHandler<'_> {
     pub fn keep_alive(&mut self, p: &ClientboundKeepAlive) {
         debug!("Got keep alive packet {p:?} for {:?}", self.player);
 
-        as_system::<(MessageWriter<KeepAliveEvent>, Commands)>(
-            self.ecs,
-            |(mut keepalive_events, mut commands)| {
-                keepalive_events.write(KeepAliveEvent {
-                    entity: self.player,
-                    id: p.id,
-                });
-                commands.trigger(SendGamePacketEvent::new(
-                    self.player,
-                    ServerboundKeepAlive { id: p.id },
-                ));
-            },
-        );
+        as_system::<Commands>(self.ecs, |mut commands| {
+            commands.trigger(KeepAliveEvent {
+                entity: self.player,
+                id: p.id,
+            });
+            commands.trigger(SendGamePacketEvent::new(
+                self.player,
+                ServerboundKeepAlive { id: p.id },
+            ));
+        });
     }
 
     pub fn remove_entities(&mut self, p: &ClientboundRemoveEntities) {
@@ -1674,11 +1671,14 @@ fn move_entity(
 
     let Some(entity) = entity else {
         // often triggered by hypixel :(
-        debug!("Got move move entity packet for unknown entity id {entity_id}");
+        debug!("Got move entity packet for unknown entity id {entity_id}");
         return;
     };
 
-    let (mut physics, mut position, mut look_direction) = entity_query.get_mut(entity).unwrap();
+    let Ok((mut physics, mut position, mut look_direction)) = entity_query.get_mut(entity) else {
+        debug!("Got move entity packet for entity with missing components {entity_id}");
+        return;
+    };
 
     if !should_apply_entity_update(
         &mut commands,

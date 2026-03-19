@@ -25,7 +25,7 @@ use crate::{
 /// # }
 /// # #[derive(Clone, Component, Default)]
 /// # pub struct State;
-/// # async fn handle(mut bot: Client, event: Event, state: State) -> anyhow::Result<()> {
+/// # async fn handle(mut bot: Client, event: Event, state: State) -> eyre::Result<()> {
 /// #     Ok(())
 /// # }
 /// ```
@@ -73,7 +73,7 @@ impl ClientBuilder<NoState, ()> {
     /// # client_builder.set_handler(handle);
     /// # #[derive(Clone, Component, Default)]
     /// # pub struct State;
-    /// # async fn handle(mut bot: Client, event: Event, state: State) -> anyhow::Result<()> {
+    /// # async fn handle(mut bot: Client, event: Event, state: State) -> eyre::Result<()> {
     /// #     Ok(())
     /// # }
     /// ```
@@ -102,7 +102,7 @@ impl ClientBuilder<NoState, ()> {
     ///
     /// # #[derive(Clone, Component, Default)]
     /// # pub struct State;
-    /// async fn handle(mut bot: Client, event: Event, state: State) -> anyhow::Result<()> {
+    /// async fn handle(mut bot: Client, event: Event, state: State) -> eyre::Result<()> {
     ///     Ok(())
     /// }
     /// ```

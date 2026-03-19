@@ -128,8 +128,8 @@ impl ConfigPacketHandler<'_> {
             self.player
         );
 
-        as_system::<(Commands, MessageWriter<_>)>(self.ecs, |(mut commands, mut events)| {
-            events.write(KeepAliveEvent {
+        as_system::<Commands>(self.ecs, |mut commands| {
+            commands.trigger(KeepAliveEvent {
                 entity: self.player,
                 id: p.id,
             });

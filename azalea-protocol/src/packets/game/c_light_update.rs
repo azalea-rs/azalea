@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use azalea_buf::AzBuf;
 use azalea_core::bitset::BitSet;
 use azalea_protocol_macros::ClientboundGamePacket;
@@ -17,6 +19,6 @@ pub struct ClientboundLightUpdatePacketData {
     pub block_y_mask: BitSet,
     pub empty_sky_y_mask: BitSet,
     pub empty_block_y_mask: BitSet,
-    pub sky_updates: Vec<Vec<u8>>,
-    pub block_updates: Vec<Vec<u8>>,
+    pub sky_updates: Arc<Box<[Box<[u8]>]>>,
+    pub block_updates: Arc<Box<[Box<[u8]>]>>,
 }

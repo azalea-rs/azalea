@@ -117,7 +117,7 @@ pub type BoxSwarmHandleFn<SS, R> =
 ///         .await
 /// }
 ///
-/// async fn handle(bot: Client, event: Event, _state: State) -> anyhow::Result<()> {
+/// async fn handle(bot: Client, event: Event, _state: State) -> eyre::Result<()> {
 ///     match &event {
 ///         _ => {}
 ///     }
@@ -128,7 +128,7 @@ pub type BoxSwarmHandleFn<SS, R> =
 ///     mut swarm: Swarm,
 ///     event: SwarmEvent,
 ///     _state: SwarmState,
-/// ) -> anyhow::Result<()> {
+/// ) -> eyre::Result<()> {
 ///     match &event {
 ///         SwarmEvent::Chat(m) => {
 ///             println!("{}", m.message().to_ansi());

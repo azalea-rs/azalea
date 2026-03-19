@@ -19,7 +19,7 @@ async fn main() -> AppExit {
         .await
 }
 
-async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
+async fn handle(bot: Client, event: Event, state: State) -> eyre::Result<()> {
     match event {
         Event::Chat(m) => {
             if m.sender() == Some(bot.username()) {

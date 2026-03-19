@@ -42,7 +42,7 @@ uuid.workspace = true
 bevy_utils = { workspace = true, features = ["debug"] }
 
 [dev-dependencies]
-anyhow.workspace = true
+eyre.workspace = true
 
 [features]
 default = ["log", "packet-event", "online-mode"]

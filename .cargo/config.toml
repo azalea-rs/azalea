@@ -3,6 +3,8 @@ rustflags = ["--cfg", "docsrs_dep"]
 rustdocflags = [
     "--html-after-content",
     "docs-rs/trait-tags.html",
+    "--html-after-content",
+    "docs-rs/arborium-header.html",
     "--cfg",
     "docsrs_dep",
 ]

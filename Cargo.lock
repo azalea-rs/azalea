@@ -237,7 +237,6 @@ dependencies = [
 name = "azalea"
 version = "0.15.0+mc1.21.11"
 dependencies = [
- "anyhow",
  "azalea-auth",
  "azalea-block",
  "azalea-brigadier",
@@ -257,6 +256,7 @@ dependencies = [
  "bevy_tasks",
  "criterion",
  "derive_more",
+ "eyre",
  "futures",
  "futures-lite",
  "indexmap",
@@ -362,7 +362,6 @@ dependencies = [
 name = "azalea-client"
 version = "0.15.0+mc1.21.11"
 dependencies = [
- "anyhow",
  "async-compat",
  "azalea-auth",
  "azalea-block",
@@ -384,6 +383,7 @@ dependencies = [
  "bevy_utils",
  "chrono",
  "derive_more",
+ "eyre",
  "indexmap",
  "minecraft_folder_path",
  "parking_lot",
@@ -520,7 +520,6 @@ dependencies = [
 name = "azalea-protocol"
 version = "0.15.0+mc1.21.11"
 dependencies = [
- "anyhow",
  "azalea-auth",
  "azalea-block",
  "azalea-brigadier",
@@ -534,6 +533,8 @@ dependencies = [
  "azalea-registry",
  "azalea-world",
  "bevy_ecs",
+ "criterion",
+ "eyre",
  "flate2",
  "futures",
  "futures-lite",
@@ -1555,6 +1556,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "eyre"
+version = "0.6.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7cd915d99f24784cdc19fd37ef22b97e3ff0ae756c7e492e9fbfe897d61e2aec"
+dependencies = [
+ "indenter",
+ "once_cell",
+]
+
+[[package]]
 name = "fastrand"
 version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2101,6 +2112,12 @@ dependencies = [
  "icu_normalizer",
  "icu_properties",
 ]
+
+[[package]]
+name = "indenter"
+version = "0.3.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "964de6e86d545b246d84badc0fef527924ace5134f30641c203ef52ba83f58d5"
 
 [[package]]
 name = "indexmap"

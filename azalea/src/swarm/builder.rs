@@ -105,10 +105,10 @@ impl SwarmBuilder<NoState, NoSwarmState, (), ()> {
     /// # swarm_builder.set_handler(handle).set_swarm_handler(swarm_handle);
     /// # #[derive(Clone, Component, Default, Resource)]
     /// # pub struct State;
-    /// # async fn handle(mut bot: Client, event: Event, state: State) -> anyhow::Result<()> {
+    /// # async fn handle(mut bot: Client, event: Event, state: State) -> eyre::Result<()> {
     /// #     Ok(())
     /// # }
-    /// # async fn swarm_handle(swarm: Swarm, event: SwarmEvent, state: State) -> anyhow::Result<()> {
+    /// # async fn swarm_handle(swarm: Swarm, event: SwarmEvent, state: State) -> eyre::Result<()> {
     /// #     Ok(())
     /// # }
     /// ```
@@ -157,7 +157,7 @@ where
     ///
     /// #[derive(Clone, Component, Default)]
     /// struct State {}
-    /// async fn handle(mut bot: Client, event: Event, state: State) -> anyhow::Result<()> {
+    /// async fn handle(mut bot: Client, event: Event, state: State) -> eyre::Result<()> {
     ///     Ok(())
     /// }
     ///
@@ -167,7 +167,7 @@ where
     /// #     mut swarm: Swarm,
     /// #     event: SwarmEvent,
     /// #     state: SwarmState,
-    /// # ) -> anyhow::Result<()> {
+    /// # ) -> eyre::Result<()> {
     /// #     Ok(())
     /// # }
     /// ```
@@ -214,7 +214,7 @@ where
     /// # #[derive(Clone, Component, Default)]
     /// # struct State {}
     ///
-    /// # async fn handle(mut bot: Client, event: Event, state: State) -> anyhow::Result<()> {
+    /// # async fn handle(mut bot: Client, event: Event, state: State) -> eyre::Result<()> {
     /// #     Ok(())
     /// # }
     ///
@@ -224,7 +224,7 @@ where
     ///     mut swarm: Swarm,
     ///     event: SwarmEvent,
     ///     state: SwarmState,
-    /// ) -> anyhow::Result<()> {
+    /// ) -> eyre::Result<()> {
     ///     Ok(())
     /// }
     /// ```

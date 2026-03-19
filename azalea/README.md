@@ -34,7 +34,7 @@ pub struct State {
     pub messages_received: Arc<Mutex<usize>>
 }
 
-async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
+async fn handle(bot: Client, event: Event, state: State) -> eyre::Result<()> {
     match event {
         Event::Chat(m) => {
             let mut messages_received = state.messages_received.lock();
@@ -67,8 +67,7 @@ For faster compile times, create a `.cargo/config.toml` file in your project and
 [this file](https://github.com/azalea-rs/azalea/blob/main/.cargo/config_fast_builds.toml)
 into it. You may have to install the LLD linker.
 
-For faster performance in debug mode, add the following code to your
-Cargo.toml:
+For faster performance in debug mode, add the following code to your `Cargo.toml`:
 
 ```toml
 [profile.dev]
@@ -76,6 +75,8 @@ opt-level = 1
 [profile.dev.package."*"]
 opt-level = 3
 ```
+
+For a lot more details on how to make Azalea faster, see the [Azalea performance guide](_docs::performance).
 
 # Documentation
 

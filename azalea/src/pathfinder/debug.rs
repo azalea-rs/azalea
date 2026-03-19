@@ -19,7 +19,7 @@ use crate::pathfinder::moves::should_mine_block_state;
 /// # #[derive(Clone, Component, Default)]
 /// # pub struct State;
 ///
-/// async fn handle(mut bot: Client, event: azalea::Event, state: State) -> anyhow::Result<()> {
+/// async fn handle(mut bot: Client, event: azalea::Event, state: State) -> eyre::Result<()> {
 ///     match event {
 ///         azalea::Event::Init => {
 ///             bot.ecs

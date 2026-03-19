@@ -6,7 +6,7 @@ use azalea::{
 
 use crate::State;
 
-pub fn tick(bot: Client, state: State) -> anyhow::Result<()> {
+pub fn tick(bot: Client, state: State) -> eyre::Result<()> {
     if !state.killaura {
         return Ok(());
     }

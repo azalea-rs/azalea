@@ -1,6 +1,8 @@
 #![doc = include_str!("../README.md")]
 #![feature(type_changing_struct_update)]
 
+#[cfg(doc)]
+pub mod _docs;
 pub mod accept_resource_packs;
 pub mod auto_reconnect;
 pub mod auto_respawn;
