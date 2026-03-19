@@ -120,7 +120,7 @@ pub struct State {
 impl State {
     fn new() -> Self {
         Self {
-            killaura: true,
+            killaura: false,
             task: Arc::new(Mutex::new(BotTask::None)),
         }
     }

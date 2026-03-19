@@ -1,4 +1,5 @@
 mod components;
+pub mod effect_events;
 pub mod indexing;
 
 use std::collections::HashSet;
@@ -22,6 +23,7 @@ use crate::{
     FluidOnEyes, LookDirection, Physics, Pose, Position,
     dimensions::{EntityDimensions, calculate_dimensions},
     metadata::{self, Health, Player},
+    plugin::effect_events::{handle_add_effect, handle_remove_effects},
 };
 
 /// A Bevy [`SystemSet`] for various types of entity updates.
@@ -65,6 +67,8 @@ impl Plugin for EntityPlugin {
             ),
         )
         .add_systems(GameTick, (update_in_loaded_chunk, update_fluid_on_eyes))
+        .add_observer(handle_add_effect)
+        .add_observer(handle_remove_effects)
         .init_resource::<EntityUuidIndex>();
     }
 }

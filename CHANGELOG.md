@@ -15,6 +15,7 @@ is breaking anyways, semantic versioning is not followed.
 - `AccountTrait` was implemented, which allows for custom refresh and join behavior for `Account`s.
 - Add `Account::microsoft_with_opts` to make it easier to create accounts with custom cache files. (@ElijahBare)
 - Add an `EntityRef` type to simplify interactions with entities.
+- Implement speed/swiftness.
 - Add `BlockTrait::set_property` to allow setting properties on blocks generically.
 - You can now access a client's XP with `Client::experience`. (@nebula161)
 - Re-implement `Client::map_component` and `map_get_component`.

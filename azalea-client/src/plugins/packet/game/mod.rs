@@ -9,8 +9,9 @@ use azalea_core::{
     position::{ChunkPos, Vec3},
 };
 use azalea_entity::{
-    ActiveEffects, Dead, EntityBundle, EntityKindComponent, HasClientLoaded, LoadedBy, LocalEntity,
-    LookDirection, Physics, PlayerAbilities, Position,
+    Dead, EntityBundle, EntityKindComponent, HasClientLoaded, LoadedBy, LocalEntity, LookDirection,
+    Physics, PlayerAbilities, Position,
+    effect_events::{AddEffectEvent, RemoveEffectsEvent},
     indexing::{EntityIdIndex, EntityUuidIndex},
     inventory::Inventory,
     metadata::{Health, apply_metadata},
@@ -1073,38 +1074,36 @@ impl GamePacketHandler<'_> {
     pub fn update_mob_effect(&mut self, p: &ClientboundUpdateMobEffect) {
         debug!("Got update mob effect packet {p:?}");
 
-        let mob_effect = p.mob_effect;
-        let effect_data = &p.data;
+        as_system::<(
+            Commands,
+            Query<(&EntityIdIndex, &WorldHolder)>,
+            EntityUpdateQuery,
+        )>(self.ecs, |(mut commands, query, entity_update_query)| {
+            let (entity_id_index, world_holder) = query.get(self.player).unwrap();
 
-        as_system::<(Commands, Query<(&EntityIdIndex, &WorldHolder)>)>(
-            self.ecs,
-            |(mut commands, query)| {
-                let (entity_id_index, world_holder) = query.get(self.player).unwrap();
+            let Some(entity) = entity_id_index.get_by_minecraft_entity(p.entity_id) else {
+                debug!(
+                    "Got update mob effect packet for unknown entity id {}",
+                    p.entity_id
+                );
+                return;
+            };
 
-                let Some(entity) = entity_id_index.get_by_minecraft_entity(p.entity_id) else {
-                    debug!(
-                        "Got update mob effect packet for unknown entity id {}",
-                        p.entity_id
-                    );
-                    return;
-                };
+            if !should_apply_entity_update(
+                &mut commands,
+                &mut world_holder.partial.write(),
+                entity,
+                entity_update_query,
+            ) {
+                return;
+            }
 
-                let partial_world = world_holder.partial.clone();
-                let effect_data = effect_data.clone();
-                commands.entity(entity).queue(RelativeEntityUpdate::new(
-                    partial_world,
-                    move |entity| {
-                        if let Some(mut active_effects) = entity.get_mut::<ActiveEffects>() {
-                            active_effects.insert(mob_effect, effect_data.clone());
-                        } else {
-                            let mut active_effects = ActiveEffects::default();
-                            active_effects.insert(mob_effect, effect_data.clone());
-                            entity.insert(active_effects);
-                        }
-                    },
-                ));
-            },
-        );
+            commands.trigger(AddEffectEvent {
+                entity,
+                id: p.mob_effect,
+                data: p.data.clone(),
+            });
+        });
     }
 
     pub fn award_stats(&mut self, _p: &ClientboundAwardStats) {}
@@ -1316,32 +1315,35 @@ impl GamePacketHandler<'_> {
     pub fn remove_mob_effect(&mut self, p: &ClientboundRemoveMobEffect) {
         debug!("Got remove mob effect packet {p:?}");
 
-        let mob_effect = p.effect;
+        as_system::<(
+            Commands,
+            Query<(&EntityIdIndex, &WorldHolder)>,
+            EntityUpdateQuery,
+        )>(self.ecs, |(mut commands, query, entity_update_query)| {
+            let (entity_id_index, world_holder) = query.get(self.player).unwrap();
 
-        as_system::<(Commands, Query<(&EntityIdIndex, &WorldHolder)>)>(
-            self.ecs,
-            |(mut commands, query)| {
-                let (entity_id_index, world_holder) = query.get(self.player).unwrap();
+            let Some(entity) = entity_id_index.get_by_minecraft_entity(p.entity_id) else {
+                debug!(
+                    "Got remove mob effect packet for unknown entity id {}",
+                    p.entity_id
+                );
+                return;
+            };
 
-                let Some(entity) = entity_id_index.get_by_minecraft_entity(p.entity_id) else {
-                    debug!(
-                        "Got remove mob effect packet for unknown entity id {}",
-                        p.entity_id
-                    );
-                    return;
-                };
+            if !should_apply_entity_update(
+                &mut commands,
+                &mut world_holder.partial.write(),
+                entity,
+                entity_update_query,
+            ) {
+                return;
+            }
 
-                let partial_world = world_holder.partial.clone();
-                commands.entity(entity).queue(RelativeEntityUpdate::new(
-                    partial_world,
-                    move |entity| {
-                        if let Some(mut active_effects) = entity.get_mut::<ActiveEffects>() {
-                            active_effects.remove(mob_effect);
-                        }
-                    },
-                ));
-            },
-        );
+            commands.trigger(RemoveEffectsEvent {
+                entity,
+                effects: vec![p.effect],
+            });
+        });
     }
 
     pub fn resource_pack_push(&mut self, p: &ClientboundResourcePackPush) {
