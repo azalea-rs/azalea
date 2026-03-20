@@ -1,7 +1,7 @@
 # Extracting data from the Minecraft jars
 
 import shutil
-from lib.download import (
+from .download import (
     get_fabric_api_version,
     get_latest_fabric_kotlin_version,
     get_pumpkin_extractor,
@@ -10,7 +10,7 @@ from lib.download import (
     get_client_jar,
     get_fabric_data,
 )
-from lib.utils import get_dir_location
+from .utils import get_dir_location
 from zipfile import ZipFile
 import subprocess
 import json

@@ -525,6 +525,7 @@ impl AzBuf for Section {
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         self.block_count.azalea_write(buf)?;
+        self.fluid_count.azalea_write(buf)?;
         self.states.write(buf)?;
         self.biomes.write(buf)?;
         Ok(())
@@ -667,6 +668,7 @@ mod tests {
         let biomes = PalettedContainer::new();
         let section = Section {
             block_count: 2,
+            fluid_count: 0,
             states,
             biomes,
         };

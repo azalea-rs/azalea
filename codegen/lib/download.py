@@ -1,4 +1,4 @@
-from lib.utils import get_dir_location
+from .utils import get_dir_location
 import xml.etree.ElementTree as ET
 import requests
 import json
