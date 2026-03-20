@@ -538,11 +538,11 @@ use crate::{
 
         item_defaults_original = item_defaults
         item_defaults = {}
-        for k, v in item_defaults_original.items():
+        for k, v in sorted(item_defaults_original.items(), key=lambda i: i[0]):
             item_defaults[k] = python_to_rust_value(v, field_type)
 
         default_values_frequency = {}
-        for value in item_defaults.values():
+        for value in sorted(item_defaults.values()):
             if value not in default_values_frequency:
                 default_values_frequency[value] = 0
             default_values_frequency[value] += 1
