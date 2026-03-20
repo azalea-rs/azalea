@@ -6,7 +6,7 @@ This guide is for those who want to learn more about Azalea's performance charac
 
 Typically, one Azalea bot with 8 chunk render distance (the default) will idle on about 20mb-40mb of memory on a normal world.
 If you're using a swarm, the world information (chunks, entities, registries) is shared between bots.
-This means that each new bot in a swarm should be relatively cheap -- usually about 1mb extra per bot -- though it may be more if they're spread apart.
+This means that each new bot in a swarm should be relatively cheap -- usually up to 1mb extra per bot -- though it may be more if they're spread apart.
 
 As for CPU usage, Azalea is meant to be able to run on weak servers, but it may struggle at large swarm sizes, especially if you're using the pathfinder.
 By default, swarms should be able to handle up to a few hundred bots, depending on your hardware.
@@ -35,7 +35,7 @@ For maximum performance, it is still recommended to compile your bot with releas
 
 ## Compilation options
 
-An easy win is to enable LTO (not thin LTO) by putting the following line in your `Cargo.toml`:
+An easy win is to enable LTO (not thin LTO) by putting the following lines in your `Cargo.toml`:
 ```toml
 [profile.release]
 lto = true
@@ -64,7 +64,7 @@ For instance, this can be a simple timer or an averaged CPU usage measurement.
 Profiling is to help you identify the slow parts of your code.
 The recommended tool for this is [`cargo-flamegraph`](https://github.com/flamegraph-rs/flamegraph), just make sure to enable `force-frame-pointers` and `debuginfo`.
 
-Some specific suggestions will not be mentioned in this guide because they would become obvious from profiling, or because they're already mentioned in the relevant Azalea documentation.
+Some specific suggestions will not be mentioned in this guide because they're already mentioned in the relevant Azalea documentation.
 
 I would also recommend reading Nethercote's [Rust Performance Book](https://nnethercote.github.io/perf-book/title-page.html) for more performance tips.
 

@@ -16,6 +16,9 @@ pub use block_state::BlockState;
 pub use generated::{blocks, properties};
 pub use range::BlockStates;
 
+/// A trait that's implemented on block structs.
+///
+/// See the [azalea_block documentation](crate) for details.
 pub trait BlockTrait: Debug + Any {
     fn behavior(&self) -> BlockBehavior;
     /// Get the Minecraft string ID for this block.
