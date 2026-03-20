@@ -90,11 +90,17 @@ If you want to disable `packet-event` but still have a way to watch for packets,
 
 If the client doesn't need a high view distance, then you can reduce the number of stored chunks/entities and received packets by lowering it.
 This can be done by having something like the following in your handler function:
-```rust
+```rust,no_run
+# use azalea::ClientInformation;
+# async fn handle(bot: azalea::Client, event: azalea::Event, state: azalea::NoState) {
+#    match event {
 azalea::Event::Init => bot.set_client_information(ClientInformation {
     view_distance: 2,
     ..Default::default()
 }),
+# _ => {}
+# }
+# }
 ```
 
 ## Disabling plugins
