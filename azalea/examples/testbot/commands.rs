@@ -23,8 +23,9 @@ impl CommandSource {
     pub fn reply(&self, message: impl Into<String>) {
         let message = message.into();
         if self.chat.is_whisper() {
+            // /msg instead of /w for compat with custom servers
             self.bot
-                .chat(format!("/w {} {message}", self.chat.sender().unwrap()));
+                .chat(format!("/msg {} {message}", self.chat.sender().unwrap()));
         } else {
             self.bot.chat(message);
         }

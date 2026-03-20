@@ -7,9 +7,10 @@ license.workspace = true
 repository.workspace = true
 
 [dev-dependencies]
-anyhow.workspace = true
+eyre.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
+criterion.workspace = true
 
 [dependencies]
 azalea-auth.workspace = true
@@ -56,3 +57,7 @@ bevy_ecs = [
 
 [lints]
 workspace = true
+
+[[bench]]
+name = "read"
+harness = false

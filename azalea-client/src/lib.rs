@@ -1,6 +1,5 @@
 #![doc = include_str!("../README.md")]
 #![feature(error_generic_member_access)]
-#![feature(never_type)]
 
 pub mod account;
 mod client;

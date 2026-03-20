@@ -2,16 +2,15 @@
 
 import shutil
 from lib.download import (
-    get_latest_fabric_api_version,
+    get_fabric_api_version,
     get_latest_fabric_kotlin_version,
-    get_latest_fabric_loom_version,
     get_pumpkin_extractor,
     get_server_jar,
     get_burger,
     get_client_jar,
     get_fabric_data,
 )
-from lib.utils import get_dir_location, to_camel_case, upper_first_letter
+from lib.utils import get_dir_location
 from zipfile import ZipFile
 import subprocess
 import json
@@ -192,9 +191,8 @@ def get_pumpkin_data(version_id: str, category: str):
         f.write("server-port=0")
 
     fabric_data = get_fabric_data(version_id)[0]
-    fabric_api_version = get_latest_fabric_api_version()
+    fabric_api_version = get_fabric_api_version(version_id)
     fabric_kotlin_version = get_latest_fabric_kotlin_version()
-    fabric_loom_version = get_latest_fabric_loom_version()
 
     gradle_properties = f"""# Done to increase the memory available to gradle.
 org.gradle.jvmargs=-Xmx2G

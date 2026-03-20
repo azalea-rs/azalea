@@ -1,4 +1,10 @@
-use std::{cmp, collections::VecDeque, ops::RangeInclusive, sync::Arc};
+use std::{
+    cmp,
+    collections::VecDeque,
+    ops::RangeInclusive,
+    sync::Arc,
+    time::{Duration, Instant},
+};
 
 use azalea_core::position::BlockPos;
 use azalea_entity::inventory::Inventory;
@@ -34,11 +40,9 @@ pub fn check_for_path_obstruction(
     )>,
     worlds: Res<Worlds>,
 ) {
-    for (entity, mut pathfinder, mut executing_path, world_name, inventory, custom_state) in
-        &mut query
-    {
+    query.par_iter_mut().for_each(|(entity, mut pathfinder, mut executing_path, world_name, inventory, custom_state)| {
         let Some(opts) = pathfinder.opts.clone() else {
-            continue;
+            return;
         };
 
         let world_lock = worlds
@@ -65,13 +69,17 @@ pub fn check_for_path_obstruction(
             )
         };
 
+        // don't bother spending more than 10ms per tick on this
+        let timeout = Duration::from_millis(10);
+
         let Some(obstructed_index) = check_path_obstructed(
             origin,
             RelBlockPos::from_origin(origin, executing_path.last_reached_node),
             &executing_path.path,
             successors,
+            timeout
         ) else {
-            continue;
+            return;
         };
 
         drop(custom_state_ref);
@@ -89,12 +97,12 @@ pub fn check_for_path_obstruction(
             );
             executing_path.path.truncate(obstructed_index);
             executing_path.is_path_partial = true;
-            continue;
+            return;
         }
 
         let Some(opts) = pathfinder.opts.clone() else {
             error!("got PatchExecutingPathEvent but the bot has no pathfinder opts");
-            continue;
+            return;
         };
 
         let world_lock = worlds
@@ -114,7 +122,7 @@ pub fn check_for_path_obstruction(
             custom_state.clone(),
             opts,
         );
-    }
+    });
 }
 
 /// Update the given [`ExecutingPath`] to recalculate the path of the nodes in
@@ -222,11 +230,18 @@ pub fn check_path_obstructed<SuccessorsFn>(
     mut current_position: RelBlockPos,
     path: &VecDeque<astar::Edge<BlockPos, moves::MoveData>>,
     successors_fn: SuccessorsFn,
+    timeout: Duration,
 ) -> Option<usize>
 where
     SuccessorsFn: Fn(RelBlockPos) -> Vec<astar::Edge<RelBlockPos, moves::MoveData>>,
 {
+    let start_time = Instant::now();
+
     for (i, edge) in path.iter().enumerate() {
+        if start_time.elapsed() > timeout {
+            break;
+        }
+
         let movement_target = RelBlockPos::from_origin(origin, edge.movement.target);
 
         let mut found_edge = None;

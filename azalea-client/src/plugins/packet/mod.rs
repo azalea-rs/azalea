@@ -48,32 +48,13 @@ impl Plugin for PacketPlugin {
         .add_message::<game::UpdatePlayerEvent>()
         .add_message::<ChatReceivedEvent>()
         .add_message::<game::DeathEvent>()
-        .add_message::<game::KeepAliveEvent>()
         .add_message::<game::ResourcePackEvent>()
         .add_message::<game::WorldLoadedEvent>()
         .add_message::<login::ReceiveCustomQueryEvent>();
     }
 }
 
-#[doc(hidden)]
-macro_rules! __declare_packet_handlers {
-    (
-        $packetenum:ident,
-        $packetvar:expr,
-        $handler:ident,
-        [$($packet:path),+ $(,)?]
-    ) => {
-        pastey::paste! {
-           match $packetvar {
-                $(
-                    $packetenum::[< $packet:camel >](p) => $handler.$packet(p),
-                )+
-            }
-        }
-    };
-}
-
-pub(crate) use __declare_packet_handlers as declare_packet_handlers;
+pub(crate) use azalea_protocol::azalea_protocol_macros::declare_packet_handlers;
 
 #[derive(Resource)]
 struct CachedSystemState<T: SystemParam + 'static>(SystemState<T>);

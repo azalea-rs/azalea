@@ -26,6 +26,8 @@ pub struct Identifier {
     inner: Box<str>,
 }
 
+const _: () = assert!(size_of::<Identifier>() == 24);
+
 static DEFAULT_NAMESPACE: &str = "minecraft";
 // static REALMS_NAMESPACE: &str = "realms";
 

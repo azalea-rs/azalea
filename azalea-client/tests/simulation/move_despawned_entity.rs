@@ -1,7 +1,10 @@
 use azalea_client::test_utils::prelude::*;
 use azalea_core::{entity_id::MinecraftEntityId, position::ChunkPos};
 use azalea_entity::metadata::Cow;
-use azalea_protocol::packets::{ConnectionProtocol, game::ClientboundMoveEntityRot};
+use azalea_protocol::packets::{
+    ConnectionProtocol,
+    game::{ClientboundMoveEntityRot, c_move_entity_pos_rot::CompactLookDirection},
+};
 use azalea_registry::builtin::EntityKind;
 use bevy_ecs::query::With;
 use tracing::Level;
@@ -36,8 +39,7 @@ fn test_move_despawned_entity() {
     // send a move_entity_rot
     simulation.receive_packet(ClientboundMoveEntityRot {
         entity_id: MinecraftEntityId(123),
-        y_rot: 0,
-        x_rot: 0,
+        look_direction: CompactLookDirection::default(),
         on_ground: false,
     });
     simulation.tick();

@@ -29,6 +29,14 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
         source.reply("pong!");
         1
     }));
+    commands.register(
+        literal("say").then(argument("message", greedy_string()).executes(|ctx: &Ctx| {
+            let source = ctx.source.lock();
+            let message = get_string(ctx, "message").unwrap();
+            source.bot.chat(message);
+            1
+        })),
+    );
 
     commands.register(literal("disconnect").executes(|ctx: &Ctx| {
         let source = ctx.source.lock();

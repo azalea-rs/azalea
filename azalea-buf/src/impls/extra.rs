@@ -84,7 +84,7 @@ macro_rules! impl_for_list_type {
             }
             default fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
                 (self.len() as u32).azalea_write_var(buf)?;
-                for item in self {
+                for item in self.iter() {
                     T::azalea_write(item, buf)?;
                 }
                 Ok(())
@@ -101,7 +101,7 @@ macro_rules! impl_for_list_type {
             }
             fn azalea_write_var(&self, buf: &mut impl Write) -> io::Result<()> {
                 (self.len() as u32).azalea_write_var(buf)?;
-                for item in self {
+                for item in self.iter() {
                     T::azalea_write_var(item, buf)?;
                 }
                 Ok(())
@@ -132,6 +132,10 @@ macro_rules! impl_for_list_type {
 
 impl_for_list_type!(Vec<T>);
 impl_for_list_type!(Box<[T]>);
+// `Arc<[T]>` is deliberately not implemented here, because converting a
+// `Vec<T>` to `Arc<[T]>` results in allocations (since `Arc` stores the
+// counters on the heap) and we'd like to avoid that. for us it's typically
+// better to do `Arc<Box<[T]>>`.
 
 impl AzBuf for Vec<u8> {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {

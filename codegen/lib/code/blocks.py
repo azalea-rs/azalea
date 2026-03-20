@@ -236,13 +236,12 @@ def get_property_struct_name(
         return "StructureMode"
     if "harp" in property_variants and "didgeridoo" in property_variants:
         return "Sound"
-    if is_list_of_string_integers(property_variants):
-        # if the values are all integers, then prepend the block name
-        return to_camel_case(block_id) + to_camel_case(property_id)
     if property_variants == ["up", "side", "none"]:
         return "Wire" + to_camel_case(property_id)
     if property_variants == ["none", "low", "tall"]:
         return "Wall" + to_camel_case(property_id)
+    if property_id in {"age", "level", "distance"}:
+        return to_camel_case(block_id) + to_camel_case(property_id)
 
     return to_camel_case(property_id)
 

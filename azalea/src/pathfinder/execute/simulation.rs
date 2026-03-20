@@ -25,7 +25,7 @@ use crate::{
         system::{Commands, Query},
     },
     pathfinder::{
-        ExecutingPath,
+        ExecutingPath, PathfinderSystems,
         debug::debug_render_path_with_particles,
         moves::{ExecuteCtx, IsReachedCtx},
         simulation::{SimulatedPlayerBundle, Simulation},
@@ -68,7 +68,8 @@ impl Plugin for SimulationPathfinderExecutionPlugin {
                 .after(PhysicsSystems)
                 .after(azalea_client::movement::send_position)
                 .after(MiningSystems)
-                .after(debug_render_path_with_particles),
+                .after(debug_render_path_with_particles)
+                .in_set(PathfinderSystems),
         );
     }
 }
@@ -213,6 +214,7 @@ pub fn tick_execute_path(
                         direction: SprintDirection::Forward,
                     });
                 } else if physics_state.was_sprinting {
+                    // have to let go for a tick to be able to start walking
                     walk_events.write(StartWalkEvent {
                         entity,
                         direction: WalkDirection::None,
@@ -342,6 +344,10 @@ fn run_one_simulation(
     let start = BlockPos::from(player.position);
     sim.reset(player);
 
+    // run an Update to initialize some things, including at least the Bot component
+    // (which is needed for jumping)
+    sim.run_update_schedule();
+
     let simulating_to_block = simulating_to.movement.target;
 
     let mut success = false;
@@ -349,6 +355,27 @@ fn run_one_simulation(
 
     for ticks in 1..=timeout_ticks {
         let position = sim.position();
+        let physics = sim.physics();
+
+        if physics.horizontal_collision
+            || physics.is_in_lava()
+            || (physics.velocity.y < -0.7 && !physics.is_in_water())
+        {
+            // fail
+            break;
+        }
+
+        if (simulating_to.movement.data.is_reached)(IsReachedCtx {
+            target: simulating_to_block,
+            start,
+            position,
+            physics: &physics,
+        }) {
+            success = true;
+            total_ticks = ticks;
+            break;
+        }
+
         let ecs = sim.app.world_mut();
 
         ecs.get_mut::<LookDirection>(sim.entity)
@@ -362,7 +389,7 @@ fn run_one_simulation(
             });
         } else if ecs
             .get::<PhysicsState>(sim.entity)
-            .map(|p| p.trying_to_sprint)
+            .map(|p| p.was_sprinting)
             .unwrap_or_default()
         {
             // have to let go for a tick to be able to start walking
@@ -388,26 +415,6 @@ fn run_one_simulation(
         }
 
         sim.tick();
-
-        let physics = sim.physics();
-        if physics.horizontal_collision
-            || physics.is_in_lava()
-            || (physics.velocity.y < -0.7 && !physics.is_in_water())
-        {
-            // fail
-            break;
-        }
-
-        if (simulating_to.movement.data.is_reached)(IsReachedCtx {
-            target: simulating_to_block,
-            start,
-            position: sim.position(),
-            physics: &physics,
-        }) {
-            success = true;
-            total_ticks = ticks;
-            break;
-        }
     }
 
     if success {

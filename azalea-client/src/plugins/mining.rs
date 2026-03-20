@@ -512,7 +512,7 @@ pub fn handle_finish_mining_block_observer(
         return;
     };
 
-    let registry_block = Box::<dyn BlockTrait>::from(block_state).as_registry_block();
+    let registry_block = block_state.as_block_kind();
     if !can_use_game_master_blocks(abilities, permission_level)
         && matches!(
             registry_block,

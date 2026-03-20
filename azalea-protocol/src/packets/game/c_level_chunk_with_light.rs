@@ -22,8 +22,8 @@ pub struct ClientboundLevelChunkPacketData {
     pub heightmaps: Vec<(HeightmapKind, Box<[u64]>)>,
     /// The raw chunk sections.
     ///
-    /// We can't parse the data in `azalea-protocol` because it depends on
-    /// context from other packets
+    /// We can't parse the data in `azalea-protocol` because sometimes we want
+    /// to skip parsing this.
     ///
     /// This is an Arc because it's often very big and we want it to be cheap to
     /// clone.

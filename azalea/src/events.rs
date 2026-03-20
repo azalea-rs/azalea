@@ -158,7 +158,6 @@ impl Plugin for EventsPlugin {
                 add_player_listener,
                 update_player_listener,
                 remove_player_listener,
-                keepalive_listener,
                 death_listener.after(azalea_client::packet::death_event_on_0_health),
                 disconnect_listener,
                 connection_failed_listener.after(azalea_client::join::poll_create_connection_task),
@@ -169,7 +168,8 @@ impl Plugin for EventsPlugin {
             PreUpdate,
             init_listener.before(super::connection::read_packets),
         )
-        .add_systems(GameTick, tick_listener);
+        .add_systems(GameTick, tick_listener)
+        .add_observer(keepalive_listener);
     }
 }
 
@@ -290,14 +290,9 @@ pub fn dead_component_listener(query: Query<&LocalPlayerEvents, Added<Dead>>) {
     }
 }
 
-pub fn keepalive_listener(
-    query: Query<&LocalPlayerEvents>,
-    mut events: MessageReader<KeepAliveEvent>,
-) {
-    for event in events.read() {
-        if let Ok(local_player_events) = query.get(event.entity) {
-            let _ = local_player_events.send(Event::KeepAlive(event.id));
-        }
+pub fn keepalive_listener(keep_alive: On<KeepAliveEvent>, query: Query<&LocalPlayerEvents>) {
+    if let Ok(local_player_events) = query.get(keep_alive.entity) {
+        let _ = local_player_events.send(Event::KeepAlive(keep_alive.id));
     }
 }
 

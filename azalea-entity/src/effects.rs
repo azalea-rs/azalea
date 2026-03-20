@@ -4,17 +4,22 @@ use std::{
 };
 
 use azalea_buf::{AzBuf, BufReadError};
-use azalea_core::bitset::FixedBitSet;
-use azalea_registry::builtin::MobEffect;
+use azalea_core::{attribute_modifier_operation::AttributeModifierOperation, bitset::FixedBitSet};
+use azalea_inventory::components::AttributeModifier;
+use azalea_registry::{
+    builtin::{Attribute, MobEffect},
+    identifier::Identifier,
+};
 
 /// Data about an active mob effect.
 #[derive(AzBuf, Clone, Debug, Default, PartialEq)]
 pub struct MobEffectData {
     /// The effect's amplifier level, starting at 0 if present.
     #[var]
-    pub amplifier: u32,
+    pub amplifier: i32,
+    /// The effect's duration in ticks.
     #[var]
-    pub duration_ticks: u32,
+    pub duration: i32,
 
     pub flags: MobEffectFlags,
 }
@@ -64,8 +69,8 @@ impl AzBuf for MobEffectFlags {
 #[derive(Clone, Debug, Default)]
 pub struct ActiveEffects(pub HashMap<MobEffect, MobEffectData>);
 impl ActiveEffects {
-    pub fn insert(&mut self, effect: MobEffect, data: MobEffectData) {
-        self.0.insert(effect, data);
+    pub fn insert(&mut self, effect: MobEffect, data: MobEffectData) -> Option<MobEffectData> {
+        self.0.insert(effect, data)
     }
 
     pub fn remove(&mut self, effect: MobEffect) -> Option<MobEffectData> {
@@ -73,7 +78,7 @@ impl ActiveEffects {
     }
 
     /// Get the amplifier level for the effect, starting at 0.
-    pub fn get_level(&self, effect: MobEffect) -> Option<u32> {
+    pub fn get_level(&self, effect: MobEffect) -> Option<i32> {
         self.0.get(&effect).map(|data| data.amplifier)
     }
 
@@ -82,7 +87,7 @@ impl ActiveEffects {
     }
 
     /// Returns the amplifier for dig speed (haste / conduit power), if present.
-    pub fn get_dig_speed_amplifier(&self) -> Option<u32> {
+    pub fn get_dig_speed_amplifier(&self) -> Option<i32> {
         let haste_level = self
             .get_level(MobEffect::Haste)
             .map(|level| level + 1)
@@ -92,11 +97,119 @@ impl ActiveEffects {
             .map(|level| level + 1)
             .unwrap_or_default();
 
-        let effect_plus_one = u32::max(haste_level, conduit_power_level);
+        let effect_plus_one = i32::max(haste_level, conduit_power_level);
         if effect_plus_one > 0 {
             Some(effect_plus_one - 1)
         } else {
             None
+        }
+    }
+}
+
+pub fn attribute_modifier_for_effect(id: MobEffect) -> Option<(Attribute, AttributeTemplate)> {
+    Some(match id {
+        MobEffect::Speed => (
+            Attribute::MovementSpeed,
+            AttributeTemplate::new(
+                "effect.speed",
+                0.2f32 as f64,
+                AttributeModifierOperation::AddMultipliedTotal,
+            ),
+        ),
+        MobEffect::Slowness => (
+            Attribute::MovementSpeed,
+            AttributeTemplate::new(
+                "effect.slowness",
+                -0.15f32 as f64,
+                AttributeModifierOperation::AddMultipliedTotal,
+            ),
+        ),
+        MobEffect::Haste => (
+            Attribute::AttackSpeed,
+            AttributeTemplate::new(
+                "effect.haste",
+                0.1f32 as f64,
+                AttributeModifierOperation::AddMultipliedTotal,
+            ),
+        ),
+        MobEffect::MiningFatigue => (
+            Attribute::AttackSpeed,
+            AttributeTemplate::new(
+                "effect.mining_fatigue",
+                -0.1f32 as f64,
+                AttributeModifierOperation::AddMultipliedTotal,
+            ),
+        ),
+        MobEffect::Strength => (
+            Attribute::AttackDamage,
+            AttributeTemplate::new("effect.strength", 3.0, AttributeModifierOperation::AddValue),
+        ),
+        MobEffect::JumpBoost => (
+            Attribute::SafeFallDistance,
+            AttributeTemplate::new(
+                "effect.jump_boost",
+                1.0,
+                AttributeModifierOperation::AddValue,
+            ),
+        ),
+        MobEffect::Invisibility => (
+            Attribute::WaypointTransmitRange,
+            AttributeTemplate::new(
+                "effect.waypoint_transmit_range_hide",
+                -1.0,
+                AttributeModifierOperation::AddMultipliedTotal,
+            ),
+        ),
+        MobEffect::Weakness => (
+            Attribute::AttackDamage,
+            AttributeTemplate::new(
+                "effect.weakness",
+                -4.0,
+                AttributeModifierOperation::AddValue,
+            ),
+        ),
+        MobEffect::HealthBoost => (
+            Attribute::MaxHealth,
+            AttributeTemplate::new(
+                "effect.health_boost",
+                4.0,
+                AttributeModifierOperation::AddValue,
+            ),
+        ),
+        MobEffect::Absorption => (
+            Attribute::MaxAbsorption,
+            AttributeTemplate::new(
+                "effect.absorption",
+                4.0,
+                AttributeModifierOperation::AddValue,
+            ),
+        ),
+        MobEffect::Luck => (
+            Attribute::Luck,
+            AttributeTemplate::new("effect.luck", 1.0, AttributeModifierOperation::AddValue),
+        ),
+        MobEffect::Unluck => (
+            Attribute::Luck,
+            AttributeTemplate::new("effect.unluck", -1.0, AttributeModifierOperation::AddValue),
+        ),
+        _ => return None,
+    })
+}
+
+pub struct AttributeTemplate(AttributeModifier);
+impl AttributeTemplate {
+    pub fn new(id: &str, amount: f64, operation: AttributeModifierOperation) -> Self {
+        Self(AttributeModifier {
+            id: Identifier::from(id),
+            amount,
+            operation,
+        })
+    }
+    pub fn create(self, amplifier: i32) -> AttributeModifier {
+        AttributeModifier {
+            id: self.0.id,
+            amount: self.0.amount * (amplifier + 1) as f64,
+            operation: self.0.operation,
         }
     }
 }

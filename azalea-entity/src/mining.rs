@@ -35,7 +35,7 @@ pub fn get_mine_progress(
     };
 
     let base_destroy_speed = destroy_speed(
-        block.as_registry_block(),
+        block.as_block_kind(),
         held_item,
         fluid_on_eyes,
         physics,
@@ -52,7 +52,7 @@ fn has_correct_tool_for_drops(block: &dyn BlockTrait, item: &ItemStack) -> bool 
     let Some(tool) = item.get_component::<Tool>() else {
         return false;
     };
-    let registry_block = block.as_registry_block();
+    let registry_block = block.as_block_kind();
     for rule in &tool.rules {
         if let Some(correct) = rule.correct_for_drops
             && rule.blocks.contains(registry_block)

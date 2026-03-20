@@ -1,10 +1,14 @@
+mod utils;
+
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{
-    DeriveInput, Ident, Token, bracketed,
+    DeriveInput, Expr, Ident, Token, bracketed,
     parse::{Parse, ParseStream, Result},
     parse_macro_input,
 };
+
+use crate::utils::{to_camel_case, to_snake_case};
 
 fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> TokenStream {
     let DeriveInput { ident, data, .. } = parse_macro_input!(input);
@@ -194,17 +198,17 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
     let has_clientbound_packets = !input.clientbound.packets.is_empty();
     let has_serverbound_packets = !input.serverbound.packets.is_empty();
 
-    let mut mod_and_use_statements_contents = quote!();
-    let mut clientbound_enum_contents = quote!();
-    let mut serverbound_enum_contents = quote!();
-    let mut clientbound_id_match_contents = quote!();
-    let mut serverbound_id_match_contents = quote!();
-    let mut clientbound_name_match_contents = quote!();
-    let mut serverbound_name_match_contents = quote!();
-    let mut clientbound_write_match_contents = quote!();
-    let mut serverbound_write_match_contents = quote!();
-    let mut clientbound_read_match_contents = quote!();
-    let mut serverbound_read_match_contents = quote!();
+    let mut mod_and_use_statements_contents = quote! {};
+    let mut clientbound_enum_contents = quote! {};
+    let mut serverbound_enum_contents = quote! {};
+    let mut clientbound_id_match_contents = quote! {};
+    let mut serverbound_id_match_contents = quote! {};
+    let mut clientbound_name_match_contents = quote! {};
+    let mut serverbound_name_match_contents = quote! {};
+    let mut clientbound_write_match_contents = quote! {};
+    let mut serverbound_write_match_contents = quote! {};
+    let mut clientbound_read_match_contents = quote! {};
+    let mut serverbound_read_match_contents = quote! {};
 
     for (id, packet_name) in input.clientbound.packets.iter().enumerate() {
         let id = id as u32;
@@ -463,32 +467,64 @@ fn packet_name_to_variant_name(name: &syn::Ident) -> syn::Ident {
     syn::Ident::new(&variant_name, name.span())
 }
 
-fn to_camel_case(snake_case: &str) -> String {
-    let mut camel_case = String::new();
-    let mut capitalize_next = true;
-    for c in snake_case.chars() {
-        if c == '_' {
-            capitalize_next = true;
-        } else {
-            if capitalize_next {
-                camel_case.push(c.to_ascii_uppercase());
-            } else {
-                camel_case.push(c);
-            }
-            capitalize_next = false;
-        }
-    }
-    camel_case
+struct DeclarePacketHandlers {
+    packet_enum: Ident,
+    packet_var: Expr,
+    handler: Ident,
+    packets: Box<[syn::Path]>,
 }
-fn to_snake_case(camel_case: &str) -> String {
-    let mut snake_case = String::new();
-    for c in camel_case.chars() {
-        if c.is_ascii_uppercase() {
-            snake_case.push('_');
-            snake_case.push(c.to_ascii_lowercase());
-        } else {
-            snake_case.push(c);
+impl Parse for DeclarePacketHandlers {
+    fn parse(input: ParseStream) -> Result<Self> {
+        let packet_enum = input.parse()?;
+        input.parse::<Token![,]>()?;
+        let packet_var = input.parse()?;
+        input.parse::<Token![,]>()?;
+        let handler = input.parse()?;
+        input.parse::<Token![,]>()?;
+
+        let packets_inner;
+        bracketed!(packets_inner in input);
+        let packets = packets_inner
+            .parse_terminated(syn::Path::parse, Token![,])?
+            .into_iter()
+            .collect::<Box<[_]>>();
+
+        Ok(Self {
+            packet_enum,
+            packet_var,
+            handler,
+            packets,
+        })
+    }
+}
+#[proc_macro]
+pub fn declare_packet_handlers(input: TokenStream) -> TokenStream {
+    let DeclarePacketHandlers {
+        packet_enum,
+        packet_var,
+        handler,
+        packets,
+    } = parse_macro_input!(input as DeclarePacketHandlers);
+    // needs to be a proc macro to be able to convert snake_case to camelCase
+
+    let mut inner = quote! {};
+    for packet in packets {
+        let mut packet_camel = packet.clone();
+        let packet_last_ident = &mut packet_camel.segments.last_mut().unwrap().ident;
+        *packet_last_ident = Ident::new(
+            &to_camel_case(&packet_last_ident.to_string()),
+            packet_last_ident.span(),
+        );
+
+        inner.extend(quote! {
+            #packet_enum::#packet_camel(p) => #handler.#packet(p),
+        });
+    }
+
+    quote! {
+        match #packet_var {
+            #inner
         }
     }
-    snake_case
+    .into()
 }

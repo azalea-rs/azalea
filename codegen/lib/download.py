@@ -4,6 +4,9 @@ import requests
 import json
 import os
 
+PUMPKIN_EXTRACTOR_COMMIT = "6c78671aa7765e595bdde903e5d492e71ee0565c"
+BURGER_COMMIT = "bb84700e43bf7090877d9a4eb5d87c3125a8d22e"
+
 # make sure the cache directory exists
 print("Making __cache__")
 if not os.path.exists(get_dir_location("__cache__")):
@@ -15,7 +18,7 @@ def get_burger():
     if not os.path.exists(get_dir_location("__cache__/azalea-burger")):
         print("\033[92mDownloading azalea-burger...\033[m")
         os.system(
-            f"cd {get_dir_location('__cache__')} && git clone https://github.com/azalea-rs/azalea-burger && cd azalea-burger && git pull"
+            f"cd {get_dir_location('__cache__')} && git clone https://github.com/azalea-rs/azalea-burger && cd azalea-burger && git pull && git reset --hard {BURGER_COMMIT}"
         )
 
         print("\033[92mInstalling dependencies...\033[m")
@@ -28,7 +31,7 @@ def get_pumpkin_extractor():
     if not os.path.exists(get_dir_location("__cache__/azalea-pumpkin-extractor")):
         print("\033[92mDownloading mat-1/azalea-pumpkin-extractor...\033[m")
         os.system(
-            f"cd {get_dir_location('__cache__')} && git clone https://github.com/mat-1/azalea-pumpkin-extractor && cd azalea-pumpkin-extractor && git pull"
+            f"cd {get_dir_location('__cache__')} && git clone https://github.com/azalea-rs/azalea-pumpkin-extractor && cd azalea-pumpkin-extractor && git pull && git reset --hard {PUMPKIN_EXTRACTOR_COMMIT}"
         )
 
     return get_dir_location("__cache__/azalea-pumpkin-extractor")
@@ -106,7 +109,7 @@ def get_fabric_data(version_id: str):
     return yarn_versions_data
 
 
-def get_latest_fabric_api_version():
+def get_fabric_api_version(version_id: str):
     path = get_dir_location("__cache__/fabric-api-maven-metadata.xml")
 
     if not os.path.exists(path):
@@ -120,10 +123,12 @@ def get_latest_fabric_api_version():
             maven_metadata_xml = json.load(f)
 
     tree = ET.ElementTree(ET.fromstring(maven_metadata_xml))
-    name = tree.find(".//latest").text
-    if name.endswith("_unobfuscated"):
-        name = name[: -len("_unobfuscated")]
-    return name
+    expected_suffix = "+" + version_id.split("-")[0]
+    versions = tree.findall(".//version")
+    for candidate in reversed(versions):
+        candidate = candidate.text
+        if candidate.endswith(expected_suffix):
+            return candidate
 
 
 def get_latest_fabric_kotlin_version():
@@ -227,9 +232,9 @@ def clear_version_cache():
 
     burger_path = get_dir_location("__cache__/azalea-burger")
     if os.path.exists(burger_path):
-        os.system(f"cd {burger_path} && git pull")
+        os.system(f"cd {burger_path} && git pull && git reset --hard {BURGER_COMMIT}")
     pumpkin_path = get_dir_location("__cache__/azalea-pumpkin-extractor")
     if os.path.exists(pumpkin_path):
         os.system(
-            f"cd {pumpkin_path} && git add . && git stash && git pull && git stash pop && git checkout HEAD -- src/main/resources/fabric.mod.json"
+            f"cd {pumpkin_path} && git add . && git stash && git checkout master && git pull && git stash pop && git reset --hard {PUMPKIN_EXTRACTOR_COMMIT}"
         )

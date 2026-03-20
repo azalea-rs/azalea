@@ -26,7 +26,7 @@ use crate::{
         system::{Commands, Query, Res},
     },
     pathfinder::{
-        ExecutingPath, GotoEvent, Pathfinder,
+        ExecutingPath, GotoEvent, Pathfinder, PathfinderSystems,
         astar::PathfinderTimeout,
         custom_state::CustomPathfinderState,
         debug::debug_render_path_with_particles,
@@ -60,7 +60,8 @@ impl Plugin for DefaultPathfinderExecutionPlugin {
                 .after(PhysicsSystems)
                 .after(azalea_client::movement::send_position)
                 .after(MiningSystems)
-                .after(debug_render_path_with_particles),
+                .after(debug_render_path_with_particles)
+                .in_set(PathfinderSystems),
         );
     }
 }

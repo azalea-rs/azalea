@@ -100,6 +100,12 @@ impl ChatPacket {
                 {
                     return (Some(m[1].to_string()), m[2].to_string());
                 }
+                // hypixel whispers
+                if let Some(m) =
+                    regex!(r"^From (?:\[[^\]]+\] )(\w{1,16}): (.+)$").captures(&message)
+                {
+                    return (Some(m[1].to_string()), m[2].to_string());
+                }
 
                 (None, message)
             }
@@ -171,7 +177,11 @@ impl ChatPacket {
                 if p.overlay {
                     return false;
                 }
-                if regex!("^(-> me|[a-zA-Z_0-9]{1,16} whispers: )").is_match(&message) {
+                if regex!(r"^(-> me|\w{1,16} whispers: )").is_match(&message) {
+                    return true;
+                }
+                // hypixel
+                if regex!(r"^From (?:\[[^\]]+\] )?\w{1,16}: ").is_match(&message) {
                     return true;
                 }
 

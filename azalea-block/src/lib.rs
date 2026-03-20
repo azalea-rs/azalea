@@ -16,6 +16,9 @@ pub use block_state::BlockState;
 pub use generated::{blocks, properties};
 pub use range::BlockStates;
 
+/// A trait that's implemented on block structs.
+///
+/// See the [azalea_block documentation](crate) for details.
 pub trait BlockTrait: Debug + Any {
     fn behavior(&self) -> BlockBehavior;
     /// Get the Minecraft string ID for this block.
@@ -31,7 +34,12 @@ pub trait BlockTrait: Debug + Any {
     ///
     /// This is a lossy conversion, as [`BlockKind`] doesn't contain any state
     /// data.
-    fn as_registry_block(&self) -> BlockKind;
+    fn as_block_kind(&self) -> BlockKind;
+    #[deprecated = "renamed to as_block_kind"]
+    #[doc(hidden)]
+    fn as_registry_block(&self) -> BlockKind {
+        self.as_block_kind()
+    }
 
     /// Returns a map of property names on this block to their values as
     /// strings.
@@ -118,11 +126,11 @@ mod tests {
     pub fn test_integer_properties() {
         // Test with oak sapling that has an integer-like stage property
         let sapling_stage_0 = crate::blocks::OakSapling {
-            stage: crate::properties::OakSaplingStage::_0,
+            stage: crate::properties::Stage::_0,
         };
 
         let sapling_stage_1 = crate::blocks::OakSapling {
-            stage: crate::properties::OakSaplingStage::_1,
+            stage: crate::properties::Stage::_1,
         };
 
         // Test stage 0

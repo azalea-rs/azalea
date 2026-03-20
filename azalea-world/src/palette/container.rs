@@ -177,6 +177,7 @@ impl<S: PalletedContainerKind> PalettedContainer<S> {
     /// This function panics if the index is greater than or equal to the number
     /// of things in the storage. For example, for block states, it must be less
     /// than 4096.
+    #[inline]
     pub fn get_at_index(&self, index: usize) -> S {
         // first get the palette id
         let paletted_value = self.storage.get(index);

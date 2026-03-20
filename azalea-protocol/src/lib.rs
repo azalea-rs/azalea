@@ -11,6 +11,9 @@ pub mod read;
 pub mod resolve;
 pub mod write;
 
+// re-export for internal use in azalea-client
+#[doc(hidden)]
+pub use azalea_protocol_macros;
 // re-export to make it easier for users to have the correct version
 pub use simdnbt;
 

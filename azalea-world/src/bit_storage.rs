@@ -167,6 +167,7 @@ impl BitStorage {
     ///
     /// This function will panic if the given index is greater than or equal to
     /// the size of this storage.
+    #[inline]
     pub fn get(&self, index: usize) -> u64 {
         assert!(
             index < self.size,

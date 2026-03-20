@@ -33,9 +33,11 @@ impl Client {
 
     /// Send a message in chat.
     ///
+    /// If the content starts with a `/`, a command is sent.
+    ///
     /// ```rust,no_run
     /// # use azalea::Client;
-    /// # async fn example(bot: Client) -> anyhow::Result<()> {
+    /// # async fn example(bot: Client) -> eyre::Result<()> {
     /// bot.chat("Hello, world!");
     /// # Ok(())
     /// # }

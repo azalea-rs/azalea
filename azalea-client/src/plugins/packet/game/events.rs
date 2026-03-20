@@ -113,7 +113,7 @@ pub struct DeathEvent {
 
 /// A KeepAlive packet is sent from the server to verify that the client is
 /// still connected.
-#[derive(Clone, Debug, Message)]
+#[derive(Clone, Debug, EntityEvent)]
 pub struct KeepAliveEvent {
     pub entity: Entity,
     /// The ID of the keepalive.

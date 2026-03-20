@@ -73,8 +73,8 @@ async fn main() -> AppExit {
     builder
         .join_delay(Duration::from_millis(100))
         .set_swarm_state(SwarmState {
-            args,
-            commands: Arc::new(commands),
+            args: args.into(),
+            commands: commands.into(),
         })
         // .add_plugins(mspt::MsptPlugin)
         .start(join_address)
@@ -120,7 +120,7 @@ pub struct State {
 impl State {
     fn new() -> Self {
         Self {
-            killaura: true,
+            killaura: false,
             task: Arc::new(Mutex::new(BotTask::None)),
         }
     }
@@ -128,11 +128,11 @@ impl State {
 
 #[derive(Clone, Default, Resource)]
 struct SwarmState {
-    pub args: Args,
+    pub args: Arc<Args>,
     pub commands: Arc<CommandDispatcher<Mutex<CommandSource>>>,
 }
 
-async fn handle(bot: Client, event: azalea::Event, state: State) -> anyhow::Result<()> {
+async fn handle(bot: Client, event: azalea::Event, state: State) -> eyre::Result<()> {
     let swarm = bot.resource::<SwarmState>();
 
     match event {
@@ -201,7 +201,7 @@ async fn handle(bot: Client, event: azalea::Event, state: State) -> anyhow::Resu
 
     Ok(())
 }
-async fn swarm_handle(_swarm: Swarm, event: SwarmEvent, _state: SwarmState) -> anyhow::Result<()> {
+async fn swarm_handle(_swarm: Swarm, event: SwarmEvent, _state: SwarmState) -> eyre::Result<()> {
     match &event {
         SwarmEvent::Disconnect(account, _join_opts) => {
             println!("bot got kicked! {}", account.username());

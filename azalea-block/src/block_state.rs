@@ -1,5 +1,6 @@
 use std::{
     fmt::{self, Debug},
+    hint::assert_unchecked,
     io::{self, Cursor, Write},
 };
 
@@ -68,6 +69,12 @@ impl BlockState {
     /// hard-code them or store them in databases.
     #[inline]
     pub const fn id(&self) -> BlockStateIntegerRepr {
+        // this unsafe assert allows us to skip bounds checks if the array has at least
+        // MAX_STATE items.
+        // SAFETY: BlockState::id is private and is always checked with is_valid_state
+        // before being constructed.
+        unsafe { assert_unchecked(Self::is_valid_state(self.id)) };
+
         self.id
     }
 }
@@ -97,13 +104,12 @@ impl TryFrom<u16> for BlockState {
     type Error = ();
 
     /// Safely converts a u16 state ID to a block state.
-    fn try_from(state_id: u16) -> Result<Self, Self::Error> {
-        let state_id = state_id as BlockStateIntegerRepr;
-        if Self::is_valid_state(state_id) {
-            Ok(BlockState { id: state_id })
-        } else {
-            Err(())
+    fn try_from(id: u16) -> Result<Self, Self::Error> {
+        let id = id as BlockStateIntegerRepr;
+        if !Self::is_valid_state(id) {
+            return Err(());
         }
+        Ok(BlockState { id })
     }
 }
 impl From<BlockState> for u32 {
@@ -137,8 +143,8 @@ impl Debug for BlockState {
 }
 
 impl From<BlockState> for BlockKind {
-    fn from(value: BlockState) -> Self {
-        Box::<dyn BlockTrait>::from(value).as_registry_block()
+    fn from(block_state: BlockState) -> Self {
+        block_state.as_block_kind()
     }
 }
 

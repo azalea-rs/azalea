@@ -46,9 +46,9 @@ uuid.workspace = true
 
 [dev-dependencies]
 criterion.workspace = true
+eyre.workspace = true
 parking_lot = { workspace = true, features = ["deadlock_detection"] }
 rand.workspace = true
-anyhow.workspace = true
 bevy_log.workspace = true
 
 [features]

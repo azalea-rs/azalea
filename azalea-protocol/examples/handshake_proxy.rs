@@ -49,7 +49,7 @@ const PROXY_PLAYERS: Players = Players {
 const PROXY_SECURE_CHAT: Option<bool> = Some(false);
 
 #[tokio::main]
-async fn main() -> anyhow::Result<()> {
+async fn main() -> eyre::Result<()> {
     tracing_subscriber::fmt().with_max_level(Level::INFO).init();
 
     // Bind to an address and port
@@ -64,7 +64,7 @@ async fn main() -> anyhow::Result<()> {
     }
 }
 
-async fn handle_connection(stream: TcpStream) -> anyhow::Result<()> {
+async fn handle_connection(stream: TcpStream) -> eyre::Result<()> {
     stream.set_nodelay(true)?;
     let ip = stream.peer_addr()?;
     let mut conn: Connection<ServerboundHandshakePacket, ClientboundHandshakePacket> =

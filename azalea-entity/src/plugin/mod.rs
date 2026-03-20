@@ -1,4 +1,5 @@
 mod components;
+pub mod effect_events;
 pub mod indexing;
 
 use std::collections::HashSet;
@@ -22,6 +23,7 @@ use crate::{
     FluidOnEyes, LookDirection, Physics, Pose, Position,
     dimensions::{EntityDimensions, calculate_dimensions},
     metadata::{self, Health, Player},
+    plugin::effect_events::{handle_add_effect, handle_remove_effects},
 };
 
 /// A Bevy [`SystemSet`] for various types of entity updates.
@@ -65,6 +67,8 @@ impl Plugin for EntityPlugin {
             ),
         )
         .add_systems(GameTick, (update_in_loaded_chunk, update_fluid_on_eyes))
+        .add_observer(handle_add_effect)
+        .add_observer(handle_remove_effects)
         .init_resource::<EntityUuidIndex>();
     }
 }
@@ -144,7 +148,7 @@ pub fn update_on_climbable(
         let block_pos = BlockPos::from(position);
         let block_state_at_feet = world.get_block_state(block_pos).unwrap_or_default();
         let block_at_feet = Box::<dyn BlockTrait>::from(block_state_at_feet);
-        let registry_block_at_feet = block_at_feet.as_registry_block();
+        let registry_block_at_feet = block_at_feet.as_block_kind();
 
         **on_climbable = tags::blocks::CLIMBABLE.contains(&registry_block_at_feet)
             || (tags::blocks::TRAPDOORS.contains(&registry_block_at_feet)
@@ -167,7 +171,7 @@ fn is_trapdoor_usable_as_ladder(
 
     // block below must be a ladder
     let block_below = world.get_block_state(block_pos.down(1)).unwrap_or_default();
-    let registry_block_below = Box::<dyn BlockTrait>::from(block_below).as_registry_block();
+    let registry_block_below = block_below.as_block_kind();
     if registry_block_below != BlockKind::Ladder {
         return false;
     }

@@ -81,11 +81,11 @@ pub struct Chunk {
 /// A section of a chunk, i.e. a 16*16*16 block area.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Section {
-    /// The number of non-empty blocks in the section, as sent to us by the
-    /// server.
+    /// The number of non-empty blocks in the section, which is initialized
+    /// based on a value sent to us by the server.
     ///
-    /// Currently, Azalea does not update this on its own, so it may become out
-    /// of sync.
+    /// This may be updated every time [`Self::get_and_set_block_state`] is
+    /// called.
     pub block_count: u16,
     /// Similar to [`Self::block_count`], but for fluids.
     ///
@@ -377,7 +377,7 @@ impl Chunk {
 
         let mut heightmaps = HashMap::new();
         for (kind, data) in heightmaps_data {
-            let data: Box<[u64]> = data.clone();
+            let data = data.clone();
             let heightmap = Heightmap::new(*kind, dimension_height, min_y, data);
             heightmaps.insert(*kind, heightmap);
         }
@@ -425,7 +425,7 @@ impl Chunk {
             return;
         };
         let chunk_section_pos = ChunkSectionBlockPos::from(pos);
-        section.set_block_state(chunk_section_pos, state);
+        section.get_and_set_block_state(chunk_section_pos, state);
 
         for heightmap in self.heightmaps.values_mut() {
             heightmap.update(pos, state, &self.sections);
@@ -540,10 +540,15 @@ impl Section {
         pos: ChunkSectionBlockPos,
         state: BlockState,
     ) -> BlockState {
-        self.states.get_and_set(pos, state)
-    }
-    pub fn set_block_state(&mut self, pos: ChunkSectionBlockPos, state: BlockState) {
-        self.states.set(pos, state);
+        let previous_state = self.states.get_and_set(pos, state);
+
+        if previous_state.is_air() && !state.is_air() {
+            self.block_count += 1;
+        } else if !previous_state.is_air() && state.is_air() {
+            self.block_count -= 1;
+        }
+
+        previous_state
     }
 
     pub fn get_biome(&self, pos: ChunkSectionBiomePos) -> Biome {
