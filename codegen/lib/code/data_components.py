@@ -469,9 +469,17 @@ use crate::{
                         tag_module = "blocks"
                     else:
                         tag_module = "FIXME_UNKNOWN_MODULE"
-                    vectors.append(
-                        f"azalea_registry::tags::{tag_module}::{tag_name}.clone().into_iter().collect()"
-                    )
+
+                    # TODO: it's not currently possible to have a holderset for data registry items
+                    # (because registries would need to be translated during packet parsing/writing),
+                    # so we leave this empty for now.
+                    if inner_type in {"BannerPatternKind", "DamageKind"}:
+                        pass
+                    else:
+                        vectors.append(
+                            f"azalea_registry::tags::{tag_module}::{tag_name}.clone().into_iter().collect()"
+                        )
+
                     continue
                 main_vec += python_to_rust_value(v, inner_type) + ","
             main_vec = main_vec.rstrip(",") + "]"

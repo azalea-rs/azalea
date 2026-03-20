@@ -21,7 +21,7 @@ use crate::{
 impl DefaultableComponent for AttributeModifiers {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::CreeperHead => vec![AttributeModifiersEntry {
+            ItemKind::PiglinHead => vec![AttributeModifiersEntry {
                 display: AttributeModifierDisplay::Hidden,
                 slot: EquipmentSlotGroup::Head,
                 kind: Attribute::WaypointTransmitRange,
@@ -31,312 +31,6 @@ impl DefaultableComponent for AttributeModifiers {
                     operation: AttributeModifierOperation::AddMultipliedTotal,
                 },
             }],
-            ItemKind::IronHoe => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackDamage,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_damage".into(),
-                        amount: 0.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackSpeed,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_speed".into(),
-                        amount: -1.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::LeatherHorseArmor => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Body,
-                    kind: Attribute::Armor,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.body".into(),
-                        amount: 3.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Body,
-                    kind: Attribute::ArmorToughness,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.body".into(),
-                        amount: 0.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::LeatherChestplate => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Chest,
-                    kind: Attribute::Armor,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.chestplate".into(),
-                        amount: 3.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Chest,
-                    kind: Attribute::ArmorToughness,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.chestplate".into(),
-                        amount: 0.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::IronSpear => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackDamage,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_damage".into(),
-                        amount: 2.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackSpeed,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_speed".into(),
-                        amount: -2.9473683834075928,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::NetheriteHelmet => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Head,
-                    kind: Attribute::Armor,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.helmet".into(),
-                        amount: 3.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Head,
-                    kind: Attribute::ArmorToughness,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.helmet".into(),
-                        amount: 3.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Head,
-                    kind: Attribute::KnockbackResistance,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.helmet".into(),
-                        amount: 0.10000000149011612,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::StoneHoe => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackDamage,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_damage".into(),
-                        amount: 0.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackSpeed,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_speed".into(),
-                        amount: -2.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::CopperPickaxe => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackDamage,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_damage".into(),
-                        amount: 2.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackSpeed,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_speed".into(),
-                        amount: -2.799999952316284,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::NetheriteSword => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackDamage,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_damage".into(),
-                        amount: 7.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackSpeed,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_speed".into(),
-                        amount: -2.4000000953674316,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::GoldenBoots => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Feet,
-                    kind: Attribute::Armor,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.boots".into(),
-                        amount: 1.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Feet,
-                    kind: Attribute::ArmorToughness,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.boots".into(),
-                        amount: 0.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::CopperHelmet => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Head,
-                    kind: Attribute::Armor,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.helmet".into(),
-                        amount: 2.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Head,
-                    kind: Attribute::ArmorToughness,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.helmet".into(),
-                        amount: 0.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::GoldenHelmet => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Head,
-                    kind: Attribute::Armor,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.helmet".into(),
-                        amount: 2.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Head,
-                    kind: Attribute::ArmorToughness,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.helmet".into(),
-                        amount: 0.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::TurtleHelmet => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Head,
-                    kind: Attribute::Armor,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.helmet".into(),
-                        amount: 2.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Head,
-                    kind: Attribute::ArmorToughness,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.helmet".into(),
-                        amount: 0.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::PlayerHead => vec![AttributeModifiersEntry {
-                display: AttributeModifierDisplay::Hidden,
-                slot: EquipmentSlotGroup::Head,
-                kind: Attribute::WaypointTransmitRange,
-                modifier: AttributeModifier {
-                    id: "minecraft:waypoint_transmit_range_hide".into(),
-                    amount: -1.0,
-                    operation: AttributeModifierOperation::AddMultipliedTotal,
-                },
-            }],
-            ItemKind::GoldenSpear => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackDamage,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_damage".into(),
-                        amount: 0.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackSpeed,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_speed".into(),
-                        amount: -2.9473683834075928,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
             ItemKind::WoodenHoe => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Mainhand,
@@ -359,7 +53,127 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
             ],
-            ItemKind::CopperNautilusArmor => vec![
+            ItemKind::WoodenShovel => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackDamage,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_damage".into(),
+                        amount: 1.5,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackSpeed,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_speed".into(),
+                        amount: -3.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::ChainmailHelmet => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Head,
+                    kind: Attribute::Armor,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.helmet".into(),
+                        amount: 2.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Head,
+                    kind: Attribute::ArmorToughness,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.helmet".into(),
+                        amount: 0.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::GoldenSword => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackDamage,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_damage".into(),
+                        amount: 3.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackSpeed,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_speed".into(),
+                        amount: -2.4000000953674316,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::Trident => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackDamage,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_damage".into(),
+                        amount: 8.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackSpeed,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_speed".into(),
+                        amount: -2.9000000953674316,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::WitherSkeletonSkull => vec![AttributeModifiersEntry {
+                display: AttributeModifierDisplay::Hidden,
+                slot: EquipmentSlotGroup::Head,
+                kind: Attribute::WaypointTransmitRange,
+                modifier: AttributeModifier {
+                    id: "minecraft:waypoint_transmit_range_hide".into(),
+                    amount: -1.0,
+                    operation: AttributeModifierOperation::AddMultipliedTotal,
+                },
+            }],
+            ItemKind::DiamondShovel => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackDamage,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_damage".into(),
+                        amount: 4.5,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackSpeed,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_speed".into(),
+                        amount: -3.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::CopperHorseArmor => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Body,
                     kind: Attribute::Armor,
@@ -403,29 +217,29 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
             ],
-            ItemKind::IronHelmet => vec![
+            ItemKind::CopperHoe => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Head,
-                    kind: Attribute::Armor,
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
-                        id: "minecraft:armor.helmet".into(),
-                        amount: 2.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Head,
-                    kind: Attribute::ArmorToughness,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.helmet".into(),
+                        id: "minecraft:base_attack_damage".into(),
                         amount: 0.0,
                         operation: AttributeModifierOperation::AddValue,
                     },
                 },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackSpeed,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_speed".into(),
+                        amount: -2.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
             ],
-            ItemKind::ZombieHead => vec![AttributeModifiersEntry {
+            ItemKind::SkeletonSkull => vec![AttributeModifiersEntry {
                 display: AttributeModifierDisplay::Hidden,
                 slot: EquipmentSlotGroup::Head,
                 kind: Attribute::WaypointTransmitRange,
@@ -435,50 +249,6 @@ impl DefaultableComponent for AttributeModifiers {
                     operation: AttributeModifierOperation::AddMultipliedTotal,
                 },
             }],
-            ItemKind::StoneShovel => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackDamage,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_damage".into(),
-                        amount: 2.5,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackSpeed,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_speed".into(),
-                        amount: -3.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::StoneAxe => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackDamage,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_damage".into(),
-                        amount: 8.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackSpeed,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_speed".into(),
-                        amount: -3.200000047683716,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
             ItemKind::NetheriteShovel => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Mainhand,
@@ -501,14 +271,14 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
             ],
-            ItemKind::StoneSword => vec![
+            ItemKind::GoldenPickaxe => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_damage".into(),
-                        amount: 4.0,
+                        amount: 1.0,
                         operation: AttributeModifierOperation::AddValue,
                     },
                 },
@@ -518,94 +288,28 @@ impl DefaultableComponent for AttributeModifiers {
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
-                        amount: -2.4000000953674316,
+                        amount: -2.799999952316284,
                         operation: AttributeModifierOperation::AddValue,
                     },
                 },
             ],
-            ItemKind::DiamondLeggings => vec![
+            ItemKind::ChainmailBoots => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Legs,
+                    slot: EquipmentSlotGroup::Feet,
                     kind: Attribute::Armor,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
-                        id: "minecraft:armor.leggings".into(),
-                        amount: 6.0,
+                        id: "minecraft:armor.boots".into(),
+                        amount: 1.0,
                         operation: AttributeModifierOperation::AddValue,
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Legs,
+                    slot: EquipmentSlotGroup::Feet,
                     kind: Attribute::ArmorToughness,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
-                        id: "minecraft:armor.leggings".into(),
-                        amount: 2.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::DiamondAxe => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackDamage,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_damage".into(),
-                        amount: 8.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackSpeed,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_speed".into(),
-                        amount: -3.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::GoldenSword => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackDamage,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_damage".into(),
-                        amount: 3.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackSpeed,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_speed".into(),
-                        amount: -2.4000000953674316,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::IronLeggings => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Legs,
-                    kind: Attribute::Armor,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.leggings".into(),
-                        amount: 5.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Legs,
-                    kind: Attribute::ArmorToughness,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.leggings".into(),
+                        id: "minecraft:armor.boots".into(),
                         amount: 0.0,
                         operation: AttributeModifierOperation::AddValue,
                     },
@@ -633,6 +337,60 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
             ],
+            ItemKind::NetheriteNautilusArmor => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Body,
+                    kind: Attribute::Armor,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.body".into(),
+                        amount: 19.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Body,
+                    kind: Attribute::ArmorToughness,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.body".into(),
+                        amount: 3.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Body,
+                    kind: Attribute::KnockbackResistance,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.body".into(),
+                        amount: 0.10000000149011612,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::IronShovel => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackDamage,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_damage".into(),
+                        amount: 3.5,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackSpeed,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_speed".into(),
+                        amount: -3.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
             ItemKind::GoldenShovel => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Mainhand,
@@ -655,14 +413,364 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
             ],
-            ItemKind::WoodenSword => vec![
+            ItemKind::DiamondHelmet => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Head,
+                    kind: Attribute::Armor,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.helmet".into(),
+                        amount: 3.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Head,
+                    kind: Attribute::ArmorToughness,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.helmet".into(),
+                        amount: 2.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::IronHorseArmor => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Body,
+                    kind: Attribute::Armor,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.body".into(),
+                        amount: 5.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Body,
+                    kind: Attribute::ArmorToughness,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.body".into(),
+                        amount: 0.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::IronHelmet => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Head,
+                    kind: Attribute::Armor,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.helmet".into(),
+                        amount: 2.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Head,
+                    kind: Attribute::ArmorToughness,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.helmet".into(),
+                        amount: 0.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::IronSpear => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_damage".into(),
+                        amount: 2.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackSpeed,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_speed".into(),
+                        amount: -2.9473683834075928,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::IronBoots => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Feet,
+                    kind: Attribute::Armor,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.boots".into(),
+                        amount: 2.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Feet,
+                    kind: Attribute::ArmorToughness,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.boots".into(),
+                        amount: 0.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::DiamondAxe => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackDamage,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_damage".into(),
+                        amount: 8.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackSpeed,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_speed".into(),
+                        amount: -3.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::GoldenAxe => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackDamage,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_damage".into(),
+                        amount: 6.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackSpeed,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_speed".into(),
+                        amount: -3.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::StoneSpear => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackDamage,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_damage".into(),
+                        amount: 1.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackSpeed,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_speed".into(),
+                        amount: -2.666666626930237,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::CopperNautilusArmor => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Body,
+                    kind: Attribute::Armor,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.body".into(),
+                        amount: 4.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Body,
+                    kind: Attribute::ArmorToughness,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.body".into(),
+                        amount: 0.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::StonePickaxe => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackDamage,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_damage".into(),
+                        amount: 2.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackSpeed,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_speed".into(),
+                        amount: -2.799999952316284,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::NetheriteBoots => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Feet,
+                    kind: Attribute::Armor,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.boots".into(),
                         amount: 3.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Feet,
+                    kind: Attribute::ArmorToughness,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.boots".into(),
+                        amount: 3.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Feet,
+                    kind: Attribute::KnockbackResistance,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.boots".into(),
+                        amount: 0.10000000149011612,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::DiamondHoe => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackDamage,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_damage".into(),
+                        amount: 0.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackSpeed,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_speed".into(),
+                        amount: 0.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::GoldenNautilusArmor => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Body,
+                    kind: Attribute::Armor,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.body".into(),
+                        amount: 7.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Body,
+                    kind: Attribute::ArmorToughness,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.body".into(),
+                        amount: 0.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::NetheriteSpear => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackDamage,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_damage".into(),
+                        amount: 4.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackSpeed,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_speed".into(),
+                        amount: -3.13043475151062,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::ChainmailChestplate => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Chest,
+                    kind: Attribute::Armor,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.chestplate".into(),
+                        amount: 5.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Chest,
+                    kind: Attribute::ArmorToughness,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.chestplate".into(),
+                        amount: 0.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::PlayerHead => vec![AttributeModifiersEntry {
+                display: AttributeModifierDisplay::Hidden,
+                slot: EquipmentSlotGroup::Head,
+                kind: Attribute::WaypointTransmitRange,
+                modifier: AttributeModifier {
+                    id: "minecraft:waypoint_transmit_range_hide".into(),
+                    amount: -1.0,
+                    operation: AttributeModifierOperation::AddMultipliedTotal,
+                },
+            }],
+            ItemKind::StoneSword => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackDamage,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_damage".into(),
+                        amount: 4.0,
                         operation: AttributeModifierOperation::AddValue,
                     },
                 },
@@ -677,36 +785,14 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
             ],
-            ItemKind::ChainmailLeggings => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Legs,
-                    kind: Attribute::Armor,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.leggings".into(),
-                        amount: 4.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Legs,
-                    kind: Attribute::ArmorToughness,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.leggings".into(),
-                        amount: 0.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::CopperHoe => vec![
+            ItemKind::IronSword => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_damage".into(),
-                        amount: 0.0,
+                        amount: 5.0,
                         operation: AttributeModifierOperation::AddValue,
                     },
                 },
@@ -716,7 +802,7 @@ impl DefaultableComponent for AttributeModifiers {
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
-                        amount: -2.0,
+                        amount: -2.4000000953674316,
                         operation: AttributeModifierOperation::AddValue,
                     },
                 },
@@ -765,7 +851,127 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
             ],
-            ItemKind::NetheriteSpear => vec![
+            ItemKind::DragonHead => vec![AttributeModifiersEntry {
+                display: AttributeModifierDisplay::Hidden,
+                slot: EquipmentSlotGroup::Head,
+                kind: Attribute::WaypointTransmitRange,
+                modifier: AttributeModifier {
+                    id: "minecraft:waypoint_transmit_range_hide".into(),
+                    amount: -1.0,
+                    operation: AttributeModifierOperation::AddMultipliedTotal,
+                },
+            }],
+            ItemKind::CopperAxe => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackDamage,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_damage".into(),
+                        amount: 8.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackSpeed,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_speed".into(),
+                        amount: -3.200000047683716,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::NetheriteHoe => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackDamage,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_damage".into(),
+                        amount: 0.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackSpeed,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_speed".into(),
+                        amount: 0.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::WoodenSpear => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackDamage,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_damage".into(),
+                        amount: 0.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackSpeed,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_speed".into(),
+                        amount: -2.4615384340286255,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::DiamondLeggings => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Legs,
+                    kind: Attribute::Armor,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.leggings".into(),
+                        amount: 6.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Legs,
+                    kind: Attribute::ArmorToughness,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.leggings".into(),
+                        amount: 2.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::CopperPickaxe => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackDamage,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_damage".into(),
+                        amount: 2.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackSpeed,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_speed".into(),
+                        amount: -2.799999952316284,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::DiamondPickaxe => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
@@ -782,56 +988,34 @@ impl DefaultableComponent for AttributeModifiers {
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
-                        amount: -3.13043475151062,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::GoldenAxe => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackDamage,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_damage".into(),
-                        amount: 6.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackSpeed,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_speed".into(),
-                        amount: -3.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::IronPickaxe => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackDamage,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_damage".into(),
-                        amount: 3.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackSpeed,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_speed".into(),
                         amount: -2.799999952316284,
                         operation: AttributeModifierOperation::AddValue,
                     },
                 },
             ],
-            ItemKind::NetheriteNautilusArmor => vec![
+            ItemKind::IronHoe => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackDamage,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_damage".into(),
+                        amount: 0.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackSpeed,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_speed".into(),
+                        amount: -1.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::NetheriteHorseArmor => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Body,
                     kind: Attribute::Armor,
@@ -863,14 +1047,14 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
             ],
-            ItemKind::CopperAxe => vec![
+            ItemKind::DiamondSword => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_damage".into(),
-                        amount: 8.0,
+                        amount: 6.0,
                         operation: AttributeModifierOperation::AddValue,
                     },
                 },
@@ -880,19 +1064,127 @@ impl DefaultableComponent for AttributeModifiers {
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
-                        amount: -3.200000047683716,
+                        amount: -2.4000000953674316,
                         operation: AttributeModifierOperation::AddValue,
                     },
                 },
             ],
-            ItemKind::GoldenPickaxe => vec![
+            ItemKind::NetheriteLeggings => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Legs,
+                    kind: Attribute::Armor,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.leggings".into(),
+                        amount: 6.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Legs,
+                    kind: Attribute::ArmorToughness,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.leggings".into(),
+                        amount: 3.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Legs,
+                    kind: Attribute::KnockbackResistance,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.leggings".into(),
+                        amount: 0.10000000149011612,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::DiamondNautilusArmor => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Body,
+                    kind: Attribute::Armor,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.body".into(),
+                        amount: 11.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Body,
+                    kind: Attribute::ArmorToughness,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.body".into(),
+                        amount: 2.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::NetheriteHelmet => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Head,
+                    kind: Attribute::Armor,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.helmet".into(),
+                        amount: 3.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Head,
+                    kind: Attribute::ArmorToughness,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.helmet".into(),
+                        amount: 3.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Head,
+                    kind: Attribute::KnockbackResistance,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.helmet".into(),
+                        amount: 0.10000000149011612,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::ChainmailLeggings => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Legs,
+                    kind: Attribute::Armor,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.leggings".into(),
+                        amount: 4.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Legs,
+                    kind: Attribute::ArmorToughness,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.leggings".into(),
+                        amount: 0.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::CopperSword => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_damage".into(),
-                        amount: 1.0,
+                        amount: 4.0,
                         operation: AttributeModifierOperation::AddValue,
                     },
                 },
@@ -902,7 +1194,7 @@ impl DefaultableComponent for AttributeModifiers {
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
-                        amount: -2.799999952316284,
+                        amount: -2.4000000953674316,
                         operation: AttributeModifierOperation::AddValue,
                     },
                 },
@@ -929,14 +1221,256 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
             ],
-            ItemKind::IronShovel => vec![
+            ItemKind::CopperLeggings => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Legs,
+                    kind: Attribute::Armor,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.leggings".into(),
+                        amount: 3.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Legs,
+                    kind: Attribute::ArmorToughness,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.leggings".into(),
+                        amount: 0.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::NetheriteSword => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_damage".into(),
-                        amount: 3.5,
+                        amount: 7.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackSpeed,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_speed".into(),
+                        amount: -2.4000000953674316,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::LeatherHorseArmor => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Body,
+                    kind: Attribute::Armor,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.body".into(),
+                        amount: 3.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Body,
+                    kind: Attribute::ArmorToughness,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.body".into(),
+                        amount: 0.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::WoodenSword => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackDamage,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_damage".into(),
+                        amount: 3.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackSpeed,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_speed".into(),
+                        amount: -2.4000000953674316,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::IronPickaxe => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackDamage,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_damage".into(),
+                        amount: 3.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackSpeed,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_speed".into(),
+                        amount: -2.799999952316284,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::CopperHelmet => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Head,
+                    kind: Attribute::Armor,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.helmet".into(),
+                        amount: 2.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Head,
+                    kind: Attribute::ArmorToughness,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.helmet".into(),
+                        amount: 0.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::IronLeggings => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Legs,
+                    kind: Attribute::Armor,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.leggings".into(),
+                        amount: 5.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Legs,
+                    kind: Attribute::ArmorToughness,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.leggings".into(),
+                        amount: 0.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::GoldenHelmet => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Head,
+                    kind: Attribute::Armor,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.helmet".into(),
+                        amount: 2.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Head,
+                    kind: Attribute::ArmorToughness,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.helmet".into(),
+                        amount: 0.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::GoldenLeggings => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Legs,
+                    kind: Attribute::Armor,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.leggings".into(),
+                        amount: 3.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Legs,
+                    kind: Attribute::ArmorToughness,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.leggings".into(),
+                        amount: 0.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::CopperSpear => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackDamage,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_damage".into(),
+                        amount: 1.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackSpeed,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_speed".into(),
+                        amount: -2.8235294818878174,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::LeatherChestplate => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Chest,
+                    kind: Attribute::Armor,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.chestplate".into(),
+                        amount: 3.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Chest,
+                    kind: Attribute::ArmorToughness,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.chestplate".into(),
+                        amount: 0.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::StoneShovel => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackDamage,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_damage".into(),
+                        amount: 2.5,
                         operation: AttributeModifierOperation::AddValue,
                     },
                 },
@@ -951,14 +1485,36 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
             ],
-            ItemKind::GoldenChestplate => vec![
+            ItemKind::WolfArmor => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Body,
+                    kind: Attribute::Armor,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.body".into(),
+                        amount: 11.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Body,
+                    kind: Attribute::ArmorToughness,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.body".into(),
+                        amount: 0.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::IronChestplate => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Chest,
                     kind: Attribute::Armor,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.chestplate".into(),
-                        amount: 5.0,
+                        amount: 6.0,
                         operation: AttributeModifierOperation::AddValue,
                     },
                 },
@@ -973,56 +1529,24 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
             ],
-            ItemKind::NetheriteBoots => vec![
+            ItemKind::DiamondChestplate => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Feet,
+                    slot: EquipmentSlotGroup::Chest,
                     kind: Attribute::Armor,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
-                        id: "minecraft:armor.boots".into(),
-                        amount: 3.0,
+                        id: "minecraft:armor.chestplate".into(),
+                        amount: 8.0,
                         operation: AttributeModifierOperation::AddValue,
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Feet,
+                    slot: EquipmentSlotGroup::Chest,
                     kind: Attribute::ArmorToughness,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
-                        id: "minecraft:armor.boots".into(),
-                        amount: 3.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Feet,
-                    kind: Attribute::KnockbackResistance,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.boots".into(),
-                        amount: 0.10000000149011612,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::WoodenSpear => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackDamage,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_damage".into(),
-                        amount: 0.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackSpeed,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_speed".into(),
-                        amount: -2.4615384340286255,
+                        id: "minecraft:armor.chestplate".into(),
+                        amount: 2.0,
                         operation: AttributeModifierOperation::AddValue,
                     },
                 },
@@ -1049,46 +1573,24 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
             ],
-            ItemKind::WoodenShovel => vec![
+            ItemKind::GoldenChestplate => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackDamage,
+                    slot: EquipmentSlotGroup::Chest,
+                    kind: Attribute::Armor,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
-                        id: "minecraft:base_attack_damage".into(),
-                        amount: 1.5,
+                        id: "minecraft:armor.chestplate".into(),
+                        amount: 5.0,
                         operation: AttributeModifierOperation::AddValue,
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackSpeed,
+                    slot: EquipmentSlotGroup::Chest,
+                    kind: Attribute::ArmorToughness,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
-                        id: "minecraft:base_attack_speed".into(),
-                        amount: -3.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::CopperSpear => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackDamage,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_damage".into(),
-                        amount: 1.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackSpeed,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_speed".into(),
-                        amount: -2.8235294818878174,
+                        id: "minecraft:armor.chestplate".into(),
+                        amount: 0.0,
                         operation: AttributeModifierOperation::AddValue,
                     },
                 },
@@ -1137,49 +1639,95 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
             ],
-            ItemKind::NetheriteLeggings => vec![
+            ItemKind::CopperShovel => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Legs,
-                    kind: Attribute::Armor,
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
-                        id: "minecraft:armor.leggings".into(),
-                        amount: 6.0,
+                        id: "minecraft:base_attack_damage".into(),
+                        amount: 2.5,
                         operation: AttributeModifierOperation::AddValue,
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Legs,
-                    kind: Attribute::ArmorToughness,
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
-                        id: "minecraft:armor.leggings".into(),
-                        amount: 3.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Legs,
-                    kind: Attribute::KnockbackResistance,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.leggings".into(),
-                        amount: 0.10000000149011612,
+                        id: "minecraft:base_attack_speed".into(),
+                        amount: -3.0,
                         operation: AttributeModifierOperation::AddValue,
                     },
                 },
             ],
-            ItemKind::DragonHead => vec![AttributeModifiersEntry {
-                display: AttributeModifierDisplay::Hidden,
-                slot: EquipmentSlotGroup::Head,
-                kind: Attribute::WaypointTransmitRange,
-                modifier: AttributeModifier {
-                    id: "minecraft:waypoint_transmit_range_hide".into(),
-                    amount: -1.0,
-                    operation: AttributeModifierOperation::AddMultipliedTotal,
+            ItemKind::GoldenBoots => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Feet,
+                    kind: Attribute::Armor,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.boots".into(),
+                        amount: 1.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
                 },
-            }],
-            ItemKind::NetheriteHoe => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Feet,
+                    kind: Attribute::ArmorToughness,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.boots".into(),
+                        amount: 0.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::TurtleHelmet => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Head,
+                    kind: Attribute::Armor,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.helmet".into(),
+                        amount: 2.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Head,
+                    kind: Attribute::ArmorToughness,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.helmet".into(),
+                        amount: 0.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::LeatherBoots => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Feet,
+                    kind: Attribute::Armor,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.boots".into(),
+                        amount: 1.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Feet,
+                    kind: Attribute::ArmorToughness,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.boots".into(),
+                        amount: 0.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::StoneHoe => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
@@ -1196,11 +1744,87 @@ impl DefaultableComponent for AttributeModifiers {
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
-                        amount: 0.0,
+                        amount: -2.0,
                         operation: AttributeModifierOperation::AddValue,
                     },
                 },
             ],
+            ItemKind::DiamondBoots => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Feet,
+                    kind: Attribute::Armor,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.boots".into(),
+                        amount: 3.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Feet,
+                    kind: Attribute::ArmorToughness,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.boots".into(),
+                        amount: 2.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::StoneAxe => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackDamage,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_damage".into(),
+                        amount: 8.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackSpeed,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_speed".into(),
+                        amount: -3.200000047683716,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::IronAxe => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackDamage,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_damage".into(),
+                        amount: 8.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackSpeed,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_speed".into(),
+                        amount: -3.0999999046325684,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::ZombieHead => vec![AttributeModifiersEntry {
+                display: AttributeModifierDisplay::Hidden,
+                slot: EquipmentSlotGroup::Head,
+                kind: Attribute::WaypointTransmitRange,
+                modifier: AttributeModifier {
+                    id: "minecraft:waypoint_transmit_range_hide".into(),
+                    amount: -1.0,
+                    operation: AttributeModifierOperation::AddMultipliedTotal,
+                },
+            }],
             ItemKind::NetheritePickaxe => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Mainhand,
@@ -1223,36 +1847,24 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
             ],
-            ItemKind::LeatherHelmet => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Head,
-                    kind: Attribute::Armor,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.helmet".into(),
-                        amount: 1.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
+            ItemKind::CarvedPumpkin => vec![AttributeModifiersEntry {
+                display: AttributeModifierDisplay::Hidden,
+                slot: EquipmentSlotGroup::Head,
+                kind: Attribute::WaypointTransmitRange,
+                modifier: AttributeModifier {
+                    id: "minecraft:waypoint_transmit_range_hide".into(),
+                    amount: -1.0,
+                    operation: AttributeModifierOperation::AddMultipliedTotal,
                 },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Head,
-                    kind: Attribute::ArmorToughness,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.helmet".into(),
-                        amount: 0.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::IronChestplate => vec![
+            }],
+            ItemKind::NetheriteChestplate => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Chest,
                     kind: Attribute::Armor,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.chestplate".into(),
-                        amount: 6.0,
+                        amount: 8.0,
                         operation: AttributeModifierOperation::AddValue,
                     },
                 },
@@ -1262,56 +1874,22 @@ impl DefaultableComponent for AttributeModifiers {
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.chestplate".into(),
-                        amount: 0.0,
+                        amount: 3.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Chest,
+                    kind: Attribute::KnockbackResistance,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:armor.chestplate".into(),
+                        amount: 0.10000000149011612,
                         operation: AttributeModifierOperation::AddValue,
                     },
                 },
             ],
-            ItemKind::DiamondNautilusArmor => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Body,
-                    kind: Attribute::Armor,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.body".into(),
-                        amount: 11.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Body,
-                    kind: Attribute::ArmorToughness,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.body".into(),
-                        amount: 2.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::IronBoots => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Feet,
-                    kind: Attribute::Armor,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.boots".into(),
-                        amount: 2.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Feet,
-                    kind: Attribute::ArmorToughness,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.boots".into(),
-                        amount: 0.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::SkeletonSkull => vec![AttributeModifiersEntry {
+            ItemKind::CreeperHead => vec![AttributeModifiersEntry {
                 display: AttributeModifierDisplay::Hidden,
                 slot: EquipmentSlotGroup::Head,
                 kind: Attribute::WaypointTransmitRange,
@@ -1365,270 +1943,6 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
             ],
-            ItemKind::CopperSword => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackDamage,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_damage".into(),
-                        amount: 4.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackSpeed,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_speed".into(),
-                        amount: -2.4000000953674316,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::CopperLeggings => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Legs,
-                    kind: Attribute::Armor,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.leggings".into(),
-                        amount: 3.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Legs,
-                    kind: Attribute::ArmorToughness,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.leggings".into(),
-                        amount: 0.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::DiamondHoe => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackDamage,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_damage".into(),
-                        amount: 0.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackSpeed,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_speed".into(),
-                        amount: 0.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::CopperShovel => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackDamage,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_damage".into(),
-                        amount: 2.5,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackSpeed,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_speed".into(),
-                        amount: -3.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::DiamondBoots => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Feet,
-                    kind: Attribute::Armor,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.boots".into(),
-                        amount: 3.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Feet,
-                    kind: Attribute::ArmorToughness,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.boots".into(),
-                        amount: 2.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::IronHorseArmor => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Body,
-                    kind: Attribute::Armor,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.body".into(),
-                        amount: 5.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Body,
-                    kind: Attribute::ArmorToughness,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.body".into(),
-                        amount: 0.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::DiamondHelmet => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Head,
-                    kind: Attribute::Armor,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.helmet".into(),
-                        amount: 3.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Head,
-                    kind: Attribute::ArmorToughness,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.helmet".into(),
-                        amount: 2.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::DiamondSword => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackDamage,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_damage".into(),
-                        amount: 6.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackSpeed,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_speed".into(),
-                        amount: -2.4000000953674316,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::StonePickaxe => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackDamage,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_damage".into(),
-                        amount: 2.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackSpeed,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_speed".into(),
-                        amount: -2.799999952316284,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::Trident => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackDamage,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_damage".into(),
-                        amount: 8.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackSpeed,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_speed".into(),
-                        amount: -2.9000000953674316,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::StoneSpear => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackDamage,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_damage".into(),
-                        amount: 1.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackSpeed,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_speed".into(),
-                        amount: -2.666666626930237,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::CopperHorseArmor => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Body,
-                    kind: Attribute::Armor,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.body".into(),
-                        amount: 4.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Body,
-                    kind: Attribute::ArmorToughness,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.body".into(),
-                        amount: 0.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
             ItemKind::GoldenHoe => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Mainhand,
@@ -1651,112 +1965,14 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
             ],
-            ItemKind::DiamondShovel => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackDamage,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_damage".into(),
-                        amount: 4.5,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackSpeed,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_speed".into(),
-                        amount: -3.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::WitherSkeletonSkull => vec![AttributeModifiersEntry {
-                display: AttributeModifierDisplay::Hidden,
-                slot: EquipmentSlotGroup::Head,
-                kind: Attribute::WaypointTransmitRange,
-                modifier: AttributeModifier {
-                    id: "minecraft:waypoint_transmit_range_hide".into(),
-                    amount: -1.0,
-                    operation: AttributeModifierOperation::AddMultipliedTotal,
-                },
-            }],
-            ItemKind::ChainmailChestplate => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Chest,
-                    kind: Attribute::Armor,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.chestplate".into(),
-                        amount: 5.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Chest,
-                    kind: Attribute::ArmorToughness,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.chestplate".into(),
-                        amount: 0.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::GoldenNautilusArmor => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Body,
-                    kind: Attribute::Armor,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.body".into(),
-                        amount: 7.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Body,
-                    kind: Attribute::ArmorToughness,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.body".into(),
-                        amount: 0.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::IronSword => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackDamage,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_damage".into(),
-                        amount: 5.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackSpeed,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_speed".into(),
-                        amount: -2.4000000953674316,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::ChainmailHelmet => vec![
+            ItemKind::LeatherHelmet => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Head,
                     kind: Attribute::Armor,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.helmet".into(),
-                        amount: 2.0,
+                        amount: 1.0,
                         operation: AttributeModifierOperation::AddValue,
                     },
                 },
@@ -1767,6 +1983,28 @@ impl DefaultableComponent for AttributeModifiers {
                     modifier: AttributeModifier {
                         id: "minecraft:armor.helmet".into(),
                         amount: 0.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+            ],
+            ItemKind::GoldenSpear => vec![
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackDamage,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_damage".into(),
+                        amount: 0.0,
+                        operation: AttributeModifierOperation::AddValue,
+                    },
+                },
+                AttributeModifiersEntry {
+                    slot: EquipmentSlotGroup::Mainhand,
+                    kind: Attribute::AttackSpeed,
+                    display: AttributeModifierDisplay::Default,
+                    modifier: AttributeModifier {
+                        id: "minecraft:base_attack_speed".into(),
+                        amount: -2.9473683834075928,
                         operation: AttributeModifierOperation::AddValue,
                     },
                 },
@@ -1793,244 +2031,6 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
             ],
-            ItemKind::NetheriteHorseArmor => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Body,
-                    kind: Attribute::Armor,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.body".into(),
-                        amount: 19.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Body,
-                    kind: Attribute::ArmorToughness,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.body".into(),
-                        amount: 3.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Body,
-                    kind: Attribute::KnockbackResistance,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.body".into(),
-                        amount: 0.10000000149011612,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::ChainmailBoots => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Feet,
-                    kind: Attribute::Armor,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.boots".into(),
-                        amount: 1.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Feet,
-                    kind: Attribute::ArmorToughness,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.boots".into(),
-                        amount: 0.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::IronAxe => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackDamage,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_damage".into(),
-                        amount: 8.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackSpeed,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_speed".into(),
-                        amount: -3.0999999046325684,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::NetheriteChestplate => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Chest,
-                    kind: Attribute::Armor,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.chestplate".into(),
-                        amount: 8.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Chest,
-                    kind: Attribute::ArmorToughness,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.chestplate".into(),
-                        amount: 3.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Chest,
-                    kind: Attribute::KnockbackResistance,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.chestplate".into(),
-                        amount: 0.10000000149011612,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::GoldenLeggings => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Legs,
-                    kind: Attribute::Armor,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.leggings".into(),
-                        amount: 3.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Legs,
-                    kind: Attribute::ArmorToughness,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.leggings".into(),
-                        amount: 0.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::CarvedPumpkin => vec![AttributeModifiersEntry {
-                display: AttributeModifierDisplay::Hidden,
-                slot: EquipmentSlotGroup::Head,
-                kind: Attribute::WaypointTransmitRange,
-                modifier: AttributeModifier {
-                    id: "minecraft:waypoint_transmit_range_hide".into(),
-                    amount: -1.0,
-                    operation: AttributeModifierOperation::AddMultipliedTotal,
-                },
-            }],
-            ItemKind::DiamondChestplate => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Chest,
-                    kind: Attribute::Armor,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.chestplate".into(),
-                        amount: 8.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Chest,
-                    kind: Attribute::ArmorToughness,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.chestplate".into(),
-                        amount: 2.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::PiglinHead => vec![AttributeModifiersEntry {
-                display: AttributeModifierDisplay::Hidden,
-                slot: EquipmentSlotGroup::Head,
-                kind: Attribute::WaypointTransmitRange,
-                modifier: AttributeModifier {
-                    id: "minecraft:waypoint_transmit_range_hide".into(),
-                    amount: -1.0,
-                    operation: AttributeModifierOperation::AddMultipliedTotal,
-                },
-            }],
-            ItemKind::DiamondPickaxe => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackDamage,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_damage".into(),
-                        amount: 4.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    kind: Attribute::AttackSpeed,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:base_attack_speed".into(),
-                        amount: -2.799999952316284,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::WolfArmor => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Body,
-                    kind: Attribute::Armor,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.body".into(),
-                        amount: 11.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Body,
-                    kind: Attribute::ArmorToughness,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.body".into(),
-                        amount: 0.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
-            ItemKind::LeatherBoots => vec![
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Feet,
-                    kind: Attribute::Armor,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.boots".into(),
-                        amount: 1.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-                AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Feet,
-                    kind: Attribute::ArmorToughness,
-                    display: AttributeModifierDisplay::Default,
-                    modifier: AttributeModifier {
-                        id: "minecraft:armor.boots".into(),
-                        amount: 0.0,
-                        operation: AttributeModifierOperation::AddValue,
-                    },
-                },
-            ],
             _ => vec![],
         };
         Some(AttributeModifiers { modifiers: value })
@@ -2039,13 +2039,27 @@ impl DefaultableComponent for AttributeModifiers {
 impl DefaultableComponent for BreakSound {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::Shield => azalea_registry::Holder::Reference(SoundEvent::ItemShieldBreak),
             ItemKind::WolfArmor => {
                 azalea_registry::Holder::Reference(SoundEvent::ItemWolfArmorBreak)
             }
+            ItemKind::Shield => azalea_registry::Holder::Reference(SoundEvent::ItemShieldBreak),
             _ => azalea_registry::Holder::Reference(SoundEvent::EntityItemBreak),
         };
         Some(BreakSound { sound: value })
+    }
+}
+impl DefaultableComponent for BucketEntityData {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::TadpoleBucket => NbtCompound::from_values(vec![]),
+            ItemKind::CodBucket => NbtCompound::from_values(vec![]),
+            ItemKind::AxolotlBucket => NbtCompound::from_values(vec![]),
+            ItemKind::PufferfishBucket => NbtCompound::from_values(vec![]),
+            ItemKind::TropicalFishBucket => NbtCompound::from_values(vec![]),
+            ItemKind::SalmonBucket => NbtCompound::from_values(vec![]),
+            _ => return None,
+        };
+        Some(BucketEntityData { entity: value })
     }
 }
 impl DefaultableComponent for Enchantments {
@@ -2091,120 +2105,120 @@ impl DefaultableComponent for MaxStackSize {
 impl DefaultableComponent for Rarity {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::CreeperHead => Rarity::Uncommon,
-            ItemKind::CoastArmorTrimSmithingTemplate => Rarity::Uncommon,
-            ItemKind::SilenceArmorTrimSmithingTemplate => Rarity::Epic,
-            ItemKind::MusicDiscStrad => Rarity::Uncommon,
-            ItemKind::DebugStick => Rarity::Epic,
-            ItemKind::MusicDiscRelic => Rarity::Uncommon,
-            ItemKind::HeartOfTheSea => Rarity::Uncommon,
-            ItemKind::PiglinBannerPattern => Rarity::Uncommon,
-            ItemKind::HeavyCore => Rarity::Epic,
-            ItemKind::EyeArmorTrimSmithingTemplate => Rarity::Rare,
-            ItemKind::MusicDisc13 => Rarity::Uncommon,
-            ItemKind::PlayerHead => Rarity::Uncommon,
-            ItemKind::SheafPotterySherd => Rarity::Uncommon,
-            ItemKind::ShelterPotterySherd => Rarity::Uncommon,
-            ItemKind::MusicDiscWard => Rarity::Uncommon,
-            ItemKind::CreeperBannerPattern => Rarity::Uncommon,
-            ItemKind::ZombieHead => Rarity::Uncommon,
-            ItemKind::GusterPotterySherd => Rarity::Uncommon,
-            ItemKind::HowlPotterySherd => Rarity::Uncommon,
-            ItemKind::SentryArmorTrimSmithingTemplate => Rarity::Uncommon,
-            ItemKind::Conduit => Rarity::Uncommon,
-            ItemKind::MusicDiscCreator => Rarity::Rare,
-            ItemKind::MournerPotterySherd => Rarity::Uncommon,
-            ItemKind::MusicDiscCat => Rarity::Uncommon,
-            ItemKind::NautilusShell => Rarity::Uncommon,
-            ItemKind::NetherStar => Rarity::Rare,
-            ItemKind::SnifferEgg => Rarity::Uncommon,
-            ItemKind::ScrapePotterySherd => Rarity::Uncommon,
-            ItemKind::MusicDiscFar => Rarity::Uncommon,
-            ItemKind::WardArmorTrimSmithingTemplate => Rarity::Rare,
-            ItemKind::BladePotterySherd => Rarity::Uncommon,
-            ItemKind::MusicDiscOtherside => Rarity::Rare,
-            ItemKind::HeartPotterySherd => Rarity::Uncommon,
-            ItemKind::GusterBannerPattern => Rarity::Rare,
-            ItemKind::TideArmorTrimSmithingTemplate => Rarity::Uncommon,
-            ItemKind::ExplorerPotterySherd => Rarity::Uncommon,
-            ItemKind::Barrier => Rarity::Epic,
-            ItemKind::SpireArmorTrimSmithingTemplate => Rarity::Rare,
-            ItemKind::EnchantedBook => Rarity::Rare,
-            ItemKind::ShaperArmorTrimSmithingTemplate => Rarity::Uncommon,
-            ItemKind::ChainmailLeggings => Rarity::Uncommon,
-            ItemKind::MusicDiscLavaChicken => Rarity::Rare,
-            ItemKind::RibArmorTrimSmithingTemplate => Rarity::Uncommon,
-            ItemKind::MojangBannerPattern => Rarity::Rare,
-            ItemKind::MusicDiscCreatorMusicBox => Rarity::Uncommon,
-            ItemKind::WildArmorTrimSmithingTemplate => Rarity::Uncommon,
-            ItemKind::DragonEgg => Rarity::Epic,
-            ItemKind::FlowPotterySherd => Rarity::Uncommon,
-            ItemKind::MusicDiscStal => Rarity::Uncommon,
-            ItemKind::RepeatingCommandBlock => Rarity::Epic,
-            ItemKind::Jigsaw => Rarity::Epic,
-            ItemKind::DiscFragment5 => Rarity::Uncommon,
-            ItemKind::BoltArmorTrimSmithingTemplate => Rarity::Uncommon,
-            ItemKind::DragonBreath => Rarity::Uncommon,
-            ItemKind::AnglerPotterySherd => Rarity::Uncommon,
-            ItemKind::BrewerPotterySherd => Rarity::Uncommon,
-            ItemKind::FlowArmorTrimSmithingTemplate => Rarity::Uncommon,
-            ItemKind::DragonHead => Rarity::Epic,
-            ItemKind::EchoShard => Rarity::Uncommon,
-            ItemKind::TestInstanceBlock => Rarity::Epic,
-            ItemKind::NetheriteUpgradeSmithingTemplate => Rarity::Uncommon,
-            ItemKind::OminousBottle => Rarity::Uncommon,
-            ItemKind::ExperienceBottle => Rarity::Uncommon,
-            ItemKind::EnchantedGoldenApple => Rarity::Rare,
-            ItemKind::DangerPotterySherd => Rarity::Uncommon,
-            ItemKind::MusicDiscWait => Rarity::Uncommon,
-            ItemKind::MusicDiscPrecipice => Rarity::Uncommon,
-            ItemKind::FlowBannerPattern => Rarity::Rare,
-            ItemKind::Light => Rarity::Epic,
-            ItemKind::SkeletonSkull => Rarity::Uncommon,
-            ItemKind::Mace => Rarity::Epic,
-            ItemKind::ChainCommandBlock => Rarity::Epic,
-            ItemKind::StructureBlock => Rarity::Epic,
-            ItemKind::MusicDiscMellohi => Rarity::Uncommon,
-            ItemKind::KnowledgeBook => Rarity::Epic,
-            ItemKind::SnoutArmorTrimSmithingTemplate => Rarity::Uncommon,
-            ItemKind::RecoveryCompass => Rarity::Uncommon,
-            ItemKind::SkullPotterySherd => Rarity::Uncommon,
-            ItemKind::CommandBlockMinecart => Rarity::Epic,
-            ItemKind::HeartbreakPotterySherd => Rarity::Uncommon,
-            ItemKind::MusicDiscChirp => Rarity::Uncommon,
-            ItemKind::PrizePotterySherd => Rarity::Uncommon,
-            ItemKind::TestBlock => Rarity::Epic,
-            ItemKind::Trident => Rarity::Rare,
-            ItemKind::StructureVoid => Rarity::Epic,
-            ItemKind::SkullBannerPattern => Rarity::Rare,
-            ItemKind::MusicDisc11 => Rarity::Uncommon,
-            ItemKind::WitherSkeletonSkull => Rarity::Rare,
-            ItemKind::ChainmailChestplate => Rarity::Uncommon,
-            ItemKind::ArcherPotterySherd => Rarity::Uncommon,
-            ItemKind::MusicDisc5 => Rarity::Uncommon,
-            ItemKind::HostArmorTrimSmithingTemplate => Rarity::Uncommon,
-            ItemKind::MusicDiscBlocks => Rarity::Uncommon,
-            ItemKind::ChainmailHelmet => Rarity::Uncommon,
-            ItemKind::MinerPotterySherd => Rarity::Uncommon,
-            ItemKind::RaiserArmorTrimSmithingTemplate => Rarity::Uncommon,
-            ItemKind::Beacon => Rarity::Rare,
-            ItemKind::MusicDiscMall => Rarity::Uncommon,
-            ItemKind::SnortPotterySherd => Rarity::Uncommon,
-            ItemKind::VexArmorTrimSmithingTemplate => Rarity::Rare,
-            ItemKind::WayfinderArmorTrimSmithingTemplate => Rarity::Uncommon,
-            ItemKind::ChainmailBoots => Rarity::Uncommon,
-            ItemKind::DuneArmorTrimSmithingTemplate => Rarity::Uncommon,
-            ItemKind::MusicDiscTears => Rarity::Uncommon,
-            ItemKind::FriendPotterySherd => Rarity::Uncommon,
-            ItemKind::CommandBlock => Rarity::Epic,
-            ItemKind::Elytra => Rarity::Epic,
             ItemKind::PiglinHead => Rarity::Uncommon,
-            ItemKind::TotemOfUndying => Rarity::Uncommon,
-            ItemKind::PlentyPotterySherd => Rarity::Uncommon,
-            ItemKind::GoatHorn => Rarity::Uncommon,
+            ItemKind::ChainmailHelmet => Rarity::Uncommon,
+            ItemKind::MusicDiscBlocks => Rarity::Uncommon,
+            ItemKind::FlowArmorTrimSmithingTemplate => Rarity::Uncommon,
             ItemKind::MusicDiscPigstep => Rarity::Rare,
-            ItemKind::ArmsUpPotterySherd => Rarity::Uncommon,
+            ItemKind::Trident => Rarity::Rare,
+            ItemKind::WitherSkeletonSkull => Rarity::Rare,
+            ItemKind::GoatHorn => Rarity::Uncommon,
+            ItemKind::CommandBlockMinecart => Rarity::Epic,
+            ItemKind::FriendPotterySherd => Rarity::Uncommon,
+            ItemKind::SkeletonSkull => Rarity::Uncommon,
+            ItemKind::DangerPotterySherd => Rarity::Uncommon,
+            ItemKind::Beacon => Rarity::Rare,
+            ItemKind::ChainmailBoots => Rarity::Uncommon,
+            ItemKind::DragonBreath => Rarity::Uncommon,
+            ItemKind::SentryArmorTrimSmithingTemplate => Rarity::Uncommon,
+            ItemKind::RaiserArmorTrimSmithingTemplate => Rarity::Uncommon,
+            ItemKind::SilenceArmorTrimSmithingTemplate => Rarity::Epic,
+            ItemKind::DragonEgg => Rarity::Epic,
+            ItemKind::MusicDiscMall => Rarity::Uncommon,
+            ItemKind::NautilusShell => Rarity::Uncommon,
+            ItemKind::ScrapePotterySherd => Rarity::Uncommon,
+            ItemKind::MusicDiscTears => Rarity::Uncommon,
+            ItemKind::SheafPotterySherd => Rarity::Uncommon,
+            ItemKind::RepeatingCommandBlock => Rarity::Epic,
+            ItemKind::BoltArmorTrimSmithingTemplate => Rarity::Uncommon,
+            ItemKind::NetheriteUpgradeSmithingTemplate => Rarity::Uncommon,
+            ItemKind::MusicDiscPrecipice => Rarity::Uncommon,
+            ItemKind::DiscFragment5 => Rarity::Uncommon,
+            ItemKind::Elytra => Rarity::Epic,
+            ItemKind::CoastArmorTrimSmithingTemplate => Rarity::Uncommon,
+            ItemKind::MusicDiscRelic => Rarity::Uncommon,
+            ItemKind::MournerPotterySherd => Rarity::Uncommon,
+            ItemKind::WayfinderArmorTrimSmithingTemplate => Rarity::Uncommon,
+            ItemKind::RecoveryCompass => Rarity::Uncommon,
+            ItemKind::AnglerPotterySherd => Rarity::Uncommon,
+            ItemKind::ShaperArmorTrimSmithingTemplate => Rarity::Uncommon,
+            ItemKind::ChainmailChestplate => Rarity::Uncommon,
+            ItemKind::PlayerHead => Rarity::Uncommon,
+            ItemKind::HeartPotterySherd => Rarity::Uncommon,
+            ItemKind::ExplorerPotterySherd => Rarity::Uncommon,
+            ItemKind::DragonHead => Rarity::Epic,
+            ItemKind::Conduit => Rarity::Uncommon,
+            ItemKind::MusicDisc11 => Rarity::Uncommon,
+            ItemKind::TestBlock => Rarity::Epic,
+            ItemKind::ArcherPotterySherd => Rarity::Uncommon,
+            ItemKind::ShelterPotterySherd => Rarity::Uncommon,
+            ItemKind::Light => Rarity::Epic,
+            ItemKind::MojangBannerPattern => Rarity::Rare,
+            ItemKind::DuneArmorTrimSmithingTemplate => Rarity::Uncommon,
+            ItemKind::StructureBlock => Rarity::Epic,
+            ItemKind::MusicDisc5 => Rarity::Uncommon,
+            ItemKind::MusicDiscStrad => Rarity::Uncommon,
+            ItemKind::ChainmailLeggings => Rarity::Uncommon,
+            ItemKind::BladePotterySherd => Rarity::Uncommon,
+            ItemKind::SpireArmorTrimSmithingTemplate => Rarity::Rare,
+            ItemKind::ChainCommandBlock => Rarity::Epic,
+            ItemKind::DebugStick => Rarity::Epic,
+            ItemKind::KnowledgeBook => Rarity::Epic,
+            ItemKind::MusicDiscChirp => Rarity::Uncommon,
+            ItemKind::EchoShard => Rarity::Uncommon,
+            ItemKind::RibArmorTrimSmithingTemplate => Rarity::Uncommon,
+            ItemKind::TotemOfUndying => Rarity::Uncommon,
+            ItemKind::WildArmorTrimSmithingTemplate => Rarity::Uncommon,
+            ItemKind::HeartbreakPotterySherd => Rarity::Uncommon,
+            ItemKind::MusicDisc13 => Rarity::Uncommon,
+            ItemKind::FlowBannerPattern => Rarity::Rare,
+            ItemKind::FlowPotterySherd => Rarity::Uncommon,
+            ItemKind::SnifferEgg => Rarity::Uncommon,
+            ItemKind::EnchantedGoldenApple => Rarity::Rare,
+            ItemKind::WardArmorTrimSmithingTemplate => Rarity::Rare,
+            ItemKind::SkullPotterySherd => Rarity::Uncommon,
+            ItemKind::MusicDiscCat => Rarity::Uncommon,
+            ItemKind::ExperienceBottle => Rarity::Uncommon,
+            ItemKind::VexArmorTrimSmithingTemplate => Rarity::Rare,
+            ItemKind::TideArmorTrimSmithingTemplate => Rarity::Uncommon,
+            ItemKind::EnchantedBook => Rarity::Rare,
+            ItemKind::MinerPotterySherd => Rarity::Uncommon,
+            ItemKind::HowlPotterySherd => Rarity::Uncommon,
+            ItemKind::BrewerPotterySherd => Rarity::Uncommon,
+            ItemKind::Barrier => Rarity::Epic,
+            ItemKind::OminousBottle => Rarity::Uncommon,
+            ItemKind::CommandBlock => Rarity::Epic,
+            ItemKind::MusicDiscLavaChicken => Rarity::Rare,
+            ItemKind::CreeperBannerPattern => Rarity::Uncommon,
+            ItemKind::PiglinBannerPattern => Rarity::Uncommon,
+            ItemKind::MusicDiscWard => Rarity::Uncommon,
+            ItemKind::TestInstanceBlock => Rarity::Epic,
             ItemKind::BurnPotterySherd => Rarity::Uncommon,
+            ItemKind::NetherStar => Rarity::Rare,
+            ItemKind::HeartOfTheSea => Rarity::Uncommon,
+            ItemKind::MusicDiscStal => Rarity::Uncommon,
+            ItemKind::Jigsaw => Rarity::Epic,
+            ItemKind::EyeArmorTrimSmithingTemplate => Rarity::Rare,
+            ItemKind::PlentyPotterySherd => Rarity::Uncommon,
+            ItemKind::MusicDiscOtherside => Rarity::Rare,
+            ItemKind::SnortPotterySherd => Rarity::Uncommon,
+            ItemKind::SnoutArmorTrimSmithingTemplate => Rarity::Uncommon,
+            ItemKind::SkullBannerPattern => Rarity::Rare,
+            ItemKind::MusicDiscCreator => Rarity::Rare,
+            ItemKind::MusicDiscCreatorMusicBox => Rarity::Uncommon,
+            ItemKind::StructureVoid => Rarity::Epic,
+            ItemKind::ZombieHead => Rarity::Uncommon,
+            ItemKind::HostArmorTrimSmithingTemplate => Rarity::Uncommon,
+            ItemKind::HeavyCore => Rarity::Epic,
+            ItemKind::GusterBannerPattern => Rarity::Rare,
+            ItemKind::CreeperHead => Rarity::Uncommon,
+            ItemKind::PrizePotterySherd => Rarity::Uncommon,
+            ItemKind::MusicDiscFar => Rarity::Uncommon,
+            ItemKind::GusterPotterySherd => Rarity::Uncommon,
+            ItemKind::Mace => Rarity::Epic,
+            ItemKind::MusicDiscMellohi => Rarity::Uncommon,
+            ItemKind::MusicDiscWait => Rarity::Uncommon,
+            ItemKind::ArmsUpPotterySherd => Rarity::Uncommon,
             _ => Rarity::Common,
         };
         Some(value)
@@ -2222,9 +2236,9 @@ impl DefaultableComponent for SwingAnimation {
                 kind: SwingAnimationKind::Stab,
                 duration: 19,
             },
-            ItemKind::GoldenSpear => SwingAnimation {
+            ItemKind::StoneSpear => SwingAnimation {
                 kind: SwingAnimationKind::Stab,
-                duration: 19,
+                duration: 15,
             },
             ItemKind::NetheriteSpear => SwingAnimation {
                 kind: SwingAnimationKind::Stab,
@@ -2238,9 +2252,9 @@ impl DefaultableComponent for SwingAnimation {
                 kind: SwingAnimationKind::Stab,
                 duration: 17,
             },
-            ItemKind::StoneSpear => SwingAnimation {
+            ItemKind::GoldenSpear => SwingAnimation {
                 kind: SwingAnimationKind::Stab,
-                duration: 15,
+                duration: 19,
             },
             ItemKind::DiamondSpear => SwingAnimation {
                 kind: SwingAnimationKind::Stab,
@@ -2264,7 +2278,7 @@ impl DefaultableComponent for UseEffects {
                 interact_vibrations: false,
                 speed_multiplier: 1.0,
             },
-            ItemKind::GoldenSpear => UseEffects {
+            ItemKind::StoneSpear => UseEffects {
                 can_sprint: true,
                 interact_vibrations: false,
                 speed_multiplier: 1.0,
@@ -2284,7 +2298,7 @@ impl DefaultableComponent for UseEffects {
                 interact_vibrations: false,
                 speed_multiplier: 1.0,
             },
-            ItemKind::StoneSpear => UseEffects {
+            ItemKind::GoldenSpear => UseEffects {
                 can_sprint: true,
                 interact_vibrations: false,
                 speed_multiplier: 1.0,
@@ -2299,151 +2313,142 @@ impl DefaultableComponent for UseEffects {
         Some(value)
     }
 }
+impl DefaultableComponent for EntityData {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::BoggedSpawnEgg => EntityKind::Bogged,
+            ItemKind::DolphinSpawnEgg => EntityKind::Dolphin,
+            ItemKind::ZombieVillagerSpawnEgg => EntityKind::ZombieVillager,
+            ItemKind::WitherSpawnEgg => EntityKind::Wither,
+            ItemKind::CowSpawnEgg => EntityKind::Cow,
+            ItemKind::ChickenSpawnEgg => EntityKind::Chicken,
+            ItemKind::SpiderSpawnEgg => EntityKind::Spider,
+            ItemKind::BlazeSpawnEgg => EntityKind::Blaze,
+            ItemKind::SalmonSpawnEgg => EntityKind::Salmon,
+            ItemKind::OcelotSpawnEgg => EntityKind::Ocelot,
+            ItemKind::CopperGolemSpawnEgg => EntityKind::CopperGolem,
+            ItemKind::TurtleSpawnEgg => EntityKind::Turtle,
+            ItemKind::TadpoleSpawnEgg => EntityKind::Tadpole,
+            ItemKind::SlimeSpawnEgg => EntityKind::Slime,
+            ItemKind::SnifferSpawnEgg => EntityKind::Sniffer,
+            ItemKind::MagmaCubeSpawnEgg => EntityKind::MagmaCube,
+            ItemKind::PigSpawnEgg => EntityKind::Pig,
+            ItemKind::CatSpawnEgg => EntityKind::Cat,
+            ItemKind::SnowGolemSpawnEgg => EntityKind::SnowGolem,
+            ItemKind::CaveSpiderSpawnEgg => EntityKind::CaveSpider,
+            ItemKind::PiglinBruteSpawnEgg => EntityKind::PiglinBrute,
+            ItemKind::WitchSpawnEgg => EntityKind::Witch,
+            ItemKind::VindicatorSpawnEgg => EntityKind::Vindicator,
+            ItemKind::SheepSpawnEgg => EntityKind::Sheep,
+            ItemKind::HappyGhastSpawnEgg => EntityKind::HappyGhast,
+            ItemKind::PillagerSpawnEgg => EntityKind::Pillager,
+            ItemKind::TropicalFishSpawnEgg => EntityKind::TropicalFish,
+            ItemKind::BreezeSpawnEgg => EntityKind::Breeze,
+            ItemKind::FoxSpawnEgg => EntityKind::Fox,
+            ItemKind::PhantomSpawnEgg => EntityKind::Phantom,
+            ItemKind::StraySpawnEgg => EntityKind::Stray,
+            ItemKind::GuardianSpawnEgg => EntityKind::Guardian,
+            ItemKind::BeeSpawnEgg => EntityKind::Bee,
+            ItemKind::RavagerSpawnEgg => EntityKind::Ravager,
+            ItemKind::ZoglinSpawnEgg => EntityKind::Zoglin,
+            ItemKind::HuskSpawnEgg => EntityKind::Husk,
+            ItemKind::PolarBearSpawnEgg => EntityKind::PolarBear,
+            ItemKind::DonkeySpawnEgg => EntityKind::Donkey,
+            ItemKind::WitherSkeletonSpawnEgg => EntityKind::WitherSkeleton,
+            ItemKind::GoatSpawnEgg => EntityKind::Goat,
+            ItemKind::WardenSpawnEgg => EntityKind::Warden,
+            ItemKind::LlamaSpawnEgg => EntityKind::Llama,
+            ItemKind::NautilusSpawnEgg => EntityKind::Nautilus,
+            ItemKind::GlowSquidSpawnEgg => EntityKind::GlowSquid,
+            ItemKind::WanderingTraderSpawnEgg => EntityKind::WanderingTrader,
+            ItemKind::RabbitSpawnEgg => EntityKind::Rabbit,
+            ItemKind::ZombieNautilusSpawnEgg => EntityKind::ZombieNautilus,
+            ItemKind::SkeletonSpawnEgg => EntityKind::Skeleton,
+            ItemKind::ElderGuardianSpawnEgg => EntityKind::ElderGuardian,
+            ItemKind::EndermiteSpawnEgg => EntityKind::Endermite,
+            ItemKind::CodSpawnEgg => EntityKind::Cod,
+            ItemKind::ShulkerSpawnEgg => EntityKind::Shulker,
+            ItemKind::ZombieHorseSpawnEgg => EntityKind::ZombieHorse,
+            ItemKind::SkeletonHorseSpawnEgg => EntityKind::SkeletonHorse,
+            ItemKind::MuleSpawnEgg => EntityKind::Mule,
+            ItemKind::EnderDragonSpawnEgg => EntityKind::EnderDragon,
+            ItemKind::SilverfishSpawnEgg => EntityKind::Silverfish,
+            ItemKind::AllaySpawnEgg => EntityKind::Allay,
+            ItemKind::WolfSpawnEgg => EntityKind::Wolf,
+            ItemKind::HorseSpawnEgg => EntityKind::Horse,
+            ItemKind::SquidSpawnEgg => EntityKind::Squid,
+            ItemKind::EndermanSpawnEgg => EntityKind::Enderman,
+            ItemKind::ParrotSpawnEgg => EntityKind::Parrot,
+            ItemKind::FrogSpawnEgg => EntityKind::Frog,
+            ItemKind::ArmadilloSpawnEgg => EntityKind::Armadillo,
+            ItemKind::ParchedSpawnEgg => EntityKind::Parched,
+            ItemKind::PufferfishSpawnEgg => EntityKind::Pufferfish,
+            ItemKind::PiglinSpawnEgg => EntityKind::Piglin,
+            ItemKind::CamelHuskSpawnEgg => EntityKind::CamelHusk,
+            ItemKind::IronGolemSpawnEgg => EntityKind::IronGolem,
+            ItemKind::ZombifiedPiglinSpawnEgg => EntityKind::ZombifiedPiglin,
+            ItemKind::AxolotlSpawnEgg => EntityKind::Axolotl,
+            ItemKind::TraderLlamaSpawnEgg => EntityKind::TraderLlama,
+            ItemKind::HoglinSpawnEgg => EntityKind::Hoglin,
+            ItemKind::MooshroomSpawnEgg => EntityKind::Mooshroom,
+            ItemKind::PandaSpawnEgg => EntityKind::Panda,
+            ItemKind::VexSpawnEgg => EntityKind::Vex,
+            ItemKind::BatSpawnEgg => EntityKind::Bat,
+            ItemKind::CreakingSpawnEgg => EntityKind::Creaking,
+            ItemKind::StriderSpawnEgg => EntityKind::Strider,
+            ItemKind::CreeperSpawnEgg => EntityKind::Creeper,
+            ItemKind::DrownedSpawnEgg => EntityKind::Drowned,
+            ItemKind::GhastSpawnEgg => EntityKind::Ghast,
+            ItemKind::EvokerSpawnEgg => EntityKind::Evoker,
+            ItemKind::VillagerSpawnEgg => EntityKind::Villager,
+            ItemKind::ZombieSpawnEgg => EntityKind::Zombie,
+            ItemKind::CamelSpawnEgg => EntityKind::Camel,
+            _ => return None,
+        };
+        Some(EntityData {
+            kind: value,
+            data: NbtCompound::new(),
+        })
+    }
+}
 impl DefaultableComponent for Equippable {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::CreeperHead => Equippable {
-                slot: EquipmentSlot::Head,
-                swappable: false,
-                ..Equippable::new()
-            },
-            ItemKind::LeatherHorseArmor => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_WEAR_HORSE_ARMOR
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:leather".into()),
-                can_be_sheared: true,
-                damage_on_hurt: false,
-                equip_sound: SoundEvent::EntityHorseArmor,
-                shearing_sound: SoundEvent::ItemHorseArmorUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::LeatherChestplate => Equippable {
-                asset_id: Some("minecraft:leather".into()),
-                equip_sound: SoundEvent::ItemArmorEquipLeather,
-                slot: EquipmentSlot::Chest,
-                ..Equippable::new()
-            },
-            ItemKind::NetheriteHelmet => Equippable {
-                asset_id: Some("minecraft:netherite".into()),
-                equip_sound: SoundEvent::ItemArmorEquipNetherite,
-                slot: EquipmentSlot::Head,
-                ..Equippable::new()
-            },
-            ItemKind::GreenHarness => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:green_harness".into()),
-                can_be_sheared: true,
-                equip_on_interact: true,
-                equip_sound: SoundEvent::EntityHappyGhastEquip,
-                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::GoldenBoots => Equippable {
-                asset_id: Some("minecraft:gold".into()),
-                equip_sound: SoundEvent::ItemArmorEquipGold,
-                slot: EquipmentSlot::Feet,
-                ..Equippable::new()
-            },
-            ItemKind::YellowCarpet => Equippable {
+            ItemKind::LightGrayCarpet => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
                     contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
                 }),
-                asset_id: Some("minecraft:yellow_carpet".into()),
+                asset_id: Some("minecraft:light_gray_carpet".into()),
                 can_be_sheared: true,
                 equip_sound: SoundEvent::EntityLlamaSwag,
                 shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
                 slot: EquipmentSlot::Body,
                 ..Equippable::new()
             },
-            ItemKind::CopperHelmet => Equippable {
-                asset_id: Some("minecraft:copper".into()),
-                equip_sound: SoundEvent::ItemArmorEquipCopper,
-                slot: EquipmentSlot::Head,
-                ..Equippable::new()
-            },
-            ItemKind::GoldenHelmet => Equippable {
-                asset_id: Some("minecraft:gold".into()),
-                equip_sound: SoundEvent::ItemArmorEquipGold,
-                slot: EquipmentSlot::Head,
-                ..Equippable::new()
-            },
-            ItemKind::TurtleHelmet => Equippable {
-                asset_id: Some("minecraft:turtle_scute".into()),
-                equip_sound: SoundEvent::ItemArmorEquipTurtle,
-                slot: EquipmentSlot::Head,
-                ..Equippable::new()
-            },
-            ItemKind::PlayerHead => Equippable {
+            ItemKind::PiglinHead => Equippable {
                 slot: EquipmentSlot::Head,
                 swappable: false,
                 ..Equippable::new()
             },
-            ItemKind::CopperNautilusArmor => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_WEAR_NAUTILUS_ARMOR
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:copper".into()),
-                can_be_sheared: true,
-                damage_on_hurt: false,
-                equip_on_interact: true,
-                equip_sound: SoundEvent::ItemArmorEquipNautilus,
-                shearing_sound: SoundEvent::ItemArmorUnequipNautilus,
-                slot: EquipmentSlot::Body,
+            ItemKind::ChainmailHelmet => Equippable {
+                asset_id: Some("minecraft:chainmail".into()),
+                equip_sound: SoundEvent::ItemArmorEquipChain,
+                slot: EquipmentSlot::Head,
                 ..Equippable::new()
             },
-            ItemKind::DiamondHorseArmor => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_WEAR_HORSE_ARMOR
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:diamond".into()),
-                can_be_sheared: true,
-                damage_on_hurt: false,
-                equip_sound: SoundEvent::EntityHorseArmor,
-                shearing_sound: SoundEvent::ItemHorseArmorUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::MagentaHarness => Equippable {
+            ItemKind::LimeHarness => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
                     contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
                         .clone()
                         .into_iter()
                         .collect(),
                 }),
-                asset_id: Some("minecraft:magenta_harness".into()),
+                asset_id: Some("minecraft:lime_harness".into()),
                 can_be_sheared: true,
                 equip_on_interact: true,
                 equip_sound: SoundEvent::EntityHappyGhastEquip,
                 shearing_sound: SoundEvent::EntityHappyGhastUnequip,
                 slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::IronHelmet => Equippable {
-                asset_id: Some("minecraft:iron".into()),
-                equip_sound: SoundEvent::ItemArmorEquipIron,
-                slot: EquipmentSlot::Head,
-                ..Equippable::new()
-            },
-            ItemKind::ZombieHead => Equippable {
-                slot: EquipmentSlot::Head,
-                swappable: false,
                 ..Equippable::new()
             },
             ItemKind::PinkHarness => Equippable {
@@ -2454,6 +2459,21 @@ impl DefaultableComponent for Equippable {
                         .collect(),
                 }),
                 asset_id: Some("minecraft:pink_harness".into()),
+                can_be_sheared: true,
+                equip_on_interact: true,
+                equip_sound: SoundEvent::EntityHappyGhastEquip,
+                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::PurpleHarness => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:purple_harness".into()),
                 can_be_sheared: true,
                 equip_on_interact: true,
                 equip_sound: SoundEvent::EntityHappyGhastEquip,
@@ -2476,75 +2496,19 @@ impl DefaultableComponent for Equippable {
                 slot: EquipmentSlot::Body,
                 ..Equippable::new()
             },
-            ItemKind::PurpleCarpet => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
-                }),
-                asset_id: Some("minecraft:purple_carpet".into()),
-                can_be_sheared: true,
-                equip_sound: SoundEvent::EntityLlamaSwag,
-                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
-                slot: EquipmentSlot::Body,
+            ItemKind::WitherSkeletonSkull => Equippable {
+                slot: EquipmentSlot::Head,
+                swappable: false,
                 ..Equippable::new()
             },
-            ItemKind::RedCarpet => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
-                }),
-                asset_id: Some("minecraft:red_carpet".into()),
-                can_be_sheared: true,
-                equip_sound: SoundEvent::EntityLlamaSwag,
-                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::DiamondLeggings => Equippable {
-                asset_id: Some("minecraft:diamond".into()),
-                equip_sound: SoundEvent::ItemArmorEquipDiamond,
-                slot: EquipmentSlot::Legs,
-                ..Equippable::new()
-            },
-            ItemKind::MagentaCarpet => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
-                }),
-                asset_id: Some("minecraft:magenta_carpet".into()),
-                can_be_sheared: true,
-                equip_sound: SoundEvent::EntityLlamaSwag,
-                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::LightBlueCarpet => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
-                }),
-                asset_id: Some("minecraft:light_blue_carpet".into()),
-                can_be_sheared: true,
-                equip_sound: SoundEvent::EntityLlamaSwag,
-                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::LimeCarpet => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
-                }),
-                asset_id: Some("minecraft:lime_carpet".into()),
-                can_be_sheared: true,
-                equip_sound: SoundEvent::EntityLlamaSwag,
-                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::LimeHarness => Equippable {
+            ItemKind::GrayHarness => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
                     contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
                         .clone()
                         .into_iter()
                         .collect(),
                 }),
-                asset_id: Some("minecraft:lime_harness".into()),
+                asset_id: Some("minecraft:gray_harness".into()),
                 can_be_sheared: true,
                 equip_on_interact: true,
                 equip_sound: SoundEvent::EntityHappyGhastEquip,
@@ -2552,14 +2516,44 @@ impl DefaultableComponent for Equippable {
                 slot: EquipmentSlot::Body,
                 ..Equippable::new()
             },
-            ItemKind::BlueCarpet => Equippable {
+            ItemKind::GreenCarpet => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
                     contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
                 }),
-                asset_id: Some("minecraft:blue_carpet".into()),
+                asset_id: Some("minecraft:green_carpet".into()),
                 can_be_sheared: true,
                 equip_sound: SoundEvent::EntityLlamaSwag,
                 shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::CopperHorseArmor => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_WEAR_HORSE_ARMOR
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:copper".into()),
+                can_be_sheared: true,
+                damage_on_hurt: false,
+                equip_sound: SoundEvent::EntityHorseArmor,
+                shearing_sound: SoundEvent::ItemHorseArmorUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::DiamondHorseArmor => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_WEAR_HORSE_ARMOR
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:diamond".into()),
+                can_be_sheared: true,
+                damage_on_hurt: false,
+                equip_sound: SoundEvent::EntityHorseArmor,
+                shearing_sound: SoundEvent::ItemHorseArmorUnequip,
                 slot: EquipmentSlot::Body,
                 ..Equippable::new()
             },
@@ -2574,10 +2568,52 @@ impl DefaultableComponent for Equippable {
                 slot: EquipmentSlot::Body,
                 ..Equippable::new()
             },
-            ItemKind::IronLeggings => Equippable {
-                asset_id: Some("minecraft:iron".into()),
-                equip_sound: SoundEvent::ItemArmorEquipIron,
-                slot: EquipmentSlot::Legs,
+            ItemKind::SkeletonSkull => Equippable {
+                slot: EquipmentSlot::Head,
+                swappable: false,
+                ..Equippable::new()
+            },
+            ItemKind::BlueCarpet => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
+                }),
+                asset_id: Some("minecraft:blue_carpet".into()),
+                can_be_sheared: true,
+                equip_sound: SoundEvent::EntityLlamaSwag,
+                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::MagentaCarpet => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
+                }),
+                asset_id: Some("minecraft:magenta_carpet".into()),
+                can_be_sheared: true,
+                equip_sound: SoundEvent::EntityLlamaSwag,
+                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::LightBlueHarness => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:light_blue_harness".into()),
+                can_be_sheared: true,
+                equip_on_interact: true,
+                equip_sound: SoundEvent::EntityHappyGhastEquip,
+                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::ChainmailBoots => Equippable {
+                asset_id: Some("minecraft:chainmail".into()),
+                equip_sound: SoundEvent::ItemArmorEquipChain,
+                slot: EquipmentSlot::Feet,
                 ..Equippable::new()
             },
             ItemKind::IronNautilusArmor => Equippable {
@@ -2596,16 +2632,15 @@ impl DefaultableComponent for Equippable {
                 slot: EquipmentSlot::Body,
                 ..Equippable::new()
             },
-            ItemKind::ChainmailLeggings => Equippable {
-                asset_id: Some("minecraft:chainmail".into()),
-                equip_sound: SoundEvent::ItemArmorEquipChain,
-                slot: EquipmentSlot::Legs,
-                ..Equippable::new()
-            },
-            ItemKind::CopperBoots => Equippable {
-                asset_id: Some("minecraft:copper".into()),
-                equip_sound: SoundEvent::ItemArmorEquipCopper,
-                slot: EquipmentSlot::Feet,
+            ItemKind::PinkCarpet => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
+                }),
+                asset_id: Some("minecraft:pink_carpet".into()),
+                can_be_sheared: true,
+                equip_sound: SoundEvent::EntityLlamaSwag,
+                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
+                slot: EquipmentSlot::Body,
                 ..Equippable::new()
             },
             ItemKind::NetheriteNautilusArmor => Equippable {
@@ -2624,19 +2659,37 @@ impl DefaultableComponent for Equippable {
                 slot: EquipmentSlot::Body,
                 ..Equippable::new()
             },
-            ItemKind::GoldenHorseArmor => Equippable {
+            ItemKind::DiamondHelmet => Equippable {
+                asset_id: Some("minecraft:diamond".into()),
+                equip_sound: SoundEvent::ItemArmorEquipDiamond,
+                slot: EquipmentSlot::Head,
+                ..Equippable::new()
+            },
+            ItemKind::IronHorseArmor => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
                     contents: azalea_registry::tags::entities::CAN_WEAR_HORSE_ARMOR
                         .clone()
                         .into_iter()
                         .collect(),
                 }),
-                asset_id: Some("minecraft:gold".into()),
+                asset_id: Some("minecraft:iron".into()),
                 can_be_sheared: true,
                 damage_on_hurt: false,
                 equip_sound: SoundEvent::EntityHorseArmor,
                 shearing_sound: SoundEvent::ItemHorseArmorUnequip,
                 slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::IronHelmet => Equippable {
+                asset_id: Some("minecraft:iron".into()),
+                equip_sound: SoundEvent::ItemArmorEquipIron,
+                slot: EquipmentSlot::Head,
+                ..Equippable::new()
+            },
+            ItemKind::IronBoots => Equippable {
+                asset_id: Some("minecraft:iron".into()),
+                equip_sound: SoundEvent::ItemArmorEquipIron,
+                slot: EquipmentSlot::Feet,
                 ..Equippable::new()
             },
             ItemKind::WhiteHarness => Equippable {
@@ -2647,136 +2700,6 @@ impl DefaultableComponent for Equippable {
                         .collect(),
                 }),
                 asset_id: Some("minecraft:white_harness".into()),
-                can_be_sheared: true,
-                equip_on_interact: true,
-                equip_sound: SoundEvent::EntityHappyGhastEquip,
-                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::GoldenChestplate => Equippable {
-                asset_id: Some("minecraft:gold".into()),
-                equip_sound: SoundEvent::ItemArmorEquipGold,
-                slot: EquipmentSlot::Chest,
-                ..Equippable::new()
-            },
-            ItemKind::NetheriteBoots => Equippable {
-                asset_id: Some("minecraft:netherite".into()),
-                equip_sound: SoundEvent::ItemArmorEquipNetherite,
-                slot: EquipmentSlot::Feet,
-                ..Equippable::new()
-            },
-            ItemKind::LeatherLeggings => Equippable {
-                asset_id: Some("minecraft:leather".into()),
-                equip_sound: SoundEvent::ItemArmorEquipLeather,
-                slot: EquipmentSlot::Legs,
-                ..Equippable::new()
-            },
-            ItemKind::OrangeHarness => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:orange_harness".into()),
-                can_be_sheared: true,
-                equip_on_interact: true,
-                equip_sound: SoundEvent::EntityHappyGhastEquip,
-                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::CyanHarness => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:cyan_harness".into()),
-                can_be_sheared: true,
-                equip_on_interact: true,
-                equip_sound: SoundEvent::EntityHappyGhastEquip,
-                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::CopperChestplate => Equippable {
-                asset_id: Some("minecraft:copper".into()),
-                equip_sound: SoundEvent::ItemArmorEquipCopper,
-                slot: EquipmentSlot::Chest,
-                ..Equippable::new()
-            },
-            ItemKind::NetheriteLeggings => Equippable {
-                asset_id: Some("minecraft:netherite".into()),
-                equip_sound: SoundEvent::ItemArmorEquipNetherite,
-                slot: EquipmentSlot::Legs,
-                ..Equippable::new()
-            },
-            ItemKind::DragonHead => Equippable {
-                slot: EquipmentSlot::Head,
-                swappable: false,
-                ..Equippable::new()
-            },
-            ItemKind::GreenCarpet => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
-                }),
-                asset_id: Some("minecraft:green_carpet".into()),
-                can_be_sheared: true,
-                equip_sound: SoundEvent::EntityLlamaSwag,
-                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::LeatherHelmet => Equippable {
-                asset_id: Some("minecraft:leather".into()),
-                equip_sound: SoundEvent::ItemArmorEquipLeather,
-                slot: EquipmentSlot::Head,
-                ..Equippable::new()
-            },
-            ItemKind::IronChestplate => Equippable {
-                asset_id: Some("minecraft:iron".into()),
-                equip_sound: SoundEvent::ItemArmorEquipIron,
-                slot: EquipmentSlot::Chest,
-                ..Equippable::new()
-            },
-            ItemKind::DiamondNautilusArmor => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_WEAR_NAUTILUS_ARMOR
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:diamond".into()),
-                can_be_sheared: true,
-                damage_on_hurt: false,
-                equip_on_interact: true,
-                equip_sound: SoundEvent::ItemArmorEquipNautilus,
-                shearing_sound: SoundEvent::ItemArmorUnequipNautilus,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::IronBoots => Equippable {
-                asset_id: Some("minecraft:iron".into()),
-                equip_sound: SoundEvent::ItemArmorEquipIron,
-                slot: EquipmentSlot::Feet,
-                ..Equippable::new()
-            },
-            ItemKind::SkeletonSkull => Equippable {
-                slot: EquipmentSlot::Head,
-                swappable: false,
-                ..Equippable::new()
-            },
-            ItemKind::LightBlueHarness => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:light_blue_harness".into()),
                 can_be_sheared: true,
                 equip_on_interact: true,
                 equip_sound: SoundEvent::EntityHappyGhastEquip,
@@ -2799,21 +2722,27 @@ impl DefaultableComponent for Equippable {
                 slot: EquipmentSlot::Body,
                 ..Equippable::new()
             },
-            ItemKind::PinkCarpet => Equippable {
+            ItemKind::CopperNautilusArmor => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
-                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
+                    contents: azalea_registry::tags::entities::CAN_WEAR_NAUTILUS_ARMOR
+                        .clone()
+                        .into_iter()
+                        .collect(),
                 }),
-                asset_id: Some("minecraft:pink_carpet".into()),
+                asset_id: Some("minecraft:copper".into()),
                 can_be_sheared: true,
-                equip_sound: SoundEvent::EntityLlamaSwag,
-                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
+                damage_on_hurt: false,
+                equip_on_interact: true,
+                equip_sound: SoundEvent::ItemArmorEquipNautilus,
+                shearing_sound: SoundEvent::ItemArmorUnequipNautilus,
                 slot: EquipmentSlot::Body,
                 ..Equippable::new()
             },
-            ItemKind::CopperLeggings => Equippable {
-                asset_id: Some("minecraft:copper".into()),
-                equip_sound: SoundEvent::ItemArmorEquipCopper,
-                slot: EquipmentSlot::Legs,
+            ItemKind::Elytra => Equippable {
+                asset_id: Some("minecraft:elytra".into()),
+                damage_on_hurt: false,
+                equip_sound: SoundEvent::ItemArmorEquipElytra,
+                slot: EquipmentSlot::Chest,
                 ..Equippable::new()
             },
             ItemKind::BlackCarpet => Equippable {
@@ -2827,133 +2756,10 @@ impl DefaultableComponent for Equippable {
                 slot: EquipmentSlot::Body,
                 ..Equippable::new()
             },
-            ItemKind::DiamondBoots => Equippable {
-                asset_id: Some("minecraft:diamond".into()),
-                equip_sound: SoundEvent::ItemArmorEquipDiamond,
+            ItemKind::NetheriteBoots => Equippable {
+                asset_id: Some("minecraft:netherite".into()),
+                equip_sound: SoundEvent::ItemArmorEquipNetherite,
                 slot: EquipmentSlot::Feet,
-                ..Equippable::new()
-            },
-            ItemKind::IronHorseArmor => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_WEAR_HORSE_ARMOR
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:iron".into()),
-                can_be_sheared: true,
-                damage_on_hurt: false,
-                equip_sound: SoundEvent::EntityHorseArmor,
-                shearing_sound: SoundEvent::ItemHorseArmorUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::OrangeCarpet => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
-                }),
-                asset_id: Some("minecraft:orange_carpet".into()),
-                can_be_sheared: true,
-                equip_sound: SoundEvent::EntityLlamaSwag,
-                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::PurpleHarness => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:purple_harness".into()),
-                can_be_sheared: true,
-                equip_on_interact: true,
-                equip_sound: SoundEvent::EntityHappyGhastEquip,
-                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::DiamondHelmet => Equippable {
-                asset_id: Some("minecraft:diamond".into()),
-                equip_sound: SoundEvent::ItemArmorEquipDiamond,
-                slot: EquipmentSlot::Head,
-                ..Equippable::new()
-            },
-            ItemKind::BrownHarness => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:brown_harness".into()),
-                can_be_sheared: true,
-                equip_on_interact: true,
-                equip_sound: SoundEvent::EntityHappyGhastEquip,
-                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::GrayHarness => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:gray_harness".into()),
-                can_be_sheared: true,
-                equip_on_interact: true,
-                equip_sound: SoundEvent::EntityHappyGhastEquip,
-                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::CopperHorseArmor => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_WEAR_HORSE_ARMOR
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:copper".into()),
-                can_be_sheared: true,
-                damage_on_hurt: false,
-                equip_sound: SoundEvent::EntityHorseArmor,
-                shearing_sound: SoundEvent::ItemHorseArmorUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::Shield => Equippable {
-                slot: EquipmentSlot::Offhand,
-                swappable: false,
-                ..Equippable::new()
-            },
-            ItemKind::RedHarness => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:red_harness".into()),
-                can_be_sheared: true,
-                equip_on_interact: true,
-                equip_sound: SoundEvent::EntityHappyGhastEquip,
-                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::WitherSkeletonSkull => Equippable {
-                slot: EquipmentSlot::Head,
-                swappable: false,
-                ..Equippable::new()
-            },
-            ItemKind::ChainmailChestplate => Equippable {
-                asset_id: Some("minecraft:chainmail".into()),
-                equip_sound: SoundEvent::ItemArmorEquipChain,
-                slot: EquipmentSlot::Chest,
                 ..Equippable::new()
             },
             ItemKind::GoldenNautilusArmor => Equippable {
@@ -2972,6 +2778,122 @@ impl DefaultableComponent for Equippable {
                 slot: EquipmentSlot::Body,
                 ..Equippable::new()
             },
+            ItemKind::ChainmailChestplate => Equippable {
+                asset_id: Some("minecraft:chainmail".into()),
+                equip_sound: SoundEvent::ItemArmorEquipChain,
+                slot: EquipmentSlot::Chest,
+                ..Equippable::new()
+            },
+            ItemKind::PlayerHead => Equippable {
+                slot: EquipmentSlot::Head,
+                swappable: false,
+                ..Equippable::new()
+            },
+            ItemKind::CopperBoots => Equippable {
+                asset_id: Some("minecraft:copper".into()),
+                equip_sound: SoundEvent::ItemArmorEquipCopper,
+                slot: EquipmentSlot::Feet,
+                ..Equippable::new()
+            },
+            ItemKind::PurpleCarpet => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
+                }),
+                asset_id: Some("minecraft:purple_carpet".into()),
+                can_be_sheared: true,
+                equip_sound: SoundEvent::EntityLlamaSwag,
+                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::GreenHarness => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:green_harness".into()),
+                can_be_sheared: true,
+                equip_on_interact: true,
+                equip_sound: SoundEvent::EntityHappyGhastEquip,
+                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::DragonHead => Equippable {
+                slot: EquipmentSlot::Head,
+                swappable: false,
+                ..Equippable::new()
+            },
+            ItemKind::DiamondLeggings => Equippable {
+                asset_id: Some("minecraft:diamond".into()),
+                equip_sound: SoundEvent::ItemArmorEquipDiamond,
+                slot: EquipmentSlot::Legs,
+                ..Equippable::new()
+            },
+            ItemKind::BlueHarness => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:blue_harness".into()),
+                can_be_sheared: true,
+                equip_on_interact: true,
+                equip_sound: SoundEvent::EntityHappyGhastEquip,
+                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::OrangeCarpet => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
+                }),
+                asset_id: Some("minecraft:orange_carpet".into()),
+                can_be_sheared: true,
+                equip_sound: SoundEvent::EntityLlamaSwag,
+                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::NetheriteHorseArmor => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_WEAR_HORSE_ARMOR
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:netherite".into()),
+                can_be_sheared: true,
+                damage_on_hurt: false,
+                equip_sound: SoundEvent::EntityHorseArmor,
+                shearing_sound: SoundEvent::ItemHorseArmorUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::NetheriteLeggings => Equippable {
+                asset_id: Some("minecraft:netherite".into()),
+                equip_sound: SoundEvent::ItemArmorEquipNetherite,
+                slot: EquipmentSlot::Legs,
+                ..Equippable::new()
+            },
+            ItemKind::CyanHarness => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:cyan_harness".into()),
+                can_be_sheared: true,
+                equip_on_interact: true,
+                equip_sound: SoundEvent::EntityHappyGhastEquip,
+                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
             ItemKind::GrayCarpet => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
                     contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
@@ -2983,43 +2905,75 @@ impl DefaultableComponent for Equippable {
                 slot: EquipmentSlot::Body,
                 ..Equippable::new()
             },
-            ItemKind::ChainmailHelmet => Equippable {
-                asset_id: Some("minecraft:chainmail".into()),
-                equip_sound: SoundEvent::ItemArmorEquipChain,
-                slot: EquipmentSlot::Head,
-                ..Equippable::new()
-            },
-            ItemKind::WhiteCarpet => Equippable {
+            ItemKind::DiamondNautilusArmor => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
-                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
-                }),
-                asset_id: Some("minecraft:white_carpet".into()),
-                can_be_sheared: true,
-                equip_sound: SoundEvent::EntityLlamaSwag,
-                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::Saddle => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_SADDLE
+                    contents: azalea_registry::tags::entities::CAN_WEAR_NAUTILUS_ARMOR
                         .clone()
                         .into_iter()
                         .collect(),
                 }),
-                asset_id: Some("minecraft:saddle".into()),
+                asset_id: Some("minecraft:diamond".into()),
                 can_be_sheared: true,
+                damage_on_hurt: false,
                 equip_on_interact: true,
-                equip_sound: SoundEvent::EntityHorseSaddle,
-                shearing_sound: SoundEvent::ItemSaddleUnequip,
-                slot: EquipmentSlot::Saddle,
+                equip_sound: SoundEvent::ItemArmorEquipNautilus,
+                shearing_sound: SoundEvent::ItemArmorUnequipNautilus,
+                slot: EquipmentSlot::Body,
                 ..Equippable::new()
             },
-            ItemKind::LightGrayCarpet => Equippable {
+            ItemKind::NetheriteHelmet => Equippable {
+                asset_id: Some("minecraft:netherite".into()),
+                equip_sound: SoundEvent::ItemArmorEquipNetherite,
+                slot: EquipmentSlot::Head,
+                ..Equippable::new()
+            },
+            ItemKind::ChainmailLeggings => Equippable {
+                asset_id: Some("minecraft:chainmail".into()),
+                equip_sound: SoundEvent::ItemArmorEquipChain,
+                slot: EquipmentSlot::Legs,
+                ..Equippable::new()
+            },
+            ItemKind::GoldenHorseArmor => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_WEAR_HORSE_ARMOR
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:gold".into()),
+                can_be_sheared: true,
+                damage_on_hurt: false,
+                equip_sound: SoundEvent::EntityHorseArmor,
+                shearing_sound: SoundEvent::ItemHorseArmorUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::CopperLeggings => Equippable {
+                asset_id: Some("minecraft:copper".into()),
+                equip_sound: SoundEvent::ItemArmorEquipCopper,
+                slot: EquipmentSlot::Legs,
+                ..Equippable::new()
+            },
+            ItemKind::LeatherHorseArmor => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_WEAR_HORSE_ARMOR
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:leather".into()),
+                can_be_sheared: true,
+                damage_on_hurt: false,
+                equip_sound: SoundEvent::EntityHorseArmor,
+                shearing_sound: SoundEvent::ItemHorseArmorUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::LimeCarpet => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
                     contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
                 }),
-                asset_id: Some("minecraft:light_gray_carpet".into()),
+                asset_id: Some("minecraft:lime_carpet".into()),
                 can_be_sheared: true,
                 equip_sound: SoundEvent::EntityLlamaSwag,
                 shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
@@ -3041,25 +2995,31 @@ impl DefaultableComponent for Equippable {
                 slot: EquipmentSlot::Body,
                 ..Equippable::new()
             },
-            ItemKind::NetheriteHorseArmor => Equippable {
+            ItemKind::BrownHarness => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_WEAR_HORSE_ARMOR
+                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
                         .clone()
                         .into_iter()
                         .collect(),
                 }),
-                asset_id: Some("minecraft:netherite".into()),
+                asset_id: Some("minecraft:brown_harness".into()),
                 can_be_sheared: true,
-                damage_on_hurt: false,
-                equip_sound: SoundEvent::EntityHorseArmor,
-                shearing_sound: SoundEvent::ItemHorseArmorUnequip,
+                equip_on_interact: true,
+                equip_sound: SoundEvent::EntityHappyGhastEquip,
+                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
                 slot: EquipmentSlot::Body,
                 ..Equippable::new()
             },
-            ItemKind::ChainmailBoots => Equippable {
-                asset_id: Some("minecraft:chainmail".into()),
-                equip_sound: SoundEvent::ItemArmorEquipChain,
-                slot: EquipmentSlot::Feet,
+            ItemKind::CopperHelmet => Equippable {
+                asset_id: Some("minecraft:copper".into()),
+                equip_sound: SoundEvent::ItemArmorEquipCopper,
+                slot: EquipmentSlot::Head,
+                ..Equippable::new()
+            },
+            ItemKind::IronLeggings => Equippable {
+                asset_id: Some("minecraft:iron".into()),
+                equip_sound: SoundEvent::ItemArmorEquipIron,
+                slot: EquipmentSlot::Legs,
                 ..Equippable::new()
             },
             ItemKind::CyanCarpet => Equippable {
@@ -3073,10 +3033,10 @@ impl DefaultableComponent for Equippable {
                 slot: EquipmentSlot::Body,
                 ..Equippable::new()
             },
-            ItemKind::NetheriteChestplate => Equippable {
-                asset_id: Some("minecraft:netherite".into()),
-                equip_sound: SoundEvent::ItemArmorEquipNetherite,
-                slot: EquipmentSlot::Chest,
+            ItemKind::GoldenHelmet => Equippable {
+                asset_id: Some("minecraft:gold".into()),
+                equip_sound: SoundEvent::ItemArmorEquipGold,
+                slot: EquipmentSlot::Head,
                 ..Equippable::new()
             },
             ItemKind::GoldenLeggings => Equippable {
@@ -3085,38 +3045,20 @@ impl DefaultableComponent for Equippable {
                 slot: EquipmentSlot::Legs,
                 ..Equippable::new()
             },
-            ItemKind::CarvedPumpkin => Equippable {
-                camera_overlay: Some("minecraft:misc/pumpkinblur".into()),
-                slot: EquipmentSlot::Head,
-                swappable: false,
-                ..Equippable::new()
-            },
-            ItemKind::DiamondChestplate => Equippable {
-                asset_id: Some("minecraft:diamond".into()),
-                equip_sound: SoundEvent::ItemArmorEquipDiamond,
+            ItemKind::LeatherChestplate => Equippable {
+                asset_id: Some("minecraft:leather".into()),
+                equip_sound: SoundEvent::ItemArmorEquipLeather,
                 slot: EquipmentSlot::Chest,
                 ..Equippable::new()
             },
-            ItemKind::Elytra => Equippable {
-                asset_id: Some("minecraft:elytra".into()),
-                damage_on_hurt: false,
-                equip_sound: SoundEvent::ItemArmorEquipElytra,
-                slot: EquipmentSlot::Chest,
-                ..Equippable::new()
-            },
-            ItemKind::PiglinHead => Equippable {
-                slot: EquipmentSlot::Head,
-                swappable: false,
-                ..Equippable::new()
-            },
-            ItemKind::BlueHarness => Equippable {
+            ItemKind::RedHarness => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
                     contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
                         .clone()
                         .into_iter()
                         .collect(),
                 }),
-                asset_id: Some("minecraft:blue_harness".into()),
+                asset_id: Some("minecraft:red_harness".into()),
                 can_be_sheared: true,
                 equip_on_interact: true,
                 equip_sound: SoundEvent::EntityHappyGhastEquip,
@@ -3135,10 +3077,180 @@ impl DefaultableComponent for Equippable {
                 slot: EquipmentSlot::Body,
                 ..Equippable::new()
             },
+            ItemKind::Shield => Equippable {
+                slot: EquipmentSlot::Offhand,
+                swappable: false,
+                ..Equippable::new()
+            },
+            ItemKind::IronChestplate => Equippable {
+                asset_id: Some("minecraft:iron".into()),
+                equip_sound: SoundEvent::ItemArmorEquipIron,
+                slot: EquipmentSlot::Chest,
+                ..Equippable::new()
+            },
+            ItemKind::DiamondChestplate => Equippable {
+                asset_id: Some("minecraft:diamond".into()),
+                equip_sound: SoundEvent::ItemArmorEquipDiamond,
+                slot: EquipmentSlot::Chest,
+                ..Equippable::new()
+            },
+            ItemKind::LeatherLeggings => Equippable {
+                asset_id: Some("minecraft:leather".into()),
+                equip_sound: SoundEvent::ItemArmorEquipLeather,
+                slot: EquipmentSlot::Legs,
+                ..Equippable::new()
+            },
+            ItemKind::LightBlueCarpet => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
+                }),
+                asset_id: Some("minecraft:light_blue_carpet".into()),
+                can_be_sheared: true,
+                equip_sound: SoundEvent::EntityLlamaSwag,
+                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::GoldenChestplate => Equippable {
+                asset_id: Some("minecraft:gold".into()),
+                equip_sound: SoundEvent::ItemArmorEquipGold,
+                slot: EquipmentSlot::Chest,
+                ..Equippable::new()
+            },
+            ItemKind::CopperChestplate => Equippable {
+                asset_id: Some("minecraft:copper".into()),
+                equip_sound: SoundEvent::ItemArmorEquipCopper,
+                slot: EquipmentSlot::Chest,
+                ..Equippable::new()
+            },
+            ItemKind::GoldenBoots => Equippable {
+                asset_id: Some("minecraft:gold".into()),
+                equip_sound: SoundEvent::ItemArmorEquipGold,
+                slot: EquipmentSlot::Feet,
+                ..Equippable::new()
+            },
+            ItemKind::MagentaHarness => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:magenta_harness".into()),
+                can_be_sheared: true,
+                equip_on_interact: true,
+                equip_sound: SoundEvent::EntityHappyGhastEquip,
+                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::TurtleHelmet => Equippable {
+                asset_id: Some("minecraft:turtle_scute".into()),
+                equip_sound: SoundEvent::ItemArmorEquipTurtle,
+                slot: EquipmentSlot::Head,
+                ..Equippable::new()
+            },
             ItemKind::LeatherBoots => Equippable {
                 asset_id: Some("minecraft:leather".into()),
                 equip_sound: SoundEvent::ItemArmorEquipLeather,
                 slot: EquipmentSlot::Feet,
+                ..Equippable::new()
+            },
+            ItemKind::DiamondBoots => Equippable {
+                asset_id: Some("minecraft:diamond".into()),
+                equip_sound: SoundEvent::ItemArmorEquipDiamond,
+                slot: EquipmentSlot::Feet,
+                ..Equippable::new()
+            },
+            ItemKind::RedCarpet => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
+                }),
+                asset_id: Some("minecraft:red_carpet".into()),
+                can_be_sheared: true,
+                equip_sound: SoundEvent::EntityLlamaSwag,
+                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::ZombieHead => Equippable {
+                slot: EquipmentSlot::Head,
+                swappable: false,
+                ..Equippable::new()
+            },
+            ItemKind::CarvedPumpkin => Equippable {
+                camera_overlay: Some("minecraft:misc/pumpkinblur".into()),
+                slot: EquipmentSlot::Head,
+                swappable: false,
+                ..Equippable::new()
+            },
+            ItemKind::Saddle => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_EQUIP_SADDLE
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:saddle".into()),
+                can_be_sheared: true,
+                equip_on_interact: true,
+                equip_sound: SoundEvent::EntityHorseSaddle,
+                shearing_sound: SoundEvent::ItemSaddleUnequip,
+                slot: EquipmentSlot::Saddle,
+                ..Equippable::new()
+            },
+            ItemKind::NetheriteChestplate => Equippable {
+                asset_id: Some("minecraft:netherite".into()),
+                equip_sound: SoundEvent::ItemArmorEquipNetherite,
+                slot: EquipmentSlot::Chest,
+                ..Equippable::new()
+            },
+            ItemKind::CreeperHead => Equippable {
+                slot: EquipmentSlot::Head,
+                swappable: false,
+                ..Equippable::new()
+            },
+            ItemKind::YellowCarpet => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
+                }),
+                asset_id: Some("minecraft:yellow_carpet".into()),
+                can_be_sheared: true,
+                equip_sound: SoundEvent::EntityLlamaSwag,
+                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::OrangeHarness => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:orange_harness".into()),
+                can_be_sheared: true,
+                equip_on_interact: true,
+                equip_sound: SoundEvent::EntityHappyGhastEquip,
+                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::LeatherHelmet => Equippable {
+                asset_id: Some("minecraft:leather".into()),
+                equip_sound: SoundEvent::ItemArmorEquipLeather,
+                slot: EquipmentSlot::Head,
+                ..Equippable::new()
+            },
+            ItemKind::WhiteCarpet => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
+                }),
+                asset_id: Some("minecraft:white_carpet".into()),
+                can_be_sheared: true,
+                equip_sound: SoundEvent::EntityLlamaSwag,
+                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
+                slot: EquipmentSlot::Body,
                 ..Equippable::new()
             },
             _ => return None,
@@ -3146,698 +3258,119 @@ impl DefaultableComponent for Equippable {
         Some(value)
     }
 }
-impl DefaultableComponent for Dye {
+impl DefaultableComponent for EnchantmentGlintOverride {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::YellowDye => DyeColor::Yellow,
-            ItemKind::WhiteDye => DyeColor::White,
-            ItemKind::GrayDye => DyeColor::Gray,
-            ItemKind::MagentaDye => DyeColor::Magenta,
-            ItemKind::LimeDye => DyeColor::Lime,
-            ItemKind::PurpleDye => DyeColor::Purple,
-            ItemKind::LightBlueDye => DyeColor::LightBlue,
-            ItemKind::BrownDye => DyeColor::Brown,
-            ItemKind::GreenDye => DyeColor::Green,
-            ItemKind::OrangeDye => DyeColor::Orange,
-            ItemKind::PinkDye => DyeColor::Pink,
-            ItemKind::BlackDye => DyeColor::Black,
-            ItemKind::CyanDye => DyeColor::Cyan,
-            ItemKind::LightGrayDye => DyeColor::LightGray,
-            ItemKind::RedDye => DyeColor::Red,
-            ItemKind::BlueDye => DyeColor::Blue,
+            ItemKind::EndCrystal => true,
+            ItemKind::DebugStick => true,
+            ItemKind::EnchantedGoldenApple => true,
+            ItemKind::ExperienceBottle => true,
+            ItemKind::EnchantedBook => true,
+            ItemKind::WrittenBook => true,
+            ItemKind::NetherStar => true,
             _ => return None,
         };
-        Some(Dye { color: value })
+        Some(EnchantmentGlintOverride { show_glint: value })
     }
 }
-impl DefaultableComponent for Bees {
+impl DefaultableComponent for ChickenVariant {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::Beehive => vec![],
-            ItemKind::BeeNest => vec![],
+            ItemKind::BlueEgg => azalea_registry::data::ChickenVariant::new_raw(0),
+            ItemKind::BrownEgg => azalea_registry::data::ChickenVariant::new_raw(0),
+            ItemKind::Egg => azalea_registry::data::ChickenVariant::new_raw(0),
             _ => return None,
         };
-        Some(Bees { occupants: value })
-    }
-}
-impl DefaultableComponent for BlockState {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::Beehive => HashMap::from_iter([("honey_level".to_owned(), "0".to_owned())]),
-            ItemKind::BeeNest => HashMap::from_iter([("honey_level".to_owned(), "0".to_owned())]),
-            ItemKind::OxidizedCopperGolemStatue => {
-                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
-            }
-            ItemKind::WaxedOxidizedCopperGolemStatue => {
-                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
-            }
-            ItemKind::WaxedCopperGolemStatue => {
-                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
-            }
-            ItemKind::WaxedWeatheredCopperGolemStatue => {
-                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
-            }
-            ItemKind::WeatheredCopperGolemStatue => {
-                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
-            }
-            ItemKind::CopperGolemStatue => {
-                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
-            }
-            ItemKind::ExposedCopperGolemStatue => {
-                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
-            }
-            ItemKind::WaxedExposedCopperGolemStatue => {
-                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
-            }
-            ItemKind::Light => HashMap::from_iter([("level".to_owned(), "15".to_owned())]),
-            ItemKind::TestBlock => HashMap::from_iter([("mode".to_owned(), "start".to_owned())]),
-            _ => return None,
-        };
-        Some(BlockState { properties: value })
-    }
-}
-impl DefaultableComponent for JukeboxPlayable {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::MusicDiscStrad => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDiscRelic => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDisc13 => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDiscWard => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDiscCreator => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDiscCat => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDiscFar => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDiscOtherside => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDiscLavaChicken => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDiscCreatorMusicBox => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDiscStal => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDiscWait => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDiscPrecipice => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDiscMellohi => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDiscChirp => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDisc11 => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDisc5 => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDiscBlocks => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDiscMall => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDiscTears => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDiscPigstep => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            _ => return None,
-        };
-        Some(JukeboxPlayable { value: value })
-    }
-}
-impl DefaultableComponent for Consumable {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::Pufferfish => Consumable {
-                on_consume_effects: vec![ConsumeEffect::ApplyEffects {
-                    effects: vec![
-                        MobEffectInstance {
-                            id: MobEffect::Poison,
-                            details: MobEffectDetails {
-                                amplifier: 1,
-                                duration: 1200,
-                                show_icon: true,
-                                ..MobEffectDetails::new()
-                            },
-                        },
-                        MobEffectInstance {
-                            id: MobEffect::Hunger,
-                            details: MobEffectDetails {
-                                amplifier: 2,
-                                duration: 300,
-                                show_icon: true,
-                                ..MobEffectDetails::new()
-                            },
-                        },
-                        MobEffectInstance {
-                            id: MobEffect::Nausea,
-                            details: MobEffectDetails {
-                                duration: 300,
-                                show_icon: true,
-                                ..MobEffectDetails::new()
-                            },
-                        },
-                    ],
-                    probability: 1.0,
-                }],
-                ..Consumable::new()
-            },
-            ItemKind::CookedSalmon => Consumable::new(),
-            ItemKind::Porkchop => Consumable::new(),
-            ItemKind::RottenFlesh => Consumable {
-                on_consume_effects: vec![ConsumeEffect::ApplyEffects {
-                    effects: vec![MobEffectInstance {
-                        id: MobEffect::Hunger,
-                        details: MobEffectDetails {
-                            duration: 600,
-                            show_icon: true,
-                            ..MobEffectDetails::new()
-                        },
-                    }],
-                    probability: 0.8,
-                }],
-                ..Consumable::new()
-            },
-            ItemKind::Salmon => Consumable::new(),
-            ItemKind::HoneyBottle => Consumable {
-                animation: ItemUseAnimation::Drink,
-                consume_seconds: 2.0,
-                has_consume_particles: false,
-                on_consume_effects: vec![ConsumeEffect::RemoveEffects {
-                    effects: HolderSet::Direct {
-                        contents: vec![MobEffect::Poison],
-                    },
-                }],
-                sound: azalea_registry::Holder::Reference(SoundEvent::ItemHoneyBottleDrink),
-            },
-            ItemKind::MilkBucket => Consumable {
-                animation: ItemUseAnimation::Drink,
-                has_consume_particles: false,
-                on_consume_effects: vec![ConsumeEffect::ClearAllEffects {}],
-                sound: azalea_registry::Holder::Reference(SoundEvent::EntityGenericDrink),
-                ..Consumable::new()
-            },
-            ItemKind::Bread => Consumable::new(),
-            ItemKind::MushroomStew => Consumable::new(),
-            ItemKind::CookedRabbit => Consumable::new(),
-            ItemKind::BeetrootSoup => Consumable::new(),
-            ItemKind::Cookie => Consumable::new(),
-            ItemKind::PumpkinPie => Consumable::new(),
-            ItemKind::DriedKelp => Consumable {
-                consume_seconds: 0.8,
-                ..Consumable::new()
-            },
-            ItemKind::Mutton => Consumable::new(),
-            ItemKind::TropicalFish => Consumable::new(),
-            ItemKind::BakedPotato => Consumable::new(),
-            ItemKind::ChorusFruit => Consumable {
-                on_consume_effects: vec![ConsumeEffect::TeleportRandomly { diameter: 16.0 }],
-                ..Consumable::new()
-            },
-            ItemKind::Potion => Consumable {
-                animation: ItemUseAnimation::Drink,
-                has_consume_particles: false,
-                sound: azalea_registry::Holder::Reference(SoundEvent::EntityGenericDrink),
-                ..Consumable::new()
-            },
-            ItemKind::SpiderEye => Consumable {
-                on_consume_effects: vec![ConsumeEffect::ApplyEffects {
-                    effects: vec![MobEffectInstance {
-                        id: MobEffect::Poison,
-                        details: MobEffectDetails {
-                            duration: 100,
-                            show_icon: true,
-                            ..MobEffectDetails::new()
-                        },
-                    }],
-                    probability: 1.0,
-                }],
-                ..Consumable::new()
-            },
-            ItemKind::Cod => Consumable::new(),
-            ItemKind::Beetroot => Consumable::new(),
-            ItemKind::OminousBottle => Consumable {
-                animation: ItemUseAnimation::Drink,
-                has_consume_particles: false,
-                on_consume_effects: vec![ConsumeEffect::PlaySound {
-                    sound: SoundEvent::ItemOminousBottleDispose,
-                }],
-                sound: azalea_registry::Holder::Reference(SoundEvent::EntityGenericDrink),
-                ..Consumable::new()
-            },
-            ItemKind::GoldenApple => Consumable {
-                on_consume_effects: vec![ConsumeEffect::ApplyEffects {
-                    effects: vec![
-                        MobEffectInstance {
-                            id: MobEffect::Regeneration,
-                            details: MobEffectDetails {
-                                amplifier: 1,
-                                duration: 100,
-                                show_icon: true,
-                                ..MobEffectDetails::new()
-                            },
-                        },
-                        MobEffectInstance {
-                            id: MobEffect::Absorption,
-                            details: MobEffectDetails {
-                                duration: 2400,
-                                show_icon: true,
-                                ..MobEffectDetails::new()
-                            },
-                        },
-                    ],
-                    probability: 1.0,
-                }],
-                ..Consumable::new()
-            },
-            ItemKind::EnchantedGoldenApple => Consumable {
-                on_consume_effects: vec![ConsumeEffect::ApplyEffects {
-                    effects: vec![
-                        MobEffectInstance {
-                            id: MobEffect::Regeneration,
-                            details: MobEffectDetails {
-                                amplifier: 1,
-                                duration: 400,
-                                show_icon: true,
-                                ..MobEffectDetails::new()
-                            },
-                        },
-                        MobEffectInstance {
-                            id: MobEffect::Resistance,
-                            details: MobEffectDetails {
-                                duration: 6000,
-                                show_icon: true,
-                                ..MobEffectDetails::new()
-                            },
-                        },
-                        MobEffectInstance {
-                            id: MobEffect::FireResistance,
-                            details: MobEffectDetails {
-                                duration: 6000,
-                                show_icon: true,
-                                ..MobEffectDetails::new()
-                            },
-                        },
-                        MobEffectInstance {
-                            id: MobEffect::Absorption,
-                            details: MobEffectDetails {
-                                amplifier: 3,
-                                duration: 2400,
-                                show_icon: true,
-                                ..MobEffectDetails::new()
-                            },
-                        },
-                    ],
-                    probability: 1.0,
-                }],
-                ..Consumable::new()
-            },
-            ItemKind::PoisonousPotato => Consumable {
-                on_consume_effects: vec![ConsumeEffect::ApplyEffects {
-                    effects: vec![MobEffectInstance {
-                        id: MobEffect::Poison,
-                        details: MobEffectDetails {
-                            duration: 100,
-                            show_icon: true,
-                            ..MobEffectDetails::new()
-                        },
-                    }],
-                    probability: 0.6,
-                }],
-                ..Consumable::new()
-            },
-            ItemKind::SuspiciousStew => Consumable::new(),
-            ItemKind::CookedBeef => Consumable::new(),
-            ItemKind::Chicken => Consumable {
-                on_consume_effects: vec![ConsumeEffect::ApplyEffects {
-                    effects: vec![MobEffectInstance {
-                        id: MobEffect::Hunger,
-                        details: MobEffectDetails {
-                            duration: 600,
-                            show_icon: true,
-                            ..MobEffectDetails::new()
-                        },
-                    }],
-                    probability: 0.3,
-                }],
-                ..Consumable::new()
-            },
-            ItemKind::CookedChicken => Consumable::new(),
-            ItemKind::GoldenCarrot => Consumable::new(),
-            ItemKind::Beef => Consumable::new(),
-            ItemKind::CookedPorkchop => Consumable::new(),
-            ItemKind::CookedMutton => Consumable::new(),
-            ItemKind::Carrot => Consumable::new(),
-            ItemKind::RabbitStew => Consumable::new(),
-            ItemKind::MelonSlice => Consumable::new(),
-            ItemKind::Rabbit => Consumable::new(),
-            ItemKind::GlowBerries => Consumable::new(),
-            ItemKind::Potato => Consumable::new(),
-            ItemKind::Apple => Consumable::new(),
-            ItemKind::CookedCod => Consumable::new(),
-            ItemKind::SweetBerries => Consumable::new(),
-            _ => return None,
-        };
-        Some(value)
-    }
-}
-impl DefaultableComponent for Food {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::Pufferfish => Food {
-                nutrition: 1,
-                saturation: 0.2,
-                ..Food::new()
-            },
-            ItemKind::CookedSalmon => Food {
-                nutrition: 6,
-                saturation: 9.6,
-                ..Food::new()
-            },
-            ItemKind::Porkchop => Food {
-                nutrition: 3,
-                saturation: 1.8000001,
-                ..Food::new()
-            },
-            ItemKind::RottenFlesh => Food {
-                nutrition: 4,
-                saturation: 0.8,
-                ..Food::new()
-            },
-            ItemKind::Salmon => Food {
-                nutrition: 2,
-                saturation: 0.4,
-                ..Food::new()
-            },
-            ItemKind::HoneyBottle => Food {
-                can_always_eat: true,
-                nutrition: 6,
-                saturation: 1.2,
-            },
-            ItemKind::Bread => Food {
-                nutrition: 5,
-                saturation: 6.0,
-                ..Food::new()
-            },
-            ItemKind::MushroomStew => Food {
-                nutrition: 6,
-                saturation: 7.2000003,
-                ..Food::new()
-            },
-            ItemKind::CookedRabbit => Food {
-                nutrition: 5,
-                saturation: 6.0,
-                ..Food::new()
-            },
-            ItemKind::BeetrootSoup => Food {
-                nutrition: 6,
-                saturation: 7.2000003,
-                ..Food::new()
-            },
-            ItemKind::Cookie => Food {
-                nutrition: 2,
-                saturation: 0.4,
-                ..Food::new()
-            },
-            ItemKind::PumpkinPie => Food {
-                nutrition: 8,
-                saturation: 4.8,
-                ..Food::new()
-            },
-            ItemKind::DriedKelp => Food {
-                nutrition: 1,
-                saturation: 0.6,
-                ..Food::new()
-            },
-            ItemKind::Mutton => Food {
-                nutrition: 2,
-                saturation: 1.2,
-                ..Food::new()
-            },
-            ItemKind::TropicalFish => Food {
-                nutrition: 1,
-                saturation: 0.2,
-                ..Food::new()
-            },
-            ItemKind::BakedPotato => Food {
-                nutrition: 5,
-                saturation: 6.0,
-                ..Food::new()
-            },
-            ItemKind::ChorusFruit => Food {
-                can_always_eat: true,
-                nutrition: 4,
-                saturation: 2.4,
-            },
-            ItemKind::TropicalFishBucket => Food {
-                nutrition: 1,
-                saturation: 0.2,
-                ..Food::new()
-            },
-            ItemKind::SalmonBucket => Food {
-                nutrition: 2,
-                saturation: 0.4,
-                ..Food::new()
-            },
-            ItemKind::SpiderEye => Food {
-                nutrition: 2,
-                saturation: 3.2,
-                ..Food::new()
-            },
-            ItemKind::Cod => Food {
-                nutrition: 2,
-                saturation: 0.4,
-                ..Food::new()
-            },
-            ItemKind::Beetroot => Food {
-                nutrition: 1,
-                saturation: 1.2,
-                ..Food::new()
-            },
-            ItemKind::GoldenApple => Food {
-                can_always_eat: true,
-                nutrition: 4,
-                saturation: 9.6,
-            },
-            ItemKind::EnchantedGoldenApple => Food {
-                can_always_eat: true,
-                nutrition: 4,
-                saturation: 9.6,
-            },
-            ItemKind::PufferfishBucket => Food {
-                nutrition: 1,
-                saturation: 0.2,
-                ..Food::new()
-            },
-            ItemKind::CodBucket => Food {
-                nutrition: 2,
-                saturation: 0.4,
-                ..Food::new()
-            },
-            ItemKind::PoisonousPotato => Food {
-                nutrition: 2,
-                saturation: 1.2,
-                ..Food::new()
-            },
-            ItemKind::SuspiciousStew => Food {
-                can_always_eat: true,
-                nutrition: 6,
-                saturation: 7.2000003,
-            },
-            ItemKind::CookedBeef => Food {
-                nutrition: 8,
-                saturation: 12.8,
-                ..Food::new()
-            },
-            ItemKind::Chicken => Food {
-                nutrition: 2,
-                saturation: 1.2,
-                ..Food::new()
-            },
-            ItemKind::CookedChicken => Food {
-                nutrition: 6,
-                saturation: 7.2000003,
-                ..Food::new()
-            },
-            ItemKind::GoldenCarrot => Food {
-                nutrition: 6,
-                saturation: 14.400001,
-                ..Food::new()
-            },
-            ItemKind::Beef => Food {
-                nutrition: 3,
-                saturation: 1.8000001,
-                ..Food::new()
-            },
-            ItemKind::CookedPorkchop => Food {
-                nutrition: 8,
-                saturation: 12.8,
-                ..Food::new()
-            },
-            ItemKind::CookedMutton => Food {
-                nutrition: 6,
-                saturation: 9.6,
-                ..Food::new()
-            },
-            ItemKind::Carrot => Food {
-                nutrition: 3,
-                saturation: 3.6000001,
-                ..Food::new()
-            },
-            ItemKind::RabbitStew => Food {
-                nutrition: 10,
-                saturation: 12.0,
-                ..Food::new()
-            },
-            ItemKind::MelonSlice => Food {
-                nutrition: 2,
-                saturation: 1.2,
-                ..Food::new()
-            },
-            ItemKind::Rabbit => Food {
-                nutrition: 3,
-                saturation: 1.8000001,
-                ..Food::new()
-            },
-            ItemKind::GlowBerries => Food {
-                nutrition: 2,
-                saturation: 0.4,
-                ..Food::new()
-            },
-            ItemKind::Potato => Food {
-                nutrition: 1,
-                saturation: 0.6,
-                ..Food::new()
-            },
-            ItemKind::Apple => Food {
-                nutrition: 4,
-                saturation: 2.4,
-                ..Food::new()
-            },
-            ItemKind::CookedCod => Food {
-                nutrition: 5,
-                saturation: 6.0,
-                ..Food::new()
-            },
-            ItemKind::SweetBerries => Food {
-                nutrition: 2,
-                saturation: 0.4,
-                ..Food::new()
-            },
-            _ => return None,
-        };
-        Some(value)
+        Some(ChickenVariant { data: value })
     }
 }
 impl DefaultableComponent for Damage {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::IronHoe => 0,
-            ItemKind::LeatherChestplate => 0,
-            ItemKind::IronSpear => 0,
-            ItemKind::NetheriteHelmet => 0,
-            ItemKind::StoneHoe => 0,
-            ItemKind::CopperPickaxe => 0,
-            ItemKind::NetheriteSword => 0,
-            ItemKind::GoldenBoots => 0,
-            ItemKind::CarrotOnAStick => 0,
-            ItemKind::FlintAndSteel => 0,
-            ItemKind::CopperHelmet => 0,
-            ItemKind::GoldenHelmet => 0,
-            ItemKind::TurtleHelmet => 0,
-            ItemKind::Shears => 0,
-            ItemKind::GoldenSpear => 0,
             ItemKind::WoodenHoe => 0,
-            ItemKind::IronHelmet => 0,
-            ItemKind::StoneShovel => 0,
-            ItemKind::StoneAxe => 0,
-            ItemKind::NetheriteShovel => 0,
-            ItemKind::StoneSword => 0,
-            ItemKind::DiamondLeggings => 0,
-            ItemKind::DiamondAxe => 0,
+            ItemKind::WoodenShovel => 0,
+            ItemKind::ChainmailHelmet => 0,
             ItemKind::GoldenSword => 0,
-            ItemKind::IronLeggings => 0,
-            ItemKind::GoldenShovel => 0,
-            ItemKind::WoodenSword => 0,
-            ItemKind::ChainmailLeggings => 0,
+            ItemKind::Trident => 0,
+            ItemKind::DiamondShovel => 0,
+            ItemKind::Crossbow => 0,
             ItemKind::CopperHoe => 0,
+            ItemKind::Brush => 0,
+            ItemKind::NetheriteShovel => 0,
+            ItemKind::GoldenPickaxe => 0,
+            ItemKind::ChainmailBoots => 0,
+            ItemKind::IronShovel => 0,
+            ItemKind::GoldenShovel => 0,
+            ItemKind::DiamondHelmet => 0,
+            ItemKind::IronHelmet => 0,
+            ItemKind::FlintAndSteel => 0,
+            ItemKind::IronSpear => 0,
+            ItemKind::IronBoots => 0,
+            ItemKind::DiamondAxe => 0,
+            ItemKind::GoldenAxe => 0,
+            ItemKind::StoneSpear => 0,
+            ItemKind::CarrotOnAStick => 0,
+            ItemKind::Elytra => 0,
+            ItemKind::StonePickaxe => 0,
+            ItemKind::NetheriteBoots => 0,
+            ItemKind::DiamondHoe => 0,
+            ItemKind::NetheriteSpear => 0,
+            ItemKind::ChainmailChestplate => 0,
+            ItemKind::StoneSword => 0,
+            ItemKind::IronSword => 0,
             ItemKind::CopperBoots => 0,
             ItemKind::NetheriteAxe => 0,
-            ItemKind::NetheriteSpear => 0,
-            ItemKind::GoldenAxe => 0,
-            ItemKind::IronPickaxe => 0,
-            ItemKind::Crossbow => 0,
             ItemKind::CopperAxe => 0,
-            ItemKind::GoldenPickaxe => 0,
-            ItemKind::IronShovel => 0,
-            ItemKind::GoldenChestplate => 0,
-            ItemKind::WarpedFungusOnAStick => 0,
-            ItemKind::NetheriteBoots => 0,
-            ItemKind::WoodenSpear => 0,
-            ItemKind::LeatherLeggings => 0,
-            ItemKind::WoodenShovel => 0,
-            ItemKind::CopperSpear => 0,
-            ItemKind::Brush => 0,
-            ItemKind::CopperChestplate => 0,
-            ItemKind::WoodenPickaxe => 0,
-            ItemKind::NetheriteLeggings => 0,
-            ItemKind::Bow => 0,
             ItemKind::NetheriteHoe => 0,
-            ItemKind::NetheritePickaxe => 0,
-            ItemKind::LeatherHelmet => 0,
-            ItemKind::IronChestplate => 0,
-            ItemKind::IronBoots => 0,
-            ItemKind::Mace => 0,
-            ItemKind::WoodenAxe => 0,
+            ItemKind::WoodenSpear => 0,
+            ItemKind::DiamondLeggings => 0,
+            ItemKind::CopperPickaxe => 0,
+            ItemKind::DiamondPickaxe => 0,
+            ItemKind::IronHoe => 0,
+            ItemKind::DiamondSword => 0,
+            ItemKind::NetheriteLeggings => 0,
+            ItemKind::NetheriteHelmet => 0,
+            ItemKind::ChainmailLeggings => 0,
             ItemKind::CopperSword => 0,
             ItemKind::CopperLeggings => 0,
-            ItemKind::DiamondHoe => 0,
-            ItemKind::CopperShovel => 0,
-            ItemKind::DiamondBoots => 0,
-            ItemKind::DiamondHelmet => 0,
-            ItemKind::DiamondSword => 0,
-            ItemKind::FishingRod => 0,
-            ItemKind::StonePickaxe => 0,
-            ItemKind::Trident => 0,
-            ItemKind::StoneSpear => 0,
-            ItemKind::Shield => 0,
-            ItemKind::GoldenHoe => 0,
-            ItemKind::DiamondShovel => 0,
-            ItemKind::ChainmailChestplate => 0,
-            ItemKind::IronSword => 0,
-            ItemKind::ChainmailHelmet => 0,
-            ItemKind::DiamondSpear => 0,
-            ItemKind::ChainmailBoots => 0,
-            ItemKind::IronAxe => 0,
-            ItemKind::NetheriteChestplate => 0,
+            ItemKind::NetheriteSword => 0,
+            ItemKind::WoodenSword => 0,
+            ItemKind::IronPickaxe => 0,
+            ItemKind::CopperHelmet => 0,
+            ItemKind::IronLeggings => 0,
+            ItemKind::WarpedFungusOnAStick => 0,
+            ItemKind::GoldenHelmet => 0,
             ItemKind::GoldenLeggings => 0,
-            ItemKind::DiamondChestplate => 0,
-            ItemKind::Elytra => 0,
-            ItemKind::DiamondPickaxe => 0,
+            ItemKind::CopperSpear => 0,
+            ItemKind::LeatherChestplate => 0,
+            ItemKind::StoneShovel => 0,
             ItemKind::WolfArmor => 0,
+            ItemKind::Shield => 0,
+            ItemKind::IronChestplate => 0,
+            ItemKind::DiamondChestplate => 0,
+            ItemKind::LeatherLeggings => 0,
+            ItemKind::GoldenChestplate => 0,
+            ItemKind::FishingRod => 0,
+            ItemKind::CopperChestplate => 0,
+            ItemKind::Bow => 0,
+            ItemKind::WoodenPickaxe => 0,
+            ItemKind::CopperShovel => 0,
+            ItemKind::Shears => 0,
+            ItemKind::GoldenBoots => 0,
+            ItemKind::TurtleHelmet => 0,
             ItemKind::LeatherBoots => 0,
+            ItemKind::StoneHoe => 0,
+            ItemKind::DiamondBoots => 0,
+            ItemKind::StoneAxe => 0,
+            ItemKind::IronAxe => 0,
+            ItemKind::NetheritePickaxe => 0,
+            ItemKind::NetheriteChestplate => 0,
+            ItemKind::Mace => 0,
+            ItemKind::WoodenAxe => 0,
+            ItemKind::GoldenHoe => 0,
+            ItemKind::LeatherHelmet => 0,
+            ItemKind::GoldenSpear => 0,
+            ItemKind::DiamondSpear => 0,
             _ => return None,
         };
         Some(Damage { amount: value })
@@ -3846,83 +3379,83 @@ impl DefaultableComponent for Damage {
 impl DefaultableComponent for Enchantable {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::IronHoe => 14,
-            ItemKind::LeatherChestplate => 15,
-            ItemKind::IronSpear => 14,
-            ItemKind::NetheriteHelmet => 15,
-            ItemKind::StoneHoe => 5,
-            ItemKind::CopperPickaxe => 13,
-            ItemKind::NetheriteSword => 15,
-            ItemKind::GoldenBoots => 25,
-            ItemKind::CopperHelmet => 8,
-            ItemKind::GoldenHelmet => 25,
-            ItemKind::TurtleHelmet => 9,
-            ItemKind::GoldenSpear => 22,
             ItemKind::WoodenHoe => 15,
-            ItemKind::IronHelmet => 9,
-            ItemKind::StoneShovel => 5,
-            ItemKind::StoneAxe => 5,
-            ItemKind::NetheriteShovel => 15,
-            ItemKind::StoneSword => 5,
-            ItemKind::DiamondLeggings => 10,
-            ItemKind::DiamondAxe => 10,
+            ItemKind::WoodenShovel => 15,
+            ItemKind::ChainmailHelmet => 12,
             ItemKind::GoldenSword => 22,
-            ItemKind::IronLeggings => 9,
-            ItemKind::GoldenShovel => 22,
-            ItemKind::WoodenSword => 15,
-            ItemKind::ChainmailLeggings => 12,
+            ItemKind::Trident => 1,
+            ItemKind::DiamondShovel => 10,
+            ItemKind::Crossbow => 1,
             ItemKind::CopperHoe => 13,
+            ItemKind::NetheriteShovel => 15,
+            ItemKind::GoldenPickaxe => 22,
+            ItemKind::ChainmailBoots => 12,
+            ItemKind::IronShovel => 14,
+            ItemKind::GoldenShovel => 22,
+            ItemKind::DiamondHelmet => 10,
+            ItemKind::IronHelmet => 9,
+            ItemKind::IronSpear => 14,
+            ItemKind::IronBoots => 9,
+            ItemKind::DiamondAxe => 10,
+            ItemKind::GoldenAxe => 22,
+            ItemKind::StoneSpear => 5,
+            ItemKind::StonePickaxe => 5,
+            ItemKind::NetheriteBoots => 15,
+            ItemKind::DiamondHoe => 10,
+            ItemKind::NetheriteSpear => 15,
+            ItemKind::ChainmailChestplate => 12,
+            ItemKind::StoneSword => 5,
+            ItemKind::IronSword => 14,
             ItemKind::CopperBoots => 8,
             ItemKind::NetheriteAxe => 15,
-            ItemKind::NetheriteSpear => 15,
-            ItemKind::GoldenAxe => 22,
-            ItemKind::IronPickaxe => 14,
-            ItemKind::Crossbow => 1,
             ItemKind::CopperAxe => 13,
-            ItemKind::GoldenPickaxe => 22,
-            ItemKind::IronShovel => 14,
-            ItemKind::GoldenChestplate => 25,
-            ItemKind::NetheriteBoots => 15,
-            ItemKind::WoodenSpear => 15,
-            ItemKind::LeatherLeggings => 15,
-            ItemKind::WoodenShovel => 15,
-            ItemKind::CopperSpear => 13,
-            ItemKind::CopperChestplate => 8,
-            ItemKind::WoodenPickaxe => 15,
-            ItemKind::NetheriteLeggings => 15,
-            ItemKind::Bow => 1,
             ItemKind::NetheriteHoe => 15,
-            ItemKind::NetheritePickaxe => 15,
-            ItemKind::LeatherHelmet => 15,
-            ItemKind::IronChestplate => 9,
-            ItemKind::IronBoots => 9,
-            ItemKind::Mace => 15,
-            ItemKind::WoodenAxe => 15,
+            ItemKind::WoodenSpear => 15,
+            ItemKind::DiamondLeggings => 10,
+            ItemKind::CopperPickaxe => 13,
+            ItemKind::DiamondPickaxe => 10,
+            ItemKind::IronHoe => 14,
+            ItemKind::DiamondSword => 10,
+            ItemKind::NetheriteLeggings => 15,
+            ItemKind::NetheriteHelmet => 15,
+            ItemKind::ChainmailLeggings => 12,
             ItemKind::CopperSword => 13,
             ItemKind::CopperLeggings => 8,
-            ItemKind::DiamondHoe => 10,
-            ItemKind::CopperShovel => 13,
-            ItemKind::DiamondBoots => 10,
-            ItemKind::DiamondHelmet => 10,
-            ItemKind::DiamondSword => 10,
-            ItemKind::FishingRod => 1,
-            ItemKind::StonePickaxe => 5,
-            ItemKind::Trident => 1,
-            ItemKind::StoneSpear => 5,
-            ItemKind::GoldenHoe => 22,
-            ItemKind::DiamondShovel => 10,
-            ItemKind::ChainmailChestplate => 12,
-            ItemKind::IronSword => 14,
-            ItemKind::ChainmailHelmet => 12,
-            ItemKind::DiamondSpear => 10,
-            ItemKind::ChainmailBoots => 12,
-            ItemKind::IronAxe => 14,
-            ItemKind::NetheriteChestplate => 15,
+            ItemKind::NetheriteSword => 15,
+            ItemKind::WoodenSword => 15,
+            ItemKind::IronPickaxe => 14,
+            ItemKind::CopperHelmet => 8,
+            ItemKind::IronLeggings => 9,
+            ItemKind::GoldenHelmet => 25,
             ItemKind::GoldenLeggings => 25,
+            ItemKind::CopperSpear => 13,
+            ItemKind::LeatherChestplate => 15,
+            ItemKind::StoneShovel => 5,
+            ItemKind::IronChestplate => 9,
             ItemKind::DiamondChestplate => 10,
-            ItemKind::DiamondPickaxe => 10,
-            ItemKind::LeatherBoots => 15,
+            ItemKind::LeatherLeggings => 15,
+            ItemKind::GoldenChestplate => 25,
+            ItemKind::FishingRod => 1,
+            ItemKind::CopperChestplate => 8,
             ItemKind::Book => 1,
+            ItemKind::Bow => 1,
+            ItemKind::WoodenPickaxe => 15,
+            ItemKind::CopperShovel => 13,
+            ItemKind::GoldenBoots => 25,
+            ItemKind::TurtleHelmet => 9,
+            ItemKind::LeatherBoots => 15,
+            ItemKind::StoneHoe => 5,
+            ItemKind::DiamondBoots => 10,
+            ItemKind::StoneAxe => 5,
+            ItemKind::IronAxe => 14,
+            ItemKind::NetheritePickaxe => 15,
+            ItemKind::NetheriteChestplate => 15,
+            ItemKind::Mace => 15,
+            ItemKind::WoodenAxe => 15,
+            ItemKind::GoldenHoe => 22,
+            ItemKind::LeatherHelmet => 15,
+            ItemKind::GoldenSpear => 22,
+            ItemKind::DiamondSpear => 10,
             _ => return None,
         };
         Some(Enchantable { value: value })
@@ -3931,90 +3464,90 @@ impl DefaultableComponent for Enchantable {
 impl DefaultableComponent for MaxDamage {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::IronHoe => 250,
-            ItemKind::LeatherChestplate => 80,
-            ItemKind::IronSpear => 250,
-            ItemKind::NetheriteHelmet => 407,
-            ItemKind::StoneHoe => 131,
-            ItemKind::CopperPickaxe => 190,
-            ItemKind::NetheriteSword => 2031,
-            ItemKind::GoldenBoots => 91,
-            ItemKind::CarrotOnAStick => 25,
-            ItemKind::FlintAndSteel => 64,
-            ItemKind::CopperHelmet => 121,
-            ItemKind::GoldenHelmet => 77,
-            ItemKind::TurtleHelmet => 275,
-            ItemKind::Shears => 238,
-            ItemKind::GoldenSpear => 32,
             ItemKind::WoodenHoe => 59,
-            ItemKind::IronHelmet => 165,
-            ItemKind::StoneShovel => 131,
-            ItemKind::StoneAxe => 131,
-            ItemKind::NetheriteShovel => 2031,
-            ItemKind::StoneSword => 131,
-            ItemKind::DiamondLeggings => 495,
-            ItemKind::DiamondAxe => 1561,
+            ItemKind::WoodenShovel => 59,
+            ItemKind::ChainmailHelmet => 165,
             ItemKind::GoldenSword => 32,
-            ItemKind::IronLeggings => 225,
-            ItemKind::GoldenShovel => 32,
-            ItemKind::WoodenSword => 59,
-            ItemKind::ChainmailLeggings => 225,
+            ItemKind::Trident => 250,
+            ItemKind::DiamondShovel => 1561,
+            ItemKind::Crossbow => 465,
             ItemKind::CopperHoe => 190,
+            ItemKind::Brush => 64,
+            ItemKind::NetheriteShovel => 2031,
+            ItemKind::GoldenPickaxe => 32,
+            ItemKind::ChainmailBoots => 195,
+            ItemKind::IronShovel => 250,
+            ItemKind::GoldenShovel => 32,
+            ItemKind::DiamondHelmet => 363,
+            ItemKind::IronHelmet => 165,
+            ItemKind::FlintAndSteel => 64,
+            ItemKind::IronSpear => 250,
+            ItemKind::IronBoots => 195,
+            ItemKind::DiamondAxe => 1561,
+            ItemKind::GoldenAxe => 32,
+            ItemKind::StoneSpear => 131,
+            ItemKind::CarrotOnAStick => 25,
+            ItemKind::Elytra => 432,
+            ItemKind::StonePickaxe => 131,
+            ItemKind::NetheriteBoots => 481,
+            ItemKind::DiamondHoe => 1561,
+            ItemKind::NetheriteSpear => 2031,
+            ItemKind::ChainmailChestplate => 240,
+            ItemKind::StoneSword => 131,
+            ItemKind::IronSword => 250,
             ItemKind::CopperBoots => 143,
             ItemKind::NetheriteAxe => 2031,
-            ItemKind::NetheriteSpear => 2031,
-            ItemKind::GoldenAxe => 32,
-            ItemKind::IronPickaxe => 250,
-            ItemKind::Crossbow => 465,
             ItemKind::CopperAxe => 190,
-            ItemKind::GoldenPickaxe => 32,
-            ItemKind::IronShovel => 250,
-            ItemKind::GoldenChestplate => 112,
-            ItemKind::WarpedFungusOnAStick => 100,
-            ItemKind::NetheriteBoots => 481,
-            ItemKind::WoodenSpear => 59,
-            ItemKind::LeatherLeggings => 75,
-            ItemKind::WoodenShovel => 59,
-            ItemKind::CopperSpear => 190,
-            ItemKind::Brush => 64,
-            ItemKind::CopperChestplate => 176,
-            ItemKind::WoodenPickaxe => 59,
-            ItemKind::NetheriteLeggings => 555,
-            ItemKind::Bow => 384,
             ItemKind::NetheriteHoe => 2031,
-            ItemKind::NetheritePickaxe => 2031,
-            ItemKind::LeatherHelmet => 55,
-            ItemKind::IronChestplate => 240,
-            ItemKind::IronBoots => 195,
-            ItemKind::Mace => 500,
-            ItemKind::WoodenAxe => 59,
+            ItemKind::WoodenSpear => 59,
+            ItemKind::DiamondLeggings => 495,
+            ItemKind::CopperPickaxe => 190,
+            ItemKind::DiamondPickaxe => 1561,
+            ItemKind::IronHoe => 250,
+            ItemKind::DiamondSword => 1561,
+            ItemKind::NetheriteLeggings => 555,
+            ItemKind::NetheriteHelmet => 407,
+            ItemKind::ChainmailLeggings => 225,
             ItemKind::CopperSword => 190,
             ItemKind::CopperLeggings => 165,
-            ItemKind::DiamondHoe => 1561,
-            ItemKind::CopperShovel => 190,
-            ItemKind::DiamondBoots => 429,
-            ItemKind::DiamondHelmet => 363,
-            ItemKind::DiamondSword => 1561,
-            ItemKind::FishingRod => 64,
-            ItemKind::StonePickaxe => 131,
-            ItemKind::Trident => 250,
-            ItemKind::StoneSpear => 131,
-            ItemKind::Shield => 336,
-            ItemKind::GoldenHoe => 32,
-            ItemKind::DiamondShovel => 1561,
-            ItemKind::ChainmailChestplate => 240,
-            ItemKind::IronSword => 250,
-            ItemKind::ChainmailHelmet => 165,
-            ItemKind::DiamondSpear => 1561,
-            ItemKind::ChainmailBoots => 195,
-            ItemKind::IronAxe => 250,
-            ItemKind::NetheriteChestplate => 592,
+            ItemKind::NetheriteSword => 2031,
+            ItemKind::WoodenSword => 59,
+            ItemKind::IronPickaxe => 250,
+            ItemKind::CopperHelmet => 121,
+            ItemKind::IronLeggings => 225,
+            ItemKind::WarpedFungusOnAStick => 100,
+            ItemKind::GoldenHelmet => 77,
             ItemKind::GoldenLeggings => 105,
-            ItemKind::DiamondChestplate => 528,
-            ItemKind::Elytra => 432,
-            ItemKind::DiamondPickaxe => 1561,
+            ItemKind::CopperSpear => 190,
+            ItemKind::LeatherChestplate => 80,
+            ItemKind::StoneShovel => 131,
             ItemKind::WolfArmor => 64,
+            ItemKind::Shield => 336,
+            ItemKind::IronChestplate => 240,
+            ItemKind::DiamondChestplate => 528,
+            ItemKind::LeatherLeggings => 75,
+            ItemKind::GoldenChestplate => 112,
+            ItemKind::FishingRod => 64,
+            ItemKind::CopperChestplate => 176,
+            ItemKind::Bow => 384,
+            ItemKind::WoodenPickaxe => 59,
+            ItemKind::CopperShovel => 190,
+            ItemKind::Shears => 238,
+            ItemKind::GoldenBoots => 91,
+            ItemKind::TurtleHelmet => 275,
             ItemKind::LeatherBoots => 65,
+            ItemKind::StoneHoe => 131,
+            ItemKind::DiamondBoots => 429,
+            ItemKind::StoneAxe => 131,
+            ItemKind::IronAxe => 250,
+            ItemKind::NetheritePickaxe => 2031,
+            ItemKind::NetheriteChestplate => 592,
+            ItemKind::Mace => 500,
+            ItemKind::WoodenAxe => 59,
+            ItemKind::GoldenHoe => 32,
+            ItemKind::LeatherHelmet => 55,
+            ItemKind::GoldenSpear => 32,
+            ItemKind::DiamondSpear => 1561,
             _ => return None,
         };
         Some(MaxDamage { amount: value })
@@ -4023,122 +3556,20 @@ impl DefaultableComponent for MaxDamage {
 impl DefaultableComponent for Repairable {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::IronHoe => HolderSet::Direct {
-                contents: azalea_registry::tags::items::IRON_TOOL_MATERIALS
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::LeatherChestplate => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_LEATHER_ARMOR
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::IronSpear => HolderSet::Direct {
-                contents: azalea_registry::tags::items::IRON_TOOL_MATERIALS
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::NetheriteHelmet => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_NETHERITE_ARMOR
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::StoneHoe => HolderSet::Direct {
-                contents: azalea_registry::tags::items::STONE_TOOL_MATERIALS
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::CopperPickaxe => HolderSet::Direct {
-                contents: azalea_registry::tags::items::COPPER_TOOL_MATERIALS
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::NetheriteSword => HolderSet::Direct {
-                contents: azalea_registry::tags::items::NETHERITE_TOOL_MATERIALS
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::GoldenBoots => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_GOLD_ARMOR
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::CopperHelmet => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_COPPER_ARMOR
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::GoldenHelmet => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_GOLD_ARMOR
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::TurtleHelmet => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_TURTLE_HELMET
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::GoldenSpear => HolderSet::Direct {
-                contents: azalea_registry::tags::items::GOLD_TOOL_MATERIALS
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
             ItemKind::WoodenHoe => HolderSet::Direct {
                 contents: azalea_registry::tags::items::WOODEN_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
-            ItemKind::IronHelmet => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_IRON_ARMOR
+            ItemKind::WoodenShovel => HolderSet::Direct {
+                contents: azalea_registry::tags::items::WOODEN_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
-            ItemKind::StoneShovel => HolderSet::Direct {
-                contents: azalea_registry::tags::items::STONE_TOOL_MATERIALS
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::StoneAxe => HolderSet::Direct {
-                contents: azalea_registry::tags::items::STONE_TOOL_MATERIALS
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::NetheriteShovel => HolderSet::Direct {
-                contents: azalea_registry::tags::items::NETHERITE_TOOL_MATERIALS
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::StoneSword => HolderSet::Direct {
-                contents: azalea_registry::tags::items::STONE_TOOL_MATERIALS
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::DiamondLeggings => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_DIAMOND_ARMOR
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::DiamondAxe => HolderSet::Direct {
-                contents: azalea_registry::tags::items::DIAMOND_TOOL_MATERIALS
+            ItemKind::ChainmailHelmet => HolderSet::Direct {
+                contents: azalea_registry::tags::items::REPAIRS_CHAIN_ARMOR
                     .clone()
                     .into_iter()
                     .collect(),
@@ -4149,8 +3580,38 @@ impl DefaultableComponent for Repairable {
                     .into_iter()
                     .collect(),
             },
-            ItemKind::IronLeggings => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_IRON_ARMOR
+            ItemKind::DiamondShovel => HolderSet::Direct {
+                contents: azalea_registry::tags::items::DIAMOND_TOOL_MATERIALS
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::CopperHoe => HolderSet::Direct {
+                contents: azalea_registry::tags::items::COPPER_TOOL_MATERIALS
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::NetheriteShovel => HolderSet::Direct {
+                contents: azalea_registry::tags::items::NETHERITE_TOOL_MATERIALS
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::GoldenPickaxe => HolderSet::Direct {
+                contents: azalea_registry::tags::items::GOLD_TOOL_MATERIALS
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::ChainmailBoots => HolderSet::Direct {
+                contents: azalea_registry::tags::items::REPAIRS_CHAIN_ARMOR
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::IronShovel => HolderSet::Direct {
+                contents: azalea_registry::tags::items::IRON_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
@@ -4161,20 +3622,89 @@ impl DefaultableComponent for Repairable {
                     .into_iter()
                     .collect(),
             },
-            ItemKind::WoodenSword => HolderSet::Direct {
-                contents: azalea_registry::tags::items::WOODEN_TOOL_MATERIALS
+            ItemKind::DiamondHelmet => HolderSet::Direct {
+                contents: azalea_registry::tags::items::REPAIRS_DIAMOND_ARMOR
                     .clone()
                     .into_iter()
                     .collect(),
             },
-            ItemKind::ChainmailLeggings => HolderSet::Direct {
+            ItemKind::IronHelmet => HolderSet::Direct {
+                contents: azalea_registry::tags::items::REPAIRS_IRON_ARMOR
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::IronSpear => HolderSet::Direct {
+                contents: azalea_registry::tags::items::IRON_TOOL_MATERIALS
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::IronBoots => HolderSet::Direct {
+                contents: azalea_registry::tags::items::REPAIRS_IRON_ARMOR
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::DiamondAxe => HolderSet::Direct {
+                contents: azalea_registry::tags::items::DIAMOND_TOOL_MATERIALS
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::GoldenAxe => HolderSet::Direct {
+                contents: azalea_registry::tags::items::GOLD_TOOL_MATERIALS
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::StoneSpear => HolderSet::Direct {
+                contents: azalea_registry::tags::items::STONE_TOOL_MATERIALS
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::Elytra => HolderSet::Direct {
+                contents: vec![ItemKind::PhantomMembrane],
+            },
+            ItemKind::StonePickaxe => HolderSet::Direct {
+                contents: azalea_registry::tags::items::STONE_TOOL_MATERIALS
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::NetheriteBoots => HolderSet::Direct {
+                contents: azalea_registry::tags::items::REPAIRS_NETHERITE_ARMOR
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::DiamondHoe => HolderSet::Direct {
+                contents: azalea_registry::tags::items::DIAMOND_TOOL_MATERIALS
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::NetheriteSpear => HolderSet::Direct {
+                contents: azalea_registry::tags::items::NETHERITE_TOOL_MATERIALS
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::ChainmailChestplate => HolderSet::Direct {
                 contents: azalea_registry::tags::items::REPAIRS_CHAIN_ARMOR
                     .clone()
                     .into_iter()
                     .collect(),
             },
-            ItemKind::CopperHoe => HolderSet::Direct {
-                contents: azalea_registry::tags::items::COPPER_TOOL_MATERIALS
+            ItemKind::StoneSword => HolderSet::Direct {
+                contents: azalea_registry::tags::items::STONE_TOOL_MATERIALS
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::IronSword => HolderSet::Direct {
+                contents: azalea_registry::tags::items::IRON_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
@@ -4191,92 +3721,8 @@ impl DefaultableComponent for Repairable {
                     .into_iter()
                     .collect(),
             },
-            ItemKind::NetheriteSpear => HolderSet::Direct {
-                contents: azalea_registry::tags::items::NETHERITE_TOOL_MATERIALS
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::GoldenAxe => HolderSet::Direct {
-                contents: azalea_registry::tags::items::GOLD_TOOL_MATERIALS
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::IronPickaxe => HolderSet::Direct {
-                contents: azalea_registry::tags::items::IRON_TOOL_MATERIALS
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
             ItemKind::CopperAxe => HolderSet::Direct {
                 contents: azalea_registry::tags::items::COPPER_TOOL_MATERIALS
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::GoldenPickaxe => HolderSet::Direct {
-                contents: azalea_registry::tags::items::GOLD_TOOL_MATERIALS
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::IronShovel => HolderSet::Direct {
-                contents: azalea_registry::tags::items::IRON_TOOL_MATERIALS
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::GoldenChestplate => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_GOLD_ARMOR
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::NetheriteBoots => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_NETHERITE_ARMOR
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::WoodenSpear => HolderSet::Direct {
-                contents: azalea_registry::tags::items::WOODEN_TOOL_MATERIALS
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::LeatherLeggings => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_LEATHER_ARMOR
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::WoodenShovel => HolderSet::Direct {
-                contents: azalea_registry::tags::items::WOODEN_TOOL_MATERIALS
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::CopperSpear => HolderSet::Direct {
-                contents: azalea_registry::tags::items::COPPER_TOOL_MATERIALS
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::CopperChestplate => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_COPPER_ARMOR
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::WoodenPickaxe => HolderSet::Direct {
-                contents: azalea_registry::tags::items::WOODEN_TOOL_MATERIALS
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::NetheriteLeggings => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_NETHERITE_ARMOR
                     .clone()
                     .into_iter()
                     .collect(),
@@ -4287,35 +3733,56 @@ impl DefaultableComponent for Repairable {
                     .into_iter()
                     .collect(),
             },
-            ItemKind::NetheritePickaxe => HolderSet::Direct {
-                contents: azalea_registry::tags::items::NETHERITE_TOOL_MATERIALS
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::LeatherHelmet => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_LEATHER_ARMOR
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::IronChestplate => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_IRON_ARMOR
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::IronBoots => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_IRON_ARMOR
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::Mace => HolderSet::Direct {
-                contents: vec![ItemKind::BreezeRod],
-            },
-            ItemKind::WoodenAxe => HolderSet::Direct {
+            ItemKind::WoodenSpear => HolderSet::Direct {
                 contents: azalea_registry::tags::items::WOODEN_TOOL_MATERIALS
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::DiamondLeggings => HolderSet::Direct {
+                contents: azalea_registry::tags::items::REPAIRS_DIAMOND_ARMOR
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::CopperPickaxe => HolderSet::Direct {
+                contents: azalea_registry::tags::items::COPPER_TOOL_MATERIALS
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::DiamondPickaxe => HolderSet::Direct {
+                contents: azalea_registry::tags::items::DIAMOND_TOOL_MATERIALS
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::IronHoe => HolderSet::Direct {
+                contents: azalea_registry::tags::items::IRON_TOOL_MATERIALS
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::DiamondSword => HolderSet::Direct {
+                contents: azalea_registry::tags::items::DIAMOND_TOOL_MATERIALS
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::NetheriteLeggings => HolderSet::Direct {
+                contents: azalea_registry::tags::items::REPAIRS_NETHERITE_ARMOR
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::NetheriteHelmet => HolderSet::Direct {
+                contents: azalea_registry::tags::items::REPAIRS_NETHERITE_ARMOR
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::ChainmailLeggings => HolderSet::Direct {
+                contents: azalea_registry::tags::items::REPAIRS_CHAIN_ARMOR
                     .clone()
                     .into_iter()
                     .collect(),
@@ -4332,8 +3799,110 @@ impl DefaultableComponent for Repairable {
                     .into_iter()
                     .collect(),
             },
-            ItemKind::DiamondHoe => HolderSet::Direct {
-                contents: azalea_registry::tags::items::DIAMOND_TOOL_MATERIALS
+            ItemKind::NetheriteSword => HolderSet::Direct {
+                contents: azalea_registry::tags::items::NETHERITE_TOOL_MATERIALS
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::WoodenSword => HolderSet::Direct {
+                contents: azalea_registry::tags::items::WOODEN_TOOL_MATERIALS
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::IronPickaxe => HolderSet::Direct {
+                contents: azalea_registry::tags::items::IRON_TOOL_MATERIALS
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::CopperHelmet => HolderSet::Direct {
+                contents: azalea_registry::tags::items::REPAIRS_COPPER_ARMOR
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::IronLeggings => HolderSet::Direct {
+                contents: azalea_registry::tags::items::REPAIRS_IRON_ARMOR
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::GoldenHelmet => HolderSet::Direct {
+                contents: azalea_registry::tags::items::REPAIRS_GOLD_ARMOR
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::GoldenLeggings => HolderSet::Direct {
+                contents: azalea_registry::tags::items::REPAIRS_GOLD_ARMOR
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::CopperSpear => HolderSet::Direct {
+                contents: azalea_registry::tags::items::COPPER_TOOL_MATERIALS
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::LeatherChestplate => HolderSet::Direct {
+                contents: azalea_registry::tags::items::REPAIRS_LEATHER_ARMOR
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::StoneShovel => HolderSet::Direct {
+                contents: azalea_registry::tags::items::STONE_TOOL_MATERIALS
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::WolfArmor => HolderSet::Direct {
+                contents: azalea_registry::tags::items::REPAIRS_WOLF_ARMOR
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::Shield => HolderSet::Direct {
+                contents: azalea_registry::tags::items::WOODEN_TOOL_MATERIALS
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::IronChestplate => HolderSet::Direct {
+                contents: azalea_registry::tags::items::REPAIRS_IRON_ARMOR
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::DiamondChestplate => HolderSet::Direct {
+                contents: azalea_registry::tags::items::REPAIRS_DIAMOND_ARMOR
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::LeatherLeggings => HolderSet::Direct {
+                contents: azalea_registry::tags::items::REPAIRS_LEATHER_ARMOR
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::GoldenChestplate => HolderSet::Direct {
+                contents: azalea_registry::tags::items::REPAIRS_GOLD_ARMOR
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::CopperChestplate => HolderSet::Direct {
+                contents: azalea_registry::tags::items::REPAIRS_COPPER_ARMOR
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::WoodenPickaxe => HolderSet::Direct {
+                contents: azalea_registry::tags::items::WOODEN_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
@@ -4344,37 +3913,64 @@ impl DefaultableComponent for Repairable {
                     .into_iter()
                     .collect(),
             },
+            ItemKind::GoldenBoots => HolderSet::Direct {
+                contents: azalea_registry::tags::items::REPAIRS_GOLD_ARMOR
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::TurtleHelmet => HolderSet::Direct {
+                contents: azalea_registry::tags::items::REPAIRS_TURTLE_HELMET
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::LeatherBoots => HolderSet::Direct {
+                contents: azalea_registry::tags::items::REPAIRS_LEATHER_ARMOR
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::StoneHoe => HolderSet::Direct {
+                contents: azalea_registry::tags::items::STONE_TOOL_MATERIALS
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
             ItemKind::DiamondBoots => HolderSet::Direct {
                 contents: azalea_registry::tags::items::REPAIRS_DIAMOND_ARMOR
                     .clone()
                     .into_iter()
                     .collect(),
             },
-            ItemKind::DiamondHelmet => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_DIAMOND_ARMOR
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::DiamondSword => HolderSet::Direct {
-                contents: azalea_registry::tags::items::DIAMOND_TOOL_MATERIALS
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::StonePickaxe => HolderSet::Direct {
+            ItemKind::StoneAxe => HolderSet::Direct {
                 contents: azalea_registry::tags::items::STONE_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
-            ItemKind::StoneSpear => HolderSet::Direct {
-                contents: azalea_registry::tags::items::STONE_TOOL_MATERIALS
+            ItemKind::IronAxe => HolderSet::Direct {
+                contents: azalea_registry::tags::items::IRON_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
-            ItemKind::Shield => HolderSet::Direct {
+            ItemKind::NetheritePickaxe => HolderSet::Direct {
+                contents: azalea_registry::tags::items::NETHERITE_TOOL_MATERIALS
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::NetheriteChestplate => HolderSet::Direct {
+                contents: azalea_registry::tags::items::REPAIRS_NETHERITE_ARMOR
+                    .clone()
+                    .into_iter()
+                    .collect(),
+            },
+            ItemKind::Mace => HolderSet::Direct {
+                contents: vec![ItemKind::BreezeRod],
+            },
+            ItemKind::WoodenAxe => HolderSet::Direct {
                 contents: azalea_registry::tags::items::WOODEN_TOOL_MATERIALS
                     .clone()
                     .into_iter()
@@ -4386,83 +3982,20 @@ impl DefaultableComponent for Repairable {
                     .into_iter()
                     .collect(),
             },
-            ItemKind::DiamondShovel => HolderSet::Direct {
-                contents: azalea_registry::tags::items::DIAMOND_TOOL_MATERIALS
+            ItemKind::LeatherHelmet => HolderSet::Direct {
+                contents: azalea_registry::tags::items::REPAIRS_LEATHER_ARMOR
                     .clone()
                     .into_iter()
                     .collect(),
             },
-            ItemKind::ChainmailChestplate => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_CHAIN_ARMOR
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::IronSword => HolderSet::Direct {
-                contents: azalea_registry::tags::items::IRON_TOOL_MATERIALS
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::ChainmailHelmet => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_CHAIN_ARMOR
+            ItemKind::GoldenSpear => HolderSet::Direct {
+                contents: azalea_registry::tags::items::GOLD_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::DiamondSpear => HolderSet::Direct {
                 contents: azalea_registry::tags::items::DIAMOND_TOOL_MATERIALS
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::ChainmailBoots => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_CHAIN_ARMOR
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::IronAxe => HolderSet::Direct {
-                contents: azalea_registry::tags::items::IRON_TOOL_MATERIALS
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::NetheriteChestplate => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_NETHERITE_ARMOR
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::GoldenLeggings => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_GOLD_ARMOR
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::DiamondChestplate => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_DIAMOND_ARMOR
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::Elytra => HolderSet::Direct {
-                contents: vec![ItemKind::PhantomMembrane],
-            },
-            ItemKind::DiamondPickaxe => HolderSet::Direct {
-                contents: azalea_registry::tags::items::DIAMOND_TOOL_MATERIALS
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::WolfArmor => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_WOLF_ARMOR
-                    .clone()
-                    .into_iter()
-                    .collect(),
-            },
-            ItemKind::LeatherBoots => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_LEATHER_ARMOR
                     .clone()
                     .into_iter()
                     .collect(),
@@ -4475,154 +4008,6 @@ impl DefaultableComponent for Repairable {
 impl DefaultableComponent for Tool {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::IronHoe => Tool {
-                rules: vec![
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_IRON_TOOL
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        correct_for_drops: Some(false),
-                        ..ToolRule::new()
-                    },
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_HOE
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        correct_for_drops: Some(true),
-                        speed: Some(6.0),
-                    },
-                ],
-                ..Tool::new()
-            },
-            ItemKind::StoneHoe => Tool {
-                rules: vec![
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_STONE_TOOL
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        correct_for_drops: Some(false),
-                        ..ToolRule::new()
-                    },
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_HOE
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        correct_for_drops: Some(true),
-                        speed: Some(4.0),
-                    },
-                ],
-                ..Tool::new()
-            },
-            ItemKind::CopperPickaxe => Tool {
-                rules: vec![
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_COPPER_TOOL
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        correct_for_drops: Some(false),
-                        ..ToolRule::new()
-                    },
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_PICKAXE
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        correct_for_drops: Some(true),
-                        speed: Some(5.0),
-                    },
-                ],
-                ..Tool::new()
-            },
-            ItemKind::NetheriteSword => Tool {
-                can_destroy_blocks_in_creative: false,
-                damage_per_block: 2,
-                rules: vec![
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: vec![BlockKind::Cobweb],
-                        },
-                        correct_for_drops: Some(true),
-                        speed: Some(15.0),
-                    },
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::SWORD_INSTANTLY_MINES
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        speed: Some(3.4028235e+38),
-                        ..ToolRule::new()
-                    },
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::SWORD_EFFICIENT
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        speed: Some(1.5),
-                        ..ToolRule::new()
-                    },
-                ],
-                ..Tool::new()
-            },
-            ItemKind::Shears => Tool {
-                rules: vec![
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: vec![BlockKind::Cobweb],
-                        },
-                        correct_for_drops: Some(true),
-                        speed: Some(15.0),
-                    },
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::LEAVES
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        speed: Some(15.0),
-                        ..ToolRule::new()
-                    },
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::WOOL
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        speed: Some(5.0),
-                        ..ToolRule::new()
-                    },
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: vec![BlockKind::Vine, BlockKind::GlowLichen],
-                        },
-                        speed: Some(2.0),
-                        ..ToolRule::new()
-                    },
-                ],
-                ..Tool::new()
-            },
             ItemKind::WoodenHoe => Tool {
                 rules: vec![
                     ToolRule {
@@ -4648,11 +4033,11 @@ impl DefaultableComponent for Tool {
                 ],
                 ..Tool::new()
             },
-            ItemKind::StoneShovel => Tool {
+            ItemKind::WoodenShovel => Tool {
                 rules: vec![
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_STONE_TOOL
+                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_WOODEN_TOOL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -4668,116 +4053,7 @@ impl DefaultableComponent for Tool {
                                 .collect(),
                         },
                         correct_for_drops: Some(true),
-                        speed: Some(4.0),
-                    },
-                ],
-                ..Tool::new()
-            },
-            ItemKind::StoneAxe => Tool {
-                rules: vec![
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_STONE_TOOL
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        correct_for_drops: Some(false),
-                        ..ToolRule::new()
-                    },
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_AXE
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        correct_for_drops: Some(true),
-                        speed: Some(4.0),
-                    },
-                ],
-                ..Tool::new()
-            },
-            ItemKind::NetheriteShovel => Tool {
-                rules: vec![
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_NETHERITE_TOOL
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        correct_for_drops: Some(false),
-                        ..ToolRule::new()
-                    },
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_SHOVEL
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        correct_for_drops: Some(true),
-                        speed: Some(9.0),
-                    },
-                ],
-                ..Tool::new()
-            },
-            ItemKind::StoneSword => Tool {
-                can_destroy_blocks_in_creative: false,
-                damage_per_block: 2,
-                rules: vec![
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: vec![BlockKind::Cobweb],
-                        },
-                        correct_for_drops: Some(true),
-                        speed: Some(15.0),
-                    },
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::SWORD_INSTANTLY_MINES
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        speed: Some(3.4028235e+38),
-                        ..ToolRule::new()
-                    },
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::SWORD_EFFICIENT
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        speed: Some(1.5),
-                        ..ToolRule::new()
-                    },
-                ],
-                ..Tool::new()
-            },
-            ItemKind::DiamondAxe => Tool {
-                rules: vec![
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_DIAMOND_TOOL
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        correct_for_drops: Some(false),
-                        ..ToolRule::new()
-                    },
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_AXE
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        correct_for_drops: Some(true),
-                        speed: Some(8.0),
+                        speed: Some(2.0),
                     },
                 ],
                 ..Tool::new()
@@ -4816,11 +4092,17 @@ impl DefaultableComponent for Tool {
                 ],
                 ..Tool::new()
             },
-            ItemKind::GoldenShovel => Tool {
+            ItemKind::Trident => Tool {
+                can_destroy_blocks_in_creative: false,
+                damage_per_block: 2,
+                rules: vec![],
+                ..Tool::new()
+            },
+            ItemKind::DiamondShovel => Tool {
                 rules: vec![
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_GOLD_TOOL
+                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_DIAMOND_TOOL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -4836,41 +4118,7 @@ impl DefaultableComponent for Tool {
                                 .collect(),
                         },
                         correct_for_drops: Some(true),
-                        speed: Some(12.0),
-                    },
-                ],
-                ..Tool::new()
-            },
-            ItemKind::WoodenSword => Tool {
-                can_destroy_blocks_in_creative: false,
-                damage_per_block: 2,
-                rules: vec![
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: vec![BlockKind::Cobweb],
-                        },
-                        correct_for_drops: Some(true),
-                        speed: Some(15.0),
-                    },
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::SWORD_INSTANTLY_MINES
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        speed: Some(3.4028235e+38),
-                        ..ToolRule::new()
-                    },
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::SWORD_EFFICIENT
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        speed: Some(1.5),
-                        ..ToolRule::new()
+                        speed: Some(8.0),
                     },
                 ],
                 ..Tool::new()
@@ -4900,7 +4148,7 @@ impl DefaultableComponent for Tool {
                 ],
                 ..Tool::new()
             },
-            ItemKind::NetheriteAxe => Tool {
+            ItemKind::NetheriteShovel => Tool {
                 rules: vec![
                     ToolRule {
                         blocks: HolderSet::Direct {
@@ -4914,88 +4162,13 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_AXE
+                            contents: azalea_registry::tags::blocks::MINEABLE_SHOVEL
                                 .clone()
                                 .into_iter()
                                 .collect(),
                         },
                         correct_for_drops: Some(true),
                         speed: Some(9.0),
-                    },
-                ],
-                ..Tool::new()
-            },
-            ItemKind::GoldenAxe => Tool {
-                rules: vec![
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_GOLD_TOOL
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        correct_for_drops: Some(false),
-                        ..ToolRule::new()
-                    },
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_AXE
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        correct_for_drops: Some(true),
-                        speed: Some(12.0),
-                    },
-                ],
-                ..Tool::new()
-            },
-            ItemKind::IronPickaxe => Tool {
-                rules: vec![
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_IRON_TOOL
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        correct_for_drops: Some(false),
-                        ..ToolRule::new()
-                    },
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_PICKAXE
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        correct_for_drops: Some(true),
-                        speed: Some(6.0),
-                    },
-                ],
-                ..Tool::new()
-            },
-            ItemKind::CopperAxe => Tool {
-                rules: vec![
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_COPPER_TOOL
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        correct_for_drops: Some(false),
-                        ..ToolRule::new()
-                    },
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_AXE
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        correct_for_drops: Some(true),
-                        speed: Some(5.0),
                     },
                 ],
                 ..Tool::new()
@@ -5050,11 +4223,11 @@ impl DefaultableComponent for Tool {
                 ],
                 ..Tool::new()
             },
-            ItemKind::WoodenShovel => Tool {
+            ItemKind::GoldenShovel => Tool {
                 rules: vec![
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_WOODEN_TOOL
+                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_GOLD_TOOL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -5070,7 +4243,511 @@ impl DefaultableComponent for Tool {
                                 .collect(),
                         },
                         correct_for_drops: Some(true),
-                        speed: Some(2.0),
+                        speed: Some(12.0),
+                    },
+                ],
+                ..Tool::new()
+            },
+            ItemKind::DiamondAxe => Tool {
+                rules: vec![
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_DIAMOND_TOOL
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        correct_for_drops: Some(false),
+                        ..ToolRule::new()
+                    },
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::MINEABLE_AXE
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        correct_for_drops: Some(true),
+                        speed: Some(8.0),
+                    },
+                ],
+                ..Tool::new()
+            },
+            ItemKind::GoldenAxe => Tool {
+                rules: vec![
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_GOLD_TOOL
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        correct_for_drops: Some(false),
+                        ..ToolRule::new()
+                    },
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::MINEABLE_AXE
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        correct_for_drops: Some(true),
+                        speed: Some(12.0),
+                    },
+                ],
+                ..Tool::new()
+            },
+            ItemKind::StonePickaxe => Tool {
+                rules: vec![
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_STONE_TOOL
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        correct_for_drops: Some(false),
+                        ..ToolRule::new()
+                    },
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::MINEABLE_PICKAXE
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        correct_for_drops: Some(true),
+                        speed: Some(4.0),
+                    },
+                ],
+                ..Tool::new()
+            },
+            ItemKind::DiamondHoe => Tool {
+                rules: vec![
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_DIAMOND_TOOL
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        correct_for_drops: Some(false),
+                        ..ToolRule::new()
+                    },
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::MINEABLE_HOE
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        correct_for_drops: Some(true),
+                        speed: Some(8.0),
+                    },
+                ],
+                ..Tool::new()
+            },
+            ItemKind::StoneSword => Tool {
+                can_destroy_blocks_in_creative: false,
+                damage_per_block: 2,
+                rules: vec![
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: vec![BlockKind::Cobweb],
+                        },
+                        correct_for_drops: Some(true),
+                        speed: Some(15.0),
+                    },
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::SWORD_INSTANTLY_MINES
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        speed: Some(3.4028235e+38),
+                        ..ToolRule::new()
+                    },
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::SWORD_EFFICIENT
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        speed: Some(1.5),
+                        ..ToolRule::new()
+                    },
+                ],
+                ..Tool::new()
+            },
+            ItemKind::IronSword => Tool {
+                can_destroy_blocks_in_creative: false,
+                damage_per_block: 2,
+                rules: vec![
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: vec![BlockKind::Cobweb],
+                        },
+                        correct_for_drops: Some(true),
+                        speed: Some(15.0),
+                    },
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::SWORD_INSTANTLY_MINES
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        speed: Some(3.4028235e+38),
+                        ..ToolRule::new()
+                    },
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::SWORD_EFFICIENT
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        speed: Some(1.5),
+                        ..ToolRule::new()
+                    },
+                ],
+                ..Tool::new()
+            },
+            ItemKind::NetheriteAxe => Tool {
+                rules: vec![
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_NETHERITE_TOOL
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        correct_for_drops: Some(false),
+                        ..ToolRule::new()
+                    },
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::MINEABLE_AXE
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        correct_for_drops: Some(true),
+                        speed: Some(9.0),
+                    },
+                ],
+                ..Tool::new()
+            },
+            ItemKind::CopperAxe => Tool {
+                rules: vec![
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_COPPER_TOOL
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        correct_for_drops: Some(false),
+                        ..ToolRule::new()
+                    },
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::MINEABLE_AXE
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        correct_for_drops: Some(true),
+                        speed: Some(5.0),
+                    },
+                ],
+                ..Tool::new()
+            },
+            ItemKind::NetheriteHoe => Tool {
+                rules: vec![
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_NETHERITE_TOOL
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        correct_for_drops: Some(false),
+                        ..ToolRule::new()
+                    },
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::MINEABLE_HOE
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        correct_for_drops: Some(true),
+                        speed: Some(9.0),
+                    },
+                ],
+                ..Tool::new()
+            },
+            ItemKind::CopperPickaxe => Tool {
+                rules: vec![
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_COPPER_TOOL
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        correct_for_drops: Some(false),
+                        ..ToolRule::new()
+                    },
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::MINEABLE_PICKAXE
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        correct_for_drops: Some(true),
+                        speed: Some(5.0),
+                    },
+                ],
+                ..Tool::new()
+            },
+            ItemKind::DiamondPickaxe => Tool {
+                rules: vec![
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_DIAMOND_TOOL
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        correct_for_drops: Some(false),
+                        ..ToolRule::new()
+                    },
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::MINEABLE_PICKAXE
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        correct_for_drops: Some(true),
+                        speed: Some(8.0),
+                    },
+                ],
+                ..Tool::new()
+            },
+            ItemKind::IronHoe => Tool {
+                rules: vec![
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_IRON_TOOL
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        correct_for_drops: Some(false),
+                        ..ToolRule::new()
+                    },
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::MINEABLE_HOE
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        correct_for_drops: Some(true),
+                        speed: Some(6.0),
+                    },
+                ],
+                ..Tool::new()
+            },
+            ItemKind::DiamondSword => Tool {
+                can_destroy_blocks_in_creative: false,
+                damage_per_block: 2,
+                rules: vec![
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: vec![BlockKind::Cobweb],
+                        },
+                        correct_for_drops: Some(true),
+                        speed: Some(15.0),
+                    },
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::SWORD_INSTANTLY_MINES
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        speed: Some(3.4028235e+38),
+                        ..ToolRule::new()
+                    },
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::SWORD_EFFICIENT
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        speed: Some(1.5),
+                        ..ToolRule::new()
+                    },
+                ],
+                ..Tool::new()
+            },
+            ItemKind::CopperSword => Tool {
+                can_destroy_blocks_in_creative: false,
+                damage_per_block: 2,
+                rules: vec![
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: vec![BlockKind::Cobweb],
+                        },
+                        correct_for_drops: Some(true),
+                        speed: Some(15.0),
+                    },
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::SWORD_INSTANTLY_MINES
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        speed: Some(3.4028235e+38),
+                        ..ToolRule::new()
+                    },
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::SWORD_EFFICIENT
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        speed: Some(1.5),
+                        ..ToolRule::new()
+                    },
+                ],
+                ..Tool::new()
+            },
+            ItemKind::NetheriteSword => Tool {
+                can_destroy_blocks_in_creative: false,
+                damage_per_block: 2,
+                rules: vec![
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: vec![BlockKind::Cobweb],
+                        },
+                        correct_for_drops: Some(true),
+                        speed: Some(15.0),
+                    },
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::SWORD_INSTANTLY_MINES
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        speed: Some(3.4028235e+38),
+                        ..ToolRule::new()
+                    },
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::SWORD_EFFICIENT
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        speed: Some(1.5),
+                        ..ToolRule::new()
+                    },
+                ],
+                ..Tool::new()
+            },
+            ItemKind::WoodenSword => Tool {
+                can_destroy_blocks_in_creative: false,
+                damage_per_block: 2,
+                rules: vec![
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: vec![BlockKind::Cobweb],
+                        },
+                        correct_for_drops: Some(true),
+                        speed: Some(15.0),
+                    },
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::SWORD_INSTANTLY_MINES
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        speed: Some(3.4028235e+38),
+                        ..ToolRule::new()
+                    },
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::SWORD_EFFICIENT
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        speed: Some(1.5),
+                        ..ToolRule::new()
+                    },
+                ],
+                ..Tool::new()
+            },
+            ItemKind::IronPickaxe => Tool {
+                rules: vec![
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_IRON_TOOL
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        correct_for_drops: Some(false),
+                        ..ToolRule::new()
+                    },
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::MINEABLE_PICKAXE
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        correct_for_drops: Some(true),
+                        speed: Some(6.0),
+                    },
+                ],
+                ..Tool::new()
+            },
+            ItemKind::StoneShovel => Tool {
+                rules: vec![
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_STONE_TOOL
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        correct_for_drops: Some(false),
+                        ..ToolRule::new()
+                    },
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::MINEABLE_SHOVEL
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        correct_for_drops: Some(true),
+                        speed: Some(4.0),
                     },
                 ],
                 ..Tool::new()
@@ -5100,11 +4777,75 @@ impl DefaultableComponent for Tool {
                 ],
                 ..Tool::new()
             },
-            ItemKind::NetheriteHoe => Tool {
+            ItemKind::CopperShovel => Tool {
                 rules: vec![
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_NETHERITE_TOOL
+                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_COPPER_TOOL
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        correct_for_drops: Some(false),
+                        ..ToolRule::new()
+                    },
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::MINEABLE_SHOVEL
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        correct_for_drops: Some(true),
+                        speed: Some(5.0),
+                    },
+                ],
+                ..Tool::new()
+            },
+            ItemKind::Shears => Tool {
+                rules: vec![
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: vec![BlockKind::Cobweb],
+                        },
+                        correct_for_drops: Some(true),
+                        speed: Some(15.0),
+                    },
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::LEAVES
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        speed: Some(15.0),
+                        ..ToolRule::new()
+                    },
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::WOOL
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        speed: Some(5.0),
+                        ..ToolRule::new()
+                    },
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: vec![BlockKind::Vine, BlockKind::GlowLichen],
+                        },
+                        speed: Some(2.0),
+                        ..ToolRule::new()
+                    },
+                ],
+                ..Tool::new()
+            },
+            ItemKind::StoneHoe => Tool {
+                rules: vec![
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_STONE_TOOL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -5120,7 +4861,57 @@ impl DefaultableComponent for Tool {
                                 .collect(),
                         },
                         correct_for_drops: Some(true),
-                        speed: Some(9.0),
+                        speed: Some(4.0),
+                    },
+                ],
+                ..Tool::new()
+            },
+            ItemKind::StoneAxe => Tool {
+                rules: vec![
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_STONE_TOOL
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        correct_for_drops: Some(false),
+                        ..ToolRule::new()
+                    },
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::MINEABLE_AXE
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        correct_for_drops: Some(true),
+                        speed: Some(4.0),
+                    },
+                ],
+                ..Tool::new()
+            },
+            ItemKind::IronAxe => Tool {
+                rules: vec![
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_IRON_TOOL
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        correct_for_drops: Some(false),
+                        ..ToolRule::new()
+                    },
+                    ToolRule {
+                        blocks: HolderSet::Direct {
+                            contents: azalea_registry::tags::blocks::MINEABLE_AXE
+                                .clone()
+                                .into_iter()
+                                .collect(),
+                        },
+                        correct_for_drops: Some(true),
+                        speed: Some(6.0),
                     },
                 ],
                 ..Tool::new()
@@ -5181,155 +4972,6 @@ impl DefaultableComponent for Tool {
                 ],
                 ..Tool::new()
             },
-            ItemKind::CopperSword => Tool {
-                can_destroy_blocks_in_creative: false,
-                damage_per_block: 2,
-                rules: vec![
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: vec![BlockKind::Cobweb],
-                        },
-                        correct_for_drops: Some(true),
-                        speed: Some(15.0),
-                    },
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::SWORD_INSTANTLY_MINES
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        speed: Some(3.4028235e+38),
-                        ..ToolRule::new()
-                    },
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::SWORD_EFFICIENT
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        speed: Some(1.5),
-                        ..ToolRule::new()
-                    },
-                ],
-                ..Tool::new()
-            },
-            ItemKind::DiamondHoe => Tool {
-                rules: vec![
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_DIAMOND_TOOL
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        correct_for_drops: Some(false),
-                        ..ToolRule::new()
-                    },
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_HOE
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        correct_for_drops: Some(true),
-                        speed: Some(8.0),
-                    },
-                ],
-                ..Tool::new()
-            },
-            ItemKind::CopperShovel => Tool {
-                rules: vec![
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_COPPER_TOOL
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        correct_for_drops: Some(false),
-                        ..ToolRule::new()
-                    },
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_SHOVEL
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        correct_for_drops: Some(true),
-                        speed: Some(5.0),
-                    },
-                ],
-                ..Tool::new()
-            },
-            ItemKind::DiamondSword => Tool {
-                can_destroy_blocks_in_creative: false,
-                damage_per_block: 2,
-                rules: vec![
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: vec![BlockKind::Cobweb],
-                        },
-                        correct_for_drops: Some(true),
-                        speed: Some(15.0),
-                    },
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::SWORD_INSTANTLY_MINES
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        speed: Some(3.4028235e+38),
-                        ..ToolRule::new()
-                    },
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::SWORD_EFFICIENT
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        speed: Some(1.5),
-                        ..ToolRule::new()
-                    },
-                ],
-                ..Tool::new()
-            },
-            ItemKind::StonePickaxe => Tool {
-                rules: vec![
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_STONE_TOOL
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        correct_for_drops: Some(false),
-                        ..ToolRule::new()
-                    },
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_PICKAXE
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        correct_for_drops: Some(true),
-                        speed: Some(4.0),
-                    },
-                ],
-                ..Tool::new()
-            },
-            ItemKind::Trident => Tool {
-                can_destroy_blocks_in_creative: false,
-                damage_per_block: 2,
-                rules: vec![],
-                ..Tool::new()
-            },
             ItemKind::GoldenHoe => Tool {
                 rules: vec![
                     ToolRule {
@@ -5355,115 +4997,6 @@ impl DefaultableComponent for Tool {
                 ],
                 ..Tool::new()
             },
-            ItemKind::DiamondShovel => Tool {
-                rules: vec![
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_DIAMOND_TOOL
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        correct_for_drops: Some(false),
-                        ..ToolRule::new()
-                    },
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_SHOVEL
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        correct_for_drops: Some(true),
-                        speed: Some(8.0),
-                    },
-                ],
-                ..Tool::new()
-            },
-            ItemKind::IronSword => Tool {
-                can_destroy_blocks_in_creative: false,
-                damage_per_block: 2,
-                rules: vec![
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: vec![BlockKind::Cobweb],
-                        },
-                        correct_for_drops: Some(true),
-                        speed: Some(15.0),
-                    },
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::SWORD_INSTANTLY_MINES
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        speed: Some(3.4028235e+38),
-                        ..ToolRule::new()
-                    },
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::SWORD_EFFICIENT
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        speed: Some(1.5),
-                        ..ToolRule::new()
-                    },
-                ],
-                ..Tool::new()
-            },
-            ItemKind::IronAxe => Tool {
-                rules: vec![
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_IRON_TOOL
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        correct_for_drops: Some(false),
-                        ..ToolRule::new()
-                    },
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_AXE
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        correct_for_drops: Some(true),
-                        speed: Some(6.0),
-                    },
-                ],
-                ..Tool::new()
-            },
-            ItemKind::DiamondPickaxe => Tool {
-                rules: vec![
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_DIAMOND_TOOL
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        correct_for_drops: Some(false),
-                        ..ToolRule::new()
-                    },
-                    ToolRule {
-                        blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_PICKAXE
-                                .clone()
-                                .into_iter()
-                                .collect(),
-                        },
-                        correct_for_drops: Some(true),
-                        speed: Some(8.0),
-                    },
-                ],
-                ..Tool::new()
-            },
             _ => return None,
         };
         Some(value)
@@ -5472,68 +5005,27 @@ impl DefaultableComponent for Tool {
 impl DefaultableComponent for Weapon {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::IronHoe => Weapon {
-                item_damage_per_attack: 2,
-                ..Weapon::new()
-            },
-            ItemKind::IronSpear => Weapon::new(),
-            ItemKind::StoneHoe => Weapon {
-                item_damage_per_attack: 2,
-                ..Weapon::new()
-            },
-            ItemKind::CopperPickaxe => Weapon {
-                item_damage_per_attack: 2,
-                ..Weapon::new()
-            },
-            ItemKind::NetheriteSword => Weapon::new(),
-            ItemKind::GoldenSpear => Weapon::new(),
             ItemKind::WoodenHoe => Weapon {
                 item_damage_per_attack: 2,
                 ..Weapon::new()
             },
-            ItemKind::StoneShovel => Weapon {
+            ItemKind::WoodenShovel => Weapon {
                 item_damage_per_attack: 2,
                 ..Weapon::new()
-            },
-            ItemKind::StoneAxe => Weapon {
-                disable_blocking_for_seconds: 5.0,
-                item_damage_per_attack: 2,
-            },
-            ItemKind::NetheriteShovel => Weapon {
-                item_damage_per_attack: 2,
-                ..Weapon::new()
-            },
-            ItemKind::StoneSword => Weapon::new(),
-            ItemKind::DiamondAxe => Weapon {
-                disable_blocking_for_seconds: 5.0,
-                item_damage_per_attack: 2,
             },
             ItemKind::GoldenSword => Weapon::new(),
-            ItemKind::GoldenShovel => Weapon {
+            ItemKind::Trident => Weapon::new(),
+            ItemKind::DiamondShovel => Weapon {
                 item_damage_per_attack: 2,
                 ..Weapon::new()
             },
-            ItemKind::WoodenSword => Weapon::new(),
             ItemKind::CopperHoe => Weapon {
                 item_damage_per_attack: 2,
                 ..Weapon::new()
             },
-            ItemKind::NetheriteAxe => Weapon {
-                disable_blocking_for_seconds: 5.0,
-                item_damage_per_attack: 2,
-            },
-            ItemKind::NetheriteSpear => Weapon::new(),
-            ItemKind::GoldenAxe => Weapon {
-                disable_blocking_for_seconds: 5.0,
-                item_damage_per_attack: 2,
-            },
-            ItemKind::IronPickaxe => Weapon {
+            ItemKind::NetheriteShovel => Weapon {
                 item_damage_per_attack: 2,
                 ..Weapon::new()
-            },
-            ItemKind::CopperAxe => Weapon {
-                disable_blocking_for_seconds: 5.0,
-                item_damage_per_attack: 2,
             },
             ItemKind::GoldenPickaxe => Weapon {
                 item_damage_per_attack: 2,
@@ -5543,19 +5035,88 @@ impl DefaultableComponent for Weapon {
                 item_damage_per_attack: 2,
                 ..Weapon::new()
             },
-            ItemKind::WoodenSpear => Weapon::new(),
-            ItemKind::WoodenShovel => Weapon {
+            ItemKind::GoldenShovel => Weapon {
                 item_damage_per_attack: 2,
                 ..Weapon::new()
             },
-            ItemKind::CopperSpear => Weapon::new(),
-            ItemKind::WoodenPickaxe => Weapon {
+            ItemKind::IronSpear => Weapon::new(),
+            ItemKind::DiamondAxe => Weapon {
+                disable_blocking_for_seconds: 5.0,
+                item_damage_per_attack: 2,
+            },
+            ItemKind::GoldenAxe => Weapon {
+                disable_blocking_for_seconds: 5.0,
+                item_damage_per_attack: 2,
+            },
+            ItemKind::StoneSpear => Weapon::new(),
+            ItemKind::StonePickaxe => Weapon {
                 item_damage_per_attack: 2,
                 ..Weapon::new()
+            },
+            ItemKind::DiamondHoe => Weapon {
+                item_damage_per_attack: 2,
+                ..Weapon::new()
+            },
+            ItemKind::NetheriteSpear => Weapon::new(),
+            ItemKind::StoneSword => Weapon::new(),
+            ItemKind::IronSword => Weapon::new(),
+            ItemKind::NetheriteAxe => Weapon {
+                disable_blocking_for_seconds: 5.0,
+                item_damage_per_attack: 2,
+            },
+            ItemKind::CopperAxe => Weapon {
+                disable_blocking_for_seconds: 5.0,
+                item_damage_per_attack: 2,
             },
             ItemKind::NetheriteHoe => Weapon {
                 item_damage_per_attack: 2,
                 ..Weapon::new()
+            },
+            ItemKind::WoodenSpear => Weapon::new(),
+            ItemKind::CopperPickaxe => Weapon {
+                item_damage_per_attack: 2,
+                ..Weapon::new()
+            },
+            ItemKind::DiamondPickaxe => Weapon {
+                item_damage_per_attack: 2,
+                ..Weapon::new()
+            },
+            ItemKind::IronHoe => Weapon {
+                item_damage_per_attack: 2,
+                ..Weapon::new()
+            },
+            ItemKind::DiamondSword => Weapon::new(),
+            ItemKind::CopperSword => Weapon::new(),
+            ItemKind::NetheriteSword => Weapon::new(),
+            ItemKind::WoodenSword => Weapon::new(),
+            ItemKind::IronPickaxe => Weapon {
+                item_damage_per_attack: 2,
+                ..Weapon::new()
+            },
+            ItemKind::CopperSpear => Weapon::new(),
+            ItemKind::StoneShovel => Weapon {
+                item_damage_per_attack: 2,
+                ..Weapon::new()
+            },
+            ItemKind::WoodenPickaxe => Weapon {
+                item_damage_per_attack: 2,
+                ..Weapon::new()
+            },
+            ItemKind::CopperShovel => Weapon {
+                item_damage_per_attack: 2,
+                ..Weapon::new()
+            },
+            ItemKind::StoneHoe => Weapon {
+                item_damage_per_attack: 2,
+                ..Weapon::new()
+            },
+            ItemKind::StoneAxe => Weapon {
+                disable_blocking_for_seconds: 5.0,
+                item_damage_per_attack: 2,
+            },
+            ItemKind::IronAxe => Weapon {
+                disable_blocking_for_seconds: 5.0,
+                item_damage_per_attack: 2,
             },
             ItemKind::NetheritePickaxe => Weapon {
                 item_damage_per_attack: 2,
@@ -5566,243 +5127,802 @@ impl DefaultableComponent for Weapon {
                 disable_blocking_for_seconds: 5.0,
                 item_damage_per_attack: 2,
             },
-            ItemKind::CopperSword => Weapon::new(),
-            ItemKind::DiamondHoe => Weapon {
-                item_damage_per_attack: 2,
-                ..Weapon::new()
-            },
-            ItemKind::CopperShovel => Weapon {
-                item_damage_per_attack: 2,
-                ..Weapon::new()
-            },
-            ItemKind::DiamondSword => Weapon::new(),
-            ItemKind::StonePickaxe => Weapon {
-                item_damage_per_attack: 2,
-                ..Weapon::new()
-            },
-            ItemKind::Trident => Weapon::new(),
-            ItemKind::StoneSpear => Weapon::new(),
             ItemKind::GoldenHoe => Weapon {
                 item_damage_per_attack: 2,
                 ..Weapon::new()
             },
-            ItemKind::DiamondShovel => Weapon {
-                item_damage_per_attack: 2,
-                ..Weapon::new()
-            },
-            ItemKind::IronSword => Weapon::new(),
+            ItemKind::GoldenSpear => Weapon::new(),
             ItemKind::DiamondSpear => Weapon::new(),
-            ItemKind::IronAxe => Weapon {
-                disable_blocking_for_seconds: 5.0,
-                item_damage_per_attack: 2,
+            _ => return None,
+        };
+        Some(value)
+    }
+}
+impl DefaultableComponent for BundleContents {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::MagentaBundle => vec![],
+            ItemKind::LightGrayBundle => vec![],
+            ItemKind::OrangeBundle => vec![],
+            ItemKind::YellowBundle => vec![],
+            ItemKind::PinkBundle => vec![],
+            ItemKind::GreenBundle => vec![],
+            ItemKind::BlueBundle => vec![],
+            ItemKind::Bundle => vec![],
+            ItemKind::BrownBundle => vec![],
+            ItemKind::RedBundle => vec![],
+            ItemKind::CyanBundle => vec![],
+            ItemKind::LightBlueBundle => vec![],
+            ItemKind::GrayBundle => vec![],
+            ItemKind::LimeBundle => vec![],
+            ItemKind::WhiteBundle => vec![],
+            ItemKind::PurpleBundle => vec![],
+            ItemKind::BlackBundle => vec![],
+            _ => return None,
+        };
+        Some(BundleContents { items: value })
+    }
+}
+impl DefaultableComponent for Container {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::OrangeShulkerBox => vec![],
+            ItemKind::BirchShelf => vec![],
+            ItemKind::Hopper => vec![],
+            ItemKind::JungleShelf => vec![],
+            ItemKind::LightGrayShulkerBox => vec![],
+            ItemKind::PaleOakShelf => vec![],
+            ItemKind::ShulkerBox => vec![],
+            ItemKind::Furnace => vec![],
+            ItemKind::Chest => vec![],
+            ItemKind::DecoratedPot => vec![],
+            ItemKind::Dropper => vec![],
+            ItemKind::DarkOakShelf => vec![],
+            ItemKind::Smoker => vec![],
+            ItemKind::ChiseledBookshelf => vec![],
+            ItemKind::SpruceShelf => vec![],
+            ItemKind::BambooShelf => vec![],
+            ItemKind::PurpleShulkerBox => vec![],
+            ItemKind::AcaciaShelf => vec![],
+            ItemKind::RedShulkerBox => vec![],
+            ItemKind::Dispenser => vec![],
+            ItemKind::MangroveShelf => vec![],
+            ItemKind::Campfire => vec![],
+            ItemKind::GrayShulkerBox => vec![],
+            ItemKind::YellowShulkerBox => vec![],
+            ItemKind::Crafter => vec![],
+            ItemKind::CyanShulkerBox => vec![],
+            ItemKind::BlastFurnace => vec![],
+            ItemKind::CherryShelf => vec![],
+            ItemKind::Barrel => vec![],
+            ItemKind::BlueShulkerBox => vec![],
+            ItemKind::LimeShulkerBox => vec![],
+            ItemKind::WhiteShulkerBox => vec![],
+            ItemKind::LightBlueShulkerBox => vec![],
+            ItemKind::PinkShulkerBox => vec![],
+            ItemKind::SoulCampfire => vec![],
+            ItemKind::GreenShulkerBox => vec![],
+            ItemKind::CrimsonShelf => vec![],
+            ItemKind::TrappedChest => vec![],
+            ItemKind::BrewingStand => vec![],
+            ItemKind::MagentaShulkerBox => vec![],
+            ItemKind::BrownShulkerBox => vec![],
+            ItemKind::WarpedShelf => vec![],
+            ItemKind::OakShelf => vec![],
+            ItemKind::BlackShulkerBox => vec![],
+            _ => return None,
+        };
+        Some(Container { items: value })
+    }
+}
+impl DefaultableComponent for Consumable {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::TropicalFish => Consumable::new(),
+            ItemKind::GoldenCarrot => Consumable::new(),
+            ItemKind::GlowBerries => Consumable::new(),
+            ItemKind::SpiderEye => Consumable {
+                on_consume_effects: vec![ConsumeEffect::ApplyEffects {
+                    effects: vec![MobEffectInstance {
+                        id: MobEffect::Poison,
+                        details: MobEffectDetails {
+                            duration: 100,
+                            show_icon: true,
+                            ..MobEffectDetails::new()
+                        },
+                    }],
+                    probability: 1.0,
+                }],
+                ..Consumable::new()
             },
-            ItemKind::DiamondPickaxe => Weapon {
-                item_damage_per_attack: 2,
-                ..Weapon::new()
+            ItemKind::Cod => Consumable::new(),
+            ItemKind::MilkBucket => Consumable {
+                animation: ItemUseAnimation::Drink,
+                has_consume_particles: false,
+                on_consume_effects: vec![ConsumeEffect::ClearAllEffects {}],
+                sound: azalea_registry::Holder::Reference(SoundEvent::EntityGenericDrink),
+                ..Consumable::new()
+            },
+            ItemKind::Chicken => Consumable {
+                on_consume_effects: vec![ConsumeEffect::ApplyEffects {
+                    effects: vec![MobEffectInstance {
+                        id: MobEffect::Hunger,
+                        details: MobEffectDetails {
+                            duration: 600,
+                            show_icon: true,
+                            ..MobEffectDetails::new()
+                        },
+                    }],
+                    probability: 0.3,
+                }],
+                ..Consumable::new()
+            },
+            ItemKind::Salmon => Consumable::new(),
+            ItemKind::CookedSalmon => Consumable::new(),
+            ItemKind::SuspiciousStew => Consumable::new(),
+            ItemKind::Bread => Consumable::new(),
+            ItemKind::Beef => Consumable::new(),
+            ItemKind::Mutton => Consumable::new(),
+            ItemKind::Porkchop => Consumable::new(),
+            ItemKind::Rabbit => Consumable::new(),
+            ItemKind::GoldenApple => Consumable {
+                on_consume_effects: vec![ConsumeEffect::ApplyEffects {
+                    effects: vec![
+                        MobEffectInstance {
+                            id: MobEffect::Regeneration,
+                            details: MobEffectDetails {
+                                amplifier: 1,
+                                duration: 100,
+                                show_icon: true,
+                                ..MobEffectDetails::new()
+                            },
+                        },
+                        MobEffectInstance {
+                            id: MobEffect::Absorption,
+                            details: MobEffectDetails {
+                                duration: 2400,
+                                show_icon: true,
+                                ..MobEffectDetails::new()
+                            },
+                        },
+                    ],
+                    probability: 1.0,
+                }],
+                ..Consumable::new()
+            },
+            ItemKind::RabbitStew => Consumable::new(),
+            ItemKind::Pufferfish => Consumable {
+                on_consume_effects: vec![ConsumeEffect::ApplyEffects {
+                    effects: vec![
+                        MobEffectInstance {
+                            id: MobEffect::Poison,
+                            details: MobEffectDetails {
+                                amplifier: 1,
+                                duration: 1200,
+                                show_icon: true,
+                                ..MobEffectDetails::new()
+                            },
+                        },
+                        MobEffectInstance {
+                            id: MobEffect::Hunger,
+                            details: MobEffectDetails {
+                                amplifier: 2,
+                                duration: 300,
+                                show_icon: true,
+                                ..MobEffectDetails::new()
+                            },
+                        },
+                        MobEffectInstance {
+                            id: MobEffect::Nausea,
+                            details: MobEffectDetails {
+                                duration: 300,
+                                show_icon: true,
+                                ..MobEffectDetails::new()
+                            },
+                        },
+                    ],
+                    probability: 1.0,
+                }],
+                ..Consumable::new()
+            },
+            ItemKind::CookedMutton => Consumable::new(),
+            ItemKind::PoisonousPotato => Consumable {
+                on_consume_effects: vec![ConsumeEffect::ApplyEffects {
+                    effects: vec![MobEffectInstance {
+                        id: MobEffect::Poison,
+                        details: MobEffectDetails {
+                            duration: 100,
+                            show_icon: true,
+                            ..MobEffectDetails::new()
+                        },
+                    }],
+                    probability: 0.6,
+                }],
+                ..Consumable::new()
+            },
+            ItemKind::MushroomStew => Consumable::new(),
+            ItemKind::Potato => Consumable::new(),
+            ItemKind::CookedBeef => Consumable::new(),
+            ItemKind::EnchantedGoldenApple => Consumable {
+                on_consume_effects: vec![ConsumeEffect::ApplyEffects {
+                    effects: vec![
+                        MobEffectInstance {
+                            id: MobEffect::Regeneration,
+                            details: MobEffectDetails {
+                                amplifier: 1,
+                                duration: 400,
+                                show_icon: true,
+                                ..MobEffectDetails::new()
+                            },
+                        },
+                        MobEffectInstance {
+                            id: MobEffect::Resistance,
+                            details: MobEffectDetails {
+                                duration: 6000,
+                                show_icon: true,
+                                ..MobEffectDetails::new()
+                            },
+                        },
+                        MobEffectInstance {
+                            id: MobEffect::FireResistance,
+                            details: MobEffectDetails {
+                                duration: 6000,
+                                show_icon: true,
+                                ..MobEffectDetails::new()
+                            },
+                        },
+                        MobEffectInstance {
+                            id: MobEffect::Absorption,
+                            details: MobEffectDetails {
+                                amplifier: 3,
+                                duration: 2400,
+                                show_icon: true,
+                                ..MobEffectDetails::new()
+                            },
+                        },
+                    ],
+                    probability: 1.0,
+                }],
+                ..Consumable::new()
+            },
+            ItemKind::Cookie => Consumable::new(),
+            ItemKind::CookedRabbit => Consumable::new(),
+            ItemKind::Carrot => Consumable::new(),
+            ItemKind::OminousBottle => Consumable {
+                animation: ItemUseAnimation::Drink,
+                has_consume_particles: false,
+                on_consume_effects: vec![ConsumeEffect::PlaySound {
+                    sound: SoundEvent::ItemOminousBottleDispose,
+                }],
+                sound: azalea_registry::Holder::Reference(SoundEvent::EntityGenericDrink),
+                ..Consumable::new()
+            },
+            ItemKind::BeetrootSoup => Consumable::new(),
+            ItemKind::Apple => Consumable::new(),
+            ItemKind::Beetroot => Consumable::new(),
+            ItemKind::BakedPotato => Consumable::new(),
+            ItemKind::HoneyBottle => Consumable {
+                animation: ItemUseAnimation::Drink,
+                consume_seconds: 2.0,
+                has_consume_particles: false,
+                on_consume_effects: vec![ConsumeEffect::RemoveEffects {
+                    effects: HolderSet::Direct {
+                        contents: vec![MobEffect::Poison],
+                    },
+                }],
+                sound: azalea_registry::Holder::Reference(SoundEvent::ItemHoneyBottleDrink),
+            },
+            ItemKind::RottenFlesh => Consumable {
+                on_consume_effects: vec![ConsumeEffect::ApplyEffects {
+                    effects: vec![MobEffectInstance {
+                        id: MobEffect::Hunger,
+                        details: MobEffectDetails {
+                            duration: 600,
+                            show_icon: true,
+                            ..MobEffectDetails::new()
+                        },
+                    }],
+                    probability: 0.8,
+                }],
+                ..Consumable::new()
+            },
+            ItemKind::PumpkinPie => Consumable::new(),
+            ItemKind::DriedKelp => Consumable {
+                consume_seconds: 0.8,
+                ..Consumable::new()
+            },
+            ItemKind::CookedChicken => Consumable::new(),
+            ItemKind::MelonSlice => Consumable::new(),
+            ItemKind::CookedPorkchop => Consumable::new(),
+            ItemKind::ChorusFruit => Consumable {
+                on_consume_effects: vec![ConsumeEffect::TeleportRandomly { diameter: 16.0 }],
+                ..Consumable::new()
+            },
+            ItemKind::CookedCod => Consumable::new(),
+            ItemKind::SweetBerries => Consumable::new(),
+            ItemKind::Potion => Consumable {
+                animation: ItemUseAnimation::Drink,
+                has_consume_particles: false,
+                sound: azalea_registry::Holder::Reference(SoundEvent::EntityGenericDrink),
+                ..Consumable::new()
             },
             _ => return None,
         };
         Some(value)
     }
 }
-impl DefaultableComponent for EntityData {
+impl DefaultableComponent for Food {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::HuskSpawnEgg => EntityKind::Husk,
-            ItemKind::WitherSpawnEgg => EntityKind::Wither,
-            ItemKind::CamelHuskSpawnEgg => EntityKind::CamelHusk,
-            ItemKind::DrownedSpawnEgg => EntityKind::Drowned,
-            ItemKind::TraderLlamaSpawnEgg => EntityKind::TraderLlama,
-            ItemKind::MuleSpawnEgg => EntityKind::Mule,
-            ItemKind::TropicalFishSpawnEgg => EntityKind::TropicalFish,
-            ItemKind::OcelotSpawnEgg => EntityKind::Ocelot,
-            ItemKind::LlamaSpawnEgg => EntityKind::Llama,
-            ItemKind::PillagerSpawnEgg => EntityKind::Pillager,
-            ItemKind::SnifferSpawnEgg => EntityKind::Sniffer,
-            ItemKind::EvokerSpawnEgg => EntityKind::Evoker,
-            ItemKind::VexSpawnEgg => EntityKind::Vex,
-            ItemKind::CreeperSpawnEgg => EntityKind::Creeper,
-            ItemKind::WardenSpawnEgg => EntityKind::Warden,
-            ItemKind::ZombieVillagerSpawnEgg => EntityKind::ZombieVillager,
-            ItemKind::StraySpawnEgg => EntityKind::Stray,
-            ItemKind::ParrotSpawnEgg => EntityKind::Parrot,
-            ItemKind::SheepSpawnEgg => EntityKind::Sheep,
-            ItemKind::SilverfishSpawnEgg => EntityKind::Silverfish,
-            ItemKind::GhastSpawnEgg => EntityKind::Ghast,
-            ItemKind::AxolotlSpawnEgg => EntityKind::Axolotl,
-            ItemKind::ElderGuardianSpawnEgg => EntityKind::ElderGuardian,
-            ItemKind::MooshroomSpawnEgg => EntityKind::Mooshroom,
-            ItemKind::PigSpawnEgg => EntityKind::Pig,
-            ItemKind::NautilusSpawnEgg => EntityKind::Nautilus,
-            ItemKind::PhantomSpawnEgg => EntityKind::Phantom,
-            ItemKind::ShulkerSpawnEgg => EntityKind::Shulker,
-            ItemKind::BeeSpawnEgg => EntityKind::Bee,
-            ItemKind::HorseSpawnEgg => EntityKind::Horse,
-            ItemKind::CopperGolemSpawnEgg => EntityKind::CopperGolem,
-            ItemKind::TurtleSpawnEgg => EntityKind::Turtle,
-            ItemKind::WolfSpawnEgg => EntityKind::Wolf,
-            ItemKind::RavagerSpawnEgg => EntityKind::Ravager,
-            ItemKind::CowSpawnEgg => EntityKind::Cow,
-            ItemKind::CamelSpawnEgg => EntityKind::Camel,
-            ItemKind::BatSpawnEgg => EntityKind::Bat,
-            ItemKind::StriderSpawnEgg => EntityKind::Strider,
-            ItemKind::CaveSpiderSpawnEgg => EntityKind::CaveSpider,
-            ItemKind::CodSpawnEgg => EntityKind::Cod,
-            ItemKind::SnowGolemSpawnEgg => EntityKind::SnowGolem,
-            ItemKind::BlazeSpawnEgg => EntityKind::Blaze,
-            ItemKind::WitchSpawnEgg => EntityKind::Witch,
-            ItemKind::FoxSpawnEgg => EntityKind::Fox,
-            ItemKind::HoglinSpawnEgg => EntityKind::Hoglin,
-            ItemKind::IronGolemSpawnEgg => EntityKind::IronGolem,
-            ItemKind::GuardianSpawnEgg => EntityKind::Guardian,
-            ItemKind::CatSpawnEgg => EntityKind::Cat,
-            ItemKind::EnderDragonSpawnEgg => EntityKind::EnderDragon,
-            ItemKind::SalmonSpawnEgg => EntityKind::Salmon,
-            ItemKind::BoggedSpawnEgg => EntityKind::Bogged,
-            ItemKind::CreakingSpawnEgg => EntityKind::Creaking,
-            ItemKind::ZombieNautilusSpawnEgg => EntityKind::ZombieNautilus,
-            ItemKind::SpiderSpawnEgg => EntityKind::Spider,
-            ItemKind::ZombieHorseSpawnEgg => EntityKind::ZombieHorse,
-            ItemKind::PandaSpawnEgg => EntityKind::Panda,
-            ItemKind::GoatSpawnEgg => EntityKind::Goat,
-            ItemKind::PiglinBruteSpawnEgg => EntityKind::PiglinBrute,
-            ItemKind::ZombieSpawnEgg => EntityKind::Zombie,
-            ItemKind::ZombifiedPiglinSpawnEgg => EntityKind::ZombifiedPiglin,
-            ItemKind::SkeletonSpawnEgg => EntityKind::Skeleton,
-            ItemKind::EndermanSpawnEgg => EntityKind::Enderman,
-            ItemKind::GlowSquidSpawnEgg => EntityKind::GlowSquid,
-            ItemKind::VillagerSpawnEgg => EntityKind::Villager,
-            ItemKind::SquidSpawnEgg => EntityKind::Squid,
-            ItemKind::PufferfishSpawnEgg => EntityKind::Pufferfish,
-            ItemKind::PiglinSpawnEgg => EntityKind::Piglin,
-            ItemKind::SlimeSpawnEgg => EntityKind::Slime,
-            ItemKind::RabbitSpawnEgg => EntityKind::Rabbit,
-            ItemKind::WanderingTraderSpawnEgg => EntityKind::WanderingTrader,
-            ItemKind::HappyGhastSpawnEgg => EntityKind::HappyGhast,
-            ItemKind::TadpoleSpawnEgg => EntityKind::Tadpole,
-            ItemKind::ChickenSpawnEgg => EntityKind::Chicken,
-            ItemKind::PolarBearSpawnEgg => EntityKind::PolarBear,
-            ItemKind::EndermiteSpawnEgg => EntityKind::Endermite,
-            ItemKind::DolphinSpawnEgg => EntityKind::Dolphin,
-            ItemKind::ZoglinSpawnEgg => EntityKind::Zoglin,
-            ItemKind::WitherSkeletonSpawnEgg => EntityKind::WitherSkeleton,
-            ItemKind::SkeletonHorseSpawnEgg => EntityKind::SkeletonHorse,
-            ItemKind::MagmaCubeSpawnEgg => EntityKind::MagmaCube,
-            ItemKind::BreezeSpawnEgg => EntityKind::Breeze,
-            ItemKind::AllaySpawnEgg => EntityKind::Allay,
-            ItemKind::ArmadilloSpawnEgg => EntityKind::Armadillo,
-            ItemKind::VindicatorSpawnEgg => EntityKind::Vindicator,
-            ItemKind::ParchedSpawnEgg => EntityKind::Parched,
-            ItemKind::DonkeySpawnEgg => EntityKind::Donkey,
-            ItemKind::FrogSpawnEgg => EntityKind::Frog,
+            ItemKind::TropicalFish => Food {
+                nutrition: 1,
+                saturation: 0.2,
+                ..Food::new()
+            },
+            ItemKind::GoldenCarrot => Food {
+                nutrition: 6,
+                saturation: 14.400001,
+                ..Food::new()
+            },
+            ItemKind::GlowBerries => Food {
+                nutrition: 2,
+                saturation: 0.4,
+                ..Food::new()
+            },
+            ItemKind::SpiderEye => Food {
+                nutrition: 2,
+                saturation: 3.2,
+                ..Food::new()
+            },
+            ItemKind::Cod => Food {
+                nutrition: 2,
+                saturation: 0.4,
+                ..Food::new()
+            },
+            ItemKind::Chicken => Food {
+                nutrition: 2,
+                saturation: 1.2,
+                ..Food::new()
+            },
+            ItemKind::CodBucket => Food {
+                nutrition: 2,
+                saturation: 0.4,
+                ..Food::new()
+            },
+            ItemKind::Salmon => Food {
+                nutrition: 2,
+                saturation: 0.4,
+                ..Food::new()
+            },
+            ItemKind::CookedSalmon => Food {
+                nutrition: 6,
+                saturation: 9.6,
+                ..Food::new()
+            },
+            ItemKind::SuspiciousStew => Food {
+                can_always_eat: true,
+                nutrition: 6,
+                saturation: 7.2000003,
+            },
+            ItemKind::Bread => Food {
+                nutrition: 5,
+                saturation: 6.0,
+                ..Food::new()
+            },
+            ItemKind::Beef => Food {
+                nutrition: 3,
+                saturation: 1.8000001,
+                ..Food::new()
+            },
+            ItemKind::Mutton => Food {
+                nutrition: 2,
+                saturation: 1.2,
+                ..Food::new()
+            },
+            ItemKind::Porkchop => Food {
+                nutrition: 3,
+                saturation: 1.8000001,
+                ..Food::new()
+            },
+            ItemKind::Rabbit => Food {
+                nutrition: 3,
+                saturation: 1.8000001,
+                ..Food::new()
+            },
+            ItemKind::GoldenApple => Food {
+                can_always_eat: true,
+                nutrition: 4,
+                saturation: 9.6,
+            },
+            ItemKind::RabbitStew => Food {
+                nutrition: 10,
+                saturation: 12.0,
+                ..Food::new()
+            },
+            ItemKind::Pufferfish => Food {
+                nutrition: 1,
+                saturation: 0.2,
+                ..Food::new()
+            },
+            ItemKind::CookedMutton => Food {
+                nutrition: 6,
+                saturation: 9.6,
+                ..Food::new()
+            },
+            ItemKind::PoisonousPotato => Food {
+                nutrition: 2,
+                saturation: 1.2,
+                ..Food::new()
+            },
+            ItemKind::MushroomStew => Food {
+                nutrition: 6,
+                saturation: 7.2000003,
+                ..Food::new()
+            },
+            ItemKind::Potato => Food {
+                nutrition: 1,
+                saturation: 0.6,
+                ..Food::new()
+            },
+            ItemKind::CookedBeef => Food {
+                nutrition: 8,
+                saturation: 12.8,
+                ..Food::new()
+            },
+            ItemKind::EnchantedGoldenApple => Food {
+                can_always_eat: true,
+                nutrition: 4,
+                saturation: 9.6,
+            },
+            ItemKind::Cookie => Food {
+                nutrition: 2,
+                saturation: 0.4,
+                ..Food::new()
+            },
+            ItemKind::PufferfishBucket => Food {
+                nutrition: 1,
+                saturation: 0.2,
+                ..Food::new()
+            },
+            ItemKind::CookedRabbit => Food {
+                nutrition: 5,
+                saturation: 6.0,
+                ..Food::new()
+            },
+            ItemKind::Carrot => Food {
+                nutrition: 3,
+                saturation: 3.6000001,
+                ..Food::new()
+            },
+            ItemKind::BeetrootSoup => Food {
+                nutrition: 6,
+                saturation: 7.2000003,
+                ..Food::new()
+            },
+            ItemKind::Apple => Food {
+                nutrition: 4,
+                saturation: 2.4,
+                ..Food::new()
+            },
+            ItemKind::Beetroot => Food {
+                nutrition: 1,
+                saturation: 1.2,
+                ..Food::new()
+            },
+            ItemKind::BakedPotato => Food {
+                nutrition: 5,
+                saturation: 6.0,
+                ..Food::new()
+            },
+            ItemKind::HoneyBottle => Food {
+                can_always_eat: true,
+                nutrition: 6,
+                saturation: 1.2,
+            },
+            ItemKind::RottenFlesh => Food {
+                nutrition: 4,
+                saturation: 0.8,
+                ..Food::new()
+            },
+            ItemKind::TropicalFishBucket => Food {
+                nutrition: 1,
+                saturation: 0.2,
+                ..Food::new()
+            },
+            ItemKind::PumpkinPie => Food {
+                nutrition: 8,
+                saturation: 4.8,
+                ..Food::new()
+            },
+            ItemKind::DriedKelp => Food {
+                nutrition: 1,
+                saturation: 0.6,
+                ..Food::new()
+            },
+            ItemKind::CookedChicken => Food {
+                nutrition: 6,
+                saturation: 7.2000003,
+                ..Food::new()
+            },
+            ItemKind::SalmonBucket => Food {
+                nutrition: 2,
+                saturation: 0.4,
+                ..Food::new()
+            },
+            ItemKind::MelonSlice => Food {
+                nutrition: 2,
+                saturation: 1.2,
+                ..Food::new()
+            },
+            ItemKind::CookedPorkchop => Food {
+                nutrition: 8,
+                saturation: 12.8,
+                ..Food::new()
+            },
+            ItemKind::ChorusFruit => Food {
+                can_always_eat: true,
+                nutrition: 4,
+                saturation: 2.4,
+            },
+            ItemKind::CookedCod => Food {
+                nutrition: 5,
+                saturation: 6.0,
+                ..Food::new()
+            },
+            ItemKind::SweetBerries => Food {
+                nutrition: 2,
+                saturation: 0.4,
+                ..Food::new()
+            },
             _ => return None,
         };
-        Some(EntityData {
-            kind: value,
-            data: NbtCompound::new(),
+        Some(value)
+    }
+}
+impl DefaultableComponent for Dye {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::GrayDye => DyeColor::Gray,
+            ItemKind::MagentaDye => DyeColor::Magenta,
+            ItemKind::RedDye => DyeColor::Red,
+            ItemKind::LightBlueDye => DyeColor::LightBlue,
+            ItemKind::GreenDye => DyeColor::Green,
+            ItemKind::LightGrayDye => DyeColor::LightGray,
+            ItemKind::PurpleDye => DyeColor::Purple,
+            ItemKind::BlueDye => DyeColor::Blue,
+            ItemKind::WhiteDye => DyeColor::White,
+            ItemKind::BrownDye => DyeColor::Brown,
+            ItemKind::LimeDye => DyeColor::Lime,
+            ItemKind::CyanDye => DyeColor::Cyan,
+            ItemKind::OrangeDye => DyeColor::Orange,
+            ItemKind::BlackDye => DyeColor::Black,
+            ItemKind::PinkDye => DyeColor::Pink,
+            ItemKind::YellowDye => DyeColor::Yellow,
+            _ => return None,
+        };
+        Some(Dye { color: value })
+    }
+}
+impl DefaultableComponent for JukeboxPlayable {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::MusicDiscBlocks => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDiscPigstep => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDiscMall => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDiscTears => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDiscPrecipice => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDiscRelic => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDisc11 => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDisc5 => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDiscStrad => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDiscChirp => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDisc13 => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDiscCat => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDiscLavaChicken => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDiscWard => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDiscStal => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDiscOtherside => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDiscCreator => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDiscCreatorMusicBox => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDiscFar => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDiscMellohi => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDiscWait => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            _ => return None,
+        };
+        Some(JukeboxPlayable { value: value })
+    }
+}
+impl DefaultableComponent for BlockState {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::OxidizedCopperGolemStatue => {
+                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
+            }
+            ItemKind::WaxedOxidizedCopperGolemStatue => {
+                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
+            }
+            ItemKind::Beehive => HashMap::from_iter([("honey_level".to_owned(), "0".to_owned())]),
+            ItemKind::WaxedExposedCopperGolemStatue => {
+                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
+            }
+            ItemKind::WeatheredCopperGolemStatue => {
+                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
+            }
+            ItemKind::TestBlock => HashMap::from_iter([("mode".to_owned(), "start".to_owned())]),
+            ItemKind::Light => HashMap::from_iter([("level".to_owned(), "15".to_owned())]),
+            ItemKind::ExposedCopperGolemStatue => {
+                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
+            }
+            ItemKind::WaxedWeatheredCopperGolemStatue => {
+                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
+            }
+            ItemKind::BeeNest => HashMap::from_iter([("honey_level".to_owned(), "0".to_owned())]),
+            ItemKind::CopperGolemStatue => {
+                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
+            }
+            ItemKind::WaxedCopperGolemStatue => {
+                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
+            }
+            _ => return None,
+        };
+        Some(BlockState { properties: value })
+    }
+}
+impl DefaultableComponent for ChargedProjectiles {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::Crossbow => vec![],
+            _ => return None,
+        };
+        Some(ChargedProjectiles { items: value })
+    }
+}
+impl DefaultableComponent for Instrument {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::GoatHorn => {
+                azalea_registry::Holder::Reference(azalea_registry::data::Instrument::new_raw(0))
+            }
+            _ => return None,
+        };
+        Some(Instrument { value: value })
+    }
+}
+impl DefaultableComponent for DamageResistant {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::NetheriteBlock => HolderSet::Direct { contents: vec![] },
+            ItemKind::NetheriteShovel => HolderSet::Direct { contents: vec![] },
+            ItemKind::NetheriteNautilusArmor => HolderSet::Direct { contents: vec![] },
+            ItemKind::NetheriteScrap => HolderSet::Direct { contents: vec![] },
+            ItemKind::NetheriteBoots => HolderSet::Direct { contents: vec![] },
+            ItemKind::NetheriteSpear => HolderSet::Direct { contents: vec![] },
+            ItemKind::NetheriteAxe => HolderSet::Direct { contents: vec![] },
+            ItemKind::NetheriteHoe => HolderSet::Direct { contents: vec![] },
+            ItemKind::NetheriteHorseArmor => HolderSet::Direct { contents: vec![] },
+            ItemKind::NetheriteLeggings => HolderSet::Direct { contents: vec![] },
+            ItemKind::NetheriteHelmet => HolderSet::Direct { contents: vec![] },
+            ItemKind::AncientDebris => HolderSet::Direct { contents: vec![] },
+            ItemKind::NetheriteSword => HolderSet::Direct { contents: vec![] },
+            ItemKind::NetherStar => HolderSet::Direct { contents: vec![] },
+            ItemKind::NetheritePickaxe => HolderSet::Direct { contents: vec![] },
+            ItemKind::NetheriteChestplate => HolderSet::Direct { contents: vec![] },
+            ItemKind::NetheriteIngot => HolderSet::Direct { contents: vec![] },
+            _ => return None,
+        };
+        Some(DamageResistant { types: value })
+    }
+}
+impl DefaultableComponent for ProvidesBannerPatterns {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::FlowerBannerPattern => HolderSet::Direct { contents: vec![] },
+            ItemKind::FieldMasonedBannerPattern => HolderSet::Direct { contents: vec![] },
+            ItemKind::GlobeBannerPattern => HolderSet::Direct { contents: vec![] },
+            ItemKind::MojangBannerPattern => HolderSet::Direct { contents: vec![] },
+            ItemKind::FlowBannerPattern => HolderSet::Direct { contents: vec![] },
+            ItemKind::CreeperBannerPattern => HolderSet::Direct { contents: vec![] },
+            ItemKind::PiglinBannerPattern => HolderSet::Direct { contents: vec![] },
+            ItemKind::SkullBannerPattern => HolderSet::Direct { contents: vec![] },
+            ItemKind::GusterBannerPattern => HolderSet::Direct { contents: vec![] },
+            ItemKind::BordureIndentedBannerPattern => HolderSet::Direct { contents: vec![] },
+            _ => return None,
+        };
+        Some(ProvidesBannerPatterns { key: value })
+    }
+}
+impl DefaultableComponent for UseRemainder {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::MilkBucket => ItemStack::from(ItemKind::Bucket),
+            ItemKind::SuspiciousStew => ItemStack::from(ItemKind::Bowl),
+            ItemKind::RabbitStew => ItemStack::from(ItemKind::Bowl),
+            ItemKind::MushroomStew => ItemStack::from(ItemKind::Bowl),
+            ItemKind::BeetrootSoup => ItemStack::from(ItemKind::Bowl),
+            ItemKind::HoneyBottle => ItemStack::from(ItemKind::GlassBottle),
+            ItemKind::Potion => ItemStack::from(ItemKind::GlassBottle),
+            _ => return None,
+        };
+        Some(UseRemainder {
+            convert_into: value,
         })
+    }
+}
+impl DefaultableComponent for Bees {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::Beehive => vec![],
+            ItemKind::BeeNest => vec![],
+            _ => return None,
+        };
+        Some(Bees { occupants: value })
     }
 }
 impl DefaultableComponent for BannerPatterns {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::LightBlueBanner => vec![],
             ItemKind::PurpleBanner => vec![],
-            ItemKind::GreenBanner => vec![],
-            ItemKind::LightGrayBanner => vec![],
-            ItemKind::BrownBanner => vec![],
-            ItemKind::RedBanner => vec![],
+            ItemKind::LightBlueBanner => vec![],
             ItemKind::LimeBanner => vec![],
-            ItemKind::YellowBanner => vec![],
+            ItemKind::GrayBanner => vec![],
+            ItemKind::PinkBanner => vec![],
+            ItemKind::RedBanner => vec![],
+            ItemKind::OrangeBanner => vec![],
+            ItemKind::BlueBanner => vec![],
+            ItemKind::Shield => vec![],
+            ItemKind::LightGrayBanner => vec![],
+            ItemKind::BlackBanner => vec![],
             ItemKind::MagentaBanner => vec![],
+            ItemKind::YellowBanner => vec![],
+            ItemKind::GreenBanner => vec![],
             ItemKind::CyanBanner => vec![],
             ItemKind::WhiteBanner => vec![],
-            ItemKind::PinkBanner => vec![],
-            ItemKind::GrayBanner => vec![],
-            ItemKind::Shield => vec![],
-            ItemKind::BlackBanner => vec![],
-            ItemKind::BlueBanner => vec![],
-            ItemKind::OrangeBanner => vec![],
+            ItemKind::BrownBanner => vec![],
             _ => return None,
         };
         Some(BannerPatterns { patterns: value })
-    }
-}
-impl DefaultableComponent for Container {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::Smoker => vec![],
-            ItemKind::BrownShulkerBox => vec![],
-            ItemKind::AcaciaShelf => vec![],
-            ItemKind::BlackShulkerBox => vec![],
-            ItemKind::LimeShulkerBox => vec![],
-            ItemKind::OakShelf => vec![],
-            ItemKind::BambooShelf => vec![],
-            ItemKind::GrayShulkerBox => vec![],
-            ItemKind::Furnace => vec![],
-            ItemKind::Crafter => vec![],
-            ItemKind::YellowShulkerBox => vec![],
-            ItemKind::Barrel => vec![],
-            ItemKind::CherryShelf => vec![],
-            ItemKind::DarkOakShelf => vec![],
-            ItemKind::MangroveShelf => vec![],
-            ItemKind::JungleShelf => vec![],
-            ItemKind::LightBlueShulkerBox => vec![],
-            ItemKind::Dropper => vec![],
-            ItemKind::ShulkerBox => vec![],
-            ItemKind::CyanShulkerBox => vec![],
-            ItemKind::WarpedShelf => vec![],
-            ItemKind::Campfire => vec![],
-            ItemKind::SpruceShelf => vec![],
-            ItemKind::CrimsonShelf => vec![],
-            ItemKind::Chest => vec![],
-            ItemKind::BirchShelf => vec![],
-            ItemKind::DecoratedPot => vec![],
-            ItemKind::WhiteShulkerBox => vec![],
-            ItemKind::RedShulkerBox => vec![],
-            ItemKind::ChiseledBookshelf => vec![],
-            ItemKind::MagentaShulkerBox => vec![],
-            ItemKind::BlastFurnace => vec![],
-            ItemKind::PinkShulkerBox => vec![],
-            ItemKind::SoulCampfire => vec![],
-            ItemKind::TrappedChest => vec![],
-            ItemKind::LightGrayShulkerBox => vec![],
-            ItemKind::PaleOakShelf => vec![],
-            ItemKind::BrewingStand => vec![],
-            ItemKind::PurpleShulkerBox => vec![],
-            ItemKind::Hopper => vec![],
-            ItemKind::OrangeShulkerBox => vec![],
-            ItemKind::BlueShulkerBox => vec![],
-            ItemKind::Dispenser => vec![],
-            ItemKind::GreenShulkerBox => vec![],
-            _ => return None,
-        };
-        Some(Container { items: value })
-    }
-}
-impl DefaultableComponent for BundleContents {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::GreenBundle => vec![],
-            ItemKind::YellowBundle => vec![],
-            ItemKind::BlueBundle => vec![],
-            ItemKind::WhiteBundle => vec![],
-            ItemKind::LightBlueBundle => vec![],
-            ItemKind::BrownBundle => vec![],
-            ItemKind::PurpleBundle => vec![],
-            ItemKind::CyanBundle => vec![],
-            ItemKind::OrangeBundle => vec![],
-            ItemKind::PinkBundle => vec![],
-            ItemKind::MagentaBundle => vec![],
-            ItemKind::RedBundle => vec![],
-            ItemKind::LightGrayBundle => vec![],
-            ItemKind::Bundle => vec![],
-            ItemKind::BlackBundle => vec![],
-            ItemKind::GrayBundle => vec![],
-            ItemKind::LimeBundle => vec![],
-            _ => return None,
-        };
-        Some(BundleContents { items: value })
     }
 }
 impl DefaultableComponent for AttackRange {
@@ -5816,7 +5936,7 @@ impl DefaultableComponent for AttackRange {
                 min_reach: 2.0,
                 mob_factor: 0.5,
             },
-            ItemKind::GoldenSpear => AttackRange {
+            ItemKind::StoneSpear => AttackRange {
                 hitbox_margin: 0.125,
                 max_creative_reach: 6.5,
                 max_reach: 4.5,
@@ -5848,7 +5968,7 @@ impl DefaultableComponent for AttackRange {
                 min_reach: 2.0,
                 mob_factor: 0.5,
             },
-            ItemKind::StoneSpear => AttackRange {
+            ItemKind::GoldenSpear => AttackRange {
                 hitbox_margin: 0.125,
                 max_creative_reach: 6.5,
                 max_reach: 4.5,
@@ -5875,7 +5995,7 @@ impl DefaultableComponent for DamageType {
             ItemKind::IronSpear => {
                 azalea_registry::Holder::Reference(azalea_registry::data::DamageKind::new_raw(0))
             }
-            ItemKind::GoldenSpear => {
+            ItemKind::StoneSpear => {
                 azalea_registry::Holder::Reference(azalea_registry::data::DamageKind::new_raw(0))
             }
             ItemKind::NetheriteSpear => {
@@ -5887,7 +6007,7 @@ impl DefaultableComponent for DamageType {
             ItemKind::CopperSpear => {
                 azalea_registry::Holder::Reference(azalea_registry::data::DamageKind::new_raw(0))
             }
-            ItemKind::StoneSpear => {
+            ItemKind::GoldenSpear => {
                 azalea_registry::Holder::Reference(azalea_registry::data::DamageKind::new_raw(0))
             }
             ItemKind::DiamondSpear => {
@@ -5911,7 +6031,7 @@ impl DefaultableComponent for KineticWeapon {
                 delay_ticks: 12,
                 dismount_conditions: Some(KineticWeaponCondition {
                     max_duration_ticks: 50,
-                    min_speed: 8.0,
+                    min_speed: 11.0,
                     ..KineticWeaponCondition::new()
                 }),
                 forward_movement: 0.38,
@@ -5924,23 +6044,23 @@ impl DefaultableComponent for KineticWeapon {
                 sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearUse)),
                 ..KineticWeapon::new()
             },
-            ItemKind::GoldenSpear => KineticWeapon {
+            ItemKind::StoneSpear => KineticWeapon {
                 damage_conditions: Some(KineticWeaponCondition {
                     max_duration_ticks: 275,
                     min_relative_speed: 4.6,
                     ..KineticWeaponCondition::new()
                 }),
-                damage_multiplier: 0.7,
+                damage_multiplier: 0.82,
                 delay_ticks: 14,
                 dismount_conditions: Some(KineticWeaponCondition {
-                    max_duration_ticks: 70,
-                    min_speed: 10.0,
+                    max_duration_ticks: 90,
+                    min_speed: 13.0,
                     ..KineticWeaponCondition::new()
                 }),
                 forward_movement: 0.38,
                 hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
                 knockback_conditions: Some(KineticWeaponCondition {
-                    max_duration_ticks: 170,
+                    max_duration_ticks: 180,
                     min_speed: 5.1,
                     ..KineticWeaponCondition::new()
                 }),
@@ -5957,7 +6077,7 @@ impl DefaultableComponent for KineticWeapon {
                 delay_ticks: 8,
                 dismount_conditions: Some(KineticWeaponCondition {
                     max_duration_ticks: 50,
-                    min_speed: 7.0,
+                    min_speed: 9.0,
                     ..KineticWeaponCondition::new()
                 }),
                 forward_movement: 0.38,
@@ -6007,7 +6127,7 @@ impl DefaultableComponent for KineticWeapon {
                 delay_ticks: 13,
                 dismount_conditions: Some(KineticWeaponCondition {
                     max_duration_ticks: 80,
-                    min_speed: 9.0,
+                    min_speed: 12.0,
                     ..KineticWeaponCondition::new()
                 }),
                 forward_movement: 0.38,
@@ -6020,23 +6140,23 @@ impl DefaultableComponent for KineticWeapon {
                 sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearUse)),
                 ..KineticWeapon::new()
             },
-            ItemKind::StoneSpear => KineticWeapon {
+            ItemKind::GoldenSpear => KineticWeapon {
                 damage_conditions: Some(KineticWeaponCondition {
                     max_duration_ticks: 275,
                     min_relative_speed: 4.6,
                     ..KineticWeaponCondition::new()
                 }),
-                damage_multiplier: 0.82,
+                damage_multiplier: 0.7,
                 delay_ticks: 14,
                 dismount_conditions: Some(KineticWeaponCondition {
-                    max_duration_ticks: 90,
-                    min_speed: 10.0,
+                    max_duration_ticks: 70,
+                    min_speed: 13.0,
                     ..KineticWeaponCondition::new()
                 }),
                 forward_movement: 0.38,
                 hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
                 knockback_conditions: Some(KineticWeaponCondition {
-                    max_duration_ticks: 180,
+                    max_duration_ticks: 170,
                     min_speed: 5.1,
                     ..KineticWeaponCondition::new()
                 }),
@@ -6053,7 +6173,7 @@ impl DefaultableComponent for KineticWeapon {
                 delay_ticks: 10,
                 dismount_conditions: Some(KineticWeaponCondition {
                     max_duration_ticks: 60,
-                    min_speed: 7.5,
+                    min_speed: 10.0,
                     ..KineticWeaponCondition::new()
                 }),
                 forward_movement: 0.38,
@@ -6075,11 +6195,11 @@ impl DefaultableComponent for MinimumAttackCharge {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
             ItemKind::IronSpear => 1.0,
-            ItemKind::GoldenSpear => 1.0,
+            ItemKind::StoneSpear => 1.0,
             ItemKind::NetheriteSpear => 1.0,
             ItemKind::WoodenSpear => 1.0,
             ItemKind::CopperSpear => 1.0,
-            ItemKind::StoneSpear => 1.0,
+            ItemKind::GoldenSpear => 1.0,
             ItemKind::DiamondSpear => 1.0,
             _ => return None,
         };
@@ -6096,7 +6216,7 @@ impl DefaultableComponent for PiercingWeapon {
                 )),
                 ..PiercingWeapon::new()
             },
-            ItemKind::GoldenSpear => PiercingWeapon {
+            ItemKind::StoneSpear => PiercingWeapon {
                 hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
                 sound: Some(azalea_registry::Holder::Reference(
                     SoundEvent::ItemSpearAttack,
@@ -6126,7 +6246,7 @@ impl DefaultableComponent for PiercingWeapon {
                 )),
                 ..PiercingWeapon::new()
             },
-            ItemKind::StoneSpear => PiercingWeapon {
+            ItemKind::GoldenSpear => PiercingWeapon {
                 hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
                 sound: Some(azalea_registry::Holder::Reference(
                     SoundEvent::ItemSpearAttack,
@@ -6145,55 +6265,6 @@ impl DefaultableComponent for PiercingWeapon {
         Some(value)
     }
 }
-impl DefaultableComponent for DamageResistant {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::NetheriteHelmet => "#minecraft:is_fire".into(),
-            ItemKind::NetheriteSword => "#minecraft:is_fire".into(),
-            ItemKind::NetherStar => "#minecraft:is_explosion".into(),
-            ItemKind::NetheriteShovel => "#minecraft:is_fire".into(),
-            ItemKind::NetheriteAxe => "#minecraft:is_fire".into(),
-            ItemKind::NetheriteSpear => "#minecraft:is_fire".into(),
-            ItemKind::NetheriteNautilusArmor => "#minecraft:is_fire".into(),
-            ItemKind::NetheriteBoots => "#minecraft:is_fire".into(),
-            ItemKind::NetheriteLeggings => "#minecraft:is_fire".into(),
-            ItemKind::NetheriteHoe => "#minecraft:is_fire".into(),
-            ItemKind::NetheritePickaxe => "#minecraft:is_fire".into(),
-            ItemKind::NetheriteIngot => "#minecraft:is_fire".into(),
-            ItemKind::AncientDebris => "#minecraft:is_fire".into(),
-            ItemKind::NetheriteHorseArmor => "#minecraft:is_fire".into(),
-            ItemKind::NetheriteChestplate => "#minecraft:is_fire".into(),
-            ItemKind::NetheriteBlock => "#minecraft:is_fire".into(),
-            ItemKind::NetheriteScrap => "#minecraft:is_fire".into(),
-            _ => return None,
-        };
-        Some(DamageResistant { types: value })
-    }
-}
-impl DefaultableComponent for DebugStickState {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::DebugStick => NbtCompound::from_values(vec![]),
-            _ => return None,
-        };
-        Some(DebugStickState { properties: value })
-    }
-}
-impl DefaultableComponent for EnchantmentGlintOverride {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::DebugStick => true,
-            ItemKind::WrittenBook => true,
-            ItemKind::NetherStar => true,
-            ItemKind::EnchantedBook => true,
-            ItemKind::EndCrystal => true,
-            ItemKind::ExperienceBottle => true,
-            ItemKind::EnchantedGoldenApple => true,
-            _ => return None,
-        };
-        Some(EnchantmentGlintOverride { show_glint: value })
-    }
-}
 impl DefaultableComponent for UseCooldown {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
@@ -6201,11 +6272,11 @@ impl DefaultableComponent for UseCooldown {
                 seconds: 0.5,
                 ..UseCooldown::new()
             },
-            ItemKind::ChorusFruit => UseCooldown {
+            ItemKind::EnderPearl => UseCooldown {
                 seconds: 1.0,
                 ..UseCooldown::new()
             },
-            ItemKind::EnderPearl => UseCooldown {
+            ItemKind::ChorusFruit => UseCooldown {
                 seconds: 1.0,
                 ..UseCooldown::new()
             },
@@ -6217,37 +6288,37 @@ impl DefaultableComponent for UseCooldown {
 impl DefaultableComponent for ProvidesTrimMaterial {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
+            ItemKind::CopperIngot => {
+                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
+            }
             ItemKind::LapisLazuli => {
                 azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
             }
             ItemKind::GoldIngot => {
                 azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
             }
-            ItemKind::AmethystShard => {
+            ItemKind::IronIngot => {
                 azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
             }
             ItemKind::Redstone => {
                 azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
             }
-            ItemKind::ResinBrick => {
+            ItemKind::Diamond => {
                 azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
             }
             ItemKind::Emerald => {
                 azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
             }
-            ItemKind::CopperIngot => {
-                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
-            }
-            ItemKind::NetheriteIngot => {
-                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
-            }
-            ItemKind::IronIngot => {
-                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
-            }
             ItemKind::Quartz => {
                 azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
             }
-            ItemKind::Diamond => {
+            ItemKind::AmethystShard => {
+                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
+            }
+            ItemKind::ResinBrick => {
+                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
+            }
+            ItemKind::NetheriteIngot => {
                 azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
             }
             _ => return None,
@@ -6255,126 +6326,22 @@ impl DefaultableComponent for ProvidesTrimMaterial {
         Some(ProvidesTrimMaterial { value: value })
     }
 }
-impl DefaultableComponent for UseRemainder {
+impl DefaultableComponent for SuspiciousStewEffects {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::HoneyBottle => ItemStack::from(ItemKind::GlassBottle),
-            ItemKind::MilkBucket => ItemStack::from(ItemKind::Bucket),
-            ItemKind::MushroomStew => ItemStack::from(ItemKind::Bowl),
-            ItemKind::BeetrootSoup => ItemStack::from(ItemKind::Bowl),
-            ItemKind::Potion => ItemStack::from(ItemKind::GlassBottle),
-            ItemKind::SuspiciousStew => ItemStack::from(ItemKind::Bowl),
-            ItemKind::RabbitStew => ItemStack::from(ItemKind::Bowl),
+            ItemKind::SuspiciousStew => vec![],
             _ => return None,
         };
-        Some(UseRemainder {
-            convert_into: value,
-        })
+        Some(SuspiciousStewEffects { effects: value })
     }
 }
-impl DefaultableComponent for WritableBookContent {
+impl DefaultableComponent for Glider {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::WritableBook => Vec::new(),
-            _ => return None,
-        };
-        Some(WritableBookContent { pages: value })
-    }
-}
-impl DefaultableComponent for PotionContents {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::SplashPotion => PotionContents::new(),
-            ItemKind::LingeringPotion => PotionContents::new(),
-            ItemKind::TippedArrow => PotionContents::new(),
-            ItemKind::Potion => PotionContents::new(),
+            ItemKind::Elytra => Glider,
             _ => return None,
         };
         Some(value)
-    }
-}
-impl DefaultableComponent for ProvidesBannerPatterns {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::FlowerBannerPattern => "#minecraft:pattern_item/flower".into(),
-            ItemKind::PiglinBannerPattern => "#minecraft:pattern_item/piglin".into(),
-            ItemKind::GlobeBannerPattern => "#minecraft:pattern_item/globe".into(),
-            ItemKind::CreeperBannerPattern => "#minecraft:pattern_item/creeper".into(),
-            ItemKind::GusterBannerPattern => "#minecraft:pattern_item/guster".into(),
-            ItemKind::MojangBannerPattern => "#minecraft:pattern_item/mojang".into(),
-            ItemKind::FieldMasonedBannerPattern => "#minecraft:pattern_item/field_masoned".into(),
-            ItemKind::FlowBannerPattern => "#minecraft:pattern_item/flow".into(),
-            ItemKind::SkullBannerPattern => "#minecraft:pattern_item/skull".into(),
-            ItemKind::BordureIndentedBannerPattern => {
-                "#minecraft:pattern_item/bordure_indented".into()
-            }
-            _ => return None,
-        };
-        Some(ProvidesBannerPatterns { key: value })
-    }
-}
-impl DefaultableComponent for PotionDurationScale {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::LingeringPotion => 0.25,
-            ItemKind::TippedArrow => 0.125,
-            _ => return None,
-        };
-        Some(PotionDurationScale { value: value })
-    }
-}
-impl DefaultableComponent for ChickenVariant {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::BlueEgg => azalea_registry::data::ChickenVariant::new_raw(0),
-            ItemKind::Egg => azalea_registry::data::ChickenVariant::new_raw(0),
-            ItemKind::BrownEgg => azalea_registry::data::ChickenVariant::new_raw(0),
-            _ => return None,
-        };
-        Some(ChickenVariant { data: value })
-    }
-}
-impl DefaultableComponent for BucketEntityData {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::TropicalFishBucket => NbtCompound::from_values(vec![]),
-            ItemKind::SalmonBucket => NbtCompound::from_values(vec![]),
-            ItemKind::PufferfishBucket => NbtCompound::from_values(vec![]),
-            ItemKind::CodBucket => NbtCompound::from_values(vec![]),
-            ItemKind::TadpoleBucket => NbtCompound::from_values(vec![]),
-            ItemKind::AxolotlBucket => NbtCompound::from_values(vec![]),
-            _ => return None,
-        };
-        Some(BucketEntityData { entity: value })
-    }
-}
-impl DefaultableComponent for StoredEnchantments {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::EnchantedBook => HashMap::from_iter([]),
-            _ => return None,
-        };
-        Some(StoredEnchantments {
-            enchantments: value,
-        })
-    }
-}
-impl DefaultableComponent for ChargedProjectiles {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::Crossbow => vec![],
-            _ => return None,
-        };
-        Some(ChargedProjectiles { items: value })
-    }
-}
-impl DefaultableComponent for OminousBottleAmplifier {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::OminousBottle => 0,
-            _ => return None,
-        };
-        Some(OminousBottleAmplifier { amplifier: value })
     }
 }
 impl DefaultableComponent for PotDecorations {
@@ -6391,31 +6358,25 @@ impl DefaultableComponent for PotDecorations {
         Some(PotDecorations { items: value })
     }
 }
-impl DefaultableComponent for MapColor {
+impl DefaultableComponent for PotionContents {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::FilledMap => 4603950,
+            ItemKind::SplashPotion => PotionContents::new(),
+            ItemKind::TippedArrow => PotionContents::new(),
+            ItemKind::LingeringPotion => PotionContents::new(),
+            ItemKind::Potion => PotionContents::new(),
             _ => return None,
         };
-        Some(MapColor { color: value })
+        Some(value)
     }
 }
-impl DefaultableComponent for MapDecorations {
+impl DefaultableComponent for DebugStickState {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::FilledMap => NbtCompound::from_values(vec![]),
+            ItemKind::DebugStick => NbtCompound::from_values(vec![]),
             _ => return None,
         };
-        Some(MapDecorations { decorations: value })
-    }
-}
-impl DefaultableComponent for SuspiciousStewEffects {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::SuspiciousStew => vec![],
-            _ => return None,
-        };
-        Some(SuspiciousStewEffects { effects: value })
+        Some(DebugStickState { properties: value })
     }
 }
 impl DefaultableComponent for Recipes {
@@ -6427,49 +6388,14 @@ impl DefaultableComponent for Recipes {
         Some(Recipes { recipes: value })
     }
 }
-impl DefaultableComponent for Fireworks {
+impl DefaultableComponent for PotionDurationScale {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::FireworkRocket => Fireworks {
-                flight_duration: 1,
-                ..Fireworks::new()
-            },
+            ItemKind::TippedArrow => 0.125,
+            ItemKind::LingeringPotion => 0.25,
             _ => return None,
         };
-        Some(value)
-    }
-}
-impl DefaultableComponent for BlocksAttacks {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::Shield => BlocksAttacks {
-                block_delay_seconds: 0.25,
-                block_sound: Some(azalea_registry::Holder::Reference(
-                    SoundEvent::ItemShieldBlock,
-                )),
-                bypassed_by: Some("#minecraft:bypasses_shield".into()),
-                disabled_sound: Some(azalea_registry::Holder::Reference(
-                    SoundEvent::ItemShieldBreak,
-                )),
-                item_damage: ItemDamageFunction {
-                    base: 1.0,
-                    factor: 1.0,
-                    threshold: 3.0,
-                },
-                ..BlocksAttacks::new()
-            },
-            _ => return None,
-        };
-        Some(value)
-    }
-}
-impl DefaultableComponent for Glider {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::Elytra => Glider,
-            _ => return None,
-        };
-        Some(value)
+        Some(PotionDurationScale { value: value })
     }
 }
 impl DefaultableComponent for DeathProtection {
@@ -6516,14 +6442,86 @@ impl DefaultableComponent for DeathProtection {
         })
     }
 }
-impl DefaultableComponent for Instrument {
+impl DefaultableComponent for StoredEnchantments {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::GoatHorn => {
-                azalea_registry::Holder::Reference(azalea_registry::data::Instrument::new_raw(0))
-            }
+            ItemKind::EnchantedBook => HashMap::from_iter([]),
             _ => return None,
         };
-        Some(Instrument { value: value })
+        Some(StoredEnchantments {
+            enchantments: value,
+        })
+    }
+}
+impl DefaultableComponent for BlocksAttacks {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::Shield => BlocksAttacks {
+                block_delay_seconds: 0.25,
+                block_sound: Some(azalea_registry::Holder::Reference(
+                    SoundEvent::ItemShieldBlock,
+                )),
+                bypassed_by: Some(HolderSet::Direct { contents: vec![] }),
+                disabled_sound: Some(azalea_registry::Holder::Reference(
+                    SoundEvent::ItemShieldBreak,
+                )),
+                item_damage: ItemDamageFunction {
+                    base: 1.0,
+                    factor: 1.0,
+                    threshold: 3.0,
+                },
+                ..BlocksAttacks::new()
+            },
+            _ => return None,
+        };
+        Some(value)
+    }
+}
+impl DefaultableComponent for OminousBottleAmplifier {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::OminousBottle => 0,
+            _ => return None,
+        };
+        Some(OminousBottleAmplifier { amplifier: value })
+    }
+}
+impl DefaultableComponent for Fireworks {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::FireworkRocket => Fireworks {
+                flight_duration: 1,
+                ..Fireworks::new()
+            },
+            _ => return None,
+        };
+        Some(value)
+    }
+}
+impl DefaultableComponent for WritableBookContent {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::WritableBook => Vec::new(),
+            _ => return None,
+        };
+        Some(WritableBookContent { pages: value })
+    }
+}
+impl DefaultableComponent for MapColor {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::FilledMap => 4603950,
+            _ => return None,
+        };
+        Some(MapColor { color: value })
+    }
+}
+impl DefaultableComponent for MapDecorations {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::FilledMap => NbtCompound::from_values(vec![]),
+            _ => return None,
+        };
+        Some(MapDecorations { decorations: value })
     }
 }

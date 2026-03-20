@@ -4,7 +4,7 @@ use core::f64;
 use std::{
     any::Any,
     collections::HashMap,
-    fmt::{self, Display},
+    fmt::{self, Debug, Display},
     io::{self, Cursor},
     mem::ManuallyDrop,
 };
@@ -26,7 +26,7 @@ use azalea_registry::{
         Attribute, BlockKind, DataComponentKind, EntityKind, ItemKind, MobEffect, Potion,
         SoundEvent, VillagerKind,
     },
-    data::{self, DamageKind, Enchantment, TrimMaterial, TrimPattern},
+    data::{self, BannerPatternKind, DamageKind, Enchantment, TrimMaterial, TrimPattern},
     identifier::Identifier,
 };
 pub use profile::*;
@@ -42,7 +42,7 @@ pub trait DataComponentTrait:
     const KIND: DataComponentKind;
 }
 
-pub trait EncodableDataComponent: Send + Sync + Any {
+pub trait EncodableDataComponent: Send + Sync + Any + Debug {
     fn encode(&self, buf: &mut Vec<u8>) -> io::Result<()>;
     fn crc_hash(&self, registries: &RegistryHolder) -> Checksum;
     // using the Clone trait makes it not be object-safe, so we have our own clone
@@ -54,7 +54,7 @@ pub trait EncodableDataComponent: Send + Sync + Any {
 
 impl<T> EncodableDataComponent for T
 where
-    T: DataComponentTrait + Clone + AzBuf + PartialEq,
+    T: DataComponentTrait + Clone + AzBuf + PartialEq + Debug,
 {
     fn encode(&self, buf: &mut Vec<u8>) -> io::Result<()> {
         self.azalea_write(buf)
@@ -366,7 +366,7 @@ pub enum Rarity {
     Epic,
 }
 
-#[derive(AzBuf, Clone, Default, PartialEq, Serialize)]
+#[derive(AzBuf, Clone, Default, PartialEq, Serialize, Debug)]
 #[serde(transparent)]
 pub struct Enchantments {
     /// Enchantment levels here are 1-indexed, level 0 does not exist.
@@ -720,7 +720,7 @@ pub struct WritableBookContent {
     pub pages: Vec<Filterable<String>>,
 }
 
-#[derive(AzBuf, Clone, PartialEq, Serialize)]
+#[derive(AzBuf, Clone, PartialEq, Serialize, Debug)]
 pub struct WrittenBookContent {
     #[limit(32)]
     pub title: Filterable<String>,
@@ -856,7 +856,7 @@ pub struct NoteBlockSound {
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
-pub struct BannerPattern {
+pub struct BannerPatternLayer {
     #[var]
     pub pattern: i32,
     #[var]
@@ -866,7 +866,7 @@ pub struct BannerPattern {
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct BannerPatterns {
-    pub patterns: Vec<BannerPattern>,
+    pub patterns: Vec<BannerPatternLayer>,
 }
 
 #[derive(AzBuf, Clone, Copy, Debug, PartialEq, Serialize)]
@@ -1054,8 +1054,7 @@ pub struct ItemModel {
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct DamageResistant {
-    /// In vanilla this only allows tag keys, i.e. it must start with '#'
-    pub types: Identifier,
+    pub types: HolderSet<DamageKind, Identifier>,
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
@@ -1595,7 +1594,7 @@ pub struct BlocksAttacks {
     #[serde(skip_serializing_if = "is_default")]
     pub item_damage: ItemDamageFunction,
     #[serde(skip_serializing_if = "is_default")]
-    pub bypassed_by: Option<Identifier>,
+    pub bypassed_by: Option<HolderSet<DamageKind, Identifier>>,
     #[serde(skip_serializing_if = "is_default")]
     pub block_sound: Option<azalea_registry::Holder<SoundEvent, CustomSound>>,
     #[serde(skip_serializing_if = "is_default")]
@@ -1683,7 +1682,7 @@ pub struct AssetInfo {
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct ProvidesBannerPatterns {
-    pub key: Identifier,
+    pub key: HolderSet<BannerPatternKind, Identifier>,
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]

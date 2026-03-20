@@ -13,5 +13,6 @@ pub struct ClientboundSetTime {
 pub struct ClockState {
     #[var]
     pub total_ticks: u64,
-    pub paused: bool,
+    pub partial_tick: f32,
+    pub rate: f32,
 }

@@ -168,6 +168,22 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
         })),
     )));
 
+    commands.register(literal("inventory").executes(|ctx: &Ctx| {
+        let source = ctx.source.lock();
+        for item in source.bot.menu().slots() {
+            if item.is_empty() {
+                continue;
+            }
+            println!("{item:?}");
+            for (kind, data) in item.component_patch().iter() {
+                if let Some(data) = data {
+                    println!("- {kind} {data:?}");
+                }
+            }
+        }
+        1
+    }));
+
     commands.register(literal("pathfinderstate").executes(|ctx: &Ctx| {
         let source = ctx.source.lock();
         let pathfinder = source.bot.get_component::<Pathfinder>();

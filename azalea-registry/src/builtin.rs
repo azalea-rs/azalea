@@ -580,6 +580,7 @@ enum IntProviderKind {
     Clamped => "clamped",
     WeightedList => "weighted_list",
     ClampedNormal => "clamped_normal",
+    Trapezoid => "trapezoid",
 }
 }
 
@@ -604,6 +605,7 @@ enum LootConditionKind {
     TimeCheck => "time_check",
     ValueCheck => "value_check",
     EnchantmentActiveCheck => "enchantment_active_check",
+    EnvironmentAttributeCheck => "environment_attribute_check",
 }
 }
 
@@ -671,6 +673,7 @@ enum LootNumberProviderKind {
     Storage => "storage",
     Sum => "sum",
     EnchantmentLevel => "enchantment_level",
+    EnvironmentAttribute => "environment_attribute",
 }
 }
 
@@ -2420,17 +2423,21 @@ enum SoundEvent {
     EntityPigStep => "entity.pig.step",
     EntityBabyPigStep => "entity.baby_pig.step",
     EntityBabyPigAmbient => "entity.baby_pig.ambient",
+    EntityBabyPigEat => "entity.baby_pig.eat",
     EntityBabyPigHurt => "entity.baby_pig.hurt",
     EntityBabyPigDeath => "entity.baby_pig.death",
     EntityPigAmbient => "entity.pig.ambient",
     EntityPigHurt => "entity.pig.hurt",
     EntityPigDeath => "entity.pig.death",
+    EntityPigEat => "entity.pig.eat",
     EntityPigMiniAmbient => "entity.pig_mini.ambient",
     EntityPigMiniHurt => "entity.pig_mini.hurt",
     EntityPigMiniDeath => "entity.pig_mini.death",
+    EntityPigMiniEat => "entity.pig_mini.eat",
     EntityPigBigAmbient => "entity.pig_big.ambient",
     EntityPigBigHurt => "entity.pig_big.hurt",
     EntityPigBigDeath => "entity.pig_big.death",
+    EntityPigBigEat => "entity.pig_big.eat",
     EntityPiglinAdmiringItem => "entity.piglin.admiring_item",
     EntityPiglinAmbient => "entity.piglin.ambient",
     EntityPiglinAngry => "entity.piglin.angry",
@@ -3124,6 +3131,7 @@ enum WorldgenBlockStateProviderKind {
     DualNoiseProvider => "dual_noise_provider",
     RotatedBlockProvider => "rotated_block_provider",
     RandomizedIntStateProvider => "randomized_int_state_provider",
+    RuleBasedStateProvider => "rule_based_state_provider",
 }
 }
 
@@ -3187,9 +3195,6 @@ enum WorldgenFeature {
     NoOp => "no_op",
     Tree => "tree",
     FallenTree => "fallen_tree",
-    Flower => "flower",
-    NoBonemealFlower => "no_bonemeal_flower",
-    RandomPatch => "random_patch",
     BlockPile => "block_pile",
     SpringFeature => "spring_feature",
     ChorusPlant => "chorus_plant",
@@ -5160,6 +5165,7 @@ enum TestEnvironmentDefinitionKind {
     AllOf => "all_of",
     GameRules => "game_rules",
     ClockTime => "clock_time",
+    TimelineAttributes => "timeline_attributes",
     Weather => "weather",
     Function => "function",
 }
@@ -5371,6 +5377,7 @@ enum AttributeKind {
     AngleDegrees => "angle_degrees",
     RgbColor => "rgb_color",
     ArgbColor => "argb_color",
+    Integer => "integer",
     MoonPhase => "moon_phase",
     Activity => "activity",
     BedRule => "bed_rule",
