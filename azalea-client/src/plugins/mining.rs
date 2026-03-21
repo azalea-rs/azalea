@@ -25,6 +25,10 @@ use crate::{
     packet::game::SendGamePacketEvent,
 };
 
+/// There's a cooldown on breaking blocks of 5 in vanilla (unless it's
+/// instabreak)
+const BLOCK_BREAK_DELAY_TICKS: u32 = 5;
+
 /// A plugin that allows clients to break blocks in the world.
 pub struct MiningPlugin;
 impl Plugin for MiningPlugin {
@@ -86,6 +90,7 @@ fn handle_auto_mine(
             &Inventory,
             &MineBlockPos,
             &MineItem,
+            &MineDelay,
         ),
         With<LeftClickMine>,
     >,
@@ -99,8 +104,13 @@ fn handle_auto_mine(
         inventory,
         current_mining_pos,
         current_mining_item,
+        mine_delay,
     ) in &mut query.iter_mut()
     {
+        if **mine_delay > 0 {
+            continue;
+        }
+
         let block_pos = hit_result_component
             .as_block_hit_result_if_not_miss()
             .map(|b| b.block_pos);
@@ -261,6 +271,10 @@ pub fn handle_mining_queued(
         trace!("handle_mining_queued {mining_queued:?}");
         commands.entity(entity).remove::<MiningQueued>();
 
+        if **mine_delay > 0 {
+            continue;
+        }
+
         let world = world_holder.shared.read();
         if check_is_interaction_restricted(
             &world,
@@ -296,7 +310,7 @@ pub fn handle_mining_queued(
                 entity,
                 position: mining_queued.position,
             });
-            **mine_delay = 5;
+            **mine_delay = BLOCK_BREAK_DELAY_TICKS;
             commands.trigger(SwingArmEvent { entity });
         } else if mining.is_none()
             || !is_same_mining_target(
@@ -620,7 +634,7 @@ pub fn continue_mining_block(
     {
         if game_mode.current == GameMode::Creative {
             // TODO: worldborder check
-            **mine_delay = 5;
+            **mine_delay = BLOCK_BREAK_DELAY_TICKS;
             commands.trigger(SendGamePacketEvent::new(
                 entity,
                 ServerboundPlayerAction {
@@ -655,7 +669,7 @@ pub fn continue_mining_block(
                 continue;
             }
             let block = Box::<dyn BlockTrait>::from(target_block_state);
-            **mine_progress += get_mine_progress(
+            let progress_per_tick = get_mine_progress(
                 block.as_ref(),
                 current_mining_item,
                 fluid_on_eyes,
@@ -663,6 +677,7 @@ pub fn continue_mining_block(
                 attributes,
                 active_effects,
             );
+            **mine_progress += progress_per_tick;
 
             if **mine_ticks % 4. == 0. {
                 // vanilla makes a mining sound here
@@ -689,7 +704,9 @@ pub fn continue_mining_block(
                 ));
                 **mine_progress = 0.;
                 **mine_ticks = 0.;
-                **mine_delay = 5;
+                if progress_per_tick < 1. {
+                    **mine_delay = BLOCK_BREAK_DELAY_TICKS;
+                }
             }
 
             mine_block_progress_events.write(MineBlockProgressEvent {
