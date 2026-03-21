@@ -21,7 +21,7 @@ is breaking anyways, semantic versioning is not followed.
 - Re-implement `Client::map_component` and `map_get_component`.
 - Add `Client::exit` and `Swarm::exit` to make it easier to return from `ClientBuilder::start` or `SwarmBuilder::start`.
 - Add `Event::ConnectionFailed` for when the client failed to create its initial connection to the server.
-- `ChunkStorage` can now have custom implementations using `ChunkStorageTrait`.
+- `ChunkStorage` can now have custom implementations using `ChunkStorageTrait`. (@sdwhw)
 - Setting blocks now updates `Section::block_count`.
 
 ### Changed

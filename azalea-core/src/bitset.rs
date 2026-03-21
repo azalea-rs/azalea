@@ -273,6 +273,8 @@ where
 
     #[inline]
     pub fn set(&mut self, bit_index: usize) {
+        assert!(bit_index < N);
+
         self.data[bit_index / 64] |= 1u64 << (bit_index % 64);
     }
 }

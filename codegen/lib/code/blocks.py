@@ -212,13 +212,13 @@ def get_property_struct_name(
     ]:
         return "StairShape"
     if property_variants == ["normal", "sticky"]:
-        return "PistonType"
+        return "PistonKind"
     if property_variants == ["x", "z"]:
         return "AxisXZ"
     if property_variants == ["single", "left", "right"]:
-        return "ChestType"
+        return "ChestKind"
     if property_variants == ["compare", "subtract"]:
-        return "ComparatorType"
+        return "ComparatorKind"
     if property_variants == [
         "inactive",
         "waiting_for_players",
@@ -234,6 +234,8 @@ def get_property_struct_name(
         return "TestMode"
     if property_variants == ["save", "load", "corner", "data"]:
         return "StructureMode"
+    if property_variants == ["top", "bottom", "double"]:
+        return "SlabKind"
     if "harp" in property_variants and "didgeridoo" in property_variants:
         return "Sound"
     if property_variants == ["up", "side", "none"]:

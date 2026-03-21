@@ -60,7 +60,7 @@ impl BlockState {
     /// This only checks for normal air, not other types like cave air.
     #[inline]
     pub fn is_air(&self) -> bool {
-        self == &Self::AIR
+        *self == Self::AIR
     }
 
     /// Returns the protocol ID for the block state.
