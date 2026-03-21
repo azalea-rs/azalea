@@ -110,7 +110,7 @@ pub struct SectionBitsets {
 
 impl CachedWorld {
     pub fn new(world_lock: Arc<RwLock<World>>, origin: BlockPos) -> Self {
-        let min_y = world_lock.read().chunks.min_y;
+        let min_y = world_lock.read().chunks.min_y();
         Self {
             origin,
             min_y,
@@ -145,7 +145,7 @@ impl CachedWorld {
 
         let chunk_pos = ChunkPos::new(section_pos.x as i32, section_pos.z as i32);
         let section_index =
-            azalea_world::chunk_storage::section_index(section_pos.y * 16, self.min_y) as usize;
+            azalea_world::chunk::section_index(section_pos.y * 16, self.min_y) as usize;
 
         let mut cache_idx = 0;
 

@@ -60,16 +60,16 @@ impl Worlds {
         match self.map.get(&name).and_then(|world| world.upgrade()) {
             Some(existing_lock) => {
                 let existing = existing_lock.read();
-                if existing.chunks.height != height {
+                if existing.chunks.height() != height {
                     error!(
                         "Shared world height mismatch: {} != {height}",
-                        existing.chunks.height
+                        existing.chunks.height()
                     );
                 }
-                if existing.chunks.min_y != min_y {
+                if existing.chunks.min_y() != min_y {
                     error!(
                         "Shared world min_y mismatch: {} != {min_y}",
-                        existing.chunks.min_y
+                        existing.chunks.min_y()
                     );
                 }
                 existing_lock.clone()

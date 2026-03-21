@@ -281,7 +281,7 @@ impl GamePacketHandler<'_> {
                 // will be in the `worlds`)
 
                 *world_holder.partial.write() = PartialWorld::new(
-                    azalea_world::chunk_storage::calculate_chunk_storage_range(
+                    azalea_world::chunk::calculate_chunk_storage_range(
                         client_information.view_distance.into(),
                     ),
                     // this argument makes it so other clients don't update this player entity in a
@@ -1422,7 +1422,7 @@ impl GamePacketHandler<'_> {
                 // those will be in the `worlds`)
 
                 *world_holder.partial.write() = PartialWorld::new(
-                    azalea_world::chunk_storage::calculate_chunk_storage_range(
+                    azalea_world::chunk::calculate_chunk_storage_range(
                         client_information.view_distance.into(),
                     ),
                     Some(self.player),

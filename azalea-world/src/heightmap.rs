@@ -3,7 +3,7 @@ use azalea_core::{heightmap_kind::HeightmapKind as HeightmapKind_, math, positio
 use azalea_registry::tags::blocks::LEAVES;
 use tracing::warn;
 
-use crate::{BitStorage, Section, chunk_storage::get_block_state_from_sections};
+use crate::{BitStorage, Section, chunk::get_block_state_from_sections};
 
 // TODO: when removing this deprecated marker, also rename `HeightmapKind_` back
 // to `HeightmapKind`.

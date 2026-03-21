@@ -33,7 +33,7 @@ fn generate_world(partial_chunks: &mut PartialChunkStorage, size: u32) -> ChunkS
                     chunk.set_block_state(
                         &ChunkBlockPos::new(x, 1, z),
                         BlockKind::Stone.into(),
-                        chunks.min_y,
+                        chunks.min_y(),
                     );
                 }
             }

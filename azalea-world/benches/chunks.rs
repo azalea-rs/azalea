@@ -1,8 +1,8 @@
 use std::hint::black_box;
 
-use azalea_core::position::ChunkBlockPos;
+use azalea_core::position::{BlockPos, ChunkBlockPos, ChunkPos};
 use azalea_registry::builtin::BlockKind;
-use azalea_world::{BitStorage, Chunk};
+use azalea_world::{BitStorage, Chunk, ChunkStorage};
 use criterion::{BatchSize, Bencher, Criterion, criterion_group, criterion_main};
 
 fn bench_chunks(c: &mut Criterion) {
@@ -17,6 +17,24 @@ fn bench_chunks(c: &mut Criterion) {
                         BlockKind::Bedrock.into(),
                         0,
                     );
+                }
+            }
+
+            black_box(chunk);
+        });
+    });
+
+    c.bench_function("ChunkStorage::get_block_state", |b| {
+        b.iter(|| {
+            let mut storage = ChunkStorage::default();
+
+            let chunk = storage.upsert(ChunkPos::new(0, 0), Chunk::default());
+
+            for x in 0..16 {
+                for z in 0..16 {
+                    for y in 0..16 {
+                        black_box(storage.get_block_state(BlockPos::new(x, y, z)));
+                    }
                 }
             }
 

@@ -46,13 +46,13 @@ fn generate_bedrock_world(
                     chunk.set_block_state(
                         &ChunkBlockPos::new(x, 1, z),
                         BlockKind::Bedrock.into(),
-                        chunks.min_y,
+                        chunks.min_y(),
                     );
                     if rng.random_bool(0.5) {
                         chunk.set_block_state(
                             &ChunkBlockPos::new(x, 2, z),
                             BlockKind::Bedrock.into(),
-                            chunks.min_y,
+                            chunks.min_y(),
                         );
                     }
                 }
@@ -98,13 +98,13 @@ fn generate_mining_world(
             let chunk_pos = ChunkPos::new(chunk_x, chunk_z);
             let chunk = chunks.get(&chunk_pos).unwrap();
             let mut chunk = chunk.write();
-            for y in chunks.min_y..(chunks.min_y + chunks.height as i32) {
+            for y in chunks.min_y()..(chunks.min_y() + chunks.height() as i32) {
                 for x in 0..16_u8 {
                     for z in 0..16_u8 {
                         chunk.set_block_state(
                             &ChunkBlockPos::new(x, y, z),
                             BlockKind::Stone.into(),
-                            chunks.min_y,
+                            chunks.min_y(),
                         );
                     }
                 }

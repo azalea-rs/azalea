@@ -1,7 +1,9 @@
 use azalea_block::{BlockState, BlockStates};
 use azalea_core::position::{BlockPos, ChunkPos};
 
-use crate::{Chunk, ChunkStorage, World, iterators::ChunkIterator, palette::Palette};
+use crate::{
+    Chunk, World, chunk::storage::ChunkStorage, iterators::ChunkIterator, palette::Palette,
+};
 
 impl World {
     /// Find the coordinates of a block in the world.
@@ -45,7 +47,7 @@ impl World {
                 block_states,
                 chunk_pos,
                 &chunk.read(),
-                self.chunks.min_y,
+                self.chunks.min_y(),
                 |this_block_pos| {
                     let this_block_distance = (nearest_to - this_block_pos).length_manhattan();
                     // only update if it's closer
@@ -157,7 +159,7 @@ impl Iterator for FindBlocks<'_> {
                 self.block_states,
                 chunk_pos,
                 &chunk.read(),
-                self.chunks.min_y,
+                self.chunks.min_y(),
                 |this_block_pos| {
                     let this_block_distance = (self.nearest_to - this_block_pos).length_manhattan();
 
@@ -250,7 +252,7 @@ mod tests {
     use azalea_registry::builtin::BlockKind;
 
     use super::*;
-    use crate::{Chunk, PartialChunkStorage};
+    use crate::{Chunk, chunk::partial::PartialChunkStorage};
 
     #[test]
     fn find_block() {

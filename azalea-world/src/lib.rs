@@ -1,7 +1,7 @@
 #![doc = include_str!("../README.md")]
 
 mod bit_storage;
-pub mod chunk_storage;
+pub mod chunk;
 mod container;
 pub mod find_blocks;
 pub mod heightmap;
@@ -10,7 +10,7 @@ pub mod palette;
 mod world;
 
 pub use bit_storage::BitStorage;
-pub use chunk_storage::{Chunk, ChunkStorage, PartialChunkStorage, Section};
+pub use chunk::{Chunk, Section, partial::PartialChunkStorage, storage::ChunkStorage};
 pub use container::{WorldName, Worlds};
 pub use world::*;
 

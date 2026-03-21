@@ -117,7 +117,7 @@ fn generic_test_login_to_dimension_with_same_name(using_respawn: bool) {
             .shared
             .read()
             .chunks
-            .height,
+            .height(),
         256
     );
 
