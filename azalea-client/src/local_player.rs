@@ -137,7 +137,7 @@ impl WorldHolder {
         WorldHolder {
             shared,
             partial: Arc::new(RwLock::new(PartialWorld::new(
-                azalea_world::chunk_storage::calculate_chunk_storage_range(
+                azalea_world::chunk::calculate_chunk_storage_range(
                     client_information.view_distance.into(),
                 ),
                 Some(entity),

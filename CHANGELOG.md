@@ -12,7 +12,7 @@ is breaking anyways, semantic versioning is not followed.
 
 - Add `SimulationPathfinderExecutionPlugin`, an alternative execution engine for the pathfinder with smoother movement.
 - The pathfinder can now traverse on the surface of water.
-- `AccountTrait` was implemented, which allows for custom refresh and join behavior for `Account`s.
+- `Account`s can now have custom refresh and join behavior using `AccountTrait`.
 - Add `Account::microsoft_with_opts` to make it easier to create accounts with custom cache files. (@ElijahBare)
 - Add an `EntityRef` type to simplify interactions with entities.
 - Implement speed/swiftness.
@@ -21,6 +21,7 @@ is breaking anyways, semantic versioning is not followed.
 - Re-implement `Client::map_component` and `map_get_component`.
 - Add `Client::exit` and `Swarm::exit` to make it easier to return from `ClientBuilder::start` or `SwarmBuilder::start`.
 - Add `Event::ConnectionFailed` for when the client failed to create its initial connection to the server.
+- `ChunkStorage` can now have custom implementations using `ChunkStorageTrait`. (@sdwhw)
 - Setting blocks now updates `Section::block_count`.
 
 ### Changed

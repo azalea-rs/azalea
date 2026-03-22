@@ -49,8 +49,7 @@ If you're willing to go through the trouble, PGO is also usually another 10% win
 
 ## Using a different allocator
 
-Your operating system's allocator is probably good, but it's not always optimal.
-Using [mimalloc v3](https://docs.rs/mimalloc/latest/mimalloc/) or [snmalloc](https://docs.rs/snmalloc-rs/latest/snmalloc_rs/) is almost always another easy performance win.
+Using [mimalloc v3](https://docs.rs/mimalloc/latest/mimalloc/) or [snmalloc](https://docs.rs/snmalloc-rs/latest/snmalloc_rs/) as your allocator is almost always another easy performance win.
 Note that using these may increase your total memory usage.
 
 # Some advice
@@ -108,7 +107,7 @@ azalea::Event::Init => bot.set_client_information(ClientInformation {
 This can be somewhat risky and isn't technically officially supported, but disabling default Azalea plugins like `PhysicsPlugin` can help with performance if you don't need them.
 Look at the source code for `DefaultPlugins` and `DefaultBotPlugins` to find the full list of plugins that can be disabled.
 
-If you're insane enough, forking Azalea and commenting out code within packet handlers or other places may also be worthwhile.
+If you want to go even further, forking Azalea and commenting out code within packet handlers or other places may be worthwhile (but will probably make things unstable and will make it a pain to update versions).
 
 ## Write your bot as a plugin
 

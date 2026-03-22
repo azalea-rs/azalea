@@ -99,7 +99,7 @@ pub fn handle_receive_chunk_event(
         ) {
             error!(
                 "Couldn't set chunk data: {e}. World height: {}",
-                world.chunks.height
+                world.chunks.height()
             );
         }
     }

@@ -263,7 +263,7 @@ make_block_states! {
             Upper = "upper",
             Lower = "lower",
         },
-        "type" => PistonType {
+        "type" => PistonKind {
             Normal = "normal",
             Sticky = "sticky",
         },
@@ -321,7 +321,7 @@ make_block_states! {
             OuterLeft = "outer_left",
             OuterRight = "outer_right",
         },
-        "type" => ChestType {
+        "type" => ChestKind {
             Single = "single",
             Left = "left",
             Right = "right",
@@ -515,7 +515,7 @@ make_block_states! {
             _7 = "7",
         },
         "in_wall" => InWall(bool),
-        "type" => Type {
+        "type" => SlabKind {
             Top = "top",
             Bottom = "bottom",
             Double = "double",
@@ -587,7 +587,7 @@ make_block_states! {
             _6 = "6",
             _7 = "7",
         },
-        "mode" => ComparatorType {
+        "mode" => ComparatorKind {
             Compare = "compare",
             Subtract = "subtract",
         },
@@ -1325,7 +1325,7 @@ make_block_states! {
             "facing": FacingCubic::North,
         },
         piston_head => BlockBehavior::new().strength(1.5, 1.5), {
-            "type": PistonType::Normal,
+            "type": PistonKind::Normal,
             "facing": FacingCubic::North,
             "short": Short(false),
         },
@@ -1346,7 +1346,7 @@ make_block_states! {
         red_wool => BlockBehavior::new().strength(0.8, 0.8), {},
         black_wool => BlockBehavior::new().strength(0.8, 0.8), {},
         moving_piston => BlockBehavior::new().destroy_time(-1.0).force_solid(true), {
-            "type": PistonType::Normal,
+            "type": PistonKind::Normal,
             "facing": FacingCubic::North,
         },
         dandelion => BlockBehavior::new(), {},
@@ -1482,7 +1482,7 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
         },
         chest => BlockBehavior::new().strength(2.5, 2.5), {
-            "type": ChestType::Single,
+            "type": ChestKind::Single,
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
@@ -2142,7 +2142,7 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
         },
         resin_brick_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         resin_brick_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {
@@ -2417,7 +2417,7 @@ make_block_states! {
             "facing": FacingCardinal::North,
         },
         trapped_chest => BlockBehavior::new().strength(2.5, 2.5), {
-            "type": ChestType::Single,
+            "type": ChestKind::Single,
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
@@ -2429,7 +2429,7 @@ make_block_states! {
         },
         comparator => BlockBehavior::new(), {
             "facing": FacingCardinal::North,
-            "mode": ComparatorType::Compare,
+            "mode": ComparatorKind::Compare,
             "powered": Powered(false),
         },
         daylight_detector => BlockBehavior::new().strength(0.2, 0.2), {
@@ -2669,15 +2669,15 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
         },
         prismarine_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         prismarine_brick_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         dark_prismarine_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         sea_lantern => BlockBehavior::new().strength(0.3, 0.3), {},
@@ -2827,103 +2827,103 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
         },
         oak_slab => BlockBehavior::new().strength(2.0, 3.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         spruce_slab => BlockBehavior::new().strength(2.0, 3.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         birch_slab => BlockBehavior::new().strength(2.0, 3.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         jungle_slab => BlockBehavior::new().strength(2.0, 3.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         acacia_slab => BlockBehavior::new().strength(2.0, 3.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         cherry_slab => BlockBehavior::new().strength(2.0, 3.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         dark_oak_slab => BlockBehavior::new().strength(2.0, 3.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         pale_oak_slab => BlockBehavior::new().strength(2.0, 3.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         mangrove_slab => BlockBehavior::new().strength(2.0, 3.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         bamboo_slab => BlockBehavior::new().strength(2.0, 3.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         bamboo_mosaic_slab => BlockBehavior::new().strength(2.0, 3.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         stone_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         smooth_stone_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         sandstone_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         cut_sandstone_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         petrified_oak_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         cobblestone_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         brick_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         stone_brick_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         mud_brick_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 3.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         nether_brick_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         quartz_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         red_sandstone_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         cut_red_sandstone_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         purpur_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         smooth_stone => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {},
@@ -3535,55 +3535,55 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
         },
         polished_granite_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         smooth_red_sandstone_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         mossy_stone_brick_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         polished_diorite_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         mossy_cobblestone_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         end_stone_brick_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 9.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         smooth_sandstone_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         smooth_quartz_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         granite_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         andesite_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         red_nether_brick_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         polished_andesite_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         diorite_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         brick_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0).force_solid(true), {
@@ -3829,11 +3829,11 @@ make_block_states! {
         crimson_planks => BlockBehavior::new().strength(2.0, 3.0), {},
         warped_planks => BlockBehavior::new().strength(2.0, 3.0), {},
         crimson_slab => BlockBehavior::new().strength(2.0, 3.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         warped_slab => BlockBehavior::new().strength(2.0, 3.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         crimson_pressure_plate => BlockBehavior::new().strength(0.5, 0.5).force_solid(true), {
@@ -3987,7 +3987,7 @@ make_block_states! {
             "west": WallWest::None,
         },
         blackstone_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         polished_blackstone => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {},
@@ -3995,7 +3995,7 @@ make_block_states! {
         cracked_polished_blackstone_bricks => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {},
         chiseled_polished_blackstone => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {},
         polished_blackstone_brick_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         polished_blackstone_brick_stairs => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {
@@ -4020,7 +4020,7 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
         },
         polished_blackstone_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         polished_blackstone_pressure_plate => BlockBehavior::new().strength(0.5, 0.5).force_solid(true), {
@@ -4198,7 +4198,7 @@ make_block_states! {
         },
         tuff => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {},
         tuff_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         tuff_stairs => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {
@@ -4217,7 +4217,7 @@ make_block_states! {
         },
         polished_tuff => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {},
         polished_tuff_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         polished_tuff_stairs => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {
@@ -4237,7 +4237,7 @@ make_block_states! {
         chiseled_tuff => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {},
         tuff_bricks => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {},
         tuff_brick_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         tuff_brick_stairs => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {
@@ -4330,19 +4330,19 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
         },
         oxidized_cut_copper_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         weathered_cut_copper_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         exposed_cut_copper_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         cut_copper_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         waxed_copper_block => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {},
@@ -4378,19 +4378,19 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
         },
         waxed_oxidized_cut_copper_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         waxed_weathered_cut_copper_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         waxed_exposed_cut_copper_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         waxed_cut_copper_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         copper_door => BlockBehavior::new().strength(3.0, 6.0), {
@@ -4562,42 +4562,42 @@ make_block_states! {
             "powered": Powered(false),
         },
         copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
-            "type": ChestType::Single,
+            "type": ChestKind::Single,
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
         exposed_copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
-            "type": ChestType::Single,
+            "type": ChestKind::Single,
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
         weathered_copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
-            "type": ChestType::Single,
+            "type": ChestKind::Single,
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
         oxidized_copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
-            "type": ChestType::Single,
+            "type": ChestKind::Single,
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
         waxed_copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
-            "type": ChestType::Single,
+            "type": ChestKind::Single,
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
         waxed_exposed_copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
-            "type": ChestType::Single,
+            "type": ChestKind::Single,
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
         waxed_weathered_copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
-            "type": ChestType::Single,
+            "type": ChestKind::Single,
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
         waxed_oxidized_copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
-            "type": ChestType::Single,
+            "type": ChestKind::Single,
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
@@ -4741,7 +4741,7 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
         },
         cobbled_deepslate_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.5, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         cobbled_deepslate_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.5, 6.0).force_solid(true), {
@@ -4760,7 +4760,7 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
         },
         polished_deepslate_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.5, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         polished_deepslate_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.5, 6.0).force_solid(true), {
@@ -4779,7 +4779,7 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
         },
         deepslate_tile_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.5, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         deepslate_tile_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.5, 6.0).force_solid(true), {
@@ -4798,7 +4798,7 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
         },
         deepslate_brick_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.5, 6.0), {
-            "type": Type::Bottom,
+            "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         deepslate_brick_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.5, 6.0).force_solid(true), {

@@ -118,7 +118,7 @@ impl_entity_functions! {
     ///
     /// This is a shortcut for `**self.component::<MinecraftEntityId>()`.
     EntityRef:
-    /// Get the Minecraft UUID of this entity.
+    /// Get the Minecraft ID of this entity.
     ///
     /// See [`MinecraftEntityId`] for more details. For persistent identifiers,
     /// consider using [`Self::uuid`] instead.

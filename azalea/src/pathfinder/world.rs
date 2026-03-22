@@ -6,13 +6,16 @@ use std::{
     sync::Arc,
 };
 
-use azalea_block::{BlockState, properties};
+use azalea_block::{
+    BlockState,
+    properties::{self, SlabKind, StairShape},
+};
 use azalea_core::{
     bitset::FastFixedBitSet,
     position::{BlockPos, ChunkPos, ChunkSectionBlockPos},
 };
 use azalea_physics::collision::BlockWithShape;
-use azalea_registry::{builtin::BlockKind, tags};
+use azalea_registry::builtin::BlockKind;
 use azalea_world::{World, palette::PalettedContainer};
 use parking_lot::RwLock;
 use rustc_hash::FxHashMap;
@@ -110,7 +113,7 @@ pub struct SectionBitsets {
 
 impl CachedWorld {
     pub fn new(world_lock: Arc<RwLock<World>>, origin: BlockPos) -> Self {
-        let min_y = world_lock.read().chunks.min_y;
+        let min_y = world_lock.read().chunks.min_y();
         Self {
             origin,
             min_y,
@@ -145,7 +148,7 @@ impl CachedWorld {
 
         let chunk_pos = ChunkPos::new(section_pos.x as i32, section_pos.z as i32);
         let section_index =
-            azalea_world::chunk_storage::section_index(section_pos.y * 16, self.min_y) as usize;
+            azalea_world::chunk::section_index(section_pos.y * 16, self.min_y) as usize;
 
         let mut cache_idx = 0;
 
@@ -218,32 +221,29 @@ impl CachedWorld {
     fn calculate_bitsets_for_section(&self, section_pos: SmallChunkSectionPos) -> CachedSection {
         let bitsets = self
             .with_section(section_pos, |section| {
-                let mut passable_bitset = FastFixedBitSet::<4096>::new();
-                let mut solid_bitset = FastFixedBitSet::<4096>::new();
-                let mut standable_bitset = FastFixedBitSet::<4096>::new();
-                let mut water_bitset = FastFixedBitSet::<4096>::new();
+                let mut bitsets = SectionBitsets {
+                    passable: FastFixedBitSet::<4096>::new(),
+                    solid: FastFixedBitSet::<4096>::new(),
+                    standable: FastFixedBitSet::<4096>::new(),
+                    water: FastFixedBitSet::<4096>::new(),
+                };
 
                 for i in 0..4096 {
                     let block_state = section.get_at_index(i);
                     if is_block_state_passable(block_state) {
-                        passable_bitset.set(i);
+                        bitsets.passable.set(i);
                     }
                     if is_block_state_solid(block_state) {
-                        solid_bitset.set(i);
+                        bitsets.solid.set(i);
                     }
                     if is_block_state_standable(block_state) {
-                        standable_bitset.set(i);
+                        bitsets.standable.set(i);
                     }
                     if is_block_state_water(block_state) {
-                        water_bitset.set(i);
+                        bitsets.water.set(i);
                     }
                 }
-                Box::new(SectionBitsets {
-                    passable: passable_bitset,
-                    solid: solid_bitset,
-                    standable: standable_bitset,
-                    water: water_bitset,
-                })
+                Box::new(bitsets)
             })
             .unwrap_or_default();
 
@@ -655,8 +655,8 @@ pub fn is_block_state_solid(block_state: BlockState) -> bool {
     }
 
     if matches!(
-        block_state.property::<properties::Type>(),
-        Some(properties::Type::Top | properties::Type::Double)
+        block_state.property::<properties::SlabKind>(),
+        Some(properties::SlabKind::Top | properties::SlabKind::Double)
     ) {
         // top slabs
         return true;
@@ -683,8 +683,9 @@ pub fn is_block_state_standable(block_state: BlockState) -> bool {
         return true;
     }
 
-    let block = BlockKind::from(block_state);
-    if tags::blocks::SLABS.contains(&block) || tags::blocks::STAIRS.contains(&block) {
+    if block_state.property::<SlabKind>().is_some()
+        || block_state.property::<StairShape>().is_some()
+    {
         return true;
     }
 

@@ -86,7 +86,7 @@ impl<'a> BlockCollisionsState<'a> {
         let block_state: BlockState = if item_chunk_pos == initial_chunk_pos {
             initial_chunk
                 .and_then(|chunk| {
-                    chunk.get_block_state(&ChunkBlockPos::from(item.pos), self.world.chunks.min_y)
+                    chunk.get_block_state(&ChunkBlockPos::from(item.pos), self.world.chunks.min_y())
                 })
                 .unwrap_or(BlockState::AIR)
         } else {
@@ -174,7 +174,7 @@ impl<'a> BlockCollisionsState<'a> {
     }
 
     fn get_block_state(&mut self, block_pos: BlockPos) -> BlockState {
-        if block_pos.y < self.world.chunks.min_y {
+        if block_pos.y < self.world.chunks.min_y() {
             // below the world
             return BlockState::AIR;
         }
@@ -196,8 +196,7 @@ impl<'a> BlockCollisionsState<'a> {
 
         let sections = &chunk.sections;
         let section_index =
-            azalea_world::chunk_storage::section_index(block_pos.y, self.world.chunks.min_y)
-                as usize;
+            azalea_world::chunk::section_index(block_pos.y, self.world.chunks.min_y()) as usize;
 
         let Some(section) = sections.get(section_index) else {
             return BlockState::AIR;
