@@ -44,6 +44,10 @@ pub struct Section {
     /// This may be updated every time [`Self::get_and_set_block_state`] is
     /// called.
     pub block_count: u16,
+    /// Similar to [`Self::block_count`], but for fluids.
+    ///
+    /// Unlike [`Self::block_count`], this is currently not updated by Azalea.
+    pub fluid_count: u16,
     pub states: PalettedContainer<BlockState>,
     pub biomes: PalettedContainer<Biome>,
 }
@@ -178,6 +182,7 @@ pub fn get_block_state_from_sections(
 impl AzBuf for Section {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let block_count = u16::azalea_read(buf)?;
+        let fluid_count = u16::azalea_read(buf)?;
 
         // this is commented out because the vanilla server is wrong
         // TODO: ^ this comment was written ages ago. needs more investigation.
@@ -200,12 +205,14 @@ impl AzBuf for Section {
         let biomes = PalettedContainer::<Biome>::read(buf)?;
         Ok(Section {
             block_count,
+            fluid_count,
             states,
             biomes,
         })
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         self.block_count.azalea_write(buf)?;
+        self.fluid_count.azalea_write(buf)?;
         self.states.write(buf)?;
         self.biomes.write(buf)?;
         Ok(())
@@ -289,6 +296,7 @@ mod tests {
         let biomes = PalettedContainer::new();
         let section = Section {
             block_count: 2,
+            fluid_count: 0,
             states,
             biomes,
         };

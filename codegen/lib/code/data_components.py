@@ -360,7 +360,7 @@ use crate::{
                 )
             elif target_rust_type == "ItemStack":
                 item_rust_value = python_to_rust_value(python_value["id"], "ItemKind")
-                count = python_value["count"]
+                count = python_value.get("count", 1)
                 if count == 1:
                     return f"ItemStack::from({item_rust_value})"
                 else:
@@ -411,9 +411,6 @@ use crate::{
             fields_for_rust_type = enum_and_struct_fields.get(target_rust_type, [])
             if "Referenced(Identifier)" in fields_for_rust_type:
                 return f"{target_rust_type}::Referenced({python_to_rust_value(python_value, 'Identifier')})"
-            elif "Registry(data::Instrument)" in fields_for_rust_type:
-                # TODO
-                return f"{target_rust_type}::Registry(azalea_registry::data::Instrument::new_raw(0))"
             elif target_rust_type.startswith("HolderSet<"):
                 holderset_type = target_rust_type.split("<", 1)[1].split(",", 1)[0]
                 main_vec = python_to_rust_value(
@@ -429,10 +426,10 @@ use crate::{
             elif target_rust_type == "Identifier":
                 # convert minecraft:air into Identifier::from_static("minecraft:air")
                 return f'"{python_value}".into()'
-            elif target_rust_type == "DamageType":
+            elif target_rust_type.startswith("azalea_registry::data::"):
                 # TODO: this is intentionally incorrect, see the comment in
                 # azalea-registry/src/data.rs to see how to fix this properly
-                return "DamageType::Registry(azalea_registry::data::DamageKind::new_raw(0))"
+                return f"{target_rust_type}::new_raw(0)"
             else:
                 # enum variant
                 return f"{target_rust_type}::{to_camel_case(identifier_to_path(python_value))}"
@@ -472,9 +469,17 @@ use crate::{
                         tag_module = "blocks"
                     else:
                         tag_module = "FIXME_UNKNOWN_MODULE"
-                    vectors.append(
-                        f"azalea_registry::tags::{tag_module}::{tag_name}.clone().into_iter().collect()"
-                    )
+
+                    # TODO: it's not currently possible to have a holderset for data registry items
+                    # (because registries would need to be translated during packet parsing/writing),
+                    # so we leave this empty for now.
+                    if inner_type in {"BannerPatternKind", "DamageKind"}:
+                        pass
+                    else:
+                        vectors.append(
+                            f"azalea_registry::tags::{tag_module}::{tag_name}.clone().into_iter().collect()"
+                        )
+
                     continue
                 main_vec += python_to_rust_value(v, inner_type) + ","
             main_vec = main_vec.rstrip(",") + "]"
@@ -533,11 +538,11 @@ use crate::{
 
         item_defaults_original = item_defaults
         item_defaults = {}
-        for k, v in item_defaults_original.items():
+        for k, v in sorted(item_defaults_original.items(), key=lambda i: i[0]):
             item_defaults[k] = python_to_rust_value(v, field_type)
 
         default_values_frequency = {}
-        for value in item_defaults.values():
+        for value in sorted(item_defaults.values()):
             if value not in default_values_frequency:
                 default_values_frequency[value] = 0
             default_values_frequency[value] += 1

@@ -4,6 +4,7 @@ use std::collections::HashMap;
 
 use azalea_block::BlockState;
 use azalea_core::{
+    delta::LpVec3,
     direction::Direction,
     game_type::GameMode,
     hit_result::{BlockHitResult, HitResult},
@@ -25,10 +26,8 @@ use azalea_physics::{
     local_player::PhysicsState,
 };
 use azalea_protocol::packets::game::{
-    ServerboundInteract, ServerboundUseItem,
-    s_interact::{self, InteractionHand},
-    s_swing::ServerboundSwing,
-    s_use_item_on::ServerboundUseItemOn,
+    ServerboundInteract, ServerboundUseItem, s_interact::InteractionHand,
+    s_swing::ServerboundSwing, s_use_item_on::ServerboundUseItemOn,
 };
 use azalea_world::World;
 use bevy_app::{App, Plugin, Update};
@@ -350,12 +349,10 @@ pub fn handle_entity_interact(
         }
     };
 
-    let mut interact = ServerboundInteract {
+    let interact = ServerboundInteract {
         entity_id,
-        action: s_interact::ActionType::InteractAt {
-            location,
-            hand: InteractionHand::MainHand,
-        },
+        hand: InteractionHand::MainHand,
+        location: LpVec3::from(location),
         using_secondary_action: physics_state.trying_to_crouch,
     };
     commands.trigger(SendGamePacketEvent::new(trigger.client, interact.clone()));
@@ -364,11 +361,8 @@ pub fn handle_entity_interact(
     // in certain cases when interacting with armor stands
     let consumes_action = false;
     if !consumes_action {
-        // but yes, most of the time vanilla really does send two interact packets like
-        // this
-        interact.action = s_interact::ActionType::Interact {
-            hand: InteractionHand::MainHand,
-        };
+        // but yes, most of the time vanilla really does send two identical interact
+        // packets like this
         commands.trigger(SendGamePacketEvent::new(trigger.client, interact));
     }
 }

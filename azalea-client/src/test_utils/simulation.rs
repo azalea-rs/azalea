@@ -389,6 +389,7 @@ pub fn make_basic_empty_chunk(
     for _ in 0..section_count {
         sections.push(Section {
             block_count: 0,
+            fluid_count: 0,
             states: PalettedContainer::<BlockState>::new(),
             biomes: PalettedContainer::<Biome>::new(),
         });

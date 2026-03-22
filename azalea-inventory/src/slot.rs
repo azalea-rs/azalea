@@ -3,6 +3,7 @@ use std::{
     borrow::Cow,
     fmt::{self, Debug},
     io::{self, Cursor, Write},
+    sync::LazyLock,
 };
 
 use azalea_buf::{AzBuf, AzBufVar, BufReadError};
@@ -109,6 +110,11 @@ impl ItemStack {
             ItemStack::Empty => None,
             ItemStack::Present(i) => Some(i),
         }
+    }
+
+    pub fn component_patch(&self) -> &DataComponentPatch {
+        self.as_present()
+            .map_or_else(|| &*EMPTY_DATA_COMPONENT_PATCH, |i| &i.component_patch)
     }
 
     /// Get the value of a data component for this item.
@@ -282,6 +288,9 @@ impl From<(ItemKind, i32)> for ItemStackData {
 pub struct DataComponentPatch {
     components: Box<IndexMap<DataComponentKind, Option<DataComponentUnion>>>,
 }
+
+static EMPTY_DATA_COMPONENT_PATCH: LazyLock<DataComponentPatch> =
+    LazyLock::new(DataComponentPatch::default);
 
 impl DataComponentPatch {
     /// Returns the value of the component in the generic argument for this
