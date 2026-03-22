@@ -181,7 +181,7 @@ fn test_slab_collision() {
     let block_state = partial_world.chunks.set_block_state(
         BlockPos { x: 0, y: 69, z: 0 },
         azalea_block::blocks::StoneSlab {
-            kind: azalea_block::properties::Type::Bottom,
+            kind: azalea_block::properties::SlabKind::Bottom,
             waterlogged: false,
         }
         .into(),
@@ -232,7 +232,7 @@ fn test_top_slab_collision() {
     let block_state = world_lock.write().chunks.set_block_state(
         BlockPos { x: 0, y: 69, z: 0 },
         azalea_block::blocks::StoneSlab {
-            kind: azalea_block::properties::Type::Top,
+            kind: azalea_block::properties::SlabKind::Top,
             waterlogged: false,
         }
         .into(),

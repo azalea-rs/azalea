@@ -15,7 +15,7 @@ use azalea_core::{
     position::{BlockPos, ChunkPos, ChunkSectionBlockPos},
 };
 use azalea_physics::collision::BlockWithShape;
-use azalea_registry::{builtin::BlockKind, tags};
+use azalea_registry::builtin::BlockKind;
 use azalea_world::{World, palette::PalettedContainer};
 use parking_lot::RwLock;
 use rustc_hash::FxHashMap;
