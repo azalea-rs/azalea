@@ -2048,6 +2048,58 @@ impl DefaultableComponent for BreakSound {
         Some(BreakSound { sound: value })
     }
 }
+impl DefaultableComponent for Container {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::AcaciaShelf => vec![],
+            ItemKind::BambooShelf => vec![],
+            ItemKind::Barrel => vec![],
+            ItemKind::BirchShelf => vec![],
+            ItemKind::BlackShulkerBox => vec![],
+            ItemKind::BlastFurnace => vec![],
+            ItemKind::BlueShulkerBox => vec![],
+            ItemKind::BrewingStand => vec![],
+            ItemKind::BrownShulkerBox => vec![],
+            ItemKind::Campfire => vec![],
+            ItemKind::CherryShelf => vec![],
+            ItemKind::Chest => vec![],
+            ItemKind::ChiseledBookshelf => vec![],
+            ItemKind::Crafter => vec![],
+            ItemKind::CrimsonShelf => vec![],
+            ItemKind::CyanShulkerBox => vec![],
+            ItemKind::DarkOakShelf => vec![],
+            ItemKind::DecoratedPot => vec![],
+            ItemKind::Dispenser => vec![],
+            ItemKind::Dropper => vec![],
+            ItemKind::Furnace => vec![],
+            ItemKind::GrayShulkerBox => vec![],
+            ItemKind::GreenShulkerBox => vec![],
+            ItemKind::Hopper => vec![],
+            ItemKind::JungleShelf => vec![],
+            ItemKind::LightBlueShulkerBox => vec![],
+            ItemKind::LightGrayShulkerBox => vec![],
+            ItemKind::LimeShulkerBox => vec![],
+            ItemKind::MagentaShulkerBox => vec![],
+            ItemKind::MangroveShelf => vec![],
+            ItemKind::OakShelf => vec![],
+            ItemKind::OrangeShulkerBox => vec![],
+            ItemKind::PaleOakShelf => vec![],
+            ItemKind::PinkShulkerBox => vec![],
+            ItemKind::PurpleShulkerBox => vec![],
+            ItemKind::RedShulkerBox => vec![],
+            ItemKind::ShulkerBox => vec![],
+            ItemKind::Smoker => vec![],
+            ItemKind::SoulCampfire => vec![],
+            ItemKind::SpruceShelf => vec![],
+            ItemKind::TrappedChest => vec![],
+            ItemKind::WarpedShelf => vec![],
+            ItemKind::WhiteShulkerBox => vec![],
+            ItemKind::YellowShulkerBox => vec![],
+            _ => return None,
+        };
+        Some(Container { items: value })
+    }
+}
 impl DefaultableComponent for Enchantments {
     fn default_for_item(_item: ItemKind) -> Option<Self> {
         Some(Enchantments {
@@ -2299,689 +2351,851 @@ impl DefaultableComponent for UseEffects {
         Some(value)
     }
 }
-impl DefaultableComponent for Consumable {
+impl DefaultableComponent for Equippable {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::Apple => Consumable::new(),
-            ItemKind::BakedPotato => Consumable::new(),
-            ItemKind::Beef => Consumable::new(),
-            ItemKind::Beetroot => Consumable::new(),
-            ItemKind::BeetrootSoup => Consumable::new(),
-            ItemKind::Bread => Consumable::new(),
-            ItemKind::Carrot => Consumable::new(),
-            ItemKind::Chicken => Consumable {
-                on_consume_effects: vec![ConsumeEffect::ApplyEffects {
-                    effects: vec![MobEffectInstance {
-                        id: MobEffect::Hunger,
-                        details: MobEffectDetails {
-                            duration: 600,
-                            show_icon: true,
-                            ..MobEffectDetails::new()
-                        },
-                    }],
-                    probability: 0.3,
-                }],
-                ..Consumable::new()
+            ItemKind::BlackCarpet => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
+                }),
+                asset_id: Some("minecraft:black_carpet".into()),
+                can_be_sheared: true,
+                equip_sound: SoundEvent::EntityLlamaSwag,
+                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
             },
-            ItemKind::ChorusFruit => Consumable {
-                on_consume_effects: vec![ConsumeEffect::TeleportRandomly { diameter: 16.0 }],
-                ..Consumable::new()
+            ItemKind::BlackHarness => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:black_harness".into()),
+                can_be_sheared: true,
+                equip_on_interact: true,
+                equip_sound: SoundEvent::EntityHappyGhastEquip,
+                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
             },
-            ItemKind::Cod => Consumable::new(),
-            ItemKind::CookedBeef => Consumable::new(),
-            ItemKind::CookedChicken => Consumable::new(),
-            ItemKind::CookedCod => Consumable::new(),
-            ItemKind::CookedMutton => Consumable::new(),
-            ItemKind::CookedPorkchop => Consumable::new(),
-            ItemKind::CookedRabbit => Consumable::new(),
-            ItemKind::CookedSalmon => Consumable::new(),
-            ItemKind::Cookie => Consumable::new(),
-            ItemKind::DriedKelp => Consumable {
-                consume_seconds: 0.8,
-                ..Consumable::new()
+            ItemKind::BlueCarpet => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
+                }),
+                asset_id: Some("minecraft:blue_carpet".into()),
+                can_be_sheared: true,
+                equip_sound: SoundEvent::EntityLlamaSwag,
+                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
             },
-            ItemKind::EnchantedGoldenApple => Consumable {
-                on_consume_effects: vec![ConsumeEffect::ApplyEffects {
-                    effects: vec![
-                        MobEffectInstance {
-                            id: MobEffect::Regeneration,
-                            details: MobEffectDetails {
-                                amplifier: 1,
-                                duration: 400,
-                                show_icon: true,
-                                ..MobEffectDetails::new()
-                            },
-                        },
-                        MobEffectInstance {
-                            id: MobEffect::Resistance,
-                            details: MobEffectDetails {
-                                duration: 6000,
-                                show_icon: true,
-                                ..MobEffectDetails::new()
-                            },
-                        },
-                        MobEffectInstance {
-                            id: MobEffect::FireResistance,
-                            details: MobEffectDetails {
-                                duration: 6000,
-                                show_icon: true,
-                                ..MobEffectDetails::new()
-                            },
-                        },
-                        MobEffectInstance {
-                            id: MobEffect::Absorption,
-                            details: MobEffectDetails {
-                                amplifier: 3,
-                                duration: 2400,
-                                show_icon: true,
-                                ..MobEffectDetails::new()
-                            },
-                        },
-                    ],
-                    probability: 1.0,
-                }],
-                ..Consumable::new()
+            ItemKind::BlueHarness => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:blue_harness".into()),
+                can_be_sheared: true,
+                equip_on_interact: true,
+                equip_sound: SoundEvent::EntityHappyGhastEquip,
+                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
             },
-            ItemKind::GlowBerries => Consumable::new(),
-            ItemKind::GoldenApple => Consumable {
-                on_consume_effects: vec![ConsumeEffect::ApplyEffects {
-                    effects: vec![
-                        MobEffectInstance {
-                            id: MobEffect::Regeneration,
-                            details: MobEffectDetails {
-                                amplifier: 1,
-                                duration: 100,
-                                show_icon: true,
-                                ..MobEffectDetails::new()
-                            },
-                        },
-                        MobEffectInstance {
-                            id: MobEffect::Absorption,
-                            details: MobEffectDetails {
-                                duration: 2400,
-                                show_icon: true,
-                                ..MobEffectDetails::new()
-                            },
-                        },
-                    ],
-                    probability: 1.0,
-                }],
-                ..Consumable::new()
+            ItemKind::BrownCarpet => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
+                }),
+                asset_id: Some("minecraft:brown_carpet".into()),
+                can_be_sheared: true,
+                equip_sound: SoundEvent::EntityLlamaSwag,
+                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
             },
-            ItemKind::GoldenCarrot => Consumable::new(),
-            ItemKind::HoneyBottle => Consumable {
-                animation: ItemUseAnimation::Drink,
-                consume_seconds: 2.0,
-                has_consume_particles: false,
-                on_consume_effects: vec![ConsumeEffect::RemoveEffects {
-                    effects: HolderSet::Direct {
-                        contents: vec![MobEffect::Poison],
-                    },
-                }],
-                sound: azalea_registry::Holder::Reference(SoundEvent::ItemHoneyBottleDrink),
+            ItemKind::BrownHarness => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:brown_harness".into()),
+                can_be_sheared: true,
+                equip_on_interact: true,
+                equip_sound: SoundEvent::EntityHappyGhastEquip,
+                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
             },
-            ItemKind::MelonSlice => Consumable::new(),
-            ItemKind::MilkBucket => Consumable {
-                animation: ItemUseAnimation::Drink,
-                has_consume_particles: false,
-                on_consume_effects: vec![ConsumeEffect::ClearAllEffects {}],
-                sound: azalea_registry::Holder::Reference(SoundEvent::EntityGenericDrink),
-                ..Consumable::new()
+            ItemKind::CarvedPumpkin => Equippable {
+                camera_overlay: Some("minecraft:misc/pumpkinblur".into()),
+                slot: EquipmentSlot::Head,
+                swappable: false,
+                ..Equippable::new()
             },
-            ItemKind::MushroomStew => Consumable::new(),
-            ItemKind::Mutton => Consumable::new(),
-            ItemKind::OminousBottle => Consumable {
-                animation: ItemUseAnimation::Drink,
-                has_consume_particles: false,
-                on_consume_effects: vec![ConsumeEffect::PlaySound {
-                    sound: SoundEvent::ItemOminousBottleDispose,
-                }],
-                sound: azalea_registry::Holder::Reference(SoundEvent::EntityGenericDrink),
-                ..Consumable::new()
+            ItemKind::ChainmailBoots => Equippable {
+                asset_id: Some("minecraft:chainmail".into()),
+                equip_sound: SoundEvent::ItemArmorEquipChain,
+                slot: EquipmentSlot::Feet,
+                ..Equippable::new()
             },
-            ItemKind::PoisonousPotato => Consumable {
-                on_consume_effects: vec![ConsumeEffect::ApplyEffects {
-                    effects: vec![MobEffectInstance {
-                        id: MobEffect::Poison,
-                        details: MobEffectDetails {
-                            duration: 100,
-                            show_icon: true,
-                            ..MobEffectDetails::new()
-                        },
-                    }],
-                    probability: 0.6,
-                }],
-                ..Consumable::new()
+            ItemKind::ChainmailChestplate => Equippable {
+                asset_id: Some("minecraft:chainmail".into()),
+                equip_sound: SoundEvent::ItemArmorEquipChain,
+                slot: EquipmentSlot::Chest,
+                ..Equippable::new()
             },
-            ItemKind::Porkchop => Consumable::new(),
-            ItemKind::Potato => Consumable::new(),
-            ItemKind::Potion => Consumable {
-                animation: ItemUseAnimation::Drink,
-                has_consume_particles: false,
-                sound: azalea_registry::Holder::Reference(SoundEvent::EntityGenericDrink),
-                ..Consumable::new()
+            ItemKind::ChainmailHelmet => Equippable {
+                asset_id: Some("minecraft:chainmail".into()),
+                equip_sound: SoundEvent::ItemArmorEquipChain,
+                slot: EquipmentSlot::Head,
+                ..Equippable::new()
             },
-            ItemKind::Pufferfish => Consumable {
-                on_consume_effects: vec![ConsumeEffect::ApplyEffects {
-                    effects: vec![
-                        MobEffectInstance {
-                            id: MobEffect::Poison,
-                            details: MobEffectDetails {
-                                amplifier: 1,
-                                duration: 1200,
-                                show_icon: true,
-                                ..MobEffectDetails::new()
-                            },
-                        },
-                        MobEffectInstance {
-                            id: MobEffect::Hunger,
-                            details: MobEffectDetails {
-                                amplifier: 2,
-                                duration: 300,
-                                show_icon: true,
-                                ..MobEffectDetails::new()
-                            },
-                        },
-                        MobEffectInstance {
-                            id: MobEffect::Nausea,
-                            details: MobEffectDetails {
-                                duration: 300,
-                                show_icon: true,
-                                ..MobEffectDetails::new()
-                            },
-                        },
-                    ],
-                    probability: 1.0,
-                }],
-                ..Consumable::new()
+            ItemKind::ChainmailLeggings => Equippable {
+                asset_id: Some("minecraft:chainmail".into()),
+                equip_sound: SoundEvent::ItemArmorEquipChain,
+                slot: EquipmentSlot::Legs,
+                ..Equippable::new()
             },
-            ItemKind::PumpkinPie => Consumable::new(),
-            ItemKind::Rabbit => Consumable::new(),
-            ItemKind::RabbitStew => Consumable::new(),
-            ItemKind::RottenFlesh => Consumable {
-                on_consume_effects: vec![ConsumeEffect::ApplyEffects {
-                    effects: vec![MobEffectInstance {
-                        id: MobEffect::Hunger,
-                        details: MobEffectDetails {
-                            duration: 600,
-                            show_icon: true,
-                            ..MobEffectDetails::new()
-                        },
-                    }],
-                    probability: 0.8,
-                }],
-                ..Consumable::new()
+            ItemKind::CopperBoots => Equippable {
+                asset_id: Some("minecraft:copper".into()),
+                equip_sound: SoundEvent::ItemArmorEquipCopper,
+                slot: EquipmentSlot::Feet,
+                ..Equippable::new()
             },
-            ItemKind::Salmon => Consumable::new(),
-            ItemKind::SpiderEye => Consumable {
-                on_consume_effects: vec![ConsumeEffect::ApplyEffects {
-                    effects: vec![MobEffectInstance {
-                        id: MobEffect::Poison,
-                        details: MobEffectDetails {
-                            duration: 100,
-                            show_icon: true,
-                            ..MobEffectDetails::new()
-                        },
-                    }],
-                    probability: 1.0,
-                }],
-                ..Consumable::new()
+            ItemKind::CopperChestplate => Equippable {
+                asset_id: Some("minecraft:copper".into()),
+                equip_sound: SoundEvent::ItemArmorEquipCopper,
+                slot: EquipmentSlot::Chest,
+                ..Equippable::new()
             },
-            ItemKind::SuspiciousStew => Consumable::new(),
-            ItemKind::SweetBerries => Consumable::new(),
-            ItemKind::TropicalFish => Consumable::new(),
+            ItemKind::CopperHelmet => Equippable {
+                asset_id: Some("minecraft:copper".into()),
+                equip_sound: SoundEvent::ItemArmorEquipCopper,
+                slot: EquipmentSlot::Head,
+                ..Equippable::new()
+            },
+            ItemKind::CopperHorseArmor => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_WEAR_HORSE_ARMOR
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:copper".into()),
+                can_be_sheared: true,
+                damage_on_hurt: false,
+                equip_sound: SoundEvent::EntityHorseArmor,
+                shearing_sound: SoundEvent::ItemHorseArmorUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::CopperLeggings => Equippable {
+                asset_id: Some("minecraft:copper".into()),
+                equip_sound: SoundEvent::ItemArmorEquipCopper,
+                slot: EquipmentSlot::Legs,
+                ..Equippable::new()
+            },
+            ItemKind::CopperNautilusArmor => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_WEAR_NAUTILUS_ARMOR
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:copper".into()),
+                can_be_sheared: true,
+                damage_on_hurt: false,
+                equip_on_interact: true,
+                equip_sound: SoundEvent::ItemArmorEquipNautilus,
+                shearing_sound: SoundEvent::ItemArmorUnequipNautilus,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::CreeperHead => Equippable {
+                slot: EquipmentSlot::Head,
+                swappable: false,
+                ..Equippable::new()
+            },
+            ItemKind::CyanCarpet => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
+                }),
+                asset_id: Some("minecraft:cyan_carpet".into()),
+                can_be_sheared: true,
+                equip_sound: SoundEvent::EntityLlamaSwag,
+                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::CyanHarness => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:cyan_harness".into()),
+                can_be_sheared: true,
+                equip_on_interact: true,
+                equip_sound: SoundEvent::EntityHappyGhastEquip,
+                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::DiamondBoots => Equippable {
+                asset_id: Some("minecraft:diamond".into()),
+                equip_sound: SoundEvent::ItemArmorEquipDiamond,
+                slot: EquipmentSlot::Feet,
+                ..Equippable::new()
+            },
+            ItemKind::DiamondChestplate => Equippable {
+                asset_id: Some("minecraft:diamond".into()),
+                equip_sound: SoundEvent::ItemArmorEquipDiamond,
+                slot: EquipmentSlot::Chest,
+                ..Equippable::new()
+            },
+            ItemKind::DiamondHelmet => Equippable {
+                asset_id: Some("minecraft:diamond".into()),
+                equip_sound: SoundEvent::ItemArmorEquipDiamond,
+                slot: EquipmentSlot::Head,
+                ..Equippable::new()
+            },
+            ItemKind::DiamondHorseArmor => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_WEAR_HORSE_ARMOR
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:diamond".into()),
+                can_be_sheared: true,
+                damage_on_hurt: false,
+                equip_sound: SoundEvent::EntityHorseArmor,
+                shearing_sound: SoundEvent::ItemHorseArmorUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::DiamondLeggings => Equippable {
+                asset_id: Some("minecraft:diamond".into()),
+                equip_sound: SoundEvent::ItemArmorEquipDiamond,
+                slot: EquipmentSlot::Legs,
+                ..Equippable::new()
+            },
+            ItemKind::DiamondNautilusArmor => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_WEAR_NAUTILUS_ARMOR
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:diamond".into()),
+                can_be_sheared: true,
+                damage_on_hurt: false,
+                equip_on_interact: true,
+                equip_sound: SoundEvent::ItemArmorEquipNautilus,
+                shearing_sound: SoundEvent::ItemArmorUnequipNautilus,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::DragonHead => Equippable {
+                slot: EquipmentSlot::Head,
+                swappable: false,
+                ..Equippable::new()
+            },
+            ItemKind::Elytra => Equippable {
+                asset_id: Some("minecraft:elytra".into()),
+                damage_on_hurt: false,
+                equip_sound: SoundEvent::ItemArmorEquipElytra,
+                slot: EquipmentSlot::Chest,
+                ..Equippable::new()
+            },
+            ItemKind::GoldenBoots => Equippable {
+                asset_id: Some("minecraft:gold".into()),
+                equip_sound: SoundEvent::ItemArmorEquipGold,
+                slot: EquipmentSlot::Feet,
+                ..Equippable::new()
+            },
+            ItemKind::GoldenChestplate => Equippable {
+                asset_id: Some("minecraft:gold".into()),
+                equip_sound: SoundEvent::ItemArmorEquipGold,
+                slot: EquipmentSlot::Chest,
+                ..Equippable::new()
+            },
+            ItemKind::GoldenHelmet => Equippable {
+                asset_id: Some("minecraft:gold".into()),
+                equip_sound: SoundEvent::ItemArmorEquipGold,
+                slot: EquipmentSlot::Head,
+                ..Equippable::new()
+            },
+            ItemKind::GoldenHorseArmor => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_WEAR_HORSE_ARMOR
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:gold".into()),
+                can_be_sheared: true,
+                damage_on_hurt: false,
+                equip_sound: SoundEvent::EntityHorseArmor,
+                shearing_sound: SoundEvent::ItemHorseArmorUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::GoldenLeggings => Equippable {
+                asset_id: Some("minecraft:gold".into()),
+                equip_sound: SoundEvent::ItemArmorEquipGold,
+                slot: EquipmentSlot::Legs,
+                ..Equippable::new()
+            },
+            ItemKind::GoldenNautilusArmor => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_WEAR_NAUTILUS_ARMOR
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:gold".into()),
+                can_be_sheared: true,
+                damage_on_hurt: false,
+                equip_on_interact: true,
+                equip_sound: SoundEvent::ItemArmorEquipNautilus,
+                shearing_sound: SoundEvent::ItemArmorUnequipNautilus,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::GrayCarpet => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
+                }),
+                asset_id: Some("minecraft:gray_carpet".into()),
+                can_be_sheared: true,
+                equip_sound: SoundEvent::EntityLlamaSwag,
+                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::GrayHarness => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:gray_harness".into()),
+                can_be_sheared: true,
+                equip_on_interact: true,
+                equip_sound: SoundEvent::EntityHappyGhastEquip,
+                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::GreenCarpet => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
+                }),
+                asset_id: Some("minecraft:green_carpet".into()),
+                can_be_sheared: true,
+                equip_sound: SoundEvent::EntityLlamaSwag,
+                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::GreenHarness => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:green_harness".into()),
+                can_be_sheared: true,
+                equip_on_interact: true,
+                equip_sound: SoundEvent::EntityHappyGhastEquip,
+                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::IronBoots => Equippable {
+                asset_id: Some("minecraft:iron".into()),
+                equip_sound: SoundEvent::ItemArmorEquipIron,
+                slot: EquipmentSlot::Feet,
+                ..Equippable::new()
+            },
+            ItemKind::IronChestplate => Equippable {
+                asset_id: Some("minecraft:iron".into()),
+                equip_sound: SoundEvent::ItemArmorEquipIron,
+                slot: EquipmentSlot::Chest,
+                ..Equippable::new()
+            },
+            ItemKind::IronHelmet => Equippable {
+                asset_id: Some("minecraft:iron".into()),
+                equip_sound: SoundEvent::ItemArmorEquipIron,
+                slot: EquipmentSlot::Head,
+                ..Equippable::new()
+            },
+            ItemKind::IronHorseArmor => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_WEAR_HORSE_ARMOR
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:iron".into()),
+                can_be_sheared: true,
+                damage_on_hurt: false,
+                equip_sound: SoundEvent::EntityHorseArmor,
+                shearing_sound: SoundEvent::ItemHorseArmorUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::IronLeggings => Equippable {
+                asset_id: Some("minecraft:iron".into()),
+                equip_sound: SoundEvent::ItemArmorEquipIron,
+                slot: EquipmentSlot::Legs,
+                ..Equippable::new()
+            },
+            ItemKind::IronNautilusArmor => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_WEAR_NAUTILUS_ARMOR
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:iron".into()),
+                can_be_sheared: true,
+                damage_on_hurt: false,
+                equip_on_interact: true,
+                equip_sound: SoundEvent::ItemArmorEquipNautilus,
+                shearing_sound: SoundEvent::ItemArmorUnequipNautilus,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::LeatherBoots => Equippable {
+                asset_id: Some("minecraft:leather".into()),
+                equip_sound: SoundEvent::ItemArmorEquipLeather,
+                slot: EquipmentSlot::Feet,
+                ..Equippable::new()
+            },
+            ItemKind::LeatherChestplate => Equippable {
+                asset_id: Some("minecraft:leather".into()),
+                equip_sound: SoundEvent::ItemArmorEquipLeather,
+                slot: EquipmentSlot::Chest,
+                ..Equippable::new()
+            },
+            ItemKind::LeatherHelmet => Equippable {
+                asset_id: Some("minecraft:leather".into()),
+                equip_sound: SoundEvent::ItemArmorEquipLeather,
+                slot: EquipmentSlot::Head,
+                ..Equippable::new()
+            },
+            ItemKind::LeatherHorseArmor => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_WEAR_HORSE_ARMOR
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:leather".into()),
+                can_be_sheared: true,
+                damage_on_hurt: false,
+                equip_sound: SoundEvent::EntityHorseArmor,
+                shearing_sound: SoundEvent::ItemHorseArmorUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::LeatherLeggings => Equippable {
+                asset_id: Some("minecraft:leather".into()),
+                equip_sound: SoundEvent::ItemArmorEquipLeather,
+                slot: EquipmentSlot::Legs,
+                ..Equippable::new()
+            },
+            ItemKind::LightBlueCarpet => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
+                }),
+                asset_id: Some("minecraft:light_blue_carpet".into()),
+                can_be_sheared: true,
+                equip_sound: SoundEvent::EntityLlamaSwag,
+                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::LightBlueHarness => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:light_blue_harness".into()),
+                can_be_sheared: true,
+                equip_on_interact: true,
+                equip_sound: SoundEvent::EntityHappyGhastEquip,
+                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::LightGrayCarpet => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
+                }),
+                asset_id: Some("minecraft:light_gray_carpet".into()),
+                can_be_sheared: true,
+                equip_sound: SoundEvent::EntityLlamaSwag,
+                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::LightGrayHarness => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:light_gray_harness".into()),
+                can_be_sheared: true,
+                equip_on_interact: true,
+                equip_sound: SoundEvent::EntityHappyGhastEquip,
+                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::LimeCarpet => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
+                }),
+                asset_id: Some("minecraft:lime_carpet".into()),
+                can_be_sheared: true,
+                equip_sound: SoundEvent::EntityLlamaSwag,
+                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::LimeHarness => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:lime_harness".into()),
+                can_be_sheared: true,
+                equip_on_interact: true,
+                equip_sound: SoundEvent::EntityHappyGhastEquip,
+                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::MagentaCarpet => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
+                }),
+                asset_id: Some("minecraft:magenta_carpet".into()),
+                can_be_sheared: true,
+                equip_sound: SoundEvent::EntityLlamaSwag,
+                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::MagentaHarness => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:magenta_harness".into()),
+                can_be_sheared: true,
+                equip_on_interact: true,
+                equip_sound: SoundEvent::EntityHappyGhastEquip,
+                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::NetheriteBoots => Equippable {
+                asset_id: Some("minecraft:netherite".into()),
+                equip_sound: SoundEvent::ItemArmorEquipNetherite,
+                slot: EquipmentSlot::Feet,
+                ..Equippable::new()
+            },
+            ItemKind::NetheriteChestplate => Equippable {
+                asset_id: Some("minecraft:netherite".into()),
+                equip_sound: SoundEvent::ItemArmorEquipNetherite,
+                slot: EquipmentSlot::Chest,
+                ..Equippable::new()
+            },
+            ItemKind::NetheriteHelmet => Equippable {
+                asset_id: Some("minecraft:netherite".into()),
+                equip_sound: SoundEvent::ItemArmorEquipNetherite,
+                slot: EquipmentSlot::Head,
+                ..Equippable::new()
+            },
+            ItemKind::NetheriteHorseArmor => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_WEAR_HORSE_ARMOR
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:netherite".into()),
+                can_be_sheared: true,
+                damage_on_hurt: false,
+                equip_sound: SoundEvent::EntityHorseArmor,
+                shearing_sound: SoundEvent::ItemHorseArmorUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::NetheriteLeggings => Equippable {
+                asset_id: Some("minecraft:netherite".into()),
+                equip_sound: SoundEvent::ItemArmorEquipNetherite,
+                slot: EquipmentSlot::Legs,
+                ..Equippable::new()
+            },
+            ItemKind::NetheriteNautilusArmor => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_WEAR_NAUTILUS_ARMOR
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:netherite".into()),
+                can_be_sheared: true,
+                damage_on_hurt: false,
+                equip_on_interact: true,
+                equip_sound: SoundEvent::ItemArmorEquipNautilus,
+                shearing_sound: SoundEvent::ItemArmorUnequipNautilus,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::OrangeCarpet => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
+                }),
+                asset_id: Some("minecraft:orange_carpet".into()),
+                can_be_sheared: true,
+                equip_sound: SoundEvent::EntityLlamaSwag,
+                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::OrangeHarness => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:orange_harness".into()),
+                can_be_sheared: true,
+                equip_on_interact: true,
+                equip_sound: SoundEvent::EntityHappyGhastEquip,
+                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::PiglinHead => Equippable {
+                slot: EquipmentSlot::Head,
+                swappable: false,
+                ..Equippable::new()
+            },
+            ItemKind::PinkCarpet => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
+                }),
+                asset_id: Some("minecraft:pink_carpet".into()),
+                can_be_sheared: true,
+                equip_sound: SoundEvent::EntityLlamaSwag,
+                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::PinkHarness => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:pink_harness".into()),
+                can_be_sheared: true,
+                equip_on_interact: true,
+                equip_sound: SoundEvent::EntityHappyGhastEquip,
+                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::PlayerHead => Equippable {
+                slot: EquipmentSlot::Head,
+                swappable: false,
+                ..Equippable::new()
+            },
+            ItemKind::PurpleCarpet => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
+                }),
+                asset_id: Some("minecraft:purple_carpet".into()),
+                can_be_sheared: true,
+                equip_sound: SoundEvent::EntityLlamaSwag,
+                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::PurpleHarness => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:purple_harness".into()),
+                can_be_sheared: true,
+                equip_on_interact: true,
+                equip_sound: SoundEvent::EntityHappyGhastEquip,
+                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::RedCarpet => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
+                }),
+                asset_id: Some("minecraft:red_carpet".into()),
+                can_be_sheared: true,
+                equip_sound: SoundEvent::EntityLlamaSwag,
+                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::RedHarness => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:red_harness".into()),
+                can_be_sheared: true,
+                equip_on_interact: true,
+                equip_sound: SoundEvent::EntityHappyGhastEquip,
+                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::Saddle => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_EQUIP_SADDLE
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:saddle".into()),
+                can_be_sheared: true,
+                equip_on_interact: true,
+                equip_sound: SoundEvent::EntityHorseSaddle,
+                shearing_sound: SoundEvent::ItemSaddleUnequip,
+                slot: EquipmentSlot::Saddle,
+                ..Equippable::new()
+            },
+            ItemKind::Shield => Equippable {
+                slot: EquipmentSlot::Offhand,
+                swappable: false,
+                ..Equippable::new()
+            },
+            ItemKind::SkeletonSkull => Equippable {
+                slot: EquipmentSlot::Head,
+                swappable: false,
+                ..Equippable::new()
+            },
+            ItemKind::TurtleHelmet => Equippable {
+                asset_id: Some("minecraft:turtle_scute".into()),
+                equip_sound: SoundEvent::ItemArmorEquipTurtle,
+                slot: EquipmentSlot::Head,
+                ..Equippable::new()
+            },
+            ItemKind::WhiteCarpet => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
+                }),
+                asset_id: Some("minecraft:white_carpet".into()),
+                can_be_sheared: true,
+                equip_sound: SoundEvent::EntityLlamaSwag,
+                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::WhiteHarness => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:white_harness".into()),
+                can_be_sheared: true,
+                equip_on_interact: true,
+                equip_sound: SoundEvent::EntityHappyGhastEquip,
+                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::WitherSkeletonSkull => Equippable {
+                slot: EquipmentSlot::Head,
+                swappable: false,
+                ..Equippable::new()
+            },
+            ItemKind::WolfArmor => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: vec![EntityKind::Wolf],
+                }),
+                asset_id: Some("minecraft:armadillo_scute".into()),
+                can_be_sheared: true,
+                equip_sound: SoundEvent::ItemArmorEquipWolf,
+                shearing_sound: SoundEvent::ItemArmorUnequipWolf,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::YellowCarpet => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
+                }),
+                asset_id: Some("minecraft:yellow_carpet".into()),
+                can_be_sheared: true,
+                equip_sound: SoundEvent::EntityLlamaSwag,
+                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::YellowHarness => Equippable {
+                allowed_entities: Some(HolderSet::Direct {
+                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                        .clone()
+                        .into_iter()
+                        .collect(),
+                }),
+                asset_id: Some("minecraft:yellow_harness".into()),
+                can_be_sheared: true,
+                equip_on_interact: true,
+                equip_sound: SoundEvent::EntityHappyGhastEquip,
+                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
+                slot: EquipmentSlot::Body,
+                ..Equippable::new()
+            },
+            ItemKind::ZombieHead => Equippable {
+                slot: EquipmentSlot::Head,
+                swappable: false,
+                ..Equippable::new()
+            },
             _ => return None,
         };
         Some(value)
-    }
-}
-impl DefaultableComponent for Food {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::Apple => Food {
-                nutrition: 4,
-                saturation: 2.4,
-                ..Food::new()
-            },
-            ItemKind::BakedPotato => Food {
-                nutrition: 5,
-                saturation: 6.0,
-                ..Food::new()
-            },
-            ItemKind::Beef => Food {
-                nutrition: 3,
-                saturation: 1.8000001,
-                ..Food::new()
-            },
-            ItemKind::Beetroot => Food {
-                nutrition: 1,
-                saturation: 1.2,
-                ..Food::new()
-            },
-            ItemKind::BeetrootSoup => Food {
-                nutrition: 6,
-                saturation: 7.2000003,
-                ..Food::new()
-            },
-            ItemKind::Bread => Food {
-                nutrition: 5,
-                saturation: 6.0,
-                ..Food::new()
-            },
-            ItemKind::Carrot => Food {
-                nutrition: 3,
-                saturation: 3.6000001,
-                ..Food::new()
-            },
-            ItemKind::Chicken => Food {
-                nutrition: 2,
-                saturation: 1.2,
-                ..Food::new()
-            },
-            ItemKind::ChorusFruit => Food {
-                can_always_eat: true,
-                nutrition: 4,
-                saturation: 2.4,
-            },
-            ItemKind::Cod => Food {
-                nutrition: 2,
-                saturation: 0.4,
-                ..Food::new()
-            },
-            ItemKind::CodBucket => Food {
-                nutrition: 2,
-                saturation: 0.4,
-                ..Food::new()
-            },
-            ItemKind::CookedBeef => Food {
-                nutrition: 8,
-                saturation: 12.8,
-                ..Food::new()
-            },
-            ItemKind::CookedChicken => Food {
-                nutrition: 6,
-                saturation: 7.2000003,
-                ..Food::new()
-            },
-            ItemKind::CookedCod => Food {
-                nutrition: 5,
-                saturation: 6.0,
-                ..Food::new()
-            },
-            ItemKind::CookedMutton => Food {
-                nutrition: 6,
-                saturation: 9.6,
-                ..Food::new()
-            },
-            ItemKind::CookedPorkchop => Food {
-                nutrition: 8,
-                saturation: 12.8,
-                ..Food::new()
-            },
-            ItemKind::CookedRabbit => Food {
-                nutrition: 5,
-                saturation: 6.0,
-                ..Food::new()
-            },
-            ItemKind::CookedSalmon => Food {
-                nutrition: 6,
-                saturation: 9.6,
-                ..Food::new()
-            },
-            ItemKind::Cookie => Food {
-                nutrition: 2,
-                saturation: 0.4,
-                ..Food::new()
-            },
-            ItemKind::DriedKelp => Food {
-                nutrition: 1,
-                saturation: 0.6,
-                ..Food::new()
-            },
-            ItemKind::EnchantedGoldenApple => Food {
-                can_always_eat: true,
-                nutrition: 4,
-                saturation: 9.6,
-            },
-            ItemKind::GlowBerries => Food {
-                nutrition: 2,
-                saturation: 0.4,
-                ..Food::new()
-            },
-            ItemKind::GoldenApple => Food {
-                can_always_eat: true,
-                nutrition: 4,
-                saturation: 9.6,
-            },
-            ItemKind::GoldenCarrot => Food {
-                nutrition: 6,
-                saturation: 14.400001,
-                ..Food::new()
-            },
-            ItemKind::HoneyBottle => Food {
-                can_always_eat: true,
-                nutrition: 6,
-                saturation: 1.2,
-            },
-            ItemKind::MelonSlice => Food {
-                nutrition: 2,
-                saturation: 1.2,
-                ..Food::new()
-            },
-            ItemKind::MushroomStew => Food {
-                nutrition: 6,
-                saturation: 7.2000003,
-                ..Food::new()
-            },
-            ItemKind::Mutton => Food {
-                nutrition: 2,
-                saturation: 1.2,
-                ..Food::new()
-            },
-            ItemKind::PoisonousPotato => Food {
-                nutrition: 2,
-                saturation: 1.2,
-                ..Food::new()
-            },
-            ItemKind::Porkchop => Food {
-                nutrition: 3,
-                saturation: 1.8000001,
-                ..Food::new()
-            },
-            ItemKind::Potato => Food {
-                nutrition: 1,
-                saturation: 0.6,
-                ..Food::new()
-            },
-            ItemKind::Pufferfish => Food {
-                nutrition: 1,
-                saturation: 0.2,
-                ..Food::new()
-            },
-            ItemKind::PufferfishBucket => Food {
-                nutrition: 1,
-                saturation: 0.2,
-                ..Food::new()
-            },
-            ItemKind::PumpkinPie => Food {
-                nutrition: 8,
-                saturation: 4.8,
-                ..Food::new()
-            },
-            ItemKind::Rabbit => Food {
-                nutrition: 3,
-                saturation: 1.8000001,
-                ..Food::new()
-            },
-            ItemKind::RabbitStew => Food {
-                nutrition: 10,
-                saturation: 12.0,
-                ..Food::new()
-            },
-            ItemKind::RottenFlesh => Food {
-                nutrition: 4,
-                saturation: 0.8,
-                ..Food::new()
-            },
-            ItemKind::Salmon => Food {
-                nutrition: 2,
-                saturation: 0.4,
-                ..Food::new()
-            },
-            ItemKind::SalmonBucket => Food {
-                nutrition: 2,
-                saturation: 0.4,
-                ..Food::new()
-            },
-            ItemKind::SpiderEye => Food {
-                nutrition: 2,
-                saturation: 3.2,
-                ..Food::new()
-            },
-            ItemKind::SuspiciousStew => Food {
-                can_always_eat: true,
-                nutrition: 6,
-                saturation: 7.2000003,
-            },
-            ItemKind::SweetBerries => Food {
-                nutrition: 2,
-                saturation: 0.4,
-                ..Food::new()
-            },
-            ItemKind::TropicalFish => Food {
-                nutrition: 1,
-                saturation: 0.2,
-                ..Food::new()
-            },
-            ItemKind::TropicalFishBucket => Food {
-                nutrition: 1,
-                saturation: 0.2,
-                ..Food::new()
-            },
-            _ => return None,
-        };
-        Some(value)
-    }
-}
-impl DefaultableComponent for JukeboxPlayable {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::MusicDisc11 => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDisc13 => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDisc5 => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDiscBlocks => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDiscCat => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDiscChirp => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDiscCreator => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDiscCreatorMusicBox => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDiscFar => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDiscLavaChicken => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDiscMall => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDiscMellohi => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDiscOtherside => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDiscPigstep => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDiscPrecipice => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDiscRelic => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDiscStal => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDiscStrad => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDiscTears => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDiscWait => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDiscWard => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            _ => return None,
-        };
-        Some(JukeboxPlayable { value: value })
-    }
-}
-impl DefaultableComponent for Container {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::AcaciaShelf => vec![],
-            ItemKind::BambooShelf => vec![],
-            ItemKind::Barrel => vec![],
-            ItemKind::BirchShelf => vec![],
-            ItemKind::BlackShulkerBox => vec![],
-            ItemKind::BlastFurnace => vec![],
-            ItemKind::BlueShulkerBox => vec![],
-            ItemKind::BrewingStand => vec![],
-            ItemKind::BrownShulkerBox => vec![],
-            ItemKind::Campfire => vec![],
-            ItemKind::CherryShelf => vec![],
-            ItemKind::Chest => vec![],
-            ItemKind::ChiseledBookshelf => vec![],
-            ItemKind::Crafter => vec![],
-            ItemKind::CrimsonShelf => vec![],
-            ItemKind::CyanShulkerBox => vec![],
-            ItemKind::DarkOakShelf => vec![],
-            ItemKind::DecoratedPot => vec![],
-            ItemKind::Dispenser => vec![],
-            ItemKind::Dropper => vec![],
-            ItemKind::Furnace => vec![],
-            ItemKind::GrayShulkerBox => vec![],
-            ItemKind::GreenShulkerBox => vec![],
-            ItemKind::Hopper => vec![],
-            ItemKind::JungleShelf => vec![],
-            ItemKind::LightBlueShulkerBox => vec![],
-            ItemKind::LightGrayShulkerBox => vec![],
-            ItemKind::LimeShulkerBox => vec![],
-            ItemKind::MagentaShulkerBox => vec![],
-            ItemKind::MangroveShelf => vec![],
-            ItemKind::OakShelf => vec![],
-            ItemKind::OrangeShulkerBox => vec![],
-            ItemKind::PaleOakShelf => vec![],
-            ItemKind::PinkShulkerBox => vec![],
-            ItemKind::PurpleShulkerBox => vec![],
-            ItemKind::RedShulkerBox => vec![],
-            ItemKind::ShulkerBox => vec![],
-            ItemKind::Smoker => vec![],
-            ItemKind::SoulCampfire => vec![],
-            ItemKind::SpruceShelf => vec![],
-            ItemKind::TrappedChest => vec![],
-            ItemKind::WarpedShelf => vec![],
-            ItemKind::WhiteShulkerBox => vec![],
-            ItemKind::YellowShulkerBox => vec![],
-            _ => return None,
-        };
-        Some(Container { items: value })
-    }
-}
-impl DefaultableComponent for EntityData {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::AllaySpawnEgg => EntityKind::Allay,
-            ItemKind::ArmadilloSpawnEgg => EntityKind::Armadillo,
-            ItemKind::AxolotlSpawnEgg => EntityKind::Axolotl,
-            ItemKind::BatSpawnEgg => EntityKind::Bat,
-            ItemKind::BeeSpawnEgg => EntityKind::Bee,
-            ItemKind::BlazeSpawnEgg => EntityKind::Blaze,
-            ItemKind::BoggedSpawnEgg => EntityKind::Bogged,
-            ItemKind::BreezeSpawnEgg => EntityKind::Breeze,
-            ItemKind::CamelHuskSpawnEgg => EntityKind::CamelHusk,
-            ItemKind::CamelSpawnEgg => EntityKind::Camel,
-            ItemKind::CatSpawnEgg => EntityKind::Cat,
-            ItemKind::CaveSpiderSpawnEgg => EntityKind::CaveSpider,
-            ItemKind::ChickenSpawnEgg => EntityKind::Chicken,
-            ItemKind::CodSpawnEgg => EntityKind::Cod,
-            ItemKind::CopperGolemSpawnEgg => EntityKind::CopperGolem,
-            ItemKind::CowSpawnEgg => EntityKind::Cow,
-            ItemKind::CreakingSpawnEgg => EntityKind::Creaking,
-            ItemKind::CreeperSpawnEgg => EntityKind::Creeper,
-            ItemKind::DolphinSpawnEgg => EntityKind::Dolphin,
-            ItemKind::DonkeySpawnEgg => EntityKind::Donkey,
-            ItemKind::DrownedSpawnEgg => EntityKind::Drowned,
-            ItemKind::ElderGuardianSpawnEgg => EntityKind::ElderGuardian,
-            ItemKind::EnderDragonSpawnEgg => EntityKind::EnderDragon,
-            ItemKind::EndermanSpawnEgg => EntityKind::Enderman,
-            ItemKind::EndermiteSpawnEgg => EntityKind::Endermite,
-            ItemKind::EvokerSpawnEgg => EntityKind::Evoker,
-            ItemKind::FoxSpawnEgg => EntityKind::Fox,
-            ItemKind::FrogSpawnEgg => EntityKind::Frog,
-            ItemKind::GhastSpawnEgg => EntityKind::Ghast,
-            ItemKind::GlowSquidSpawnEgg => EntityKind::GlowSquid,
-            ItemKind::GoatSpawnEgg => EntityKind::Goat,
-            ItemKind::GuardianSpawnEgg => EntityKind::Guardian,
-            ItemKind::HappyGhastSpawnEgg => EntityKind::HappyGhast,
-            ItemKind::HoglinSpawnEgg => EntityKind::Hoglin,
-            ItemKind::HorseSpawnEgg => EntityKind::Horse,
-            ItemKind::HuskSpawnEgg => EntityKind::Husk,
-            ItemKind::IronGolemSpawnEgg => EntityKind::IronGolem,
-            ItemKind::LlamaSpawnEgg => EntityKind::Llama,
-            ItemKind::MagmaCubeSpawnEgg => EntityKind::MagmaCube,
-            ItemKind::MooshroomSpawnEgg => EntityKind::Mooshroom,
-            ItemKind::MuleSpawnEgg => EntityKind::Mule,
-            ItemKind::NautilusSpawnEgg => EntityKind::Nautilus,
-            ItemKind::OcelotSpawnEgg => EntityKind::Ocelot,
-            ItemKind::PandaSpawnEgg => EntityKind::Panda,
-            ItemKind::ParchedSpawnEgg => EntityKind::Parched,
-            ItemKind::ParrotSpawnEgg => EntityKind::Parrot,
-            ItemKind::PhantomSpawnEgg => EntityKind::Phantom,
-            ItemKind::PigSpawnEgg => EntityKind::Pig,
-            ItemKind::PiglinBruteSpawnEgg => EntityKind::PiglinBrute,
-            ItemKind::PiglinSpawnEgg => EntityKind::Piglin,
-            ItemKind::PillagerSpawnEgg => EntityKind::Pillager,
-            ItemKind::PolarBearSpawnEgg => EntityKind::PolarBear,
-            ItemKind::PufferfishSpawnEgg => EntityKind::Pufferfish,
-            ItemKind::RabbitSpawnEgg => EntityKind::Rabbit,
-            ItemKind::RavagerSpawnEgg => EntityKind::Ravager,
-            ItemKind::SalmonSpawnEgg => EntityKind::Salmon,
-            ItemKind::SheepSpawnEgg => EntityKind::Sheep,
-            ItemKind::ShulkerSpawnEgg => EntityKind::Shulker,
-            ItemKind::SilverfishSpawnEgg => EntityKind::Silverfish,
-            ItemKind::SkeletonHorseSpawnEgg => EntityKind::SkeletonHorse,
-            ItemKind::SkeletonSpawnEgg => EntityKind::Skeleton,
-            ItemKind::SlimeSpawnEgg => EntityKind::Slime,
-            ItemKind::SnifferSpawnEgg => EntityKind::Sniffer,
-            ItemKind::SnowGolemSpawnEgg => EntityKind::SnowGolem,
-            ItemKind::SpiderSpawnEgg => EntityKind::Spider,
-            ItemKind::SquidSpawnEgg => EntityKind::Squid,
-            ItemKind::StraySpawnEgg => EntityKind::Stray,
-            ItemKind::StriderSpawnEgg => EntityKind::Strider,
-            ItemKind::TadpoleSpawnEgg => EntityKind::Tadpole,
-            ItemKind::TraderLlamaSpawnEgg => EntityKind::TraderLlama,
-            ItemKind::TropicalFishSpawnEgg => EntityKind::TropicalFish,
-            ItemKind::TurtleSpawnEgg => EntityKind::Turtle,
-            ItemKind::VexSpawnEgg => EntityKind::Vex,
-            ItemKind::VillagerSpawnEgg => EntityKind::Villager,
-            ItemKind::VindicatorSpawnEgg => EntityKind::Vindicator,
-            ItemKind::WanderingTraderSpawnEgg => EntityKind::WanderingTrader,
-            ItemKind::WardenSpawnEgg => EntityKind::Warden,
-            ItemKind::WitchSpawnEgg => EntityKind::Witch,
-            ItemKind::WitherSkeletonSpawnEgg => EntityKind::WitherSkeleton,
-            ItemKind::WitherSpawnEgg => EntityKind::Wither,
-            ItemKind::WolfSpawnEgg => EntityKind::Wolf,
-            ItemKind::ZoglinSpawnEgg => EntityKind::Zoglin,
-            ItemKind::ZombieHorseSpawnEgg => EntityKind::ZombieHorse,
-            ItemKind::ZombieNautilusSpawnEgg => EntityKind::ZombieNautilus,
-            ItemKind::ZombieSpawnEgg => EntityKind::Zombie,
-            ItemKind::ZombieVillagerSpawnEgg => EntityKind::ZombieVillager,
-            ItemKind::ZombifiedPiglinSpawnEgg => EntityKind::ZombifiedPiglin,
-            _ => return None,
-        };
-        Some(EntityData {
-            kind: value,
-            data: NbtCompound::new(),
-        })
     }
 }
 impl DefaultableComponent for Damage {
@@ -3703,6 +3917,284 @@ impl DefaultableComponent for Repairable {
             _ => return None,
         };
         Some(Repairable { items: value })
+    }
+}
+impl DefaultableComponent for BlockState {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::BeeNest => HashMap::from_iter([("honey_level".to_owned(), "0".to_owned())]),
+            ItemKind::Beehive => HashMap::from_iter([("honey_level".to_owned(), "0".to_owned())]),
+            ItemKind::CopperGolemStatue => {
+                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
+            }
+            ItemKind::ExposedCopperGolemStatue => {
+                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
+            }
+            ItemKind::Light => HashMap::from_iter([("level".to_owned(), "15".to_owned())]),
+            ItemKind::OxidizedCopperGolemStatue => {
+                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
+            }
+            ItemKind::TestBlock => HashMap::from_iter([("mode".to_owned(), "start".to_owned())]),
+            ItemKind::WaxedCopperGolemStatue => {
+                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
+            }
+            ItemKind::WaxedExposedCopperGolemStatue => {
+                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
+            }
+            ItemKind::WaxedOxidizedCopperGolemStatue => {
+                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
+            }
+            ItemKind::WaxedWeatheredCopperGolemStatue => {
+                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
+            }
+            ItemKind::WeatheredCopperGolemStatue => {
+                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
+            }
+            _ => return None,
+        };
+        Some(BlockState { properties: value })
+    }
+}
+impl DefaultableComponent for BucketEntityData {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::AxolotlBucket => NbtCompound::from_values(vec![]),
+            ItemKind::CodBucket => NbtCompound::from_values(vec![]),
+            ItemKind::PufferfishBucket => NbtCompound::from_values(vec![]),
+            ItemKind::SalmonBucket => NbtCompound::from_values(vec![]),
+            ItemKind::TadpoleBucket => NbtCompound::from_values(vec![]),
+            ItemKind::TropicalFishBucket => NbtCompound::from_values(vec![]),
+            _ => return None,
+        };
+        Some(BucketEntityData { entity: value })
+    }
+}
+impl DefaultableComponent for Food {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::Apple => Food {
+                nutrition: 4,
+                saturation: 2.4,
+                ..Food::new()
+            },
+            ItemKind::BakedPotato => Food {
+                nutrition: 5,
+                saturation: 6.0,
+                ..Food::new()
+            },
+            ItemKind::Beef => Food {
+                nutrition: 3,
+                saturation: 1.8000001,
+                ..Food::new()
+            },
+            ItemKind::Beetroot => Food {
+                nutrition: 1,
+                saturation: 1.2,
+                ..Food::new()
+            },
+            ItemKind::BeetrootSoup => Food {
+                nutrition: 6,
+                saturation: 7.2000003,
+                ..Food::new()
+            },
+            ItemKind::Bread => Food {
+                nutrition: 5,
+                saturation: 6.0,
+                ..Food::new()
+            },
+            ItemKind::Carrot => Food {
+                nutrition: 3,
+                saturation: 3.6000001,
+                ..Food::new()
+            },
+            ItemKind::Chicken => Food {
+                nutrition: 2,
+                saturation: 1.2,
+                ..Food::new()
+            },
+            ItemKind::ChorusFruit => Food {
+                can_always_eat: true,
+                nutrition: 4,
+                saturation: 2.4,
+            },
+            ItemKind::Cod => Food {
+                nutrition: 2,
+                saturation: 0.4,
+                ..Food::new()
+            },
+            ItemKind::CodBucket => Food {
+                nutrition: 2,
+                saturation: 0.4,
+                ..Food::new()
+            },
+            ItemKind::CookedBeef => Food {
+                nutrition: 8,
+                saturation: 12.8,
+                ..Food::new()
+            },
+            ItemKind::CookedChicken => Food {
+                nutrition: 6,
+                saturation: 7.2000003,
+                ..Food::new()
+            },
+            ItemKind::CookedCod => Food {
+                nutrition: 5,
+                saturation: 6.0,
+                ..Food::new()
+            },
+            ItemKind::CookedMutton => Food {
+                nutrition: 6,
+                saturation: 9.6,
+                ..Food::new()
+            },
+            ItemKind::CookedPorkchop => Food {
+                nutrition: 8,
+                saturation: 12.8,
+                ..Food::new()
+            },
+            ItemKind::CookedRabbit => Food {
+                nutrition: 5,
+                saturation: 6.0,
+                ..Food::new()
+            },
+            ItemKind::CookedSalmon => Food {
+                nutrition: 6,
+                saturation: 9.6,
+                ..Food::new()
+            },
+            ItemKind::Cookie => Food {
+                nutrition: 2,
+                saturation: 0.4,
+                ..Food::new()
+            },
+            ItemKind::DriedKelp => Food {
+                nutrition: 1,
+                saturation: 0.6,
+                ..Food::new()
+            },
+            ItemKind::EnchantedGoldenApple => Food {
+                can_always_eat: true,
+                nutrition: 4,
+                saturation: 9.6,
+            },
+            ItemKind::GlowBerries => Food {
+                nutrition: 2,
+                saturation: 0.4,
+                ..Food::new()
+            },
+            ItemKind::GoldenApple => Food {
+                can_always_eat: true,
+                nutrition: 4,
+                saturation: 9.6,
+            },
+            ItemKind::GoldenCarrot => Food {
+                nutrition: 6,
+                saturation: 14.400001,
+                ..Food::new()
+            },
+            ItemKind::HoneyBottle => Food {
+                can_always_eat: true,
+                nutrition: 6,
+                saturation: 1.2,
+            },
+            ItemKind::MelonSlice => Food {
+                nutrition: 2,
+                saturation: 1.2,
+                ..Food::new()
+            },
+            ItemKind::MushroomStew => Food {
+                nutrition: 6,
+                saturation: 7.2000003,
+                ..Food::new()
+            },
+            ItemKind::Mutton => Food {
+                nutrition: 2,
+                saturation: 1.2,
+                ..Food::new()
+            },
+            ItemKind::PoisonousPotato => Food {
+                nutrition: 2,
+                saturation: 1.2,
+                ..Food::new()
+            },
+            ItemKind::Porkchop => Food {
+                nutrition: 3,
+                saturation: 1.8000001,
+                ..Food::new()
+            },
+            ItemKind::Potato => Food {
+                nutrition: 1,
+                saturation: 0.6,
+                ..Food::new()
+            },
+            ItemKind::Pufferfish => Food {
+                nutrition: 1,
+                saturation: 0.2,
+                ..Food::new()
+            },
+            ItemKind::PufferfishBucket => Food {
+                nutrition: 1,
+                saturation: 0.2,
+                ..Food::new()
+            },
+            ItemKind::PumpkinPie => Food {
+                nutrition: 8,
+                saturation: 4.8,
+                ..Food::new()
+            },
+            ItemKind::Rabbit => Food {
+                nutrition: 3,
+                saturation: 1.8000001,
+                ..Food::new()
+            },
+            ItemKind::RabbitStew => Food {
+                nutrition: 10,
+                saturation: 12.0,
+                ..Food::new()
+            },
+            ItemKind::RottenFlesh => Food {
+                nutrition: 4,
+                saturation: 0.8,
+                ..Food::new()
+            },
+            ItemKind::Salmon => Food {
+                nutrition: 2,
+                saturation: 0.4,
+                ..Food::new()
+            },
+            ItemKind::SalmonBucket => Food {
+                nutrition: 2,
+                saturation: 0.4,
+                ..Food::new()
+            },
+            ItemKind::SpiderEye => Food {
+                nutrition: 2,
+                saturation: 3.2,
+                ..Food::new()
+            },
+            ItemKind::SuspiciousStew => Food {
+                can_always_eat: true,
+                nutrition: 6,
+                saturation: 7.2000003,
+            },
+            ItemKind::SweetBerries => Food {
+                nutrition: 2,
+                saturation: 0.4,
+                ..Food::new()
+            },
+            ItemKind::TropicalFish => Food {
+                nutrition: 1,
+                saturation: 0.2,
+                ..Food::new()
+            },
+            ItemKind::TropicalFishBucket => Food {
+                nutrition: 1,
+                saturation: 0.2,
+                ..Food::new()
+            },
+            _ => return None,
+        };
+        Some(value)
     }
 }
 impl DefaultableComponent for Tool {
@@ -4702,174 +5194,28 @@ impl DefaultableComponent for Tool {
         Some(value)
     }
 }
-impl DefaultableComponent for Weapon {
+impl DefaultableComponent for Dye {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::CopperAxe => Weapon {
-                disable_blocking_for_seconds: 5.0,
-                item_damage_per_attack: 2,
-            },
-            ItemKind::CopperHoe => Weapon {
-                item_damage_per_attack: 2,
-                ..Weapon::new()
-            },
-            ItemKind::CopperPickaxe => Weapon {
-                item_damage_per_attack: 2,
-                ..Weapon::new()
-            },
-            ItemKind::CopperShovel => Weapon {
-                item_damage_per_attack: 2,
-                ..Weapon::new()
-            },
-            ItemKind::CopperSpear => Weapon::new(),
-            ItemKind::CopperSword => Weapon::new(),
-            ItemKind::DiamondAxe => Weapon {
-                disable_blocking_for_seconds: 5.0,
-                item_damage_per_attack: 2,
-            },
-            ItemKind::DiamondHoe => Weapon {
-                item_damage_per_attack: 2,
-                ..Weapon::new()
-            },
-            ItemKind::DiamondPickaxe => Weapon {
-                item_damage_per_attack: 2,
-                ..Weapon::new()
-            },
-            ItemKind::DiamondShovel => Weapon {
-                item_damage_per_attack: 2,
-                ..Weapon::new()
-            },
-            ItemKind::DiamondSpear => Weapon::new(),
-            ItemKind::DiamondSword => Weapon::new(),
-            ItemKind::GoldenAxe => Weapon {
-                disable_blocking_for_seconds: 5.0,
-                item_damage_per_attack: 2,
-            },
-            ItemKind::GoldenHoe => Weapon {
-                item_damage_per_attack: 2,
-                ..Weapon::new()
-            },
-            ItemKind::GoldenPickaxe => Weapon {
-                item_damage_per_attack: 2,
-                ..Weapon::new()
-            },
-            ItemKind::GoldenShovel => Weapon {
-                item_damage_per_attack: 2,
-                ..Weapon::new()
-            },
-            ItemKind::GoldenSpear => Weapon::new(),
-            ItemKind::GoldenSword => Weapon::new(),
-            ItemKind::IronAxe => Weapon {
-                disable_blocking_for_seconds: 5.0,
-                item_damage_per_attack: 2,
-            },
-            ItemKind::IronHoe => Weapon {
-                item_damage_per_attack: 2,
-                ..Weapon::new()
-            },
-            ItemKind::IronPickaxe => Weapon {
-                item_damage_per_attack: 2,
-                ..Weapon::new()
-            },
-            ItemKind::IronShovel => Weapon {
-                item_damage_per_attack: 2,
-                ..Weapon::new()
-            },
-            ItemKind::IronSpear => Weapon::new(),
-            ItemKind::IronSword => Weapon::new(),
-            ItemKind::Mace => Weapon::new(),
-            ItemKind::NetheriteAxe => Weapon {
-                disable_blocking_for_seconds: 5.0,
-                item_damage_per_attack: 2,
-            },
-            ItemKind::NetheriteHoe => Weapon {
-                item_damage_per_attack: 2,
-                ..Weapon::new()
-            },
-            ItemKind::NetheritePickaxe => Weapon {
-                item_damage_per_attack: 2,
-                ..Weapon::new()
-            },
-            ItemKind::NetheriteShovel => Weapon {
-                item_damage_per_attack: 2,
-                ..Weapon::new()
-            },
-            ItemKind::NetheriteSpear => Weapon::new(),
-            ItemKind::NetheriteSword => Weapon::new(),
-            ItemKind::StoneAxe => Weapon {
-                disable_blocking_for_seconds: 5.0,
-                item_damage_per_attack: 2,
-            },
-            ItemKind::StoneHoe => Weapon {
-                item_damage_per_attack: 2,
-                ..Weapon::new()
-            },
-            ItemKind::StonePickaxe => Weapon {
-                item_damage_per_attack: 2,
-                ..Weapon::new()
-            },
-            ItemKind::StoneShovel => Weapon {
-                item_damage_per_attack: 2,
-                ..Weapon::new()
-            },
-            ItemKind::StoneSpear => Weapon::new(),
-            ItemKind::StoneSword => Weapon::new(),
-            ItemKind::Trident => Weapon::new(),
-            ItemKind::WoodenAxe => Weapon {
-                disable_blocking_for_seconds: 5.0,
-                item_damage_per_attack: 2,
-            },
-            ItemKind::WoodenHoe => Weapon {
-                item_damage_per_attack: 2,
-                ..Weapon::new()
-            },
-            ItemKind::WoodenPickaxe => Weapon {
-                item_damage_per_attack: 2,
-                ..Weapon::new()
-            },
-            ItemKind::WoodenShovel => Weapon {
-                item_damage_per_attack: 2,
-                ..Weapon::new()
-            },
-            ItemKind::WoodenSpear => Weapon::new(),
-            ItemKind::WoodenSword => Weapon::new(),
+            ItemKind::BlackDye => DyeColor::Black,
+            ItemKind::BlueDye => DyeColor::Blue,
+            ItemKind::BrownDye => DyeColor::Brown,
+            ItemKind::CyanDye => DyeColor::Cyan,
+            ItemKind::GrayDye => DyeColor::Gray,
+            ItemKind::GreenDye => DyeColor::Green,
+            ItemKind::LightBlueDye => DyeColor::LightBlue,
+            ItemKind::LightGrayDye => DyeColor::LightGray,
+            ItemKind::LimeDye => DyeColor::Lime,
+            ItemKind::MagentaDye => DyeColor::Magenta,
+            ItemKind::OrangeDye => DyeColor::Orange,
+            ItemKind::PinkDye => DyeColor::Pink,
+            ItemKind::PurpleDye => DyeColor::Purple,
+            ItemKind::RedDye => DyeColor::Red,
+            ItemKind::WhiteDye => DyeColor::White,
+            ItemKind::YellowDye => DyeColor::Yellow,
             _ => return None,
         };
-        Some(value)
-    }
-}
-impl DefaultableComponent for Recipes {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::KnowledgeBook => vec![],
-            _ => return None,
-        };
-        Some(Recipes { recipes: value })
-    }
-}
-impl DefaultableComponent for BundleContents {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::BlackBundle => vec![],
-            ItemKind::BlueBundle => vec![],
-            ItemKind::BrownBundle => vec![],
-            ItemKind::Bundle => vec![],
-            ItemKind::CyanBundle => vec![],
-            ItemKind::GrayBundle => vec![],
-            ItemKind::GreenBundle => vec![],
-            ItemKind::LightBlueBundle => vec![],
-            ItemKind::LightGrayBundle => vec![],
-            ItemKind::LimeBundle => vec![],
-            ItemKind::MagentaBundle => vec![],
-            ItemKind::OrangeBundle => vec![],
-            ItemKind::PinkBundle => vec![],
-            ItemKind::PurpleBundle => vec![],
-            ItemKind::RedBundle => vec![],
-            ItemKind::WhiteBundle => vec![],
-            ItemKind::YellowBundle => vec![],
-            _ => return None,
-        };
-        Some(BundleContents { items: value })
+        Some(Dye { color: value })
     }
 }
 impl DefaultableComponent for DamageResistant {
@@ -4897,990 +5243,173 @@ impl DefaultableComponent for DamageResistant {
         Some(DamageResistant { types: value })
     }
 }
-impl DefaultableComponent for Equippable {
+impl DefaultableComponent for EntityData {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::BlackCarpet => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
-                }),
-                asset_id: Some("minecraft:black_carpet".into()),
-                can_be_sheared: true,
-                equip_sound: SoundEvent::EntityLlamaSwag,
-                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::BlackHarness => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:black_harness".into()),
-                can_be_sheared: true,
-                equip_on_interact: true,
-                equip_sound: SoundEvent::EntityHappyGhastEquip,
-                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::BlueCarpet => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
-                }),
-                asset_id: Some("minecraft:blue_carpet".into()),
-                can_be_sheared: true,
-                equip_sound: SoundEvent::EntityLlamaSwag,
-                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::BlueHarness => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:blue_harness".into()),
-                can_be_sheared: true,
-                equip_on_interact: true,
-                equip_sound: SoundEvent::EntityHappyGhastEquip,
-                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::BrownCarpet => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
-                }),
-                asset_id: Some("minecraft:brown_carpet".into()),
-                can_be_sheared: true,
-                equip_sound: SoundEvent::EntityLlamaSwag,
-                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::BrownHarness => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:brown_harness".into()),
-                can_be_sheared: true,
-                equip_on_interact: true,
-                equip_sound: SoundEvent::EntityHappyGhastEquip,
-                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::CarvedPumpkin => Equippable {
-                camera_overlay: Some("minecraft:misc/pumpkinblur".into()),
-                slot: EquipmentSlot::Head,
-                swappable: false,
-                ..Equippable::new()
-            },
-            ItemKind::ChainmailBoots => Equippable {
-                asset_id: Some("minecraft:chainmail".into()),
-                equip_sound: SoundEvent::ItemArmorEquipChain,
-                slot: EquipmentSlot::Feet,
-                ..Equippable::new()
-            },
-            ItemKind::ChainmailChestplate => Equippable {
-                asset_id: Some("minecraft:chainmail".into()),
-                equip_sound: SoundEvent::ItemArmorEquipChain,
-                slot: EquipmentSlot::Chest,
-                ..Equippable::new()
-            },
-            ItemKind::ChainmailHelmet => Equippable {
-                asset_id: Some("minecraft:chainmail".into()),
-                equip_sound: SoundEvent::ItemArmorEquipChain,
-                slot: EquipmentSlot::Head,
-                ..Equippable::new()
-            },
-            ItemKind::ChainmailLeggings => Equippable {
-                asset_id: Some("minecraft:chainmail".into()),
-                equip_sound: SoundEvent::ItemArmorEquipChain,
-                slot: EquipmentSlot::Legs,
-                ..Equippable::new()
-            },
-            ItemKind::CopperBoots => Equippable {
-                asset_id: Some("minecraft:copper".into()),
-                equip_sound: SoundEvent::ItemArmorEquipCopper,
-                slot: EquipmentSlot::Feet,
-                ..Equippable::new()
-            },
-            ItemKind::CopperChestplate => Equippable {
-                asset_id: Some("minecraft:copper".into()),
-                equip_sound: SoundEvent::ItemArmorEquipCopper,
-                slot: EquipmentSlot::Chest,
-                ..Equippable::new()
-            },
-            ItemKind::CopperHelmet => Equippable {
-                asset_id: Some("minecraft:copper".into()),
-                equip_sound: SoundEvent::ItemArmorEquipCopper,
-                slot: EquipmentSlot::Head,
-                ..Equippable::new()
-            },
-            ItemKind::CopperHorseArmor => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_WEAR_HORSE_ARMOR
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:copper".into()),
-                can_be_sheared: true,
-                damage_on_hurt: false,
-                equip_sound: SoundEvent::EntityHorseArmor,
-                shearing_sound: SoundEvent::ItemHorseArmorUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::CopperLeggings => Equippable {
-                asset_id: Some("minecraft:copper".into()),
-                equip_sound: SoundEvent::ItemArmorEquipCopper,
-                slot: EquipmentSlot::Legs,
-                ..Equippable::new()
-            },
-            ItemKind::CopperNautilusArmor => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_WEAR_NAUTILUS_ARMOR
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:copper".into()),
-                can_be_sheared: true,
-                damage_on_hurt: false,
-                equip_on_interact: true,
-                equip_sound: SoundEvent::ItemArmorEquipNautilus,
-                shearing_sound: SoundEvent::ItemArmorUnequipNautilus,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::CreeperHead => Equippable {
-                slot: EquipmentSlot::Head,
-                swappable: false,
-                ..Equippable::new()
-            },
-            ItemKind::CyanCarpet => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
-                }),
-                asset_id: Some("minecraft:cyan_carpet".into()),
-                can_be_sheared: true,
-                equip_sound: SoundEvent::EntityLlamaSwag,
-                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::CyanHarness => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:cyan_harness".into()),
-                can_be_sheared: true,
-                equip_on_interact: true,
-                equip_sound: SoundEvent::EntityHappyGhastEquip,
-                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::DiamondBoots => Equippable {
-                asset_id: Some("minecraft:diamond".into()),
-                equip_sound: SoundEvent::ItemArmorEquipDiamond,
-                slot: EquipmentSlot::Feet,
-                ..Equippable::new()
-            },
-            ItemKind::DiamondChestplate => Equippable {
-                asset_id: Some("minecraft:diamond".into()),
-                equip_sound: SoundEvent::ItemArmorEquipDiamond,
-                slot: EquipmentSlot::Chest,
-                ..Equippable::new()
-            },
-            ItemKind::DiamondHelmet => Equippable {
-                asset_id: Some("minecraft:diamond".into()),
-                equip_sound: SoundEvent::ItemArmorEquipDiamond,
-                slot: EquipmentSlot::Head,
-                ..Equippable::new()
-            },
-            ItemKind::DiamondHorseArmor => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_WEAR_HORSE_ARMOR
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:diamond".into()),
-                can_be_sheared: true,
-                damage_on_hurt: false,
-                equip_sound: SoundEvent::EntityHorseArmor,
-                shearing_sound: SoundEvent::ItemHorseArmorUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::DiamondLeggings => Equippable {
-                asset_id: Some("minecraft:diamond".into()),
-                equip_sound: SoundEvent::ItemArmorEquipDiamond,
-                slot: EquipmentSlot::Legs,
-                ..Equippable::new()
-            },
-            ItemKind::DiamondNautilusArmor => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_WEAR_NAUTILUS_ARMOR
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:diamond".into()),
-                can_be_sheared: true,
-                damage_on_hurt: false,
-                equip_on_interact: true,
-                equip_sound: SoundEvent::ItemArmorEquipNautilus,
-                shearing_sound: SoundEvent::ItemArmorUnequipNautilus,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::DragonHead => Equippable {
-                slot: EquipmentSlot::Head,
-                swappable: false,
-                ..Equippable::new()
-            },
-            ItemKind::Elytra => Equippable {
-                asset_id: Some("minecraft:elytra".into()),
-                damage_on_hurt: false,
-                equip_sound: SoundEvent::ItemArmorEquipElytra,
-                slot: EquipmentSlot::Chest,
-                ..Equippable::new()
-            },
-            ItemKind::GoldenBoots => Equippable {
-                asset_id: Some("minecraft:gold".into()),
-                equip_sound: SoundEvent::ItemArmorEquipGold,
-                slot: EquipmentSlot::Feet,
-                ..Equippable::new()
-            },
-            ItemKind::GoldenChestplate => Equippable {
-                asset_id: Some("minecraft:gold".into()),
-                equip_sound: SoundEvent::ItemArmorEquipGold,
-                slot: EquipmentSlot::Chest,
-                ..Equippable::new()
-            },
-            ItemKind::GoldenHelmet => Equippable {
-                asset_id: Some("minecraft:gold".into()),
-                equip_sound: SoundEvent::ItemArmorEquipGold,
-                slot: EquipmentSlot::Head,
-                ..Equippable::new()
-            },
-            ItemKind::GoldenHorseArmor => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_WEAR_HORSE_ARMOR
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:gold".into()),
-                can_be_sheared: true,
-                damage_on_hurt: false,
-                equip_sound: SoundEvent::EntityHorseArmor,
-                shearing_sound: SoundEvent::ItemHorseArmorUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::GoldenLeggings => Equippable {
-                asset_id: Some("minecraft:gold".into()),
-                equip_sound: SoundEvent::ItemArmorEquipGold,
-                slot: EquipmentSlot::Legs,
-                ..Equippable::new()
-            },
-            ItemKind::GoldenNautilusArmor => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_WEAR_NAUTILUS_ARMOR
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:gold".into()),
-                can_be_sheared: true,
-                damage_on_hurt: false,
-                equip_on_interact: true,
-                equip_sound: SoundEvent::ItemArmorEquipNautilus,
-                shearing_sound: SoundEvent::ItemArmorUnequipNautilus,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::GrayCarpet => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
-                }),
-                asset_id: Some("minecraft:gray_carpet".into()),
-                can_be_sheared: true,
-                equip_sound: SoundEvent::EntityLlamaSwag,
-                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::GrayHarness => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:gray_harness".into()),
-                can_be_sheared: true,
-                equip_on_interact: true,
-                equip_sound: SoundEvent::EntityHappyGhastEquip,
-                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::GreenCarpet => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
-                }),
-                asset_id: Some("minecraft:green_carpet".into()),
-                can_be_sheared: true,
-                equip_sound: SoundEvent::EntityLlamaSwag,
-                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::GreenHarness => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:green_harness".into()),
-                can_be_sheared: true,
-                equip_on_interact: true,
-                equip_sound: SoundEvent::EntityHappyGhastEquip,
-                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::IronBoots => Equippable {
-                asset_id: Some("minecraft:iron".into()),
-                equip_sound: SoundEvent::ItemArmorEquipIron,
-                slot: EquipmentSlot::Feet,
-                ..Equippable::new()
-            },
-            ItemKind::IronChestplate => Equippable {
-                asset_id: Some("minecraft:iron".into()),
-                equip_sound: SoundEvent::ItemArmorEquipIron,
-                slot: EquipmentSlot::Chest,
-                ..Equippable::new()
-            },
-            ItemKind::IronHelmet => Equippable {
-                asset_id: Some("minecraft:iron".into()),
-                equip_sound: SoundEvent::ItemArmorEquipIron,
-                slot: EquipmentSlot::Head,
-                ..Equippable::new()
-            },
-            ItemKind::IronHorseArmor => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_WEAR_HORSE_ARMOR
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:iron".into()),
-                can_be_sheared: true,
-                damage_on_hurt: false,
-                equip_sound: SoundEvent::EntityHorseArmor,
-                shearing_sound: SoundEvent::ItemHorseArmorUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::IronLeggings => Equippable {
-                asset_id: Some("minecraft:iron".into()),
-                equip_sound: SoundEvent::ItemArmorEquipIron,
-                slot: EquipmentSlot::Legs,
-                ..Equippable::new()
-            },
-            ItemKind::IronNautilusArmor => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_WEAR_NAUTILUS_ARMOR
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:iron".into()),
-                can_be_sheared: true,
-                damage_on_hurt: false,
-                equip_on_interact: true,
-                equip_sound: SoundEvent::ItemArmorEquipNautilus,
-                shearing_sound: SoundEvent::ItemArmorUnequipNautilus,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::LeatherBoots => Equippable {
-                asset_id: Some("minecraft:leather".into()),
-                equip_sound: SoundEvent::ItemArmorEquipLeather,
-                slot: EquipmentSlot::Feet,
-                ..Equippable::new()
-            },
-            ItemKind::LeatherChestplate => Equippable {
-                asset_id: Some("minecraft:leather".into()),
-                equip_sound: SoundEvent::ItemArmorEquipLeather,
-                slot: EquipmentSlot::Chest,
-                ..Equippable::new()
-            },
-            ItemKind::LeatherHelmet => Equippable {
-                asset_id: Some("minecraft:leather".into()),
-                equip_sound: SoundEvent::ItemArmorEquipLeather,
-                slot: EquipmentSlot::Head,
-                ..Equippable::new()
-            },
-            ItemKind::LeatherHorseArmor => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_WEAR_HORSE_ARMOR
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:leather".into()),
-                can_be_sheared: true,
-                damage_on_hurt: false,
-                equip_sound: SoundEvent::EntityHorseArmor,
-                shearing_sound: SoundEvent::ItemHorseArmorUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::LeatherLeggings => Equippable {
-                asset_id: Some("minecraft:leather".into()),
-                equip_sound: SoundEvent::ItemArmorEquipLeather,
-                slot: EquipmentSlot::Legs,
-                ..Equippable::new()
-            },
-            ItemKind::LightBlueCarpet => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
-                }),
-                asset_id: Some("minecraft:light_blue_carpet".into()),
-                can_be_sheared: true,
-                equip_sound: SoundEvent::EntityLlamaSwag,
-                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::LightBlueHarness => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:light_blue_harness".into()),
-                can_be_sheared: true,
-                equip_on_interact: true,
-                equip_sound: SoundEvent::EntityHappyGhastEquip,
-                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::LightGrayCarpet => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
-                }),
-                asset_id: Some("minecraft:light_gray_carpet".into()),
-                can_be_sheared: true,
-                equip_sound: SoundEvent::EntityLlamaSwag,
-                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::LightGrayHarness => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:light_gray_harness".into()),
-                can_be_sheared: true,
-                equip_on_interact: true,
-                equip_sound: SoundEvent::EntityHappyGhastEquip,
-                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::LimeCarpet => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
-                }),
-                asset_id: Some("minecraft:lime_carpet".into()),
-                can_be_sheared: true,
-                equip_sound: SoundEvent::EntityLlamaSwag,
-                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::LimeHarness => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:lime_harness".into()),
-                can_be_sheared: true,
-                equip_on_interact: true,
-                equip_sound: SoundEvent::EntityHappyGhastEquip,
-                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::MagentaCarpet => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
-                }),
-                asset_id: Some("minecraft:magenta_carpet".into()),
-                can_be_sheared: true,
-                equip_sound: SoundEvent::EntityLlamaSwag,
-                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::MagentaHarness => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:magenta_harness".into()),
-                can_be_sheared: true,
-                equip_on_interact: true,
-                equip_sound: SoundEvent::EntityHappyGhastEquip,
-                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::NetheriteBoots => Equippable {
-                asset_id: Some("minecraft:netherite".into()),
-                equip_sound: SoundEvent::ItemArmorEquipNetherite,
-                slot: EquipmentSlot::Feet,
-                ..Equippable::new()
-            },
-            ItemKind::NetheriteChestplate => Equippable {
-                asset_id: Some("minecraft:netherite".into()),
-                equip_sound: SoundEvent::ItemArmorEquipNetherite,
-                slot: EquipmentSlot::Chest,
-                ..Equippable::new()
-            },
-            ItemKind::NetheriteHelmet => Equippable {
-                asset_id: Some("minecraft:netherite".into()),
-                equip_sound: SoundEvent::ItemArmorEquipNetherite,
-                slot: EquipmentSlot::Head,
-                ..Equippable::new()
-            },
-            ItemKind::NetheriteHorseArmor => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_WEAR_HORSE_ARMOR
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:netherite".into()),
-                can_be_sheared: true,
-                damage_on_hurt: false,
-                equip_sound: SoundEvent::EntityHorseArmor,
-                shearing_sound: SoundEvent::ItemHorseArmorUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::NetheriteLeggings => Equippable {
-                asset_id: Some("minecraft:netherite".into()),
-                equip_sound: SoundEvent::ItemArmorEquipNetherite,
-                slot: EquipmentSlot::Legs,
-                ..Equippable::new()
-            },
-            ItemKind::NetheriteNautilusArmor => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_WEAR_NAUTILUS_ARMOR
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:netherite".into()),
-                can_be_sheared: true,
-                damage_on_hurt: false,
-                equip_on_interact: true,
-                equip_sound: SoundEvent::ItemArmorEquipNautilus,
-                shearing_sound: SoundEvent::ItemArmorUnequipNautilus,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::OrangeCarpet => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
-                }),
-                asset_id: Some("minecraft:orange_carpet".into()),
-                can_be_sheared: true,
-                equip_sound: SoundEvent::EntityLlamaSwag,
-                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::OrangeHarness => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:orange_harness".into()),
-                can_be_sheared: true,
-                equip_on_interact: true,
-                equip_sound: SoundEvent::EntityHappyGhastEquip,
-                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::PiglinHead => Equippable {
-                slot: EquipmentSlot::Head,
-                swappable: false,
-                ..Equippable::new()
-            },
-            ItemKind::PinkCarpet => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
-                }),
-                asset_id: Some("minecraft:pink_carpet".into()),
-                can_be_sheared: true,
-                equip_sound: SoundEvent::EntityLlamaSwag,
-                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::PinkHarness => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:pink_harness".into()),
-                can_be_sheared: true,
-                equip_on_interact: true,
-                equip_sound: SoundEvent::EntityHappyGhastEquip,
-                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::PlayerHead => Equippable {
-                slot: EquipmentSlot::Head,
-                swappable: false,
-                ..Equippable::new()
-            },
-            ItemKind::PurpleCarpet => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
-                }),
-                asset_id: Some("minecraft:purple_carpet".into()),
-                can_be_sheared: true,
-                equip_sound: SoundEvent::EntityLlamaSwag,
-                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::PurpleHarness => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:purple_harness".into()),
-                can_be_sheared: true,
-                equip_on_interact: true,
-                equip_sound: SoundEvent::EntityHappyGhastEquip,
-                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::RedCarpet => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
-                }),
-                asset_id: Some("minecraft:red_carpet".into()),
-                can_be_sheared: true,
-                equip_sound: SoundEvent::EntityLlamaSwag,
-                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::RedHarness => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:red_harness".into()),
-                can_be_sheared: true,
-                equip_on_interact: true,
-                equip_sound: SoundEvent::EntityHappyGhastEquip,
-                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::Saddle => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_SADDLE
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:saddle".into()),
-                can_be_sheared: true,
-                equip_on_interact: true,
-                equip_sound: SoundEvent::EntityHorseSaddle,
-                shearing_sound: SoundEvent::ItemSaddleUnequip,
-                slot: EquipmentSlot::Saddle,
-                ..Equippable::new()
-            },
-            ItemKind::Shield => Equippable {
-                slot: EquipmentSlot::Offhand,
-                swappable: false,
-                ..Equippable::new()
-            },
-            ItemKind::SkeletonSkull => Equippable {
-                slot: EquipmentSlot::Head,
-                swappable: false,
-                ..Equippable::new()
-            },
-            ItemKind::TurtleHelmet => Equippable {
-                asset_id: Some("minecraft:turtle_scute".into()),
-                equip_sound: SoundEvent::ItemArmorEquipTurtle,
-                slot: EquipmentSlot::Head,
-                ..Equippable::new()
-            },
-            ItemKind::WhiteCarpet => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
-                }),
-                asset_id: Some("minecraft:white_carpet".into()),
-                can_be_sheared: true,
-                equip_sound: SoundEvent::EntityLlamaSwag,
-                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::WhiteHarness => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:white_harness".into()),
-                can_be_sheared: true,
-                equip_on_interact: true,
-                equip_sound: SoundEvent::EntityHappyGhastEquip,
-                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::WitherSkeletonSkull => Equippable {
-                slot: EquipmentSlot::Head,
-                swappable: false,
-                ..Equippable::new()
-            },
-            ItemKind::WolfArmor => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: vec![EntityKind::Wolf],
-                }),
-                asset_id: Some("minecraft:armadillo_scute".into()),
-                can_be_sheared: true,
-                equip_sound: SoundEvent::ItemArmorEquipWolf,
-                shearing_sound: SoundEvent::ItemArmorUnequipWolf,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::YellowCarpet => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: vec![EntityKind::Llama, EntityKind::TraderLlama],
-                }),
-                asset_id: Some("minecraft:yellow_carpet".into()),
-                can_be_sheared: true,
-                equip_sound: SoundEvent::EntityLlamaSwag,
-                shearing_sound: SoundEvent::ItemLlamaCarpetUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::YellowHarness => Equippable {
-                allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
-                        .clone()
-                        .into_iter()
-                        .collect(),
-                }),
-                asset_id: Some("minecraft:yellow_harness".into()),
-                can_be_sheared: true,
-                equip_on_interact: true,
-                equip_sound: SoundEvent::EntityHappyGhastEquip,
-                shearing_sound: SoundEvent::EntityHappyGhastUnequip,
-                slot: EquipmentSlot::Body,
-                ..Equippable::new()
-            },
-            ItemKind::ZombieHead => Equippable {
-                slot: EquipmentSlot::Head,
-                swappable: false,
-                ..Equippable::new()
-            },
+            ItemKind::AllaySpawnEgg => EntityKind::Allay,
+            ItemKind::ArmadilloSpawnEgg => EntityKind::Armadillo,
+            ItemKind::AxolotlSpawnEgg => EntityKind::Axolotl,
+            ItemKind::BatSpawnEgg => EntityKind::Bat,
+            ItemKind::BeeSpawnEgg => EntityKind::Bee,
+            ItemKind::BlazeSpawnEgg => EntityKind::Blaze,
+            ItemKind::BoggedSpawnEgg => EntityKind::Bogged,
+            ItemKind::BreezeSpawnEgg => EntityKind::Breeze,
+            ItemKind::CamelHuskSpawnEgg => EntityKind::CamelHusk,
+            ItemKind::CamelSpawnEgg => EntityKind::Camel,
+            ItemKind::CatSpawnEgg => EntityKind::Cat,
+            ItemKind::CaveSpiderSpawnEgg => EntityKind::CaveSpider,
+            ItemKind::ChickenSpawnEgg => EntityKind::Chicken,
+            ItemKind::CodSpawnEgg => EntityKind::Cod,
+            ItemKind::CopperGolemSpawnEgg => EntityKind::CopperGolem,
+            ItemKind::CowSpawnEgg => EntityKind::Cow,
+            ItemKind::CreakingSpawnEgg => EntityKind::Creaking,
+            ItemKind::CreeperSpawnEgg => EntityKind::Creeper,
+            ItemKind::DolphinSpawnEgg => EntityKind::Dolphin,
+            ItemKind::DonkeySpawnEgg => EntityKind::Donkey,
+            ItemKind::DrownedSpawnEgg => EntityKind::Drowned,
+            ItemKind::ElderGuardianSpawnEgg => EntityKind::ElderGuardian,
+            ItemKind::EnderDragonSpawnEgg => EntityKind::EnderDragon,
+            ItemKind::EndermanSpawnEgg => EntityKind::Enderman,
+            ItemKind::EndermiteSpawnEgg => EntityKind::Endermite,
+            ItemKind::EvokerSpawnEgg => EntityKind::Evoker,
+            ItemKind::FoxSpawnEgg => EntityKind::Fox,
+            ItemKind::FrogSpawnEgg => EntityKind::Frog,
+            ItemKind::GhastSpawnEgg => EntityKind::Ghast,
+            ItemKind::GlowSquidSpawnEgg => EntityKind::GlowSquid,
+            ItemKind::GoatSpawnEgg => EntityKind::Goat,
+            ItemKind::GuardianSpawnEgg => EntityKind::Guardian,
+            ItemKind::HappyGhastSpawnEgg => EntityKind::HappyGhast,
+            ItemKind::HoglinSpawnEgg => EntityKind::Hoglin,
+            ItemKind::HorseSpawnEgg => EntityKind::Horse,
+            ItemKind::HuskSpawnEgg => EntityKind::Husk,
+            ItemKind::IronGolemSpawnEgg => EntityKind::IronGolem,
+            ItemKind::LlamaSpawnEgg => EntityKind::Llama,
+            ItemKind::MagmaCubeSpawnEgg => EntityKind::MagmaCube,
+            ItemKind::MooshroomSpawnEgg => EntityKind::Mooshroom,
+            ItemKind::MuleSpawnEgg => EntityKind::Mule,
+            ItemKind::NautilusSpawnEgg => EntityKind::Nautilus,
+            ItemKind::OcelotSpawnEgg => EntityKind::Ocelot,
+            ItemKind::PandaSpawnEgg => EntityKind::Panda,
+            ItemKind::ParchedSpawnEgg => EntityKind::Parched,
+            ItemKind::ParrotSpawnEgg => EntityKind::Parrot,
+            ItemKind::PhantomSpawnEgg => EntityKind::Phantom,
+            ItemKind::PigSpawnEgg => EntityKind::Pig,
+            ItemKind::PiglinBruteSpawnEgg => EntityKind::PiglinBrute,
+            ItemKind::PiglinSpawnEgg => EntityKind::Piglin,
+            ItemKind::PillagerSpawnEgg => EntityKind::Pillager,
+            ItemKind::PolarBearSpawnEgg => EntityKind::PolarBear,
+            ItemKind::PufferfishSpawnEgg => EntityKind::Pufferfish,
+            ItemKind::RabbitSpawnEgg => EntityKind::Rabbit,
+            ItemKind::RavagerSpawnEgg => EntityKind::Ravager,
+            ItemKind::SalmonSpawnEgg => EntityKind::Salmon,
+            ItemKind::SheepSpawnEgg => EntityKind::Sheep,
+            ItemKind::ShulkerSpawnEgg => EntityKind::Shulker,
+            ItemKind::SilverfishSpawnEgg => EntityKind::Silverfish,
+            ItemKind::SkeletonHorseSpawnEgg => EntityKind::SkeletonHorse,
+            ItemKind::SkeletonSpawnEgg => EntityKind::Skeleton,
+            ItemKind::SlimeSpawnEgg => EntityKind::Slime,
+            ItemKind::SnifferSpawnEgg => EntityKind::Sniffer,
+            ItemKind::SnowGolemSpawnEgg => EntityKind::SnowGolem,
+            ItemKind::SpiderSpawnEgg => EntityKind::Spider,
+            ItemKind::SquidSpawnEgg => EntityKind::Squid,
+            ItemKind::StraySpawnEgg => EntityKind::Stray,
+            ItemKind::StriderSpawnEgg => EntityKind::Strider,
+            ItemKind::TadpoleSpawnEgg => EntityKind::Tadpole,
+            ItemKind::TraderLlamaSpawnEgg => EntityKind::TraderLlama,
+            ItemKind::TropicalFishSpawnEgg => EntityKind::TropicalFish,
+            ItemKind::TurtleSpawnEgg => EntityKind::Turtle,
+            ItemKind::VexSpawnEgg => EntityKind::Vex,
+            ItemKind::VillagerSpawnEgg => EntityKind::Villager,
+            ItemKind::VindicatorSpawnEgg => EntityKind::Vindicator,
+            ItemKind::WanderingTraderSpawnEgg => EntityKind::WanderingTrader,
+            ItemKind::WardenSpawnEgg => EntityKind::Warden,
+            ItemKind::WitchSpawnEgg => EntityKind::Witch,
+            ItemKind::WitherSkeletonSpawnEgg => EntityKind::WitherSkeleton,
+            ItemKind::WitherSpawnEgg => EntityKind::Wither,
+            ItemKind::WolfSpawnEgg => EntityKind::Wolf,
+            ItemKind::ZoglinSpawnEgg => EntityKind::Zoglin,
+            ItemKind::ZombieHorseSpawnEgg => EntityKind::ZombieHorse,
+            ItemKind::ZombieNautilusSpawnEgg => EntityKind::ZombieNautilus,
+            ItemKind::ZombieSpawnEgg => EntityKind::Zombie,
+            ItemKind::ZombieVillagerSpawnEgg => EntityKind::ZombieVillager,
+            ItemKind::ZombifiedPiglinSpawnEgg => EntityKind::ZombifiedPiglin,
             _ => return None,
         };
-        Some(value)
+        Some(EntityData {
+            kind: value,
+            data: NbtCompound::new(),
+        })
     }
 }
-impl DefaultableComponent for ProvidesTrimMaterial {
+impl DefaultableComponent for JukeboxPlayable {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::AmethystShard => {
-                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
+            ItemKind::MusicDisc11 => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
             }
-            ItemKind::CopperIngot => {
-                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
+            ItemKind::MusicDisc13 => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
             }
-            ItemKind::Diamond => {
-                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
+            ItemKind::MusicDisc5 => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
             }
-            ItemKind::Emerald => {
-                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
+            ItemKind::MusicDiscBlocks => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
             }
-            ItemKind::GoldIngot => {
-                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
+            ItemKind::MusicDiscCat => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
             }
-            ItemKind::IronIngot => {
-                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
+            ItemKind::MusicDiscChirp => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
             }
-            ItemKind::LapisLazuli => {
-                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
+            ItemKind::MusicDiscCreator => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
             }
-            ItemKind::NetheriteIngot => {
-                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
+            ItemKind::MusicDiscCreatorMusicBox => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
             }
-            ItemKind::Quartz => {
-                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
+            ItemKind::MusicDiscFar => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
             }
-            ItemKind::Redstone => {
-                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
+            ItemKind::MusicDiscLavaChicken => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
             }
-            ItemKind::ResinBrick => {
-                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
+            ItemKind::MusicDiscMall => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDiscMellohi => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDiscOtherside => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDiscPigstep => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDiscPrecipice => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDiscRelic => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDiscStal => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDiscStrad => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDiscTears => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDiscWait => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+            }
+            ItemKind::MusicDiscWard => {
+                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
             }
             _ => return None,
         };
-        Some(ProvidesTrimMaterial { value: value })
-    }
-}
-impl DefaultableComponent for ProvidesBannerPatterns {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::BordureIndentedBannerPattern => HolderSet::Direct { contents: vec![] },
-            ItemKind::CreeperBannerPattern => HolderSet::Direct { contents: vec![] },
-            ItemKind::FieldMasonedBannerPattern => HolderSet::Direct { contents: vec![] },
-            ItemKind::FlowBannerPattern => HolderSet::Direct { contents: vec![] },
-            ItemKind::FlowerBannerPattern => HolderSet::Direct { contents: vec![] },
-            ItemKind::GlobeBannerPattern => HolderSet::Direct { contents: vec![] },
-            ItemKind::GusterBannerPattern => HolderSet::Direct { contents: vec![] },
-            ItemKind::MojangBannerPattern => HolderSet::Direct { contents: vec![] },
-            ItemKind::PiglinBannerPattern => HolderSet::Direct { contents: vec![] },
-            ItemKind::SkullBannerPattern => HolderSet::Direct { contents: vec![] },
-            _ => return None,
-        };
-        Some(ProvidesBannerPatterns { key: value })
-    }
-}
-impl DefaultableComponent for Dye {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::BlackDye => DyeColor::Black,
-            ItemKind::BlueDye => DyeColor::Blue,
-            ItemKind::BrownDye => DyeColor::Brown,
-            ItemKind::CyanDye => DyeColor::Cyan,
-            ItemKind::GrayDye => DyeColor::Gray,
-            ItemKind::GreenDye => DyeColor::Green,
-            ItemKind::LightBlueDye => DyeColor::LightBlue,
-            ItemKind::LightGrayDye => DyeColor::LightGray,
-            ItemKind::LimeDye => DyeColor::Lime,
-            ItemKind::MagentaDye => DyeColor::Magenta,
-            ItemKind::OrangeDye => DyeColor::Orange,
-            ItemKind::PinkDye => DyeColor::Pink,
-            ItemKind::PurpleDye => DyeColor::Purple,
-            ItemKind::RedDye => DyeColor::Red,
-            ItemKind::WhiteDye => DyeColor::White,
-            ItemKind::YellowDye => DyeColor::Yellow,
-            _ => return None,
-        };
-        Some(Dye { color: value })
-    }
-}
-impl DefaultableComponent for UseCooldown {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::ChorusFruit => UseCooldown {
-                seconds: 1.0,
-                ..UseCooldown::new()
-            },
-            ItemKind::EnderPearl => UseCooldown {
-                seconds: 1.0,
-                ..UseCooldown::new()
-            },
-            ItemKind::WindCharge => UseCooldown {
-                seconds: 0.5,
-                ..UseCooldown::new()
-            },
-            _ => return None,
-        };
-        Some(value)
-    }
-}
-impl DefaultableComponent for BannerPatterns {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::BlackBanner => vec![],
-            ItemKind::BlueBanner => vec![],
-            ItemKind::BrownBanner => vec![],
-            ItemKind::CyanBanner => vec![],
-            ItemKind::GrayBanner => vec![],
-            ItemKind::GreenBanner => vec![],
-            ItemKind::LightBlueBanner => vec![],
-            ItemKind::LightGrayBanner => vec![],
-            ItemKind::LimeBanner => vec![],
-            ItemKind::MagentaBanner => vec![],
-            ItemKind::OrangeBanner => vec![],
-            ItemKind::PinkBanner => vec![],
-            ItemKind::PurpleBanner => vec![],
-            ItemKind::RedBanner => vec![],
-            ItemKind::Shield => vec![],
-            ItemKind::WhiteBanner => vec![],
-            ItemKind::YellowBanner => vec![],
-            _ => return None,
-        };
-        Some(BannerPatterns { patterns: value })
-    }
-}
-impl DefaultableComponent for ChickenVariant {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::BlueEgg => azalea_registry::data::ChickenVariant::new_raw(0),
-            ItemKind::BrownEgg => azalea_registry::data::ChickenVariant::new_raw(0),
-            ItemKind::Egg => azalea_registry::data::ChickenVariant::new_raw(0),
-            _ => return None,
-        };
-        Some(ChickenVariant { data: value })
+        Some(JukeboxPlayable { value: value })
     }
 }
 impl DefaultableComponent for AttackRange {
@@ -6223,21 +5752,426 @@ impl DefaultableComponent for PiercingWeapon {
         Some(value)
     }
 }
-impl DefaultableComponent for UseRemainder {
+impl DefaultableComponent for Weapon {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::BeetrootSoup => ItemStack::from(ItemKind::Bowl),
-            ItemKind::HoneyBottle => ItemStack::from(ItemKind::GlassBottle),
-            ItemKind::MilkBucket => ItemStack::from(ItemKind::Bucket),
-            ItemKind::MushroomStew => ItemStack::from(ItemKind::Bowl),
-            ItemKind::Potion => ItemStack::from(ItemKind::GlassBottle),
-            ItemKind::RabbitStew => ItemStack::from(ItemKind::Bowl),
-            ItemKind::SuspiciousStew => ItemStack::from(ItemKind::Bowl),
+            ItemKind::CopperAxe => Weapon {
+                disable_blocking_for_seconds: 5.0,
+                item_damage_per_attack: 2,
+            },
+            ItemKind::CopperHoe => Weapon {
+                item_damage_per_attack: 2,
+                ..Weapon::new()
+            },
+            ItemKind::CopperPickaxe => Weapon {
+                item_damage_per_attack: 2,
+                ..Weapon::new()
+            },
+            ItemKind::CopperShovel => Weapon {
+                item_damage_per_attack: 2,
+                ..Weapon::new()
+            },
+            ItemKind::CopperSpear => Weapon::new(),
+            ItemKind::CopperSword => Weapon::new(),
+            ItemKind::DiamondAxe => Weapon {
+                disable_blocking_for_seconds: 5.0,
+                item_damage_per_attack: 2,
+            },
+            ItemKind::DiamondHoe => Weapon {
+                item_damage_per_attack: 2,
+                ..Weapon::new()
+            },
+            ItemKind::DiamondPickaxe => Weapon {
+                item_damage_per_attack: 2,
+                ..Weapon::new()
+            },
+            ItemKind::DiamondShovel => Weapon {
+                item_damage_per_attack: 2,
+                ..Weapon::new()
+            },
+            ItemKind::DiamondSpear => Weapon::new(),
+            ItemKind::DiamondSword => Weapon::new(),
+            ItemKind::GoldenAxe => Weapon {
+                disable_blocking_for_seconds: 5.0,
+                item_damage_per_attack: 2,
+            },
+            ItemKind::GoldenHoe => Weapon {
+                item_damage_per_attack: 2,
+                ..Weapon::new()
+            },
+            ItemKind::GoldenPickaxe => Weapon {
+                item_damage_per_attack: 2,
+                ..Weapon::new()
+            },
+            ItemKind::GoldenShovel => Weapon {
+                item_damage_per_attack: 2,
+                ..Weapon::new()
+            },
+            ItemKind::GoldenSpear => Weapon::new(),
+            ItemKind::GoldenSword => Weapon::new(),
+            ItemKind::IronAxe => Weapon {
+                disable_blocking_for_seconds: 5.0,
+                item_damage_per_attack: 2,
+            },
+            ItemKind::IronHoe => Weapon {
+                item_damage_per_attack: 2,
+                ..Weapon::new()
+            },
+            ItemKind::IronPickaxe => Weapon {
+                item_damage_per_attack: 2,
+                ..Weapon::new()
+            },
+            ItemKind::IronShovel => Weapon {
+                item_damage_per_attack: 2,
+                ..Weapon::new()
+            },
+            ItemKind::IronSpear => Weapon::new(),
+            ItemKind::IronSword => Weapon::new(),
+            ItemKind::Mace => Weapon::new(),
+            ItemKind::NetheriteAxe => Weapon {
+                disable_blocking_for_seconds: 5.0,
+                item_damage_per_attack: 2,
+            },
+            ItemKind::NetheriteHoe => Weapon {
+                item_damage_per_attack: 2,
+                ..Weapon::new()
+            },
+            ItemKind::NetheritePickaxe => Weapon {
+                item_damage_per_attack: 2,
+                ..Weapon::new()
+            },
+            ItemKind::NetheriteShovel => Weapon {
+                item_damage_per_attack: 2,
+                ..Weapon::new()
+            },
+            ItemKind::NetheriteSpear => Weapon::new(),
+            ItemKind::NetheriteSword => Weapon::new(),
+            ItemKind::StoneAxe => Weapon {
+                disable_blocking_for_seconds: 5.0,
+                item_damage_per_attack: 2,
+            },
+            ItemKind::StoneHoe => Weapon {
+                item_damage_per_attack: 2,
+                ..Weapon::new()
+            },
+            ItemKind::StonePickaxe => Weapon {
+                item_damage_per_attack: 2,
+                ..Weapon::new()
+            },
+            ItemKind::StoneShovel => Weapon {
+                item_damage_per_attack: 2,
+                ..Weapon::new()
+            },
+            ItemKind::StoneSpear => Weapon::new(),
+            ItemKind::StoneSword => Weapon::new(),
+            ItemKind::Trident => Weapon::new(),
+            ItemKind::WoodenAxe => Weapon {
+                disable_blocking_for_seconds: 5.0,
+                item_damage_per_attack: 2,
+            },
+            ItemKind::WoodenHoe => Weapon {
+                item_damage_per_attack: 2,
+                ..Weapon::new()
+            },
+            ItemKind::WoodenPickaxe => Weapon {
+                item_damage_per_attack: 2,
+                ..Weapon::new()
+            },
+            ItemKind::WoodenShovel => Weapon {
+                item_damage_per_attack: 2,
+                ..Weapon::new()
+            },
+            ItemKind::WoodenSpear => Weapon::new(),
+            ItemKind::WoodenSword => Weapon::new(),
             _ => return None,
         };
-        Some(UseRemainder {
-            convert_into: value,
-        })
+        Some(value)
+    }
+}
+impl DefaultableComponent for Consumable {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::Apple => Consumable::new(),
+            ItemKind::BakedPotato => Consumable::new(),
+            ItemKind::Beef => Consumable::new(),
+            ItemKind::Beetroot => Consumable::new(),
+            ItemKind::BeetrootSoup => Consumable::new(),
+            ItemKind::Bread => Consumable::new(),
+            ItemKind::Carrot => Consumable::new(),
+            ItemKind::Chicken => Consumable {
+                on_consume_effects: vec![ConsumeEffect::ApplyEffects {
+                    effects: vec![MobEffectInstance {
+                        id: MobEffect::Hunger,
+                        details: MobEffectDetails {
+                            duration: 600,
+                            show_icon: true,
+                            ..MobEffectDetails::new()
+                        },
+                    }],
+                    probability: 0.3,
+                }],
+                ..Consumable::new()
+            },
+            ItemKind::ChorusFruit => Consumable {
+                on_consume_effects: vec![ConsumeEffect::TeleportRandomly { diameter: 16.0 }],
+                ..Consumable::new()
+            },
+            ItemKind::Cod => Consumable::new(),
+            ItemKind::CookedBeef => Consumable::new(),
+            ItemKind::CookedChicken => Consumable::new(),
+            ItemKind::CookedCod => Consumable::new(),
+            ItemKind::CookedMutton => Consumable::new(),
+            ItemKind::CookedPorkchop => Consumable::new(),
+            ItemKind::CookedRabbit => Consumable::new(),
+            ItemKind::CookedSalmon => Consumable::new(),
+            ItemKind::Cookie => Consumable::new(),
+            ItemKind::DriedKelp => Consumable {
+                consume_seconds: 0.8,
+                ..Consumable::new()
+            },
+            ItemKind::EnchantedGoldenApple => Consumable {
+                on_consume_effects: vec![ConsumeEffect::ApplyEffects {
+                    effects: vec![
+                        MobEffectInstance {
+                            id: MobEffect::Regeneration,
+                            details: MobEffectDetails {
+                                amplifier: 1,
+                                duration: 400,
+                                show_icon: true,
+                                ..MobEffectDetails::new()
+                            },
+                        },
+                        MobEffectInstance {
+                            id: MobEffect::Resistance,
+                            details: MobEffectDetails {
+                                duration: 6000,
+                                show_icon: true,
+                                ..MobEffectDetails::new()
+                            },
+                        },
+                        MobEffectInstance {
+                            id: MobEffect::FireResistance,
+                            details: MobEffectDetails {
+                                duration: 6000,
+                                show_icon: true,
+                                ..MobEffectDetails::new()
+                            },
+                        },
+                        MobEffectInstance {
+                            id: MobEffect::Absorption,
+                            details: MobEffectDetails {
+                                amplifier: 3,
+                                duration: 2400,
+                                show_icon: true,
+                                ..MobEffectDetails::new()
+                            },
+                        },
+                    ],
+                    probability: 1.0,
+                }],
+                ..Consumable::new()
+            },
+            ItemKind::GlowBerries => Consumable::new(),
+            ItemKind::GoldenApple => Consumable {
+                on_consume_effects: vec![ConsumeEffect::ApplyEffects {
+                    effects: vec![
+                        MobEffectInstance {
+                            id: MobEffect::Regeneration,
+                            details: MobEffectDetails {
+                                amplifier: 1,
+                                duration: 100,
+                                show_icon: true,
+                                ..MobEffectDetails::new()
+                            },
+                        },
+                        MobEffectInstance {
+                            id: MobEffect::Absorption,
+                            details: MobEffectDetails {
+                                duration: 2400,
+                                show_icon: true,
+                                ..MobEffectDetails::new()
+                            },
+                        },
+                    ],
+                    probability: 1.0,
+                }],
+                ..Consumable::new()
+            },
+            ItemKind::GoldenCarrot => Consumable::new(),
+            ItemKind::HoneyBottle => Consumable {
+                animation: ItemUseAnimation::Drink,
+                consume_seconds: 2.0,
+                has_consume_particles: false,
+                on_consume_effects: vec![ConsumeEffect::RemoveEffects {
+                    effects: HolderSet::Direct {
+                        contents: vec![MobEffect::Poison],
+                    },
+                }],
+                sound: azalea_registry::Holder::Reference(SoundEvent::ItemHoneyBottleDrink),
+            },
+            ItemKind::MelonSlice => Consumable::new(),
+            ItemKind::MilkBucket => Consumable {
+                animation: ItemUseAnimation::Drink,
+                has_consume_particles: false,
+                on_consume_effects: vec![ConsumeEffect::ClearAllEffects {}],
+                sound: azalea_registry::Holder::Reference(SoundEvent::EntityGenericDrink),
+                ..Consumable::new()
+            },
+            ItemKind::MushroomStew => Consumable::new(),
+            ItemKind::Mutton => Consumable::new(),
+            ItemKind::OminousBottle => Consumable {
+                animation: ItemUseAnimation::Drink,
+                has_consume_particles: false,
+                on_consume_effects: vec![ConsumeEffect::PlaySound {
+                    sound: SoundEvent::ItemOminousBottleDispose,
+                }],
+                sound: azalea_registry::Holder::Reference(SoundEvent::EntityGenericDrink),
+                ..Consumable::new()
+            },
+            ItemKind::PoisonousPotato => Consumable {
+                on_consume_effects: vec![ConsumeEffect::ApplyEffects {
+                    effects: vec![MobEffectInstance {
+                        id: MobEffect::Poison,
+                        details: MobEffectDetails {
+                            duration: 100,
+                            show_icon: true,
+                            ..MobEffectDetails::new()
+                        },
+                    }],
+                    probability: 0.6,
+                }],
+                ..Consumable::new()
+            },
+            ItemKind::Porkchop => Consumable::new(),
+            ItemKind::Potato => Consumable::new(),
+            ItemKind::Potion => Consumable {
+                animation: ItemUseAnimation::Drink,
+                has_consume_particles: false,
+                sound: azalea_registry::Holder::Reference(SoundEvent::EntityGenericDrink),
+                ..Consumable::new()
+            },
+            ItemKind::Pufferfish => Consumable {
+                on_consume_effects: vec![ConsumeEffect::ApplyEffects {
+                    effects: vec![
+                        MobEffectInstance {
+                            id: MobEffect::Poison,
+                            details: MobEffectDetails {
+                                amplifier: 1,
+                                duration: 1200,
+                                show_icon: true,
+                                ..MobEffectDetails::new()
+                            },
+                        },
+                        MobEffectInstance {
+                            id: MobEffect::Hunger,
+                            details: MobEffectDetails {
+                                amplifier: 2,
+                                duration: 300,
+                                show_icon: true,
+                                ..MobEffectDetails::new()
+                            },
+                        },
+                        MobEffectInstance {
+                            id: MobEffect::Nausea,
+                            details: MobEffectDetails {
+                                duration: 300,
+                                show_icon: true,
+                                ..MobEffectDetails::new()
+                            },
+                        },
+                    ],
+                    probability: 1.0,
+                }],
+                ..Consumable::new()
+            },
+            ItemKind::PumpkinPie => Consumable::new(),
+            ItemKind::Rabbit => Consumable::new(),
+            ItemKind::RabbitStew => Consumable::new(),
+            ItemKind::RottenFlesh => Consumable {
+                on_consume_effects: vec![ConsumeEffect::ApplyEffects {
+                    effects: vec![MobEffectInstance {
+                        id: MobEffect::Hunger,
+                        details: MobEffectDetails {
+                            duration: 600,
+                            show_icon: true,
+                            ..MobEffectDetails::new()
+                        },
+                    }],
+                    probability: 0.8,
+                }],
+                ..Consumable::new()
+            },
+            ItemKind::Salmon => Consumable::new(),
+            ItemKind::SpiderEye => Consumable {
+                on_consume_effects: vec![ConsumeEffect::ApplyEffects {
+                    effects: vec![MobEffectInstance {
+                        id: MobEffect::Poison,
+                        details: MobEffectDetails {
+                            duration: 100,
+                            show_icon: true,
+                            ..MobEffectDetails::new()
+                        },
+                    }],
+                    probability: 1.0,
+                }],
+                ..Consumable::new()
+            },
+            ItemKind::SuspiciousStew => Consumable::new(),
+            ItemKind::SweetBerries => Consumable::new(),
+            ItemKind::TropicalFish => Consumable::new(),
+            _ => return None,
+        };
+        Some(value)
+    }
+}
+impl DefaultableComponent for BannerPatterns {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::BlackBanner => vec![],
+            ItemKind::BlueBanner => vec![],
+            ItemKind::BrownBanner => vec![],
+            ItemKind::CyanBanner => vec![],
+            ItemKind::GrayBanner => vec![],
+            ItemKind::GreenBanner => vec![],
+            ItemKind::LightBlueBanner => vec![],
+            ItemKind::LightGrayBanner => vec![],
+            ItemKind::LimeBanner => vec![],
+            ItemKind::MagentaBanner => vec![],
+            ItemKind::OrangeBanner => vec![],
+            ItemKind::PinkBanner => vec![],
+            ItemKind::PurpleBanner => vec![],
+            ItemKind::RedBanner => vec![],
+            ItemKind::Shield => vec![],
+            ItemKind::WhiteBanner => vec![],
+            ItemKind::YellowBanner => vec![],
+            _ => return None,
+        };
+        Some(BannerPatterns { patterns: value })
+    }
+}
+impl DefaultableComponent for BundleContents {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::BlackBundle => vec![],
+            ItemKind::BlueBundle => vec![],
+            ItemKind::BrownBundle => vec![],
+            ItemKind::Bundle => vec![],
+            ItemKind::CyanBundle => vec![],
+            ItemKind::GrayBundle => vec![],
+            ItemKind::GreenBundle => vec![],
+            ItemKind::LightBlueBundle => vec![],
+            ItemKind::LightGrayBundle => vec![],
+            ItemKind::LimeBundle => vec![],
+            ItemKind::MagentaBundle => vec![],
+            ItemKind::OrangeBundle => vec![],
+            ItemKind::PinkBundle => vec![],
+            ItemKind::PurpleBundle => vec![],
+            ItemKind::RedBundle => vec![],
+            ItemKind::WhiteBundle => vec![],
+            ItemKind::YellowBundle => vec![],
+            _ => return None,
+        };
+        Some(BundleContents { items: value })
     }
 }
 impl DefaultableComponent for EnchantmentGlintOverride {
@@ -6255,30 +6189,45 @@ impl DefaultableComponent for EnchantmentGlintOverride {
         Some(EnchantmentGlintOverride { show_glint: value })
     }
 }
-impl DefaultableComponent for Fireworks {
+impl DefaultableComponent for ProvidesTrimMaterial {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::FireworkRocket => Fireworks {
-                flight_duration: 1,
-                ..Fireworks::new()
-            },
+            ItemKind::AmethystShard => {
+                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
+            }
+            ItemKind::CopperIngot => {
+                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
+            }
+            ItemKind::Diamond => {
+                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
+            }
+            ItemKind::Emerald => {
+                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
+            }
+            ItemKind::GoldIngot => {
+                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
+            }
+            ItemKind::IronIngot => {
+                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
+            }
+            ItemKind::LapisLazuli => {
+                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
+            }
+            ItemKind::NetheriteIngot => {
+                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
+            }
+            ItemKind::Quartz => {
+                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
+            }
+            ItemKind::Redstone => {
+                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
+            }
+            ItemKind::ResinBrick => {
+                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
+            }
             _ => return None,
         };
-        Some(value)
-    }
-}
-impl DefaultableComponent for BucketEntityData {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::AxolotlBucket => NbtCompound::from_values(vec![]),
-            ItemKind::CodBucket => NbtCompound::from_values(vec![]),
-            ItemKind::PufferfishBucket => NbtCompound::from_values(vec![]),
-            ItemKind::SalmonBucket => NbtCompound::from_values(vec![]),
-            ItemKind::TadpoleBucket => NbtCompound::from_values(vec![]),
-            ItemKind::TropicalFishBucket => NbtCompound::from_values(vec![]),
-            _ => return None,
-        };
-        Some(BucketEntityData { entity: value })
+        Some(ProvidesTrimMaterial { value: value })
     }
 }
 impl DefaultableComponent for PotionContents {
@@ -6293,144 +6242,21 @@ impl DefaultableComponent for PotionContents {
         Some(value)
     }
 }
-impl DefaultableComponent for SuspiciousStewEffects {
+impl DefaultableComponent for UseRemainder {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::SuspiciousStew => vec![],
+            ItemKind::BeetrootSoup => ItemStack::from(ItemKind::Bowl),
+            ItemKind::HoneyBottle => ItemStack::from(ItemKind::GlassBottle),
+            ItemKind::MilkBucket => ItemStack::from(ItemKind::Bucket),
+            ItemKind::MushroomStew => ItemStack::from(ItemKind::Bowl),
+            ItemKind::Potion => ItemStack::from(ItemKind::GlassBottle),
+            ItemKind::RabbitStew => ItemStack::from(ItemKind::Bowl),
+            ItemKind::SuspiciousStew => ItemStack::from(ItemKind::Bowl),
             _ => return None,
         };
-        Some(SuspiciousStewEffects { effects: value })
-    }
-}
-impl DefaultableComponent for Bees {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::BeeNest => vec![],
-            ItemKind::Beehive => vec![],
-            _ => return None,
-        };
-        Some(Bees { occupants: value })
-    }
-}
-impl DefaultableComponent for BlockState {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::BeeNest => HashMap::from_iter([("honey_level".to_owned(), "0".to_owned())]),
-            ItemKind::Beehive => HashMap::from_iter([("honey_level".to_owned(), "0".to_owned())]),
-            ItemKind::CopperGolemStatue => {
-                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
-            }
-            ItemKind::ExposedCopperGolemStatue => {
-                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
-            }
-            ItemKind::Light => HashMap::from_iter([("level".to_owned(), "15".to_owned())]),
-            ItemKind::OxidizedCopperGolemStatue => {
-                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
-            }
-            ItemKind::TestBlock => HashMap::from_iter([("mode".to_owned(), "start".to_owned())]),
-            ItemKind::WaxedCopperGolemStatue => {
-                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
-            }
-            ItemKind::WaxedExposedCopperGolemStatue => {
-                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
-            }
-            ItemKind::WaxedOxidizedCopperGolemStatue => {
-                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
-            }
-            ItemKind::WaxedWeatheredCopperGolemStatue => {
-                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
-            }
-            ItemKind::WeatheredCopperGolemStatue => {
-                HashMap::from_iter([("copper_golem_pose".to_owned(), "standing".to_owned())])
-            }
-            _ => return None,
-        };
-        Some(BlockState { properties: value })
-    }
-}
-impl DefaultableComponent for StoredEnchantments {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::EnchantedBook => HashMap::from_iter([]),
-            _ => return None,
-        };
-        Some(StoredEnchantments {
-            enchantments: value,
+        Some(UseRemainder {
+            convert_into: value,
         })
-    }
-}
-impl DefaultableComponent for DebugStickState {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::DebugStick => NbtCompound::from_values(vec![]),
-            _ => return None,
-        };
-        Some(DebugStickState { properties: value })
-    }
-}
-impl DefaultableComponent for BlocksAttacks {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::Shield => BlocksAttacks {
-                block_delay_seconds: 0.25,
-                block_sound: Some(azalea_registry::Holder::Reference(
-                    SoundEvent::ItemShieldBlock,
-                )),
-                bypassed_by: Some(HolderSet::Direct { contents: vec![] }),
-                disabled_sound: Some(azalea_registry::Holder::Reference(
-                    SoundEvent::ItemShieldBreak,
-                )),
-                item_damage: ItemDamageFunction {
-                    base: 1.0,
-                    factor: 1.0,
-                    threshold: 3.0,
-                },
-                ..BlocksAttacks::new()
-            },
-            _ => return None,
-        };
-        Some(value)
-    }
-}
-impl DefaultableComponent for Glider {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::Elytra => Glider,
-            _ => return None,
-        };
-        Some(value)
-    }
-}
-impl DefaultableComponent for WritableBookContent {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::WritableBook => Vec::new(),
-            _ => return None,
-        };
-        Some(WritableBookContent { pages: value })
-    }
-}
-impl DefaultableComponent for OminousBottleAmplifier {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::OminousBottle => 0,
-            _ => return None,
-        };
-        Some(OminousBottleAmplifier { amplifier: value })
-    }
-}
-impl DefaultableComponent for PotDecorations {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::DecoratedPot => vec![
-                ItemKind::Brick,
-                ItemKind::Brick,
-                ItemKind::Brick,
-                ItemKind::Brick,
-            ],
-            _ => return None,
-        };
-        Some(PotDecorations { items: value })
     }
 }
 impl DefaultableComponent for PotionDurationScale {
@@ -6443,22 +6269,13 @@ impl DefaultableComponent for PotionDurationScale {
         Some(PotionDurationScale { value: value })
     }
 }
-impl DefaultableComponent for MapColor {
+impl DefaultableComponent for ChargedProjectiles {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::FilledMap => 4603950,
+            ItemKind::Crossbow => vec![],
             _ => return None,
         };
-        Some(MapColor { color: value })
-    }
-}
-impl DefaultableComponent for MapDecorations {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::FilledMap => NbtCompound::from_values(vec![]),
-            _ => return None,
-        };
-        Some(MapDecorations { decorations: value })
+        Some(ChargedProjectiles { items: value })
     }
 }
 impl DefaultableComponent for DeathProtection {
@@ -6505,6 +6322,198 @@ impl DefaultableComponent for DeathProtection {
         })
     }
 }
+impl DefaultableComponent for OminousBottleAmplifier {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::OminousBottle => 0,
+            _ => return None,
+        };
+        Some(OminousBottleAmplifier { amplifier: value })
+    }
+}
+impl DefaultableComponent for ProvidesBannerPatterns {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::BordureIndentedBannerPattern => HolderSet::Direct { contents: vec![] },
+            ItemKind::CreeperBannerPattern => HolderSet::Direct { contents: vec![] },
+            ItemKind::FieldMasonedBannerPattern => HolderSet::Direct { contents: vec![] },
+            ItemKind::FlowBannerPattern => HolderSet::Direct { contents: vec![] },
+            ItemKind::FlowerBannerPattern => HolderSet::Direct { contents: vec![] },
+            ItemKind::GlobeBannerPattern => HolderSet::Direct { contents: vec![] },
+            ItemKind::GusterBannerPattern => HolderSet::Direct { contents: vec![] },
+            ItemKind::MojangBannerPattern => HolderSet::Direct { contents: vec![] },
+            ItemKind::PiglinBannerPattern => HolderSet::Direct { contents: vec![] },
+            ItemKind::SkullBannerPattern => HolderSet::Direct { contents: vec![] },
+            _ => return None,
+        };
+        Some(ProvidesBannerPatterns { key: value })
+    }
+}
+impl DefaultableComponent for Bees {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::BeeNest => vec![],
+            ItemKind::Beehive => vec![],
+            _ => return None,
+        };
+        Some(Bees { occupants: value })
+    }
+}
+impl DefaultableComponent for UseCooldown {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::ChorusFruit => UseCooldown {
+                seconds: 1.0,
+                ..UseCooldown::new()
+            },
+            ItemKind::EnderPearl => UseCooldown {
+                seconds: 1.0,
+                ..UseCooldown::new()
+            },
+            ItemKind::WindCharge => UseCooldown {
+                seconds: 0.5,
+                ..UseCooldown::new()
+            },
+            _ => return None,
+        };
+        Some(value)
+    }
+}
+impl DefaultableComponent for Fireworks {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::FireworkRocket => Fireworks {
+                flight_duration: 1,
+                ..Fireworks::new()
+            },
+            _ => return None,
+        };
+        Some(value)
+    }
+}
+impl DefaultableComponent for WritableBookContent {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::WritableBook => Vec::new(),
+            _ => return None,
+        };
+        Some(WritableBookContent { pages: value })
+    }
+}
+impl DefaultableComponent for SuspiciousStewEffects {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::SuspiciousStew => vec![],
+            _ => return None,
+        };
+        Some(SuspiciousStewEffects { effects: value })
+    }
+}
+impl DefaultableComponent for ChickenVariant {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::BlueEgg => azalea_registry::data::ChickenVariant::new_raw(0),
+            ItemKind::BrownEgg => azalea_registry::data::ChickenVariant::new_raw(0),
+            ItemKind::Egg => azalea_registry::data::ChickenVariant::new_raw(0),
+            _ => return None,
+        };
+        Some(ChickenVariant { data: value })
+    }
+}
+impl DefaultableComponent for BlocksAttacks {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::Shield => BlocksAttacks {
+                block_delay_seconds: 0.25,
+                block_sound: Some(azalea_registry::Holder::Reference(
+                    SoundEvent::ItemShieldBlock,
+                )),
+                bypassed_by: Some(HolderSet::Direct { contents: vec![] }),
+                disabled_sound: Some(azalea_registry::Holder::Reference(
+                    SoundEvent::ItemShieldBreak,
+                )),
+                item_damage: ItemDamageFunction {
+                    base: 1.0,
+                    factor: 1.0,
+                    threshold: 3.0,
+                },
+                ..BlocksAttacks::new()
+            },
+            _ => return None,
+        };
+        Some(value)
+    }
+}
+impl DefaultableComponent for DebugStickState {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::DebugStick => NbtCompound::from_values(vec![]),
+            _ => return None,
+        };
+        Some(DebugStickState { properties: value })
+    }
+}
+impl DefaultableComponent for PotDecorations {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::DecoratedPot => vec![
+                ItemKind::Brick,
+                ItemKind::Brick,
+                ItemKind::Brick,
+                ItemKind::Brick,
+            ],
+            _ => return None,
+        };
+        Some(PotDecorations { items: value })
+    }
+}
+impl DefaultableComponent for StoredEnchantments {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::EnchantedBook => HashMap::from_iter([]),
+            _ => return None,
+        };
+        Some(StoredEnchantments {
+            enchantments: value,
+        })
+    }
+}
+impl DefaultableComponent for MapColor {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::FilledMap => 4603950,
+            _ => return None,
+        };
+        Some(MapColor { color: value })
+    }
+}
+impl DefaultableComponent for MapDecorations {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::FilledMap => NbtCompound::from_values(vec![]),
+            _ => return None,
+        };
+        Some(MapDecorations { decorations: value })
+    }
+}
+impl DefaultableComponent for Glider {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::Elytra => Glider,
+            _ => return None,
+        };
+        Some(value)
+    }
+}
+impl DefaultableComponent for Recipes {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::KnowledgeBook => vec![],
+            _ => return None,
+        };
+        Some(Recipes { recipes: value })
+    }
+}
 impl DefaultableComponent for Instrument {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
@@ -6514,14 +6523,5 @@ impl DefaultableComponent for Instrument {
             _ => return None,
         };
         Some(Instrument { value: value })
-    }
-}
-impl DefaultableComponent for ChargedProjectiles {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::Crossbow => vec![],
-            _ => return None,
-        };
-        Some(ChargedProjectiles { items: value })
     }
 }
