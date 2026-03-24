@@ -199,6 +199,10 @@ make_block_states! {
             Bit = "bit",
             Banjo = "banjo",
             Pling = "pling",
+            Trumpet = "trumpet",
+            TrumpetExposed = "trumpet_exposed",
+            TrumpetOxidized = "trumpet_oxidized",
+            TrumpetWeathered = "trumpet_weathered",
             Zombie = "zombie",
             Skeleton = "skeleton",
             Creeper = "creeper",
@@ -1346,6 +1350,7 @@ make_block_states! {
             "facing": FacingCubic::North,
         },
         dandelion => BlockBehavior::new(), {},
+        golden_dandelion => BlockBehavior::new(), {},
         torchflower => BlockBehavior::new(), {},
         poppy => BlockBehavior::new(), {},
         blue_orchid => BlockBehavior::new(), {},
@@ -1503,43 +1508,43 @@ make_block_states! {
             "lit": Lit(false),
         },
         oak_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
             "waterlogged": Waterlogged(false),
         },
         spruce_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
             "waterlogged": Waterlogged(false),
         },
         birch_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
             "waterlogged": Waterlogged(false),
         },
         acacia_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
             "waterlogged": Waterlogged(false),
         },
         cherry_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
             "waterlogged": Waterlogged(false),
         },
         jungle_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
             "waterlogged": Waterlogged(false),
         },
         dark_oak_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
             "waterlogged": Waterlogged(false),
         },
         pale_oak_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
             "waterlogged": Waterlogged(false),
         },
         mangrove_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
             "waterlogged": Waterlogged(false),
         },
         bamboo_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
             "waterlogged": Waterlogged(false),
         },
         oak_door => BlockBehavior::new().strength(3.0, 3.0), {
@@ -1605,62 +1610,62 @@ make_block_states! {
         },
         oak_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "attached": Attached(false),
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
             "waterlogged": Waterlogged(false),
         },
         spruce_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "attached": Attached(false),
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
             "waterlogged": Waterlogged(false),
         },
         birch_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "attached": Attached(false),
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
             "waterlogged": Waterlogged(false),
         },
         acacia_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "attached": Attached(false),
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
             "waterlogged": Waterlogged(false),
         },
         cherry_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "attached": Attached(false),
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
             "waterlogged": Waterlogged(false),
         },
         jungle_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "attached": Attached(false),
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
             "waterlogged": Waterlogged(false),
         },
         dark_oak_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "attached": Attached(false),
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
             "waterlogged": Waterlogged(false),
         },
         pale_oak_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "attached": Attached(false),
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
             "waterlogged": Waterlogged(false),
         },
         crimson_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "attached": Attached(false),
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
             "waterlogged": Waterlogged(false),
         },
         warped_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "attached": Attached(false),
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
             "waterlogged": Waterlogged(false),
         },
         mangrove_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "attached": Attached(false),
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
             "waterlogged": Waterlogged(false),
         },
         bamboo_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "attached": Attached(false),
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
             "waterlogged": Waterlogged(false),
         },
         oak_wall_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
@@ -2273,6 +2278,7 @@ make_block_states! {
         potted_mangrove_propagule => BlockBehavior::new(), {},
         potted_fern => BlockBehavior::new(), {},
         potted_dandelion => BlockBehavior::new(), {},
+        potted_golden_dandelion => BlockBehavior::new(), {},
         potted_poppy => BlockBehavior::new(), {},
         potted_blue_orchid => BlockBehavior::new(), {},
         potted_allium => BlockBehavior::new(), {},
@@ -2716,52 +2722,52 @@ make_block_states! {
             "half": Half::Lower,
         },
         white_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
         },
         orange_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
         },
         magenta_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
         },
         light_blue_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
         },
         yellow_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
         },
         lime_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
         },
         pink_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
         },
         gray_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
         },
         light_gray_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
         },
         cyan_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
         },
         purple_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
         },
         blue_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
         },
         brown_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
         },
         green_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
         },
         red_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
         },
         black_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
         },
         white_wall_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
@@ -3913,11 +3919,11 @@ make_block_states! {
             "powered": Powered(false),
         },
         crimson_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
             "waterlogged": Waterlogged(false),
         },
         warped_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
-            "rotation": Rotation::_0,
+            "rotation": Rotation::_8,
             "waterlogged": Waterlogged(false),
         },
         crimson_wall_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {

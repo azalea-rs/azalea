@@ -61,6 +61,8 @@ pub enum Particle {
     Item(ItemParticle),
     Vibration(Box<VibrationParticle>),
     Trail,
+    PauseMobGrowth,
+    ResetMobGrowth,
     ItemSlime,
     ItemCobweb,
     ItemSnowball,
@@ -254,6 +256,8 @@ impl From<ParticleKind> for Particle {
             ParticleKind::BlockCrumble => Self::BlockCrumble,
             ParticleKind::Firefly => Self::Firefly,
             ParticleKind::CopperFireFlame => Self::CopperFireFlame,
+            ParticleKind::PauseMobGrowth => Self::PauseMobGrowth,
+            ParticleKind::ResetMobGrowth => Self::ResetMobGrowth,
         }
     }
 }

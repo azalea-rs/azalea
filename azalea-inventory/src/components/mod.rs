@@ -4,7 +4,7 @@ use core::f64;
 use std::{
     any::Any,
     collections::HashMap,
-    fmt::{self, Display},
+    fmt::{self, Debug, Display},
     io::{self, Cursor},
     mem::ManuallyDrop,
 };
@@ -26,7 +26,7 @@ use azalea_registry::{
         Attribute, BlockKind, DataComponentKind, EntityKind, ItemKind, MobEffect, Potion,
         SoundEvent, VillagerKind,
     },
-    data::{self, DamageKind, Enchantment, JukeboxSong, TrimMaterial, TrimPattern},
+    data::{self, BannerPatternKind, DamageKind, Enchantment, TrimMaterial, TrimPattern},
     identifier::Identifier,
 };
 pub use profile::*;
@@ -42,7 +42,7 @@ pub trait DataComponentTrait:
     const KIND: DataComponentKind;
 }
 
-pub trait EncodableDataComponent: Send + Sync + Any {
+pub trait EncodableDataComponent: Send + Sync + Any + Debug {
     fn encode(&self, buf: &mut Vec<u8>) -> io::Result<()>;
     fn crc_hash(&self, registries: &RegistryHolder) -> Checksum;
     // using the Clone trait makes it not be object-safe, so we have our own clone
@@ -54,7 +54,7 @@ pub trait EncodableDataComponent: Send + Sync + Any {
 
 impl<T> EncodableDataComponent for T
 where
-    T: DataComponentTrait + Clone + AzBuf + PartialEq,
+    T: DataComponentTrait + Clone + AzBuf + PartialEq + Debug,
 {
     fn encode(&self, buf: &mut Vec<u8>) -> io::Result<()> {
         self.azalea_write(buf)
@@ -300,6 +300,12 @@ define_data_components!(
     SwingAnimation,
     ZombieNautilusVariant,
     AttackRange,
+    AdditionalTradeCost,
+    Dye,
+    PigSoundVariant,
+    CowSoundVariant,
+    ChickenSoundVariant,
+    CatSoundVariant,
 );
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
@@ -360,7 +366,7 @@ pub enum Rarity {
     Epic,
 }
 
-#[derive(AzBuf, Clone, Default, PartialEq, Serialize)]
+#[derive(AzBuf, Clone, Default, PartialEq, Serialize, Debug)]
 #[serde(transparent)]
 pub struct Enchantments {
     /// Enchantment levels here are 1-indexed, level 0 does not exist.
@@ -714,7 +720,7 @@ pub struct WritableBookContent {
     pub pages: Vec<Filterable<String>>,
 }
 
-#[derive(AzBuf, Clone, PartialEq, Serialize)]
+#[derive(AzBuf, Clone, PartialEq, Serialize, Debug)]
 pub struct WrittenBookContent {
     #[limit(32)]
     pub title: Filterable<String>,
@@ -763,10 +769,9 @@ pub struct BlockEntityData {
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
-#[serde(untagged)]
-pub enum Instrument {
-    Registry(data::Instrument),
-    Holder(Holder<data::Instrument, InstrumentData>),
+#[serde(transparent)]
+pub struct Instrument {
+    pub value: Holder<azalea_registry::data::Instrument, InstrumentData>,
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
@@ -851,7 +856,7 @@ pub struct NoteBlockSound {
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
-pub struct BannerPattern {
+pub struct BannerPatternLayer {
     #[var]
     pub pattern: i32,
     #[var]
@@ -861,7 +866,7 @@ pub struct BannerPattern {
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct BannerPatterns {
-    pub patterns: Vec<BannerPattern>,
+    pub patterns: Vec<BannerPatternLayer>,
 }
 
 #[derive(AzBuf, Clone, Copy, Debug, PartialEq, Serialize)]
@@ -936,10 +941,9 @@ pub struct ContainerLoot {
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
-#[serde(untagged)]
-pub enum JukeboxPlayable {
-    Referenced(Identifier),
-    Direct(Holder<JukeboxSong, JukeboxSongData>),
+#[serde(transparent)]
+pub struct JukeboxPlayable {
+    pub value: Holder<azalea_registry::data::JukeboxSong, JukeboxSongData>,
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
@@ -1050,8 +1054,7 @@ pub struct ItemModel {
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct DamageResistant {
-    /// In vanilla this only allows tag keys, i.e. it must start with '#'
-    pub types: Identifier,
+    pub types: HolderSet<DamageKind, Identifier>,
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
@@ -1591,7 +1594,7 @@ pub struct BlocksAttacks {
     #[serde(skip_serializing_if = "is_default")]
     pub item_damage: ItemDamageFunction,
     #[serde(skip_serializing_if = "is_default")]
-    pub bypassed_by: Option<Identifier>,
+    pub bypassed_by: Option<HolderSet<DamageKind, Identifier>>,
     #[serde(skip_serializing_if = "is_default")]
     pub block_sound: Option<azalea_registry::Holder<SoundEvent, CustomSound>>,
     #[serde(skip_serializing_if = "is_default")]
@@ -1654,10 +1657,9 @@ impl Default for ItemDamageFunction {
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
-#[serde(untagged)]
-pub enum ProvidesTrimMaterial {
-    Referenced(Identifier),
-    Direct(Holder<TrimMaterial, DirectTrimMaterial>),
+#[serde(transparent)]
+pub struct ProvidesTrimMaterial {
+    pub value: Holder<azalea_registry::data::TrimMaterial, DirectTrimMaterial>,
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
@@ -1680,7 +1682,7 @@ pub struct AssetInfo {
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
 pub struct ProvidesBannerPatterns {
-    pub key: Identifier,
+    pub key: HolderSet<BannerPatternKind, Identifier>,
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
@@ -1702,26 +1704,14 @@ pub struct CowVariant {
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
-#[serde(untagged)]
-pub enum ChickenVariant {
-    Referenced(Identifier),
-    Direct(ChickenVariantData),
+#[serde(transparent)]
+pub struct ChickenVariant {
+    pub data: azalea_registry::data::ChickenVariant,
 }
 
-#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
-pub struct ChickenVariantData {
-    pub registry: azalea_registry::data::ChickenVariant,
-}
-
-// TODO: check in-game if this is correct
-#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
-pub enum ZombieNautilusVariant {
-    Referenced(Identifier),
-    Direct(ZombieNautilusVariantData),
-}
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
-pub struct ZombieNautilusVariantData {
+pub struct ZombieNautilusVariant {
     pub value: azalea_registry::data::ZombieNautilusVariant,
 }
 
@@ -1752,12 +1742,10 @@ pub struct MinimumAttackCharge {
     pub value: f32,
 }
 
-// TODO: this is probably wrong, check in-game
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
-#[serde(untagged)]
-pub enum DamageType {
-    Registry(DamageKind),
-    Holder(Holder<DamageKind, DamageTypeElement>),
+#[serde(transparent)]
+pub struct DamageType {
+    pub value: Holder<azalea_registry::data::DamageKind, DamageTypeElement>,
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
@@ -1894,4 +1882,35 @@ impl Default for AttackRange {
     fn default() -> Self {
         Self::new()
     }
+}
+
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+pub struct AdditionalTradeCost {
+    #[var]
+    pub cost: i32,
+}
+
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+pub struct Dye {
+    pub color: DyeColor,
+}
+
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+pub struct PigSoundVariant {
+    pub value: azalea_registry::data::PigSoundVariant,
+}
+
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+pub struct CowSoundVariant {
+    pub value: azalea_registry::data::CowSoundVariant,
+}
+
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+pub struct ChickenSoundVariant {
+    pub value: azalea_registry::data::ChickenSoundVariant,
+}
+
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+pub struct CatSoundVariant {
+    pub value: azalea_registry::data::CatSoundVariant,
 }

@@ -26,6 +26,7 @@ is breaking anyways, semantic versioning is not followed.
 
 ### Changed
 
+- Update to Minecraft 26.1.
 - Rename `Instance` to `World` (and rename other related types).
 - Move the `Client` struct out of `azalea-client` into `azalea`.
 - `Client::ecs` is now an `RwLock` instead of a `Mutex`.

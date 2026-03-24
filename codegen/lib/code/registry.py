@@ -154,7 +154,7 @@ def registry_name_to_enum_name(registry_name: str) -> str:
         # change _type to _kind because that's Rustier (and because _type
         # is a reserved keyword)
         registry_name = registry_name[:-5] + "_kind"
-    elif registry_name in {"menu", "block", "item"}:
+    elif registry_name in {"menu", "block", "item", "banner_pattern"}:
         registry_name += "_kind"
 
     return to_camel_case(registry_name)
