@@ -186,7 +186,9 @@ async fn handle(bot: Client, event: azalea::Event, state: State) -> eyre::Result
             killaura::tick(bot.clone(), state.clone())?;
 
             if bot.ticks_connected().is_multiple_of(5) {
-                if let Some(following) = &*state.following_entity.lock() {
+                if let Some(following) = &*state.following_entity.lock()
+                    && following.is_alive()
+                {
                     let goal = RadiusGoal::new(following.position(), 3.);
                     if bot.is_calculating_path() {
                         // keep waiting
