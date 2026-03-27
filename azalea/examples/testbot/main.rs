@@ -29,11 +29,14 @@ pub mod mspt;
 use std::{env, process, sync::Arc, thread, time::Duration};
 
 use azalea::{
-    ClientInformation,
+    ClientInformation, EntityRef,
     brigadier::command_dispatcher::CommandDispatcher,
     ecs::prelude::*,
     pathfinder::{
-        debug::PathfinderDebugParticles, execute::simulation::SimulationPathfinderExecutionPlugin,
+        PathfinderOpts,
+        debug::PathfinderDebugParticles,
+        execute::simulation::SimulationPathfinderExecutionPlugin,
+        goals::{Goal, RadiusGoal},
     },
     prelude::*,
     swarm::prelude::*,
@@ -105,23 +108,17 @@ fn deadlock_detection_thread() {
     }
 }
 
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
-pub enum BotTask {
-    #[default]
-    None,
-}
-
 #[derive(Clone, Component, Default)]
 pub struct State {
     pub killaura: bool,
-    pub task: Arc<Mutex<BotTask>>,
+    pub following_entity: Arc<Mutex<Option<EntityRef>>>,
 }
 
 impl State {
     fn new() -> Self {
         Self {
             killaura: false,
-            task: Arc::new(Mutex::new(BotTask::None)),
+            following_entity: Default::default(),
         }
     }
 }
@@ -188,9 +185,22 @@ async fn handle(bot: Client, event: azalea::Event, state: State) -> eyre::Result
         azalea::Event::Tick => {
             killaura::tick(bot.clone(), state.clone())?;
 
-            let task = *state.task.lock();
-            match task {
-                BotTask::None => {}
+            if bot.ticks_connected().is_multiple_of(5) {
+                if let Some(following) = &*state.following_entity.lock() {
+                    let goal = RadiusGoal::new(following.position(), 3.);
+                    if bot.is_calculating_path() {
+                        // keep waiting
+                    } else if !goal.success(bot.position().into()) || bot.is_executing_path() {
+                        bot.start_goto_with_opts(
+                            goal,
+                            PathfinderOpts::new()
+                                .retry_on_no_path(false)
+                                .max_timeout(Duration::from_secs(1)),
+                        );
+                    } else {
+                        following.look_at();
+                    }
+                }
             }
         }
         azalea::Event::Login => {

@@ -101,8 +101,8 @@ impl PathfinderOpts {
     /// Defaults to `PathfinderTimeout::Time(Duration::from_secs(1))`.
     ///
     /// Also see [`PathfinderTimeout::Nodes`]
-    pub fn min_timeout(mut self, min_timeout: PathfinderTimeout) -> Self {
-        self.min_timeout = min_timeout;
+    pub fn min_timeout(mut self, min_timeout: impl Into<PathfinderTimeout>) -> Self {
+        self.min_timeout = min_timeout.into();
         self
     }
     /// The absolute maximum amount of time that the pathfinder function can
@@ -112,8 +112,8 @@ impl PathfinderOpts {
     /// impossible).
     ///
     /// Defaults to `PathfinderTimeout::Time(Duration::from_secs(5))`.
-    pub fn max_timeout(mut self, max_timeout: PathfinderTimeout) -> Self {
-        self.max_timeout = max_timeout;
+    pub fn max_timeout(mut self, max_timeout: impl Into<PathfinderTimeout>) -> Self {
+        self.max_timeout = max_timeout.into();
         self
     }
 }

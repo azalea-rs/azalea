@@ -23,7 +23,7 @@ fn benchmark(c: &mut Criterion) {
     });
 
     let waterlogged_slab = azalea_block::blocks::OakSlab {
-        kind: azalea_block::properties::Type::Bottom,
+        kind: azalea_block::properties::SlabKind::Bottom,
         waterlogged: true,
     }
     .into();

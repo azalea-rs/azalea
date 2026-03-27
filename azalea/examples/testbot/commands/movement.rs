@@ -9,7 +9,6 @@ use azalea::{
 use parking_lot::Mutex;
 
 use super::{CommandSource, Ctx};
-use crate::BotTask;
 
 pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
     commands.register(
@@ -71,6 +70,19 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
                 }),
             ))),
     );
+
+    commands.register(literal("follow").executes(|ctx: &Ctx| {
+        let source = ctx.source.lock();
+        println!("got follow");
+        // look for the sender
+        let Some(entity) = source.entity() else {
+            source.reply("I can't see you!");
+            return 0;
+        };
+        source.reply("ok");
+        *source.state.following_entity.lock() = Some(entity);
+        1
+    }));
 
     commands.register(literal("down").executes(|ctx: &Ctx| {
         let source = ctx.source.clone();
@@ -207,14 +219,14 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
         let source = ctx.source.lock();
         source.bot.stop_pathfinding();
         source.reply("ok");
-        *source.state.task.lock() = BotTask::None;
+        *source.state.following_entity.lock() = None;
         1
     }));
     commands.register(literal("forcestop").executes(|ctx: &Ctx| {
         let source = ctx.source.lock();
         source.bot.force_stop_pathfinding();
         source.reply("ok");
-        *source.state.task.lock() = BotTask::None;
+        *source.state.following_entity.lock() = None;
         1
     }));
 }

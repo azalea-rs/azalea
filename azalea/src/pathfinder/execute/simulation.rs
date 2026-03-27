@@ -79,7 +79,7 @@ pub enum SimulatingPathState {
     Fail,
     Simulated(SimulatingPathOpts),
 }
-#[derive(Clone, Component, Debug)]
+#[derive(Clone, Debug)]
 pub struct SimulatingPathOpts {
     pub start: BlockPos,
     pub target: BlockPos,
@@ -88,6 +88,14 @@ pub struct SimulatingPathOpts {
     pub jump_after_start_distance: f64,
     pub sprinting: bool,
     pub y_rot: f32,
+}
+impl SimulatingPathState {
+    pub fn as_simulated(&self) -> Option<&SimulatingPathOpts> {
+        match self {
+            Self::Fail => None,
+            Self::Simulated(s) => Some(s),
+        }
+    }
 }
 
 #[allow(clippy::type_complexity)]
@@ -249,6 +257,8 @@ fn run_simulations(
 
     let mut sim = Simulation::new(world_holder.shared.read().chunks.clone(), player.clone());
 
+    // note that we can't skip more than 50 nodes without causing issues with the
+    // executing_path_limit in goto_listener
     for nodes_ahead in [20, 15, 10, 5, 4, 3, 2, 1, 0] {
         if nodes_ahead + 1 >= executing_path.path.len() {
             // don't simulate to the last node since it has stricter checks

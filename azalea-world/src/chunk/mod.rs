@@ -26,6 +26,8 @@ const SECTION_HEIGHT: u32 = 16;
 /// This only contains blocks and biomes. You can derive the height of the chunk
 /// from the number of sections, but you need a [`ChunkStorage`] to get the
 /// minimum Y coordinate.
+///
+/// [`ChunkStorage`]: crate::ChunkStorage
 #[derive(Debug)]
 pub struct Chunk {
     pub sections: Box<[Section]>,

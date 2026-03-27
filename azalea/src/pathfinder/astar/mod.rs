@@ -313,3 +313,8 @@ impl Default for PathfinderTimeout {
         Self::Time(Duration::from_secs(1))
     }
 }
+impl From<Duration> for PathfinderTimeout {
+    fn from(duration: Duration) -> Self {
+        Self::Time(duration)
+    }
+}

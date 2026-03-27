@@ -140,7 +140,9 @@ impl PartialChunkStorage {
     }
 
     /// Get a [`Chunk`] within render distance, or `None` if it's not loaded.
-    /// Use [`ChunkStorage::get`] to get a chunk from the shared storage.
+    /// Use [`ChunkStorageTrait::get`] to get a chunk from the shared storage.
+    ///
+    /// [`ChunkStorageTrait::get`]: crate::chunk::storage::ChunkStorageTrait::get
     pub fn limited_get(&self, pos: &ChunkPos) -> Option<&Arc<RwLock<Chunk>>> {
         if !self.in_range(pos) {
             warn!(
@@ -156,7 +158,9 @@ impl PartialChunkStorage {
     /// Get a mutable reference to a [`Chunk`] within render distance, or
     /// `None` if it's not loaded.
     ///
-    /// Use [`ChunkStorage::get`] to get a chunk from the shared storage.
+    /// Use [`ChunkStorageTrait::get`] to get a chunk from the shared storage.
+    ///
+    /// [`ChunkStorageTrait::get`]: crate::chunk::storage::ChunkStorageTrait::get
     pub fn limited_get_mut(&mut self, pos: &ChunkPos) -> Option<&mut Option<Arc<RwLock<Chunk>>>> {
         if !self.in_range(pos) {
             return None;

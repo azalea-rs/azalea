@@ -70,7 +70,9 @@ use crate::{
         system::{Commands, Query, Res},
     },
     pathfinder::{
-        astar::a_star, execute::DefaultPathfinderExecutionPlugin, moves::MovesCtx,
+        astar::{PathfinderTimeout, a_star},
+        execute::{DefaultPathfinderExecutionPlugin, simulation::SimulatingPathState},
+        moves::MovesCtx,
         world::CachedWorld,
     },
 };
@@ -129,6 +131,11 @@ pub struct ExecutingPath {
     // and our ticks take a while
     pub ticks_since_last_node_reached: usize,
     pub is_path_partial: bool,
+}
+impl ExecutingPath {
+    pub fn is_empty_queued_path(&self) -> bool {
+        self.queued_path.is_none() || self.queued_path.as_ref().is_some_and(|p| p.is_empty())
+    }
 }
 
 #[derive(Clone, Debug, Message)]
@@ -293,9 +300,11 @@ pub struct ComputePath(Task<Option<PathFoundEvent>>);
 pub fn goto_listener(
     mut commands: Commands,
     mut events: MessageReader<GotoEvent>,
+    mut path_found_events: MessageWriter<PathFoundEvent>,
     mut query: Query<(
         &mut Pathfinder,
         Option<&mut ExecutingPath>,
+        Option<&SimulatingPathState>,
         &Position,
         &WorldName,
         &Inventory,
@@ -306,8 +315,15 @@ pub fn goto_listener(
     let thread_pool = AsyncComputeTaskPool::get();
 
     for event in events.read() {
-        let Ok((mut pathfinder, executing_path, position, world_name, inventory, custom_state)) =
-            query.get_mut(event.entity)
+        let Ok((
+            mut pathfinder,
+            executing_path,
+            simulating_path_state,
+            position,
+            world_name,
+            inventory,
+            custom_state,
+        )) = query.get_mut(event.entity)
         else {
             warn!("got goto event for an entity that can't pathfind");
             continue;
@@ -339,34 +355,6 @@ pub fn goto_listener(
         pathfinder.opts = Some(event.opts.clone());
         pathfinder.is_calculating = true;
 
-        let start = if let Some(mut executing_path) = executing_path
-            && { !executing_path.path.is_empty() }
-        {
-            // if we're currently pathfinding and got a goto event, start a little ahead
-
-            let executing_path_limit = 50;
-            // truncate the executing path so we can cleanly combine the two paths later
-            executing_path.path.truncate(executing_path_limit);
-
-            executing_path
-                .path
-                .back()
-                .expect("path was just checked to not be empty")
-                .movement
-                .target
-        } else {
-            cur_pos
-        };
-
-        if start == cur_pos {
-            info!("got goto {:?}, starting from {start:?}", event.goal);
-        } else {
-            info!(
-                "got goto {:?}, starting from {start:?} (currently at {cur_pos:?})",
-                event.goal,
-            );
-        }
-
         let world_lock = worlds
             .get(world_name)
             .expect("Entity tried to pathfind but the entity isn't in a valid world");
@@ -377,14 +365,104 @@ pub fn goto_listener(
         let goto_id_atomic = pathfinder.goto_id.clone();
 
         let allow_mining = event.opts.allow_mining;
-        let mining_cache = MiningCache::new(if allow_mining {
+        let inventory_menu = if allow_mining {
             Some(inventory.inventory_menu.clone())
         } else {
             None
-        });
+        };
 
         let custom_state = custom_state.cloned().unwrap_or_default();
         let opts = event.opts.clone();
+
+        // if we're executing a path, this might get replaced with something else
+        let mut start = cur_pos;
+
+        if let Some(mut executing_path) = executing_path {
+            // first try calculating the path instantly, which allows us to react quickly
+            // for easy paths (but we'll fall back to spawning a thread if this fails)
+
+            // first, try starting at the node that we're going to
+            let instant_path_start = simulating_path_state
+                .and_then(|s| s.as_simulated().map(|s| s.target))
+                .unwrap_or_else(|| {
+                    executing_path
+                        .path
+                        .iter()
+                        .next()
+                        .map(|e| e.movement.target)
+                        .unwrap_or(cur_pos)
+                });
+
+            let path_found_event = calculate_path(CalculatePathCtx {
+                entity,
+                start: instant_path_start,
+                goal: goal.clone(),
+                world_lock: world_lock.clone(),
+                goto_id_atomic: goto_id_atomic.clone(),
+                mining_cache: MiningCache::new(inventory_menu.clone()),
+                custom_state: custom_state.clone(),
+                opts: PathfinderOpts {
+                    min_timeout: PathfinderTimeout::Nodes(2_000),
+                    max_timeout: PathfinderTimeout::Nodes(2_000),
+                    ..opts
+                },
+            });
+
+            if let Some(path_found_event) = path_found_event
+                && !path_found_event.is_partial
+            {
+                debug!("Found path instantly!");
+
+                // instant_path_start needs to be equal to executing_path.path.back() for the
+                // path merging in path_found_listener to work correctly
+                let instant_path_start_index = executing_path
+                    .path
+                    .iter()
+                    .position(|e| e.movement.target == instant_path_start);
+                if let Some(instant_path_start_index) = instant_path_start_index {
+                    let truncate_to_len = instant_path_start_index + 1;
+                    debug!("truncating to {truncate_to_len} for instant path");
+                    executing_path.path.truncate(truncate_to_len);
+
+                    path_found_events.write(path_found_event);
+
+                    // we found the path instantly, so we're done here :)
+                    continue;
+                } else {
+                    warn!(
+                        "we just calculated an instant path, but the start of it isn't in the current path? instant_path_start: {instant_path_start:?}, simulating_path_state: {simulating_path_state:?}, executing_path.path: {:?}",
+                        executing_path.path
+                    )
+                }
+            }
+
+            if !executing_path.path.is_empty() {
+                // if we're currently pathfinding and got a goto event, start a little ahead
+
+                let executing_path_limit = 50;
+
+                // truncate the executing path so we can cleanly combine the two paths later
+                executing_path.path.truncate(executing_path_limit);
+
+                start = executing_path
+                    .path
+                    .back()
+                    .expect("path was just checked to not be empty")
+                    .movement
+                    .target;
+            }
+        }
+
+        if start == cur_pos {
+            info!("got goto {:?}, starting from {start:?}", event.goal);
+        } else {
+            info!(
+                "got goto {:?}, starting from {start:?} (currently at {cur_pos:?})",
+                event.goal,
+            );
+        }
+
+        let mining_cache = MiningCache::new(inventory_menu);
         let task = thread_pool.spawn(async move {
             calculate_path(CalculatePathCtx {
                 entity,
@@ -434,7 +512,7 @@ pub struct CalculatePathCtx {
 /// calling this function. `None` will be returned if the pathfinding was
 /// interrupted by another path calculation.
 pub fn calculate_path(ctx: CalculatePathCtx) -> Option<PathFoundEvent> {
-    debug!("start: {:?}", ctx.start);
+    debug!("start: {}", ctx.start);
 
     let goto_id = ctx.goto_id_atomic.fetch_add(1, atomic::Ordering::SeqCst) + 1;
 
@@ -573,7 +651,7 @@ pub fn path_found_listener(
             debug!("got path found event for an entity that can't pathfind");
             continue;
         };
-        if let Some(path) = &event.path {
+        if let Some(found_path) = &event.path {
             if let Some(mut executing_path) = executing_path {
                 let mut new_path = VecDeque::new();
 
@@ -603,7 +681,7 @@ pub fn path_found_listener(
                         )
                     };
 
-                    if let Some(first_node_of_new_path) = path.front() {
+                    if let Some(first_node_of_new_path) = found_path.front() {
                         let last_target_of_current_path = RelBlockPos::from_origin(
                             origin,
                             last_node_of_current_path.movement.target,
@@ -622,7 +700,10 @@ pub fn path_found_listener(
                                 "old path: {:?}",
                                 executing_path.path.iter().collect::<Vec<_>>()
                             );
-                            debug!("new path: {:?}", path.iter().take(10).collect::<Vec<_>>());
+                            debug!(
+                                "new path: {:?}",
+                                found_path.iter().take(10).collect::<Vec<_>>()
+                            );
                             new_path.extend(executing_path.path.iter().cloned());
                         }
                     } else {
@@ -630,7 +711,7 @@ pub fn path_found_listener(
                     }
                 }
 
-                new_path.extend(path.to_owned());
+                new_path.extend(found_path.to_owned());
 
                 debug!(
                     "set queued path to {:?}",
@@ -638,7 +719,7 @@ pub fn path_found_listener(
                 );
                 executing_path.queued_path = Some(new_path);
                 executing_path.is_path_partial = event.is_partial;
-            } else if path.is_empty() {
+            } else if found_path.is_empty() {
                 debug!("calculated path is empty, so didn't add ExecutingPath");
                 if !pathfinder.opts.as_ref().is_some_and(|o| o.retry_on_no_path) {
                     debug!("retry_on_no_path is set to false, removing goal");
@@ -646,13 +727,16 @@ pub fn path_found_listener(
                 }
             } else {
                 commands.entity(event.entity).insert(ExecutingPath {
-                    path: path.to_owned(),
+                    path: found_path.to_owned(),
                     queued_path: None,
                     last_reached_node: event.start,
                     ticks_since_last_node_reached: 0,
                     is_path_partial: event.is_partial,
                 });
-                debug!("set path to {:?}", path.iter().take(10).collect::<Vec<_>>());
+                debug!(
+                    "set path to {:?}",
+                    found_path.iter().take(10).collect::<Vec<_>>()
+                );
                 debug!("partial: {}", event.is_partial);
             }
         } else {
