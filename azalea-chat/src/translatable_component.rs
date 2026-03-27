@@ -106,7 +106,6 @@ impl TranslatableComponent {
         });
         // decode the % things
 
-        let mut i = 0;
         let mut matched = 0;
 
         // every time we get a char we add it to built_text, and we push it to
@@ -114,60 +113,59 @@ impl TranslatableComponent {
         let mut built_text = String::new();
         let mut components = Vec::new();
 
-        while i < template.chars().count() {
-            if template.chars().nth(i).unwrap() == '%' {
-                let Some(char_after) = template.chars().nth(i + 1) else {
-                    built_text.push('%');
-                    break;
-                };
-                i += 1;
-                match char_after {
-                    '%' => {
-                        built_text.push('%');
-                    }
-                    's' => {
-                        let arg_component = self
-                            .args
-                            .get(matched)
-                            .cloned()
-                            .unwrap_or_else(|| PrimitiveOrComponent::String("".to_owned()));
-
-                        components.push(TextComponent::new(built_text.clone()));
-                        built_text.clear();
-                        components.push(TextComponent::from(arg_component));
-                        matched += 1;
-                    }
-                    _ => {
-                        // check if the char is a number
-                        if let Some(d) = char_after.to_digit(10) {
-                            // make sure the next two chars are $s
-                            if let Some('$') = template.chars().nth(i + 1) {
-                                if let Some('s') = template.chars().nth(i + 2) {
-                                    i += 2;
-                                    built_text.push_str(
-                                        &self
-                                            .args
-                                            .get((d - 1) as usize)
-                                            .unwrap_or(&PrimitiveOrComponent::String("".to_owned()))
-                                            .to_string(),
-                                    );
-                                } else {
-                                    return Err(fmt::Error);
-                                }
-                            } else {
-                                return Err(fmt::Error);
-                            }
-                        } else {
-                            i -= 1;
-                            built_text.push('%');
-                        }
-                    }
-                }
-            } else {
-                built_text.push(template.chars().nth(i).unwrap());
+        let mut chars = template.chars();
+        while let Some(char) = chars.next() {
+            if char != '%' {
+                built_text.push(char);
+                continue;
             }
 
-            i += 1;
+            let mut chars_preview = chars.clone();
+            let Some(char_after) = chars_preview.next() else {
+                built_text.push('%');
+                break;
+            };
+            match char_after {
+                '%' => {
+                    chars.next();
+
+                    built_text.push('%');
+                }
+                's' => {
+                    chars.next();
+
+                    let arg_component = self
+                        .args
+                        .get(matched)
+                        .cloned()
+                        .unwrap_or_else(|| PrimitiveOrComponent::String("".to_owned()));
+
+                    components.push(TextComponent::new(built_text.clone()));
+                    built_text.clear();
+                    components.push(TextComponent::from(arg_component));
+                    matched += 1;
+                }
+                '0'..='9' if let Some(d) = char_after.to_digit(10) => {
+                    chars.next();
+                    // make sure the next two chars are $s
+                    let Some('$') = chars.next() else {
+                        return Err(fmt::Error);
+                    };
+                    let Some('s') = chars.next() else {
+                        return Err(fmt::Error);
+                    };
+                    built_text.push_str(
+                        &self
+                            .args
+                            .get((d - 1) as usize)
+                            .unwrap_or(&PrimitiveOrComponent::String("".to_owned()))
+                            .to_string(),
+                    );
+                }
+                _ => {
+                    built_text.push('%');
+                }
+            }
         }
 
         if components.is_empty() {
