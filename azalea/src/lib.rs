@@ -56,7 +56,11 @@ pub use builder::ClientBuilder;
 use futures::future::BoxFuture;
 pub use join_opts::JoinOpts;
 
-pub use crate::{client_impl::Client, entity_ref::EntityRef, events::Event};
+pub use crate::{
+    client_impl::{Client, StartClientOpts},
+    entity_ref::EntityRef,
+    events::Event,
+};
 
 pub type BoxHandleFn<S, R> = Box<dyn Fn(Client, Event, S) -> BoxFuture<'static, R> + Send>;
 pub type HandleFn<S, Fut> = fn(Client, Event, S) -> Fut;

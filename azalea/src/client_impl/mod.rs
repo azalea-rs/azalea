@@ -29,7 +29,7 @@ use azalea_world::{PartialWorld, World, WorldName};
 use bevy_app::{App, AppExit};
 use bevy_ecs::{entity::Entity, resource::Resource, world::Mut};
 use parking_lot::RwLock;
-use tokio::sync::mpsc;
+use tokio::sync::{mpsc, oneshot};
 use uuid::Uuid;
 
 use crate::{
@@ -87,24 +87,33 @@ impl StartClientOpts {
         address: ResolvedAddr,
         event_sender: Option<mpsc::UnboundedSender<Event>>,
     ) -> StartClientOpts {
+        Self::new_with_appexit_rx(account, address, event_sender).0
+    }
+
+    pub fn new_with_appexit_rx(
+        account: Account,
+        address: ResolvedAddr,
+        event_sender: Option<mpsc::UnboundedSender<Event>>,
+    ) -> (StartClientOpts, oneshot::Receiver<AppExit>) {
         let mut app = App::new();
         app.add_plugins((DefaultPlugins, DefaultBotPlugins, DefaultSwarmPlugins));
 
-        // appexit_rx is unused here since the user should be able to handle it
-        // themselves if they're using StartClientOpts::new
-        let (ecs_lock, start_running_systems, _appexit_rx) = start_ecs_runner(app.main_mut());
+        let (ecs_lock, start_running_systems, appexit_rx) = start_ecs_runner(app.main_mut());
         start_running_systems();
 
-        Self {
-            ecs_lock,
-            account,
-            connect_opts: ConnectOpts {
-                address,
-                server_proxy: None,
-                sessionserver_proxy: None,
+        (
+            Self {
+                ecs_lock,
+                account,
+                connect_opts: ConnectOpts {
+                    address,
+                    server_proxy: None,
+                    sessionserver_proxy: None,
+                },
+                event_sender,
             },
-            event_sender,
-        }
+            appexit_rx,
+        )
     }
 
     /// Configure the SOCKS5 proxy used for connecting to the server and for
