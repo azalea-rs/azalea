@@ -136,7 +136,7 @@ impl Hash for RelBlockPos {
 /// Similar to [`ChunkSectionPos`] but fits in 64 bits.
 ///
 /// [`ChunkSectionPos`]: azalea_core::position::ChunkSectionPos
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 #[repr(C)]
 pub struct SmallChunkSectionPos {
     pub y: i32,
