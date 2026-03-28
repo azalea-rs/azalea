@@ -10,6 +10,14 @@ is breaking anyways, semantic versioning is not followed.
 
 ### Added
 
+### Changed
+
+### Fixed
+
+## [0.16.0+mc26.1] - 2026-03-27
+
+### Added
+
 - Add `SimulationPathfinderExecutionPlugin`, an alternative execution engine for the pathfinder with smoother movement.
 - The pathfinder can now traverse on the surface of water.
 - `Account`s can now have custom refresh and join behavior using `AccountTrait`.
