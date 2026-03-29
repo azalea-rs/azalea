@@ -32,6 +32,22 @@ impl simdnbt::ToNbtTag for TextColor {
 }
 
 impl TextColor {
+    fn new(value: u32, name: Option<String>) -> Self {
+        Self { value, name }
+    }
+
+    fn serialize(&self) -> String {
+        if let Some(name) = &self.name {
+            name.to_ascii_lowercase()
+        } else {
+            self.format_value()
+        }
+    }
+
+    pub fn format_value(&self) -> String {
+        format!("#{:06X}", self.value)
+    }
+
     /// Parse a text component in the same way that Minecraft does.
     ///
     /// This supports named colors and hex codes.
@@ -53,19 +69,26 @@ impl TextColor {
     }
 }
 
+impl fmt::Display for TextColor {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.serialize())
+    }
+}
+
 static LEGACY_FORMAT_TO_COLOR: LazyLock<HashMap<&'static ChatFormatting, TextColor>> =
     LazyLock::new(|| {
         let mut legacy_format_to_color = HashMap::new();
         for formatter in &ChatFormatting::FORMATTERS {
-            if !formatter.is_format() && *formatter != ChatFormatting::Reset {
-                legacy_format_to_color.insert(
-                    formatter,
-                    TextColor {
-                        value: formatter.color().unwrap(),
-                        name: Some(formatter.name().to_owned()),
-                    },
-                );
+            if formatter.is_format() || *formatter == ChatFormatting::Reset {
+                continue;
             }
+            legacy_format_to_color.insert(
+                formatter,
+                TextColor {
+                    value: formatter.color().unwrap(),
+                    name: Some(formatter.name().to_owned()),
+                },
+            );
         }
         legacy_format_to_color
     });
@@ -77,7 +100,7 @@ static NAMED_COLORS: LazyLock<HashMap<String, TextColor>> = LazyLock::new(|| {
     named_colors
 });
 
-pub struct Ansi {}
+pub struct Ansi;
 impl Ansi {
     pub const BOLD: &'static str = "\u{1b}[1m";
     pub const ITALIC: &'static str = "\u{1b}[3m";
@@ -125,169 +148,154 @@ pub enum ChatFormatting {
 }
 
 impl ChatFormatting {
-    pub const FORMATTERS: [ChatFormatting; 22] = [
-        ChatFormatting::Black,
-        ChatFormatting::DarkBlue,
-        ChatFormatting::DarkGreen,
-        ChatFormatting::DarkAqua,
-        ChatFormatting::DarkRed,
-        ChatFormatting::DarkPurple,
-        ChatFormatting::Gold,
-        ChatFormatting::Gray,
-        ChatFormatting::DarkGray,
-        ChatFormatting::Blue,
-        ChatFormatting::Green,
-        ChatFormatting::Aqua,
-        ChatFormatting::Red,
-        ChatFormatting::LightPurple,
-        ChatFormatting::Yellow,
-        ChatFormatting::White,
-        ChatFormatting::Obfuscated,
-        ChatFormatting::Strikethrough,
-        ChatFormatting::Bold,
-        ChatFormatting::Underline,
-        ChatFormatting::Italic,
-        ChatFormatting::Reset,
+    pub const FORMATTERS: [Self; 22] = [
+        Self::Black,
+        Self::DarkBlue,
+        Self::DarkGreen,
+        Self::DarkAqua,
+        Self::DarkRed,
+        Self::DarkPurple,
+        Self::Gold,
+        Self::Gray,
+        Self::DarkGray,
+        Self::Blue,
+        Self::Green,
+        Self::Aqua,
+        Self::Red,
+        Self::LightPurple,
+        Self::Yellow,
+        Self::White,
+        Self::Obfuscated,
+        Self::Strikethrough,
+        Self::Bold,
+        Self::Underline,
+        Self::Italic,
+        Self::Reset,
     ];
 
     pub fn name(&self) -> &'static str {
         match self {
-            ChatFormatting::Black => "black",
-            ChatFormatting::DarkBlue => "dark_blue",
-            ChatFormatting::DarkGreen => "dark_green",
-            ChatFormatting::DarkAqua => "dark_aqua",
-            ChatFormatting::DarkRed => "dark_red",
-            ChatFormatting::DarkPurple => "dark_purple",
-            ChatFormatting::Gold => "gold",
-            ChatFormatting::Gray => "gray",
-            ChatFormatting::DarkGray => "dark_gray",
-            ChatFormatting::Blue => "blue",
-            ChatFormatting::Green => "green",
-            ChatFormatting::Aqua => "aqua",
-            ChatFormatting::Red => "red",
-            ChatFormatting::LightPurple => "light_purple",
-            ChatFormatting::Yellow => "yellow",
-            ChatFormatting::White => "white",
-            ChatFormatting::Obfuscated => "obfuscated",
-            ChatFormatting::Strikethrough => "strikethrough",
-            ChatFormatting::Bold => "bold",
-            ChatFormatting::Underline => "underline",
-            ChatFormatting::Italic => "italic",
-            ChatFormatting::Reset => "reset",
+            Self::Black => "black",
+            Self::DarkBlue => "dark_blue",
+            Self::DarkGreen => "dark_green",
+            Self::DarkAqua => "dark_aqua",
+            Self::DarkRed => "dark_red",
+            Self::DarkPurple => "dark_purple",
+            Self::Gold => "gold",
+            Self::Gray => "gray",
+            Self::DarkGray => "dark_gray",
+            Self::Blue => "blue",
+            Self::Green => "green",
+            Self::Aqua => "aqua",
+            Self::Red => "red",
+            Self::LightPurple => "light_purple",
+            Self::Yellow => "yellow",
+            Self::White => "white",
+            Self::Obfuscated => "obfuscated",
+            Self::Strikethrough => "strikethrough",
+            Self::Bold => "bold",
+            Self::Underline => "underline",
+            Self::Italic => "italic",
+            Self::Reset => "reset",
         }
+    }
+
+    pub fn from_name(name: &str) -> Option<&'static Self> {
+        for formatter in &Self::FORMATTERS {
+            if formatter.name() == name {
+                return Some(formatter);
+            }
+        }
+        None
     }
 
     pub fn code(&self) -> char {
         match self {
-            ChatFormatting::Black => '0',
-            ChatFormatting::DarkBlue => '1',
-            ChatFormatting::DarkGreen => '2',
-            ChatFormatting::DarkAqua => '3',
-            ChatFormatting::DarkRed => '4',
-            ChatFormatting::DarkPurple => '5',
-            ChatFormatting::Gold => '6',
-            ChatFormatting::Gray => '7',
-            ChatFormatting::DarkGray => '8',
-            ChatFormatting::Blue => '9',
-            ChatFormatting::Green => 'a',
-            ChatFormatting::Aqua => 'b',
-            ChatFormatting::Red => 'c',
-            ChatFormatting::LightPurple => 'd',
-            ChatFormatting::Yellow => 'e',
-            ChatFormatting::White => 'f',
-            ChatFormatting::Obfuscated => 'k',
-            ChatFormatting::Strikethrough => 'm',
-            ChatFormatting::Bold => 'l',
-            ChatFormatting::Underline => 'n',
-            ChatFormatting::Italic => 'o',
-            ChatFormatting::Reset => 'r',
+            Self::Black => '0',
+            Self::DarkBlue => '1',
+            Self::DarkGreen => '2',
+            Self::DarkAqua => '3',
+            Self::DarkRed => '4',
+            Self::DarkPurple => '5',
+            Self::Gold => '6',
+            Self::Gray => '7',
+            Self::DarkGray => '8',
+            Self::Blue => '9',
+            Self::Green => 'a',
+            Self::Aqua => 'b',
+            Self::Red => 'c',
+            Self::LightPurple => 'd',
+            Self::Yellow => 'e',
+            Self::White => 'f',
+            Self::Obfuscated => 'k',
+            Self::Strikethrough => 'm',
+            Self::Bold => 'l',
+            Self::Underline => 'n',
+            Self::Italic => 'o',
+            Self::Reset => 'r',
         }
     }
 
-    pub fn from_code(code: char) -> Option<ChatFormatting> {
-        match code {
-            '0' => Some(ChatFormatting::Black),
-            '1' => Some(ChatFormatting::DarkBlue),
-            '2' => Some(ChatFormatting::DarkGreen),
-            '3' => Some(ChatFormatting::DarkAqua),
-            '4' => Some(ChatFormatting::DarkRed),
-            '5' => Some(ChatFormatting::DarkPurple),
-            '6' => Some(ChatFormatting::Gold),
-            '7' => Some(ChatFormatting::Gray),
-            '8' => Some(ChatFormatting::DarkGray),
-            '9' => Some(ChatFormatting::Blue),
-            'a' => Some(ChatFormatting::Green),
-            'b' => Some(ChatFormatting::Aqua),
-            'c' => Some(ChatFormatting::Red),
-            'd' => Some(ChatFormatting::LightPurple),
-            'e' => Some(ChatFormatting::Yellow),
-            'f' => Some(ChatFormatting::White),
-            'k' => Some(ChatFormatting::Obfuscated),
-            'm' => Some(ChatFormatting::Strikethrough),
-            'l' => Some(ChatFormatting::Bold),
-            'n' => Some(ChatFormatting::Underline),
-            'o' => Some(ChatFormatting::Italic),
-            'r' => Some(ChatFormatting::Reset),
-            _ => None,
-        }
+    pub fn from_code(code: char) -> Option<Self> {
+        Some(match code {
+            '0' => Self::Black,
+            '1' => Self::DarkBlue,
+            '2' => Self::DarkGreen,
+            '3' => Self::DarkAqua,
+            '4' => Self::DarkRed,
+            '5' => Self::DarkPurple,
+            '6' => Self::Gold,
+            '7' => Self::Gray,
+            '8' => Self::DarkGray,
+            '9' => Self::Blue,
+            'a' => Self::Green,
+            'b' => Self::Aqua,
+            'c' => Self::Red,
+            'd' => Self::LightPurple,
+            'e' => Self::Yellow,
+            'f' => Self::White,
+            'k' => Self::Obfuscated,
+            'm' => Self::Strikethrough,
+            'l' => Self::Bold,
+            'n' => Self::Underline,
+            'o' => Self::Italic,
+            'r' => Self::Reset,
+            _ => return None,
+        })
     }
 
     pub fn is_format(&self) -> bool {
         matches!(
             self,
-            ChatFormatting::Obfuscated
-                | ChatFormatting::Strikethrough
-                | ChatFormatting::Bold
-                | ChatFormatting::Underline
-                | ChatFormatting::Italic
-                | ChatFormatting::Reset
+            Self::Obfuscated
+                | Self::Strikethrough
+                | Self::Bold
+                | Self::Underline
+                | Self::Italic
+                | Self::Reset
         )
     }
 
     pub fn color(&self) -> Option<u32> {
-        match self {
-            ChatFormatting::Black => Some(0),
-            ChatFormatting::DarkBlue => Some(170),
-            ChatFormatting::DarkGreen => Some(43520),
-            ChatFormatting::DarkAqua => Some(43690),
-            ChatFormatting::DarkRed => Some(11141120),
-            ChatFormatting::DarkPurple => Some(11141290),
-            ChatFormatting::Gold => Some(16755200),
-            ChatFormatting::Gray => Some(11184810),
-            ChatFormatting::DarkGray => Some(5592405),
-            ChatFormatting::Blue => Some(5592575),
-            ChatFormatting::Green => Some(5635925),
-            ChatFormatting::Aqua => Some(5636095),
-            ChatFormatting::Red => Some(16733525),
-            ChatFormatting::LightPurple => Some(16733695),
-            ChatFormatting::Yellow => Some(16777045),
-            ChatFormatting::White => Some(16777215),
-            _ => None,
-        }
-    }
-}
-
-impl TextColor {
-    fn new(value: u32, name: Option<String>) -> Self {
-        Self { value, name }
-    }
-
-    fn serialize(&self) -> String {
-        if let Some(name) = &self.name {
-            name.clone().to_ascii_lowercase()
-        } else {
-            self.format_value()
-        }
-    }
-
-    pub fn format_value(&self) -> String {
-        format!("#{:06X}", self.value)
-    }
-}
-
-impl fmt::Display for TextColor {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.serialize())
+        Some(match self {
+            Self::Black => 0,
+            Self::DarkBlue => 170,
+            Self::DarkGreen => 43520,
+            Self::DarkAqua => 43690,
+            Self::DarkRed => 11141120,
+            Self::DarkPurple => 11141290,
+            Self::Gold => 16755200,
+            Self::Gray => 11184810,
+            Self::DarkGray => 5592405,
+            Self::Blue => 5592575,
+            Self::Green => 5635925,
+            Self::Aqua => 5636095,
+            Self::Red => 16733525,
+            Self::LightPurple => 16733695,
+            Self::Yellow => 16777045,
+            Self::White => 16777215,
+            _ => return None,
+        })
     }
 }
 
@@ -430,15 +438,11 @@ impl Style {
     /// find the necessary ansi code to get from this style to another
     pub fn compare_ansi(&self, after: &Style) -> String {
         let should_reset =
-            // if it used to be bold and now it's not, reset
+            // if any property used to be true and now it's not, reset
             (self.bold.unwrap_or_default() && !after.bold.unwrap_or_default()) ||
-            // if it used to be italic and now it's not, reset
             (self.italic.unwrap_or_default() && !after.italic.unwrap_or_default()) ||
-            // if it used to be underlined and now it's not, reset
             (self.underlined.unwrap_or_default() && !after.underlined.unwrap_or_default()) ||
-            // if it used to be strikethrough and now it's not, reset
             (self.strikethrough.unwrap_or_default() && !after.strikethrough.unwrap_or_default()) ||
-            // if it used to be obfuscated and now it's not, reset
             (self.obfuscated.unwrap_or_default() && !after.obfuscated.unwrap_or_default());
 
         let mut ansi_codes = String::new();
@@ -452,24 +456,19 @@ impl Style {
             self
         };
 
-        // if bold used to be false/default and now it's true, set bold
+        // if any property was false/default and now it's true, add the right ansi codes
         if !before.bold.unwrap_or_default() && after.bold.unwrap_or_default() {
             ansi_codes.push_str(Ansi::BOLD);
         }
-        // if italic used to be false/default and now it's true, set italic
         if !before.italic.unwrap_or_default() && after.italic.unwrap_or_default() {
             ansi_codes.push_str(Ansi::ITALIC);
         }
-        // if underlined used to be false/default and now it's true, set underlined
         if !before.underlined.unwrap_or_default() && after.underlined.unwrap_or_default() {
             ansi_codes.push_str(Ansi::UNDERLINED);
         }
-        // if strikethrough used to be false/default and now it's true, set
-        // strikethrough
         if !before.strikethrough.unwrap_or_default() && after.strikethrough.unwrap_or_default() {
             ansi_codes.push_str(Ansi::STRIKETHROUGH);
         }
-        // if obfuscated used to be false/default and now it's true, set obfuscated
         if !before.obfuscated.unwrap_or_default() && after.obfuscated.unwrap_or_default() {
             ansi_codes.push_str(Ansi::OBFUSCATED);
         }
@@ -478,8 +477,10 @@ impl Style {
         let color_changed = {
             if before.color.is_none() && after.color.is_some() {
                 true
-            } else if before.color.is_some() && after.color.is_some() {
-                before.color.clone().unwrap().value != after.color.as_ref().unwrap().value
+            } else if let Some(before_color) = &before.color
+                && let Some(after_color) = &after.color
+            {
+                before_color.value != after_color.value
             } else {
                 false
             }

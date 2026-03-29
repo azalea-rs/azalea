@@ -54,7 +54,7 @@ impl simdnbt::Serialize for TextComponent {
     }
 }
 
-const LEGACY_FORMATTING_CODE_SYMBOL: char = '§';
+pub const LEGACY_FORMATTING_CODE_SYMBOL: char = '§';
 
 /// Convert a legacy color code string into a FormattedText
 /// Technically in Minecraft this is done when displaying the text, but AFAIK
