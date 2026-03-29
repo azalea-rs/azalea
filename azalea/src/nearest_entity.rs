@@ -16,7 +16,7 @@ use bevy_ecs::{
 /// applied filter.
 ///
 /// ```
-/// use azalea::{chat::SendChatEvent, nearest_entity::EntityFinder};
+/// use azalea::{client_chat::SendChatEvent, nearest_entity::EntityFinder};
 /// use azalea_entity::{
 ///     LocalEntity,
 ///     metadata::{AbstractMonster, Player},

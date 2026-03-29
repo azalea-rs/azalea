@@ -46,7 +46,6 @@ impl Plugin for DisconnectPlugin {
 /// failed, for that see [`ConnectionFailedEvent`].
 ///
 /// [`ConnectionFailedEvent`]: crate::join::ConnectionFailedEvent
-
 #[derive(Message)]
 pub struct DisconnectEvent {
     pub entity: Entity,
