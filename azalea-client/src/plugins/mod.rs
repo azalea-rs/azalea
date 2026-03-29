@@ -3,10 +3,10 @@ use bevy_app::{PluginGroup, PluginGroupBuilder};
 pub mod attack;
 pub mod block_update;
 pub mod brand;
-pub mod chat;
 #[cfg(feature = "online-mode")]
 pub mod chat_signing;
 pub mod chunks;
+pub mod client_chat;
 pub mod client_information;
 pub mod connection;
 pub mod cookies;
@@ -41,7 +41,7 @@ impl PluginGroup for DefaultPlugins {
             .add(azalea_physics::PhysicsPlugin)
             .add(task_pool::TaskPoolPlugin::default())
             .add(inventory::InventoryPlugin)
-            .add(chat::ChatPlugin)
+            .add(client_chat::ChatPlugin)
             .add(disconnect::DisconnectPlugin)
             .add(movement::MovementPlugin)
             .add(interact::InteractPlugin)

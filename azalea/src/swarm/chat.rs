@@ -15,7 +15,7 @@
 
 use std::collections::VecDeque;
 
-use azalea_client::chat::{ChatPacket, ChatReceivedEvent};
+use azalea_client::client_chat::{ChatPacket, ChatReceivedEvent};
 use bevy_app::{App, Plugin, Update};
 
 use super::{Swarm, SwarmEvent};

@@ -32,8 +32,8 @@ use tracing::{debug, error, warn};
 use crate::{
     ClientInformation,
     block_update::QueuedServerBlockUpdates,
-    chat::{ChatPacket, ChatReceivedEvent},
     chunks,
+    client_chat::{ChatPacket, ChatReceivedEvent},
     connection::RawConnection,
     cookies::{RequestCookieEvent, StoreCookieEvent},
     disconnect::DisconnectEvent,

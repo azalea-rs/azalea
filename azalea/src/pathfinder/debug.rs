@@ -1,4 +1,4 @@
-use azalea_client::{chat::SendChatEvent, local_player::WorldHolder};
+use azalea_client::{client_chat::SendChatEvent, local_player::WorldHolder};
 use azalea_core::position::Vec3;
 use bevy_ecs::prelude::*;
 

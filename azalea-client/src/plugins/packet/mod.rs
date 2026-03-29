@@ -6,7 +6,7 @@ use bevy_ecs::{
 };
 
 use self::game::DeathEvent;
-use crate::chat::ChatReceivedEvent;
+use crate::client_chat::ChatReceivedEvent;
 
 pub mod config;
 pub mod game;

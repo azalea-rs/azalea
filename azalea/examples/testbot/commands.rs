@@ -3,7 +3,7 @@ pub mod debug;
 pub mod movement;
 
 use azalea::{
-    Client, brigadier::prelude::*, chat::ChatPacket, entity::metadata::Player,
+    Client, brigadier::prelude::*, client_chat::ChatPacket, entity::metadata::Player,
     player::GameProfileComponent,
 };
 use bevy_ecs::query::With;

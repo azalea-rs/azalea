@@ -674,16 +674,6 @@ impl From<&str> for FormattedText {
         Self::from(s.to_owned())
     }
 }
-impl From<TranslatableComponent> for FormattedText {
-    fn from(c: TranslatableComponent) -> Self {
-        FormattedText::Translatable(c)
-    }
-}
-impl From<TextComponent> for FormattedText {
-    fn from(c: TextComponent) -> Self {
-        FormattedText::Text(c)
-    }
-}
 
 impl Display for FormattedText {
     /// Render the text in the component but without any formatting/styling.

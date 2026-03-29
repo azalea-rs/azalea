@@ -237,6 +237,11 @@ impl From<&str> for TranslatableComponent {
         TranslatableComponent::new(s.to_owned(), vec![])
     }
 }
+impl From<TranslatableComponent> for FormattedText {
+    fn from(c: TranslatableComponent) -> Self {
+        FormattedText::Translatable(c)
+    }
+}
 
 #[cfg(test)]
 mod tests {

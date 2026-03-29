@@ -1,4 +1,4 @@
-use azalea_client::chat::{ChatKind, SendChatEvent, handler::SendChatKindEvent};
+use azalea_client::client_chat::{ChatKind, SendChatEvent, handler::SendChatKindEvent};
 
 use crate::Client;
 

@@ -12,6 +12,8 @@ is breaking anyways, semantic versioning is not followed.
 
 ### Changed
 
+- Re-export `azalea-chat` from `azalea`, and move the other `azalea::chat` module to `azalea::client_chat`.
+
 ### Fixed
 
 ## [0.16.0+mc26.1] - 2026-03-27

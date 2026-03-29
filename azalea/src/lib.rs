@@ -47,6 +47,7 @@ pub use azalea_registry as registry;
 #[doc(hidden)]
 #[deprecated(note = "renamed to `Identifier`.")]
 pub type ResourceLocation = azalea_registry::identifier::Identifier;
+pub use azalea_chat as chat;
 pub use azalea_registry::identifier::Identifier;
 pub use azalea_world as world;
 pub use bevy_app as app;

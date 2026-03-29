@@ -17,8 +17,8 @@ use derive_more::{Deref, DerefMut};
 use tokio::sync::mpsc;
 
 use crate::{
-    chat::{ChatPacket, ChatReceivedEvent},
     chunks::ReceiveChunkEvent,
+    client_chat::{ChatPacket, ChatReceivedEvent},
     disconnect::DisconnectEvent,
     packet::game::{
         AddPlayerEvent, DeathEvent, KeepAliveEvent, RemovePlayerEvent, UpdatePlayerEvent,

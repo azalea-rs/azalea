@@ -12,7 +12,7 @@ use chrono::Utc;
 use tracing::{debug, error};
 use uuid::Uuid;
 
-use super::{chat, login::IsAuthenticated, packet::game::SendGamePacketEvent};
+use super::{client_chat, login::IsAuthenticated, packet::game::SendGamePacketEvent};
 use crate::{InGameState, account::Account};
 
 pub struct ChatSigningPlugin;
@@ -26,7 +26,7 @@ impl Plugin for ChatSigningPlugin {
                 handle_queued_certs_to_send,
             )
                 .chain()
-                .before(chat::handler::handle_send_chat_kind_event),
+                .before(client_chat::handler::handle_send_chat_kind_event),
         );
     }
 }

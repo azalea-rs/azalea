@@ -164,6 +164,12 @@ impl Display for TextComponent {
     }
 }
 
+impl From<TextComponent> for FormattedText {
+    fn from(c: TextComponent) -> Self {
+        FormattedText::Text(c)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
