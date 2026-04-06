@@ -149,7 +149,11 @@ pub fn handle_client_side_close_container_trigger(
         // tries to modify id 0 for slots within `inventory`. not implemented for now
         // because i'm not sure if that's worth worrying about.
 
-        let new_inventory = inventory_menu.slots()[inventory_menu.player_slots_range()].to_vec();
+        let new_inventory = inventory_menu.slots()[inventory_menu.player_slots_range()]
+            .iter()
+            .cloned()
+            .cloned()
+            .collect::<Vec<ItemStack>>();
         let new_inventory = <[ItemStack; 36]>::try_from(new_inventory).unwrap();
         *inventory.inventory_menu.as_player_mut().inventory = new_inventory;
     }
@@ -184,7 +188,7 @@ pub fn handle_container_click_event(
         return;
     };
 
-    let old_slots = inventory.menu().slots();
+    let old_menu = inventory.menu().clone();
     inventory.simulate_click(
         &container_click.operation,
         player_abilities.unwrap_or(&PlayerAbilities::default()),
@@ -196,7 +200,7 @@ pub fn handle_container_click_event(
     // see which slots changed after clicking and put them in the map the server
     // uses this to check if we desynced
     let mut changed_slots: IndexMap<u16, HashedStack> = IndexMap::new();
-    for (slot_index, old_slot) in old_slots.iter().enumerate() {
+    for (slot_index, old_slot) in old_menu.slots().iter().enumerate() {
         let new_slot = &new_slots[slot_index];
         if old_slot != new_slot {
             changed_slots.insert(
