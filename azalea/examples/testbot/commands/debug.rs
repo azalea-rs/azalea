@@ -261,8 +261,8 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
         let max_stack_size = source
             .bot
             .get_held_item()
-            .get_component::<MaxStackSize>()
-            .map_or(-1, |s| s.count);
+            .and_then(|item| item.get_component::<MaxStackSize>().map(|s| s.count))
+            .unwrap_or(-1);
         source.reply(format!("{max_stack_size}"));
         1
     }));
