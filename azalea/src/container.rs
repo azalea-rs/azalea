@@ -126,7 +126,8 @@ impl Client {
 
     /// Open the player's inventory.
     ///
-    /// This will return None if another container is open.
+    /// This will return None if another container is open, or the client is
+    /// disconnected.
     ///
     /// Note that this will send a packet to the server once it's dropped. Also,
     /// due to how it's implemented, you could call this function multiple times
@@ -136,7 +137,7 @@ impl Client {
     /// sending any packets, use [`Client::menu`], [`Menu::player_slots_range`],
     /// and [`Menu::slots`].
     pub fn open_inventory(&self) -> Option<ContainerHandle> {
-        let inventory = self.component::<Inventory>();
+        let inventory = self.get_component::<Inventory>()?;
         if inventory.id == 0 {
             Some(ContainerHandle::new(0, self.clone()))
         } else {
@@ -145,7 +146,8 @@ impl Client {
     }
 
     /// Returns a [`ContainerHandleRef`] to the client's currently open
-    /// container, or their inventory.
+    /// container, or their inventory. May return `None` if the client is
+    /// disconnected.
     ///
     /// This will not send a packet to close the container when it's dropped,
     /// which may cause anticheat compatibility issues if you modify your
@@ -155,14 +157,19 @@ impl Client {
     /// won't trigger anticheats, use [`Client::open_inventory`].
     ///
     /// To open a container in the world, use [`Client::open_container_at`].
-    pub fn get_inventory(&self) -> ContainerHandleRef {
-        ContainerHandleRef::new(self.component::<Inventory>().id, self.clone())
+    pub fn get_inventory(&self) -> Option<ContainerHandleRef> {
+        Some(ContainerHandleRef::new(
+            self.get_component::<Inventory>()?.id,
+            self.clone(),
+        ))
     }
 
     /// Get the item in the bot's hotbar that is currently being held in its
     /// main hand.
-    pub fn get_held_item(&self) -> ItemStack {
-        self.component::<Inventory>().held_item().clone()
+    ///
+    /// Returns `None` if the Client is disconnected.
+    pub fn get_held_item(&self) -> Option<ItemStack> {
+        Some(self.get_component::<Inventory>()?.held_item().clone())
     }
 }
 
@@ -251,9 +258,11 @@ impl ContainerHandleRef {
     /// # use azalea::prelude::*;
     /// # fn example(bot: &Client) {
     /// let inventory = bot.get_inventory();
-    /// let inventory_title = inventory.title().unwrap_or_default().to_string();
-    /// // would be true if an unnamed chest is open
-    /// assert_eq!(inventory_title, "Chest");
+    /// if let Some(inventory) = inventory {
+    ///     let inventory_title = inventory.title().unwrap_or_default().to_string();
+    ///     // would be true if an unnamed chest is open
+    ///     assert_eq!(inventory_title, "Chest");
+    /// }
     /// # }
     /// ```
     pub fn title(&self) -> Option<FormattedText> {
