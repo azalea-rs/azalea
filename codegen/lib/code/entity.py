@@ -546,6 +546,12 @@ impl From<EntityDataValue> for UpdateMetadataError {
                             default = f"azalea_registry::data::{type_name}::new_raw(0)"
                         elif type_name == "VillagerData":
                             default = "VillagerData { kind: azalea_registry::builtin::VillagerKind::Plains, profession: azalea_registry::builtin::VillagerProfession::None, level: 0 }"
+                        elif name == "air_supply":
+                            # Burger doesn't extract defaults for `Int` metadata fields, but Mojang
+                            # defaults AirSupply to 300 (Entity.java: defineId(..., 300)). Without
+                            # this override, a non-drowning entity reports air=0 because
+                            # SynchedEntityData only syncs non-default values.
+                            default = "300"
                         else:
                             default = (
                                 f"{type_name}::default()"

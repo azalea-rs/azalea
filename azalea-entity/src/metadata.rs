@@ -547,7 +547,7 @@ impl Default for AbstractEntityMetadataBundle {
             currently_glowing: CurrentlyGlowing(false),
             invisible: Invisible(false),
             fall_flying: FallFlying(false),
-            air_supply: AirSupply(Default::default()),
+            air_supply: AirSupply(300),
             custom_name: CustomName(Default::default()),
             custom_name_visible: CustomNameVisible(Default::default()),
             silent: Silent(Default::default()),
