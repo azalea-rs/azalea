@@ -505,6 +505,10 @@ impl FormattedText {
                     for item in with {
                         with_array.push(PrimitiveOrComponent::Integer(item));
                     }
+                } else if let Some(with) = with_list.longs() {
+                    for item in with {
+                        with_array.push(PrimitiveOrComponent::Long(item));
+                    }
                 } else if let Some(with) = with_list.compounds() {
                     for item in with {
                         // if it's a string component with no styling and no siblings,
