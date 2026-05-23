@@ -306,6 +306,7 @@ define_data_components!(
     CowSoundVariant,
     ChickenSoundVariant,
     CatSoundVariant,
+    SulfurCubeContent,
 );
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
@@ -1915,4 +1916,9 @@ pub struct ChickenSoundVariant {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct CatSoundVariant {
     pub value: azalea_registry::data::CatSoundVariant,
+}
+
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+pub struct SulfurCubeContent {
+    pub todo: todo!(), // see DataComponents.java
 }
