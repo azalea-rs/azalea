@@ -224,10 +224,10 @@ where
     }
 
     /// Write a batch of packets to the server
-    pub async fn write_batch(&mut self, packets: impl IntoIterator<Item = W>) -> io::Result<()> {
+    pub async fn write_batch(&mut self, packets: &[W]) -> io::Result<()> {
         let serialized_packets: Vec<u8> = packets
             .into_iter()
-            .flat_map(|packet| serialize_packet(&packet).unwrap())
+            .flat_map(|packet| serialize_packet(packet).unwrap())
             .collect();
         self.raw.write(&serialized_packets).await
     }
@@ -261,13 +261,8 @@ where
     }
 
     /// Write a batch of packets to the other side of the connection.
-    pub async fn write_batch(
-        &mut self,
-        packets: impl IntoIterator<Item = impl crate::packets::Packet<W>>,
-    ) -> io::Result<()> {
-        self.writer
-            .write_batch(packets.into_iter().map(|packet| packet.into_variant()))
-            .await
+    pub async fn write_batch(&mut self, packets: &[W]) -> io::Result<()> {
+        self.writer.write_batch(packets).await
     }
 
     /// Split the reader and writer into two objects.
