@@ -223,6 +223,15 @@ where
         self.raw.write(&serialize_packet(&packet).unwrap()).await
     }
 
+    /// Write a batch of packets to the server
+    pub async fn write_batch(&mut self, packets: &[W]) -> io::Result<()> {
+        let serialized_packets: Vec<u8> = packets
+            .into_iter()
+            .flat_map(|packet| serialize_packet(packet).unwrap())
+            .collect();
+        self.raw.write(&serialized_packets).await
+    }
+
     /// End the connection.
     pub async fn shutdown(&mut self) -> io::Result<()> {
         self.raw.shutdown().await
@@ -249,6 +258,11 @@ where
     pub async fn write(&mut self, packet: impl crate::packets::Packet<W>) -> io::Result<()> {
         let packet = packet.into_variant();
         self.writer.write(packet).await
+    }
+
+    /// Write a batch of packets to the other side of the connection.
+    pub async fn write_batch(&mut self, packets: &[W]) -> io::Result<()> {
+        self.writer.write_batch(packets).await
     }
 
     /// Split the reader and writer into two objects.
