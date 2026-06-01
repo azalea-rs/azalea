@@ -20,6 +20,8 @@ pub mod prelude;
 pub mod swarm;
 pub mod tick_broadcast;
 
+use std::ops::Deref;
+
 pub use azalea_auth as auth;
 pub use azalea_block as block;
 #[doc(hidden)]
@@ -60,7 +62,7 @@ pub use azalea_registry::identifier::Identifier;
 pub use azalea_world as world;
 pub use bevy_app as app;
 pub use bevy_ecs as ecs;
-use bevy_ecs::component::Component;
+use bevy_ecs::{component::Component, resource::Resource};
 pub use builder::ClientBuilder;
 use futures::future::BoxFuture;
 pub use join_opts::JoinOpts;
@@ -88,3 +90,31 @@ pub type HandleFn<S, Fut> = fn(Client, Event, S) -> Fut;
 /// [`SwarmBuilder`]: swarm::SwarmBuilder
 #[derive(Clone, Component, Default)]
 pub struct NoState;
+
+/// A reference to a `tokio::runtime::Handle`, allowing you to spawn Tokio tasks
+/// inside of ECS systems.
+///
+/// There are times in which you may want to use something like `tokio::spawn`
+/// inside of an ECS system, but you don't want to bother with message passing
+/// or Bevy's `AsyncComputeTaskPool`. Bevy doesn't run systems inside of a Tokio
+/// runtime, which results in an error if you try to use `tokio::spawn` or
+/// `tokio::task::spawn_local`. However, if you have a reference to a `Handle`,
+/// then Tokio will let you use it to spawn new tasks. This `Resource` exists
+/// for that -- it simply gives you a handle to a Tokio runtime to do whatever
+/// you want with.
+///
+/// ```
+/// fn example(rt: Res<azalea::TokioRuntimeHandle>) {
+///     rt.spawn(async {
+///         // ...
+///     });
+/// }
+/// ```
+#[derive(Resource)]
+pub struct TokioRuntimeHandle(pub tokio::runtime::Handle);
+impl Deref for TokioRuntimeHandle {
+    type Target = tokio::runtime::Handle;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}

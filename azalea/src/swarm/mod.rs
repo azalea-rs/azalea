@@ -66,7 +66,8 @@ pub enum SwarmEvent {
     /// This is only fired once, and it's guaranteed to be the first event to
     /// fire.
     Init,
-    /// This is fired every Minecraft tick (in the [`GameTick`] schedule).
+    /// This is fired every Minecraft tick (in the
+    /// [`GameTick`](azalea_core::tick::GameTick) schedule).
     Tick,
     /// A bot got disconnected from the server.
     ///

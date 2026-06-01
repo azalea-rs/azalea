@@ -13,6 +13,7 @@ is breaking anyways, semantic versioning is not followed.
 - `azalea-brigadier` now optionally allows commands to return a `Result<i32, _>` instead of just an `i32`.
 - `azalea-chat` is now re-exported in `azalea::chat`.
 - Shape offsets were implemented, so bots no longer get stuck on bamboo and dripstone.
+- Added the `TokioRuntimeHandle` resource to allow spawning Tokio tasks in the ECS again.
 
 ### Changed
 
