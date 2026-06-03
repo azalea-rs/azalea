@@ -104,6 +104,7 @@ pub struct NoState;
 /// you want with.
 ///
 /// ```
+/// # use azalea::ecs::prelude::*;
 /// fn example(rt: Res<azalea::TokioRuntimeHandle>) {
 ///     rt.spawn(async {
 ///         // ...
