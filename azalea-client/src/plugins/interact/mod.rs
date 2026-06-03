@@ -39,7 +39,7 @@ use crate::{
     attack::handle_attack_event,
     interact::pick::{HitResultComponent, update_hit_result_component},
     inventory::InventorySystems,
-    local_player::{LocalGameMode, PermissionLevel},
+    local_player::PermissionLevel,
     movement::MoveEventsSystems,
     packet::game::SendGamePacketEvent,
     respawn::perform_respawn,
@@ -451,10 +451,10 @@ pub fn handle_swing_arm_trigger(swing_arm: On<SwingArmEvent>, mut commands: Comm
 
 #[allow(clippy::type_complexity)]
 fn update_attributes_for_gamemode(
-    query: Query<(&mut Attributes, &LocalGameMode), (With<LocalEntity>, Changed<LocalGameMode>)>,
+    query: Query<(&mut Attributes, &GameMode), (With<LocalEntity>, Changed<GameMode>)>,
 ) {
-    for (mut attributes, game_mode) in query {
-        if game_mode.current == GameMode::Creative {
+    for (mut attributes, &game_mode) in query {
+        if game_mode == GameMode::Creative {
             attributes
                 .block_interaction_range
                 .insert(creative_block_interaction_range_modifier());

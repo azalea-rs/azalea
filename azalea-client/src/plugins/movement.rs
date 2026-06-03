@@ -36,7 +36,7 @@ use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 
 use crate::{
-    local_player::{Hunger, LocalGameMode, WorldHolder},
+    local_player::{Hunger, WorldHolder},
     packet::game::SendGamePacketEvent,
 };
 
@@ -587,14 +587,14 @@ pub fn update_pose(
         &mut Pose,
         &Physics,
         &ClientMovementState,
-        &LocalGameMode,
+        &GameMode,
         &WorldHolder,
         &Position,
     )>,
     aabb_query: AabbQuery,
     collidable_entity_query: CollidableEntityQuery,
 ) {
-    for (entity, mut pose, physics, physics_state, game_mode, world_holder, position) in
+    for (entity, mut pose, physics, physics_state, &game_mode, world_holder, position) in
         query.iter_mut()
     {
         let world = world_holder.shared.read();
@@ -624,7 +624,7 @@ pub fn update_pose(
         let is_passenger = false;
 
         // canPlayerFitWithinBlocksAndEntitiesWhen
-        let new_pose = if game_mode.current == GameMode::Spectator
+        let new_pose = if game_mode == GameMode::Spectator
             || is_passenger
             || can_player_fit_within_blocks_and_entities_when(&ctx, desired_pose)
         {
