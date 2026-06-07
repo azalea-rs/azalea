@@ -95,6 +95,8 @@ impl WalkDirection {
     /// Inverts the walk direction.
     ///
     /// ```
+    /// # use azalea_physics::client_movement::WalkDirection;
+    ///
     /// assert_eq!(WalkDirection::Forward.opposite(), WalkDirection::Backward);
     /// assert_eq!(
     ///     WalkDirection::BackwardRight.opposite(),
