@@ -5,11 +5,68 @@ pub mod handshake;
 pub mod login;
 pub mod status;
 
-use std::io::{self, Cursor, Write};
+use std::io::{self, Cursor, Read, Write};
 
 use azalea_buf::{AzBuf, AzBufVar, BufReadError};
 
 use crate::read::ReadPacketError;
+
+/// Network NBT framed as a VarInt byte length followed by an unnamed NBT
+/// compound. A length of `0` means no NBT payload is present.
+///
+/// This is the 26.1.2 / Minecraft 1.21.5+ `Custom Click Action` payload
+/// framing used by vanilla's `FriendlyByteBuf::writeNbt` / `readNbt`
+/// contract. Historically this was represented as a bare `Nbt`, which wrote
+/// the compound directly and corrupted framing for non-empty payloads.
+#[derive(Clone, Debug, PartialEq)]
+pub struct OptionalNbt(pub simdnbt::owned::Nbt);
+
+impl OptionalNbt {
+    pub fn empty() -> Self {
+        Self(simdnbt::owned::Nbt::None)
+    }
+}
+
+impl From<simdnbt::owned::Nbt> for OptionalNbt {
+    fn from(value: simdnbt::owned::Nbt) -> Self {
+        Self(value)
+    }
+}
+
+impl AzBuf for OptionalNbt {
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let length = i32::azalea_read_var(buf)?;
+        if length == 0 {
+            Ok(OptionalNbt(simdnbt::owned::Nbt::None))
+        } else if length < 0 {
+            Err(BufReadError::Custom(format!(
+                "OptionalNbt length was negative: {length}"
+            )))
+        } else {
+            let mut payload = vec![0; length as usize];
+            buf.read_exact(&mut payload)?;
+            let mut payload_cursor = Cursor::new(payload.as_slice());
+            Ok(OptionalNbt(simdnbt::owned::Nbt::azalea_read(
+                &mut payload_cursor,
+            )?))
+        }
+    }
+
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+        match &self.0 {
+            simdnbt::owned::Nbt::Some(_) => {
+                let mut payload = Vec::new();
+                self.0.azalea_write(&mut payload)?;
+                (payload.len() as u32).azalea_write_var(buf)?;
+                buf.write_all(&payload)?;
+            }
+            simdnbt::owned::Nbt::None => {
+                0_u32.azalea_write_var(buf)?;
+            }
+        }
+        Ok(())
+    }
+}
 
 pub const PROTOCOL_VERSION: i32 = 775;
 pub const VERSION_NAME: &str = "26.1.2";

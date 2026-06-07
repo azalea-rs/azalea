@@ -4,12 +4,14 @@ use std::{
 };
 
 use azalea_buf::{AzBuf, BufReadError};
-use azalea_core::{attribute_modifier_operation::AttributeModifierOperation, bitset::FixedBitSet};
+#[cfg(feature = "bevy_ecs")]
+use azalea_core::attribute_modifier_operation::AttributeModifierOperation;
+use azalea_core::bitset::FixedBitSet;
+#[cfg(feature = "bevy_ecs")]
 use azalea_inventory::components::AttributeModifier;
-use azalea_registry::{
-    builtin::{Attribute, MobEffect},
-    identifier::Identifier,
-};
+use azalea_registry::builtin::MobEffect;
+#[cfg(feature = "bevy_ecs")]
+use azalea_registry::{builtin::Attribute, identifier::Identifier};
 
 /// Data about an active mob effect.
 #[derive(AzBuf, Clone, Debug, Default, PartialEq)]
@@ -106,6 +108,7 @@ impl ActiveEffects {
     }
 }
 
+#[cfg(feature = "bevy_ecs")]
 pub fn attribute_modifier_for_effect(id: MobEffect) -> Option<(Attribute, AttributeTemplate)> {
     Some(match id {
         MobEffect::Speed => (
@@ -196,7 +199,9 @@ pub fn attribute_modifier_for_effect(id: MobEffect) -> Option<(Attribute, Attrib
     })
 }
 
+#[cfg(feature = "bevy_ecs")]
 pub struct AttributeTemplate(AttributeModifier);
+#[cfg(feature = "bevy_ecs")]
 impl AttributeTemplate {
     pub fn new(id: &str, amount: f64, operation: AttributeModifierOperation) -> Self {
         Self(AttributeModifier {
