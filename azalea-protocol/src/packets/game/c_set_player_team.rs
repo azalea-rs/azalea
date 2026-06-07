@@ -20,12 +20,12 @@ pub enum Method {
 #[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct Parameters {
     pub display_name: FormattedText,
-    pub options: u8,
+    pub player_prefix: FormattedText,
+    pub player_suffix: FormattedText,
     pub nametag_visibility: NameTagVisibility,
     pub collision_rule: CollisionRule,
     pub color: ChatFormatting,
-    pub player_prefix: FormattedText,
-    pub player_suffix: FormattedText,
+    pub options: u8,
 }
 
 #[derive(AzBuf, Clone, Copy, Debug, PartialEq)]

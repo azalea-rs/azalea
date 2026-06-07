@@ -356,6 +356,7 @@ pub fn make_basic_login_packet(
             sea_level: 63,
         },
         enforces_secure_chat: false,
+        online_mode: false,
     }
 }
 

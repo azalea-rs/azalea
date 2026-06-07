@@ -75,8 +75,8 @@ impl From<u32> for MinecraftEntityId {
 
 /// An entity ID that might not be present.
 ///
-/// This is encoded as a single varint, where `None` is `0` and `Some` is written
-/// as `id-1`.
+/// This is encoded as a single varint, where `None` is `0` and `Some` is
+/// written as `id-1`.
 #[derive(Clone, Debug, PartialEq)]
 pub struct OptionalEntityId(pub Option<MinecraftEntityId>);
 impl AzBuf for OptionalEntityId {

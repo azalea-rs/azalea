@@ -366,6 +366,8 @@ pub static NON_CONTROLLING_RIDER: LazyLock<RegistryTag<EntityKind>> = LazyLock::
         EntityKind::SulfurCube,
     ])
 });
+pub static NOT_AFFECTED_BY_GEYSERS: LazyLock<RegistryTag<EntityKind>> =
+    LazyLock::new(|| RegistryTag::new(vec![EntityKind::EnderDragon]));
 pub static NOT_SCARY_FOR_PUFFERFISH: LazyLock<RegistryTag<EntityKind>> = LazyLock::new(|| {
     RegistryTag::new(vec![
         EntityKind::Cod,

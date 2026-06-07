@@ -1888,37 +1888,44 @@ impl Default for AttackRange {
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(transparent)]
 pub struct AdditionalTradeCost {
     #[var]
     pub cost: i32,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(transparent)]
 pub struct Dye {
     pub color: DyeColor,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(transparent)]
 pub struct PigSoundVariant {
     pub value: azalea_registry::data::PigSoundVariant,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(transparent)]
 pub struct CowSoundVariant {
     pub value: azalea_registry::data::CowSoundVariant,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(transparent)]
 pub struct ChickenSoundVariant {
     pub value: azalea_registry::data::ChickenSoundVariant,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(transparent)]
 pub struct CatSoundVariant {
     pub value: azalea_registry::data::CatSoundVariant,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(transparent)]
 pub struct SulfurCubeContent {
     pub absorbed_block_item_stack: ItemStack,
 }
