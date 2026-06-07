@@ -19,7 +19,7 @@ use tokio::{sync::mpsc, task};
 use tracing::{debug, error, warn};
 
 use crate::{
-    BoxHandleFn, HandleFn, JoinOpts, NoState,
+    BoxHandleFn, HandleFn, JoinOpts, NoState, TokioRuntimeHandle,
     auto_reconnect::{AutoReconnectDelay, DEFAULT_RECONNECT_DELAY},
     bot::DefaultBotPlugins,
     swarm::{
@@ -468,6 +468,7 @@ where
             // run the main schedule so the startup systems run
             {
                 let mut ecs = ecs_lock.write();
+                ecs.insert_resource(TokioRuntimeHandle(tokio::runtime::Handle::current()));
                 ecs.insert_resource(swarm.clone());
                 ecs.insert_resource(self.swarm_state.clone());
                 if let Some(reconnect_after) = self.reconnect_after {

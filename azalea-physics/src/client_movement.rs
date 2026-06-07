@@ -91,6 +91,32 @@ impl WalkDirection {
         d.right = value;
         *self = d.into();
     }
+
+    /// Inverts the walk direction.
+    ///
+    /// ```
+    /// # use azalea_physics::client_movement::WalkDirection;
+    ///
+    /// assert_eq!(WalkDirection::Forward.opposite(), WalkDirection::Backward);
+    /// assert_eq!(
+    ///     WalkDirection::BackwardRight.opposite(),
+    ///     WalkDirection::ForwardLeft
+    /// );
+    /// assert_eq!(WalkDirection::None.opposite(), WalkDirection::None);
+    /// ```
+    pub fn opposite(self) -> Self {
+        match self {
+            Self::None => Self::None,
+            Self::Forward => Self::Backward,
+            Self::Backward => Self::Forward,
+            Self::Left => Self::Right,
+            Self::Right => Self::Left,
+            Self::ForwardRight => Self::BackwardLeft,
+            Self::ForwardLeft => Self::BackwardRight,
+            Self::BackwardRight => Self::ForwardLeft,
+            Self::BackwardLeft => Self::ForwardRight,
+        }
+    }
 }
 /// A struct containing fields for each direction.
 ///

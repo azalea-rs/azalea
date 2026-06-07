@@ -2,9 +2,14 @@ use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzBuf, AzBufVar, BufReadError};
 use azalea_chat::translatable_component::TranslatableComponent;
+use bevy_ecs::component::Component;
 use tracing::debug;
 
 /// A Minecraft gamemode, like survival or creative.
+///
+/// When this is used as a component, it is only present for local players. For
+/// non-local players, their gamemode must be looked up in the tab list.
+#[cfg_attr(feature = "bevy_ecs", derive(Component))]
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
 pub enum GameMode {
     #[default]

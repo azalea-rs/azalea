@@ -124,27 +124,38 @@ pub fn register(commands: &mut Dispatcher) {
             ))),
     );
 
+    fn walk_command(ctx: &Ctx, direction: WalkDirection) -> eyre::Result<i32> {
+        let mut seconds = get_float(ctx, "seconds").unwrap();
+        let source = ctx.source.lock();
+        let bot = source.bot.clone();
+
+        if seconds < 0. {
+            bot.walk(direction.opposite());
+            seconds = -seconds;
+        } else {
+            bot.walk(direction);
+        }
+
+        tokio::spawn(async move {
+            tokio::time::sleep(Duration::from_secs_f32(seconds)).await;
+            bot.walk(WalkDirection::None);
+        });
+        source.reply(format!("ok, walking {direction:?} for {seconds} seconds"));
+        Ok(1)
+    }
+
     commands.register(
-        literal("walk").then(argument("seconds", float()).executes(|ctx: &Ctx| {
-            let mut seconds = get_float(ctx, "seconds").unwrap();
-            let source = ctx.source.lock();
-            let bot = source.bot.clone();
-
-            if seconds < 0. {
-                bot.walk(WalkDirection::Backward);
-                seconds = -seconds;
-            } else {
-                bot.walk(WalkDirection::Forward);
-            }
-
-            tokio::spawn(async move {
-                tokio::time::sleep(Duration::from_secs_f32(seconds)).await;
-                bot.walk(WalkDirection::None);
-            });
-            source.reply(format!("ok, walking for {seconds} seconds"));
-            Ok(1)
-        })),
+        literal("walk").then(
+            argument("seconds", float())
+                .executes(|ctx: &Ctx| walk_command(ctx, WalkDirection::Forward)),
+        ),
     );
+    commands.register(literal("left").then(
+        argument("seconds", float()).executes(|ctx: &Ctx| walk_command(ctx, WalkDirection::Left)),
+    ));
+    commands.register(literal("right").then(
+        argument("seconds", float()).executes(|ctx: &Ctx| walk_command(ctx, WalkDirection::Left)),
+    ));
     commands.register(
         literal("sprint").then(argument("seconds", float()).executes(|ctx: &Ctx| {
             let seconds = get_float(ctx, "seconds").unwrap();

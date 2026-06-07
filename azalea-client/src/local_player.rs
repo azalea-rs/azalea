@@ -33,21 +33,14 @@ pub struct WorldHolder {
 #[deprecated = "renamed to `WorldHolder`."]
 pub type InstanceHolder = WorldHolder;
 
-/// The gamemode of a local player. For a non-local player, you can look up the
-/// player in the [`TabList`].
+/// A local player's previous game mode.
+///
+/// This component is not present on non-local players. This is `None` if the
+/// server specifically told us that the player has no previous gamemode.
+///
+/// Also see [`GameMode`].
 #[derive(Clone, Component, Copy, Debug)]
-pub struct LocalGameMode {
-    pub current: GameMode,
-    pub previous: Option<GameMode>,
-}
-impl From<GameMode> for LocalGameMode {
-    fn from(current: GameMode) -> Self {
-        LocalGameMode {
-            current,
-            previous: None,
-        }
-    }
-}
+pub struct PreviousGameMode(pub Option<GameMode>);
 
 /// Level must be 0..=4
 #[derive(Clone, Component, Default, Deref, DerefMut)]

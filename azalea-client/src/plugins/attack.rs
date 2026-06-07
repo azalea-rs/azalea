@@ -10,10 +10,7 @@ use derive_more::{Deref, DerefMut};
 use tracing::warn;
 
 use super::packet::game::SendGamePacketEvent;
-use crate::{
-    interact::SwingArmEvent, local_player::LocalGameMode, movement::MoveEventsSystems,
-    respawn::perform_respawn,
-};
+use crate::{interact::SwingArmEvent, movement::MoveEventsSystems, respawn::perform_respawn};
 
 pub struct AttackPlugin;
 impl Plugin for AttackPlugin {
@@ -57,7 +54,7 @@ pub fn handle_attack_queued(
         &mut Physics,
         &mut Sprinting,
         &AttackQueued,
-        &LocalGameMode,
+        &GameMode,
         &EntityIdIndex,
     )>,
 ) {
@@ -67,7 +64,7 @@ pub fn handle_attack_queued(
         mut physics,
         mut sprinting,
         attack_queued,
-        game_mode,
+        &game_mode,
         entity_id_index,
     ) in &mut query
     {
@@ -91,7 +88,7 @@ pub fn handle_attack_queued(
 
         // we can't attack if we're in spectator mode but it still sends the attack
         // packet
-        if game_mode.current == GameMode::Spectator {
+        if game_mode == GameMode::Spectator {
             continue;
         };
 

@@ -3,7 +3,7 @@
 use std::sync::Arc;
 
 use azalea_client::{
-    ClientMovementState, interact::BlockStatePredictionHandler, local_player::LocalGameMode,
+    ClientMovementState, interact::BlockStatePredictionHandler, local_player::PreviousGameMode,
     mining::MineBundle,
 };
 use azalea_core::{
@@ -110,7 +110,8 @@ fn create_simulation_player_complete_bundle(
             shared: world.clone(),
         },
         Inventory::default(),
-        LocalGameMode::from(GameMode::Survival),
+        GameMode::Survival,
+        PreviousGameMode(None),
         MineBundle::default(),
         BlockStatePredictionHandler::default(),
         azalea_client::local_player::PermissionLevel::default(),

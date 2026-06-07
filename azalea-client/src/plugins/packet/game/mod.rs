@@ -39,7 +39,7 @@ use crate::{
     disconnect::DisconnectEvent,
     interact::BlockStatePredictionHandler,
     inventory::{ClientsideCloseContainerEvent, MenuOpenedEvent, SetContainerContentEvent},
-    local_player::{Experience, Hunger, LocalGameMode, TabList, WorldHolder},
+    local_player::{Experience, Hunger, PreviousGameMode, TabList, WorldHolder},
     movement::{KnockbackData, KnockbackEvent},
     packet::{
         as_system, declare_packet_handlers,
@@ -308,10 +308,8 @@ impl GamePacketHandler<'_> {
                 // insert our components into the ecs :)
                 commands.entity(self.player).insert((
                     entity_id,
-                    LocalGameMode {
-                        current: p.common.game_type,
-                        previous: p.common.previous_game_type.into(),
-                    },
+                    p.common.game_type,
+                    PreviousGameMode(p.common.previous_game_type.into()),
                     entity_bundle,
                     TicksConnected(0),
                 ));
@@ -1047,10 +1045,10 @@ impl GamePacketHandler<'_> {
         #[allow(clippy::single_match)]
         match p.event {
             EventType::ChangeGameMode => {
-                as_system::<Query<&mut LocalGameMode>>(self.ecs, |mut query| {
-                    let mut local_game_mode = query.get_mut(self.player).unwrap();
+                as_system::<Query<&mut GameMode>>(self.ecs, |mut query| {
+                    let mut game_mode = query.get_mut(self.player).unwrap();
                     if let Some(new_game_mode) = GameMode::from_id(p.param as u8) {
-                        local_game_mode.current = new_game_mode;
+                        *game_mode = new_game_mode;
                     }
                 });
             }
@@ -1445,10 +1443,8 @@ impl GamePacketHandler<'_> {
                 );
                 // update the local gamemode and metadata things
                 commands.entity(self.player).insert((
-                    LocalGameMode {
-                        current: p.common.game_type,
-                        previous: p.common.previous_game_type.into(),
-                    },
+                    p.common.game_type,
+                    PreviousGameMode(p.common.previous_game_type.into()),
                     entity_bundle,
                 ));
 

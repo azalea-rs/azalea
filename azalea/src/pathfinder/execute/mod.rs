@@ -147,7 +147,7 @@ pub fn check_node_reached(
                 .clone()
                 .into_iter()
                 .enumerate()
-                .take(30)
+                .take(60)
                 .rev()
             {
                 let movement = edge.movement;

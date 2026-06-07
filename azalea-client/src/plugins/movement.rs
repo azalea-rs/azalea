@@ -36,7 +36,7 @@ use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 
 use crate::{
-    local_player::{Hunger, LocalGameMode, WorldHolder},
+    local_player::{Hunger, WorldHolder},
     packet::game::SendGamePacketEvent,
 };
 
@@ -206,12 +206,11 @@ pub fn send_player_input_packet(
 ) {
     for (entity, physics_state, jumping, last_sent_input) in query.iter_mut() {
         let dir = physics_state.move_direction;
-        type D = WalkDirection;
         let input = ServerboundPlayerInput {
-            forward: matches!(dir, D::Forward | D::ForwardLeft | D::ForwardRight),
-            backward: matches!(dir, D::Backward | D::BackwardLeft | D::BackwardRight),
-            left: matches!(dir, D::Left | D::ForwardLeft | D::BackwardLeft),
-            right: matches!(dir, D::Right | D::ForwardRight | D::BackwardRight),
+            forward: dir.forward(),
+            backward: dir.backward(),
+            left: dir.left(),
+            right: dir.right(),
             jump: **jumping,
             shift: physics_state.trying_to_crouch,
             sprint: physics_state.trying_to_sprint,
@@ -268,26 +267,18 @@ pub(crate) fn tick_controls(mut query: Query<&mut ClientMovementState>) {
         let mut forward_impulse: f32 = 0.;
         let mut left_impulse: f32 = 0.;
         let move_direction = physics_state.move_direction;
-        match move_direction {
-            WalkDirection::Forward | WalkDirection::ForwardRight | WalkDirection::ForwardLeft => {
-                forward_impulse += 1.;
-            }
-            WalkDirection::Backward
-            | WalkDirection::BackwardRight
-            | WalkDirection::BackwardLeft => {
-                forward_impulse -= 1.;
-            }
-            _ => {}
-        };
-        match move_direction {
-            WalkDirection::Right | WalkDirection::ForwardRight | WalkDirection::BackwardRight => {
-                left_impulse += 1.;
-            }
-            WalkDirection::Left | WalkDirection::ForwardLeft | WalkDirection::BackwardLeft => {
-                left_impulse -= 1.;
-            }
-            _ => {}
-        };
+
+        if move_direction.forward() {
+            forward_impulse += 1.;
+        } else if move_direction.backward() {
+            forward_impulse -= 1.;
+        }
+
+        if move_direction.left() {
+            left_impulse += 1.;
+        } else if move_direction.right() {
+            left_impulse -= 1.;
+        }
 
         let move_vector = Vec2::new(left_impulse, forward_impulse).normalized();
         physics_state.move_vector = move_vector;
@@ -596,14 +587,14 @@ pub fn update_pose(
         &mut Pose,
         &Physics,
         &ClientMovementState,
-        &LocalGameMode,
+        &GameMode,
         &WorldHolder,
         &Position,
     )>,
     aabb_query: AabbQuery,
     collidable_entity_query: CollidableEntityQuery,
 ) {
-    for (entity, mut pose, physics, physics_state, game_mode, world_holder, position) in
+    for (entity, mut pose, physics, physics_state, &game_mode, world_holder, position) in
         query.iter_mut()
     {
         let world = world_holder.shared.read();
@@ -633,7 +624,7 @@ pub fn update_pose(
         let is_passenger = false;
 
         // canPlayerFitWithinBlocksAndEntitiesWhen
-        let new_pose = if game_mode.current == GameMode::Spectator
+        let new_pose = if game_mode == GameMode::Spectator
             || is_passenger
             || can_player_fit_within_blocks_and_entities_when(&ctx, desired_pose)
         {
