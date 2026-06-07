@@ -1920,5 +1920,5 @@ pub struct CatSoundVariant {
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct SulfurCubeContent {
-    pub todo: todo!(), // see DataComponents.java
+    pub absorbed_block_item_stack: ItemStack,
 }

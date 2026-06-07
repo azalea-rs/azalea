@@ -72,3 +72,24 @@ impl From<u32> for MinecraftEntityId {
         Self(id as i32)
     }
 }
+
+/// An entity ID that might not be present.
+///
+/// This is encoded as a single varint, where `None` is `0` and `Some` is written
+/// as `id-1`.
+#[derive(Clone, Debug, PartialEq)]
+pub struct OptionalEntityId(pub Option<MinecraftEntityId>);
+impl AzBuf for OptionalEntityId {
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
+        match i32::azalea_read_var(buf)? {
+            0 => Ok(OptionalEntityId(None)),
+            id => Ok(OptionalEntityId(Some(MinecraftEntityId(id - 1)))),
+        }
+    }
+    fn azalea_write(&self, buf: &mut impl io::Write) -> io::Result<()> {
+        match self.0 {
+            Some(id) => (id.0 + 1).azalea_write_var(buf),
+            None => 0u32.azalea_write_var(buf),
+        }
+    }
+}
