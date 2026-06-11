@@ -1,3 +1,4 @@
+use azalea_block::fluid_state::FluidKind;
 use azalea_core::{
     entity_id::MinecraftEntityId,
     game_type::GameMode,
@@ -5,8 +6,8 @@ use azalea_core::{
     tick::GameTick,
 };
 use azalea_entity::{
-    Attributes, Crouching, HasClientLoaded, Jumping, LastSentPosition, LocalEntity, LookDirection,
-    Physics, PlayerAbilities, Pose, Position,
+    Attributes, Crouching, FluidOnEyes, HasClientLoaded, Jumping, LastSentPosition, LocalEntity,
+    LookDirection, Physics, PlayerAbilities, Pose, Position,
     dimensions::calculate_dimensions,
     metadata::{self, Sprinting},
     update_bounding_box,
@@ -297,6 +298,7 @@ pub fn local_player_ai_step(
             &PlayerAbilities,
             &metadata::Swimming,
             &metadata::SleepingPos,
+            &FluidOnEyes,
             &WorldHolder,
             &Position,
             Option<&Hunger>,
@@ -317,6 +319,7 @@ pub fn local_player_ai_step(
         abilities,
         swimming,
         sleeping_pos,
+        fluid_on_eyes,
         world_holder,
         position,
         hunger,
@@ -364,8 +367,8 @@ pub fn local_player_ai_step(
 
         let trying_to_sprint = physics_state.trying_to_sprint;
 
-        // TODO: swimming
-        let is_underwater = false;
+        // vanilla Entity.isUnderWater(): eyes in water fluid
+        let is_underwater = **fluid_on_eyes == FluidKind::Water;
         let is_in_water = physics.is_in_water();
         // TODO: elytra
         let is_fall_flying = false;
@@ -376,7 +379,8 @@ pub fn local_player_ai_step(
         // TODO: status effects
         let has_blindness = false;
 
-        let has_enough_impulse = has_enough_impulse_to_start_sprinting(physics_state);
+        let has_enough_impulse =
+            has_enough_impulse_to_start_sprinting(physics_state, is_underwater);
 
         // LocalPlayer.canStartSprinting
         let can_start_sprinting = !**sprinting
@@ -393,16 +397,20 @@ pub fn local_player_ai_step(
         }
 
         if **sprinting {
-            // TODO: swimming
-
             let vehicle_can_sprint = false;
-            // shouldStopRunSprinting
-            let should_stop_sprinting = has_blindness
-                || (is_passenger && !vehicle_can_sprint)
-                || !has_enough_impulse
-                || !has_enough_food_to_sprint
-                || (physics.horizontal_collision && !physics.minor_horizontal_collision)
-                || (is_in_water && !is_underwater);
+            let lost_impulse_or_food = !has_enough_impulse || !has_enough_food_to_sprint;
+            let should_stop_sprinting = if is_swimming {
+                // shouldStopSwimSprinting
+                (!physics.on_ground() && !physics_state.trying_to_crouch && lost_impulse_or_food)
+                    || !is_in_water
+            } else {
+                // shouldStopRunSprinting
+                has_blindness
+                    || (is_passenger && !vehicle_can_sprint)
+                    || lost_impulse_or_food
+                    || (physics.horizontal_collision && !physics.minor_horizontal_collision)
+                    || (is_in_water && !is_underwater)
+            };
             if should_stop_sprinting {
                 set_sprinting(false, &mut sprinting, &mut attributes);
             }
@@ -543,12 +551,18 @@ fn set_sprinting(
 }
 
 // Whether the player is moving fast enough to be able to start sprinting.
-fn has_enough_impulse_to_start_sprinting(physics_state: &ClientMovementState) -> bool {
-    // if self.underwater() {
-    //     self.has_forward_impulse()
-    // } else {
-    physics_state.move_vector.y > 0.8
-    // }
+//
+// LocalPlayer.hasEnoughImpulseToStartSprinting: underwater only requires some
+// forward impulse (hasForwardImpulse), not the 0.8 run threshold.
+fn has_enough_impulse_to_start_sprinting(
+    physics_state: &ClientMovementState,
+    is_underwater: bool,
+) -> bool {
+    if is_underwater {
+        physics_state.move_vector.y > 1e-5
+    } else {
+        physics_state.move_vector.y > 0.8
+    }
 }
 
 /// An event sent by the server that sets or adds to our velocity.
