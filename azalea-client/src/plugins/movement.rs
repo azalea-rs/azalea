@@ -595,12 +595,14 @@ pub fn handle_knockback(knockback: On<KnockbackEvent>, mut query: Query<&mut Phy
     }
 }
 
+#[allow(clippy::type_complexity)]
 pub fn update_pose(
     mut query: Query<(
         Entity,
         &mut Pose,
         &Physics,
         &ClientMovementState,
+        &metadata::Swimming,
         &GameMode,
         &WorldHolder,
         &Position,
@@ -608,7 +610,7 @@ pub fn update_pose(
     aabb_query: AabbQuery,
     collidable_entity_query: CollidableEntityQuery,
 ) {
-    for (entity, mut pose, physics, physics_state, &game_mode, world_holder, position) in
+    for (entity, mut pose, physics, physics_state, swimming, &game_mode, world_holder, position) in
         query.iter_mut()
     {
         let world = world_holder.shared.read();
@@ -626,9 +628,11 @@ pub fn update_pose(
             continue;
         }
 
-        // TODO: implement everything else from getDesiredPose: sleeping, swimming,
-        // fallFlying, spinAttack
-        let desired_pose = if physics_state.trying_to_crouch {
+        // TODO: implement everything else from getDesiredPose: sleeping, fallFlying,
+        // spinAttack
+        let desired_pose = if **swimming {
+            Pose::Swimming
+        } else if physics_state.trying_to_crouch {
             Pose::Crouching
         } else {
             Pose::Standing
