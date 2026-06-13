@@ -58,6 +58,26 @@ where
     stream.write_all(&network_packet).await
 }
 
+pub async fn write_raw_packets<W>(
+    raw_packets: impl Iterator<Item = &[u8]>,
+    stream: &mut W,
+    compression_threshold: Option<u32>,
+    cipher: &mut Option<Aes128CfbEnc>,
+) -> io::Result<()>
+where
+    W: AsyncWrite + Unpin + Send,
+{
+    let mut buffer = Vec::new();
+    for raw_packet in raw_packets {
+        buffer.extend(encode_to_network_packet(
+            raw_packet,
+            compression_threshold,
+            cipher,
+        ));
+    }
+    stream.write_all(&buffer).await
+}
+
 pub fn encode_to_network_packet(
     raw_packet: &[u8],
     compression_threshold: Option<u32>,

@@ -154,7 +154,7 @@ pub fn register(commands: &mut Dispatcher) {
         argument("seconds", float()).executes(|ctx: &Ctx| walk_command(ctx, WalkDirection::Left)),
     ));
     commands.register(literal("right").then(
-        argument("seconds", float()).executes(|ctx: &Ctx| walk_command(ctx, WalkDirection::Left)),
+        argument("seconds", float()).executes(|ctx: &Ctx| walk_command(ctx, WalkDirection::Right)),
     ));
     commands.register(
         literal("sprint").then(argument("seconds", float()).executes(|ctx: &Ctx| {

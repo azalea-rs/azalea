@@ -119,15 +119,13 @@ impl<S, R: CommandResultTrait> ContextChain<S, R> {
 
             let mut next_sources = Vec::new();
             for source_to_run in current_sources {
-                match Self::run_modifier(
+                let res = Self::run_modifier(
                     modifier.clone(),
                     source_to_run.clone(),
                     result_consumer,
                     forked_mode,
-                ) {
-                    Ok(res) => next_sources.extend(res),
-                    Err(err) => return Err(err),
-                }
+                )?;
+                next_sources.extend(res);
             }
             if next_sources.is_empty() {
                 return Ok(R::new(0));
