@@ -247,7 +247,7 @@ where
     /// Write a batch of packets to the server
     pub async fn write_batch(&mut self, packets: &[W]) -> io::Result<()> {
         let serialized_packets: Vec<Box<[u8]>> = packets
-            .into_iter()
+            .iter()
             .map(|packet| serialize_packet(packet).unwrap())
             .collect();
         self.raw
