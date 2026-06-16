@@ -21,8 +21,6 @@ def generate_blocks(
     new_make_block_states_macro_code = []
     new_make_block_states_macro_code.append("make_block_states! {")
 
-    burger_blocks_data = burger_data[0]["blocks"]["block"]
-
     pumpkin_block_map = {}
     for block_data in pumpkin_blocks_data["blocks"]:
         block_id = block_data["name"]
@@ -89,7 +87,6 @@ def generate_blocks(
     new_make_block_states_macro_code.append("    Blocks => {")
     for block_id in ordered_blocks:
         block_data_report = blocks_report["minecraft:" + block_id]
-        block_data_burger = burger_blocks_data.get(block_id, {})
         block_data_pumpkin = pumpkin_block_map[block_id]
 
         default_property_variants: dict[str, str] = {}
@@ -131,7 +128,7 @@ def generate_blocks(
         # make the block behavior
         behavior_constructor = "BlockBehavior::new()"
         # requires tool
-        if block_data_burger.get("requires_correct_tool_for_drops"):
+        if block_data_pumpkin.get("requires_correct_tool_for_drops"):
             behavior_constructor += ".requires_correct_tool_for_drops()"
         # strength
         destroy_time = block_data_pumpkin.get("hardness")
@@ -143,14 +140,14 @@ def generate_blocks(
         elif explosion_resistance:
             behavior_constructor += f".explosion_resistance({explosion_resistance})"
         # friction
-        friction = block_data_burger.get("friction")
-        if friction is not None:
+        friction = block_data_pumpkin["friction"]
+        if friction != 0.6:
             behavior_constructor += f".friction({friction})"
 
         force_solid = None
-        if block_data_burger.get("force_solid_on"):
+        if block_data_pumpkin.get("force_solid_on"):
             force_solid = "true"
-        elif block_data_burger.get("force_solid_off"):
+        elif block_data_pumpkin.get("force_solid_off"):
             force_solid = "false"
         if force_solid is not None:
             behavior_constructor += f".force_solid({force_solid})"

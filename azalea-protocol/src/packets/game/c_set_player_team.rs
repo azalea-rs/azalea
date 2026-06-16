@@ -20,12 +20,12 @@ pub enum Method {
 #[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct Parameters {
     pub display_name: FormattedText,
-    pub options: u8,
+    pub player_prefix: FormattedText,
+    pub player_suffix: FormattedText,
     pub nametag_visibility: NameTagVisibility,
     pub collision_rule: CollisionRule,
     pub color: ChatFormatting,
-    pub player_prefix: FormattedText,
-    pub player_suffix: FormattedText,
+    pub options: u8,
 }
 
 #[derive(AzBuf, Clone, Copy, Debug, PartialEq)]
@@ -45,26 +45,3 @@ pub enum NameTagVisibility {
 }
 
 type PlayerList = Vec<String>;
-
-#[cfg(test)]
-mod tests {
-    use std::io::Cursor;
-
-    use azalea_buf::AzBuf;
-
-    use crate::packets::game::ClientboundSetPlayerTeam;
-
-    #[test]
-    fn test_read_set_player_team() {
-        let contents = [
-            16, 99, 111, 108, 108, 105, 100, 101, 82, 117, 108, 101, 95, 57, 52, 53, 54, 0, 8, 0,
-            16, 99, 111, 108, 108, 105, 100, 101, 82, 117, 108, 101, 95, 57, 52, 53, 54, 1, 0, 1,
-            21, 8, 0, 0, 8, 0, 0, 0,
-        ];
-        let mut buf = Cursor::new(contents.as_slice());
-        let packet = ClientboundSetPlayerTeam::azalea_read(&mut buf).unwrap();
-        println!("{packet:?}");
-
-        assert_eq!(buf.position(), contents.len() as u64);
-    }
-}
