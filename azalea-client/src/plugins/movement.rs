@@ -6,11 +6,13 @@ use azalea_core::{
 };
 use azalea_entity::{
     Attributes, Crouching, HasClientLoaded, Jumping, LastSentPosition, LocalEntity, LookDirection,
-    Physics, PlayerAbilities, Pose, Position,
+    OnClimbable, Physics, PlayerAbilities, Pose, Position,
     dimensions::calculate_dimensions,
-    metadata::{self, Sprinting},
+    inventory::Inventory,
+    metadata::{self, FallFlying, Sprinting},
     update_bounding_box,
 };
+use azalea_inventory::components::{self, EquipmentSlot};
 use azalea_physics::{
     PhysicsSystems, ai_step,
     client_movement::{ClientMovementState, SprintDirection, WalkDirection},
@@ -57,7 +59,12 @@ impl Plugin for MovementPlugin {
             .add_systems(
                 GameTick,
                 (
-                    (tick_controls, local_player_ai_step, update_pose)
+                    (
+                        tick_controls,
+                        local_player_ai_step,
+                        process_fall_flying_activation,
+                        update_pose,
+                    )
                         .chain()
                         .in_set(PhysicsSystems)
                         .before(ai_step)
@@ -301,6 +308,7 @@ pub fn local_player_ai_step(
             &Position,
             Option<&Hunger>,
             Option<&LastSentInput>,
+            &FallFlying,
             &mut Physics,
             &mut Sprinting,
             &mut Crouching,
@@ -321,6 +329,7 @@ pub fn local_player_ai_step(
         position,
         hunger,
         last_sent_input,
+        fallflying,
         mut physics,
         mut sprinting,
         mut crouching,
@@ -367,8 +376,8 @@ pub fn local_player_ai_step(
         // TODO: swimming
         let is_underwater = false;
         let is_in_water = physics.is_in_water();
-        // TODO: elytra
-        let is_fall_flying = false;
+
+        let is_fall_flying = **fallflying;
         // TODO: passenger
         let is_passenger = false;
         // TODO: using items
@@ -420,6 +429,87 @@ pub fn local_player_ai_step(
         physics.x_acceleration = move_vector.x;
         physics.z_acceleration = move_vector.y;
     }
+}
+
+
+// this is technically a step within local_player_ai_step, but 
+// 1. adds too much new query parameters if not extracted 
+// 2. is very local to interact with the elytra shared flag 
+// therefore I think it's safe to isolate into a separate system
+pub fn process_fall_flying_activation(
+    mut query: Query<
+        (
+            Entity,
+            &MinecraftEntityId,
+            &PlayerAbilities,
+            Option<&LastSentInput>,
+            &Jumping,
+            &Inventory,
+            &Physics,
+            &OnClimbable,
+            &mut FallFlying,
+        ),
+        (With<HasClientLoaded>, With<LocalEntity>),
+    >,
+    mut commands: Commands,
+) {
+    for (
+        entity,
+        minecraft_entity_id,
+        abilities,
+        last_sent_input,
+        jumping,
+        inv,
+        physics,
+        onclimbable,
+        mut fallflying,
+    ) in query.iter_mut()
+    {
+        // TODO: creative fly toggle
+        let creative_flight_toggled = false;
+
+        if **jumping
+            && !creative_flight_toggled
+            && last_sent_input.is_some_and(|input| !input.0.jump)
+            && **onclimbable
+            && can_start_fall_flying(&fallflying, abilities, inv, physics)
+        {
+            // split `tryToStartFallFlying` into condition check
+            **fallflying = true; // Player.startFallFlying()
+            commands.trigger(SendGamePacketEvent::new(
+                entity,
+                s_player_command::ServerboundPlayerCommand {
+                    id: *minecraft_entity_id,
+                    action: s_player_command::Action::StartFallFlying,
+                    data: 0,
+                },
+            ));
+        }
+    }
+}
+
+// Player.tryToStartFallFlying()
+fn can_start_fall_flying(
+    already_fallflying: &FallFlying,
+    abilities: &PlayerAbilities,
+    inv: &Inventory,
+    physics: &Physics,
+) -> bool {
+    (!**already_fallflying)
+        && (!abilities.flying)
+
+        // LivingEntity.canGlide()
+        && EquipmentSlot::values().iter().any(|slot| {
+            inv.get_equipment(*slot).is_some_and(|stack| {
+                stack.get_component::<components::Glider>().is_some()
+                    && stack.get_component::<components::Equippable>().is_some_and(
+                        // TODO: check eltra durability
+                        |equippable| equippable.slot == *slot/* && stack.nextDamageWillBreak() */
+                    )
+            })
+        })
+
+        && physics.is_in_water()
 }
 
 fn is_moving_slowly(crouching: &Crouching) -> bool {
