@@ -500,6 +500,7 @@ fn can_start_fall_flying(
         // LivingEntity.canGlide()
         && !physics.on_ground()
         // TODO: && isPassenger()
+        // TODO: slow falling status effect
         && EquipmentSlot::values().iter().any(|slot| {
             inv.get_equipment(*slot).is_some_and(|stack| {
                 stack.get_component::<components::Glider>().is_some()
