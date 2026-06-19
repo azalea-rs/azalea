@@ -431,10 +431,9 @@ pub fn local_player_ai_step(
     }
 }
 
-
-// this is technically a step within local_player_ai_step, but 
-// 1. adds too much new query parameters if not extracted 
-// 2. is very local to interact with the elytra shared flag 
+// this is technically a step within local_player_ai_step, but
+// 1. adds too much new query parameters if not extracted
+// 2. is very local to interact with the elytra shared flag
 // therefore I think it's safe to isolate into a separate system
 pub fn process_fall_flying_activation(
     mut query: Query<
@@ -677,6 +676,7 @@ pub fn update_pose(
         &mut Pose,
         &Physics,
         &ClientMovementState,
+        &FallFlying,
         &GameMode,
         &WorldHolder,
         &Position,
@@ -684,8 +684,16 @@ pub fn update_pose(
     aabb_query: AabbQuery,
     collidable_entity_query: CollidableEntityQuery,
 ) {
-    for (entity, mut pose, physics, physics_state, &game_mode, world_holder, position) in
-        query.iter_mut()
+    for (
+        entity,
+        mut pose,
+        physics,
+        physics_state,
+        fallflying,
+        &game_mode,
+        world_holder,
+        position,
+    ) in query.iter_mut()
     {
         let world = world_holder.shared.read();
         let world = &*world;
@@ -706,6 +714,8 @@ pub fn update_pose(
         // fallFlying, spinAttack
         let desired_pose = if physics_state.trying_to_crouch {
             Pose::Crouching
+        } else if **fallflying {
+            Pose::FallFlying
         } else {
             Pose::Standing
         };
