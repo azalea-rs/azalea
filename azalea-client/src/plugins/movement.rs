@@ -470,7 +470,7 @@ pub fn process_fall_flying_activation(
         if **jumping
             && !creative_flight_toggled
             && last_sent_input.is_some_and(|input| !input.0.jump)
-            && **onclimbable
+            && !**onclimbable
             && can_start_fall_flying(&fallflying, abilities, inv, physics)
         {
             // split `tryToStartFallFlying` into condition check
@@ -508,7 +508,7 @@ fn can_start_fall_flying(
             })
         })
 
-        && physics.is_in_water()
+        && !physics.is_in_water()
 }
 
 fn is_moving_slowly(crouching: &Crouching) -> bool {
