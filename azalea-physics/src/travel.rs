@@ -239,7 +239,7 @@ fn travel_fall_flying(ctx: &mut MoveCtx, fall_flying: &mut FallFlying) {
         let look = ctx.direction;
         let look_angle = view_vector(look);
 
-        let lean_angle = look.x_rot();
+        let lean_angle = look.x_rot().to_radians();
 
         let look_horizontal_length =
             (look_angle.x * look_angle.x + look_angle.z * look_angle.z).sqrt();
