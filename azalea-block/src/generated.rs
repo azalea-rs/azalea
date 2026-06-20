@@ -1332,9 +1332,9 @@ make_block_states! {
             "facing": FacingCubic::North,
         },
         piston_head => BlockBehavior::new().strength(1.5, 1.5), {
-            "type": PistonKind::Normal,
             "facing": FacingCubic::North,
             "short": Short(false),
+            "type": PistonKind::Normal,
         },
         white_wool => BlockBehavior::new().strength(0.8, 0.8), {},
         orange_wool => BlockBehavior::new().strength(0.8, 0.8), {},
@@ -1353,8 +1353,8 @@ make_block_states! {
         red_wool => BlockBehavior::new().strength(0.8, 0.8), {},
         black_wool => BlockBehavior::new().strength(0.8, 0.8), {},
         moving_piston => BlockBehavior::new().destroy_time(-1.0).force_solid(true), {
-            "type": PistonKind::Normal,
             "facing": FacingCubic::North,
+            "type": PistonKind::Normal,
         },
         dandelion => BlockBehavior::new(), {},
         golden_dandelion => BlockBehavior::new(), {},
@@ -1489,8 +1489,8 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
         },
         chest => BlockBehavior::new().strength(2.5, 2.5), {
-            "type": ChestKind::Single,
             "facing": FacingCardinal::North,
+            "type": ChestKind::Single,
             "waterlogged": Waterlogged(false),
         },
         redstone_wire => BlockBehavior::new(), {
@@ -2424,8 +2424,8 @@ make_block_states! {
             "facing": FacingCardinal::North,
         },
         trapped_chest => BlockBehavior::new().strength(2.5, 2.5), {
-            "type": ChestKind::Single,
             "facing": FacingCardinal::North,
+            "type": ChestKind::Single,
             "waterlogged": Waterlogged(false),
         },
         light_weighted_pressure_plate => BlockBehavior::new().strength(0.5, 0.5).force_solid(true), {
@@ -4688,43 +4688,43 @@ make_block_states! {
             "powered": Powered(false),
         },
         copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
-            "type": ChestKind::Single,
             "facing": FacingCardinal::North,
+            "type": ChestKind::Single,
             "waterlogged": Waterlogged(false),
         },
         exposed_copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
-            "type": ChestKind::Single,
             "facing": FacingCardinal::North,
+            "type": ChestKind::Single,
             "waterlogged": Waterlogged(false),
         },
         weathered_copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
-            "type": ChestKind::Single,
             "facing": FacingCardinal::North,
+            "type": ChestKind::Single,
             "waterlogged": Waterlogged(false),
         },
         oxidized_copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
-            "type": ChestKind::Single,
             "facing": FacingCardinal::North,
+            "type": ChestKind::Single,
             "waterlogged": Waterlogged(false),
         },
         waxed_copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
-            "type": ChestKind::Single,
             "facing": FacingCardinal::North,
+            "type": ChestKind::Single,
             "waterlogged": Waterlogged(false),
         },
         waxed_exposed_copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
-            "type": ChestKind::Single,
             "facing": FacingCardinal::North,
+            "type": ChestKind::Single,
             "waterlogged": Waterlogged(false),
         },
         waxed_weathered_copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
-            "type": ChestKind::Single,
             "facing": FacingCardinal::North,
+            "type": ChestKind::Single,
             "waterlogged": Waterlogged(false),
         },
         waxed_oxidized_copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
-            "type": ChestKind::Single,
             "facing": FacingCardinal::North,
+            "type": ChestKind::Single,
             "waterlogged": Waterlogged(false),
         },
         copper_golem_statue => BlockBehavior::new().strength(3.0, 6.0), {
