@@ -309,6 +309,7 @@ pub fn local_player_ai_step(
             Option<&Hunger>,
             Option<&LastSentInput>,
             &FallFlying,
+            &Pose,
             &mut Physics,
             &mut Sprinting,
             &mut Crouching,
@@ -330,6 +331,7 @@ pub fn local_player_ai_step(
         hunger,
         last_sent_input,
         fallflying,
+        pose,
         mut physics,
         mut sprinting,
         mut crouching,
@@ -395,7 +397,7 @@ pub fn local_player_ai_step(
             && !has_blindness
             && (!is_passenger || is_underwater)
             && (!is_fall_flying || is_underwater)
-            && (!is_moving_slowly(&crouching) || is_underwater)
+            && (!is_moving_slowly(&crouching, fallflying, pose, is_in_water) || is_underwater)
             && (!is_in_water || is_underwater);
         if trying_to_sprint && can_start_sprinting {
             set_sprinting(true, &mut sprinting, &mut attributes);
@@ -423,7 +425,7 @@ pub fn local_player_ai_step(
             physics_state.move_vector,
             false,
             false,
-            **crouching,
+            is_moving_slowly(&crouching, fallflying, pose, is_in_water),
             &attributes,
         );
         physics.x_acceleration = move_vector.x;
@@ -431,7 +433,7 @@ pub fn local_player_ai_step(
     }
 }
 
-// this is technically a step within local_player_ai_step, but
+// this should technically be a step within local_player_ai_step, but
 // 1. adds too much new query parameters if not extracted
 // 2. is very local to interact with the elytra shared flag
 // therefore I think it's safe to isolate into a separate system
@@ -514,8 +516,30 @@ fn can_start_fall_flying(
         && !physics.is_in_water()
 }
 
-fn is_moving_slowly(crouching: &Crouching) -> bool {
-    **crouching
+// LocalPlayer.isMovingSlowly
+fn is_moving_slowly(
+    crouching: &Crouching,
+    fallflying: &FallFlying,
+    pose: &Pose,
+    is_in_water: bool,
+) -> bool {
+    if **crouching {
+        return true;
+    }
+
+    // Entity.isVisuallyCrawling
+    if is_in_water {
+        return false;
+    }
+
+    // LivingEntity.isVisuallySwimming override
+    match *pose {
+        Pose::Swimming => true,
+        Pose::FallFlying => !**fallflying, 
+        // There is going to be a slowdown for a tick when the server sets the fallflying shared flag while the client is still in the FallFlying Pose
+        // And that is totally intended
+        _ => false,
+    }
 }
 
 // LocalPlayer.modifyInput
