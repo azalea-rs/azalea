@@ -95,7 +95,7 @@ def generate_blocks(
                 default_property_variants = state.get("properties", {})
 
         properties_code = "{"
-        for property_id in list(block_data_report.get("properties", {}).keys()):
+        for property_id in sorted(block_data_report.get("properties", {}).keys()):
             property_default = default_property_variants.get(property_id)
             property_variants = block_data_report["properties"][property_id]
 
