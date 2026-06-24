@@ -38,10 +38,10 @@ pub fn travel(
             Option<&Sprinting>,
             Option<&Pose>,
             Option<&PlayerAbilities>,
-            &mut FallFlying,
             &mut Physics,
             &mut LookDirection,
             &mut Position,
+            Option<&mut FallFlying>
         ),
         (With<LocalEntity>, With<HasClientLoaded>),
     >,
@@ -59,10 +59,10 @@ pub fn travel(
         sprinting,
         pose,
         abilities,
-        mut fallflying,
         mut physics,
         direction,
         position,
+        fallflying
     ) in &mut query
     {
         let Some(world_lock) = worlds.get(world_name) else {
@@ -97,8 +97,8 @@ pub fn travel(
             // !this.canStandOnFluid(fluidAtBlock)` here but it doesn't matter
             // for players
             travel_in_fluid(&mut ctx);
-        } else if **fallflying {
-            travel_fall_flying(&mut ctx, &mut fallflying);
+        } else if fallflying.as_deref().is_some_and(|fallflying| **fallflying) {
+            travel_fall_flying(&mut ctx, &mut fallflying.unwrap());
         } else {
             travel_in_air(&mut ctx);
         }
