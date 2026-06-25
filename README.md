@@ -59,6 +59,7 @@ Here's an incomplete list of bots built using Azalea, primarily intended as a re
 - [mat-1/potato-bot-2](https://github.com/mat-1/potato-bot-2) - Hardened Discord chat bridge created for the LiveOverflow SMP.
 - [ErrorNoInternet/ErrorNoWatcher](https://github.com/ErrorNoInternet/ErrorNoWatcher) - A Minecraft bot with Lua scripting support.
 - [BaconCat1/ForestBot-RS](https://github.com/BaconCat1/ForestBot-RS) - Originally a Mineflayer bot, ported to Azalea. Does too many things to list here.
+- [nullclyze/salarixi](https://codeberg.org/nullclyze/salarixi) - Feature-rich, multi-task, and lightweight tool for Minecraft botting.
 
 You can see more projects built with Azalea in the [GitHub dependency graph](https://github.com/azalea-rs/azalea/network/dependents).
 
