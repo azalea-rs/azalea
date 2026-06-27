@@ -10,7 +10,7 @@ use azalea_entity::{
     dimensions::calculate_dimensions,
     inventory::Inventory,
     metadata::{self, FallFlying, Sprinting},
-    update_bounding_box,
+    update_bounding_box, update_dimensions,
 };
 use azalea_inventory::components::{self, EquipmentSlot};
 use azalea_physics::{
@@ -63,19 +63,26 @@ impl Plugin for MovementPlugin {
                         tick_controls,
                         local_player_ai_step,
                         process_fall_flying_activation,
-                        update_pose,
                     )
                         .chain()
                         .in_set(PhysicsSystems)
                         .before(ai_step)
                         .before(azalea_physics::fluids::update_in_water_state_and_do_fluid_pushing),
-                    send_player_input_packet,
+                    send_player_input_packet
+                        .after(process_fall_flying_activation)
+                        .before(azalea_physics::fluids::update_in_water_state_and_do_fluid_pushing),
+                    (update_pose, update_dimensions, update_bounding_box)
+                        .chain()
+                        .after(PhysicsSystems)
+                        .in_set(LocalPostPhysicsSystems),
                     send_sprinting_if_needed
                         .after(azalea_entity::update_in_loaded_chunk)
-                        .after(travel),
-                    send_position.after(PhysicsSystems),
-                )
-                    .chain(),
+                        .after(travel)
+                        .before(send_position),
+                    send_position
+                        .after(PhysicsSystems)
+                        .after(send_sprinting_if_needed),
+                ).chain(),
             )
             .add_observer(handle_knockback);
     }
@@ -83,6 +90,9 @@ impl Plugin for MovementPlugin {
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq, SystemSet)]
 pub struct MoveEventsSystems;
+
+#[derive(Clone, Debug, Eq, Hash, PartialEq, SystemSet)]
+pub struct LocalPostPhysicsSystems;
 
 /// A component that contains the look direction that was last sent over the
 /// network.
@@ -535,9 +545,10 @@ fn is_moving_slowly(
     // LivingEntity.isVisuallySwimming override
     match *pose {
         Pose::Swimming => true,
-        Pose::FallFlying => !**fallflying, 
-        // There is going to be a slowdown for a tick when the server sets the fallflying shared flag while the client is still in the FallFlying Pose
-        // And that is totally intended
+        Pose::FallFlying => !**fallflying,
+        // There is going to be a slowdown for a tick when the server sets the fallflying shared
+        // flag while the client is still in the FallFlying Pose And that is totally
+        // intended
         _ => false,
     }
 }

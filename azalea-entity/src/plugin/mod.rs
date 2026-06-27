@@ -62,7 +62,6 @@ impl Plugin for EntityPlugin {
                     add_dead,
                     clamp_look_direction,
                     update_on_climbable,
-                    (update_dimensions, update_bounding_box).chain(),
                     update_crouching,
                 ),
             ),
