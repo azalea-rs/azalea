@@ -5,12 +5,7 @@ use azalea_core::{
     tick::GameTick,
 };
 use azalea_entity::{
-    Attributes, Crouching, HasClientLoaded, Jumping, LastSentPosition, LocalEntity, LookDirection,
-    OnClimbable, Physics, PlayerAbilities, Pose, Position,
-    dimensions::calculate_dimensions,
-    inventory::Inventory,
-    metadata::{self, FallFlying, Sprinting},
-    update_bounding_box, update_dimensions,
+    Attributes, Crouching, EntityGeometryUpdateSystems, HasClientLoaded, Jumping, LastSentPosition, LocalEntity, LookDirection, OnClimbable, Physics, PlayerAbilities, Pose, Position, dimensions::calculate_dimensions, inventory::Inventory, metadata::{self, FallFlying, Sprinting}, update_bounding_box
 };
 use azalea_inventory::components::{self, EquipmentSlot};
 use azalea_physics::{
@@ -71,13 +66,14 @@ impl Plugin for MovementPlugin {
                     send_player_input_packet
                         .after(process_fall_flying_activation)
                         .before(azalea_physics::fluids::update_in_water_state_and_do_fluid_pushing),
-                    (update_pose, update_dimensions, update_bounding_box)
+                    (update_pose)
                         .chain()
                         .after(PhysicsSystems)
-                        .in_set(LocalPostPhysicsSystems),
+                        .before(EntityGeometryUpdateSystems),
                     send_sprinting_if_needed
                         .after(azalea_entity::update_in_loaded_chunk)
                         .after(travel)
+                        .after(EntityGeometryUpdateSystems)
                         .before(send_position),
                     send_position
                         .after(PhysicsSystems)
@@ -90,9 +86,6 @@ impl Plugin for MovementPlugin {
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq, SystemSet)]
 pub struct MoveEventsSystems;
-
-#[derive(Clone, Debug, Eq, Hash, PartialEq, SystemSet)]
-pub struct LocalPostPhysicsSystems;
 
 /// A component that contains the look direction that was last sent over the
 /// network.
