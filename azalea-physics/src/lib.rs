@@ -18,7 +18,7 @@ use azalea_core::{
 use azalea_entity::{
     ActiveEffects, Attributes, EntityKindComponent, HasClientLoaded, Jumping, LocalEntity,
     LookDirection, OnClimbable, Physics, Pose, Position, dimensions::EntityDimensions,
-    metadata::Sprinting, move_relative,
+    metadata::Sprinting, move_relative, Crouching
 };
 use azalea_registry::builtin::{BlockKind, EntityKind, MobEffect};
 use azalea_world::{World, WorldName, Worlds};
@@ -67,6 +67,7 @@ pub fn ai_step(
         (
             &mut Physics,
             Option<&Jumping>,
+            Option<&Crouching>,
             &Position,
             &LookDirection,
             &Sprinting,
@@ -81,6 +82,7 @@ pub fn ai_step(
     for (
         mut physics,
         jumping,
+        crouching,
         position,
         look_direction,
         sprinting,
@@ -121,6 +123,10 @@ pub fn ai_step(
         } else {
             physics.x_acceleration *= 0.98;
             physics.z_acceleration *= 0.98;
+        }
+
+        if crouching == Some(&Crouching(true)) && physics.is_in_water(){
+            go_down_in_water(&mut physics);
         }
 
         if jumping == Some(&Jumping(true)) {
@@ -170,6 +176,10 @@ pub fn ai_step(
 
 fn jump_in_liquid(physics: &mut Physics) {
     physics.velocity.y += 0.04;
+}
+
+fn go_down_in_water(physics: &mut Physics) {
+    physics.velocity.y -= 0.04;
 }
 
 // in minecraft, this is done as part of aiStep immediately after travel

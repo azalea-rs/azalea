@@ -102,8 +102,8 @@ pub struct OnClimbable(bool);
 /// instead.
 ///
 /// [`Pose`]: crate::data::Pose
-#[derive(Clone, Component, Copy, Default, Deref, DerefMut)]
-pub struct Crouching(bool);
+#[derive(Clone, Copy, Component, Debug, Default, Deref, DerefMut, Eq, PartialEq)]
+pub struct Crouching(pub bool);
 
 /// A component that indicates whether the client has loaded.
 ///
