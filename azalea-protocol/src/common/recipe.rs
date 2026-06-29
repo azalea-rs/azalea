@@ -1,5 +1,5 @@
 use azalea_buf::AzBuf;
-use azalea_inventory::ItemStack;
+use azalea_inventory::{DataComponentPatch, ItemStackData};
 use azalea_registry::{
     HolderSet,
     builtin::{DataComponentKind, ItemKind},
@@ -88,14 +88,25 @@ pub struct OnlyWithComponentSlotDisplay {
     pub contents: SlotDisplayData,
     pub component: DataComponentKind,
 }
-
 #[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct ItemSlotDisplay {
     pub item: ItemKind,
 }
 #[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct ItemStackSlotDisplay {
-    pub stack: ItemStack,
+    pub kind: ItemKind,
+    #[var]
+    pub count: i32,
+    pub component_patch: DataComponentPatch,
+}
+impl From<ItemStackSlotDisplay> for ItemStackData {
+    fn from(item_stack_slot_display: ItemStackSlotDisplay) -> Self {
+        Self {
+            kind: item_stack_slot_display.kind,
+            count: item_stack_slot_display.count,
+            component_patch: item_stack_slot_display.component_patch,
+        }
+    }
 }
 #[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct DyedSlotDemo {
