@@ -38,7 +38,7 @@ impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             GameTick,
-            (
+            ((
                 fluids::update_in_water_state_and_do_fluid_pushing,
                 update_old_position,
                 fluids::update_swimming,
@@ -48,7 +48,7 @@ impl Plugin for PhysicsPlugin {
             )
                 .chain()
                 .in_set(PhysicsSystems)
-                .after(azalea_entity::update_in_loaded_chunk),
+                .after(azalea_entity::update_in_loaded_chunk),),
         )
         // we want this to happen after packets are handled but before physics
         .add_systems(

@@ -32,7 +32,7 @@ impl Plugin for AttackPlugin {
                     handle_attack_queued
                         .before(super::movement::update_pose)
                         .before(super::movement::send_sprinting_if_needed)
-                        .before(super::tick_end::game_tick_packet)
+                        .before(super::tick_end::game_tick_packet),
                 )
                     .chain(),
             );

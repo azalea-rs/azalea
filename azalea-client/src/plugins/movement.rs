@@ -5,7 +5,12 @@ use azalea_core::{
     tick::GameTick,
 };
 use azalea_entity::{
-    Attributes, Crouching, EntityGeometryUpdateSystems, HasClientLoaded, Jumping, LastSentPosition, LocalEntity, LookDirection, OnClimbable, Physics, PlayerAbilities, Pose, Position, dimensions::calculate_dimensions, inventory::Inventory, metadata::{self, FallFlying, Sprinting}, update_bounding_box
+    Attributes, Crouching, EntityGeometryUpdateSystems, HasClientLoaded, Jumping, LastSentPosition,
+    LocalEntity, LookDirection, OnClimbable, Physics, PlayerAbilities, Pose, Position,
+    dimensions::calculate_dimensions,
+    inventory::Inventory,
+    metadata::{self, FallFlying, Sprinting},
+    update_bounding_box,
 };
 use azalea_inventory::components::{self, EquipmentSlot};
 use azalea_physics::{
@@ -75,10 +80,9 @@ impl Plugin for MovementPlugin {
                         .after(travel)
                         .after(EntityGeometryUpdateSystems)
                         .before(send_position),
-                    send_position
-                        .after(PhysicsSystems)
-                        .after(send_sprinting_if_needed),
-                ).chain(),
+                    send_position.after(PhysicsSystems),
+                )
+                    .chain(),
             )
             .add_observer(handle_knockback);
     }

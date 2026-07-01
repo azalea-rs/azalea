@@ -66,6 +66,7 @@ impl Plugin for EntityPlugin {
                     add_dead,
                     clamp_look_direction,
                     update_on_climbable,
+                    (update_dimensions, update_bounding_box).chain(),
                     update_crouching,
                 ),
             ),
@@ -75,7 +76,9 @@ impl Plugin for EntityPlugin {
             (
                 update_in_loaded_chunk,
                 update_fluid_on_eyes,
-                (update_dimensions, update_bounding_box).chain().in_set(EntityGeometryUpdateSystems),
+                (update_dimensions, update_bounding_box)
+                    .chain()
+                    .in_set(EntityGeometryUpdateSystems),
             ),
         )
         .add_observer(handle_add_effect)

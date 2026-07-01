@@ -41,7 +41,7 @@ pub fn travel(
             &mut Physics,
             &mut LookDirection,
             &mut Position,
-            Option<&mut FallFlying>
+            Option<&mut FallFlying>,
         ),
         (With<LocalEntity>, With<HasClientLoaded>),
     >,
@@ -62,7 +62,7 @@ pub fn travel(
         mut physics,
         direction,
         position,
-        fallflying
+        fallflying,
     ) in &mut query
     {
         let Some(world_lock) = worlds.get(world_name) else {
