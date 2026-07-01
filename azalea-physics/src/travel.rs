@@ -5,7 +5,9 @@ use azalea_core::{
 };
 use azalea_entity::{
     Attributes, HasClientLoaded, Jumping, LocalEntity, LookDirection, OnClimbable, Physics,
-    PlayerAbilities, Pose, Position, metadata::Sprinting, move_relative,
+    PlayerAbilities, Pose, Position,
+    metadata::{FallFlying, Sprinting},
+    move_relative, view_vector,
 };
 use azalea_world::{World, WorldName, Worlds};
 use bevy_ecs::prelude::*;
@@ -39,6 +41,7 @@ pub fn travel(
             &mut Physics,
             &mut LookDirection,
             &mut Position,
+            Option<&mut FallFlying>,
         ),
         (With<LocalEntity>, With<HasClientLoaded>),
     >,
@@ -59,6 +62,7 @@ pub fn travel(
         mut physics,
         direction,
         position,
+        fallflying,
     ) in &mut query
     {
         let Some(world_lock) = worlds.get(world_name) else {
@@ -67,8 +71,6 @@ pub fn travel(
         let world = world_lock.read();
 
         let sprinting = *sprinting.unwrap_or(&Sprinting(false));
-
-        // TODO: elytras
 
         let mut ctx = MoveCtx {
             mover_type: MoverType::Own,
@@ -93,6 +95,8 @@ pub fn travel(
             // !this.canStandOnFluid(fluidAtBlock)` here but it doesn't matter
             // for players
             travel_in_fluid(&mut ctx);
+        } else if fallflying.as_deref().is_some_and(|fallflying| **fallflying) {
+            travel_fall_flying(&mut ctx, &mut fallflying.unwrap());
         } else {
             travel_in_air(&mut ctx);
         }
@@ -222,6 +226,60 @@ fn travel_in_fluid(ctx: &mut MoveCtx) {
         )
     {
         ctx.physics.velocity.y = 0.3;
+    }
+}
+
+fn travel_fall_flying(ctx: &mut MoveCtx, fall_flying: &mut FallFlying) {
+    if *ctx.on_climbable {
+        travel_in_air(ctx);
+        **fall_flying = false; // vanilla first set to true then set to false again, quite confusing
+    } else {
+        let look = ctx.direction;
+        let look_angle = view_vector(look);
+
+        let lean_angle = look.x_rot().to_radians();
+
+        let look_horizontal_length =
+            (look_angle.x * look_angle.x + look_angle.z * look_angle.z).sqrt();
+        let move_horizontal_length = ctx.physics.velocity.horizontal_distance();
+        let gravity = get_effective_gravity();
+
+        // vanilla convert to double first, not sure if it has to be this
+        let lift_force = f64::from(lean_angle).cos().powi(2);
+
+        let mut movement = ctx.physics.velocity;
+
+        movement += Vec3::from((0.0, gravity * (-1.0 + lift_force * 0.75), 0.0));
+        if movement.y < 0.0 && look_horizontal_length > 0.0 {
+            let convert = movement.y * -0.1 * lift_force;
+            movement += Vec3::from((
+                look_angle.x * convert / look_horizontal_length,
+                convert,
+                look_angle.z * convert / look_horizontal_length,
+            ));
+        }
+
+        if lean_angle < 0.0 && look_horizontal_length > 0.0 {
+            let convert = move_horizontal_length * -f64::from(lean_angle).sin() * 0.04;
+            movement += Vec3::from((
+                -look_angle.x * convert / look_horizontal_length,
+                convert * 3.2,
+                -look_angle.z * convert / look_horizontal_length,
+            ));
+        }
+
+        if look_horizontal_length > 0.0 {
+            movement += Vec3::from((
+                (look_angle.x / look_horizontal_length * move_horizontal_length - movement.x) * 0.1,
+                0.0,
+                (look_angle.z / look_horizontal_length * move_horizontal_length - movement.z) * 0.1,
+            ));
+        }
+
+        ctx.physics.velocity =
+            Vec3::from((movement.x * 0.99, movement.y * 0.98, movement.z * 0.99));
+
+        move_colliding(ctx, ctx.physics.velocity);
     }
 }
 

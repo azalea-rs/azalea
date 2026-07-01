@@ -36,6 +36,10 @@ pub enum EntityUpdateSystems {
     Deindex,
 }
 
+// Post travel update for dimension and boundingbox
+#[derive(Clone, Debug, Eq, Hash, PartialEq, SystemSet)]
+pub struct EntityGeometryUpdateSystems;
+
 /// Plugin handling some basic entity functionality.
 pub struct EntityPlugin;
 impl Plugin for EntityPlugin {
@@ -67,7 +71,16 @@ impl Plugin for EntityPlugin {
                 ),
             ),
         )
-        .add_systems(GameTick, (update_in_loaded_chunk, update_fluid_on_eyes))
+        .add_systems(
+            GameTick,
+            (
+                update_in_loaded_chunk,
+                update_fluid_on_eyes,
+                (update_dimensions, update_bounding_box)
+                    .chain()
+                    .in_set(EntityGeometryUpdateSystems),
+            ),
+        )
         .add_observer(handle_add_effect)
         .add_observer(handle_remove_effects)
         .init_resource::<EntityUuidIndex>();
