@@ -72,8 +72,6 @@ pub fn travel(
 
         let sprinting = *sprinting.unwrap_or(&Sprinting(false));
 
-        // TODO: elytras
-
         let mut ctx = MoveCtx {
             mover_type: MoverType::Own,
             world: &world,
