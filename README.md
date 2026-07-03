@@ -17,13 +17,13 @@ _Currently supported Minecraft version: `26.2`._
 
 ## Features
 
-- [Accurate physics](https://azalea.matdoes.dev/azalea_physics/) (but some features like entity pushing and elytras aren't implemented yet)
-- [Pathfinder](https://azalea.matdoes.dev/azalea/pathfinder/index.html)
-- [Swarms](https://azalea.matdoes.dev/azalea/swarm/index.html)
-- [Breaking blocks](https://azalea.matdoes.dev/azalea/struct.Client.html#method.mine)
-- [Block interactions & building](https://azalea.matdoes.dev/azalea/struct.Client.html#method.block_interact) (this doesn't predict the block interactions/placement on the client yet, but it's usually fine)
-- [Inventories](https://azalea.matdoes.dev/azalea/struct.Client.html#impl-ContainerClientExt-for-Client)
-- [Attacking entities](https://azalea.matdoes.dev/azalea/struct.Client.html#method.attack)
+- [Accurate physics](https://azalea.rs/azalea_physics/) (but some features like entity pushing and elytras aren't implemented yet)
+- [Pathfinder](https://azalea.rs/azalea/pathfinder/index.html)
+- [Swarms](https://azalea.rs/azalea/swarm/index.html)
+- [Breaking blocks](https://azalea.rs/azalea/struct.Client.html#method.mine)
+- [Block interactions & building](https://azalea.rs/azalea/struct.Client.html#method.block_interact) (this doesn't predict the block interactions/placement on the client yet, but it's usually fine)
+- [Inventories](https://azalea.rs/azalea/struct.Client.html#impl-ContainerClientExt-for-Client)
+- [Attacking entities](https://azalea.rs/azalea/struct.Client.html#method.attack)
 - [Plugins](#plugins)
 
 ## Goals
@@ -43,7 +43,7 @@ _Currently supported Minecraft version: `26.2`._
 
 ## Documentation
 
-The stable documentation for the main `azalea` crate is available at [docs.rs/azalea](https://docs.rs/azalea), and the unstable documentation is at [azalea.matdoes.dev](https://azalea.matdoes.dev).
+The stable documentation for the main `azalea` crate is available at [docs.rs/azalea](https://docs.rs/azalea), and the unstable documentation is at [azalea.rs](https://azalea.rs).
 
 ## Matrix/Discord
 

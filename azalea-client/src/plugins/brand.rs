@@ -8,7 +8,7 @@ use crate::{client_information::send_client_information, packet::login::InLoginS
 
 /// Send a [`ServerboundCustomPayload`] with "vanilla" as the brand on join.
 ///
-/// You can [disable this plugin](https://azalea.matdoes.dev/azalea/struct.ClientBuilder.html#method.new_without_plugins)
+/// You can [disable this plugin](https://azalea.rs/azalea/struct.ClientBuilder.html#method.new_without_plugins)
 /// and register your own system if you'd like to send a different brand.
 pub struct BrandPlugin;
 impl Plugin for BrandPlugin {

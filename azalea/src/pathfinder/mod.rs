@@ -334,7 +334,7 @@ pub fn goto_listener(
             static WARNED: AtomicBool = AtomicBool::new(false);
             if !WARNED.swap(true, atomic::Ordering::Relaxed) {
                 warn!(
-                    "Azalea was compiled with no optimizations, which may result in significantly reduced pathfinding performance. Consider following the steps at https://azalea.matdoes.dev/azalea/#optimization for faster performance in debug mode."
+                    "Azalea was compiled with no optimizations, which may result in significantly reduced pathfinding performance. Consider following the steps at https://azalea.rs/azalea/#optimization for faster performance in debug mode."
                 )
             }
         }
