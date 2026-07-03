@@ -296,6 +296,8 @@ dependencies = [
  "azalea-block-macros",
  "azalea-buf",
  "azalea-registry",
+ "criterion",
+ "rand 0.10.2",
 ]
 
 [[package]]

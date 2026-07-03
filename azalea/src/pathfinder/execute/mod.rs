@@ -176,7 +176,7 @@ pub fn check_node_reached(
                             .get_block_state(block_pos_below)
                             .unwrap_or(BlockState::AIR)
                     };
-                    let block_below: Box<dyn BlockTrait> = block_state_below.into();
+                    let block_below = block_state_below.to_trait();
                     // friction for normal blocks is 0.6, for ice it's 0.98
                     let block_friction = block_below.behavior().friction as f64;
 

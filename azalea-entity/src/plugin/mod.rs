@@ -144,7 +144,7 @@ pub fn update_on_climbable(
 
         let block_pos = BlockPos::from(position);
         let block_state_at_feet = world.get_block_state(block_pos).unwrap_or_default();
-        let block_at_feet = Box::<dyn BlockTrait>::from(block_state_at_feet);
+        let block_at_feet = block_state_at_feet.to_trait();
         let registry_block_at_feet = block_at_feet.as_block_kind();
 
         **on_climbable = tags::blocks::CLIMBABLE.contains(&registry_block_at_feet)

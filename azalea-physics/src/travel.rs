@@ -110,7 +110,7 @@ fn travel_in_air(ctx: &mut MoveCtx) {
         .chunks
         .get_block_state(block_pos_below)
         .unwrap_or(BlockState::AIR);
-    let block_below: Box<dyn BlockTrait> = block_state_below.into();
+    let block_below = block_state_below.to_trait();
     let block_friction = block_below.behavior().friction;
 
     let inertia = if ctx.physics.on_ground() {

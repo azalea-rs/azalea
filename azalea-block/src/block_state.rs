@@ -46,6 +46,10 @@ impl BlockState {
         Self { id }
     }
 
+    pub fn to_trait(self) -> &'static dyn BlockTrait {
+        From::from(self)
+    }
+
     /// Whether the block state is possible to exist in vanilla Minecraft.
     ///
     /// It's equivalent to checking that the state ID is not greater than
@@ -137,7 +141,7 @@ impl Debug for BlockState {
             f,
             "BlockState(id: {}, {:?})",
             self.id,
-            Box::<dyn BlockTrait>::from(*self)
+            self.to_trait()
         )
     }
 }
@@ -165,11 +169,10 @@ mod tests {
 
     #[test]
     fn test_from_blockstate() {
-        let block: Box<dyn BlockTrait> = Box::<dyn BlockTrait>::from(BlockState::AIR);
+        let block = BlockState::AIR.to_trait();
         assert_eq!(block.id(), "air");
 
-        let block: Box<dyn BlockTrait> =
-            Box::<dyn BlockTrait>::from(BlockState::from(BlockKind::FloweringAzalea));
+        let block = BlockState::from(BlockKind::FloweringAzalea).to_trait();
         assert_eq!(block.id(), "flowering_azalea");
     }
 

@@ -19,7 +19,9 @@ pub use range::BlockStates;
 /// A trait that's implemented on block structs.
 ///
 /// See the [azalea_block documentation](crate) for details.
-pub trait BlockTrait: Debug + Any {
+pub trait BlockTrait: Debug + Any + Send + Sync {
+    fn boxed(&self) -> Box<dyn BlockTrait>;
+
     fn behavior(&self) -> BlockBehavior;
     /// Get the Minecraft string ID for this block.
     ///
@@ -95,7 +97,7 @@ mod tests {
             waterlogged: false,
         };
         let block_state = block.as_block_state();
-        let block_from_state = Box::<dyn BlockTrait>::from(block_state);
+        let block_from_state = block_state.to_trait();
         let block_from_state = *block_from_state
             .downcast_ref::<crate::blocks::OakTrapdoor>()
             .unwrap();

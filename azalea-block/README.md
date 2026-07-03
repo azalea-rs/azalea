@@ -34,7 +34,7 @@ If for some reason you don't want `BlockTrait`, set `default-features = false`.
 ```
 # use azalea_block::{BlockTrait, BlockState};
 # let block_state = BlockState::from(azalea_registry::builtin::BlockKind::Jukebox);
-let block = Box::<dyn BlockTrait>::from(block_state);
+let block = block_state.to_trait();
 ```
 ```
 # use azalea_block::{BlockTrait, BlockState};
