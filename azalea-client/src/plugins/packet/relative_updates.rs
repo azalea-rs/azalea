@@ -132,6 +132,8 @@ pub fn should_apply_entity_update(
 }
 
 impl EntityCommand for RelativeEntityUpdate {
+    type Out = ();
+
     fn apply(self, mut entity_mut: EntityWorldMut) {
         let partial_world = self.partial_world.clone();
         let mut should_update = false;

@@ -69,7 +69,9 @@ where
         Some(s) => s.0,
         None => SystemState::<T>::new(ecs),
     };
-    let values = system_state.get_mut(ecs);
+    let values = system_state
+        .get_mut(ecs)
+        .expect("system parameters should be valid");
     f(values);
     system_state.apply(ecs);
     ecs.insert_resource(CachedSystemState(system_state));

@@ -16,7 +16,7 @@ use azalea_entity::{
 use azalea_registry::builtin::EntityKind;
 use azalea_world::{ChunkStorage, PartialWorld, World, WorldName, Worlds};
 use bevy_app::App;
-use bevy_ecs::prelude::*;
+use bevy_ecs::{prelude::*, schedule::SingleThreadedExecutor};
 use parking_lot::RwLock;
 use uuid::Uuid;
 
@@ -80,7 +80,7 @@ fn create_simulation_world(chunks: ChunkStorage) -> (App, Arc<RwLock<World>>) {
     });
 
     app.edit_schedule(bevy_app::Main, |schedule| {
-        schedule.set_executor_kind(bevy_ecs::schedule::ExecutorKind::SingleThreaded);
+        schedule.set_executor(SingleThreadedExecutor::new());
     });
 
     app.finish();

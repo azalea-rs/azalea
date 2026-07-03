@@ -37,7 +37,7 @@ use bevy_ecs::{
     component::Mutable,
     prelude::*,
     query::{QueryData, QueryItem},
-    schedule::ExecutorKind,
+    schedule::SingleThreadedExecutor,
 };
 use parking_lot::{Mutex, RwLock};
 use simdnbt::owned::{NbtCompound, NbtTag};
@@ -170,7 +170,7 @@ impl Simulation {
     pub fn with_resource<T: Resource>(&self, f: impl FnOnce(&T)) {
         f(self.app.world().get_resource::<T>().unwrap());
     }
-    pub fn with_resource_mut<T: Resource>(&mut self, f: impl FnOnce(Mut<T>)) {
+    pub fn with_resource_mut<T: Resource<Mutability = Mutable>>(&mut self, f: impl FnOnce(Mut<T>)) {
         f(self.app.world_mut().get_resource_mut::<T>().unwrap());
     }
 
@@ -312,7 +312,7 @@ fn create_simulation_app() -> App {
 
     app.edit_schedule(bevy_app::Main, |schedule| {
         // makes test results more reproducible
-        schedule.set_executor_kind(ExecutorKind::SingleThreaded);
+        schedule.set_executor(SingleThreadedExecutor::new());
     });
     app
 }

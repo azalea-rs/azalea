@@ -29,7 +29,7 @@ use crate::{
     connection::RawConnection,
     cookies::ServerCookies,
     interact::BlockStatePredictionHandler,
-    local_player::{Experience, Hunger, PermissionLevel, TabList, WorldHolder},
+    local_player::{Experience, Hunger, PermissionLevel, TabList, TabListResource, WorldHolder},
     mining,
     movement::LastSentLookDirection,
     player::retroactively_add_game_profile_component,
@@ -99,7 +99,7 @@ impl Plugin for AzaleaPlugin {
             ),
         )
         .init_resource::<Worlds>()
-        .init_resource::<TabList>();
+        .init_resource::<TabListResource>();
     }
 }
 

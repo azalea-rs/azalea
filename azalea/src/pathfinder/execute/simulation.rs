@@ -455,7 +455,7 @@ fn run_one_simulation(
                     mut walk_events,
                     mut jump_events,
                     mut start_mining_events,
-                ) = system_state.get_mut(sim.app.world_mut());
+                ) = system_state.get_mut(sim.app.world_mut()).unwrap();
 
                 let (position, physics, mining, inventory) = query.get(sim.entity).unwrap();
 
