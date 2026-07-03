@@ -260,7 +260,7 @@ fn travel_fall_flying(ctx: &mut MoveCtx, fall_flying: &mut FallFlying) {
         }
 
         if lean_angle < 0.0 && look_horizontal_length > 0.0 {
-            let convert = move_horizontal_length * -f64::from(lean_angle).sin() * 0.04;
+            let convert = move_horizontal_length * -azalea_core::math::sin(lean_angle) as f64 * 0.04;
             movement += Vec3::from((
                 -look_angle.x * convert / look_horizontal_length,
                 convert * 3.2,
@@ -276,8 +276,7 @@ fn travel_fall_flying(ctx: &mut MoveCtx, fall_flying: &mut FallFlying) {
             ));
         }
 
-        ctx.physics.velocity =
-            Vec3::from((movement.x * 0.99, movement.y * 0.98, movement.z * 0.99));
+        ctx.physics.velocity = movement.multiply(0.99f32 as f64, 0.98f32 as f64, 0.99f32 as f64);
 
         move_colliding(ctx, ctx.physics.velocity);
     }
