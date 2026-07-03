@@ -70,6 +70,7 @@ Here are some plugins that you may find useful:
 
 - [azalea-rs/azalea-viaversion](https://github.com/azalea-rs/azalea-viaversion) - Multi-version compatibility for your Azalea bots using ViaProxy.
 - [azalea-rs/azalea-hax](https://github.com/azalea-rs/azalea-hax) - Anti-knockback.
+- [RaymondShell/azalea-reflection-proxy](https://github.com/RaymondShell/azalea-reflection-proxy) - Reflection Proxy.
 
 If you've created your own plugin for Azalea, please create a PR to add it to this list :).
 
