@@ -172,6 +172,7 @@ pub static CANNOT_BE_PUSHED_ONTO_BOATS: LazyLock<RegistryTag<EntityKind>> = Lazy
         EntityKind::Pufferfish,
         EntityKind::Salmon,
         EntityKind::Squid,
+        EntityKind::SulfurCube,
         EntityKind::Tadpole,
         EntityKind::TropicalFish,
         EntityKind::ZombieNautilus,
@@ -358,8 +359,15 @@ pub static NO_ANGER_FROM_WIND_CHARGE: LazyLock<RegistryTag<EntityKind>> = LazyLo
         EntityKind::Zombie,
     ])
 });
-pub static NON_CONTROLLING_RIDER: LazyLock<RegistryTag<EntityKind>> =
-    LazyLock::new(|| RegistryTag::new(vec![EntityKind::MagmaCube, EntityKind::Slime]));
+pub static NON_CONTROLLING_RIDER: LazyLock<RegistryTag<EntityKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        EntityKind::MagmaCube,
+        EntityKind::Slime,
+        EntityKind::SulfurCube,
+    ])
+});
+pub static NOT_AFFECTED_BY_GEYSERS: LazyLock<RegistryTag<EntityKind>> =
+    LazyLock::new(|| RegistryTag::new(vec![EntityKind::EnderDragon]));
 pub static NOT_SCARY_FOR_PUFFERFISH: LazyLock<RegistryTag<EntityKind>> = LazyLock::new(|| {
     RegistryTag::new(vec![
         EntityKind::Cod,
@@ -371,6 +379,7 @@ pub static NOT_SCARY_FOR_PUFFERFISH: LazyLock<RegistryTag<EntityKind>> = LazyLoc
         EntityKind::Pufferfish,
         EntityKind::Salmon,
         EntityKind::Squid,
+        EntityKind::SulfurCube,
         EntityKind::Tadpole,
         EntityKind::TropicalFish,
         EntityKind::Turtle,

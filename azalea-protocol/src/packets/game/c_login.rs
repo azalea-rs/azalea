@@ -1,7 +1,7 @@
 use azalea_buf::AzBuf;
-use azalea_registry::identifier::Identifier;
-use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_core::entity_id::MinecraftEntityId;
+use azalea_protocol_macros::ClientboundGamePacket;
+use azalea_registry::identifier::Identifier;
 
 use crate::packets::common::CommonPlayerSpawnInfo;
 
@@ -24,5 +24,6 @@ pub struct ClientboundLogin {
     pub show_death_screen: bool,
     pub do_limited_crafting: bool,
     pub common: CommonPlayerSpawnInfo,
+    pub online_mode: bool,
     pub enforces_secure_chat: bool,
 }

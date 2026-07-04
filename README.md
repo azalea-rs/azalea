@@ -10,20 +10,20 @@ A collection of Rust crates for making Minecraft bots, clients, and tools.
 
 <!-- The line below is automatically read and updated by the migrate script, so don't change it manually. -->
 
-_Currently supported Minecraft version: `26.1.2`._
+_Currently supported Minecraft version: `26.2`._
 
 > [!WARNING]
 > Many parts of Azalea are still unfinished and will receive breaking changes in the future. Most breaking changes will be listed in the [changelog](CHANGELOG.md).
 
 ## Features
 
-- [Accurate physics](https://azalea.matdoes.dev/azalea_physics/) (but some features like entity pushing and sprint swimming aren't implemented yet)
-- [Pathfinder](https://azalea.matdoes.dev/azalea/pathfinder/index.html)
-- [Swarms](https://azalea.matdoes.dev/azalea/swarm/index.html)
-- [Breaking blocks](https://azalea.matdoes.dev/azalea/struct.Client.html#method.mine)
-- [Block interactions & building](https://azalea.matdoes.dev/azalea/struct.Client.html#method.block_interact) (this doesn't predict the block interactions/placement on the client yet, but it's usually fine)
-- [Inventories](https://azalea.matdoes.dev/azalea/struct.Client.html#impl-ContainerClientExt-for-Client)
-- [Attacking entities](https://azalea.matdoes.dev/azalea/struct.Client.html#method.attack)
+- [Accurate physics](https://azalea.rs/azalea_physics/) (but some features like entity pushing and sprint swimming aren't implemented yet)
+- [Pathfinder](https://azalea.rs/azalea/pathfinder/index.html)
+- [Swarms](https://azalea.rs/azalea/swarm/index.html)
+- [Breaking blocks](https://azalea.rs/azalea/struct.Client.html#method.mine)
+- [Block interactions & building](https://azalea.rs/azalea/struct.Client.html#method.block_interact) (this doesn't predict the block interactions/placement on the client yet, but it's usually fine)
+- [Inventories](https://azalea.rs/azalea/struct.Client.html#impl-ContainerClientExt-for-Client)
+- [Attacking entities](https://azalea.rs/azalea/struct.Client.html#method.attack)
 - [Plugins](#plugins)
 
 ## Goals
@@ -43,7 +43,7 @@ _Currently supported Minecraft version: `26.1.2`._
 
 ## Documentation
 
-The stable documentation for the main `azalea` crate is available at [docs.rs/azalea](https://docs.rs/azalea), and the unstable documentation is at [azalea.matdoes.dev](https://azalea.matdoes.dev).
+The stable documentation for the main `azalea` crate is available at [docs.rs/azalea](https://docs.rs/azalea), and the unstable documentation is at [azalea.rs](https://azalea.rs).
 
 ## Matrix/Discord
 
@@ -58,6 +58,8 @@ Here's an incomplete list of bots built using Azalea, primarily intended as a re
 - [as1100k/aether](https://github.com/as1100k/aether) - Collection of Minecraft bots and plugins.
 - [mat-1/potato-bot-2](https://github.com/mat-1/potato-bot-2) - Hardened Discord chat bridge created for the LiveOverflow SMP.
 - [ErrorNoInternet/ErrorNoWatcher](https://github.com/ErrorNoInternet/ErrorNoWatcher) - A Minecraft bot with Lua scripting support.
+- [BaconCat1/ForestBot-RS](https://github.com/BaconCat1/ForestBot-RS) - Originally a Mineflayer bot, ported to Azalea. Does too many things to list here.
+- [nullclyze/salarixi](https://codeberg.org/nullclyze/salarixi) - Feature-rich, multi-task, and lightweight tool for Minecraft botting.
 
 You can see more projects built with Azalea in the [GitHub dependency graph](https://github.com/azalea-rs/azalea/network/dependents).
 

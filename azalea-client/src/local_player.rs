@@ -59,13 +59,30 @@ pub struct PermissionLevel(pub u8);
 /// }
 /// ```
 ///
-/// For convenience, `TabList` is also a resource in the ECS.
+/// For convenience, `TabList` is also a resource in the ECS as
+/// [`TabListResource`].
+///
 /// It's set to be the same as the tab list for the last client whose tab list
 /// was updated.
 /// This means you should avoid using `TabList` as a resource unless you know
 /// all of your clients will have the same tab list.
-#[derive(Clone, Component, Debug, Default, Deref, DerefMut, Resource)]
+#[derive(Clone, Debug, Default, Deref, DerefMut, Component)]
 pub struct TabList(HashMap<Uuid, PlayerInfo>);
+
+/// The `Resource` version of [`TabList`] (which is a `Component`).
+#[derive(Clone, Debug, Default, Deref, DerefMut, Resource)]
+pub struct TabListResource(HashMap<Uuid, PlayerInfo>);
+
+impl From<TabList> for TabListResource {
+    fn from(t: TabList) -> Self {
+        TabListResource(t.0)
+    }
+}
+impl From<TabListResource> for TabList {
+    fn from(t: TabListResource) -> Self {
+        TabList(t.0)
+    }
+}
 
 #[derive(Clone, Component, Debug)]
 pub struct Hunger {

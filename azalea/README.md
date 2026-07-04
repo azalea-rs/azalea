@@ -80,7 +80,7 @@ For a lot more details on how to make Azalea faster, see the [Azalea performance
 
 # Documentation
 
-The documentation for the latest Azalea crates.io release is available at [docs.rs/azalea](https://docs.rs/azalea/latest/azalea/) and the docs for the latest bleeding-edge (git) version are at [azalea.matdoes.dev](https://azalea.matdoes.dev/azalea/).
+The documentation for the latest Azalea crates.io release is available at [docs.rs/azalea](https://docs.rs/azalea/latest/azalea/) and the docs for the latest bleeding-edge (git) version are at [azalea.rs](https://azalea.rs/azalea/).
 
 # Swarms
 

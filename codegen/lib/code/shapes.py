@@ -4,16 +4,14 @@ COLLISION_BLOCKS_RS_DIR = get_dir_location("../azalea-physics/src/collision/bloc
 
 
 def generate_block_shapes(pumpkin_blocks_data: dict, block_states_report, burger_data):
-    blocks, shapes = simplify_shapes(
-        pumpkin_blocks_data, burger_data[0]["blocks"]["block"]
-    )
+    blocks, shapes = simplify_shapes(pumpkin_blocks_data)
 
     code = generate_block_shapes_code(blocks, shapes, block_states_report)
     with open(COLLISION_BLOCKS_RS_DIR, "w") as f:
         f.write(code)
 
 
-def simplify_shapes(pumpkin_blocks: dict, burger_blocks: dict) -> tuple[dict, dict]:
+def simplify_shapes(pumpkin_blocks: dict) -> tuple[dict, dict]:
     """
     Returns new_blocks and new_shapes,
     where new_blocks is like { grass_block: { collision: [1, 1], outline: [1, 1], offset_type: "XZ" } }
@@ -24,14 +22,13 @@ def simplify_shapes(pumpkin_blocks: dict, burger_blocks: dict) -> tuple[dict, di
 
     all_shapes_ids = {}
 
-    for block_data in pumpkin_blocks["blocks"]:
+    for pumpkin_block_data in pumpkin_blocks["blocks"]:
         new_block_collision_shapes = []
         new_block_outline_shapes = []
 
-        block_id = block_data["name"]
-        burger_block_data = burger_blocks.get(block_id, {})
+        block_id = pumpkin_block_data["name"]
 
-        for state in block_data["states"]:
+        for state in pumpkin_block_data["states"]:
             collision_shape = []
             for box_id in state["collision_shapes"]:
                 box = pumpkin_blocks["shapes"][box_id]
@@ -65,9 +62,9 @@ def simplify_shapes(pumpkin_blocks: dict, burger_blocks: dict) -> tuple[dict, di
             "outline": new_block_outline_shapes,
         }
 
-        if "offset_type" in burger_block_data:
+        if "offset_type" in pumpkin_block_data:
             # don't waste space in `new_data_for_block` if there's no offset_type
-            new_data_for_block["offset_type"] = burger_block_data["offset_type"]
+            new_data_for_block["offset_type"] = pumpkin_block_data["offset_type"]
 
         new_blocks[block_id] = new_data_for_block
 

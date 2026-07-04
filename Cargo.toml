@@ -23,33 +23,33 @@ resolver = "3"
 # --- Workspace Settings ---
 
 [workspace.package]
-version = "0.16.0+mc26.1.2"
+version = "0.16.0+mc26.2"
 edition = "2024"
 license = "MIT"
 repository = "https://github.com/azalea-rs/azalea"
 # homepage = "https://github.com/azalea-rs/azalea"
 
 [workspace.dependencies]
-aes = "0.9.0"
+aes = "0.9.1"
 async-compat = "0.2.5"
 base64 = "0.22.1"
-bevy_app = "0.18.1"
-bevy_ecs = { version = "0.18.1", default-features = false, features = [
+bevy_app = "0.19.0"
+bevy_ecs = { version = "0.19.0", default-features = false, features = [
     "multi_threaded",
 ] }
-bevy_utils = { version = "0.18.1", default-features = false }
-bevy_log = "0.18.1"
-bevy_tasks = "0.18.1"
-bevy_time = "0.18.1"
+bevy_utils = { version = "0.19.0", default-features = false }
+bevy_log = "0.19.0"
+bevy_tasks = "0.19.0"
+bevy_time = "0.19.0"
 byteorder = "1.5.0"
-cfb8 = "0.9.0"
-chrono = { version = "0.4.44", default-features = false }
-compact_str = "0.9.0"
+cfb8 = "0.9.1"
+chrono = { version = "0.4.45", default-features = false }
+compact_str = "0.9.1"
 crc32c = "0.6.8"
 criterion = "0.8.2"
 derive_more = "2.1.1"
 enum-as-inner = "0.7.0"
-env_logger = "0.11.10"
+env_logger = "0.11.11"
 eyre = "0.6.12"
 flate2 = { version = "1.1.9", features = ["zlib-rs"] }
 futures = "0.3.32"
@@ -59,33 +59,33 @@ indexmap = "2.14.0"
 md-5 = "0.11.0"
 minecraft_folder_path = "0.1.2"
 nohash-hasher = "0.2.0"
-num-bigint = "0.4.6"
+num-bigint = "0.5.0"
 num-format = "0.4.4"
 num-traits = "0.2.19"
 parking_lot = "0.12.5"
 proc-macro2 = "1.0.106"
-quote = "1.0.45"
-rand = "0.10.1"
+quote = "1.0.46"
+rand = "0.10.2"
 rand_core = "0.10.1"
-regex = "1.12.3"
-reqwest = { version = "0.13.3", default-features = false }
+regex = "1.12.4"
+reqwest = { version = "0.13.4", default-features = false }
 rsa = "0.10.0-rc.18"
 rsa_public_encrypt_pkcs1 = "0.4.0"
-rustc-hash = "2.1.2"
+rustc-hash = "2.1.3"
 serde = "1.0.228"
-serde_json = "1.0.149"
+serde_json = "1.0.150"
 sha1 = "0.11.0"
 sha2 = "0.11.0"
 simdnbt = "0.10.0"
 # simdnbt = { git = "https://github.com/azalea-rs/simdnbt" }
-socks5-impl = "0.8.2"
-syn = "2.0.117"
+socks5-impl = "0.9.1"
+syn = "2.0.118"
 thiserror = "2.0.18"
-tokio = "1.52.2"
+tokio = "1.52.3"
 tokio-util = "0.7.18"
 tracing = "0.1.44"
 tracing-subscriber = "0.3.23"
-uuid = "1.23.1"
+uuid = "1.23.4"
 radix-heap = "0.4.2"
 
 azalea-block-macros = { path = "azalea-block/azalea-block-macros", version = "0.16.0", default-features = false }

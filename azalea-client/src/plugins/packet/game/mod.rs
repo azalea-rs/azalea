@@ -25,7 +25,7 @@ use azalea_protocol::{
 };
 use azalea_registry::builtin::EntityKind;
 use azalea_world::{PartialWorld, WorldName, Worlds};
-use bevy_ecs::{prelude::*, system::SystemState};
+use bevy_ecs::prelude::*;
 pub use events::*;
 use tracing::{debug, error, warn};
 
@@ -39,7 +39,7 @@ use crate::{
     disconnect::DisconnectEvent,
     interact::BlockStatePredictionHandler,
     inventory::{ClientsideCloseContainerEvent, MenuOpenedEvent, SetContainerContentEvent},
-    local_player::{Experience, Hunger, PreviousGameMode, TabList, WorldHolder},
+    local_player::{Experience, Hunger, PreviousGameMode, TabList, TabListResource, WorldHolder},
     movement::{KnockbackData, KnockbackEvent},
     packet::{
         as_system, declare_packet_handlers,
@@ -455,7 +455,7 @@ impl GamePacketHandler<'_> {
             Query<&mut TabList>,
             MessageWriter<AddPlayerEvent>,
             MessageWriter<UpdatePlayerEvent>,
-            ResMut<TabList>,
+            ResMut<TabListResource>,
         )>(
             self.ecs,
             |(
@@ -503,7 +503,7 @@ impl GamePacketHandler<'_> {
                     }
                 }
 
-                *tab_list_resource = tab_list.clone();
+                *tab_list_resource = tab_list.clone().into();
             },
         );
     }
@@ -514,7 +514,7 @@ impl GamePacketHandler<'_> {
         as_system::<(
             Query<&mut TabList>,
             MessageWriter<RemovePlayerEvent>,
-            ResMut<TabList>,
+            ResMut<TabListResource>,
         )>(
             self.ecs,
             |(mut query, mut remove_player_events, mut tab_list_resource)| {
@@ -701,15 +701,14 @@ impl GamePacketHandler<'_> {
                 move |entity| {
                     let entity_id = entity.id();
                     entity.world_scope(|world| {
-                        let mut commands_system_state = SystemState::<Commands>::new(world);
-                        let mut commands = commands_system_state.get_mut(world);
+                        let mut commands = world.commands();
                         let mut entity_commands = commands.entity(entity_id);
                         if let Err(e) =
                             apply_metadata(&mut entity_commands, entity_kind, packed_items)
                         {
                             warn!("{e}");
                         }
-                        commands_system_state.apply(world);
+                        world.flush();
                     });
                 },
             ));
