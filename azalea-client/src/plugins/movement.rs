@@ -74,7 +74,7 @@ impl Plugin for MovementPlugin {
                         .after(azalea_entity::update_in_loaded_chunk)
                         .after(travel)
                         .after(EntityGeometryUpdateSystems),
-                    send_position.after(PhysicsSystems),
+                    send_position,
                 )
                     .chain(),
             )
@@ -331,7 +331,7 @@ pub fn local_player_ai_step(
         position,
         hunger,
         last_sent_input,
-        fallflying,
+        fall_flying,
         pose,
         mut physics,
         mut sprinting,
@@ -380,7 +380,7 @@ pub fn local_player_ai_step(
         let is_underwater = false;
         let is_in_water = physics.is_in_water();
 
-        let is_fall_flying = **fallflying;
+        let is_fall_flying = **fall_flying;
         // TODO: passenger
         let is_passenger = false;
         // TODO: using items
@@ -398,7 +398,7 @@ pub fn local_player_ai_step(
             && !has_blindness
             && (!is_passenger || is_underwater)
             && (!is_fall_flying || is_underwater)
-            && (!is_moving_slowly(&crouching, fallflying, pose, is_in_water) || is_underwater)
+            && (!is_moving_slowly(&crouching, fall_flying, pose, is_in_water) || is_underwater)
             && (!is_in_water || is_underwater);
         if trying_to_sprint && can_start_sprinting {
             set_sprinting(true, &mut sprinting, &mut attributes);
@@ -426,7 +426,7 @@ pub fn local_player_ai_step(
             physics_state.move_vector,
             false,
             false,
-            is_moving_slowly(&crouching, fallflying, pose, is_in_water),
+            is_moving_slowly(&crouching, fall_flying, pose, is_in_water),
             &attributes,
         );
         physics.x_acceleration = move_vector.x;
@@ -464,7 +464,7 @@ pub fn process_fall_flying_activation(
         inv,
         physics,
         onclimbable,
-        mut fallflying,
+        mut fall_flying,
     ) in query.iter_mut()
     {
         // TODO: creative fly toggle
@@ -474,10 +474,10 @@ pub fn process_fall_flying_activation(
             && !creative_flight_toggled
             && last_sent_input.is_some_and(|input| !input.0.jump)
             && !**onclimbable
-            && can_start_fall_flying(&fallflying, abilities, inv, physics)
+            && can_start_fall_flying(&fall_flying, abilities, inv, physics)
         {
             // split `tryToStartFallFlying` into condition check
-            **fallflying = true; // Player.startFallFlying()
+            **fall_flying = true; // Player.startFallFlying()
             commands.trigger(SendGamePacketEvent::new(
                 entity,
                 s_player_command::ServerboundPlayerCommand {
@@ -492,12 +492,12 @@ pub fn process_fall_flying_activation(
 
 // Player.tryToStartFallFlying()
 fn can_start_fall_flying(
-    already_fallflying: &FallFlying,
+    already_fall_flying: &FallFlying,
     abilities: &PlayerAbilities,
     inv: &Inventory,
     physics: &Physics,
 ) -> bool {
-    (!**already_fallflying)
+    (!**already_fall_flying)
         && (!abilities.flying)
 
         // LivingEntity.canGlide()
@@ -520,7 +520,7 @@ fn can_start_fall_flying(
 // LocalPlayer.isMovingSlowly
 fn is_moving_slowly(
     crouching: &Crouching,
-    fallflying: &FallFlying,
+    fall_flying: &FallFlying,
     pose: &Pose,
     is_in_water: bool,
 ) -> bool {
@@ -536,8 +536,8 @@ fn is_moving_slowly(
     // LivingEntity.isVisuallySwimming override
     match *pose {
         Pose::Swimming => true,
-        Pose::FallFlying => !**fallflying,
-        // There is going to be a slowdown for a tick when the server sets the fallflying shared
+        Pose::FallFlying => !**fall_flying,
+        // There is going to be a slowdown for a tick when the server sets the Fallflying shared
         // flag while the client is still in the FallFlying Pose And that is totally
         // intended
         _ => false,
@@ -718,7 +718,7 @@ pub fn update_pose(
         mut pose,
         physics,
         physics_state,
-        fallflying,
+        fall_flying,
         &game_mode,
         world_holder,
         position,
@@ -743,7 +743,7 @@ pub fn update_pose(
         // fallFlying, spinAttack
         let desired_pose = if physics_state.trying_to_crouch {
             Pose::Crouching
-        } else if **fallflying {
+        } else if **fall_flying {
             Pose::FallFlying
         } else {
             Pose::Standing

@@ -36,7 +36,7 @@ pub enum EntityUpdateSystems {
     Deindex,
 }
 
-// Post travel update for dimension and boundingbox
+/// A Bevy [`SystemSet`] for post travel update for dimension and boundingbox
 #[derive(Clone, Debug, Eq, Hash, PartialEq, SystemSet)]
 pub struct EntityGeometryUpdateSystems;
 

@@ -62,7 +62,7 @@ pub fn travel(
         mut physics,
         direction,
         position,
-        fallflying,
+        fall_flying,
     ) in &mut query
     {
         let Some(world_lock) = worlds.get(world_name) else {
@@ -95,8 +95,11 @@ pub fn travel(
             // !this.canStandOnFluid(fluidAtBlock)` here but it doesn't matter
             // for players
             travel_in_fluid(&mut ctx);
-        } else if fallflying.as_deref().is_some_and(|fallflying| **fallflying) {
-            travel_fall_flying(&mut ctx, &mut fallflying.unwrap());
+        } else if fall_flying
+            .as_deref()
+            .is_some_and(|fall_flying| **fall_flying)
+        {
+            travel_fall_flying(&mut ctx, &mut fall_flying.unwrap());
         } else {
             travel_in_air(&mut ctx);
         }
@@ -244,36 +247,37 @@ fn travel_fall_flying(ctx: &mut MoveCtx, fall_flying: &mut FallFlying) {
         let move_horizontal_length = ctx.physics.velocity.horizontal_distance();
         let gravity = get_effective_gravity();
 
-        // vanilla convert to double first, not sure if it has to be this
+        // vanilla convert to double first, we match vanilla here
         let lift_force = f64::from(lean_angle).cos().powi(2);
 
         let mut movement = ctx.physics.velocity;
 
-        movement += Vec3::from((0.0, gravity * (-1.0 + lift_force * 0.75), 0.0));
+        movement.y += gravity * (-1.0 + lift_force * 0.75);
         if movement.y < 0.0 && look_horizontal_length > 0.0 {
             let convert = movement.y * -0.1 * lift_force;
-            movement += Vec3::from((
+            movement += Vec3::new(
                 look_angle.x * convert / look_horizontal_length,
                 convert,
                 look_angle.z * convert / look_horizontal_length,
-            ));
+            );
         }
 
         if lean_angle < 0.0 && look_horizontal_length > 0.0 {
-            let convert = move_horizontal_length * -azalea_core::math::sin(lean_angle) as f64 * 0.04;
-            movement += Vec3::from((
+            let convert =
+                move_horizontal_length * -azalea_core::math::sin(lean_angle) as f64 * 0.04;
+            movement += Vec3::new(
                 -look_angle.x * convert / look_horizontal_length,
                 convert * 3.2,
                 -look_angle.z * convert / look_horizontal_length,
-            ));
+            );
         }
 
         if look_horizontal_length > 0.0 {
-            movement += Vec3::from((
+            movement += Vec3::new(
                 (look_angle.x / look_horizontal_length * move_horizontal_length - movement.x) * 0.1,
                 0.0,
                 (look_angle.z / look_horizontal_length * move_horizontal_length - movement.z) * 0.1,
-            ));
+            );
         }
 
         ctx.physics.velocity = movement.multiply(0.99f32 as f64, 0.98f32 as f64, 0.99f32 as f64);
