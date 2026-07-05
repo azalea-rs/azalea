@@ -307,6 +307,8 @@ define_data_components!(
     ChickenSoundVariant,
     CatSoundVariant,
     SulfurCubeContent,
+    BlockTransformer,
+    ProvidesPotteryPattern,
 );
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
@@ -1928,4 +1930,14 @@ pub struct CatSoundVariant {
 #[serde(transparent)]
 pub struct SulfurCubeContent {
     pub absorbed_block_item_stack: ItemStack,
+}
+
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+pub struct BlockTransformer {
+    pub todo: todo!(), // see DataComponents.java
+}
+
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+pub struct ProvidesPotteryPattern {
+    pub todo: todo!(), // see DataComponents.java
 }
