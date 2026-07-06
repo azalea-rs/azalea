@@ -1,4 +1,4 @@
-use azalea_block::{BlockState, BlockTrait, fluid_state::FluidState};
+use azalea_block::{BlockState, fluid_state::FluidState};
 use azalea_core::{
     aabb::Aabb,
     position::{BlockPos, Vec3},
@@ -105,14 +105,13 @@ fn travel_in_air(ctx: &mut MoveCtx) {
 
     let block_pos_below = get_block_pos_below_that_affects_movement(*ctx.position);
 
-    let block_state_below = ctx
+    let block_below = ctx
         .world
         .chunks
         .get_block_state(block_pos_below)
         .unwrap_or(BlockState::AIR);
-    let block_below = block_state_below.to_trait();
-    let block_friction = block_below.behavior().friction;
 
+    let block_friction = block_below.behavior().friction;
     let inertia = if ctx.physics.on_ground() {
         block_friction * 0.91
     } else {

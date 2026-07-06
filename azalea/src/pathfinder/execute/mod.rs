@@ -3,7 +3,7 @@ pub mod simulation;
 
 use std::{cmp, time::Duration};
 
-use azalea_block::{BlockState, BlockTrait};
+use azalea_block::BlockState;
 use azalea_client::{
     StartSprintEvent, StartWalkEvent,
     local_player::WorldHolder,
@@ -169,14 +169,14 @@ pub fn check_node_reached(
 
                     let block_pos_below = get_block_pos_below_that_affects_movement(*position);
 
-                    let block_state_below = {
+                    let block_below = {
                         let world = world.read();
                         world
                             .chunks
                             .get_block_state(block_pos_below)
                             .unwrap_or(BlockState::AIR)
                     };
-                    let block_below = block_state_below.to_trait();
+
                     // friction for normal blocks is 0.6, for ice it's 0.98
                     let block_friction = block_below.behavior().friction as f64;
 

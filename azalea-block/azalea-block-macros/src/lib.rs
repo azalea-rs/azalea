@@ -630,10 +630,34 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             ];
 
 
+            /// Convert a [`BlockState`] to a [`&'static dyn BlockTrait`].
+            ///
+            /// # Panics
+            ///
+            /// Panics if the [`BlockState`] is invalid.
+            #[inline]
+            #[must_use]
+            pub const fn blockstate_to_blocktrait(state: BlockState) -> &'static dyn BlockTrait {
+                BLOCK_STATE_TABLE[state.id() as usize]
+            }
+
+            /// Try to convert a [`BlockState`] to a [`&'static dyn BlockTrait`].
+            ///
+            /// Returns `None` if the [`BlockState`] is invalid.
+            #[must_use]
+            pub const fn try_blockstate_to_blocktrait(state: BlockState) -> Option<&'static dyn BlockTrait> {
+                let state_id: usize = state.id() as usize;
+                if state_id < BLOCK_STATE_TABLE.len() {
+                    Some(BLOCK_STATE_TABLE[state_id])
+                } else {
+                    None
+                }
+            }
+
             impl From<BlockState> for &'static dyn BlockTrait {
+                #[inline]
                 fn from(block_state: BlockState) -> Self {
-                    let id = block_state.id() as usize;
-                    BLOCK_STATE_TABLE[id]
+                    blockstate_to_blocktrait(block_state)
                 }
             }
 
@@ -676,4 +700,3 @@ fn name_to_ident(name: &str) -> Ident {
     };
     Ident::new(ident_str, proc_macro2::Span::call_site())
 }
-

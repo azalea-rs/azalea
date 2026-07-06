@@ -9,7 +9,7 @@ pub mod travel;
 
 use std::collections::HashSet;
 
-use azalea_block::{BlockState, BlockTrait, fluid_state::FluidState, properties};
+use azalea_block::{BlockState, fluid_state::FluidState, properties};
 use azalea_core::{
     math,
     position::{BlockPos, Vec3},
@@ -508,7 +508,7 @@ fn block_jump_factor(world: &World, position: Position) -> f32 {
         .get_block_state(get_block_pos_below_that_affects_movement(position));
 
     let block_at_pos_jump_factor = if let Some(block) = block_at_pos {
-        block.to_trait().behavior().jump_factor
+        block.behavior().jump_factor
     } else {
         1.
     };
@@ -517,7 +517,7 @@ fn block_jump_factor(world: &World, position: Position) -> f32 {
     }
 
     if let Some(block) = block_below {
-        block.to_trait().behavior().jump_factor
+        block.behavior().jump_factor
     } else {
         1.
     }

@@ -8,7 +8,7 @@ pub mod world_collisions;
 
 use std::{ops::Add, sync::LazyLock};
 
-use azalea_block::{BlockState, BlockTrait, fluid_state::FluidState};
+use azalea_block::{BlockState, fluid_state::FluidState};
 use azalea_core::{
     aabb::Aabb,
     direction::Axis,
@@ -494,8 +494,7 @@ pub fn legacy_blocks_motion(block: BlockState) -> bool {
 
 pub fn legacy_calculate_solid(block: BlockState) -> bool {
     // force_solid has to be checked before anything else
-    let block_trait = block.to_trait();
-    if let Some(solid) = block_trait.behavior().force_solid {
+    if let Some(solid) = block.behavior().force_solid {
         return solid;
     }
 

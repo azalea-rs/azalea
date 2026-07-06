@@ -1,7 +1,7 @@
 use std::hint::black_box;
 
 use azalea_block::{BlockState, BlockTrait};
-use criterion::{criterion_group, criterion_main, BatchSize, Criterion};
+use criterion::{BatchSize, Criterion, criterion_group, criterion_main};
 
 fn bench_block(c: &mut Criterion) {
     c.bench_function("Box<dyn BlockTrait> from BlockState", |b| {
@@ -17,8 +17,7 @@ fn bench_block(c: &mut Criterion) {
             },
             |blocks| {
                 for block in blocks {
-                    let boxed: Box<dyn BlockTrait> = block.to_trait().boxed();
-                    black_box(boxed);
+                    black_box(block.boxed());
                 }
             },
             BatchSize::LargeInput,

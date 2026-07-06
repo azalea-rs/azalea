@@ -39,7 +39,7 @@ let block = block_state.to_trait();
 ```
 # use azalea_block::{BlockTrait, BlockState};
 # let block_state: BlockState = azalea_registry::builtin::BlockKind::Jukebox.into();
-if let Some(jukebox) = block_state.to_trait().downcast_ref::<azalea_block::blocks::Jukebox>() {
+if let Some(jukebox) = block_state.downcast_ref::<azalea_block::blocks::Jukebox>() {
     // ...
 }
 ```

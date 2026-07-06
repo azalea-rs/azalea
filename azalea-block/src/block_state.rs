@@ -2,6 +2,7 @@ use std::{
     fmt::{self, Debug},
     hint::assert_unchecked,
     io::{self, Cursor, Write},
+    ops::Deref,
 };
 
 use azalea_buf::{AzBuf, AzBufVar, BufReadError};
@@ -31,13 +32,18 @@ pub struct BlockState {
 }
 
 impl BlockState {
-    /// A shortcut for getting the air block state, since it always has an ID of
-    /// 0.
+    /// A shortcut for getting air, since it always has an ID of `0`.
+    ///
+    /// # Note
     ///
     /// This does not include the other types of air like cave air.
     pub const AIR: BlockState = BlockState { id: 0 };
 
-    /// Create a new BlockState and panic if the block is not a valid state.
+    /// Create a new [`BlockState`]
+    ///
+    /// # Panics
+    ///
+    /// Panics if the block is not a valid state.
     ///
     /// You should probably use [`BlockState::try_from`] instead.
     #[inline]
@@ -46,8 +52,11 @@ impl BlockState {
         Self { id }
     }
 
-    pub fn to_trait(self) -> &'static dyn BlockTrait {
-        From::from(self)
+    /// Convert the [`BlockState`] into a [`&'static dyn BlockTrait`].
+    #[inline]
+    #[must_use]
+    pub const fn to_trait(self) -> &'static dyn BlockTrait {
+        crate::generated::blocks::blockstate_to_blocktrait(self)
     }
 
     /// Whether the block state is possible to exist in vanilla Minecraft.
@@ -80,6 +89,15 @@ impl BlockState {
         unsafe { assert_unchecked(Self::is_valid_state(self.id)) };
 
         self.id
+    }
+}
+
+impl Deref for BlockState {
+    type Target = dyn BlockTrait;
+
+    #[inline]
+    fn deref(&self) -> &Self::Target {
+        self.to_trait()
     }
 }
 
@@ -137,12 +155,7 @@ impl AzBuf for BlockState {
 
 impl Debug for BlockState {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "BlockState(id: {}, {:?})",
-            self.id,
-            self.to_trait()
-        )
+        write!(f, "BlockState(id: {}, {:?})", self.id, self.to_trait())
     }
 }
 
