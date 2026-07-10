@@ -631,27 +631,10 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
 
 
             /// Convert a [`BlockState`] to a [`&'static dyn BlockTrait`].
-            ///
-            /// # Panics
-            ///
-            /// Panics if the [`BlockState`] is invalid.
             #[inline]
             #[must_use]
             pub const fn blockstate_to_blocktrait(state: BlockState) -> &'static dyn BlockTrait {
                 BLOCK_STATE_TABLE[state.id() as usize]
-            }
-
-            /// Try to convert a [`BlockState`] to a [`&'static dyn BlockTrait`].
-            ///
-            /// Returns `None` if the [`BlockState`] is invalid.
-            #[must_use]
-            pub const fn try_blockstate_to_blocktrait(state: BlockState) -> Option<&'static dyn BlockTrait> {
-                let state_id: usize = state.id() as usize;
-                if state_id < BLOCK_STATE_TABLE.len() {
-                    Some(BLOCK_STATE_TABLE[state_id])
-                } else {
-                    None
-                }
             }
 
             impl From<BlockState> for &'static dyn BlockTrait {
