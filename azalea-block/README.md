@@ -28,18 +28,18 @@ let block_state: BlockState = BlockKind::Jukebox.into();
 
 ## `BlockTrait`
 
-The [`BlockTrait`] trait represents a type of a block. With [`BlockTrait`], you can get some extra things like the string block ID and some information about the block's behavior. Also, the structs that implement the trait contain the block attributes as fields so it's more convenient to get them. Note that this is often used as `Box<dyn BlockTrait>`.
+The [`BlockTrait`] trait represents a type of a block. With [`BlockTrait`], you can get some extra things like the string block ID and some information about the block's behavior. Also, the structs that implement the trait contain the block attributes as fields so it's more convenient to get them.
 If for some reason you don't want `BlockTrait`, set `default-features = false`.
 
 ```
 # use azalea_block::{BlockTrait, BlockState};
 # let block_state = BlockState::from(azalea_registry::builtin::BlockKind::Jukebox);
-let block = Box::<dyn BlockTrait>::from(block_state);
+let block = block_state.to_trait();
 ```
 ```
 # use azalea_block::{BlockTrait, BlockState};
 # let block_state: BlockState = azalea_registry::builtin::BlockKind::Jukebox.into();
-if let Some(jukebox) = Box::<dyn BlockTrait>::from(block_state).downcast_ref::<azalea_block::blocks::Jukebox>() {
+if let Some(jukebox) = block_state.downcast_ref::<azalea_block::blocks::Jukebox>() {
     // ...
 }
 ```

@@ -1,4 +1,4 @@
-use azalea_block::{BlockState, BlockTrait, fluid_state::FluidState};
+use azalea_block::{BlockState, fluid_state::FluidState};
 use azalea_core::{direction::Direction, game_type::GameMode, position::BlockPos, tick::GameTick};
 use azalea_entity::{
     ActiveEffects, Attributes, FluidOnEyes, Physics, PlayerAbilities, Position,
@@ -333,13 +333,11 @@ pub fn handle_mining_queued(
                 });
             }
 
-            let block = Box::<dyn BlockTrait>::from(target_block_state);
-
             let held_item = inventory.held_item();
 
             if block_is_solid
                 && get_mine_progress(
-                    block.as_ref(),
+                    &*target_block_state,
                     held_item,
                     fluid_on_eyes,
                     physics,
@@ -652,9 +650,9 @@ pub fn continue_mining_block(
                 commands.entity(entity).remove::<Mining>();
                 continue;
             }
-            let block = Box::<dyn BlockTrait>::from(target_block_state);
+            let block = target_block_state.to_trait();
             **mine_progress += get_mine_progress(
-                block.as_ref(),
+                block,
                 current_mining_item,
                 fluid_on_eyes,
                 physics,

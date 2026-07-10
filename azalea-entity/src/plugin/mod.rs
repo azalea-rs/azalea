@@ -4,7 +4,7 @@ pub mod indexing;
 
 use std::collections::HashSet;
 
-use azalea_block::{BlockState, BlockTrait, fluid_state::FluidKind, properties};
+use azalea_block::{BlockState, fluid_state::FluidKind, properties};
 use azalea_core::{
     entity_id::MinecraftEntityId,
     game_type::GameMode,
@@ -143,13 +143,12 @@ pub fn update_on_climbable(
         let world = world.read();
 
         let block_pos = BlockPos::from(position);
-        let block_state_at_feet = world.get_block_state(block_pos).unwrap_or_default();
-        let block_at_feet = Box::<dyn BlockTrait>::from(block_state_at_feet);
+        let block_at_feet = world.get_block_state(block_pos).unwrap_or_default();
         let registry_block_at_feet = block_at_feet.as_block_kind();
 
         **on_climbable = tags::blocks::CLIMBABLE.contains(&registry_block_at_feet)
             || (tags::blocks::TRAPDOORS.contains(&registry_block_at_feet)
-                && is_trapdoor_usable_as_ladder(block_state_at_feet, block_pos, &world));
+                && is_trapdoor_usable_as_ladder(block_at_feet, block_pos, &world));
     }
 }
 

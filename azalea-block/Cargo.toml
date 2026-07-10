@@ -11,5 +11,13 @@ azalea-block-macros.workspace = true
 azalea-buf.workspace = true
 azalea-registry.workspace = true
 
+[dev-dependencies]
+criterion.workspace = true
+rand.workspace = true
+
+[[bench]]
+name = "block"
+harness = false
+
 [lints]
 workspace = true
