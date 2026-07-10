@@ -19,22 +19,35 @@ pub use range::BlockStates;
 /// A trait that's implemented on block structs.
 ///
 /// See the [azalea_block documentation](crate) for details.
-pub trait BlockTrait: Debug + Any {
+pub trait BlockTrait: Debug + Any + Send + Sync {
+    /// Convert the block struct to a boxed trait object.
+    #[must_use]
+    fn boxed(&self) -> Box<dyn BlockTrait>;
+
+    /// Get the [`BlockBehavior`] of this block.
+    #[must_use]
     fn behavior(&self) -> BlockBehavior;
+
     /// Get the Minecraft string ID for this block.
     ///
     /// For example, `stone` or `grass_block`.
+    #[must_use]
     fn id(&self) -> &'static str;
+
     /// Convert the block struct to a [`BlockState`].
     ///
     /// This is a lossless conversion, as [`BlockState`] also contains state
     /// data.
+    #[must_use]
     fn as_block_state(&self) -> BlockState;
+
     /// Convert the block struct to a [`BlockKind`].
     ///
     /// This is a lossy conversion, as [`BlockKind`] doesn't contain any state
     /// data.
+    #[must_use]
     fn as_block_kind(&self) -> BlockKind;
+
     #[deprecated = "renamed to as_block_kind"]
     #[doc(hidden)]
     fn as_registry_block(&self) -> BlockKind {
@@ -46,14 +59,18 @@ pub trait BlockTrait: Debug + Any {
     ///
     /// Consider using [`Self::get_property`] if you only need a single
     /// property.
+    #[must_use]
     fn property_map(&self) -> HashMap<&'static str, &'static str>;
+
     /// Get a property's value as a string by its name, or `None` if the block
     /// has no property with that name.
     ///
     /// To get all properties, you may use [`Self::property_map`].
     ///
     /// To set a property, use [`Self::set_property`].
+    #[must_use]
     fn get_property(&self, name: &str) -> Option<&'static str>;
+
     /// Update a property on this block, with the name and value being strings.
     ///
     /// Returns `Ok(())`, if the property name and value are valid, otherwise it
@@ -95,8 +112,7 @@ mod tests {
             waterlogged: false,
         };
         let block_state = block.as_block_state();
-        let block_from_state = Box::<dyn BlockTrait>::from(block_state);
-        let block_from_state = *block_from_state
+        let block_from_state = *block_state
             .downcast_ref::<crate::blocks::OakTrapdoor>()
             .unwrap();
         assert_eq!(block, block_from_state);
