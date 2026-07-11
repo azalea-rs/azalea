@@ -17,7 +17,7 @@ _Currently supported Minecraft version: `26.2`._
 
 ## Features
 
-- [Accurate physics](https://azalea.rs/azalea_physics/) (but some features like entity pushing and elytras aren't implemented yet)
+- [Accurate physics](https://azalea.rs/azalea_physics/) (but some features like entity pushing and sprint swimming aren't implemented yet)
 - [Pathfinder](https://azalea.rs/azalea/pathfinder/index.html)
 - [Swarms](https://azalea.rs/azalea/swarm/index.html)
 - [Breaking blocks](https://azalea.rs/azalea/struct.Client.html#method.mine)
