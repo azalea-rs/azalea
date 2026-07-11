@@ -5,12 +5,14 @@ use azalea_core::{
     tick::GameTick,
 };
 use azalea_entity::{
-    Attributes, Crouching, HasClientLoaded, Jumping, LastSentPosition, LocalEntity, LookDirection,
-    Physics, PlayerAbilities, Pose, Position,
+    Attributes, Crouching, EntityGeometryUpdateSystems, HasClientLoaded, Jumping, LastSentPosition,
+    LocalEntity, LookDirection, OnClimbable, Physics, PlayerAbilities, Pose, Position,
     dimensions::calculate_dimensions,
-    metadata::{self, Sprinting},
+    inventory::Inventory,
+    metadata::{self, FallFlying, Sprinting},
     update_bounding_box,
 };
+use azalea_inventory::components::{self, EquipmentSlot};
 use azalea_physics::{
     PhysicsSystems, ai_step,
     client_movement::{ClientMovementState, SprintDirection, WalkDirection},
@@ -57,16 +59,22 @@ impl Plugin for MovementPlugin {
             .add_systems(
                 GameTick,
                 (
-                    (tick_controls, local_player_ai_step, update_pose)
+                    (
+                        tick_controls,
+                        local_player_ai_step,
+                        process_fall_flying_activation,
+                    )
                         .chain()
                         .in_set(PhysicsSystems)
                         .before(ai_step)
                         .before(azalea_physics::fluids::update_in_water_state_and_do_fluid_pushing),
                     send_player_input_packet,
+                    update_pose.before(EntityGeometryUpdateSystems),
                     send_sprinting_if_needed
                         .after(azalea_entity::update_in_loaded_chunk)
-                        .after(travel),
-                    send_position.after(PhysicsSystems),
+                        .after(travel)
+                        .after(EntityGeometryUpdateSystems),
+                    send_position,
                 )
                     .chain(),
             )
@@ -301,6 +309,8 @@ pub fn local_player_ai_step(
             &Position,
             Option<&Hunger>,
             Option<&LastSentInput>,
+            &FallFlying,
+            &Pose,
             &mut Physics,
             &mut Sprinting,
             &mut Crouching,
@@ -321,6 +331,8 @@ pub fn local_player_ai_step(
         position,
         hunger,
         last_sent_input,
+        fall_flying,
+        pose,
         mut physics,
         mut sprinting,
         mut crouching,
@@ -367,8 +379,8 @@ pub fn local_player_ai_step(
         // TODO: swimming
         let is_underwater = false;
         let is_in_water = physics.is_in_water();
-        // TODO: elytra
-        let is_fall_flying = false;
+
+        let is_fall_flying = **fall_flying;
         // TODO: passenger
         let is_passenger = false;
         // TODO: using items
@@ -386,7 +398,7 @@ pub fn local_player_ai_step(
             && !has_blindness
             && (!is_passenger || is_underwater)
             && (!is_fall_flying || is_underwater)
-            && (!is_moving_slowly(&crouching) || is_underwater)
+            && (!is_moving_slowly(&crouching, fall_flying, pose, is_in_water) || is_underwater)
             && (!is_in_water || is_underwater);
         if trying_to_sprint && can_start_sprinting {
             set_sprinting(true, &mut sprinting, &mut attributes);
@@ -414,7 +426,7 @@ pub fn local_player_ai_step(
             physics_state.move_vector,
             false,
             false,
-            **crouching,
+            is_moving_slowly(&crouching, fall_flying, pose, is_in_water),
             &attributes,
         );
         physics.x_acceleration = move_vector.x;
@@ -422,8 +434,114 @@ pub fn local_player_ai_step(
     }
 }
 
-fn is_moving_slowly(crouching: &Crouching) -> bool {
-    **crouching
+// this should technically be a step within local_player_ai_step, but
+// 1. adds too much new query parameters if not extracted
+// 2. is very local to interact with the elytra shared flag
+// therefore I think it's safe to isolate into a separate system
+pub fn process_fall_flying_activation(
+    mut query: Query<
+        (
+            Entity,
+            &MinecraftEntityId,
+            &PlayerAbilities,
+            Option<&LastSentInput>,
+            &Jumping,
+            &Inventory,
+            &Physics,
+            &OnClimbable,
+            &mut FallFlying,
+        ),
+        (With<HasClientLoaded>, With<LocalEntity>),
+    >,
+    mut commands: Commands,
+) {
+    for (
+        entity,
+        minecraft_entity_id,
+        abilities,
+        last_sent_input,
+        jumping,
+        inv,
+        physics,
+        onclimbable,
+        mut fall_flying,
+    ) in query.iter_mut()
+    {
+        // TODO: creative fly toggle
+        let creative_flight_toggled = false;
+
+        if **jumping
+            && !creative_flight_toggled
+            && last_sent_input.is_some_and(|input| !input.0.jump)
+            && !**onclimbable
+            && can_start_fall_flying(&fall_flying, abilities, inv, physics)
+        {
+            // split `tryToStartFallFlying` into condition check
+            **fall_flying = true; // Player.startFallFlying()
+            commands.trigger(SendGamePacketEvent::new(
+                entity,
+                s_player_command::ServerboundPlayerCommand {
+                    id: *minecraft_entity_id,
+                    action: s_player_command::Action::StartFallFlying,
+                    data: 0,
+                },
+            ));
+        }
+    }
+}
+
+// Player.tryToStartFallFlying()
+fn can_start_fall_flying(
+    already_fall_flying: &FallFlying,
+    abilities: &PlayerAbilities,
+    inv: &Inventory,
+    physics: &Physics,
+) -> bool {
+    (!**already_fall_flying)
+        && (!abilities.flying)
+
+        // LivingEntity.canGlide()
+        && !physics.on_ground()
+        // TODO: && isPassenger()
+        // TODO: slow falling status effect
+        && EquipmentSlot::values().iter().any(|slot| {
+            inv.get_equipment(*slot).is_some_and(|stack| {
+                stack.get_component::<components::Glider>().is_some()
+                    && stack.get_component::<components::Equippable>().is_some_and(
+                        // TODO: check eltra durability
+                        |equippable| equippable.slot == *slot/* && stack.nextDamageWillBreak() */
+                    )
+            })
+        })
+
+        && !physics.is_in_water()
+}
+
+// LocalPlayer.isMovingSlowly
+fn is_moving_slowly(
+    crouching: &Crouching,
+    fall_flying: &FallFlying,
+    pose: &Pose,
+    is_in_water: bool,
+) -> bool {
+    if **crouching {
+        return true;
+    }
+
+    // Entity.isVisuallyCrawling
+    if is_in_water {
+        return false;
+    }
+
+    // LivingEntity.isVisuallySwimming override
+    match *pose {
+        Pose::Swimming => true,
+        Pose::FallFlying => !**fall_flying,
+        // There is going to be a slowdown for a tick when the server sets the Fallflying shared
+        // flag while the client is still in the FallFlying Pose And that is totally
+        // intended
+        _ => false,
+    }
 }
 
 // LocalPlayer.modifyInput
@@ -587,6 +705,7 @@ pub fn update_pose(
         &mut Pose,
         &Physics,
         &ClientMovementState,
+        &FallFlying,
         &GameMode,
         &WorldHolder,
         &Position,
@@ -594,8 +713,16 @@ pub fn update_pose(
     aabb_query: AabbQuery,
     collidable_entity_query: CollidableEntityQuery,
 ) {
-    for (entity, mut pose, physics, physics_state, &game_mode, world_holder, position) in
-        query.iter_mut()
+    for (
+        entity,
+        mut pose,
+        physics,
+        physics_state,
+        fall_flying,
+        &game_mode,
+        world_holder,
+        position,
+    ) in query.iter_mut()
     {
         let world = world_holder.shared.read();
         let world = &*world;
@@ -616,6 +743,8 @@ pub fn update_pose(
         // fallFlying, spinAttack
         let desired_pose = if physics_state.trying_to_crouch {
             Pose::Crouching
+        } else if **fall_flying {
+            Pose::FallFlying
         } else {
             Pose::Standing
         };
