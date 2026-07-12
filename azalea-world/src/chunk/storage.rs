@@ -207,12 +207,14 @@ mod tests {
     #[test]
     fn test_out_of_bounds_y() {
         let mut chunk_storage = ChunkStorage::default();
-        let mut partial_chunk_storage = PartialChunkStorage::default();
+        let partial_chunk_storage = PartialChunkStorage::default();
+
         partial_chunk_storage.set(
             &ChunkPos { x: 0, z: 0 },
             Some(Chunk::default()),
             &mut chunk_storage,
         );
+
         assert!(
             chunk_storage
                 .get_block_state(BlockPos { x: 0, y: 319, z: 0 })

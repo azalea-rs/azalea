@@ -357,12 +357,12 @@ impl Client {
     /// # use azalea_core::position::ChunkPos;
     /// # fn example(client: &azalea::Client) -> azalea::error::AzaleaResult<()> {
     /// let world = client.partial_world()?;
-    /// let is_0_0_loaded = world.read().chunks.limited_get(&ChunkPos::new(0, 0)).is_some();
+    /// let is_0_0_loaded = world.chunks.limited_get(&ChunkPos::new(0, 0)).is_some();
     /// # Ok(())
     /// # }
-    pub fn partial_world(&self) -> AzaleaResult<Arc<RwLock<PartialWorld>>> {
-        let world_holder = self.component::<WorldHolder>()?;
-        Ok(world_holder.partial.clone())
+    pub fn partial_world(&self) -> AzaleaResult<Arc<PartialWorld>> {
+        self.component::<WorldHolder>()
+            .map(|holder| holder.partial.clone())
     }
 
     /// Returns whether we have a received the login packet yet.

@@ -11,6 +11,7 @@ criterion.workspace = true
 rand.workspace = true
 
 [dependencies]
+arc-swap.workspace = true
 azalea-block.workspace = true
 azalea-buf.workspace = true
 azalea-core = { workspace = true, features = ["serde", "bevy_ecs"] }

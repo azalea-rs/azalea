@@ -347,7 +347,7 @@ mod tests {
 
     #[test]
     fn test_is_trapdoor_useable_as_ladder() {
-        let mut partial_world = PartialWorld::default();
+        let partial_world = PartialWorld::default();
         let mut chunks = ChunkStorage::default();
         partial_world.chunks.set(
             &ChunkPos { x: 0, z: 0 },

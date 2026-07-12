@@ -727,7 +727,7 @@ mod tests {
 
     #[test]
     fn test_is_passable() {
-        let mut partial_world = PartialWorld::default();
+        let partial_world = PartialWorld::default();
         let mut world = ChunkStorage::default();
 
         partial_world
@@ -749,8 +749,9 @@ mod tests {
 
     #[test]
     fn test_is_solid() {
-        let mut partial_world = PartialWorld::default();
+        let partial_world = PartialWorld::default();
         let mut world = ChunkStorage::default();
+
         partial_world
             .chunks
             .set(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()), &mut world);
@@ -770,7 +771,7 @@ mod tests {
 
     #[test]
     fn test_is_standable() {
-        let mut partial_world = PartialWorld::default();
+        let partial_world = PartialWorld::default();
         let mut world = ChunkStorage::default();
         partial_world
             .chunks

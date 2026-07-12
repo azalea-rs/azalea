@@ -11,6 +11,7 @@ use azalea_core::{
 use azalea_registry::data::Biome;
 use bevy_ecs::entity::Entity;
 use nohash_hasher::IntMap;
+use parking_lot::RwLock;
 
 use crate::{ChunkStorage, PartialChunkStorage};
 
@@ -26,21 +27,21 @@ pub struct PartialWorld {
     pub chunks: PartialChunkStorage,
     /// Some metadata about entities, like what entities are in certain chunks.
     /// This does not contain the entity data itself, that's in the ECS.
-    pub entity_infos: PartialEntityInfos,
+    pub entity_infos: RwLock<PartialEntityInfos>,
 }
 
 impl PartialWorld {
     pub fn new(chunk_radius: u32, owner_entity: Option<Entity>) -> Self {
         PartialWorld {
             chunks: PartialChunkStorage::new(chunk_radius),
-            entity_infos: PartialEntityInfos::new(owner_entity),
+            entity_infos: RwLock::new(PartialEntityInfos::new(owner_entity)),
         }
     }
 
     /// Clears the internal references to chunks in the [`PartialWorld`] and
     /// resets the view center.
-    pub fn reset(&mut self) {
-        self.chunks = PartialChunkStorage::new(self.chunks.chunk_radius);
+    pub fn reset(&self) {
+        self.chunks.reset();
     }
 }
 
@@ -156,7 +157,7 @@ impl Default for PartialWorld {
         let entity_storage = PartialEntityInfos::default();
         Self {
             chunks: chunk_storage,
-            entity_infos: entity_storage,
+            entity_infos: RwLock::new(entity_storage),
         }
     }
 }

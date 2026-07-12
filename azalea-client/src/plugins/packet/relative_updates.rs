@@ -22,7 +22,6 @@ use azalea_entity::LocalEntity;
 use azalea_world::PartialWorld;
 use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
-use parking_lot::RwLock;
 use tracing::{debug, warn};
 
 use crate::packet::as_system;
@@ -39,13 +38,13 @@ use crate::packet::as_system;
 /// other clients within render distance will get too. You usually don't need
 /// this when the change isn't relative either.
 pub struct RelativeEntityUpdate {
-    pub partial_world: Arc<RwLock<PartialWorld>>,
+    pub partial_world: Arc<PartialWorld>,
     // a function that takes the entity and updates it
     pub update: Box<dyn FnOnce(&mut EntityWorldMut) + Send + Sync>,
 }
 impl RelativeEntityUpdate {
     pub fn new(
-        partial_world: Arc<RwLock<PartialWorld>>,
+        partial_world: Arc<PartialWorld>,
         update: impl FnOnce(&mut EntityWorldMut) + Send + Sync + 'static,
     ) -> Self {
         Self {
@@ -81,11 +80,11 @@ pub type EntityUpdateQuery<'world, 'state, 'a> = Query<
 /// it's more performant than the Command.
 pub fn should_apply_entity_update(
     commands: &mut Commands,
-    partial_world: &mut PartialWorld,
+    partial_world: &PartialWorld,
     entity: Entity,
     entity_update_query: EntityUpdateQuery,
 ) -> bool {
-    let partial_entity_infos = &mut partial_world.entity_infos;
+    let mut partial_entity_infos = partial_world.entity_infos.write();
 
     if Some(entity) == partial_entity_infos.owner_entity {
         // if the entity owns this partial world, it's always allowed to update itself
@@ -141,12 +140,8 @@ impl EntityCommand for RelativeEntityUpdate {
 
         entity_mut.world_scope(|ecs| {
             as_system::<(Commands, EntityUpdateQuery)>(ecs, |(mut commands, query)| {
-                should_update = should_apply_entity_update(
-                    &mut commands,
-                    &mut partial_world.write(),
-                    entity,
-                    query,
-                );
+                should_update =
+                    should_apply_entity_update(&mut commands, &partial_world, entity, query);
             });
         });
 
