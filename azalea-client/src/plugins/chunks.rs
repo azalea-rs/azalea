@@ -74,7 +74,7 @@ pub fn handle_receive_chunk_event(
         let local_player = query.get_mut(event.entity).unwrap();
 
         let mut world = local_player.shared.write();
-        let mut partial_world = local_player.partial.write();
+        let partial_world = &local_player.partial;
 
         // OPTIMIZATION: if we already know about the chunk from the shared world (and
         // not ourselves), then we don't need to parse it again. This is only used when

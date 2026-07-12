@@ -1,9 +1,13 @@
 use std::{
     fmt::{self, Debug},
     io::Cursor,
-    sync::Arc,
+    sync::{
+        Arc,
+        atomic::{AtomicI32, Ordering},
+    },
 };
 
+use arc_swap::ArcSwapOption;
 use azalea_block::BlockState;
 use azalea_buf::BufReadError;
 use azalea_core::{
@@ -21,21 +25,29 @@ use crate::{Chunk, chunk::storage::ChunkStorage};
 /// This has support for using a shared [`ChunkStorage`].
 pub struct PartialChunkStorage {
     /// The center of the view, i.e. the chunk the player is currently in.
-    view_center: ChunkPos,
-    pub(crate) chunk_radius: u32,
+    view_center_x: AtomicI32,
+    view_center_z: AtomicI32,
     view_range: u32,
+
+    pub(crate) chunk_radius: u32,
     // chunks is a list of size chunk_radius * chunk_radius
-    chunks: Box<[Option<Arc<RwLock<Chunk>>>]>,
+    chunks: Box<[ArcSwapOption<RwLock<Chunk>>]>,
 }
 
 impl PartialChunkStorage {
     pub fn new(chunk_radius: u32) -> Self {
         let view_range = chunk_radius * 2 + 1;
+
+        let storage_size = (view_range * view_range) as usize;
+        let mut chunks = Vec::with_capacity(storage_size);
+        chunks.resize_with(storage_size, ArcSwapOption::const_empty);
+
         PartialChunkStorage {
-            view_center: ChunkPos::new(0, 0),
             chunk_radius,
             view_range,
-            chunks: vec![None; (view_range * view_range) as usize].into(),
+            view_center_x: AtomicI32::new(0),
+            view_center_z: AtomicI32::new(0),
+            chunks: chunks.into_boxed_slice(),
         }
     }
 
@@ -43,7 +55,7 @@ impl PartialChunkStorage {
     ///
     /// This should be called when the client receives a `SetChunkCacheCenter`
     /// packet.
-    pub fn update_view_center(&mut self, view_center: ChunkPos) {
+    pub fn update_view_center(&self, view_center: ChunkPos) {
         // this code block makes it force unload the chunks that are out of range after
         // updating the view center. it's usually fine without it but the commented code
         // is there in case you want to temporarily uncomment to test something
@@ -57,13 +69,16 @@ impl PartialChunkStorage {
         // }
         // ```
 
-        self.view_center = view_center;
+        self.view_center_x.store(view_center.x, Ordering::Relaxed);
+        self.view_center_z.store(view_center.z, Ordering::Relaxed);
     }
 
     /// Get the center of the view. This is usually the chunk that the player is
     /// in.
     pub fn view_center(&self) -> ChunkPos {
-        self.view_center
+        let x = self.view_center_x.load(Ordering::Relaxed);
+        let z = self.view_center_z.load(Ordering::Relaxed);
+        ChunkPos::new(x, z)
     }
 
     pub fn view_range(&self) -> u32 {
@@ -82,8 +97,9 @@ impl PartialChunkStorage {
         let view_range = self.view_range as i32;
 
         // find the base from the view center
-        let base_x = self.view_center.x.div_euclid(view_range) * view_range;
-        let base_z = self.view_center.z.div_euclid(view_range) * view_range;
+        let base = self.view_center();
+        let base_x = base.x.div_euclid(view_range) * view_range;
+        let base_z = base.z.div_euclid(view_range) * view_range;
 
         // add the offset from the base
         let offset_x = index as i32 / view_range;
@@ -93,7 +109,7 @@ impl PartialChunkStorage {
     }
 
     pub fn in_range(&self, chunk_pos: &ChunkPos) -> bool {
-        in_range_for_view_center_and_radius(chunk_pos, self.view_center, self.chunk_radius)
+        in_range_for_view_center_and_radius(chunk_pos, self.view_center(), self.chunk_radius)
     }
 
     pub fn set_block_state(
@@ -114,7 +130,7 @@ impl PartialChunkStorage {
     }
 
     pub fn replace_with_packet_data(
-        &mut self,
+        &self,
         pos: &ChunkPos,
         data: &mut Cursor<&[u8]>,
         heightmaps: &[(HeightmapKind, Box<[u64]>)],
@@ -143,32 +159,24 @@ impl PartialChunkStorage {
     /// Use [`ChunkStorageTrait::get`] to get a chunk from the shared storage.
     ///
     /// [`ChunkStorageTrait::get`]: crate::chunk::storage::ChunkStorageTrait::get
-    pub fn limited_get(&self, pos: &ChunkPos) -> Option<&Arc<RwLock<Chunk>>> {
+    pub fn limited_get(&self, pos: &ChunkPos) -> Option<Arc<RwLock<Chunk>>> {
         if !self.in_range(pos) {
             warn!(
                 "Chunk at {:?} is not in the render distance (center: {:?}, {} chunks)",
-                pos, self.view_center, self.chunk_radius,
+                pos,
+                self.view_center(),
+                self.chunk_radius,
             );
             return None;
         }
 
-        let index = self.index_from_chunk_pos(pos);
-        self.chunks[index].as_ref()
-    }
-    /// Get a mutable reference to a [`Chunk`] within render distance, or
-    /// `None` if it's not loaded.
-    ///
-    /// Use [`ChunkStorageTrait::get`] to get a chunk from the shared storage.
-    ///
-    /// [`ChunkStorageTrait::get`]: crate::chunk::storage::ChunkStorageTrait::get
-    pub fn limited_get_mut(&mut self, pos: &ChunkPos) -> Option<&mut Option<Arc<RwLock<Chunk>>>> {
-        if !self.in_range(pos) {
-            return None;
+        let guard = self.chunks.get(self.index_from_chunk_pos(pos))?;
+
+        if guard.load().is_some() {
+            guard.load_full()
+        } else {
+            None
         }
-
-        let index = self.index_from_chunk_pos(pos);
-
-        Some(&mut self.chunks[index])
     }
 
     /// Set a chunk in the shared storage and reference it from the limited
@@ -178,7 +186,7 @@ impl PartialChunkStorage {
     ///
     /// # Panics
     /// If the chunk is not in the render distance.
-    pub fn set(&mut self, pos: &ChunkPos, chunk: Option<Chunk>, chunk_storage: &mut ChunkStorage) {
+    pub fn set(&self, pos: &ChunkPos, chunk: Option<Chunk>, chunk_storage: &mut ChunkStorage) {
         let new_chunk = chunk.map(|c| chunk_storage.upsert(*pos, c));
         self.limited_set(pos, new_chunk);
     }
@@ -191,22 +199,28 @@ impl PartialChunkStorage {
     ///
     /// # Panics
     /// If the chunk is not in the render distance.
-    pub fn limited_set(&mut self, pos: &ChunkPos, chunk: Option<Arc<RwLock<Chunk>>>) {
-        if let Some(chunk_mut) = self.limited_get_mut(pos) {
-            *chunk_mut = chunk;
+    pub fn limited_set(&self, pos: &ChunkPos, chunk: Option<Arc<RwLock<Chunk>>>) {
+        if let Some(guard) = self.chunks.get(self.index_from_chunk_pos(pos)) {
+            guard.store(chunk);
         }
     }
 
     /// Get an iterator over all the chunks in the storage.
-    pub fn chunks(&self) -> impl Iterator<Item = &Option<Arc<RwLock<Chunk>>>> {
+    pub fn chunks(&self) -> impl Iterator<Item = &ArcSwapOption<RwLock<Chunk>>> {
         self.chunks.iter()
+    }
+
+    /// Clears the internal references to chunks and resets the view center.
+    pub fn reset(&self) {
+        self.update_view_center(ChunkPos::new(0, 0));
+        self.chunks.iter().for_each(|chunk| chunk.store(None));
     }
 }
 
 impl Debug for PartialChunkStorage {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("PartialChunkStorage")
-            .field("view_center", &self.view_center)
+            .field("view_center", &self.view_center())
             .field("chunk_radius", &self.chunk_radius)
             .field("view_range", &self.view_range)
             // .field("chunks", &self.chunks)
@@ -238,7 +252,7 @@ mod tests {
 
     #[test]
     fn test_chunk_pos_from_index() {
-        let mut partial_chunk_storage = PartialChunkStorage::new(5);
+        let partial_chunk_storage = PartialChunkStorage::new(5);
         partial_chunk_storage.update_view_center(ChunkPos::new(0, -1));
         assert_eq!(
             partial_chunk_storage.chunk_pos_from_index(

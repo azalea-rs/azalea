@@ -282,14 +282,14 @@ impl GamePacketHandler<'_> {
                 // set the partial world to an empty world (when we add chunks or entities those
                 // will be in the `worlds`)
 
-                *world_holder.partial.write() = PartialWorld::new(
+                world_holder.partial = Arc::new(PartialWorld::new(
                     azalea_world::chunk::calculate_chunk_storage_range(
                         client_information.view_distance.into(),
                     ),
                     // this argument makes it so other clients don't update this player entity in a
                     // shared world
                     Some(self.player),
-                );
+                ));
                 {
                     let client_registries = world_holder.shared.read().registries.clone();
                     let shared_registries = &mut weak_world.write().registries;
@@ -538,7 +538,7 @@ impl GamePacketHandler<'_> {
 
         as_system::<Query<&WorldHolder>>(self.ecs, |mut query| {
             let world_holder = query.get_mut(self.player).unwrap();
-            let mut partial_world = world_holder.partial.write();
+            let partial_world = &world_holder.partial;
 
             partial_world
                 .chunks
@@ -747,7 +747,7 @@ impl GamePacketHandler<'_> {
             // multiple times when in swarms
             if should_apply_entity_update(
                 &mut commands,
-                &mut world_holder.partial.write(),
+                &world_holder.partial,
                 entity,
                 entity_update_query,
             ) {
@@ -1087,7 +1087,7 @@ impl GamePacketHandler<'_> {
 
             if !should_apply_entity_update(
                 &mut commands,
-                &mut world_holder.partial.write(),
+                &world_holder.partial,
                 entity,
                 entity_update_query,
             ) {
@@ -1238,8 +1238,7 @@ impl GamePacketHandler<'_> {
         as_system::<Query<&WorldHolder>>(self.ecs, |mut query| {
             let local_player = query.get_mut(self.player).unwrap();
 
-            let mut partial_world = local_player.partial.write();
-
+            let partial_world = &local_player.partial;
             partial_world.chunks.limited_set(&p.pos, None);
         });
     }
@@ -1328,7 +1327,7 @@ impl GamePacketHandler<'_> {
 
             if !should_apply_entity_update(
                 &mut commands,
-                &mut world_holder.partial.write(),
+                &world_holder.partial,
                 entity,
                 entity_update_query,
             ) {
@@ -1420,12 +1419,12 @@ impl GamePacketHandler<'_> {
                 // set the partial world to an empty world (when we add chunks or entities,
                 // those will be in the `worlds`)
 
-                *world_holder.partial.write() = PartialWorld::new(
+                world_holder.partial = Arc::new(PartialWorld::new(
                     azalea_world::chunk::calculate_chunk_storage_range(
                         client_information.view_distance.into(),
                     ),
                     Some(self.player),
-                );
+                ));
                 world_holder.shared = weak_world;
 
                 // every entity is now unloaded by this player
@@ -1509,7 +1508,7 @@ impl GamePacketHandler<'_> {
 
                 if !should_apply_entity_update(
                     &mut commands,
-                    &mut world_holder.partial.write(),
+                    &world_holder.partial,
                     entity,
                     entity_update_query,
                 ) {
@@ -1687,7 +1686,7 @@ fn move_entity(
 
     if !should_apply_entity_update(
         &mut commands,
-        &mut world_holder.partial.write(),
+        &world_holder.partial,
         entity,
         entity_update_query,
     ) {

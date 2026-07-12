@@ -39,7 +39,8 @@ pub fn insert_overworld(app: &mut App) -> Arc<RwLock<World>> {
 fn test_gravity() {
     let mut app = make_test_app();
     let world_lock = insert_overworld(&mut app);
-    let mut partial_world = PartialWorld::default();
+    let partial_world = PartialWorld::default();
+
     // the entity has to be in a loaded chunk for physics to work
     partial_world.chunks.set(
         &ChunkPos { x: 0, z: 0 },
@@ -96,7 +97,7 @@ fn test_gravity() {
 fn test_collision() {
     let mut app = make_test_app();
     let world_lock = insert_overworld(&mut app);
-    let mut partial_world = PartialWorld::default();
+    let partial_world = PartialWorld::default();
 
     partial_world.chunks.set(
         &ChunkPos { x: 0, z: 0 },
@@ -153,7 +154,7 @@ fn test_collision() {
 fn test_slab_collision() {
     let mut app = make_test_app();
     let world_lock = insert_overworld(&mut app);
-    let mut partial_world = PartialWorld::default();
+    let partial_world = PartialWorld::default();
 
     partial_world.chunks.set(
         &ChunkPos { x: 0, z: 0 },
@@ -204,7 +205,7 @@ fn test_slab_collision() {
 fn test_top_slab_collision() {
     let mut app = make_test_app();
     let world_lock = insert_overworld(&mut app);
-    let mut partial_world = PartialWorld::default();
+    let partial_world = PartialWorld::default();
 
     partial_world.chunks.set(
         &ChunkPos { x: 0, z: 0 },
@@ -259,7 +260,7 @@ fn test_weird_wall_collision() {
         -64,
         &RegistryHolder::default(),
     );
-    let mut partial_world = PartialWorld::default();
+    let partial_world = PartialWorld::default();
 
     partial_world.chunks.set(
         &ChunkPos { x: 0, z: 0 },
@@ -319,7 +320,7 @@ fn test_negative_coordinates_weird_wall_collision() {
         -64,
         &RegistryHolder::default(),
     );
-    let mut partial_world = PartialWorld::default();
+    let partial_world = PartialWorld::default();
 
     partial_world.chunks.set(
         &ChunkPos { x: -1, z: -1 },
@@ -383,7 +384,7 @@ fn spawn_and_unload_world() {
         -64,
         &RegistryHolder::default(),
     );
-    let mut partial_world = PartialWorld::default();
+    let partial_world = PartialWorld::default();
 
     partial_world.chunks.set(
         &ChunkPos { x: -1, z: -1 },
@@ -426,7 +427,7 @@ fn spawn_and_unload_world() {
 fn test_afk_pool() {
     let mut app = make_test_app();
     let world_lock = insert_overworld(&mut app);
-    let mut partial_world = PartialWorld::default();
+    let partial_world = PartialWorld::default();
 
     partial_world.chunks.set(
         &ChunkPos { x: 0, z: 0 },

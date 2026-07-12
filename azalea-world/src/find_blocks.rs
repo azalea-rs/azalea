@@ -259,7 +259,7 @@ mod tests {
         let mut world = World::default();
 
         let chunk_storage = &mut world.chunks;
-        let mut partial_chunk_storage = PartialChunkStorage::default();
+        let partial_chunk_storage = PartialChunkStorage::default();
 
         // block at (17, 0, 0) and (0, 18, 0)
 
@@ -286,7 +286,7 @@ mod tests {
         let mut world = World::default();
 
         let chunk_storage = &mut world.chunks;
-        let mut partial_chunk_storage = PartialChunkStorage::default();
+        let partial_chunk_storage = PartialChunkStorage::default();
 
         // block at (-1, 0, 0) and (15, 0, 0)
 

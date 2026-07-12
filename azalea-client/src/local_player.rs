@@ -22,7 +22,7 @@ use crate::{ClientInformation, player::PlayerInfo};
 pub struct WorldHolder {
     /// The slice of the world that this client actually has loaded, based on
     /// its render distance.
-    pub partial: Arc<RwLock<PartialWorld>>,
+    pub partial: Arc<PartialWorld>,
     /// The combined [`PartialWorld`]s of all clients in the same world.
     ///
     /// The distinction between this and `partial` is mostly only relevant if
@@ -30,6 +30,8 @@ pub struct WorldHolder {
     /// the shared world.
     pub shared: Arc<RwLock<World>>,
 }
+
+#[doc(hidden)]
 #[deprecated = "renamed to `WorldHolder`."]
 pub type InstanceHolder = WorldHolder;
 
@@ -146,12 +148,12 @@ impl WorldHolder {
 
         WorldHolder {
             shared,
-            partial: Arc::new(RwLock::new(PartialWorld::new(
+            partial: Arc::new(PartialWorld::new(
                 azalea_world::chunk::calculate_chunk_storage_range(
                     client_information.view_distance.into(),
                 ),
                 Some(entity),
-            ))),
+            )),
         }
     }
 
@@ -162,12 +164,11 @@ impl WorldHolder {
     pub fn reset(&mut self) {
         let registries = self.shared.read().registries.clone();
 
-        let new_world = World {
+        self.shared = Arc::new(RwLock::new(World {
             registries,
-            ..Default::default()
-        };
-        self.shared = Arc::new(RwLock::new(new_world));
+            ..World::default()
+        }));
 
-        self.partial.write().reset();
+        self.partial.reset();
     }
 }
