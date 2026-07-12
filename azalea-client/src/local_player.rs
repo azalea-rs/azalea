@@ -164,10 +164,10 @@ impl WorldHolder {
     pub fn reset(&mut self) {
         let registries = self.shared.read().registries.clone();
 
-        *self.shared.write() = World {
+        self.shared = Arc::new(RwLock::new(World {
             registries,
             ..World::default()
-        };
+        }));
 
         self.partial.reset();
     }
