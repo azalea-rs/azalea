@@ -184,6 +184,8 @@
 //!       - [OakChestBoat]
 //!       - [PaleOakBoat]
 //!       - [PaleOakChestBoat]
+//!       - [PoplarBoat]
+//!       - [PoplarChestBoat]
 //!       - [SpruceBoat]
 //!       - [SpruceChestBoat]
 //!     - [AbstractMinecart]
@@ -462,6 +464,8 @@ pub struct TicksFrozen(pub i32);
 ///     - [OakChestBoat]
 ///     - [PaleOakBoat]
 ///     - [PaleOakChestBoat]
+///     - [PoplarBoat]
+///     - [PoplarChestBoat]
 ///     - [SpruceBoat]
 ///     - [SpruceChestBoat]
 ///   - [AbstractMinecart]
@@ -11230,6 +11234,8 @@ pub struct Damage(pub f32);
 ///   - [OakChestBoat]
 ///   - [PaleOakBoat]
 ///   - [PaleOakChestBoat]
+///   - [PoplarBoat]
+///   - [PoplarChestBoat]
 ///   - [SpruceBoat]
 ///   - [SpruceChestBoat]
 /// - [AbstractMinecart]
@@ -11336,6 +11342,8 @@ pub struct BubbleTime(pub i32);
 /// - [OakChestBoat]
 /// - [PaleOakBoat]
 /// - [PaleOakChestBoat]
+/// - [PoplarBoat]
+/// - [PoplarChestBoat]
 /// - [SpruceBoat]
 /// - [SpruceChestBoat]
 #[derive(Component)]
@@ -12298,6 +12306,108 @@ impl Default for PaleOakChestBoatMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: PaleOakChestBoat,
+            parent: Default::default(),
+        }
+    }
+}
+
+/// The marker component for entities of type `minecraft:poplar_boat`.
+///
+/// # Metadata
+///
+/// This entity type does not add any additional metadata. It will still have
+/// metadata from parent types.
+///
+/// # Parents
+///
+/// Entities with `PoplarBoat` will also have the following marker components
+/// and their metadata fields:
+///
+/// - [AbstractBoat]
+/// - [AbstractVehicle]
+/// - [AbstractEntity]
+///
+/// # Children
+///
+/// This entity type has no children types.
+#[derive(Component)]
+pub struct PoplarBoat;
+impl PoplarBoat {
+    fn apply_metadata(
+        entity: &mut bevy_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=13 => AbstractBoat::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+/// The metadata bundle for [PoplarBoat].
+///
+/// This type should generally not be used directly.
+#[derive(Bundle)]
+pub struct PoplarBoatMetadataBundle {
+    _marker: PoplarBoat,
+    parent: AbstractBoatMetadataBundle,
+}
+impl Default for PoplarBoatMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: PoplarBoat,
+            parent: Default::default(),
+        }
+    }
+}
+
+/// The marker component for entities of type `minecraft:poplar_chest_boat`.
+///
+/// # Metadata
+///
+/// This entity type does not add any additional metadata. It will still have
+/// metadata from parent types.
+///
+/// # Parents
+///
+/// Entities with `PoplarChestBoat` will also have the following marker
+/// components and their metadata fields:
+///
+/// - [AbstractBoat]
+/// - [AbstractVehicle]
+/// - [AbstractEntity]
+///
+/// # Children
+///
+/// This entity type has no children types.
+#[derive(Component)]
+pub struct PoplarChestBoat;
+impl PoplarChestBoat {
+    fn apply_metadata(
+        entity: &mut bevy_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=13 => AbstractBoat::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+/// The metadata bundle for [PoplarChestBoat].
+///
+/// This type should generally not be used directly.
+#[derive(Bundle)]
+pub struct PoplarChestBoatMetadataBundle {
+    _marker: PoplarChestBoat,
+    parent: AbstractBoatMetadataBundle,
+}
+impl Default for PoplarChestBoatMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: PoplarChestBoat,
             parent: Default::default(),
         }
     }
@@ -13416,6 +13526,16 @@ pub fn apply_metadata(
                 PolarBear::apply_metadata(entity, d)?;
             }
         }
+        EntityKind::PoplarBoat => {
+            for d in items {
+                PoplarBoat::apply_metadata(entity, d)?;
+            }
+        }
+        EntityKind::PoplarChestBoat => {
+            for d in items {
+                PoplarChestBoat::apply_metadata(entity, d)?;
+            }
+        }
         EntityKind::Pufferfish => {
             for d in items {
                 Pufferfish::apply_metadata(entity, d)?;
@@ -13995,6 +14115,12 @@ pub fn apply_default_metadata(entity: &mut bevy_ecs::system::EntityCommands, kin
         }
         EntityKind::PolarBear => {
             entity.insert(PolarBearMetadataBundle::default());
+        }
+        EntityKind::PoplarBoat => {
+            entity.insert(PoplarBoatMetadataBundle::default());
+        }
+        EntityKind::PoplarChestBoat => {
+            entity.insert(PoplarChestBoatMetadataBundle::default());
         }
         EntityKind::Pufferfish => {
             entity.insert(PufferfishMetadataBundle::default());

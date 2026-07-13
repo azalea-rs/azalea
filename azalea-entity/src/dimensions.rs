@@ -169,6 +169,8 @@ impl From<EntityKind> for EntityDimensions {
             EntityKind::Pillager => EntityDimensions::new(0.6, 1.95),
             EntityKind::Player => EntityDimensions::new(0.6, 1.8).eye_height(1.62),
             EntityKind::PolarBear => EntityDimensions::new(1.4, 1.4),
+            EntityKind::PoplarBoat => EntityDimensions::new(1.375, 0.5625).eye_height(0.5625),
+            EntityKind::PoplarChestBoat => EntityDimensions::new(1.375, 0.5625).eye_height(0.5625),
             EntityKind::Pufferfish => EntityDimensions::new(0.7, 0.7).eye_height(0.455),
             EntityKind::Rabbit => EntityDimensions::new(0.49, 0.6).eye_height(0.59),
             EntityKind::Ravager => EntityDimensions::new(1.95, 2.2),

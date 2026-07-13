@@ -155,6 +155,33 @@ make_block_states! {
             _6 = "6",
             _7 = "7",
         },
+        "distance" => RedPoplarLeavesDistance {
+            _1 = "1",
+            _2 = "2",
+            _3 = "3",
+            _4 = "4",
+            _5 = "5",
+            _6 = "6",
+            _7 = "7",
+        },
+        "distance" => OrangePoplarLeavesDistance {
+            _1 = "1",
+            _2 = "2",
+            _3 = "3",
+            _4 = "4",
+            _5 = "5",
+            _6 = "6",
+            _7 = "7",
+        },
+        "distance" => YellowPoplarLeavesDistance {
+            _1 = "1",
+            _2 = "2",
+            _3 = "3",
+            _4 = "4",
+            _5 = "5",
+            _6 = "6",
+            _7 = "7",
+        },
         "distance" => AzaleaLeavesDistance {
             _1 = "1",
             _2 = "2",
@@ -268,6 +295,22 @@ make_block_states! {
             Sticky = "sticky",
         },
         "short" => Short(bool),
+        "half" => TopBottom {
+            Top = "top",
+            Bottom = "bottom",
+        },
+        "shape" => StairShape {
+            Straight = "straight",
+            InnerLeft = "inner_left",
+            InnerRight = "inner_right",
+            OuterLeft = "outer_left",
+            OuterRight = "outer_right",
+        },
+        "type" => SlabKind {
+            Top = "top",
+            Bottom = "bottom",
+            Double = "double",
+        },
         "unstable" => Unstable(bool),
         "slot_0_occupied" => Slot0Occupied(bool),
         "slot_1_occupied" => Slot1Occupied(bool),
@@ -310,17 +353,6 @@ make_block_states! {
             Awake = "awake",
         },
         "natural" => Natural(bool),
-        "half" => TopBottom {
-            Top = "top",
-            Bottom = "bottom",
-        },
-        "shape" => StairShape {
-            Straight = "straight",
-            InnerLeft = "inner_left",
-            InnerRight = "inner_right",
-            OuterLeft = "outer_left",
-            OuterRight = "outer_right",
-        },
         "type" => ChestKind {
             Single = "single",
             Left = "left",
@@ -515,11 +547,6 @@ make_block_states! {
             _7 = "7",
         },
         "in_wall" => InWall(bool),
-        "type" => SlabKind {
-            Top = "top",
-            Bottom = "bottom",
-            Double = "double",
-        },
         "east" => WallEast {
             None = "none",
             Low = "low",
@@ -564,6 +591,10 @@ make_block_states! {
             _0 = "0",
             _1 = "1",
             _2 = "2",
+        },
+        "age" => ShelfMushroomAge {
+            _0 = "0",
+            _1 = "1",
         },
         "disarmed" => Disarmed(bool),
         "conditional" => Conditional(bool),
@@ -977,6 +1008,7 @@ make_block_states! {
         },
         pale_oak_planks => BlockBehavior::new().strength(2.0, 3.0), {},
         mangrove_planks => BlockBehavior::new().strength(2.0, 3.0), {},
+        poplar_planks => BlockBehavior::new().strength(2.0, 3.0), {},
         bamboo_planks => BlockBehavior::new().strength(2.0, 3.0), {},
         bamboo_mosaic => BlockBehavior::new().strength(2.0, 3.0), {},
         oak_sapling => BlockBehavior::new(), {
@@ -1008,6 +1040,9 @@ make_block_states! {
             "hanging": Hanging(false),
             "stage": Stage::_0,
             "waterlogged": Waterlogged(false),
+        },
+        poplar_sapling => BlockBehavior::new(), {
+            "stage": Stage::_0,
         },
         bedrock => BlockBehavior::new().strength(-1.0, 3600000.0), {},
         water => BlockBehavior::new().strength(100.0, 100.0), {
@@ -1059,6 +1094,9 @@ make_block_states! {
         mangrove_log => BlockBehavior::new().strength(2.0, 2.0), {
             "axis": Axis::Y,
         },
+        poplar_log => BlockBehavior::new().strength(2.0, 2.0), {
+            "axis": Axis::Y,
+        },
         mangrove_roots => BlockBehavior::new().strength(0.7, 0.7), {
             "waterlogged": Waterlogged(false),
         },
@@ -1095,6 +1133,9 @@ make_block_states! {
         stripped_mangrove_log => BlockBehavior::new().strength(2.0, 2.0), {
             "axis": Axis::Y,
         },
+        stripped_poplar_log => BlockBehavior::new().strength(2.0, 2.0), {
+            "axis": Axis::Y,
+        },
         stripped_bamboo_block => BlockBehavior::new().strength(2.0, 2.0), {
             "axis": Axis::Y,
         },
@@ -1122,6 +1163,9 @@ make_block_states! {
         mangrove_wood => BlockBehavior::new().strength(2.0, 2.0), {
             "axis": Axis::Y,
         },
+        poplar_wood => BlockBehavior::new().strength(2.0, 2.0), {
+            "axis": Axis::Y,
+        },
         stripped_oak_wood => BlockBehavior::new().strength(2.0, 2.0), {
             "axis": Axis::Y,
         },
@@ -1147,6 +1191,9 @@ make_block_states! {
             "axis": Axis::Y,
         },
         stripped_mangrove_wood => BlockBehavior::new().strength(2.0, 2.0), {
+            "axis": Axis::Y,
+        },
+        stripped_poplar_wood => BlockBehavior::new().strength(2.0, 2.0), {
             "axis": Axis::Y,
         },
         oak_leaves => BlockBehavior::new().strength(0.2, 0.2), {
@@ -1191,6 +1238,21 @@ make_block_states! {
         },
         mangrove_leaves => BlockBehavior::new().strength(0.2, 0.2), {
             "distance": MangroveLeavesDistance::_7,
+            "persistent": Persistent(false),
+            "waterlogged": Waterlogged(false),
+        },
+        red_poplar_leaves => BlockBehavior::new().strength(0.2, 0.2), {
+            "distance": RedPoplarLeavesDistance::_7,
+            "persistent": Persistent(false),
+            "waterlogged": Waterlogged(false),
+        },
+        orange_poplar_leaves => BlockBehavior::new().strength(0.2, 0.2), {
+            "distance": OrangePoplarLeavesDistance::_7,
+            "persistent": Persistent(false),
+            "waterlogged": Waterlogged(false),
+        },
+        yellow_poplar_leaves => BlockBehavior::new().strength(0.2, 0.2), {
+            "distance": YellowPoplarLeavesDistance::_7,
             "persistent": Persistent(false),
             "waterlogged": Waterlogged(false),
         },
@@ -1321,6 +1383,7 @@ make_block_states! {
         fern => BlockBehavior::new(), {},
         dead_bush => BlockBehavior::new(), {},
         bush => BlockBehavior::new(), {},
+        red_shrub => BlockBehavior::new(), {},
         short_dry_grass => BlockBehavior::new(), {},
         tall_dry_grass => BlockBehavior::new(), {},
         seagrass => BlockBehavior::new(), {},
@@ -1352,6 +1415,166 @@ make_block_states! {
         green_wool => BlockBehavior::new().strength(0.8, 0.8), {},
         red_wool => BlockBehavior::new().strength(0.8, 0.8), {},
         black_wool => BlockBehavior::new().strength(0.8, 0.8), {},
+        white_wool_stairs => BlockBehavior::new().strength(0.8, 0.8), {
+            "facing": FacingCardinal::North,
+            "half": TopBottom::Bottom,
+            "shape": StairShape::Straight,
+            "waterlogged": Waterlogged(false),
+        },
+        orange_wool_stairs => BlockBehavior::new().strength(0.8, 0.8), {
+            "facing": FacingCardinal::North,
+            "half": TopBottom::Bottom,
+            "shape": StairShape::Straight,
+            "waterlogged": Waterlogged(false),
+        },
+        magenta_wool_stairs => BlockBehavior::new().strength(0.8, 0.8), {
+            "facing": FacingCardinal::North,
+            "half": TopBottom::Bottom,
+            "shape": StairShape::Straight,
+            "waterlogged": Waterlogged(false),
+        },
+        light_blue_wool_stairs => BlockBehavior::new().strength(0.8, 0.8), {
+            "facing": FacingCardinal::North,
+            "half": TopBottom::Bottom,
+            "shape": StairShape::Straight,
+            "waterlogged": Waterlogged(false),
+        },
+        yellow_wool_stairs => BlockBehavior::new().strength(0.8, 0.8), {
+            "facing": FacingCardinal::North,
+            "half": TopBottom::Bottom,
+            "shape": StairShape::Straight,
+            "waterlogged": Waterlogged(false),
+        },
+        lime_wool_stairs => BlockBehavior::new().strength(0.8, 0.8), {
+            "facing": FacingCardinal::North,
+            "half": TopBottom::Bottom,
+            "shape": StairShape::Straight,
+            "waterlogged": Waterlogged(false),
+        },
+        pink_wool_stairs => BlockBehavior::new().strength(0.8, 0.8), {
+            "facing": FacingCardinal::North,
+            "half": TopBottom::Bottom,
+            "shape": StairShape::Straight,
+            "waterlogged": Waterlogged(false),
+        },
+        gray_wool_stairs => BlockBehavior::new().strength(0.8, 0.8), {
+            "facing": FacingCardinal::North,
+            "half": TopBottom::Bottom,
+            "shape": StairShape::Straight,
+            "waterlogged": Waterlogged(false),
+        },
+        light_gray_wool_stairs => BlockBehavior::new().strength(0.8, 0.8), {
+            "facing": FacingCardinal::North,
+            "half": TopBottom::Bottom,
+            "shape": StairShape::Straight,
+            "waterlogged": Waterlogged(false),
+        },
+        cyan_wool_stairs => BlockBehavior::new().strength(0.8, 0.8), {
+            "facing": FacingCardinal::North,
+            "half": TopBottom::Bottom,
+            "shape": StairShape::Straight,
+            "waterlogged": Waterlogged(false),
+        },
+        purple_wool_stairs => BlockBehavior::new().strength(0.8, 0.8), {
+            "facing": FacingCardinal::North,
+            "half": TopBottom::Bottom,
+            "shape": StairShape::Straight,
+            "waterlogged": Waterlogged(false),
+        },
+        blue_wool_stairs => BlockBehavior::new().strength(0.8, 0.8), {
+            "facing": FacingCardinal::North,
+            "half": TopBottom::Bottom,
+            "shape": StairShape::Straight,
+            "waterlogged": Waterlogged(false),
+        },
+        brown_wool_stairs => BlockBehavior::new().strength(0.8, 0.8), {
+            "facing": FacingCardinal::North,
+            "half": TopBottom::Bottom,
+            "shape": StairShape::Straight,
+            "waterlogged": Waterlogged(false),
+        },
+        green_wool_stairs => BlockBehavior::new().strength(0.8, 0.8), {
+            "facing": FacingCardinal::North,
+            "half": TopBottom::Bottom,
+            "shape": StairShape::Straight,
+            "waterlogged": Waterlogged(false),
+        },
+        red_wool_stairs => BlockBehavior::new().strength(0.8, 0.8), {
+            "facing": FacingCardinal::North,
+            "half": TopBottom::Bottom,
+            "shape": StairShape::Straight,
+            "waterlogged": Waterlogged(false),
+        },
+        black_wool_stairs => BlockBehavior::new().strength(0.8, 0.8), {
+            "facing": FacingCardinal::North,
+            "half": TopBottom::Bottom,
+            "shape": StairShape::Straight,
+            "waterlogged": Waterlogged(false),
+        },
+        white_wool_slab => BlockBehavior::new().strength(0.8, 0.8), {
+            "type": SlabKind::Bottom,
+            "waterlogged": Waterlogged(false),
+        },
+        orange_wool_slab => BlockBehavior::new().strength(0.8, 0.8), {
+            "type": SlabKind::Bottom,
+            "waterlogged": Waterlogged(false),
+        },
+        magenta_wool_slab => BlockBehavior::new().strength(0.8, 0.8), {
+            "type": SlabKind::Bottom,
+            "waterlogged": Waterlogged(false),
+        },
+        light_blue_wool_slab => BlockBehavior::new().strength(0.8, 0.8), {
+            "type": SlabKind::Bottom,
+            "waterlogged": Waterlogged(false),
+        },
+        yellow_wool_slab => BlockBehavior::new().strength(0.8, 0.8), {
+            "type": SlabKind::Bottom,
+            "waterlogged": Waterlogged(false),
+        },
+        lime_wool_slab => BlockBehavior::new().strength(0.8, 0.8), {
+            "type": SlabKind::Bottom,
+            "waterlogged": Waterlogged(false),
+        },
+        pink_wool_slab => BlockBehavior::new().strength(0.8, 0.8), {
+            "type": SlabKind::Bottom,
+            "waterlogged": Waterlogged(false),
+        },
+        gray_wool_slab => BlockBehavior::new().strength(0.8, 0.8), {
+            "type": SlabKind::Bottom,
+            "waterlogged": Waterlogged(false),
+        },
+        light_gray_wool_slab => BlockBehavior::new().strength(0.8, 0.8), {
+            "type": SlabKind::Bottom,
+            "waterlogged": Waterlogged(false),
+        },
+        cyan_wool_slab => BlockBehavior::new().strength(0.8, 0.8), {
+            "type": SlabKind::Bottom,
+            "waterlogged": Waterlogged(false),
+        },
+        purple_wool_slab => BlockBehavior::new().strength(0.8, 0.8), {
+            "type": SlabKind::Bottom,
+            "waterlogged": Waterlogged(false),
+        },
+        blue_wool_slab => BlockBehavior::new().strength(0.8, 0.8), {
+            "type": SlabKind::Bottom,
+            "waterlogged": Waterlogged(false),
+        },
+        brown_wool_slab => BlockBehavior::new().strength(0.8, 0.8), {
+            "type": SlabKind::Bottom,
+            "waterlogged": Waterlogged(false),
+        },
+        green_wool_slab => BlockBehavior::new().strength(0.8, 0.8), {
+            "type": SlabKind::Bottom,
+            "waterlogged": Waterlogged(false),
+        },
+        red_wool_slab => BlockBehavior::new().strength(0.8, 0.8), {
+            "type": SlabKind::Bottom,
+            "waterlogged": Waterlogged(false),
+        },
+        black_wool_slab => BlockBehavior::new().strength(0.8, 0.8), {
+            "type": SlabKind::Bottom,
+            "waterlogged": Waterlogged(false),
+        },
         moving_piston => BlockBehavior::new().destroy_time(-1.0).force_solid(true), {
             "facing": FacingCubic::North,
             "type": PistonKind::Normal,
@@ -1432,6 +1655,12 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
         },
         mangrove_shelf => BlockBehavior::new().strength(2.0, 3.0), {
+            "facing": FacingCardinal::North,
+            "powered": Powered(false),
+            "side_chain": SideChain::Unconnected,
+            "waterlogged": Waterlogged(false),
+        },
+        poplar_shelf => BlockBehavior::new().strength(2.0, 3.0), {
             "facing": FacingCardinal::North,
             "powered": Powered(false),
             "side_chain": SideChain::Unconnected,
@@ -1550,6 +1779,10 @@ make_block_states! {
             "rotation": Rotation::_8,
             "waterlogged": Waterlogged(false),
         },
+        poplar_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
+            "rotation": Rotation::_8,
+            "waterlogged": Waterlogged(false),
+        },
         bamboo_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "rotation": Rotation::_8,
             "waterlogged": Waterlogged(false),
@@ -1608,6 +1841,10 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
         },
         mangrove_wall_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
+            "facing": FacingCardinal::North,
+            "waterlogged": Waterlogged(false),
+        },
+        poplar_wall_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
@@ -1670,6 +1907,11 @@ make_block_states! {
             "rotation": Rotation::_8,
             "waterlogged": Waterlogged(false),
         },
+        poplar_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
+            "attached": Attached(false),
+            "rotation": Rotation::_8,
+            "waterlogged": Waterlogged(false),
+        },
         bamboo_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "attached": Attached(false),
             "rotation": Rotation::_8,
@@ -1708,6 +1950,10 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
         },
         mangrove_wall_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
+            "facing": FacingCardinal::North,
+            "waterlogged": Waterlogged(false),
+        },
+        poplar_wall_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
@@ -1763,6 +2009,9 @@ make_block_states! {
             "powered": Powered(false),
         },
         mangrove_pressure_plate => BlockBehavior::new().strength(0.5, 0.5).force_solid(true), {
+            "powered": Powered(false),
+        },
+        poplar_pressure_plate => BlockBehavior::new().strength(0.5, 0.5).force_solid(true), {
             "powered": Powered(false),
         },
         bamboo_pressure_plate => BlockBehavior::new().strength(0.5, 0.5).force_solid(true), {
@@ -1918,6 +2167,13 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
         },
         mangrove_trapdoor => BlockBehavior::new().strength(3.0, 3.0), {
+            "facing": FacingCardinal::North,
+            "half": TopBottom::Bottom,
+            "open": Open(false),
+            "powered": Powered(false),
+            "waterlogged": Waterlogged(false),
+        },
+        poplar_trapdoor => BlockBehavior::new().strength(3.0, 3.0), {
             "facing": FacingCardinal::North,
             "half": TopBottom::Bottom,
             "open": Open(false),
@@ -2152,7 +2408,7 @@ make_block_states! {
             "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
-        resin_brick_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {
+        resin_brick_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0).force_solid(true), {
             "east": WallEast::None,
             "north": WallNorth::None,
             "south": WallSouth::None,
@@ -2204,6 +2460,10 @@ make_block_states! {
         },
         cocoa => BlockBehavior::new().strength(0.2, 3.0), {
             "age": CocoaAge::_0,
+            "facing": FacingCardinal::North,
+        },
+        shelf_mushroom => BlockBehavior::new(), {
+            "age": ShelfMushroomAge::_0,
             "facing": FacingCardinal::North,
         },
         sandstone_stairs => BlockBehavior::new().requires_correct_tool_for_drops().strength(0.8, 0.8), {
@@ -2282,6 +2542,7 @@ make_block_states! {
         potted_cherry_sapling => BlockBehavior::new(), {},
         potted_dark_oak_sapling => BlockBehavior::new(), {},
         potted_pale_oak_sapling => BlockBehavior::new(), {},
+        potted_poplar_sapling => BlockBehavior::new(), {},
         potted_mangrove_propagule => BlockBehavior::new(), {},
         potted_fern => BlockBehavior::new(), {},
         potted_dandelion => BlockBehavior::new(), {},
@@ -2349,6 +2610,11 @@ make_block_states! {
             "powered": Powered(false),
         },
         mangrove_button => BlockBehavior::new().strength(0.5, 0.5), {
+            "face": Face::Wall,
+            "facing": FacingCardinal::North,
+            "powered": Powered(false),
+        },
+        poplar_button => BlockBehavior::new().strength(0.5, 0.5), {
             "face": Face::Wall,
             "facing": FacingCardinal::North,
             "powered": Powered(false),
@@ -2627,6 +2893,12 @@ make_block_states! {
             "shape": StairShape::Straight,
             "waterlogged": Waterlogged(false),
         },
+        poplar_stairs => BlockBehavior::new().strength(2.0, 3.0), {
+            "facing": FacingCardinal::North,
+            "half": TopBottom::Bottom,
+            "shape": StairShape::Straight,
+            "waterlogged": Waterlogged(false),
+        },
         bamboo_stairs => BlockBehavior::new().strength(2.0, 3.0), {
             "facing": FacingCardinal::North,
             "half": TopBottom::Bottom,
@@ -2869,6 +3141,10 @@ make_block_states! {
             "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
+        poplar_slab => BlockBehavior::new().strength(2.0, 3.0), {
+            "type": SlabKind::Bottom,
+            "waterlogged": Waterlogged(false),
+        },
         bamboo_slab => BlockBehavior::new().strength(2.0, 3.0), {
             "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
@@ -2878,10 +3154,6 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
         },
         stone_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {
-            "type": SlabKind::Bottom,
-            "waterlogged": Waterlogged(false),
-        },
-        smooth_stone_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {
             "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
@@ -2917,23 +3189,23 @@ make_block_states! {
             "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
-        quartz_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {
+        quartz_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 0.8), {
             "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
-        red_sandstone_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {
+        red_sandstone_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 0.8), {
             "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
-        cut_red_sandstone_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {
-            "type": SlabKind::Bottom,
-            "waterlogged": Waterlogged(false),
-        },
-        purpur_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {
+        cut_red_sandstone_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 0.8), {
             "type": SlabKind::Bottom,
             "waterlogged": Waterlogged(false),
         },
         smooth_stone => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {},
+        smooth_stone_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {
+            "type": SlabKind::Bottom,
+            "waterlogged": Waterlogged(false),
+        },
         smooth_sandstone => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {},
         smooth_quartz => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {},
         smooth_red_sandstone => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {},
@@ -2980,6 +3252,12 @@ make_block_states! {
             "powered": Powered(false),
         },
         mangrove_fence_gate => BlockBehavior::new().strength(2.0, 3.0).force_solid(true), {
+            "facing": FacingCardinal::North,
+            "in_wall": InWall(false),
+            "open": Open(false),
+            "powered": Powered(false),
+        },
+        poplar_fence_gate => BlockBehavior::new().strength(2.0, 3.0).force_solid(true), {
             "facing": FacingCardinal::North,
             "in_wall": InWall(false),
             "open": Open(false),
@@ -3041,6 +3319,13 @@ make_block_states! {
             "west": West(false),
         },
         mangrove_fence => BlockBehavior::new().strength(2.0, 3.0), {
+            "east": East(false),
+            "north": North(false),
+            "south": South(false),
+            "waterlogged": Waterlogged(false),
+            "west": West(false),
+        },
+        poplar_fence => BlockBehavior::new().strength(2.0, 3.0), {
             "east": East(false),
             "north": North(false),
             "south": South(false),
@@ -3110,6 +3395,13 @@ make_block_states! {
             "open": Open(false),
             "powered": Powered(false),
         },
+        poplar_door => BlockBehavior::new().strength(3.0, 3.0), {
+            "facing": FacingCardinal::North,
+            "half": Half::Lower,
+            "hinge": Hinge::Left,
+            "open": Open(false),
+            "powered": Powered(false),
+        },
         bamboo_door => BlockBehavior::new().strength(3.0, 3.0), {
             "facing": FacingCardinal::North,
             "half": Half::Lower,
@@ -3132,6 +3424,10 @@ make_block_states! {
             "age": ChorusFlowerAge::_0,
         },
         purpur_block => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {},
+        purpur_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {
+            "type": SlabKind::Bottom,
+            "waterlogged": Waterlogged(false),
+        },
         purpur_pillar => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {
             "axis": Axis::Y,
         },
