@@ -295,7 +295,9 @@ where
 
 impl<A: AzBuf, B: AzBuf> AzBuf for (A, B) {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        Ok((A::azalea_read(buf)?, B::azalea_read(buf)?))
+        let a = A::azalea_read(buf)?;
+        let b = B::azalea_read(buf)?;
+        Ok((a, b))
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         self.0.azalea_write(buf)?;
