@@ -37,8 +37,8 @@ _Currently supported Minecraft version: `26.2`._
 
 ## Non-goals
 
-- Supporting multiple versions of Minecraft at the same time[\*](https://github.com/azalea-rs/azalea-viaversion).
-- Graphics[\*](https://github.com/urisinger/azalea-graphics).
+- Supporting multiple versions of Minecraft at the same time [[Note]](https://github.com/azalea-rs/azalea-viaversion).
+- Graphics [[Note]](https://github.com/urisinger/azalea-graphics).
 - Bedrock edition.
 
 ## Documentation
