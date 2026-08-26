@@ -1,3 +1,5 @@
+#![allow(clippy::redundant_field_names, reason = "Triggered by `Error` derive")]
+
 use std::{
     backtrace::{Backtrace, BacktraceStatus},
     env,

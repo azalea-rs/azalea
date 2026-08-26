@@ -19,6 +19,7 @@ pub fn derive_azbuf(input: TokenStream) -> TokenStream {
     let writable = write::create_fn_azalea_write(&data);
     let readable = read::create_fn_azalea_read(&data);
     quote! {
+        #[automatically_derived]
         impl #impl_generics azalea_buf::AzBuf for #ident #ty_generics #where_clause {
             #writable
             #readable

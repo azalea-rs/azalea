@@ -235,6 +235,7 @@ where
         }
         Ok(FixedBitSet { data })
     }
+    #[allow(clippy::needless_range_loop, reason = "Indexing into bitset")]
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         for i in 0..bits_to_bytes(N) {
             self.data[i].azalea_write(buf)?;

@@ -11,7 +11,7 @@ pub fn create_fn_azalea_read(data: &Data) -> proc_macro2::TokenStream {
                     fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> std::result::Result<Self, azalea_buf::BufReadError> {
                         #(#read_fields)*
                         Ok(Self {
-                            #(#read_field_names: #read_field_names),*
+                            #(#read_field_names),*
                         })
                     }
                 }
@@ -70,7 +70,7 @@ pub fn create_fn_azalea_read(data: &Data) -> proc_macro2::TokenStream {
                         quote! {
                             #(#read_fields)*
                             Ok(Self::#variant_name {
-                                #(#read_field_names: #read_field_names),*
+                                #(#read_field_names),*
                             })
                         }
                     }

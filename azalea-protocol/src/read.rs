@@ -1,4 +1,5 @@
 //! Read packets from a stream.
+#![allow(clippy::redundant_field_names, reason = "Triggered by `Error` derive")]
 
 use std::{
     env,

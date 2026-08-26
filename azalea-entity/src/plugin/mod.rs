@@ -165,6 +165,7 @@ pub fn update_on_climbable(
     }
 }
 
+#[expect(clippy::needless_bool, reason = "Kept for future improvements")]
 fn is_trapdoor_usable_as_ladder(
     block_state: BlockState,
     block_pos: BlockPos,

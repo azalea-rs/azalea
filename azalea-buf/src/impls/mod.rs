@@ -1,3 +1,5 @@
+#![allow(clippy::redundant_field_names, reason = "Triggered by `Error` derive")]
+
 mod extra;
 mod primitives;
 

@@ -1,4 +1,3 @@
-use core::f32;
 use std::{
     array,
     cell::{RefCell, UnsafeCell},
@@ -661,6 +660,7 @@ pub fn is_block_state_passable(block_state: BlockState) -> bool {
 /// Whether this block has a solid hitbox at the top (i.e. we can stand on it
 /// and do parkour from it).
 #[inline]
+#[expect(clippy::needless_bool, reason = "Kept for future improvements")]
 pub fn is_block_state_solid(block_state: BlockState) -> bool {
     if block_state.is_air() {
         // fast path

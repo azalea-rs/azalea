@@ -1,5 +1,6 @@
 #![doc = include_str!("../README.md")]
 #![feature(error_generic_member_access)]
+#![allow(clippy::type_complexity, reason = "Bevy Query types")]
 
 pub mod account;
 mod client;

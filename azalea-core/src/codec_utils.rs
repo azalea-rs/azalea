@@ -7,7 +7,7 @@ use uuid::Uuid;
 
 /// Intended to be used for skipping serialization if the value is the default.
 ///
-/// ```no_run
+/// ```ignore
 /// #[serde(skip_serializing_if = "is_default")]
 /// ```
 pub fn is_default<T: Default + PartialEq>(t: &T) -> bool {
@@ -16,7 +16,7 @@ pub fn is_default<T: Default + PartialEq>(t: &T) -> bool {
 
 /// Intended to be used for skipping serialization if the value is `true`.
 ///
-/// ```no_run
+/// ```ignore
 /// #[serde(skip_serializing_if = "is_true")]
 /// ```
 pub fn is_true(t: &bool) -> bool {
@@ -25,7 +25,7 @@ pub fn is_true(t: &bool) -> bool {
 
 /// If the array has a single item, don't serialize as an array
 ///
-/// ```no_run
+/// ```ignore
 /// #[serde(serialize_with = "flatten_array")]
 /// ```
 pub fn flatten_array<S: Serializer, T: Serialize>(x: &Vec<T>, s: S) -> Result<S::Ok, S::Error> {
