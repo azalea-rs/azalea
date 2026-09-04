@@ -70,16 +70,7 @@ pub fn handle_attack_queued(
         let target_entity = attack_queued.target;
 
         // Remove AttackQueued unconditionally, before the EntityIdIndex
-        // lookup below can bail out via `continue`. Previously this was
-        // only removed on the success path, so a lookup failure left the
-        // component attached to the client entity. Since this system runs
-        // every GameTick and its query matches on AttackQueued's mere
-        // presence, that stale component kept re-matching (and
-        // re-warning) on every subsequent tick indefinitely, until some
-        // unrelated future attack() call happened to overwrite it. This is
-        // easy to hit in practice: the attack that lands a killing blow is
-        // queued while the target is still alive, and only fails this
-        // lookup a tick later once the target is already dead.
+        // lookup below can bail out via `continue`.
         commands.entity(client_entity).remove::<AttackQueued>();
 
         let Some(target_entity_id) = entity_id_index.get_by_ecs_entity(target_entity) else {
