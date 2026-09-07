@@ -16,6 +16,7 @@
 //! - [AbstractEntity]
 //!   - [AreaEffectCloud]
 //!   - [BreezeWindCharge]
+//!   - [Cushion]
 //!   - [DragonFireball]
 //!   - [EndCrystal]
 //!   - [EvokerFangs]
@@ -204,7 +205,10 @@ use azalea_core::{
     direction::Direction,
     position::{BlockPos, Vec3f32},
 };
-use azalea_inventory::{ItemStack, components};
+use azalea_inventory::{
+    ItemStack,
+    components::{self, DyeColor},
+};
 use azalea_registry::{DataRegistry, builtin::EntityKind};
 use bevy_ecs::{bundle::Bundle, component::Component};
 use derive_more::{Deref, DerefMut};
@@ -296,6 +300,7 @@ pub struct TicksFrozen(pub i32);
 ///
 /// - [AreaEffectCloud]
 /// - [BreezeWindCharge]
+/// - [Cushion]
 /// - [DragonFireball]
 /// - [EndCrystal]
 /// - [EvokerFangs]
@@ -683,6 +688,65 @@ impl Default for BreezeWindChargeMetadataBundle {
         Self {
             _marker: BreezeWindCharge,
             parent: Default::default(),
+        }
+    }
+}
+
+/// A metadata field for [Cushion].
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
+pub struct CushionColor(pub DyeColor);
+/// The marker component for entities of type `minecraft:cushion`.
+///
+/// # Metadata
+///
+/// These are the metadata components that all `Cushion` entities are guaranteed
+/// to have, in addition to the metadata components from parent types:
+///
+/// - [CushionColor]
+///
+/// # Parents
+///
+/// Entities with `Cushion` will also have the following marker components and
+/// their metadata fields:
+///
+/// - [AbstractEntity]
+///
+/// # Children
+///
+/// This entity type has no children types.
+#[derive(Component)]
+pub struct Cushion;
+impl Cushion {
+    fn apply_metadata(
+        entity: &mut bevy_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
+            8 => {
+                entity.insert(CushionColor(d.value.into_dye_color()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+/// The metadata bundle for [Cushion].
+///
+/// This type should generally not be used directly.
+#[derive(Bundle)]
+pub struct CushionMetadataBundle {
+    _marker: Cushion,
+    parent: AbstractEntityMetadataBundle,
+    cushion_color: CushionColor,
+}
+impl Default for CushionMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Cushion,
+            parent: Default::default(),
+            cushion_color: CushionColor(Default::default()),
         }
     }
 }
@@ -4285,7 +4349,7 @@ pub struct AttachFace(pub Direction);
 pub struct Peek(pub u8);
 /// A metadata field for [Shulker].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct Color(pub u8);
+pub struct ShulkerColor(pub u8);
 /// The marker component for entities of type `minecraft:shulker`.
 ///
 /// # Metadata
@@ -4295,7 +4359,7 @@ pub struct Color(pub u8);
 ///
 /// - [AttachFace]
 /// - [Peek]
-/// - [Color]
+/// - [ShulkerColor]
 ///
 /// # Parents
 ///
@@ -4326,7 +4390,7 @@ impl Shulker {
                 entity.insert(Peek(d.value.into_byte()?));
             }
             18 => {
-                entity.insert(Color(d.value.into_byte()?));
+                entity.insert(ShulkerColor(d.value.into_byte()?));
             }
             _ => {}
         }
@@ -4343,7 +4407,7 @@ pub struct ShulkerMetadataBundle {
     parent: AbstractCreatureMetadataBundle,
     attach_face: AttachFace,
     peek: Peek,
-    color: Color,
+    shulker_color: ShulkerColor,
 }
 impl Default for ShulkerMetadataBundle {
     fn default() -> Self {
@@ -4352,7 +4416,7 @@ impl Default for ShulkerMetadataBundle {
             parent: Default::default(),
             attach_face: AttachFace(Default::default()),
             peek: Peek(0),
-            color: Color(16),
+            shulker_color: ShulkerColor(16),
         }
     }
 }
@@ -13151,6 +13215,11 @@ pub fn apply_metadata(
                 Creeper::apply_metadata(entity, d)?;
             }
         }
+        EntityKind::Cushion => {
+            for d in items {
+                Cushion::apply_metadata(entity, d)?;
+            }
+        }
         EntityKind::DarkOakBoat => {
             for d in items {
                 DarkOakBoat::apply_metadata(entity, d)?;
@@ -13890,6 +13959,9 @@ pub fn apply_default_metadata(entity: &mut bevy_ecs::system::EntityCommands, kin
         }
         EntityKind::Creeper => {
             entity.insert(CreeperMetadataBundle::default());
+        }
+        EntityKind::Cushion => {
+            entity.insert(CushionMetadataBundle::default());
         }
         EntityKind::DarkOakBoat => {
             entity.insert(DarkOakBoatMetadataBundle::default());

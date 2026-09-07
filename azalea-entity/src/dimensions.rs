@@ -92,6 +92,7 @@ impl From<EntityKind> for EntityDimensions {
             EntityKind::Cow => EntityDimensions::new(0.9, 1.4).eye_height(1.3),
             EntityKind::Creaking => EntityDimensions::new(0.9, 2.7).eye_height(2.3),
             EntityKind::Creeper => EntityDimensions::new(0.6, 1.7),
+            EntityKind::Cushion => EntityDimensions::new(1.0, 0.25),
             EntityKind::DarkOakBoat => EntityDimensions::new(1.375, 0.5625).eye_height(0.5625),
             EntityKind::DarkOakChestBoat => EntityDimensions::new(1.375, 0.5625).eye_height(0.5625),
             EntityKind::Dolphin => EntityDimensions::new(0.9, 0.6).eye_height(0.3),

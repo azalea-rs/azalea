@@ -124,7 +124,10 @@ use azalea_core::{
     direction::Direction,
     position::{BlockPos, Vec3f32},
 };
-use azalea_inventory::{ItemStack, components};
+use azalea_inventory::{
+    ItemStack,
+    components::{self, DyeColor},
+};
 use azalea_registry::{DataRegistry, builtin::EntityKind};
 use bevy_ecs::{bundle::Bundle, component::Component};
 use derive_more::{Deref, DerefMut};

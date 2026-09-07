@@ -47,6 +47,9 @@ pub enum Particle {
     Infested,
     CherryLeaves,
     PaleOakLeaves,
+    RedPoplarLeaves,
+    OrangePoplarLeaves,
+    YellowPoplarLeaves,
     TintedLeaves,
     SculkSoul,
     SculkCharge(SculkChargeParticle),
@@ -273,6 +276,9 @@ impl From<ParticleKind> for Particle {
             ParticleKind::GeyserPoof => Self::GeyserPoof(GeyserBaseParticle::default()),
             ParticleKind::GeyserPlume => Self::GeyserPlume(GeyserParticle::default()),
             ParticleKind::SulfurCubeGoo => Self::SulfurCubeGoo,
+            ParticleKind::RedPoplarLeaves => Self::RedPoplarLeaves,
+            ParticleKind::OrangePoplarLeaves => Self::OrangePoplarLeaves,
+            ParticleKind::YellowPoplarLeaves => Self::YellowPoplarLeaves,
         }
     }
 }

@@ -1364,6 +1364,11 @@ make_block_states! {
             "occupied": Occupied(false),
             "part": Part::Foot,
         },
+        straw_bed => BlockBehavior::new().strength(0.2, 0.2), {
+            "facing": FacingCardinal::North,
+            "occupied": Occupied(false),
+            "part": Part::Foot,
+        },
         powered_rail => BlockBehavior::new().strength(0.7, 0.7), {
             "powered": Powered(false),
             "shape": RailShape::NorthSouth,
@@ -1660,12 +1665,6 @@ make_block_states! {
             "side_chain": SideChain::Unconnected,
             "waterlogged": Waterlogged(false),
         },
-        poplar_shelf => BlockBehavior::new().strength(2.0, 3.0), {
-            "facing": FacingCardinal::North,
-            "powered": Powered(false),
-            "side_chain": SideChain::Unconnected,
-            "waterlogged": Waterlogged(false),
-        },
         oak_shelf => BlockBehavior::new().strength(2.0, 3.0), {
             "facing": FacingCardinal::North,
             "powered": Powered(false),
@@ -1673,6 +1672,12 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
         },
         pale_oak_shelf => BlockBehavior::new().strength(2.0, 3.0), {
+            "facing": FacingCardinal::North,
+            "powered": Powered(false),
+            "side_chain": SideChain::Unconnected,
+            "waterlogged": Waterlogged(false),
+        },
+        poplar_shelf => BlockBehavior::new().strength(2.0, 3.0), {
             "facing": FacingCardinal::North,
             "powered": Powered(false),
             "side_chain": SideChain::Unconnected,
@@ -3590,6 +3595,166 @@ make_block_states! {
         green_concrete => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.8, 1.8), {},
         red_concrete => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.8, 1.8), {},
         black_concrete => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.8, 1.8), {},
+        white_concrete_stairs => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.8, 1.8), {
+            "facing": FacingCardinal::North,
+            "half": TopBottom::Bottom,
+            "shape": StairShape::Straight,
+            "waterlogged": Waterlogged(false),
+        },
+        orange_concrete_stairs => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.8, 1.8), {
+            "facing": FacingCardinal::North,
+            "half": TopBottom::Bottom,
+            "shape": StairShape::Straight,
+            "waterlogged": Waterlogged(false),
+        },
+        magenta_concrete_stairs => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.8, 1.8), {
+            "facing": FacingCardinal::North,
+            "half": TopBottom::Bottom,
+            "shape": StairShape::Straight,
+            "waterlogged": Waterlogged(false),
+        },
+        light_blue_concrete_stairs => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.8, 1.8), {
+            "facing": FacingCardinal::North,
+            "half": TopBottom::Bottom,
+            "shape": StairShape::Straight,
+            "waterlogged": Waterlogged(false),
+        },
+        yellow_concrete_stairs => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.8, 1.8), {
+            "facing": FacingCardinal::North,
+            "half": TopBottom::Bottom,
+            "shape": StairShape::Straight,
+            "waterlogged": Waterlogged(false),
+        },
+        lime_concrete_stairs => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.8, 1.8), {
+            "facing": FacingCardinal::North,
+            "half": TopBottom::Bottom,
+            "shape": StairShape::Straight,
+            "waterlogged": Waterlogged(false),
+        },
+        pink_concrete_stairs => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.8, 1.8), {
+            "facing": FacingCardinal::North,
+            "half": TopBottom::Bottom,
+            "shape": StairShape::Straight,
+            "waterlogged": Waterlogged(false),
+        },
+        gray_concrete_stairs => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.8, 1.8), {
+            "facing": FacingCardinal::North,
+            "half": TopBottom::Bottom,
+            "shape": StairShape::Straight,
+            "waterlogged": Waterlogged(false),
+        },
+        light_gray_concrete_stairs => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.8, 1.8), {
+            "facing": FacingCardinal::North,
+            "half": TopBottom::Bottom,
+            "shape": StairShape::Straight,
+            "waterlogged": Waterlogged(false),
+        },
+        cyan_concrete_stairs => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.8, 1.8), {
+            "facing": FacingCardinal::North,
+            "half": TopBottom::Bottom,
+            "shape": StairShape::Straight,
+            "waterlogged": Waterlogged(false),
+        },
+        purple_concrete_stairs => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.8, 1.8), {
+            "facing": FacingCardinal::North,
+            "half": TopBottom::Bottom,
+            "shape": StairShape::Straight,
+            "waterlogged": Waterlogged(false),
+        },
+        blue_concrete_stairs => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.8, 1.8), {
+            "facing": FacingCardinal::North,
+            "half": TopBottom::Bottom,
+            "shape": StairShape::Straight,
+            "waterlogged": Waterlogged(false),
+        },
+        brown_concrete_stairs => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.8, 1.8), {
+            "facing": FacingCardinal::North,
+            "half": TopBottom::Bottom,
+            "shape": StairShape::Straight,
+            "waterlogged": Waterlogged(false),
+        },
+        green_concrete_stairs => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.8, 1.8), {
+            "facing": FacingCardinal::North,
+            "half": TopBottom::Bottom,
+            "shape": StairShape::Straight,
+            "waterlogged": Waterlogged(false),
+        },
+        red_concrete_stairs => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.8, 1.8), {
+            "facing": FacingCardinal::North,
+            "half": TopBottom::Bottom,
+            "shape": StairShape::Straight,
+            "waterlogged": Waterlogged(false),
+        },
+        black_concrete_stairs => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.8, 1.8), {
+            "facing": FacingCardinal::North,
+            "half": TopBottom::Bottom,
+            "shape": StairShape::Straight,
+            "waterlogged": Waterlogged(false),
+        },
+        white_concrete_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.8, 1.8), {
+            "type": SlabKind::Bottom,
+            "waterlogged": Waterlogged(false),
+        },
+        orange_concrete_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.8, 1.8), {
+            "type": SlabKind::Bottom,
+            "waterlogged": Waterlogged(false),
+        },
+        magenta_concrete_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.8, 1.8), {
+            "type": SlabKind::Bottom,
+            "waterlogged": Waterlogged(false),
+        },
+        light_blue_concrete_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.8, 1.8), {
+            "type": SlabKind::Bottom,
+            "waterlogged": Waterlogged(false),
+        },
+        yellow_concrete_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.8, 1.8), {
+            "type": SlabKind::Bottom,
+            "waterlogged": Waterlogged(false),
+        },
+        lime_concrete_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.8, 1.8), {
+            "type": SlabKind::Bottom,
+            "waterlogged": Waterlogged(false),
+        },
+        pink_concrete_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.8, 1.8), {
+            "type": SlabKind::Bottom,
+            "waterlogged": Waterlogged(false),
+        },
+        gray_concrete_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.8, 1.8), {
+            "type": SlabKind::Bottom,
+            "waterlogged": Waterlogged(false),
+        },
+        light_gray_concrete_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.8, 1.8), {
+            "type": SlabKind::Bottom,
+            "waterlogged": Waterlogged(false),
+        },
+        cyan_concrete_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.8, 1.8), {
+            "type": SlabKind::Bottom,
+            "waterlogged": Waterlogged(false),
+        },
+        purple_concrete_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.8, 1.8), {
+            "type": SlabKind::Bottom,
+            "waterlogged": Waterlogged(false),
+        },
+        blue_concrete_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.8, 1.8), {
+            "type": SlabKind::Bottom,
+            "waterlogged": Waterlogged(false),
+        },
+        brown_concrete_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.8, 1.8), {
+            "type": SlabKind::Bottom,
+            "waterlogged": Waterlogged(false),
+        },
+        green_concrete_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.8, 1.8), {
+            "type": SlabKind::Bottom,
+            "waterlogged": Waterlogged(false),
+        },
+        red_concrete_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.8, 1.8), {
+            "type": SlabKind::Bottom,
+            "waterlogged": Waterlogged(false),
+        },
+        black_concrete_slab => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.8, 1.8), {
+            "type": SlabKind::Bottom,
+            "waterlogged": Waterlogged(false),
+        },
         white_concrete_powder => BlockBehavior::new().strength(0.5, 0.5), {},
         orange_concrete_powder => BlockBehavior::new().strength(0.5, 0.5), {},
         magenta_concrete_powder => BlockBehavior::new().strength(0.5, 0.5), {},

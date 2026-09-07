@@ -224,8 +224,14 @@ pub static BREAKS_DECORATED_POTS: LazyLock<RegistryTag<ItemKind>> = LazyLock::ne
         ItemKind::Trident,
     ])
 });
-pub static BREWING_FUEL: LazyLock<RegistryTag<ItemKind>> =
-    LazyLock::new(|| RegistryTag::new(vec![ItemKind::BlazePowder]));
+pub static BREWING_POTION_INPUTS: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        ItemKind::GlassBottle,
+        ItemKind::Potion,
+        ItemKind::SplashPotion,
+        ItemKind::LingeringPotion,
+    ])
+});
 pub static BUNDLES: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
     RegistryTag::new(vec![
         ItemKind::Bundle,
@@ -380,6 +386,27 @@ pub static CHICKEN_FOOD: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
         ItemKind::BeetrootSeeds,
     ])
 });
+pub static CLONABLE_MAPS: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        ItemKind::FilledMap,
+        ItemKind::OceanMonumentMap,
+        ItemKind::WoodlandMansionMap,
+        ItemKind::BuriedTrialChambersMap,
+        ItemKind::JunglePyramidMap,
+        ItemKind::SwampHutMap,
+        ItemKind::DesertVillageMap,
+        ItemKind::PlainsVillageMap,
+        ItemKind::SavannaVillageMap,
+        ItemKind::SnowyVillageMap,
+        ItemKind::TaigaVillageMap,
+        ItemKind::BuriedTreasureMap,
+        ItemKind::BuriedAncientCityMap,
+        ItemKind::BuriedMineshaftMap,
+        ItemKind::DesertPyramidMap,
+        ItemKind::AbandonedCampMap,
+        ItemKind::WarmOceanRuinsMap,
+    ])
+});
 pub static CLUSTER_MAX_HARVESTABLES: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
     RegistryTag::new(vec![
         ItemKind::WoodenPickaxe,
@@ -505,6 +532,46 @@ pub static CONCRETE_POWDERS: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| 
         ItemKind::BlackConcretePowder,
     ])
 });
+pub static CONCRETE_SLABS: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        ItemKind::WhiteConcreteSlab,
+        ItemKind::OrangeConcreteSlab,
+        ItemKind::MagentaConcreteSlab,
+        ItemKind::LightBlueConcreteSlab,
+        ItemKind::YellowConcreteSlab,
+        ItemKind::LimeConcreteSlab,
+        ItemKind::PinkConcreteSlab,
+        ItemKind::GrayConcreteSlab,
+        ItemKind::LightGrayConcreteSlab,
+        ItemKind::CyanConcreteSlab,
+        ItemKind::PurpleConcreteSlab,
+        ItemKind::BlueConcreteSlab,
+        ItemKind::BrownConcreteSlab,
+        ItemKind::GreenConcreteSlab,
+        ItemKind::RedConcreteSlab,
+        ItemKind::BlackConcreteSlab,
+    ])
+});
+pub static CONCRETE_STAIRS: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        ItemKind::WhiteConcreteStairs,
+        ItemKind::OrangeConcreteStairs,
+        ItemKind::MagentaConcreteStairs,
+        ItemKind::LightBlueConcreteStairs,
+        ItemKind::YellowConcreteStairs,
+        ItemKind::LimeConcreteStairs,
+        ItemKind::PinkConcreteStairs,
+        ItemKind::GrayConcreteStairs,
+        ItemKind::LightGrayConcreteStairs,
+        ItemKind::CyanConcreteStairs,
+        ItemKind::PurpleConcreteStairs,
+        ItemKind::BlueConcreteStairs,
+        ItemKind::BrownConcreteStairs,
+        ItemKind::GreenConcreteStairs,
+        ItemKind::RedConcreteStairs,
+        ItemKind::BlackConcreteStairs,
+    ])
+});
 pub static COPPER: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
     RegistryTag::new(vec![
         ItemKind::CopperBlock,
@@ -571,6 +638,26 @@ pub static CRIMSON_STEMS: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
         ItemKind::StrippedCrimsonStem,
         ItemKind::StrippedCrimsonHyphae,
         ItemKind::CrimsonHyphae,
+    ])
+});
+pub static CUSHIONS: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
+    RegistryTag::new(vec![
+        ItemKind::WhiteCushion,
+        ItemKind::OrangeCushion,
+        ItemKind::MagentaCushion,
+        ItemKind::LightBlueCushion,
+        ItemKind::YellowCushion,
+        ItemKind::LimeCushion,
+        ItemKind::PinkCushion,
+        ItemKind::GrayCushion,
+        ItemKind::LightGrayCushion,
+        ItemKind::CyanCushion,
+        ItemKind::PurpleCushion,
+        ItemKind::BlueCushion,
+        ItemKind::BrownCushion,
+        ItemKind::GreenCushion,
+        ItemKind::RedCushion,
+        ItemKind::BlackCushion,
     ])
 });
 pub static DAMPENS_VIBRATIONS: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
@@ -741,7 +828,7 @@ pub static DOORS: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
         ItemKind::WaxedOxidizedCopperDoor,
     ])
 });
-pub static DOWSES_CAMPFIRES: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
+pub static DOUSES_CAMPFIRES: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
     RegistryTag::new(vec![
         ItemKind::WoodenShovel,
         ItemKind::CopperShovel,
@@ -1268,6 +1355,8 @@ pub static ENCHANTABLE_WEAPON: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|
         ItemKind::NetheriteSpear,
     ])
 });
+pub static EXTENDABLE_MAPS: LazyLock<RegistryTag<ItemKind>> =
+    LazyLock::new(|| RegistryTag::new(vec![ItemKind::FilledMap]));
 pub static FENCE_GATES: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
     RegistryTag::new(vec![
         ItemKind::OakFenceGate,
@@ -1372,6 +1461,8 @@ pub static FREEZE_IMMUNE_WEARABLES: LazyLock<RegistryTag<ItemKind>> = LazyLock::
 });
 pub static FROG_FOOD: LazyLock<RegistryTag<ItemKind>> =
     LazyLock::new(|| RegistryTag::new(vec![ItemKind::SlimeBall]));
+pub static FURNACE_FUEL_BOTTOM_TAKEABLE: LazyLock<RegistryTag<ItemKind>> =
+    LazyLock::new(|| RegistryTag::new(vec![ItemKind::Bucket, ItemKind::WaterBucket]));
 pub static FURNACE_MINECART_FUEL: LazyLock<RegistryTag<ItemKind>> =
     LazyLock::new(|| RegistryTag::new(vec![ItemKind::Coal, ItemKind::Charcoal]));
 pub static GAZE_DISGUISE_EQUIPMENT: LazyLock<RegistryTag<ItemKind>> =
@@ -2180,6 +2271,22 @@ pub static SLABS: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
         ItemKind::PrismarineBrickSlab,
         ItemKind::DarkPrismarineSlab,
         ItemKind::ResinBrickSlab,
+        ItemKind::WhiteConcreteSlab,
+        ItemKind::OrangeConcreteSlab,
+        ItemKind::MagentaConcreteSlab,
+        ItemKind::LightBlueConcreteSlab,
+        ItemKind::YellowConcreteSlab,
+        ItemKind::LimeConcreteSlab,
+        ItemKind::PinkConcreteSlab,
+        ItemKind::GrayConcreteSlab,
+        ItemKind::LightGrayConcreteSlab,
+        ItemKind::CyanConcreteSlab,
+        ItemKind::PurpleConcreteSlab,
+        ItemKind::BlueConcreteSlab,
+        ItemKind::BrownConcreteSlab,
+        ItemKind::GreenConcreteSlab,
+        ItemKind::RedConcreteSlab,
+        ItemKind::BlackConcreteSlab,
         ItemKind::PolishedGraniteSlab,
         ItemKind::SmoothRedSandstoneSlab,
         ItemKind::MossyStoneBrickSlab,
@@ -2310,6 +2417,22 @@ pub static STAIRS: LazyLock<RegistryTag<ItemKind>> = LazyLock::new(|| {
         ItemKind::PrismarineBrickStairs,
         ItemKind::DarkPrismarineStairs,
         ItemKind::RedSandstoneStairs,
+        ItemKind::WhiteConcreteStairs,
+        ItemKind::OrangeConcreteStairs,
+        ItemKind::MagentaConcreteStairs,
+        ItemKind::LightBlueConcreteStairs,
+        ItemKind::YellowConcreteStairs,
+        ItemKind::LimeConcreteStairs,
+        ItemKind::PinkConcreteStairs,
+        ItemKind::GrayConcreteStairs,
+        ItemKind::LightGrayConcreteStairs,
+        ItemKind::CyanConcreteStairs,
+        ItemKind::PurpleConcreteStairs,
+        ItemKind::BlueConcreteStairs,
+        ItemKind::BrownConcreteStairs,
+        ItemKind::GreenConcreteStairs,
+        ItemKind::RedConcreteStairs,
+        ItemKind::BlackConcreteStairs,
         ItemKind::PolishedGraniteStairs,
         ItemKind::SmoothRedSandstoneStairs,
         ItemKind::MossyStoneBrickStairs,

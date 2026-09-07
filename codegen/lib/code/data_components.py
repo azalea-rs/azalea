@@ -121,11 +121,11 @@ def remove_variant(variant: str):
     for i, line in enumerate(list(code)):
         if line == f"pub struct {variant} {{" or line == f"pub struct {variant};":
             line_before_struct = i - 1
-        elif line == "}":
+        elif line == "}" and line_before_struct:
             line_after_struct = i + 1
             break
     if line_before_struct is None:
-        raise ValueError(f"Couldn't find struct {variant}")
+        input(f"Warning: Couldn't find struct {variant}. (press enter to continue)")
     if line_after_struct is None:
         raise ValueError(f"Couldn't find impl DataComponent for {variant}")
 
@@ -184,6 +184,7 @@ use azalea_core::attribute_modifier_operation::AttributeModifierOperation;
 use azalea_registry::{
     DataRegistry, HolderSet,
     builtin::{Attribute, BlockKind, EntityKind, ItemKind, MobEffect, SoundEvent},
+    identifier::Identifier,
 };
 use simdnbt::owned::NbtCompound;
 
@@ -349,19 +350,26 @@ use crate::{
                     t += f'("{k}".into(), {python_to_rust_value(v, "FIXME_UNKNOWN_NBT")}),'
             t = t.rstrip(",") + "])"
             return t
+        elif target_rust_type in "ResolvableInt":
+            if isinstance(python_value, (str, dict)):
+                return f"ResolvableInt::Reference {{ context_int_provider: {python_to_rust_value(python_value, 'Identifier')} }}"
+            raise ValueError(f"Unhandled ResolvableInt: {python_value}")
+        elif target_rust_type in "ResolvableFloat":
+            if isinstance(python_value, (str, dict)):
+                return f"ResolvableFloat::Reference {{ context_float_provider: {python_to_rust_value(python_value, 'Identifier')} }}"
+            raise ValueError(f"Unhandled ResolvableFloat: {python_value}")
+        elif target_rust_type == "FormattedText":
+            if python_value == "":
+                return "Default::default()"
+            raise ValueError(f"Unhandled FormattedText: {python_value!r}")
 
         if isinstance(python_value, dict):
-            if target_rust_type == "Identifier" and len(python_value) == 1:
+            if (
+                target_rust_type == "Identifier"
+                or target_rust_type.startswith(("HolderSet<", "Vec<"))
+            ) and len(python_value) == 1:
                 return python_to_rust_value(
-                    list(python_value.values())[0], target_rust_type
-                )
-            elif target_rust_type.startswith("HolderSet<") and len(python_value) == 1:
-                return python_to_rust_value(
-                    list(python_value.values())[0], target_rust_type
-                )
-            elif target_rust_type.startswith("Vec<") and len(python_value) == 1:
-                return python_to_rust_value(
-                    list(python_value.values())[0], target_rust_type
+                    next(iter(python_value.values())), target_rust_type
                 )
             elif target_rust_type == "ItemStack":
                 item_rust_value = python_to_rust_value(python_value["id"], "ItemKind")
@@ -417,10 +425,13 @@ use crate::{
             if "Referenced(Identifier)" in fields_for_rust_type:
                 return f"{target_rust_type}::Referenced({python_to_rust_value(python_value, 'Identifier')})"
             elif target_rust_type.startswith("HolderSet<"):
-                holderset_type = target_rust_type.split("<", 1)[1].split(",", 1)[0]
+                holderset_type = (
+                    target_rust_type.split("<", 1)[1].split(",", 1)[0].rstrip(">")
+                )
                 main_vec = python_to_rust_value(
                     [python_value], f"Vec<{holderset_type}>"
                 )
+
                 return f"HolderSet::Direct {{ contents: {main_vec} }}"
             elif target_rust_type.startswith(
                 "azalea_registry::Holder<"
@@ -429,7 +440,8 @@ use crate::{
                 inner_type = python_to_rust_value(python_value, holder_type)
                 return f"azalea_registry::Holder::Reference({inner_type})"
             elif target_rust_type == "Identifier":
-                # convert minecraft:air into Identifier::from_static("minecraft:air")
+                # convert something like minecraft:air into "minecraft:air".into().
+                # note that this can't be static/const because Identifier contains a `Box<str>`.
                 return f'"{python_value}".into()'
             elif target_rust_type.startswith("azalea_registry::data::"):
                 # TODO: this is intentionally incorrect, see the comment in
@@ -565,8 +577,17 @@ use crate::{
             and default_values_count_except_most_common <= 128
         )
 
+        forbidden_for_lookup_table = {
+            # the definition for CookingFuel requires allocations
+            "cooking_fuel"
+        }
+
         # use a lookup table for some components to avoid big match statements
-        if len(item_defaults) > 128 and not includes_every_item_but_mostly_same_values:
+        if (
+            len(item_defaults) > 128
+            and not includes_every_item_but_mostly_same_values
+            and component_resource_id not in forbidden_for_lookup_table
+        ):
             static_values_name = component_resource_id.upper() + "_VALUES"
 
             values_set = set(item_defaults.values())
@@ -583,10 +604,14 @@ use crate::{
                 continue
 
             # find a sentinel value that isn't already being used
-            none_value = 0
-            while none_value in values_set:
-                none_value += 1
             none_value_is_used = False
+            if isinstance(item_resource_ids[0], int):
+                none_value = 0
+                while none_value in values_set:
+                    none_value += 1
+            else:
+                # can't be Default::default() because it needs to be const to work in a static
+                none_value = f"{field_type}::new()"
 
             static_def_line = f"static {static_values_name}: [{field_type}; {len(item_resource_ids)}] = ["
             for item_protocol_id, item_resource_id in enumerate(item_resource_ids):

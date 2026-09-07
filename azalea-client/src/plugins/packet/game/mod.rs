@@ -199,6 +199,8 @@ pub fn process_packet(ecs: &mut World, player: Entity, packet: &ClientboundGameP
             game_test_highlight_pos,
             low_disk_space_warning,
             game_rule_values,
+            post_effects,
+            swing_animation,
         ]
     );
 }
@@ -1648,6 +1650,13 @@ impl GamePacketHandler<'_> {
 
     pub fn game_rule_values(&mut self, p: &ClientboundGameRuleValues) {
         debug!("Got game rule values packet {p:?}");
+    }
+
+    pub fn post_effects(&mut self, p: &ClientboundPostEffects) {
+        debug!("Got post effects packet {p:?}");
+    }
+    pub fn swing_animation(&mut self, p: &ClientboundSwingAnimation) {
+        debug!("Got swing animation packet {p:?}");
     }
 }
 

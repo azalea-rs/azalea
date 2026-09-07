@@ -11,7 +11,10 @@ use azalea_core::{
     direction::Direction,
     position::{BlockPos, GlobalPos, Vec3f32},
 };
-use azalea_inventory::{ItemStack, components};
+use azalea_inventory::{
+    ItemStack,
+    components::{self, DyeColor},
+};
 use azalea_registry::builtin::{VillagerKind, VillagerProfession};
 use derive_more::Deref;
 use enum_as_inner::EnumAsInner;
@@ -102,6 +105,7 @@ pub enum EntityDataValue {
     Quaternion(Quaternion),
     ResolvableProfile(components::Profile),
     HumanoidArm(HumanoidArm),
+    DyeColor(DyeColor),
 }
 
 const _: () = assert!(size_of::<EntityDataValue>() == 24);
