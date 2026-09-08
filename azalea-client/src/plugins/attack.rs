@@ -68,12 +68,15 @@ pub fn handle_attack_queued(
     ) in &mut query
     {
         let target_entity = attack_queued.target;
+
+        // Remove AttackQueued unconditionally, before the EntityIdIndex
+        // lookup below can bail out via `continue`.
+        commands.entity(client_entity).remove::<AttackQueued>();
+
         let Some(target_entity_id) = entity_id_index.get_by_ecs_entity(target_entity) else {
             warn!("tried to attack entity {target_entity} which isn't in our EntityIdIndex");
             continue;
         };
-
-        commands.entity(client_entity).remove::<AttackQueued>();
 
         commands.trigger(SendGamePacketEvent::new(
             client_entity,
