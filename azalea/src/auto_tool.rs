@@ -1,6 +1,6 @@
 use azalea_block::{BlockState, fluid_state::FluidKind};
 use azalea_core::position::BlockPos;
-use azalea_entity::{ActiveEffects, Attributes, FluidOnEyes, Physics, inventory::Inventory};
+use azalea_entity::{ActiveEffects, Attributes, FluidOnEyes, GroundContact, inventory::Inventory};
 use azalea_inventory::{ItemStack, Menu, components};
 use azalea_registry::builtin::{BlockKind, EntityKind};
 
@@ -16,17 +16,17 @@ impl Client {
     pub fn best_tool_in_hotbar_for_block(&self, block: BlockState) -> AzaleaResult<BestToolResult> {
         self.query_self::<(
             &Inventory,
-            &Physics,
+            &GroundContact,
             &FluidOnEyes,
             &Attributes,
             &ActiveEffects,
         ), _>(
-            |(inventory, physics, fluid_on_eyes, attributes, active_effects)| {
+            |(inventory, ground_contact, fluid_on_eyes, attributes, active_effects)| {
                 let menu = &inventory.inventory_menu;
                 accurate_best_tool_in_hotbar_for_block(
                     block,
                     menu,
-                    physics,
+                    ground_contact,
                     fluid_on_eyes,
                     attributes,
                     active_effects,
@@ -54,14 +54,14 @@ impl Client {
 /// or in water, use [`accurate_best_tool_in_hotbar_for_block`] instead if you
 /// care about those things.
 pub fn best_tool_in_hotbar_for_block(block: BlockState, menu: &Menu) -> BestToolResult {
-    let mut physics = Physics::default();
-    physics.set_on_ground(true);
+    let mut ground_contact = GroundContact::default();
+    ground_contact.set_on_ground(true);
 
     let inactive_effects = ActiveEffects::default();
     accurate_best_tool_in_hotbar_for_block(
         block,
         menu,
-        &physics,
+        &ground_contact,
         &FluidOnEyes::new(FluidKind::Empty),
         &Attributes::new(EntityKind::Player),
         &inactive_effects,
@@ -71,7 +71,7 @@ pub fn best_tool_in_hotbar_for_block(block: BlockState, menu: &Menu) -> BestTool
 pub fn accurate_best_tool_in_hotbar_for_block(
     block: BlockState,
     menu: &Menu,
-    physics: &Physics,
+    ground_contact: &GroundContact,
     fluid_on_eyes: &FluidOnEyes,
     attributes: &Attributes,
     active_effects: &ActiveEffects,
@@ -101,7 +101,7 @@ pub fn accurate_best_tool_in_hotbar_for_block(
                     block,
                     &ItemStack::Empty,
                     fluid_on_eyes,
-                    physics,
+                    ground_contact,
                     attributes,
                     active_effects,
                 ));
@@ -114,7 +114,7 @@ pub fn accurate_best_tool_in_hotbar_for_block(
                         block,
                         item_stack_data,
                         fluid_on_eyes,
-                        physics,
+                        ground_contact,
                         attributes,
                         active_effects,
                     ));
@@ -138,7 +138,7 @@ pub fn accurate_best_tool_in_hotbar_for_block(
                 block,
                 item_stack,
                 fluid_on_eyes,
-                physics,
+                ground_contact,
                 attributes,
                 active_effects,
             );

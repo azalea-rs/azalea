@@ -10,7 +10,7 @@ use azalea_client::{
     mining::{Mining, MiningSystems, StartMiningBlockEvent},
 };
 use azalea_core::{position::Vec3, tick::GameTick};
-use azalea_entity::{Physics, Position, inventory::Inventory};
+use azalea_entity::{GroundContact, Physics, Position, inventory::Inventory};
 use azalea_physics::{PhysicsSystems, get_block_pos_below_that_affects_movement};
 use azalea_world::{WorldName, Worlds};
 use bevy_app::{App, Plugin};
@@ -74,6 +74,7 @@ pub fn tick_execute_path(
         &mut ExecutingPath,
         &Position,
         &Physics,
+        &GroundContact,
         Option<&Mining>,
         &WorldHolder,
         &Inventory,
@@ -84,8 +85,16 @@ pub fn tick_execute_path(
     mut jump_events: MessageWriter<JumpEvent>,
     mut start_mining_events: MessageWriter<StartMiningBlockEvent>,
 ) {
-    for (entity, mut executing_path, position, physics, mining, world_holder, inventory) in
-        &mut query
+    for (
+        entity,
+        mut executing_path,
+        position,
+        physics,
+        ground_contact,
+        mining,
+        world_holder,
+        inventory,
+    ) in &mut query
     {
         executing_path.ticks_since_last_node_reached += 1;
 
@@ -96,6 +105,7 @@ pub fn tick_execute_path(
                 position: **position,
                 start: executing_path.last_reached_node,
                 physics,
+                ground_contact,
                 is_currently_mining: mining.is_some(),
                 can_mine: true,
                 world: world_holder.shared.clone(),
@@ -125,13 +135,23 @@ pub fn check_node_reached(
         &mut ExecutingPath,
         &Position,
         &Physics,
+        &GroundContact,
         &WorldName,
     )>,
     mut walk_events: MessageWriter<StartWalkEvent>,
     mut commands: Commands,
     worlds: Res<Worlds>,
 ) {
-    for (entity, mut pathfinder, mut executing_path, position, physics, world_name) in &mut query {
+    for (
+        entity,
+        mut pathfinder,
+        mut executing_path,
+        position,
+        physics,
+        ground_contact,
+        world_name,
+    ) in &mut query
+    {
         let Some(world) = worlds.get(world_name) else {
             warn!("entity is pathfinding but not in a valid world");
             continue;
@@ -156,6 +176,7 @@ pub fn check_node_reached(
                     start: executing_path.last_reached_node,
                     position: **position,
                     physics,
+                    ground_contact,
                 };
                 let extra_check = if i == executing_path.path.len() - 1
                     // only do the extra check if we don't have a new path immediately queued up
@@ -167,10 +188,13 @@ pub fn check_node_reached(
                     let x_difference_from_center = position.x - (movement.target.x as f64 + 0.5);
                     let z_difference_from_center = position.z - (movement.target.z as f64 + 0.5);
 
-                    let block_pos_below = get_block_pos_below_that_affects_movement(*position);
-
                     let block_below = {
                         let world = world.read();
+                        let block_pos_below = get_block_pos_below_that_affects_movement(
+                            &world.chunks,
+                            *position,
+                            ground_contact,
+                        );
                         world
                             .chunks
                             .get_block_state(block_pos_below)
@@ -188,7 +212,7 @@ pub fn check_node_reached(
                     let z_predicted_offset = (z_difference_from_center + scaled_velocity.z).abs();
 
                     // this is to make sure we don't fall off immediately after finishing the path
-                    (physics.on_ground() || physics.is_in_water())
+                    (ground_contact.on_ground() || physics.is_in_water())
                         && player_pos_to_block_pos(**position) == movement.target
                         // adding the delta like this isn't a perfect solution but it helps to make
                         // sure we don't keep going if our delta is high

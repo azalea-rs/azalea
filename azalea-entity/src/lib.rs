@@ -21,7 +21,7 @@ use std::{
 };
 
 pub use attributes::Attributes;
-use azalea_block::fluid_state::FluidKind;
+use azalea_block::{BlockBehavior, fluid_state::FluidKind};
 use azalea_buf::AzBuf;
 use azalea_core::{
     aabb::Aabb,
@@ -254,6 +254,65 @@ impl Hash for LookDirection {
 }
 impl Eq for LookDirection {}
 
+#[cfg_attr(feature = "bevy_ecs", derive(bevy_ecs::component::Component))]
+#[derive(Default, Clone)]
+pub struct StuckSpeedMultiplier {
+    pub modifier: Vec3,
+}
+
+#[cfg_attr(feature = "bevy_ecs", derive(bevy_ecs::component::Component))]
+#[derive(Clone)]
+pub enum TravelCtx {
+    Air {
+        inertia: f32,
+    },
+    Fluid {
+        moving_down: bool,
+        y: f64,
+        has_water_movement_speed: Option<f32>,
+    },
+    FallFlying {},
+}
+
+impl Default for TravelCtx {
+    fn default() -> Self {
+        TravelCtx::Air {
+            inertia: BlockBehavior::default().friction,
+        }
+    }
+}
+
+#[cfg_attr(feature = "bevy_ecs", derive(bevy_ecs::component::Component))]
+#[derive(Default, Clone)]
+pub struct GroundContact {
+    pub on_ground: bool,
+    pub last_on_ground: bool,
+    pub supporting_block: Option<BlockPos>,
+    pub on_ground_no_support: bool,
+}
+
+impl GroundContact {
+    pub fn on_ground(&self) -> bool {
+        self.on_ground
+    }
+    /// Updates [`Self::on_ground`], [`Self::last_on_ground`].
+    pub fn set_on_ground(&mut self, on_ground: bool) {
+        self.last_on_ground = self.on_ground;
+        self.on_ground = on_ground;
+    }
+
+    /// The last value of the on_ground value.
+    ///
+    /// This is used by Azalea internally for physics, it might not work as you
+    /// expect since it can be influenced by packets sent by the server.
+    pub fn last_on_ground(&self) -> bool {
+        self.last_on_ground
+    }
+    pub fn set_last_on_ground(&mut self, last_on_ground: bool) {
+        self.last_on_ground = last_on_ground;
+    }
+}
+
 /// The physics data relating to the entity, such as position, velocity, and
 /// bounding box.
 #[cfg_attr(feature = "bevy_ecs", derive(bevy_ecs::component::Component))]
@@ -281,9 +340,6 @@ pub struct Physics {
     pub y_acceleration: f32,
     pub z_acceleration: f32,
 
-    on_ground: bool,
-    last_on_ground: bool,
-
     /// The number of ticks until we jump again, if the jump key is being held.
     ///
     /// This must be 0 for us to be able to jump. Sets to 10 when we do a jump
@@ -296,11 +352,6 @@ pub struct Physics {
     pub bounding_box: Aabb,
 
     pub has_impulse: bool,
-
-    pub horizontal_collision: bool,
-    // TODO: implement minor_horizontal_collision
-    pub minor_horizontal_collision: bool,
-    pub vertical_collision: bool,
 
     pub water_fluid_height: f64,
     pub lava_fluid_height: f64,
@@ -323,18 +374,11 @@ impl Physics {
             y_acceleration: 0.,
             z_acceleration: 0.,
 
-            on_ground: false,
-            last_on_ground: false,
-
             no_jump_delay: 0,
 
             bounding_box: dimensions.make_bounding_box(pos),
 
             has_impulse: false,
-
-            horizontal_collision: false,
-            minor_horizontal_collision: false,
-            vertical_collision: false,
 
             water_fluid_height: 0.,
             lava_fluid_height: 0.,
@@ -343,26 +387,6 @@ impl Physics {
             fall_distance: 0.,
             remaining_fire_ticks: 0,
         }
-    }
-
-    pub fn on_ground(&self) -> bool {
-        self.on_ground
-    }
-    /// Updates [`Self::on_ground`] and [`Self::last_on_ground`].
-    pub fn set_on_ground(&mut self, on_ground: bool) {
-        self.last_on_ground = self.on_ground;
-        self.on_ground = on_ground;
-    }
-
-    /// The last value of the on_ground value.
-    ///
-    /// This is used by Azalea internally for physics, it might not work as you
-    /// expect since it can be influenced by packets sent by the server.
-    pub fn last_on_ground(&self) -> bool {
-        self.last_on_ground
-    }
-    pub fn set_last_on_ground(&mut self, last_on_ground: bool) {
-        self.last_on_ground = last_on_ground;
     }
 
     pub fn reset_fall_distance(&mut self) {
@@ -385,6 +409,43 @@ impl Physics {
     }
 }
 
+#[cfg_attr(feature = "bevy_ecs", derive(bevy_ecs::component::Component))]
+#[derive(Default, Clone)]
+pub struct MovementResult {
+    pub requested: Vec3,
+    pub actual: Vec3,
+}
+
+impl MovementResult {
+    pub fn x_collision(&self) -> bool {
+        !math::equal(self.requested.x, self.actual.x)
+    }
+
+    pub fn z_collision(&self) -> bool {
+        !math::equal(self.requested.z, self.actual.z)
+    }
+
+    pub fn vertical_collision(&self) -> bool {
+        self.requested.y != self.actual.y
+    }
+
+    pub fn horizontal_collision(&self) -> bool {
+        self.x_collision() || self.z_collision()
+    }
+
+    pub fn minor_horizontal_collision(&self) -> bool {
+        false
+    }
+
+    pub fn moved_vertically(&self) -> bool {
+        self.requested.y.abs() > 0.0
+    }
+
+    pub fn vertical_collision_below(&self) -> bool {
+        self.vertical_collision() && self.requested.y < 0.0
+    }
+}
+
 impl Attributes {
     pub fn new(_entity_kind: EntityKind) -> Self {
         // TODO: do the correct defaults for everything, some
@@ -399,6 +460,8 @@ impl Attributes {
             entity_interaction_range: AttributeInstance::new(3.0),
             step_height: AttributeInstance::new(0.6),
             block_break_speed: AttributeInstance::new(1.0),
+            bounciness: AttributeInstance::new(0.0),
+            air_drag: AttributeInstance::new(1.0),
         }
     }
 }

@@ -5,9 +5,10 @@ pub mod client_movement;
 pub mod clip;
 pub mod collision;
 pub mod fluids;
+pub mod support;
 pub mod travel;
 
-use std::collections::HashSet;
+use std::{collections::HashSet, ops::Add};
 
 use azalea_block::{BlockState, fluid_state::FluidState, properties};
 use azalea_core::{
@@ -16,12 +17,18 @@ use azalea_core::{
     tick::GameTick,
 };
 use azalea_entity::{
-    ActiveEffects, Attributes, EntityKindComponent, HasClientLoaded, Jumping, LocalEntity,
-    LookDirection, OnClimbable, Physics, Pose, Position, dimensions::EntityDimensions,
-    metadata::Sprinting, move_relative,
+    ActiveEffects, Attributes, EntityGeometryUpdateSystems, EntityKindComponent, GroundContact,
+    HasClientLoaded, Jumping, LocalEntity, LookDirection, MovementResult, OnClimbable, Physics,
+    Pose, Position, StuckSpeedMultiplier,
+    dimensions::EntityDimensions,
+    metadata::{AbstractLiving, Sprinting},
+    move_relative, on_pos, on_pos_legacy,
 };
-use azalea_registry::builtin::{BlockKind, EntityKind, MobEffect};
-use azalea_world::{World, WorldName, Worlds};
+use azalea_registry::{
+    builtin::{BlockKind, EntityKind, MobEffect},
+    tags::blocks::SUPPRESSES_BOUNCE,
+};
+use azalea_world::{ChunkStorage, World, WorldName, Worlds};
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 use clip::box_traverse_blocks;
@@ -30,11 +37,21 @@ use collision::{BLOCK_SHAPE, BlockWithShape, VoxelShape, move_colliding};
 use crate::{
     client_movement::ClientMovementState,
     collision::{MoveCtx, entity_collisions::update_last_bounding_box},
+    support::{
+        clear_server_update_flag, update_main_supporting_block_pos_from_server,
+        update_main_supporting_block_pos_local,
+    },
+    travel::{get_effective_gravity, travel_post_move},
 };
 
 /// A Bevy [`SystemSet`] for running physics that makes entities do things.
 #[derive(Clone, Debug, Eq, Hash, PartialEq, SystemSet)]
 pub struct PhysicsSystems;
+
+/// A Bevy [`SystemSet`] for running the original travel function (now broken
+/// into multiple systems)
+#[derive(Clone, Debug, Eq, Hash, PartialEq, SystemSet)]
+pub struct TravelSystems;
 
 pub struct PhysicsPlugin;
 impl Plugin for PhysicsPlugin {
@@ -46,7 +63,16 @@ impl Plugin for PhysicsPlugin {
                 update_old_position,
                 fluids::update_swimming,
                 ai_step,
-                travel::travel,
+                (
+                    travel::travel_until_moved.before(EntityGeometryUpdateSystems),
+                    update_main_supporting_block_pos_local.after(EntityGeometryUpdateSystems),
+                    update_falling_distance,
+                    bounce_on_block,
+                    apply_speed_factor,
+                    travel_post_move,
+                )
+                    .chain()
+                    .in_set(TravelSystems),
                 apply_effects_from_blocks,
             )
                 .chain()
@@ -56,7 +82,13 @@ impl Plugin for PhysicsPlugin {
         // we want this to happen after packets are handled but before physics
         .add_systems(
             Update,
-            update_last_bounding_box.after(azalea_entity::update_bounding_box),
+            (
+                update_main_supporting_block_pos_from_server,
+                clear_server_update_flag,
+                update_last_bounding_box,
+            )
+                .chain()
+                .after(azalea_entity::update_bounding_box),
         );
     }
 }
@@ -70,6 +102,7 @@ pub fn ai_step(
         (
             &mut Physics,
             Option<&Jumping>,
+            &GroundContact,
             &Position,
             &LookDirection,
             &Sprinting,
@@ -85,6 +118,7 @@ pub fn ai_step(
     for (
         mut physics,
         jumping,
+        ground_contact,
         position,
         look_direction,
         sprinting,
@@ -144,15 +178,17 @@ pub fn ai_step(
             let in_water = physics.is_in_water() && fluid_height > 0.;
             let fluid_jump_threshold = travel::fluid_jump_threshold();
 
-            if !in_water || physics.on_ground() && fluid_height <= fluid_jump_threshold {
+            if !in_water || ground_contact.on_ground() && fluid_height <= fluid_jump_threshold {
                 if !physics.is_in_lava()
-                    || physics.on_ground() && fluid_height <= fluid_jump_threshold
+                    || ground_contact.on_ground() && fluid_height <= fluid_jump_threshold
                 {
-                    if (physics.on_ground() || in_water && fluid_height <= fluid_jump_threshold)
+                    if (ground_contact.on_ground()
+                        || in_water && fluid_height <= fluid_jump_threshold)
                         && physics.no_jump_delay == 0
                     {
                         jump_from_ground(
                             &mut physics,
+                            ground_contact,
                             *position,
                             *look_direction,
                             *sprinting,
@@ -189,12 +225,31 @@ fn go_down_in_water(physics: &mut Physics) {
 #[allow(clippy::type_complexity)]
 pub fn apply_effects_from_blocks(
     mut query: Query<
-        (&mut Physics, &Position, &EntityDimensions, &WorldName),
+        (
+            &mut Physics,
+            &mut StuckSpeedMultiplier,
+            &ActiveEffects,
+            &GroundContact,
+            &Position,
+            &EntityDimensions,
+            &WorldName,
+            Option<&ClientMovementState>,
+        ),
         (With<LocalEntity>, With<HasClientLoaded>),
     >,
     worlds: Res<Worlds>,
 ) {
-    for (mut physics, position, dimensions, world_name) in &mut query {
+    for (
+        mut physics,
+        mut stuck_speed_multiplier,
+        effects,
+        ground_contact,
+        position,
+        dimensions,
+        world_name,
+        client_movement,
+    ) in &mut query
+    {
         let Some(world_lock) = worlds.get(world_name) else {
             continue;
         };
@@ -204,11 +259,14 @@ pub fn apply_effects_from_blocks(
         //     continue
         // }
 
-        // if (this.onGround()) {
-        //     BlockPos var3 = this.getOnPosLegacy();
-        //     BlockState var4 = this.level().getBlockState(var3);
-        //     var4.getBlock().stepOn(this.level(), var3, var4, this);
-        //  }
+        if ground_contact.on_ground() {
+            let block_pos = on_pos_legacy(&world.chunks, *position, ground_contact);
+            if let Some(state) = world.chunks.get_block_state(block_pos)
+                && let Some(client_movement) = client_movement
+            {
+                handle_entity_step_on(state.as_block_kind(), client_movement, &mut physics);
+            }
+        }
 
         // minecraft adds more entries to the list when the code is running on the
         // server
@@ -217,23 +275,179 @@ pub fn apply_effects_from_blocks(
             to: **position,
         }];
 
-        check_inside_blocks(&mut physics, dimensions, &world, &movement_this_tick);
+        check_inside_blocks(
+            &mut physics,
+            &mut stuck_speed_multiplier,
+            effects,
+            ground_contact,
+            position,
+            dimensions,
+            &world,
+            &movement_this_tick,
+        );
     }
 }
 
+/// Entity.restituteMovementAfterCollisions
+/// restitute is not as straight forward as bounce, right
+#[allow(clippy::type_complexity)]
+pub fn bounce_on_block(
+    mut query: Query<
+        (
+            &MovementResult,
+            &ClientMovementState,
+            &Attributes,
+            &Position,
+            &GroundContact,
+            &WorldName,
+            Option<&AbstractLiving>,
+            &mut Physics,
+        ),
+        (With<LocalEntity>, With<HasClientLoaded>),
+    >,
+    worlds: Res<Worlds>,
+) {
+    for (
+        movement_result,
+        client_movement,
+        attributes,
+        position,
+        ground_contact,
+        world_name,
+        living,
+        mut physics,
+    ) in &mut query
+    {
+        let Some(world_lock) = worlds.get(world_name) else {
+            continue;
+        };
+        let world = world_lock.read();
+
+        let block_pos_below =
+            azalea_entity::on_pos_legacy(&world.chunks, *position, ground_contact);
+        let block_state_below = world.get_block_state(block_pos_below).unwrap_or_default();
+
+        let mut restitution = if client_movement.trying_to_crouch {
+            0.0
+        } else {
+            attributes.bounciness.calculate()
+        };
+        let mut velocity = physics.velocity;
+        if movement_result.x_collision() {
+            velocity = velocity.with_x(-physics.velocity.x * restitution);
+        }
+
+        if movement_result.z_collision() {
+            velocity = velocity.with_z(-physics.velocity.z * restitution);
+        }
+
+        let velocity = if movement_result.vertical_collision() {
+            if movement_result.vertical_collision_below() {
+                restitution = if -physics.velocity.y >= get_effective_gravity()
+                    && !client_movement.trying_to_crouch
+                    && !SUPPRESSES_BOUNCE.contains(&block_state_below.as_block_kind())
+                {
+                    let bounciness = block_state_below.as_block_state().behavior().bounciness;
+                    restitution.max(if living.is_some() {
+                        bounciness as f64
+                    } else {
+                        (bounciness * 0.8f32) as f64
+                    })
+                } else {
+                    0.0
+                };
+            }
+
+            let (gravity_compensation, effective_drag) = if restitution > 0.0 {
+                let portion_with_movement = movement_result.actual.y / physics.velocity.y;
+
+                (
+                    portion_with_movement * get_effective_gravity(),
+                    azalea_core::math::lerp(
+                        portion_with_movement,
+                        1.0,
+                        attributes.air_drag.calculate(),
+                    ),
+                )
+            } else {
+                (0.0, 1.0)
+            };
+
+            velocity
+                .with_y((gravity_compensation - physics.velocity.y) * effective_drag * restitution)
+        } else {
+            velocity
+        };
+
+        physics.velocity = velocity;
+    }
+}
+
+#[allow(clippy::type_complexity)]
+pub fn apply_speed_factor(
+    mut query: Query<
+        (&mut Physics, &Position, &GroundContact, &WorldName),
+        (With<LocalEntity>, With<HasClientLoaded>),
+    >,
+    worlds: Res<Worlds>,
+) {
+    for (mut physics, position, ground_contact, world_name) in &mut query {
+        let Some(world_lock) = worlds.get(world_name) else {
+            continue;
+        };
+        let world = world_lock.read();
+
+        if let Some(block_state) = world.chunks.get_block_state(BlockPos::from(position)) {
+            let speed_factor = block_state.behavior().speed_factor;
+
+            let speed_factor = if block_state.as_block_kind() == BlockKind::BubbleColumn
+                || block_state.as_block_kind() == BlockKind::Water
+            {
+                speed_factor
+            } else if speed_factor == 1.0f32 {
+                world
+                    .chunks
+                    .get_block_state(get_block_pos_below_that_affects_movement(
+                        &world.chunks,
+                        *position,
+                        ground_contact,
+                    ))
+                    .unwrap_or(BlockState::from(BlockKind::VoidAir))
+                    .behavior()
+                    .speed_factor
+            } else {
+                speed_factor
+            };
+
+            physics.velocity =
+                physics
+                    .velocity
+                    .multiply(speed_factor as f64, 1.0, speed_factor as f64)
+        }
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
 fn check_inside_blocks(
     physics: &mut Physics,
+    stuck_speed_multipler: &mut StuckSpeedMultiplier,
+    effect: &ActiveEffects,
+    ground_contact: &GroundContact,
+    position: &Position,
     dimensions: &EntityDimensions,
     world: &World,
     movements: &[EntityMovement],
-) -> Vec<BlockState> {
+) -> Vec<BlockPos> {
     let mut blocks_inside = Vec::new();
-    let mut visited_blocks = HashSet::<BlockState>::new();
+    let mut visited_blocks = HashSet::<BlockPos>::new();
 
     for movement in movements {
         let bounding_box_at_target = dimensions
             .make_bounding_box(movement.to)
             .deflate_all(1.0E-5);
+
+        let moved_far = movement.from.distance_squared_to(movement.to)
+            > 0.9999900000002526 * 0.9999900000002526;
 
         for traversed_block in
             box_traverse_blocks(movement.from, movement.to, &bounding_box_at_target)
@@ -246,7 +460,7 @@ fn check_inside_blocks(
             if traversed_block_state.is_air() {
                 continue;
             }
-            if !visited_blocks.insert(traversed_block_state) {
+            if !visited_blocks.insert(traversed_block) {
                 continue;
             }
 
@@ -276,9 +490,28 @@ fn check_inside_blocks(
                 continue;
             }
 
-            handle_entity_inside_block(world, traversed_block_state, traversed_block, physics);
+            handle_entity_inside_block(
+                moved_far
+                    || bounding_box_at_target.intersects_vec3(
+                        traversed_block.to_vec3_floored(),
+                        traversed_block.to_vec3_floored().add(Vec3 {
+                            x: 1.0,
+                            y: 1.0,
+                            z: 1.0,
+                        }),
+                    ),
+                world,
+                traversed_block_state,
+                effect,
+                traversed_block,
+                ground_contact,
+                position,
+                dimensions,
+                stuck_speed_multipler,
+                physics,
+            );
 
-            blocks_inside.push(traversed_block_state);
+            blocks_inside.push(traversed_block);
         }
     }
 
@@ -303,16 +536,27 @@ fn collided_with_shape_moving_from(
 }
 
 // BlockBehavior.entityInside
+#[allow(clippy::too_many_arguments)]
 fn handle_entity_inside_block(
+    precise: bool,
     world: &World,
     block: BlockState,
+    effect: &ActiveEffects,
     block_pos: BlockPos,
+    ground_contact: &GroundContact,
+    position: &Position,
+    dimensions: &EntityDimensions,
+    stuck_speed_multipler: &mut StuckSpeedMultiplier,
     physics: &mut Physics,
 ) {
     let registry_block = BlockKind::from(block);
     #[allow(clippy::single_match)]
     match registry_block {
         BlockKind::BubbleColumn => {
+            if !precise {
+                return;
+            }
+
             let block_above = world.get_block_state(block_pos.up(1)).unwrap_or_default();
             let is_block_above_empty =
                 block_above.is_collision_shape_empty() && FluidState::from(block_above).is_empty();
@@ -338,7 +582,72 @@ fn handle_entity_inside_block(
                 physics.reset_fall_distance();
             }
         }
+        BlockKind::Cobweb => {
+            stuck_speed_multipler.modifier = if effect.get(MobEffect::Weaving).is_some() {
+                Vec3 {
+                    x: 0.5,
+                    y: 0.25,
+                    z: 0.5,
+                }
+            } else {
+                Vec3 {
+                    x: 0.25,
+                    y: 0.05f32 as f64,
+                    z: 0.25,
+                }
+            }
+        }
+        BlockKind::SweetBerryBush => {
+            stuck_speed_multipler.modifier = Vec3 {
+                x: 0.8f32 as f64,
+                y: 0.75,
+                z: 0.8f32 as f64,
+            }
+        }
+        BlockKind::HoneyBlock => {
+            let dx = (block_pos.x as f64 + 0.5 - position.x).abs();
+            let dz = (block_pos.z as f64 + 0.5 - position.z).abs();
+            let overlapping_dist = 0.4375f64 + (dimensions.width / 2.0f32) as f64;
+
+            let old_velocity_y = physics.velocity.y / 0.98f32 as f64 + 0.08;
+            const NEW_VELOCITY_Y: f64 = (-0.05f64 - 0.08) * 0.98f32 as f64;
+
+            let is_sliding_down = !ground_contact.on_ground()
+                && position.y <= block_pos.y as f64 + 0.9375 - 1.0e-7
+                && old_velocity_y < -0.08
+                && (dx + 1.0e-7 > overlapping_dist || dz + 1.0e-7 > overlapping_dist);
+
+            if is_sliding_down {
+                if old_velocity_y < -0.13 {
+                    let reduction_factor_horizontal = -0.05 / old_velocity_y;
+                    physics.velocity.x *= reduction_factor_horizontal;
+                    physics.velocity.y = NEW_VELOCITY_Y;
+                    physics.velocity.z *= reduction_factor_horizontal;
+                } else {
+                    physics.velocity.y = NEW_VELOCITY_Y;
+                }
+
+                physics.reset_fall_distance();
+            }
+        }
         _ => {}
+    }
+}
+
+// can't imagine that's the only block that currently has client side effect
+// when stepping on, therefore minimal args
+fn handle_entity_step_on(
+    block: BlockKind,
+    client_movement: &ClientMovementState,
+    physics: &mut Physics,
+) {
+    if BlockKind::SlimeBlock == block {
+        let y_absolute = physics.velocity.y.abs();
+        if y_absolute > 0.1 && !client_movement.trying_to_crouch {
+            let scale = 0.4 + y_absolute * 0.2;
+            physics.velocity.x *= scale;
+            physics.velocity.z *= scale;
+        }
     }
 }
 
@@ -347,8 +656,10 @@ pub struct EntityMovement {
     pub to: Vec3,
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn jump_from_ground(
     physics: &mut Physics,
+    ground_contact: &GroundContact,
     position: Position,
     look_direction: LookDirection,
     sprinting: Sprinting,
@@ -361,7 +672,7 @@ pub fn jump_from_ground(
         .expect("All entities should be in a valid world");
     let world = world_lock.read();
 
-    let base_jump = jump_power(&world, position);
+    let base_jump = jump_power(&world, position, ground_contact);
     let jump_power = base_jump + jump_boost_power(active_effects);
     if jump_power <= 1.0E-5 {
         return;
@@ -392,20 +703,24 @@ pub fn update_old_position(mut query: Query<(&mut Physics, &Position)>) {
     }
 }
 
-pub fn get_block_pos_below_that_affects_movement(position: Position) -> BlockPos {
-    BlockPos::new(
-        position.x.floor() as i32,
-        // TODO: this uses bounding_box.min_y instead of position.y
-        (position.y - 0.5f64).floor() as i32,
-        position.z.floor() as i32,
-    )
+pub fn get_block_pos_below_that_affects_movement(
+    chunk_storage: &ChunkStorage,
+    position: Position,
+    ground_contact: &GroundContact,
+) -> BlockPos {
+    on_pos(0.500001f32, chunk_storage, position, ground_contact)
 }
 
-fn handle_relative_friction_and_calculate_movement(ctx: &mut MoveCtx, block_friction: f32) -> Vec3 {
+fn handle_relative_friction_and_calculate_movement(ctx: &mut MoveCtx, block_friction: f32) {
     move_relative(
         ctx.physics,
         ctx.direction,
-        get_friction_influenced_speed(ctx.physics, ctx.attributes, block_friction, ctx.sprinting),
+        get_friction_influenced_speed(
+            ctx.ground_contact,
+            ctx.attributes,
+            block_friction,
+            ctx.sprinting,
+        ),
         Vec3::new(
             ctx.physics.x_acceleration as f64,
             ctx.physics.y_acceleration as f64,
@@ -422,27 +737,6 @@ fn handle_relative_friction_and_calculate_movement(ctx: &mut MoveCtx, block_fric
     );
 
     move_colliding(ctx, ctx.physics.velocity);
-    // let delta_movement = entity.delta;
-    // ladders
-    //   if ((entity.horizontalCollision || entity.jumping) && (entity.onClimbable()
-    // || entity.getFeetBlockState().is(Blocks.POWDER_SNOW) &&
-    // PowderSnowBlock.canEntityWalkOnPowderSnow(entity))) {      var3 = new
-    // Vec3(var3.x, 0.2D, var3.z);   }
-
-    if ctx.physics.horizontal_collision || *ctx.jumping {
-        let block_at_feet: BlockKind = ctx
-            .world
-            .chunks
-            .get_block_state(BlockPos::from(*ctx.position))
-            .unwrap_or_default()
-            .into();
-
-        if *ctx.on_climbable || block_at_feet == BlockKind::PowderSnow {
-            ctx.physics.velocity.y = 0.2;
-        }
-    }
-
-    ctx.physics.velocity
 }
 
 fn handle_on_climbable(
@@ -484,13 +778,13 @@ fn handle_on_climbable(
 //     return this.onGround ? this.getSpeed() * (0.21600002F / (friction *
 // friction * friction)) : this.flyingSpeed; }
 fn get_friction_influenced_speed(
-    physics: &Physics,
+    ground_contact: &GroundContact,
     attributes: &Attributes,
     friction: f32,
     sprinting: Sprinting,
 ) -> f32 {
     // TODO: have speed & flying_speed fields in entity
-    if physics.on_ground() {
+    if ground_contact.on_ground() {
         let speed = attributes.movement_speed.calculate() as f32;
         speed * (0.21600002f32 / (friction * friction * friction))
     } else {
@@ -501,11 +795,15 @@ fn get_friction_influenced_speed(
 
 /// Returns the what the entity's jump should be multiplied by based on the
 /// block they're standing on.
-fn block_jump_factor(world: &World, position: Position) -> f32 {
+fn block_jump_factor(world: &World, position: Position, ground_contact: &GroundContact) -> f32 {
     let block_at_pos = world.chunks.get_block_state(position.into());
     let block_below = world
         .chunks
-        .get_block_state(get_block_pos_below_that_affects_movement(position));
+        .get_block_state(get_block_pos_below_that_affects_movement(
+            &world.chunks,
+            position,
+            ground_contact,
+        ));
 
     let block_at_pos_jump_factor = if let Some(block) = block_at_pos {
         block.behavior().jump_factor
@@ -529,8 +827,8 @@ fn block_jump_factor(world: &World, position: Position) -> f32 {
 // public double getJumpBoostPower() {
 //     return this.hasEffect(MobEffects.JUMP) ? (double)(0.1F *
 // (float)(this.getEffect(MobEffects.JUMP).getAmplifier() + 1)) : 0.0D; }
-fn jump_power(world: &World, position: Position) -> f32 {
-    0.42 * block_jump_factor(world, position)
+fn jump_power(world: &World, position: Position, ground_contact: &GroundContact) -> f32 {
+    0.42 * block_jump_factor(world, position, ground_contact)
 }
 
 fn jump_boost_power(active_effects: &ActiveEffects) -> f32 {
@@ -538,4 +836,51 @@ fn jump_boost_power(active_effects: &ActiveEffects) -> f32 {
         .get_level(MobEffect::JumpBoost)
         .map(|level| 0.1 * (level + 1) as f32)
         .unwrap_or(0.)
+}
+
+#[allow(clippy::type_complexity)]
+pub fn update_falling_distance(
+    mut query: Query<
+        (&Position, &WorldName, &GroundContact, &mut Physics),
+        (With<LocalEntity>, With<HasClientLoaded>),
+    >,
+    worlds: Res<Worlds>,
+) {
+    for (position, world_name, ground_contact, mut physics) in &mut query {
+        let Some(world_lock) = worlds.get(world_name) else {
+            continue;
+        };
+        let world = world_lock.read();
+
+        let block_pos_below =
+            azalea_entity::on_pos_legacy(&world.chunks, *position, ground_contact);
+        let block_state_below = world.get_block_state(block_pos_below).unwrap_or_default();
+
+        let old_position = physics.old_position;
+        check_fall_damage(
+            &mut physics,
+            ground_contact,
+            (**position - old_position).y,
+            block_state_below,
+            block_pos_below,
+        );
+    }
+}
+
+fn check_fall_damage(
+    physics: &mut Physics,
+    ground_contact: &GroundContact,
+    delta_y: f64,
+    _block_state_below: BlockState,
+    _block_pos_below: BlockPos,
+) {
+    if !physics.is_in_water() && delta_y < 0. {
+        physics.fall_distance -= delta_y as f32 as f64;
+    }
+
+    if ground_contact.on_ground() {
+        // vanilla calls block.fallOn here but it's not relevant for us
+
+        physics.fall_distance = 0.;
+    }
 }

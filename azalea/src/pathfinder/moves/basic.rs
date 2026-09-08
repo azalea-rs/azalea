@@ -371,7 +371,7 @@ pub fn descend_is_reached(
         target,
         start,
         position,
-        physics,
+        ground_contact,
         ..
     }: IsReachedCtx,
 ) -> bool {
@@ -387,7 +387,7 @@ pub fn descend_is_reached(
         if (position.y - target.y as f64) < 0.5 {
             return true;
         }
-    } else if player_pos_to_block_pos(position).up(1) == target && physics.on_ground() {
+    } else if player_pos_to_block_pos(position).up(1) == target && ground_contact.on_ground() {
         return true;
     }
     false

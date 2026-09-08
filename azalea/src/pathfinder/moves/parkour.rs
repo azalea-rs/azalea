@@ -236,7 +236,7 @@ fn execute_parkour_move(mut ctx: ExecuteCtx) {
 
         // it's possible to hit our heads on a block when doing certain jumps (which
         // resets our horizontal velocity), but we can avoid that by sneaking
-        if !ctx.physics.on_ground() && ctx.physics.velocity.y.abs() < 0.25 {
+        if !ctx.ground_contact.on_ground() && ctx.physics.velocity.y.abs() < 0.25 {
             let should_sneak = {
                 let world = ctx.world.read();
                 let pos_above = ctx.position.up(1.8 + 0.25);
@@ -270,7 +270,7 @@ pub fn parkour_is_reached(
     IsReachedCtx {
         position,
         target,
-        physics,
+        ground_contact,
         ..
     }: IsReachedCtx,
 ) -> bool {
@@ -280,5 +280,5 @@ pub fn parkour_is_reached(
     }
 
     // this is to make it handle things like slabs correctly
-    player_pos_to_block_pos(position) == target && physics.on_ground()
+    player_pos_to_block_pos(position) == target && ground_contact.on_ground()
 }

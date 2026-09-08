@@ -4,7 +4,7 @@ import requests
 import json
 import os
 
-PUMPKIN_EXTRACTOR_COMMIT = "a4a3050889d671b51822925bfec6877f64d4c9ae"
+PUMPKIN_EXTRACTOR_COMMIT = "6076ef572ae16ba1d0eef7809b7608cd861ae14b"
 BURGER_COMMIT = "6b160f81cb6eca0cd67fbceff05a4097af165358"
 
 # make sure the cache directory exists
@@ -31,7 +31,7 @@ def get_pumpkin_extractor():
     if not os.path.exists(get_dir_location("__cache__/azalea-pumpkin-extractor")):
         print("\033[92mDownloading mat-1/azalea-pumpkin-extractor...\033[m")
         os.system(
-            f"cd {get_dir_location('__cache__')} && git clone https://github.com/azalea-rs/azalea-pumpkin-extractor && cd azalea-pumpkin-extractor && git pull && git reset --hard {PUMPKIN_EXTRACTOR_COMMIT}"
+            f"cd {get_dir_location('__cache__')} && git clone https://github.com/commandblock2/azalea-pumpkin-extractor && cd azalea-pumpkin-extractor && git pull && git reset --hard {PUMPKIN_EXTRACTOR_COMMIT}"
         )
 
     return get_dir_location("__cache__/azalea-pumpkin-extractor")

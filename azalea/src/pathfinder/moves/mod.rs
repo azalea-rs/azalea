@@ -73,6 +73,7 @@ pub struct ExecuteCtx<'s, 'w1, 'w2, 'w3, 'w4, 'w5, 'w6, 'a> {
     pub start: BlockPos,
     pub position: Vec3,
     pub physics: &'a azalea_entity::Physics,
+    pub ground_contact: &'a azalea_entity::GroundContact,
     pub is_currently_mining: bool,
     pub can_mine: bool,
     pub world: Arc<RwLock<World>>,
@@ -234,6 +235,7 @@ pub struct IsReachedCtx<'a> {
     pub start: BlockPos,
     pub position: Vec3,
     pub physics: &'a azalea_entity::Physics,
+    pub ground_contact: &'a azalea_entity::GroundContact,
 }
 
 /// Returns whether the entity is at the node and should start going to the

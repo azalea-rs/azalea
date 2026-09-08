@@ -11,7 +11,13 @@ use azalea_core::{
     position::{BlockPos, ChunkPos},
     tick::GameTick,
 };
-use azalea_registry::{builtin::BlockKind, tags};
+use azalea_registry::{
+    builtin::BlockKind,
+    tags::{
+        self,
+        blocks::{FENCE_GATES, FENCES, WALLS},
+    },
+};
 use azalea_world::{ChunkStorage, WorldName, Worlds};
 use bevy_app::{App, Plugin, PostUpdate, Update};
 use bevy_ecs::prelude::*;
@@ -21,7 +27,7 @@ use indexing::EntityUuidIndex;
 use tracing::debug;
 
 use crate::{
-    FluidOnEyes, LookDirection, Physics, Pose, Position,
+    FluidOnEyes, GroundContact, LookDirection, Physics, Pose, Position,
     dimensions::{EntityDimensions, calculate_dimensions},
     metadata::{self, Health, Player},
     plugin::effect_events::{handle_add_effect, handle_remove_effects},
@@ -293,8 +299,12 @@ pub fn update_in_loaded_chunk(
 }
 
 /// Get the position of the block below the entity, but a little lower.
-pub fn on_pos_legacy(chunk_storage: &ChunkStorage, position: Position) -> BlockPos {
-    on_pos(0.2, chunk_storage, position)
+pub fn on_pos_legacy(
+    chunk_storage: &ChunkStorage,
+    pos: Position,
+    ground_contact: &GroundContact,
+) -> BlockPos {
+    on_pos(0.2, chunk_storage, pos, ground_contact)
 }
 
 // int x = Mth.floor(this.position.x);
@@ -309,29 +319,44 @@ pub fn on_pos_legacy(chunk_storage: &ChunkStorage, position: Position) -> BlockP
 //    }
 // }
 // return var5;
-pub fn on_pos(offset: f32, chunk_storage: &ChunkStorage, pos: Position) -> BlockPos {
-    let x = pos.x.floor() as i32;
-    let y = (pos.y - offset as f64).floor() as i32;
-    let z = pos.z.floor() as i32;
-    let pos = BlockPos { x, y, z };
-
-    // TODO: check if block below is a fence, wall, or fence gate
-    let block_pos = pos.down(1);
-    let block_state = chunk_storage.get_block_state(block_pos);
-    if block_state == Some(BlockState::AIR) {
-        let block_pos_below = block_pos.down(1);
-        let block_state_below = chunk_storage.get_block_state(block_pos_below);
-        if let Some(_block_state_below) = block_state_below {
-            // if block_state_below.is_fence()
-            //     || block_state_below.is_wall()
-            //     || block_state_below.is_fence_gate()
-            // {
-            //     return block_pos_below;
-            // }
+pub fn on_pos(
+    offset: f32,
+    chunk_storage: &ChunkStorage,
+    pos: Position,
+    ground_contact: &GroundContact,
+) -> BlockPos {
+    if let Some(main_supporting_block) = ground_contact.supporting_block {
+        if offset <= 1e-5f32 {
+            main_supporting_block
+        } else {
+            let block_state_below = chunk_storage
+                .get_block_state(main_supporting_block)
+                .unwrap_or(BlockState::from(BlockKind::VoidAir));
+            let block_kind_below = block_state_below.as_block_kind();
+            if (offset > 0.5 || !FENCES.contains(&block_kind_below))
+                && !WALLS.contains(&block_kind_below)
+                && !(FENCE_GATES.contains(&block_kind_below))
+            // For fence gates, vanilla uses `instanceof` to understand if it is one. The difference
+            // is that data packs can change the tags of a block so you may just some random block
+            // as a fence, where we don't seem to have this block type tag concept natively at the
+            // moment (also we don't seem to be accecpting data from data packs yet, so I think this
+            // should do the job for now)
+            {
+                main_supporting_block.with_y((pos.y - offset as f64).floor() as i32)
+            } else {
+                main_supporting_block
+            }
+        }
+    } else {
+        let x_truncated = pos.x.floor() as i32;
+        let y_truncated_below = (pos.y - offset as f64).floor() as i32;
+        let z_truncated = pos.z.floor() as i32;
+        BlockPos {
+            x: x_truncated,
+            y: y_truncated_below,
+            z: z_truncated,
         }
     }
-
-    pos
 }
 
 #[cfg(test)]

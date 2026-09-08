@@ -5,19 +5,19 @@ use azalea_core::{
     tick::GameTick,
 };
 use azalea_entity::{
-    Attributes, Crouching, EntityGeometryUpdateSystems, HasClientLoaded, Jumping, LastSentPosition,
-    LocalEntity, LookDirection, OnClimbable, Physics, PlayerAbilities, Pose, Position,
+    Attributes, Crouching, GroundContact, HasClientLoaded, Jumping, LastSentPosition, LocalEntity,
+    LookDirection, MovementResult, OnClimbable, Physics, PlayerAbilities, Pose, Position,
     dimensions::calculate_dimensions,
     inventory::Inventory,
     metadata::{self, FallFlying, Sprinting},
-    update_bounding_box,
+    update_bounding_box, update_dimensions,
 };
 use azalea_inventory::components::{self, EquipmentSlot};
 use azalea_physics::{
-    PhysicsSystems, ai_step,
+    PhysicsSystems, TravelSystems, ai_step,
     client_movement::{ClientMovementState, SprintDirection, WalkDirection},
     collision::entity_collisions::{AabbQuery, CollidableEntityQuery, update_last_bounding_box},
-    travel::{no_collision, travel},
+    travel::no_collision,
 };
 use azalea_protocol::{
     common::movements::MoveFlags,
@@ -69,11 +69,10 @@ impl Plugin for MovementPlugin {
                         .before(ai_step)
                         .before(azalea_physics::fluids::update_in_water_state_and_do_fluid_pushing),
                     send_player_input_packet,
-                    update_pose.before(EntityGeometryUpdateSystems),
-                    send_sprinting_if_needed
-                        .after(azalea_entity::update_in_loaded_chunk)
-                        .after(travel)
-                        .after(EntityGeometryUpdateSystems),
+                    update_pose.after(TravelSystems),
+                    update_dimensions,
+                    update_bounding_box,
+                    send_sprinting_if_needed.after(PhysicsSystems),
                     send_position,
                 )
                     .chain(),
@@ -100,9 +99,10 @@ pub fn send_position(
             Entity,
             &Position,
             &LookDirection,
+            &MovementResult,
+            &mut GroundContact,
             &mut ClientMovementState,
             &mut LastSentPosition,
-            &mut Physics,
             &mut LastSentLookDirection,
         ),
         With<HasClientLoaded>,
@@ -113,9 +113,10 @@ pub fn send_position(
         entity,
         position,
         direction,
+        movement_result,
+        mut ground_contact,
         mut physics_state,
         mut last_sent_position,
-        mut physics,
         mut last_direction,
     ) in query.iter_mut()
     {
@@ -142,8 +143,8 @@ pub fn send_position(
             //   TODO: posrot packet for being a passenger
             // }
             let flags = MoveFlags {
-                on_ground: physics.on_ground(),
-                horizontal_collision: physics.horizontal_collision,
+                on_ground: ground_contact.on_ground(),
+                horizontal_collision: movement_result.horizontal_collision(),
             };
             let packet = if sending_position && sending_direction {
                 Some(
@@ -170,7 +171,7 @@ pub fn send_position(
                     }
                     .into_variant(),
                 )
-            } else if physics.last_on_ground() != physics.on_ground() {
+            } else if ground_contact.last_on_ground() != ground_contact.on_ground() {
                 Some(ServerboundMovePlayerStatusOnly { flags }.into_variant())
             } else {
                 None
@@ -185,8 +186,8 @@ pub fn send_position(
                 last_direction.x_rot = direction.x_rot();
             }
 
-            let on_ground = physics.on_ground();
-            physics.set_last_on_ground(on_ground);
+            let on_ground = ground_contact.on_ground();
+            ground_contact.set_last_on_ground(on_ground);
             // minecraft checks for autojump here, but also autojump is bad so
 
             packet
@@ -300,21 +301,26 @@ pub(crate) fn tick_controls(mut query: Query<&mut ClientMovementState>) {
 pub fn local_player_ai_step(
     mut query: Query<
         (
-            Entity,
-            &ClientMovementState,
-            &PlayerAbilities,
-            &metadata::Swimming,
-            &metadata::SleepingPos,
-            &WorldHolder,
-            &Position,
-            Option<&Hunger>,
-            Option<&LastSentInput>,
-            &FallFlying,
-            &Pose,
-            &mut Physics,
-            &mut Sprinting,
-            &mut Crouching,
-            &mut Attributes,
+            (
+                Entity,
+                &ClientMovementState,
+                &PlayerAbilities,
+                &metadata::Swimming,
+                &metadata::SleepingPos,
+                &WorldHolder,
+                &Position,
+                Option<&Hunger>,
+                Option<&LastSentInput>,
+                &FallFlying,
+                &Pose,
+                &MovementResult,
+            ),
+            (
+                &mut Physics,
+                &mut Sprinting,
+                &mut Crouching,
+                &mut Attributes,
+            ),
         ),
         (With<HasClientLoaded>, With<LocalEntity>),
     >,
@@ -322,21 +328,21 @@ pub fn local_player_ai_step(
     collidable_entity_query: CollidableEntityQuery,
 ) {
     for (
-        entity,
-        physics_state,
-        abilities,
-        swimming,
-        sleeping_pos,
-        world_holder,
-        position,
-        hunger,
-        last_sent_input,
-        fall_flying,
-        pose,
-        mut physics,
-        mut sprinting,
-        mut crouching,
-        mut attributes,
+        (
+            entity,
+            physics_state,
+            abilities,
+            swimming,
+            sleeping_pos,
+            world_holder,
+            position,
+            hunger,
+            last_sent_input,
+            fall_flying,
+            pose,
+            movement_result,
+        ),
+        (mut physics, mut sprinting, mut crouching, mut attributes),
     ) in query.iter_mut()
     {
         // server ai step
@@ -413,7 +419,8 @@ pub fn local_player_ai_step(
                 || (is_passenger && !vehicle_can_sprint)
                 || !has_enough_impulse
                 || !has_enough_food_to_sprint
-                || (physics.horizontal_collision && !physics.minor_horizontal_collision)
+                || (movement_result.horizontal_collision()
+                    && !movement_result.minor_horizontal_collision())
                 || (is_in_water && !is_underwater);
             if should_stop_sprinting {
                 set_sprinting(false, &mut sprinting, &mut attributes);
@@ -438,6 +445,7 @@ pub fn local_player_ai_step(
 // 1. adds too much new query parameters if not extracted
 // 2. is very local to interact with the elytra shared flag
 // therefore I think it's safe to isolate into a separate system
+#[allow(clippy::type_complexity)]
 pub fn process_fall_flying_activation(
     mut query: Query<
         (
@@ -449,6 +457,7 @@ pub fn process_fall_flying_activation(
             &Inventory,
             &Physics,
             &OnClimbable,
+            &GroundContact,
             &mut FallFlying,
         ),
         (With<HasClientLoaded>, With<LocalEntity>),
@@ -464,6 +473,7 @@ pub fn process_fall_flying_activation(
         inv,
         physics,
         onclimbable,
+        ground_contact,
         mut fall_flying,
     ) in query.iter_mut()
     {
@@ -474,7 +484,7 @@ pub fn process_fall_flying_activation(
             && !creative_flight_toggled
             && last_sent_input.is_some_and(|input| !input.0.jump)
             && !**onclimbable
-            && can_start_fall_flying(&fall_flying, abilities, inv, physics)
+            && can_start_fall_flying(&fall_flying, abilities, inv, physics, ground_contact)
         {
             // split `tryToStartFallFlying` into condition check
             **fall_flying = true; // Player.startFallFlying()
@@ -496,12 +506,13 @@ fn can_start_fall_flying(
     abilities: &PlayerAbilities,
     inv: &Inventory,
     physics: &Physics,
+    ground_contact: &GroundContact,
 ) -> bool {
     (!**already_fall_flying)
         && (!abilities.flying)
 
         // LivingEntity.canGlide()
-        && !physics.on_ground()
+        && !ground_contact.on_ground()
         // TODO: && isPassenger()
         // TODO: slow falling status effect
         && EquipmentSlot::values().iter().any(|slot| {
@@ -699,6 +710,7 @@ pub fn handle_knockback(knockback: On<KnockbackEvent>, mut query: Query<&mut Phy
     }
 }
 
+#[allow(clippy::type_complexity)]
 pub fn update_pose(
     mut query: Query<(
         Entity,

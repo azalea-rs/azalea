@@ -9,13 +9,14 @@ use azalea_core::{
     position::{ChunkPos, Vec3},
 };
 use azalea_entity::{
-    Dead, EntityBundle, EntityKindComponent, HasClientLoaded, LoadedBy, LocalEntity, LookDirection,
-    Physics, PlayerAbilities, Position,
+    Dead, EntityBundle, EntityKindComponent, GroundContact, HasClientLoaded, LoadedBy, LocalEntity,
+    LookDirection, Physics, PlayerAbilities, Position,
     effect_events::{AddEffectEvent, RemoveEffectsEvent},
     indexing::{EntityIdIndex, EntityUuidIndex},
     inventory::Inventory,
     metadata::{Health, apply_metadata},
 };
+use azalea_physics::support::PositionUpdatedFromServer;
 use azalea_protocol::{
     common::movements::MoveFlags,
     packets::{
@@ -1488,6 +1489,7 @@ impl GamePacketHandler<'_> {
             Query<(&EntityIdIndex, &WorldHolder)>,
             Query<(
                 &mut Physics,
+                &mut GroundContact,
                 &mut Position,
                 &mut LookDirection,
                 Option<&LocalEntity>,
@@ -1516,8 +1518,13 @@ impl GamePacketHandler<'_> {
                     return;
                 }
 
-                let Ok((mut physics, mut position, mut look_direction, local_entity)) =
-                    entity_query.get_mut(entity)
+                let Ok((
+                    mut physics,
+                    mut ground_contact,
+                    mut position,
+                    mut look_direction,
+                    local_entity,
+                )) = entity_query.get_mut(entity)
                 else {
                     return;
                 };
@@ -1530,8 +1537,6 @@ impl GamePacketHandler<'_> {
                     return;
                 }
 
-                physics.set_on_ground(new_on_ground);
-
                 if **position != new_position {
                     **position = new_position;
                 }
@@ -1539,6 +1544,9 @@ impl GamePacketHandler<'_> {
                 if *look_direction != new_look_direction {
                     *look_direction = new_look_direction;
                 }
+
+                ground_contact.set_on_ground(new_on_ground);
+                commands.entity(entity).insert(PositionUpdatedFromServer);
             },
         );
     }
@@ -1658,8 +1666,16 @@ struct MoveEntity {
     pub on_ground: bool,
 }
 
-type MoveEntityQuery<'world, 'state, 'a> =
-    Query<'world, 'state, (&'a mut Physics, &'a mut Position, &'a mut LookDirection)>;
+type MoveEntityQuery<'world, 'state, 'a> = Query<
+    'world,
+    'state,
+    (
+        &'a mut Physics,
+        &'a mut GroundContact,
+        &'a mut Position,
+        &'a mut LookDirection,
+    ),
+>;
 
 fn move_entity(
     player_entity: Entity,
@@ -1680,7 +1696,9 @@ fn move_entity(
         return;
     };
 
-    let Ok((mut physics, mut position, mut look_direction)) = entity_query.get_mut(entity) else {
+    let Ok((mut physics, mut ground_contact, mut position, mut look_direction)) =
+        entity_query.get_mut(entity)
+    else {
         debug!("Got move entity packet for entity with missing components {entity_id}");
         return;
     };
@@ -1710,5 +1728,6 @@ fn move_entity(
         }
     }
 
-    physics.set_on_ground(p.on_ground);
+    ground_contact.set_on_ground(p.on_ground);
+    commands.entity(entity).insert(PositionUpdatedFromServer);
 }

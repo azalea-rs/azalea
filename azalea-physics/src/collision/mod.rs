@@ -12,12 +12,12 @@ use azalea_block::{BlockState, fluid_state::FluidState};
 use azalea_core::{
     aabb::Aabb,
     direction::Axis,
-    math::{self, EPSILON},
+    math::EPSILON,
     position::{BlockPos, Vec3},
 };
 use azalea_entity::{
-    Attributes, Jumping, LookDirection, OnClimbable, Physics, PlayerAbilities, Pose, Position,
-    metadata::Sprinting,
+    Attributes, GroundContact, Jumping, LookDirection, MovementResult, OnClimbable, Physics,
+    PlayerAbilities, Pose, Position, StuckSpeedMultiplier, metadata::Sprinting,
 };
 use azalea_registry::builtin::BlockKind;
 use azalea_world::{ChunkStorage, World};
@@ -64,7 +64,7 @@ fn collide(ctx: &MoveCtx, movement: Vec3) -> Vec3 {
     let y_collision = movement.y != collided_delta.y;
     let z_collision = movement.z != collided_delta.z;
 
-    let on_ground = ctx.physics.on_ground() || y_collision && movement.y < 0.;
+    let on_ground = ctx.ground_contact.on_ground() || y_collision && movement.y < 0.;
 
     let max_up_step = 0.6;
     if max_up_step > 0. && on_ground && (x_collision || z_collision) {
@@ -127,6 +127,10 @@ pub struct MoveCtx<'world, 'state, 'a, 'b> {
     pub on_climbable: OnClimbable,
     pub pose: Option<Pose>,
     pub jumping: Jumping,
+
+    pub movement_result: &'a mut MovementResult,
+    pub ground_contact: &'a mut GroundContact,
+    pub stuck_speed_multipler: &'a mut StuckSpeedMultiplier,
 }
 
 /// Move an entity by a given delta, checking for collisions.
@@ -146,11 +150,12 @@ pub fn move_colliding(ctx: &mut MoveCtx, mut movement: Vec3) {
     //     }
     // }
 
-    // if (this.stuckSpeedMultiplier.lengthSqr() > 1.0E-7D) {
-    //     var2 = var2.multiply(this.stuckSpeedMultiplier);
-    //     this.stuckSpeedMultiplier = Vec3.ZERO;
-    //     this.setDeltaMovement(Vec3.ZERO);
-    // }
+    if ctx.stuck_speed_multipler.modifier.length_squared() > 1.0E-7 {
+        let modifier = ctx.stuck_speed_multipler.modifier;
+        movement = movement.multiply(modifier.x, modifier.y, modifier.z);
+        ctx.stuck_speed_multipler.modifier = Vec3::ZERO;
+        ctx.physics.velocity = Vec3::ZERO;
+    }
 
     movement = maybe_back_off_from_edge(ctx, movement);
     let collide_result = collide(ctx, movement);
@@ -159,7 +164,6 @@ pub fn move_colliding(ctx: &mut MoveCtx, mut movement: Vec3) {
 
     let position = &mut ctx.position;
     let physics = &mut *ctx.physics;
-    let world = ctx.world;
 
     if move_distance_sqr > EPSILON || movement.length_squared() - move_distance_sqr < EPSILON {
         // TODO: fall damage
@@ -177,89 +181,34 @@ pub fn move_colliding(ctx: &mut MoveCtx, mut movement: Vec3) {
         }
     }
 
-    let x_collision = !math::equal(movement.x, collide_result.x);
-    let z_collision = !math::equal(movement.z, collide_result.z);
-    let horizontal_collision = x_collision || z_collision;
-    physics.horizontal_collision = horizontal_collision;
+    ctx.movement_result.requested = movement;
+    ctx.movement_result.actual = collide_result;
 
-    let vertical_collision = movement.y != collide_result.y;
-    physics.vertical_collision = vertical_collision;
-    let on_ground = vertical_collision && movement.y < 0.;
-    physics.set_on_ground(on_ground);
+    let on_ground = ctx.movement_result.vertical_collision_below();
+    ctx.ground_contact.set_on_ground(on_ground);
+
+    ctx.movement_result.horizontal_collision();
+    ctx.movement_result.vertical_collision();
 
     // TODO: minecraft checks for a "minor" horizontal collision here
 
-    let block_pos_below = azalea_entity::on_pos_legacy(&world.chunks, **position);
-    let block_state_below = world.get_block_state(block_pos_below).unwrap_or_default();
-
-    check_fall_damage(
-        physics,
-        collide_result.y,
-        block_state_below,
-        block_pos_below,
-    );
-
     // if self.isRemoved() { return; }
 
-    if horizontal_collision {
+    if ctx.movement_result.horizontal_collision() {
         let delta_movement = &physics.velocity;
         physics.velocity = Vec3 {
-            x: if x_collision { 0. } else { delta_movement.x },
+            x: if ctx.movement_result.x_collision() {
+                0.
+            } else {
+                delta_movement.x
+            },
             y: delta_movement.y,
-            z: if z_collision { 0. } else { delta_movement.z },
+            z: if ctx.movement_result.z_collision() {
+                0.
+            } else {
+                delta_movement.z
+            },
         }
-    }
-
-    if vertical_collision {
-        // blockBelow.updateEntityAfterFallOn(this.level, this);
-        // the default implementation of updateEntityAfterFallOn sets the y movement to
-        // 0
-        physics.velocity.y = 0.;
-    }
-
-    if on_ground {
-        // blockBelow.stepOn(this.level, blockPosBelow, blockStateBelow,
-        // this);
-    }
-
-    // sounds
-
-    // this.tryCheckInsideBlocks();
-
-    // float var25 = this.getBlockSpeedFactor();
-    // this.setDeltaMovement(this.getDeltaMovement().multiply((double)var25,
-    // 1.0D, (double)var25)); if (this.level.getBlockStatesIfLoaded(this.
-    // getBoundingBox().deflate(1.0E-6D)).noneMatch((var0) -> {
-    //    return var0.is(BlockTags.FIRE) || var0.is(Blocks.LAVA);
-    // })) {
-    //    if (this.remainingFireTicks <= 0) {
-    //       this.setRemainingFireTicks(-this.getFireImmuneTicks());
-    //    }
-
-    //    if (this.wasOnFire && (this.isInPowderSnow ||
-    // this.isInWaterRainOrBubble())) {       this.
-    // playEntityOnFireExtinguishedSound();    }
-    // }
-
-    // if (this.isOnFire() && (this.isInPowderSnow ||
-    // this.isInWaterRainOrBubble())) {    this.setRemainingFireTicks(-this.
-    // getFireImmuneTicks()); }
-}
-
-fn check_fall_damage(
-    physics: &mut Physics,
-    delta_y: f64,
-    _block_state_below: BlockState,
-    _block_pos_below: BlockPos,
-) {
-    if !physics.is_in_water() && delta_y < 0. {
-        physics.fall_distance -= delta_y as f32 as f64;
-    }
-
-    if physics.on_ground() {
-        // vanilla calls block.fallOn here but it's not relevant for us
-
-        physics.fall_distance = 0.;
     }
 }
 
@@ -269,6 +218,7 @@ fn maybe_back_off_from_edge(move_ctx: &mut MoveCtx, mut movement: Vec3) -> Vec3 
 
     let fall_ctx = CanFallAtLeastCtx {
         physics: move_ctx.physics,
+        ground_contact: move_ctx.ground_contact,
         world: move_ctx.world,
         source_entity: move_ctx.source_entity,
         aabb_query: move_ctx.aabb_query,
@@ -333,13 +283,14 @@ fn get_max_up_step(attributes: &Attributes) -> f32 {
 }
 
 fn is_above_ground(ctx: &CanFallAtLeastCtx, max_up_step: f32) -> bool {
-    ctx.physics.on_ground()
+    ctx.ground_contact.on_ground()
         && ctx.physics.fall_distance < max_up_step as f64
         && !can_fall_at_least(ctx, 0., 0., max_up_step as f64 - ctx.physics.fall_distance)
 }
 
 pub struct CanFallAtLeastCtx<'world, 'state, 'a, 'b> {
     physics: &'a Physics,
+    ground_contact: &'a GroundContact,
     world: &'a World,
     source_entity: Entity,
     aabb_query: &'a AabbQuery<'world, 'state, 'b>,

@@ -7,7 +7,8 @@ use derive_more::{Deref, DerefMut};
 use uuid::Uuid;
 
 use crate::{
-    ActiveEffects, Attributes, EntityUuid, FluidOnEyes, LookDirection, Physics, Position,
+    ActiveEffects, Attributes, EntityUuid, FluidOnEyes, GroundContact, LookDirection,
+    MovementResult, Physics, Position, StuckSpeedMultiplier, TravelCtx,
     dimensions::EntityDimensions, indexing::EntityChunkPos,
 };
 
@@ -25,6 +26,10 @@ pub struct EntityBundle {
     pub chunk_pos: EntityChunkPos,
 
     pub physics: Physics,
+    pub movement_result: MovementResult,
+    pub ground_contact: GroundContact,
+    pub travel_ctx: TravelCtx,
+    pub stuck_speed_multiplier: StuckSpeedMultiplier,
     pub direction: LookDirection,
     pub dimensions: EntityDimensions,
     pub attributes: Attributes,
@@ -47,6 +52,10 @@ impl EntityBundle {
             chunk_pos: EntityChunkPos(ChunkPos::from(&pos)),
             last_sent_position: LastSentPosition(pos),
             physics: Physics::new(&dimensions, pos),
+            movement_result: MovementResult::default(),
+            travel_ctx: TravelCtx::default(),
+            ground_contact: GroundContact::default(),
+            stuck_speed_multiplier: StuckSpeedMultiplier::default(),
             dimensions,
             direction: LookDirection::default(),
 

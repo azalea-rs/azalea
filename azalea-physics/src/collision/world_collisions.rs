@@ -25,7 +25,7 @@ pub fn get_block_collisions(world: &World, aabb: &Aabb) -> Vec<VoxelShape> {
     while let Some(item) = state.cursor.next() {
         state.compute_next(
             item,
-            &mut block_collisions,
+            &mut |collision| block_collisions.push(collision.shape),
             initial_chunk_pos,
             initial_chunk.as_deref(),
         );
@@ -49,13 +49,54 @@ pub fn get_block_and_liquid_collisions(world: &World, aabb: &Aabb) -> Vec<VoxelS
     while let Some(item) = state.cursor.next() {
         state.compute_next(
             item,
-            &mut block_collisions,
+            &mut |collision| block_collisions.push(collision.shape),
             initial_chunk_pos,
             initial_chunk.as_deref(),
         );
     }
 
     block_collisions
+}
+
+pub fn find_supporting_block(
+    world: &World,
+    collison_box: Aabb,
+    source_position: Vec3,
+    collision_context: EntityCollisionContext,
+) -> Option<BlockPos> {
+    let blocks = {
+        let mut state = BlockCollisionsState::new(world, &collison_box, collision_context);
+        let mut blocks = Vec::new();
+
+        let initial_chunk_pos = ChunkPos::from(state.cursor.origin());
+        let initial_chunk = world.chunks.get(&initial_chunk_pos);
+        let initial_chunk = initial_chunk.as_deref().map(RwLock::read);
+
+        while let Some(item) = state.cursor.next() {
+            state.compute_next(
+                item,
+                &mut |collision| blocks.push(collision.pos),
+                initial_chunk_pos,
+                initial_chunk.as_deref(),
+            );
+        }
+
+        blocks
+    };
+
+    blocks.into_iter().min_by(|a, b| {
+        let a_distance = a.center().distance_squared_to(source_position);
+        let b_distance = b.center().distance_squared_to(source_position);
+
+        a_distance
+            .total_cmp(&b_distance)
+            // Vec3i.compareTo
+            // but I assume that it is not usually used elsewhere and it maybe confusing to
+            // implement Ord for Vec3i/BlockPos.
+            .then_with(|| a.y.cmp(&b.y))
+            .then_with(|| a.z.cmp(&b.z))
+            .then_with(|| a.x.cmp(&b.x))
+    })
 }
 
 pub struct BlockCollisionsState<'a> {
@@ -70,14 +111,21 @@ pub struct BlockCollisionsState<'a> {
     cached_block_shapes: Vec<(BlockState, &'static VoxelShape)>,
 }
 
+pub struct BlockCollision {
+    pub pos: BlockPos,
+    pub shape: VoxelShape,
+}
+
 impl<'a> BlockCollisionsState<'a> {
-    fn compute_next(
+    fn compute_next<F>(
         &mut self,
         item: CursorIteration,
-        block_collisions: &mut Vec<VoxelShape>,
+        receiver: &mut F,
         initial_chunk_pos: ChunkPos,
         initial_chunk: Option<&Chunk>,
-    ) {
+    ) where
+        F: FnMut(BlockCollision),
+    {
         if item.iteration_type == CursorIterationType::Corner {
             return;
         }
@@ -109,7 +157,10 @@ impl<'a> BlockCollisionsState<'a> {
                 return;
             }
 
-            block_collisions.push(BLOCK_SHAPE.move_relative(item.pos.to_vec3_floored()));
+            receiver(BlockCollision {
+                pos: item.pos,
+                shape: BLOCK_SHAPE.move_relative(item.pos.to_vec3_floored()),
+            });
             return;
         }
 
@@ -121,7 +172,10 @@ impl<'a> BlockCollisionsState<'a> {
             return;
         }
 
-        block_collisions.push(block_shape);
+        receiver(BlockCollision {
+            pos: item.pos,
+            shape: block_shape,
+        });
     }
 
     pub fn new(world: &'a World, aabb: &'a Aabb, context: EntityCollisionContext) -> Self {

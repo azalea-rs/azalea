@@ -1,7 +1,7 @@
 use azalea_block::{BlockState, fluid_state::FluidState};
 use azalea_core::{direction::Direction, game_type::GameMode, position::BlockPos, tick::GameTick};
 use azalea_entity::{
-    ActiveEffects, Attributes, FluidOnEyes, Physics, PlayerAbilities, Position,
+    ActiveEffects, Attributes, FluidOnEyes, GroundContact, PlayerAbilities, Position,
     inventory::Inventory, mining::get_mine_progress,
 };
 use azalea_inventory::ItemStack;
@@ -225,7 +225,7 @@ pub fn handle_mining_queued(
         &Inventory,
         &ActiveEffects,
         &FluidOnEyes,
-        &Physics,
+        &GroundContact,
         &Attributes,
         Option<&mut Mining>,
         &mut BlockStatePredictionHandler,
@@ -246,7 +246,7 @@ pub fn handle_mining_queued(
         inventory,
         active_effects,
         fluid_on_eyes,
-        physics,
+        ground_contact,
         attributes,
         mut mining,
         mut sequence_number,
@@ -340,7 +340,7 @@ pub fn handle_mining_queued(
                     &*target_block_state,
                     held_item,
                     fluid_on_eyes,
-                    physics,
+                    ground_contact,
                     attributes,
                     active_effects,
                 ) >= 1.
@@ -576,42 +576,45 @@ pub fn decrement_mine_delay(mut query: Query<&mut MineDelay>) {
 #[allow(clippy::too_many_arguments, clippy::type_complexity)]
 pub fn continue_mining_block(
     mut query: Query<(
-        Entity,
-        &WorldName,
-        &GameMode,
-        &Inventory,
-        &MineBlockPos,
-        &MineItem,
-        &ActiveEffects,
-        &FluidOnEyes,
-        &Physics,
-        &Attributes,
-        &Mining,
-        &mut MineDelay,
-        &mut MineProgress,
-        &mut MineTicks,
-        &mut BlockStatePredictionHandler,
+        (
+            Entity,
+            &WorldName,
+            &GameMode,
+            &Inventory,
+            &MineBlockPos,
+            &MineItem,
+            &ActiveEffects,
+            &FluidOnEyes,
+            &GroundContact,
+            &Attributes,
+            &Mining,
+        ),
+        (
+            &mut MineDelay,
+            &mut MineProgress,
+            &mut MineTicks,
+            &mut BlockStatePredictionHandler,
+        ),
     )>,
     mut commands: Commands,
     mut mine_block_progress_events: MessageWriter<MineBlockProgressEvent>,
     worlds: Res<Worlds>,
 ) {
     for (
-        entity,
-        world_name,
-        &game_mode,
-        inventory,
-        current_mining_pos,
-        current_mining_item,
-        active_effects,
-        fluid_on_eyes,
-        physics,
-        attributes,
-        mining,
-        mut mine_delay,
-        mut mine_progress,
-        mut mine_ticks,
-        mut prediction_handler,
+        (
+            entity,
+            world_name,
+            &game_mode,
+            inventory,
+            current_mining_pos,
+            current_mining_item,
+            active_effects,
+            fluid_on_eyes,
+            ground_contact,
+            attributes,
+            mining,
+        ),
+        (mut mine_delay, mut mine_progress, mut mine_ticks, mut prediction_handler),
     ) in query.iter_mut()
     {
         if game_mode == GameMode::Creative {
@@ -655,7 +658,7 @@ pub fn continue_mining_block(
                 block,
                 current_mining_item,
                 fluid_on_eyes,
-                physics,
+                ground_contact,
                 attributes,
                 active_effects,
             );
