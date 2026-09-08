@@ -120,7 +120,19 @@ fn update_fluid_height_and_do_fluid_pushing(
                 if fluid_at_cur_pos.kind != checking_fluid {
                     continue;
                 }
-                let fluid_max_y = (cur_y as f32 + fluid_at_cur_pos.height()) as f64;
+
+                let fluid_height = {
+                    if world
+                        .get_fluid_state(cur_pos.up(1))
+                        .is_some_and(|fluid| fluid.kind == checking_fluid)
+                    {
+                        1f32
+                    } else {
+                        fluid_at_cur_pos.height()
+                    }
+                };
+
+                let fluid_max_y = (cur_y as f32 + fluid_height) as f64;
                 if fluid_max_y < checking_liquids_aabb.min.y {
                     continue;
                 }

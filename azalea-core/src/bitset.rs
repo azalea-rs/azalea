@@ -241,6 +241,7 @@ impl<const N: usize> AzBuf for FixedBitSet<N> {
         }
         Ok(FixedBitSet { data })
     }
+    #[allow(clippy::needless_range_loop, reason = "Indexing into bitset")]
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         for item in self.data {
             item.azalea_write(buf)?;
