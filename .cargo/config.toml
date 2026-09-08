@@ -1,8 +1,5 @@
 [build]
-rustflags = [
-  "--cfg", "docsrs_dep",
-  "-Znext-solver=coherence" # This is temporary until the new trait solver supports `min_const_generic`s
-]
+rustflags = ["--cfg", "docsrs_dep"]
 rustdocflags = [
     "--html-after-content",
     "docs-rs/trait-tags.html",

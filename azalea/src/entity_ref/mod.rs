@@ -95,7 +95,7 @@ impl EntityRef {
         &self,
         f: impl FnOnce(QueryItem<D>) -> R,
     ) -> AzaleaResult<R> {
-        self.client.query_entity(self.entity, f)
+        self.client.query_entity::<D, R>(self.entity, f)
     }
 
     #[doc(hidden)]
@@ -105,7 +105,7 @@ impl EntityRef {
         f: impl FnOnce(QueryItem<D>) -> R,
     ) -> Result<R, QueryEntityError> {
         #[allow(deprecated)]
-        self.client.try_query_entity(self.entity, f)
+        self.client.try_query_entity::<D, R>(self.entity, f)
     }
 }
 
