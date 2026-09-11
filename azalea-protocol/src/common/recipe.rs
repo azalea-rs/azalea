@@ -1,5 +1,5 @@
 use azalea_buf::AzBuf;
-use azalea_inventory::ItemStack;
+use azalea_inventory::NonEmptyItemStack;
 use azalea_registry::{
     HolderSet,
     builtin::{DataComponentKind, ItemKind},
@@ -95,7 +95,7 @@ pub struct ItemSlotDisplay {
 }
 #[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct ItemStackSlotDisplay {
-    pub stack: ItemStack,
+    pub stack: NonEmptyItemStack,
 }
 #[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct DyedSlotDemo {

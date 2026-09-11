@@ -250,6 +250,30 @@ impl AzBuf for ItemStack {
     }
 }
 
+/// Similar to [`ItemStack`], but for places where the item can't be missing.
+///
+/// The Minecraft implementation of `ItemStackSlotDisplay` expects the item
+/// before the count, and the count is always at least 1.
+///
+/// This can be converted into an [`ItemStackData`] with
+/// [`Self::into_item_stack`].
+#[derive(AzBuf, Clone, Debug, PartialEq)]
+pub struct NonEmptyItemStack {
+    pub kind: ItemKind,
+    #[var]
+    pub count: i32,
+    pub component_patch: DataComponentPatch,
+}
+impl NonEmptyItemStack {
+    pub fn into_item_stack(self) -> ItemStackData {
+        ItemStackData {
+            kind: self.kind,
+            count: self.count,
+            component_patch: self.component_patch,
+        }
+    }
+}
+
 impl From<ItemStackData> for ItemStack {
     fn from(item: ItemStackData) -> Self {
         if item.is_empty() {
