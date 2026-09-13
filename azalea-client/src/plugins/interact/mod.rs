@@ -26,8 +26,8 @@ use azalea_physics::{
     collision::entity_collisions::update_last_bounding_box,
 };
 use azalea_protocol::packets::game::{
-    ServerboundInteract, ServerboundUseItem, s_interact::InteractionHand,
-    s_swing::ServerboundSwing, s_use_item_on::ServerboundUseItemOn,
+    ServerboundInteract, ServerboundPunch, ServerboundUseItem, s_interact::InteractionHand,
+    s_use_item_on::ServerboundUseItemOn,
 };
 use azalea_world::World;
 use bevy_app::{App, Plugin, Update};
@@ -441,12 +441,7 @@ pub struct SwingArmEvent {
     pub entity: Entity,
 }
 pub fn handle_swing_arm_trigger(swing_arm: On<SwingArmEvent>, mut commands: Commands) {
-    commands.trigger(SendGamePacketEvent::new(
-        swing_arm.entity,
-        ServerboundSwing {
-            hand: InteractionHand::MainHand,
-        },
-    ));
+    commands.trigger(SendGamePacketEvent::new(swing_arm.entity, ServerboundPunch));
 }
 
 #[allow(clippy::type_complexity)]

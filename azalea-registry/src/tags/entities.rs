@@ -66,6 +66,7 @@ pub static BOAT: LazyLock<RegistryTag<EntityKind>> = LazyLock::new(|| {
         EntityKind::MangroveBoat,
         EntityKind::OakBoat,
         EntityKind::PaleOakBoat,
+        EntityKind::PoplarBoat,
         EntityKind::SpruceBoat,
     ])
 });
@@ -161,6 +162,8 @@ pub static CANNOT_BE_AGE_LOCKED: LazyLock<RegistryTag<EntityKind>> = LazyLock::n
         EntityKind::ZombieHorse,
     ])
 });
+pub static CANNOT_BE_DISMOUNTED_BY_ITEM_USAGE: LazyLock<RegistryTag<EntityKind>> =
+    LazyLock::new(|| RegistryTag::new(vec![EntityKind::Interaction]));
 pub static CANNOT_BE_PUSHED_ONTO_BOATS: LazyLock<RegistryTag<EntityKind>> = LazyLock::new(|| {
     RegistryTag::new(vec![
         EntityKind::Cod,

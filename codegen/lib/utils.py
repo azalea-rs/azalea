@@ -10,6 +10,8 @@ def to_snake_case(name: str):
 
 
 def to_camel_case(name: str):
+    if name == "":
+        return name
     s = re.sub(
         r"[_ ](\w)",
         lambda m: m.group(1).upper(),
@@ -24,6 +26,8 @@ def to_camel_case(name: str):
 
 
 def upper_first_letter(name: str):
+    if name == "":
+        return name
     return name[0].upper() + name[1:]
 
 
@@ -67,8 +71,11 @@ def group_packets(packets: list[PacketIdentifier]):
 def get_dir_location(name: str):
     return os.path.join(os.path.dirname(os.path.dirname(__file__)), name)
 
+
 def identifier_to_namespace(ident: str):
     return ident.split(":")[0]
+
+
 def identifier_to_path(ident: str):
     if ":" not in ident:
         return ident

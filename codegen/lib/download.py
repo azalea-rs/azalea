@@ -4,7 +4,7 @@ import requests
 import json
 import os
 
-PUMPKIN_EXTRACTOR_COMMIT = "a4a3050889d671b51822925bfec6877f64d4c9ae"
+PUMPKIN_EXTRACTOR_COMMIT = "a381ffb876a10727258d0da177772d02aede3b1e"
 BURGER_COMMIT = "6b160f81cb6eca0cd67fbceff05a4097af165358"
 
 # make sure the cache directory exists
