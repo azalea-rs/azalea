@@ -23,7 +23,7 @@ resolver = "3"
 # --- Workspace Settings ---
 
 [workspace.package]
-version = "0.16.0+mc26.3-pre-2"
+version = "0.16.0+mc26.3"
 edition = "2024"
 license = "MIT"
 repository = "https://github.com/azalea-rs/azalea"

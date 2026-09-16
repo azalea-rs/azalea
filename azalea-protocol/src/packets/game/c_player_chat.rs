@@ -9,7 +9,7 @@ use azalea_chat::{
     translatable_component::{PrimitiveOrComponent, TranslatableComponent},
 };
 use azalea_core::{
-    bitset::BitSet,
+    bitset::JavaBitSet,
     data_registry::DataRegistryWithKey,
     registry_holder::{RegistryHolder, RegistryType},
 };
@@ -63,7 +63,7 @@ pub enum PackedMessageSignature {
 pub enum FilterMask {
     PassThrough,
     FullyFiltered,
-    PartiallyFiltered(BitSet),
+    PartiallyFiltered(JavaBitSet),
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq)]

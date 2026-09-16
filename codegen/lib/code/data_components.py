@@ -184,7 +184,6 @@ use azalea_core::attribute_modifier_operation::AttributeModifierOperation;
 use azalea_registry::{
     DataRegistry, HolderSet,
     builtin::{Attribute, BlockKind, EntityKind, ItemKind, MobEffect, SoundEvent},
-    identifier::Identifier,
 };
 use simdnbt::owned::NbtCompound;
 

@@ -75,9 +75,14 @@ impl ConfigPacketHandler<'_> {
             let mut world = world_holder.shared.write();
 
             // add the new registry data
-            world
-                .registries
-                .append(p.registry_id.clone(), p.entries.clone());
+            world.registries.append(
+                p.registry_id.clone(),
+                p.entries
+                    .iter()
+                    .cloned()
+                    .map(|(ident, tag)| (ident, tag.map(|t| t.into())))
+                    .collect(),
+            )
         });
     }
 

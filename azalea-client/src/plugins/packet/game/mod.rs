@@ -16,12 +16,9 @@ use azalea_entity::{
     inventory::Inventory,
     metadata::{Health, apply_metadata},
 };
-use azalea_protocol::{
-    common::movements::MoveFlags,
-    packets::{
-        ConnectionProtocol,
-        game::{c_move_entity_pos_rot::CompactLookDirection, *},
-    },
+use azalea_protocol::packets::{
+    ConnectionProtocol,
+    game::{c_move_entity_pos_rot::CompactLookDirection, *},
 };
 use azalea_registry::builtin::EntityKind;
 use azalea_world::{PartialWorld, WorldName, Worlds};
@@ -52,7 +49,8 @@ use crate::{
 pub fn process_packet(ecs: &mut World, player: Entity, packet: &ClientboundGamePacket) {
     let mut handler = GamePacketHandler { player, ecs };
 
-    // the order of these doesn't matter, that's decided by the protocol library
+    // the order of these doesn't matter, packet ids are chosen by the protocol
+    // library
     declare_packet_handlers!(
         ClientboundGamePacket,
         packet,
@@ -201,6 +199,7 @@ pub fn process_packet(ecs: &mut World, player: Entity, packet: &ClientboundGameP
             game_rule_values,
             post_effects,
             swing_animation,
+            add_transient_block,
         ]
     );
 }
@@ -437,16 +436,14 @@ impl GamePacketHandler<'_> {
             // send the relevant packets
             commands.trigger(SendGamePacketEvent::new(
                 self.player,
-                ServerboundAcceptTeleportation { id: p.id },
-            ));
-            commands.trigger(SendGamePacketEvent::new(
-                self.player,
-                ServerboundMovePlayerPosRot {
-                    pos: **position,
-                    look_direction: *direction,
-                    flags: MoveFlags::default(),
+                ServerboundAcceptTeleportation {
+                    id: p.id,
+                    position: **position,
+                    direction: *direction,
                 },
             ));
+
+            // TODO: stopDestroyBlock is called here
         });
     }
 
@@ -863,7 +860,7 @@ impl GamePacketHandler<'_> {
                         entity_id: p.entity_id,
                         delta: Some(p.delta),
                         look_direction: None,
-                        on_ground: p.on_ground,
+                        on_ground: p.properties.on_ground(),
                     },
                     player_query,
                     entity_query,
@@ -1657,6 +1654,9 @@ impl GamePacketHandler<'_> {
     }
     pub fn swing_animation(&mut self, p: &ClientboundSwingAnimation) {
         debug!("Got swing animation packet {p:?}");
+    }
+    pub fn add_transient_block(&mut self, p: &ClientboundAddTransientBlock) {
+        debug!("Got add transient block packet {p:?}");
     }
 }
 

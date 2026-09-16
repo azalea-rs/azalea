@@ -1,7 +1,7 @@
 use std::cmp;
 
 use azalea_core::{
-    bitset::BitSet,
+    bitset::JavaBitSet,
     direction::{Axis, AxisCycle},
     position::Vec3i,
 };
@@ -83,7 +83,7 @@ pub struct BitSetDiscreteVoxelShape {
     y_size: u32,
     z_size: u32,
 
-    storage: BitSet,
+    storage: JavaBitSet,
     min: Vec3i,
     max: Vec3i,
 }
@@ -95,7 +95,7 @@ impl BitSetDiscreteVoxelShape {
             y_size: y_min,
             z_size: z_min,
 
-            storage: BitSet::new((x_min * y_min * z_min).try_into().unwrap()),
+            storage: JavaBitSet::new((x_min * y_min * z_min).try_into().unwrap()),
             min: Vec3i {
                 x: z_min.try_into().unwrap(),
                 y: z_min.try_into().unwrap(),
@@ -321,7 +321,7 @@ impl From<&DiscreteVoxelShape> for BitSetDiscreteVoxelShape {
         if let DiscreteVoxelShape::BitSet(shape) = shape {
             storage = shape.storage.clone();
         } else {
-            storage = BitSet::new((x_size * y_size * z_size) as usize);
+            storage = JavaBitSet::new((x_size * y_size * z_size) as usize);
             for x in 0..x_size {
                 for y in 0..y_size {
                     for z in 0..z_size {
