@@ -9,7 +9,7 @@ use std::{
 };
 
 use azalea_block::block_state::{BlockState, BlockStateIntegerRepr};
-use azalea_buf::{AzBuf, BufReadError, BufReadErrorRepr};
+use azalea_buf::{AzBuf, BufReadError};
 use azalea_core::{
     heightmap_kind::HeightmapKind,
     position::{ChunkBiomePos, ChunkBlockPos, ChunkSectionBiomePos, ChunkSectionBlockPos},

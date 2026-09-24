@@ -1,6 +1,6 @@
 use std::io::{self, Cursor, Write};
 
-use azalea_buf::{AzBuf, BufReadError, BufReadErrorRepr};
+use azalea_buf::{AzBuf, BufReadError};
 use azalea_chat::FormattedText;
 use azalea_protocol_macros::ClientboundLoginPacket;
 use serde::{Deserialize, Serialize};

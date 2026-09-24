@@ -6,7 +6,7 @@ use std::{
 };
 
 #[cfg(all(feature = "azalea-buf", feature = "simdnbt"))]
-use azalea_buf::{AzBuf, BufReadError, BufReadErrorRepr};
+use azalea_buf::{AzBuf, BufReadError};
 use serde::{Deserialize, Deserializer, Serialize, de};
 
 use crate::{

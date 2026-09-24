@@ -155,7 +155,7 @@ fn read_named_fields(
             let reader_call = get_reader_call(f);
             // this is only done in debug mode for performance
             if cfg!(debug_assertions) {
-                let span_message = format!("reading {}", field_name.to_string());
+                let span_message = field_name.to_string();
                 quote! {
                     let span = azalea_buf::tracing::span!(
                         azalea_buf::tracing::Level::INFO,

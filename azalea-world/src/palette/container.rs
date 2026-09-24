@@ -4,7 +4,7 @@ use std::{
 };
 
 use azalea_block::BlockState;
-use azalea_buf::{AzBuf, BufReadError, BufReadErrorRepr};
+use azalea_buf::{AzBuf, BufReadError};
 use azalea_core::position::{ChunkSectionBiomePos, ChunkSectionBlockPos};
 use azalea_registry::data::Biome;
 use tracing::{debug, warn};
