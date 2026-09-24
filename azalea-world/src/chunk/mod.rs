@@ -9,7 +9,7 @@ use std::{
 };
 
 use azalea_block::block_state::{BlockState, BlockStateIntegerRepr};
-use azalea_buf::{AzBuf, BufReadError};
+use azalea_buf::{AzBuf, BufReadError, BufReadErrorRepr};
 use azalea_core::{
     heightmap_kind::HeightmapKind,
     position::{ChunkBiomePos, ChunkBlockPos, ChunkSectionBiomePos, ChunkSectionBlockPos},
@@ -197,7 +197,7 @@ impl AzBuf for Section {
 
         for i in 0..states.storage.size() {
             if !BlockState::is_valid_state(states.storage.get(i) as BlockStateIntegerRepr) {
-                return Err(BufReadError::Custom(format!(
+                return Err(BufReadError::custom(format!(
                     "Invalid block state {} (index {i}) found in section.",
                     states.storage.get(i)
                 )));

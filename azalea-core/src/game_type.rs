@@ -1,6 +1,6 @@
 use std::io::{self, Cursor, Write};
 
-use azalea_buf::{AzBuf, AzBufVar, BufReadError};
+use azalea_buf::{AzBuf, AzBufVar, BufReadError, BufReadErrorRepr};
 use azalea_chat::translatable_component::TranslatableComponent;
 use bevy_ecs::component::Component;
 use tracing::debug;
@@ -135,7 +135,8 @@ impl From<OptionalGameType> for Option<GameMode> {
 impl AzBuf for OptionalGameType {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let id = i8::azalea_read(buf)?;
-        GameMode::from_optional_id(id).ok_or(BufReadError::UnexpectedEnumVariant { id: id as i32 })
+        GameMode::from_optional_id(id)
+            .ok_or(BufReadErrorRepr::UnexpectedEnumVariant { id: id as i32 }.into())
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         GameMode::to_optional_id(*self).azalea_write(buf)

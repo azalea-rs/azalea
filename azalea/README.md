@@ -27,7 +27,7 @@ async fn main() -> AppExit {
 pub struct State {
     /// An example field that stores the number of messages that've been
     /// received by the client so far.
-    /// 
+    ///
     /// The state gets cloned whenever the handler is called, so to have all
     /// the clones point to the same data and have it be mutable, we use an
     /// Arc<Mutex<T>>.
@@ -58,8 +58,8 @@ First, install Rust nightly with `rustup install nightly` and `rustup default ni
 
 Then, use one of the following commands to add Azalea to your project:
 
--   Latest bleeding-edge version (recommended): `cargo add azalea --git=https://github.com/azalea-rs/azalea`
--   Latest "stable" release: `cargo add azalea`
+- Latest bleeding-edge version (recommended): `cargo add azalea --git=https://github.com/azalea-rs/azalea`
+- Latest "stable" release: `cargo add azalea`
 
 ## Optimization
 
@@ -108,6 +108,8 @@ If it's a crash/panic and you believe it has to do with parsing a packet, you mi
 
 Note: If you get a `SetLoggerError`, it's because you have multiple loggers. Azalea comes with a logger by default, see [`bevy_log`] for more information. You can disable the default logging plugin by disabling the `log` feature.
 
+Some environment variables that you can set to possibly ease debugging are `AZALEA_DO_NOT_CUT_OFF_PACKET_LOGS=1` and `AZALEA_PANIC_ON_PACKET_ERROR=1`.
+
 ## Deadlocks
 
 If your code is simply hanging, it might be a deadlock. Enable `parking_lot`'s `deadlock_detection` feature and copy the deadlock block in [`azalea/examples/testbot.rs`](https://github.com/azalea-rs/azalea/blob/main/azalea/examples/testbot/main.rs) to the beginning of your code and it'll print a long backtrace if a deadlock is detected.
@@ -115,6 +117,8 @@ If your code is simply hanging, it might be a deadlock. Enable `parking_lot`'s `
 ## Backtraces
 
 Backtraces are also useful, though they're sometimes hard to read and don't always contain the actual location of the error. Run your code with `RUST_BACKTRACE=1` to enable full backtraces. If it's very long, often searching for the keyword "azalea" will help you filter out unrelated things and find the actual source of the issue.
+
+Note that if that environment variable is set, Azalea will also print backtraces for some types of packet errors.
 
 # Other notes
 
@@ -131,4 +135,3 @@ You can disable all console messages by setting the `RUST_LOG` environment varia
 See the [`env_logger`](https://docs.rs/env_logger/latest/env_logger/) crate documentation for more information.
 
 [`bevy_log`]: https://docs.rs/bevy_log
-

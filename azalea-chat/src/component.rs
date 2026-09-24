@@ -6,7 +6,7 @@ use std::{
 };
 
 #[cfg(all(feature = "azalea-buf", feature = "simdnbt"))]
-use azalea_buf::{AzBuf, BufReadError};
+use azalea_buf::{AzBuf, BufReadError, BufReadErrorRepr};
 use serde::{Deserialize, Deserializer, Serialize, de};
 
 use crate::{
@@ -650,9 +650,8 @@ impl AzBuf for FormattedText {
             nbt.as_ref().map(|n| n.as_tag().to_owned())
         );
         match nbt {
-            Some(nbt) => FormattedText::from_nbt_tag(nbt.as_tag()).ok_or(BufReadError::Custom(
-                "couldn't convert nbt to chat message".to_owned(),
-            )),
+            Some(nbt) => FormattedText::from_nbt_tag(nbt.as_tag())
+                .ok_or(BufReadError::custom("couldn't convert nbt to chat message")),
             _ => Ok(FormattedText::default()),
         }
     }

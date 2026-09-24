@@ -114,9 +114,9 @@ pub fn read_packets(ecs: &mut World) {
                             eprintln!("{}", backtrace);
                         }
 
-                        // this is a debug feature to make fixing packet errors less overwhelming.
-                        // as of writing (2026-09-24), this is undocumented and might stay that way.
                         static PANIC_ON_PACKET_ERROR: LazyLock<bool> = LazyLock::new(|| {
+                            // this is also mentioned in azalea's docs, if you rename it, then don't
+                            // forget to update that
                             env::var("AZALEA_PANIC_ON_PACKET_ERROR")
                                 .map(|s| s == "1" || s == "true")
                                 .unwrap_or(false)

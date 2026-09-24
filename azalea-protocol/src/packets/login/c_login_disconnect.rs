@@ -1,6 +1,6 @@
 use std::io::{self, Cursor, Write};
 
-use azalea_buf::{AzBuf, BufReadError};
+use azalea_buf::{AzBuf, BufReadError, BufReadErrorRepr};
 use azalea_chat::FormattedText;
 use azalea_protocol_macros::ClientboundLoginPacket;
 use serde::{Deserialize, Serialize};
@@ -19,7 +19,7 @@ impl AzBuf for ClientboundLoginDisconnect {
             match serde_json::from_str::<serde_json::Value>(disconnect_string.as_str()) {
                 Ok(json) => json,
                 Err(err) => {
-                    return Err(BufReadError::Custom(format!(
+                    return Err(BufReadError::custom(format!(
                         "Failed to deserialize disconnect JSON {disconnect_string:?}: {err}"
                     )));
                 }

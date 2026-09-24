@@ -8,8 +8,8 @@ use std::{
 use indexmap::IndexMap;
 
 use crate::{
-    AzBuf, AzBufLimited, AzBufVar, BufReadError, MAX_STRING_LENGTH, UnsizedByteArray, read_bytes,
-    read_utf_with_len, write_utf_with_len,
+    AzBuf, AzBufLimited, AzBufVar, BufReadError, BufReadErrorRepr, MAX_STRING_LENGTH,
+    UnsizedByteArray, read_bytes, read_utf_with_len, write_utf_with_len,
 };
 
 impl AzBuf for UnsizedByteArray {
@@ -114,10 +114,11 @@ macro_rules! impl_for_list_type {
             ) -> Result<Self, BufReadError> {
                 let length = u32::azalea_read_var(buf)?;
                 if length > limit {
-                    return Err(BufReadError::VecLengthTooLong {
+                    return Err(BufReadErrorRepr::VecLengthTooLong {
                         length: length as u32,
                         max_length: limit as u32,
-                    });
+                    }
+                    .into());
                 }
 
                 let mut contents = Vec::with_capacity(u32::min(length, 65536) as usize);
@@ -260,7 +261,7 @@ impl AzBuf for simdnbt::owned::NbtCompound {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         match simdnbt::owned::read_tag(buf).map_err(simdnbt::Error::from)? {
             simdnbt::owned::NbtTag::Compound(compound) => Ok(compound),
-            _ => Err(BufReadError::Custom("Expected compound tag".to_owned())),
+            _ => Err(BufReadError::custom("Expected compound tag")),
         }
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {

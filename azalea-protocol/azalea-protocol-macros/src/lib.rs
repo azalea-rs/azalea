@@ -240,7 +240,6 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
                 let data = #module_name::#struct_name::read(buf).map_err(|e| crate::read::ReadPacketError::Parse {
                     source: e,
                     packet_id: #id,
-                    backtrace: Box::new(std::backtrace::Backtrace::capture()),
                     packet_name: #packet_name_litstr.to_string(),
                 })?;
                 #[cfg(debug_assertions)]
@@ -292,7 +291,6 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
                 let data = #module_name::#struct_name::read(buf).map_err(|e| crate::read::ReadPacketError::Parse {
                     source: e,
                     packet_id: #id,
-                    backtrace: Box::new(std::backtrace::Backtrace::capture()),
                     packet_name: #packet_name_litstr.to_string(),
                 })?;
                 #[cfg(debug_assertions)]

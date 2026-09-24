@@ -1,6 +1,6 @@
 use std::io::{self, Cursor, Write};
 
-use azalea_buf::{AzBuf, BufReadError};
+use azalea_buf::{AzBuf, BufReadError, BufReadErrorRepr};
 use azalea_core::entity_id::MinecraftEntityId;
 use azalea_inventory::{ItemStack, components::EquipmentSlot};
 use azalea_protocol_macros::ClientboundGamePacket;
@@ -25,7 +25,7 @@ impl AzBuf for EquipmentSlots {
             let equipment_byte = u8::azalea_read(buf)?;
             let equipment_slot =
                 EquipmentSlot::from_byte(equipment_byte & 127).ok_or_else(|| {
-                    BufReadError::UnexpectedEnumVariant {
+                    BufReadErrorRepr::UnexpectedEnumVariant {
                         id: equipment_byte.into(),
                     }
                 })?;

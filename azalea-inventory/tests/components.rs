@@ -187,14 +187,13 @@ fn test_lodestone_tracker_checksum() {
 #[test]
 fn test_pot_decorations_checksum() {
     let c = PotDecorations {
-        items: vec![
-            ItemKind::Stick,
-            ItemKind::Brick,
-            ItemKind::Brick,
-            ItemKind::Brick,
-        ],
+        back: Some(ItemKind::Stick.into()),
+        left: Some(ItemKind::Brick.into()),
+        right: Some(ItemKind::Brick.into()),
+        front: Some(ItemKind::Brick.into()),
     };
 
+    // TODO: check this in-game and update
     assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 1951715383);
 }
 

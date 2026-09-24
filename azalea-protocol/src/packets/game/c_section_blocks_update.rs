@@ -1,7 +1,7 @@
 use std::io::{self, Cursor, Write};
 
 use azalea_block::BlockState;
-use azalea_buf::{AzBuf, AzBufVar, BufReadError};
+use azalea_buf::{AzBuf, AzBufVar, BufReadError, BufReadErrorRepr};
 use azalea_core::position::{ChunkSectionBlockPos, ChunkSectionPos};
 use azalea_protocol_macros::ClientboundGamePacket;
 
@@ -23,7 +23,7 @@ impl AzBuf for BlockStateWithPosition {
         let position_part = data & 4095;
         let state = (data >> 12) as u32;
         let state = BlockState::try_from(state)
-            .map_err(|_| BufReadError::UnexpectedEnumVariant { id: state as i32 })?;
+            .map_err(|_| BufReadErrorRepr::UnexpectedEnumVariant { id: state as i32 })?;
         let pos = ChunkSectionBlockPos {
             x: ((position_part >> 8) & 15) as u8,
             y: (position_part & 15) as u8,

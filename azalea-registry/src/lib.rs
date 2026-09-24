@@ -16,7 +16,7 @@ use std::{
     io::{self, Cursor, Write},
 };
 
-use azalea_buf::{AzBuf, AzBufVar, BufReadError};
+use azalea_buf::{AzBuf, AzBufVar, BufReadError, BufReadErrorRepr};
 #[cfg(feature = "serde")]
 use serde::Serialize;
 use simdnbt::{FromNbtTag, borrow::NbtTag};
@@ -75,7 +75,7 @@ impl<T: Registry> AzBuf for OptionalRegistry<T> {
             0 => None,
             value => Some(
                 T::from_u32(value - 1)
-                    .ok_or(BufReadError::UnexpectedEnumVariant { id: value as i32 })?,
+                    .ok_or(BufReadErrorRepr::UnexpectedEnumVariant { id: value as i32 })?,
             ),
         }))
     }
@@ -227,7 +227,7 @@ impl<R: Registry, Direct: AzBuf> AzBuf for Holder<R, Direct> {
         } else {
             let id = id - 1;
             let Some(value) = R::from_u32(id) else {
-                return Err(BufReadError::UnexpectedEnumVariant { id: id as i32 });
+                return Err(BufReadErrorRepr::UnexpectedEnumVariant { id: id as i32 }.into());
             };
             Ok(Self::Reference(value))
         }
