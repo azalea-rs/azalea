@@ -30,6 +30,7 @@ pub enum ReadPacketError {
     Parse {
         packet_id: u32,
         packet_name: String,
+        #[backtrace]
         backtrace: Box<Backtrace>,
         source: BufReadError,
     },

@@ -1,5 +1,7 @@
 use std::{
+    backtrace::{Backtrace, BacktraceStatus},
     env,
+    error::Error,
     fmt::Debug,
     io::Cursor,
     mem,
@@ -100,14 +102,30 @@ pub fn read_packets(ecs: &mut World) {
                     ) {
                         error!("Error reading packet: {e}");
 
-                        // debug feature to make fixing packet errors less overwhelming. as of
-                        // writing (2026-09-24), this is undocumented and might stay that way.
+                        let mut backtrace_logged = false;
+
+                        let dyn_error = &e as &dyn std::error::Error;
+                        let backtrace = std::error::request_ref::<Backtrace>(dyn_error);
+                        if let Some(backtrace) = backtrace
+                            // this check ensures that RUST_BACKTRACE is set
+                            && backtrace.status() == BacktraceStatus::Captured
+                        {
+                            backtrace_logged = true;
+                            eprintln!("{}", backtrace);
+                        }
+
+                        // this is a debug feature to make fixing packet errors less overwhelming.
+                        // as of writing (2026-09-24), this is undocumented and might stay that way.
                         static PANIC_ON_PACKET_ERROR: LazyLock<bool> = LazyLock::new(|| {
                             env::var("AZALEA_PANIC_ON_PACKET_ERROR")
                                 .map(|s| s == "1" || s == "true")
                                 .unwrap_or(false)
                         });
+
                         if *PANIC_ON_PACKET_ERROR {
+                            if backtrace_logged {
+                                println!("\n---\n");
+                            }
                             panic!();
                         }
                     }

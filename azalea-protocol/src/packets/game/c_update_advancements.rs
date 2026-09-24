@@ -12,8 +12,8 @@ use indexmap::IndexMap;
 
 #[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundUpdateAdvancements {
-    pub reset: bool,
-    pub added: Vec<AdvancementHolder>,
+    pub should_reset: bool,
+    pub added: Vec<PositionedAdvancement>,
     pub removed: Vec<Identifier>,
     pub progress: IndexMap<Identifier, AdvancementProgress>,
     pub show_advancements: bool,
@@ -113,6 +113,12 @@ pub struct CriterionProgress {
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq)]
+pub struct PositionedAdvancement {
+    pub advancement: AdvancementHolder,
+    pub x: f32,
+    pub y: f32,
+}
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct AdvancementHolder {
     pub id: Identifier,
     pub value: Advancement,
@@ -128,24 +134,28 @@ mod tests {
     fn test() {
         let packet = ClientboundUpdateAdvancements {
             reset: true,
-            added: [AdvancementHolder {
-                id: Identifier::new("minecraft:test"),
-                value: Advancement {
-                    parent_id: None,
-                    display: Some(Box::new(DisplayInfo {
-                        title: FormattedText::from("title".to_owned()),
-                        description: FormattedText::from("description".to_owned()),
-                        icon: ItemStack::Empty,
-                        frame: FrameType::Task,
-                        show_toast: true,
-                        hidden: false,
-                        background: None,
-                        x: 0.0,
-                        y: 0.0,
-                    })),
-                    requirements: Vec::new(),
-                    sends_telemetry_event: false,
+            added: [PositionedAdvancement {
+                advancement: AdvancementHolder {
+                    id: Identifier::new("minecraft:test"),
+                    value: Advancement {
+                        parent_id: None,
+                        display: Some(Box::new(DisplayInfo {
+                            title: FormattedText::from("title".to_owned()),
+                            description: FormattedText::from("description".to_owned()),
+                            icon: ItemStack::Empty,
+                            frame: FrameType::Task,
+                            show_toast: true,
+                            hidden: false,
+                            background: None,
+                            x: 0.0,
+                            y: 0.0,
+                        })),
+                        requirements: Vec::new(),
+                        sends_telemetry_event: false,
+                    },
                 },
+                x: 1.23,
+                y: 3.21,
             }]
             .into_iter()
             .collect(),
