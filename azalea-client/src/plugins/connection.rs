@@ -1,9 +1,10 @@
 use std::{
+    env,
     fmt::Debug,
     io::Cursor,
     mem,
     sync::{
-        Arc,
+        Arc, LazyLock,
         atomic::{self, AtomicBool},
     },
 };
@@ -98,6 +99,17 @@ pub fn read_packets(ecs: &mut World) {
                         &mut queued_packet_events,
                     ) {
                         error!("Error reading packet: {e}");
+
+                        // debug feature to make fixing packet errors less overwhelming. as of
+                        // writing (2026-09-24), this is undocumented and might stay that way.
+                        static PANIC_ON_PACKET_ERROR: LazyLock<bool> = LazyLock::new(|| {
+                            env::var("AZALEA_PANIC_ON_PACKET_ERROR")
+                                .map(|s| s == "1" || s == "true")
+                                .unwrap_or(false)
+                        });
+                        if *PANIC_ON_PACKET_ERROR {
+                            panic!();
+                        }
                     }
                 }
                 Ok(None) => {

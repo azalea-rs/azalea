@@ -150,10 +150,22 @@ fn read_named_fields(
     let read_fields = named
         .iter()
         .map(|f| {
-            let field_name = &f.ident;
+            let field_name = f.ident.as_ref().unwrap();
 
             let reader_call = get_reader_call(f);
-            quote! { let #field_name = #reader_call; }
+            if cfg!(debug_assertions) {
+                let span_message = format!("reading {}", field_name.to_string());
+                quote! {
+                    let span = azalea_buf::tracing::span!(
+                        azalea_buf::tracing::Level::INFO,
+                        #span_message
+                    ).entered();
+                    let #field_name = #reader_call;
+                    span.exit();
+                }
+            } else {
+                quote! { let #field_name = #reader_call; }
+            }
         })
         .collect::<Vec<_>>();
     let read_field_names = named.iter().map(|f| &f.ident).collect::<Vec<_>>();

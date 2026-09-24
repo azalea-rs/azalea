@@ -104,7 +104,7 @@ pub struct DyedSlotDemo {
 }
 #[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct TagSlotDisplay {
-    pub tag: Identifier,
+    pub tag: HolderSet<azalea_registry::builtin::ItemKind, Identifier>,
 }
 #[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct SmithingTrimDemoSlotDisplay {
