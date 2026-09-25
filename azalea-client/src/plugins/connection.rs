@@ -1,7 +1,6 @@
 use std::{
     backtrace::{Backtrace, BacktraceStatus},
     env,
-    error::Error,
     fmt::Debug,
     io::Cursor,
     mem,
