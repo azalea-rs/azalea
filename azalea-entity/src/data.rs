@@ -18,6 +18,7 @@ use azalea_inventory::{
 use azalea_registry::builtin::{VillagerKind, VillagerProfession};
 use derive_more::Deref;
 use enum_as_inner::EnumAsInner;
+use tracing::trace;
 use uuid::Uuid;
 
 use crate::particle::Particle;
@@ -42,6 +43,7 @@ impl AzBuf for EntityMetadataItems {
                 break;
             }
             let value = EntityDataValue::azalea_read(buf)?;
+            trace!("{value:?}");
             metadata.push(EntityDataItem { index: id, value });
         }
         Ok(EntityMetadataItems(metadata))
