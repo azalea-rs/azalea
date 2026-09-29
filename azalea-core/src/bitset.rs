@@ -1,4 +1,4 @@
-use core::direct_const_arg;
+use core::gca;
 use std::{
     io::{self, Cursor, Write},
     ops::Range,
@@ -181,10 +181,11 @@ impl From<Vec<u8>> for BitSet {
 /// implementation.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct FixedBitSet<const N: usize> {
-    data: [u8; direct_const_arg!(BYTEARRAY::<N>)],
+    data: BYTEARRAY<N>,
 }
 
-const BYTEARRAY<const N: usize>: usize = const { N.div_ceil(8) };
+type BYTEARRAY<const N: usize> = [u8; gca!(BYTESIZE::<N>)];
+const BYTESIZE<const N: usize>: usize = const { N.div_ceil(8) };
 
 impl<const N: usize> FixedBitSet<N> {
     /// Create a new, empty [`FixedBitSet`].
@@ -195,7 +196,7 @@ impl<const N: usize> FixedBitSet<N> {
 
     /// Create a new [`FixedBitSet`].
     #[must_use]
-    pub const fn new_with_data(data: [u8; direct_const_arg!(BYTEARRAY::<N>)]) -> Self {
+    pub const fn new_with_data(data: BYTEARRAY<N>) -> Self {
         FixedBitSet { data }
     }
 
@@ -210,7 +211,7 @@ impl<const N: usize> FixedBitSet<N> {
     #[inline]
     #[must_use]
     pub const fn byte_len(&self) -> usize {
-        BYTEARRAY::<N>
+        BYTESIZE::<N>
     }
 
     /// Get the bit at the given index.
@@ -227,7 +228,7 @@ impl<const N: usize> FixedBitSet<N> {
     /// Panics if the index is out of bounds (greater than `N`).
     #[inline]
     pub fn set(&mut self, bit_index: usize) {
-        assert!(bit_index < N);
+        assert!(bit_index < N, "Out of bounds write to FixedBitSet!");
 
         self.data[bit_index / 8] |= 1u8 << (bit_index % 8);
     }
@@ -264,10 +265,11 @@ impl<const N: usize> Default for FixedBitSet<N> {
 /// access) and doesn't implement `AzBuf`.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct FastFixedBitSet<const N: usize> {
-    data: [u64; direct_const_arg!(LONGARRAY::<N>)],
+    data: LONGARRAY<N>,
 }
 
-const LONGARRAY<const N: usize>: usize = const { N.div_ceil(64) };
+type LONGARRAY<const N: usize> = [u64; gca!(LONGSIZE::<N>)];
+const LONGSIZE<const N: usize>: usize = const { N.div_ceil(64) };
 
 impl<const N: usize> FastFixedBitSet<N> {
     /// Create a new, empty [`FastFixedBitSet`].
@@ -287,7 +289,7 @@ impl<const N: usize> FastFixedBitSet<N> {
     #[inline]
     #[must_use]
     pub const fn long_len(&self) -> usize {
-        LONGARRAY::<N>
+        LONGSIZE::<N>
     }
 
     /// Get the bit at the given index.
@@ -304,7 +306,7 @@ impl<const N: usize> FastFixedBitSet<N> {
     /// Panics if the index is out of bounds (greater than `N`).
     #[inline]
     pub fn set(&mut self, bit_index: usize) {
-        assert!(bit_index < N);
+        assert!(bit_index < N, "Out of bounds write to FastFixedBitSet!");
 
         self.data[bit_index / 64] |= 1u64 << (bit_index % 64);
     }
