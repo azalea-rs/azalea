@@ -1,5 +1,5 @@
 #![allow(incomplete_features)]
-#![feature(min_generic_const_args, generic_const_args)]
+#![feature(gca_min_const_items, gca_const_items)]
 #![feature(generic_const_items)]
 #![doc = include_str!("../README.md")]
 
