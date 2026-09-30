@@ -7,6 +7,7 @@ mod correct_movement;
 mod correct_sneak_movement;
 mod correct_sprint_sneak_movement;
 mod despawn_entities_when_changing_dimension;
+mod elytra_start_conditions;
 mod enchantments;
 mod fast_login;
 mod login_to_dimension_with_same_name;
