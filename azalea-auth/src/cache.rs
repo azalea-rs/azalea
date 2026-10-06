@@ -133,4 +133,13 @@ pub async fn set_account_in_cache(
     cache.retain(|account| account.cache_key != cache_key);
     cache.push(account);
     set_entire_cache(cache_file, cache).await
-}
+} 
+
+pub async fn remove_account_in_cache(
+    cache_file: &Path,
+    cache_key: &str,
+) -> Result<(), CacheError> {
+    let mut cache = get_entire_cache(cache_file).await.unwrap_or_default();
+    cache.retain(|account| account.cache_key != cache_key);
+    set_entire_cache(cache_file, cache).await
+} 
