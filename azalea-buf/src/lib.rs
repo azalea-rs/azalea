@@ -23,6 +23,20 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_boxed_bytes() {
+        let data: Box<[u8]> = (0..=255u8).cycle().take(3000).collect();
+        let mut buf = Vec::new();
+        data.azalea_write(&mut buf).unwrap();
+
+        let mut cursor = Cursor::new(buf.as_slice());
+        assert_eq!(Box::<[u8]>::azalea_read(&mut cursor).unwrap(), data);
+        assert_eq!(cursor.position(), buf.len() as u64);
+
+        let truncated = &buf[..buf.len() - 1];
+        assert!(Box::<[u8]>::azalea_read(&mut Cursor::new(truncated)).is_err());
+    }
+
+    #[test]
     fn test_write_varint() {
         let mut buf = Vec::new();
         0.azalea_write_var(&mut buf).unwrap();
