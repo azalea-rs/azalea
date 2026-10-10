@@ -9,7 +9,7 @@ use std::{
     mem::ManuallyDrop,
 };
 
-use azalea_buf::{AzBuf, BufReadError};
+use azalea_buf::{AzBuf, AzBufVar, BufReadError};
 use azalea_chat::FormattedText;
 use azalea_core::{
     attribute_modifier_operation::AttributeModifierOperation,
@@ -23,18 +23,18 @@ use azalea_core::{
 use azalea_registry::{
     Holder, HolderSet,
     builtin::{
-        Attribute, BlockKind, DataComponentKind, EntityKind, ItemKind, MobEffect, Potion,
-        SoundEvent, VillagerKind,
+        Attribute, BlockKind, DataComponentKind, DataComponentPredicateKind, EntityKind, ItemKind,
+        MobEffect, Potion, SoundEvent, VillagerKind,
     },
     data::{self, BannerPatternKind, DamageKind, Enchantment, TrimMaterial, TrimPattern},
     identifier::Identifier,
 };
 pub use profile::*;
 use serde::{Serialize, Serializer, ser::SerializeMap};
-use simdnbt::owned::{Nbt, NbtCompound};
+use simdnbt::owned::{Nbt, NbtCompound, NbtTag};
 use tracing::trace;
 
-use crate::{ItemStack, item::consume_effect::ConsumeEffect};
+use crate::{DataComponentPatch, ItemStack, item::consume_effect::ConsumeEffect};
 
 pub trait DataComponentTrait:
     Send + Sync + Any + Clone + Serialize + Into<DataComponentUnion>
@@ -375,7 +375,7 @@ pub struct Enchantments {
     pub levels: HashMap<Enchantment, i32>,
 }
 
-#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub enum BlockStateValueMatcher {
     Exact {
         value: String,
@@ -386,10 +386,143 @@ pub enum BlockStateValueMatcher {
     },
 }
 
+impl AzBuf for BlockStateValueMatcher {
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        // Vanilla encodes this as `Either<exact, range>`
+        if bool::azalea_read(buf)? {
+            Ok(Self::Exact {
+                value: String::azalea_read(buf)?,
+            })
+        } else {
+            Ok(Self::Range {
+                min: Option::<String>::azalea_read(buf)?,
+                max: Option::<String>::azalea_read(buf)?,
+            })
+        }
+    }
+
+    fn azalea_write(&self, buf: &mut impl io::Write) -> io::Result<()> {
+        match self {
+            Self::Exact { value } => {
+                true.azalea_write(buf)?;
+                value.azalea_write(buf)
+            }
+
+            Self::Range { min, max } => {
+                false.azalea_write(buf)?;
+                min.azalea_write(buf)?;
+                max.azalea_write(buf)
+            }
+        }
+    }
+}
+
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct BlockStatePropertyMatcher {
     pub name: String,
     pub value_matcher: BlockStateValueMatcher,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize)]
+#[serde(untagged)]
+pub enum DataComponentPredicateType {
+    Predicate(DataComponentPredicateKind),
+    /// Matches if the component is present, regardless of its value.
+    AnyValue(DataComponentKind),
+}
+
+impl AzBuf for DataComponentPredicateType {
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        // Vanilla encodes this as `Either<predicate type, component type>`
+        if bool::azalea_read(buf)? {
+            Ok(Self::Predicate(DataComponentPredicateKind::azalea_read(
+                buf,
+            )?))
+        } else {
+            Ok(Self::AnyValue(DataComponentKind::azalea_read(buf)?))
+        }
+    }
+
+    fn azalea_write(&self, buf: &mut impl io::Write) -> io::Result<()> {
+        match self {
+            Self::Predicate(kind) => {
+                true.azalea_write(buf)?;
+                kind.azalea_write(buf)
+            }
+
+            Self::AnyValue(kind) => {
+                false.azalea_write(buf)?;
+                kind.azalea_write(buf)
+            }
+        }
+    }
+}
+
+/// A partial component predicate, like `damage` or `enchantments`.
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
+pub struct DataComponentPartialPredicate {
+    pub kind: DataComponentPredicateType,
+    pub value: NbtTag,
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Serialize)]
+pub struct DataComponentMatchers {
+    #[serde(skip_serializing_if = "is_default")]
+    pub exact: DataComponentPatch,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub partial: Vec<DataComponentPartialPredicate>,
+}
+
+impl AzBuf for DataComponentMatchers {
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let exact_count = u32::azalea_read_var(buf)?;
+
+        let mut exact = DataComponentPatch::default();
+        for _ in 0..exact_count {
+            let kind = DataComponentKind::azalea_read(buf)?;
+            let value = DataComponentUnion::azalea_read_as(kind, buf)?;
+
+            // SAFETY: it must be of the correct type already
+            unsafe { exact.unchecked_insert_component(kind, Some(value)) };
+        }
+
+        let partial_count = u32::azalea_read_var(buf)?;
+        if partial_count > 64 {
+            return Err(BufReadError::VecLengthTooLong {
+                length: partial_count,
+                max_length: 64,
+            });
+        }
+
+        let mut partial = Vec::with_capacity(partial_count as usize);
+        for _ in 0..partial_count {
+            partial.push(DataComponentPartialPredicate::azalea_read(buf)?);
+        }
+
+        Ok(Self { exact, partial })
+    }
+
+    fn azalea_write(&self, buf: &mut impl io::Write) -> io::Result<()> {
+        let exact = self
+            .exact
+            .iter()
+            .filter_map(|(kind, component)| component.map(|component| (kind, component)))
+            .collect::<Vec<_>>();
+
+        (exact.len() as u32).azalea_write_var(buf)?;
+
+        let mut component_buf = Vec::new();
+
+        for (kind, component) in exact {
+            kind.azalea_write(buf)?;
+
+            component_buf.clear();
+            component.encode(&mut component_buf)?;
+            buf.write_all(&component_buf)?;
+        }
+
+        self.partial.azalea_write(buf)
+    }
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
@@ -400,6 +533,8 @@ pub struct BlockPredicate {
     pub properties: Option<Vec<BlockStatePropertyMatcher>>,
     #[serde(skip_serializing_if = "is_default")]
     pub nbt: Option<NbtCompound>,
+    #[serde(skip_serializing_if = "is_default")]
+    pub components: DataComponentMatchers,
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
