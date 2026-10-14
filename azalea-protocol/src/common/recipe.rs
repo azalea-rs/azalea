@@ -7,6 +7,13 @@ use azalea_registry::{
     identifier::Identifier,
 };
 
+/// A recipe display id (`RecipeDisplayId`), serialized as a VarInt.
+///
+/// Since 1.21.2 `ServerboundPlaceRecipe`'s second field is a `RecipeDisplayId`, not a
+/// `ResourceLocation`/`Identifier` string.
+#[derive(AzBuf, Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct RecipeDisplayId(#[var] pub u32);
+
 /// [`azalea_registry::builtin::RecipeDisplay`]
 #[derive(AzBuf, Clone, Debug, PartialEq)]
 pub enum RecipeDisplayData {
