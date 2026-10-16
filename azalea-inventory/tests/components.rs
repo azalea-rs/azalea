@@ -203,3 +203,31 @@ fn test_glider_checksum() {
     let c = Glider;
     assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 3312760008);
 }
+
+#[test]
+fn test_bees_typed_entity_data() {
+    use std::io::Cursor;
+
+    use azalea_buf::AzBuf;
+    use azalea_inventory::components::{BeehiveOccupant, Bees, EntityData};
+    use azalea_registry::builtin::EntityKind;
+
+    let bees = Bees {
+        occupants: vec![BeehiveOccupant {
+            entity_data: EntityData {
+                kind: EntityKind::Bee,
+                data: NbtCompound::default(),
+            },
+            ticks_in_hive: 1,
+            min_ticks_in_hive: 1,
+        }],
+    };
+    let mut bytes = Vec::new();
+    bees.azalea_write(&mut bytes).unwrap();
+    // 1 occupant, then the bee's entity type id
+    assert_eq!(&bytes[..2], &[1, 11]);
+
+    let mut buf = Cursor::new(bytes.as_slice());
+    assert_eq!(Bees::azalea_read(&mut buf).unwrap(), bees);
+    assert_eq!(buf.position() as usize, bytes.len());
+}

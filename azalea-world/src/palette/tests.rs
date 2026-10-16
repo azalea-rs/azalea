@@ -78,3 +78,33 @@ fn test_coords_from_index() {
         }
     }
 }
+
+#[test]
+fn test_resize_to_global_fits_any_state() {
+    let mut palette_container = PalettedContainer::<BlockState>::new();
+
+    for i in 0..256 {
+        palette_container.set_at_index(i, BlockState::try_from(i as u32).unwrap());
+    }
+    assert_eq!(
+        PaletteKind::from(&palette_container.palette),
+        PaletteKind::Hashmap
+    );
+
+    let high = BlockState::try_from(BlockState::MAX_STATE).unwrap();
+    palette_container.set_at_index(256, high);
+    assert_eq!(
+        PaletteKind::from(&palette_container.palette),
+        PaletteKind::Global
+    );
+    // Same as vanilla's ceillog2(registry size)
+    assert_eq!(palette_container.bits_per_entry, 15);
+
+    assert_eq!(palette_container.get_at_index(256), high);
+    for i in 0..256 {
+        assert_eq!(
+            palette_container.get_at_index(i),
+            BlockState::try_from(i as u32).unwrap()
+        );
+    }
+}

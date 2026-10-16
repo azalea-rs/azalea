@@ -26,7 +26,7 @@ impl AzBuf for NumberFormat {
         match kind {
             NumberFormatKind::Blank => Ok(NumberFormat::Blank),
             NumberFormatKind::Styled => Ok(NumberFormat::Styled {
-                style: simdnbt::owned::read(buf)?,
+                style: Nbt::azalea_read(buf)?,
             }),
             NumberFormatKind::Fixed => Ok(NumberFormat::Fixed {
                 value: FormattedText::azalea_read(buf)?,
@@ -46,5 +46,27 @@ impl AzBuf for NumberFormat {
             }
         }
         Ok(())
+    }
+}
+
+#[cfg(all(test, feature = "azalea-buf"))]
+mod tests {
+    use simdnbt::owned::{BaseNbt, NbtCompound, NbtTag};
+
+    use super::*;
+
+    #[test]
+    fn test_styled_roundtrip() {
+        let style = Nbt::Some(BaseNbt::new(
+            "",
+            NbtCompound::from_values(vec![("color".into(), NbtTag::String("red".into()))]),
+        ));
+        let format = NumberFormat::Styled { style };
+        let mut bytes = Vec::new();
+        format.azalea_write(&mut bytes).unwrap();
+
+        let mut buf = Cursor::new(bytes.as_slice());
+        assert_eq!(NumberFormat::azalea_read(&mut buf).unwrap(), format);
+        assert_eq!(buf.position() as usize, bytes.len());
     }
 }

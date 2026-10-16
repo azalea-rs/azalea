@@ -917,8 +917,7 @@ pub struct BlockState {
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
 pub struct BeehiveOccupant {
-    #[serde(skip_serializing_if = "is_default")]
-    pub entity_data: NbtCompound,
+    pub entity_data: EntityData,
     #[var]
     pub ticks_in_hive: i32,
     #[var]
