@@ -82,6 +82,7 @@ fn test_can_place_on_checksum() {
                 blocks: Some(vec![BlockKind::GrassBlock].into()),
                 properties: None,
                 nbt: None,
+                components: Default::default(),
             }],
         },
     };
