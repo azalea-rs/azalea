@@ -84,4 +84,33 @@ pub enum DecorationType {
     BannerRed,
     BannerBlack,
     RedX,
+    VillageDesert,
+    VillagePlains,
+    VillageSavanna,
+    VillageSnowy,
+    VillageTaiga,
+    JungleTemple,
+    SwampHut,
+    TrialChambers,
+}
+
+#[cfg(test)]
+mod tests {
+    use std::io::Cursor;
+
+    use azalea_buf::AzBuf;
+
+    use super::*;
+
+    #[test]
+    fn test_read_trial_chambers_decoration() {
+        // map 0, scale 0, unlocked, 1 decoration, no color patch
+        let bytes = [0, 0, 0, 1, 1, 34, 5, 6, 8, 0, 0];
+        let mut buf = Cursor::new(bytes.as_slice());
+        let packet = ClientboundMapItemData::azalea_read(&mut buf).unwrap();
+        let decoration = &packet.decorations.unwrap()[0];
+        assert_eq!(decoration.decoration_type, DecorationType::TrialChambers);
+        assert_eq!((decoration.x, decoration.y, decoration.rot), (5, 6, 8));
+        assert_eq!(buf.position() as usize, bytes.len());
+    }
 }
