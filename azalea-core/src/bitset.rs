@@ -181,10 +181,10 @@ impl From<Vec<u8>> for BitSet {
 /// implementation.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct FixedBitSet<const N: usize> {
-    data: BYTEARRAY<N>,
+    data: ByteArray<N>,
 }
 
-type BYTEARRAY<const N: usize> = [u8; gca!(BYTESIZE::<N>)];
+type ByteArray<const N: usize> = [u8; gca!(BYTESIZE::<N>)];
 const BYTESIZE<const N: usize>: usize = const { N.div_ceil(8) };
 
 impl<const N: usize> FixedBitSet<N> {
@@ -196,7 +196,7 @@ impl<const N: usize> FixedBitSet<N> {
 
     /// Create a new [`FixedBitSet`].
     #[must_use]
-    pub const fn new_with_data(data: BYTEARRAY<N>) -> Self {
+    pub const fn new_with_data(data: ByteArray<N>) -> Self {
         FixedBitSet { data }
     }
 
@@ -265,10 +265,10 @@ impl<const N: usize> Default for FixedBitSet<N> {
 /// access) and doesn't implement `AzBuf`.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct FastFixedBitSet<const N: usize> {
-    data: LONGARRAY<N>,
+    data: LongArray<N>,
 }
 
-type LONGARRAY<const N: usize> = [u64; gca!(LONGSIZE::<N>)];
+type LongArray<const N: usize> = [u64; gca!(LONGSIZE::<N>)];
 const LONGSIZE<const N: usize>: usize = const { N.div_ceil(64) };
 
 impl<const N: usize> FastFixedBitSet<N> {
