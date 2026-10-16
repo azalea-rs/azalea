@@ -29,8 +29,8 @@ pub async fn fetch_certificates(
         .await?;
     trace!("{:?}", res);
 
-    // using RsaPrivateKey::from_pkcs8_pem gives an error with decoding base64 so we
-    // just decode it ourselves
+    // using RsaPrivateKey::from_pkcs8_pem gives an error with decoding base64
+    // so we just decode it ourselves
 
     // remove the first and last lines of the private key
     let private_key_pem_base64 = res

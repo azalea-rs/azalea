@@ -125,7 +125,8 @@ pub(crate) fn read_utf_with_len<'a>(
     max_length: u32,
 ) -> Result<&'a str, BufReadError> {
     let length = u32::azalea_read_var(buf)?;
-    // i don't know why it's multiplied by 4 but it's like that in mojang's code so
+    // i don't know why it's multiplied by 4 but it's like that in mojang's code
+    // so
     if length > max_length * 4 {
         return Err(BufReadError::StringLengthTooLong {
             length,

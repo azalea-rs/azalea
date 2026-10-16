@@ -138,8 +138,8 @@ pub fn tick_execute_path(
 
         if executing_path.ticks_since_last_node_reached == 1 {
             if let Some(SimulatingPathState::Simulated(s)) = simulating_path_state {
-                // only reset the state if we just reached the end of the simulation path (for
-                // performance)
+                // only reset the state if we just reached the end of the
+                // simulation path (for performance)
                 if s.target == executing_path.last_reached_node
                     // or if the current simulation target isn't in the path, reset too
                     || !executing_path
@@ -257,8 +257,8 @@ fn run_simulations(
 
     let mut sim = Simulation::new(world_holder.shared.read().chunks.clone(), player.clone());
 
-    // note that we can't skip more than 50 nodes without causing issues with the
-    // executing_path_limit in goto_listener
+    // note that we can't skip more than 50 nodes without causing issues with
+    // the executing_path_limit in goto_listener
     for nodes_ahead in [20, 15, 10, 5, 4, 3, 2, 1, 0] {
         if nodes_ahead + 1 >= executing_path.path.len() {
             // don't simulate to the last node since it has stricter checks
@@ -281,8 +281,8 @@ fn run_simulations(
                             continue;
                         }
 
-                        // this loop is left here in case you wanna try re-enabling walking, but
-                        // it doesn't seem that useful
+                        // this loop is left here in case you wanna try
+                        // re-enabling walking, but it doesn't seem that useful
                         for sprinting in [true] {
                             if !sprinting && nodes_ahead > 2 {
                                 continue;
@@ -354,8 +354,8 @@ fn run_one_simulation(
     let start = BlockPos::from(player.position);
     sim.reset(player);
 
-    // run an Update to initialize some things, including at least the Bot component
-    // (which is needed for jumping)
+    // run an Update to initialize some things, including at least the Bot
+    // component (which is needed for jumping)
     sim.run_update_schedule();
 
     let simulating_to_block = simulating_to.movement.target;
@@ -434,7 +434,8 @@ fn run_one_simulation(
 
         let next_node = &executing_path.path[nodes_ahead + 1];
         for _ in 1..=30 {
-            // add ticks here so if we sort by ticks later it'll be more accurate
+            // add ticks here so if we sort by ticks later it'll be more
+            // accurate
             total_ticks += 1;
 
             {

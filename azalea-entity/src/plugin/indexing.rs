@@ -103,10 +103,10 @@ impl EntityIdIndex {
             self.entity_by_id.remove(&id);
             Some(id)
         } else {
-            // this is expected to happen when despawning entities if it was already
-            // despawned for another reason (like because the client received a
-            // remove_entities packet, or if we're in a shared world where entity ids are
-            // different for each client)
+            // this is expected to happen when despawning entities if it was
+            // already despawned for another reason (like because the client
+            // received a remove_entities packet, or if we're in a shared world
+            // where entity ids are different for each client)
             trace!(
                 "Failed to remove {entity:?} from a client's EntityIdIndex (using EntityIdIndex::remove_by_ecs_entity). This may be expected behavior."
             );
@@ -201,7 +201,8 @@ pub fn remove_despawned_entities_from_indexes(
 ) {
     for (entity, uuid, minecraft_id, position, world_name, loaded_by) in &query {
         let Some(world_lock) = worlds.get(world_name) else {
-            // the world isn't even loaded by us, so we can safely delete the entity
+            // the world isn't even loaded by us, so we can safely delete the
+            // entity
             debug!("Despawned entity {entity:?} because it's in a world that isn't loaded anymore");
             if entity_uuid_index.entity_by_uuid.remove(uuid).is_none() {
                 warn!(

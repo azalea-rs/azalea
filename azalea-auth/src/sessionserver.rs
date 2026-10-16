@@ -67,11 +67,13 @@ pub struct SessionServerJoinOpts<'a> {
 /// which is required to join online-mode servers.
 pub async fn join(opts: SessionServerJoinOpts<'_>) -> Result<(), ClientSessionServerError> {
     let client = if let Some(proxy) = opts.proxy {
-        // reusing the client is too complicated if we're using proxies, so don't bother
+        // reusing the client is too complicated if we're using proxies, so
+        // don't bother
         reqwest::ClientBuilder::new().proxy(proxy).build()?
     } else {
-        // no_proxy so we don't check reqwest's proxy env variables (because azalea
-        // doesn't handle them when connecting to servers anyways)
+        // no_proxy so we don't check reqwest's proxy env variables (because
+        // azalea doesn't handle them when connecting to servers
+        // anyways)
         static REQWEST_CLIENT: LazyLock<reqwest::Client> =
             LazyLock::new(|| reqwest::ClientBuilder::new().no_proxy().build().unwrap());
 

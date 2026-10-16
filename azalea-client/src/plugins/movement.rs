@@ -124,8 +124,10 @@ pub fn send_position(
     ) in query.iter_mut()
     {
         let packet = {
-            // TODO: the camera being able to be controlled by other entities isn't
-            // implemented yet if !self.is_controlled_camera() { return };
+            // TODO: the camera being able to be controlled by other entities
+            // isn't implemented yet
+
+            // if !self.is_controlled_camera() { return };
 
             let x_delta = position.x - last_sent_position.x;
             let y_delta = position.y - last_sent_position.y;
@@ -135,8 +137,9 @@ pub fn send_position(
 
             physics_state.position_remainder += 1;
 
-            // boolean sendingPosition = Mth.lengthSquared(xDelta, yDelta, zDelta) >
-            // Mth.square(2.0E-4D) || this.positionReminder >= 20;
+            // ```
+            // boolean sendingPosition = Mth.lengthSquared(xDelta, yDelta, zDelta) > Mth.square(2.0E-4D) || this.positionReminder >= 20;
+            // ```
             let is_delta_large_enough =
                 (x_delta.powi(2) + y_delta.powi(2) + z_delta.powi(2)) > 2.0e-4f64.powi(2);
             let sending_position = is_delta_large_enough || physics_state.position_remainder >= 20;
@@ -228,8 +231,8 @@ pub fn send_player_input_packet(
             sprint: physics_state.trying_to_sprint,
         };
 
-        // if LastSentInput isn't present, we default to assuming we're not pressing any
-        // keys and insert it anyways every time it changes
+        // if LastSentInput isn't present, we default to assuming we're not
+        // pressing any keys and insert it anyways every time it changes
         let last_sent_input = last_sent_input.cloned().unwrap_or_default();
 
         if input != last_sent_input.0 {
@@ -424,8 +427,8 @@ pub fn local_player_ai_step(
             }
         }
 
-        // TODO: replace those booleans when using items and passengers are properly
-        // implemented
+        // TODO: replace those booleans when using items and passengers are
+        // properly implemented
         let move_vector = modify_input(
             physics_state.move_vector,
             false,
@@ -762,8 +765,8 @@ pub fn update_pose(
             continue;
         }
 
-        // TODO: implement everything else from getDesiredPose: sleeping, swimming,
-        // fallFlying, spinAttack
+        // TODO: implement everything else from getDesiredPose: sleeping,
+        // swimming, fallFlying, spinAttack
         let desired_pose = if physics_state.trying_to_crouch {
             Pose::Crouching
         } else if **fall_flying {

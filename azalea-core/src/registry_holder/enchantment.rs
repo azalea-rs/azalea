@@ -32,8 +32,8 @@ impl EnchantmentData {
         self.effects.get(&kind).map(|c| {
             c.iter()
                 .map(|c| {
-                    // SAFETY: we just got the component from the map, so it must be the correct
-                    // kind
+                    // SAFETY: we just got the component from the map, so it
+                    // must be the correct kind
                     unsafe { c.as_kind(kind) }
                 })
                 .collect()

@@ -58,7 +58,8 @@ fn create_simulation_world(chunks: ChunkStorage) -> (App, Arc<RwLock<World>>) {
     }));
 
     let mut app = App::new();
-    // we don't use all the default azalea plugins because we don't need all of them
+    // we don't use all the default azalea plugins because we don't need all of
+    // them
     app.add_plugins((
         azalea_physics::PhysicsPlugin,
         azalea_entity::EntityPlugin,

@@ -128,7 +128,8 @@ impl TaskPoolOptions {
 
         {
             // Determine the number of compute threads we will use
-            // This is intentionally last so that an end user can specify 1.0 as the percent
+            // This is intentionally last so that an end user can specify 1.0 as
+            // the percent
             let compute_threads = self
                 .compute
                 .get_number_of_threads(remaining_threads, total_threads);
@@ -168,9 +169,9 @@ impl TaskPoolThreadAssignmentPolicy {
         // Limit ourselves to the number of cores available
         desired = desired.min(remaining_threads);
 
-        // Clamp by min_threads, max_threads. (This may result in us using more threads
-        // than are available, this is intended. An example case where this
-        // might happen is a device with <= 2 threads.
+        // Clamp by min_threads, max_threads. (This may result in us using more
+        // threads than are available, this is intended. An example case
+        // where this might happen is a device with <= 2 threads.
         desired.clamp(self.min_threads, self.max_threads)
     }
 }

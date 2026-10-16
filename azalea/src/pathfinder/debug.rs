@@ -72,8 +72,8 @@ pub fn debug_render_path_with_particles(
             let above_target_block_state = chunks
                 .get_block_state(movement.target.up(1))
                 .unwrap_or_default();
-            // this isn't foolproof, there might be another block that could be mined
-            // depending on the move, but it's good enough for debugging
+            // this isn't foolproof, there might be another block that could be
+            // mined depending on the move, but it's good enough for debugging
             // purposes
             let is_mining = should_mine_block_state(target_block_state)
                 || should_mine_block_state(above_target_block_state);

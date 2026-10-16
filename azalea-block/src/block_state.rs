@@ -82,10 +82,10 @@ impl BlockState {
     /// hard-code them or store them in databases.
     #[inline]
     pub const fn id(&self) -> BlockStateIntegerRepr {
-        // this unsafe assert allows us to skip bounds checks if the array has at least
-        // MAX_STATE items.
-        // SAFETY: BlockState::id is private and is always checked with is_valid_state
-        // before being constructed.
+        // this unsafe assert allows us to skip bounds checks if the array has
+        // at least MAX_STATE items.
+        // SAFETY: BlockState::id is private and is always checked with
+        // is_valid_state before being constructed.
         unsafe { assert_unchecked(Self::is_valid_state(self.id)) };
 
         self.id

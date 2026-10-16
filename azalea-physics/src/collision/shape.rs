@@ -26,8 +26,8 @@ pub fn box_shape(
     max_y: f64,
     max_z: f64,
 ) -> VoxelShape {
-    // we don't check for the numbers being out of bounds because some blocks are
-    // weird and are outside 0-1
+    // we don't check for the numbers being out of bounds because some blocks
+    // are weird and are outside 0-1
 
     if max_x - min_x < EPSILON && max_y - min_y < EPSILON && max_z - min_z < EPSILON {
         return EMPTY_SHAPE.clone();
@@ -147,17 +147,6 @@ impl Shapes {
                 EMPTY_SHAPE.clone()
             };
         }
-        // IndexMerger var5 = createIndexMerger(1, a.getCoords(Direction.Axis.X),
-        // b.getCoords(Direction.Axis.X), var3, var4); IndexMerger var6 =
-        // createIndexMerger(var5.size() - 1, a.getCoords(Direction.Axis.Y),
-        // b.getCoords(Direction.Axis.Y), var3, var4); IndexMerger var7 =
-        // createIndexMerger((var5.size() - 1) * (var6.size() - 1),
-        // a.getCoords(Direction.Axis.Z), b.getCoords(Direction.Axis.Z), var3, var4);
-        // BitSetDiscreteVoxelShape var8 = BitSetDiscreteVoxelShape.join(a.shape,
-        // b.shape, var5, var6, var7, op); return (VoxelShape)(var5 instanceof
-        // DiscreteCubeMerger && var6 instanceof DiscreteCubeMerger && var7 instanceof
-        // DiscreteCubeMerger ? new CubeVoxelShape(var8) : new ArrayVoxelShape(var8,
-        // var5.getList(), var6.getList(), var7.getList()));
         let var5 = Self::create_index_merger(
             1,
             a.get_coords(Axis::X),
@@ -180,7 +169,6 @@ impl Shapes {
             op_false_true,
         );
         let var8 = BitSetDiscreteVoxelShape::join(a.shape(), b.shape(), &var5, &var6, &var7, op);
-        // if var5.is_discrete_cube_merger()
 
         if matches!(var5, IndexMerger::DiscreteCube { .. })
             && matches!(var6, IndexMerger::DiscreteCube { .. })
@@ -615,7 +603,8 @@ impl ArrayVoxelShape {
         let y_size = shape.size(Axis::Y) + 1;
         let z_size = shape.size(Axis::Z) + 1;
 
-        // Lengths of point arrays must be consistent with the size of the VoxelShape.
+        // Lengths of point arrays must be consistent with the size of the
+        // VoxelShape.
         debug_assert_eq!(x_size, xs.len() as u32);
         debug_assert_eq!(y_size, ys.len() as u32);
         debug_assert_eq!(z_size, zs.len() as u32);

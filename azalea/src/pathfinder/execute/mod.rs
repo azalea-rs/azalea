@@ -138,8 +138,9 @@ pub fn check_node_reached(
         };
 
         'skip: loop {
-            // we check if the goal was reached *before* actually executing the movement so
-            // we don't unnecessarily execute a movement when it wasn't necessary
+            // we check if the goal was reached *before* actually executing the
+            // movement so we don't unnecessarily execute a movement when it
+            // wasn't necessary
 
             // see if we already reached any future nodes and can skip ahead
             for (i, edge) in executing_path
@@ -161,8 +162,8 @@ pub fn check_node_reached(
                     // only do the extra check if we don't have a new path immediately queued up
                     && executing_path.is_empty_queued_path()
                 {
-                    // be extra strict about the velocity and centering if we're on the last node so
-                    // we don't fall off
+                    // be extra strict about the velocity and centering if we're
+                    // on the last node so we don't fall off
 
                     let x_difference_from_center = position.x - (movement.target.x as f64 + 0.5);
                     let z_difference_from_center = position.z - (movement.target.z as f64 + 0.5);
@@ -180,14 +181,16 @@ pub fn check_node_reached(
                     // friction for normal blocks is 0.6, for ice it's 0.98
                     let block_friction = block_below.behavior().friction as f64;
 
-                    // if the block has the default friction, this will multiply by 1
-                    // for blocks like ice, it'll multiply by a higher number
+                    // if the block has the default friction, this will multiply
+                    // by 1 for blocks like ice, it'll multiply by a higher
+                    // number
                     let scaled_velocity = physics.velocity * (0.4 / (1. - block_friction));
 
                     let x_predicted_offset = (x_difference_from_center + scaled_velocity.x).abs();
                     let z_predicted_offset = (z_difference_from_center + scaled_velocity.z).abs();
 
-                    // this is to make sure we don't fall off immediately after finishing the path
+                    // this is to make sure we don't fall off immediately after
+                    // finishing the path
                     (physics.on_ground() || physics.is_in_water())
                         && player_pos_to_block_pos(**position) == movement.target
                         // adding the delta like this isn't a perfect solution but it helps to make
@@ -289,15 +292,15 @@ pub fn timeout_movement(
             };
 
             let (start, end) = (start.center_bottom(), end.center_bottom());
-            // TODO: use an actual 2d point-line distance formula here instead of the 3d one
-            // lol
+            // TODO: use an actual 2d point-line distance formula here instead
+            // of the 3d one lol
             let xz_distance =
                 point_line_distance_3d(&position.with_y(0.), &(start.with_y(0.), end.with_y(0.)));
             let y_distance = point_line_distance_1d(position.y, (start.y, end.y));
 
             let xz_tolerance = 3.;
-            // longer moves have more y tolerance (in case we're climbing a hill or smth in
-            // a single movement)
+            // longer moves have more y tolerance (in case we're climbing a hill
+            // or smth in a single movement)
             let y_tolerance = start.horizontal_distance_to(end) / 2. + 1.5;
 
             if xz_distance > xz_tolerance || y_distance > y_tolerance {
@@ -329,8 +332,8 @@ pub fn timeout_movement(
         if let Some(mining) = mining {
             // also make sure we're close enough to the block that's being mined
             if mining.pos.distance_squared_to(position.into()) < 6_i32.pow(2) {
-                // also reset the ticks_since_last_node_reached so we don't timeout after we
-                // finish mining
+                // also reset the ticks_since_last_node_reached so we don't
+                // timeout after we finish mining
                 executing_path.ticks_since_last_node_reached = 0;
                 continue;
             }
@@ -339,8 +342,8 @@ pub fn timeout_movement(
         let mut timeout = 2 * 20;
 
         if simulating_path_state.is_some() {
-            // longer timeout if we're following a simulated path from the other execution
-            // engine
+            // longer timeout if we're following a simulated path from the other
+            // execution engine
             timeout = 5 * 20;
         }
 
@@ -392,8 +395,8 @@ fn patch_path_from_timeout(
     let custom_state = custom_state.cloned().unwrap_or_default();
 
     // try to fix the path without recalculating everything.
-    // (though, it'll still get fully recalculated by `recalculate_near_end_of_path`
-    // if the new path is too short)
+    // (though, it'll still get fully recalculated by
+    // `recalculate_near_end_of_path` if the new path is too short)
     patching::patch_path(
         0..=cmp::min(20, executing_path.path.len() - 1),
         executing_path,
@@ -419,11 +422,14 @@ pub fn recalculate_near_end_of_path(
             continue;
         };
 
-        // start recalculating if the path ends soon. 50 is arbitrary, that's just to
-        // make us recalculate once when we start nearing the end. this doesn't account
-        // for skipping nodes, though...
-        // TODO: have a variable to store whether we've recalculated, and then check
-        // that `&& path.len() <= 50` to see if we should recalculate.
+        // start recalculating if the path ends soon. 50 is arbitrary, that's
+        // just to make us recalculate once when we start nearing the
+        // end. this doesn't account for skipping nodes, though...
+
+        // TODO: have a variable to store whether we've recalculated, and then
+        // check that `&& path.len() <= 50` to see if we should
+        // recalculate.
+
         if (executing_path.path.len() == 50 || executing_path.path.len() < 5)
             && !pathfinder.is_calculating
             && executing_path.is_path_partial
@@ -439,8 +445,9 @@ pub fn recalculate_near_end_of_path(
                     );
 
                     opts.min_timeout = if executing_path.path.len() == 50 {
-                        // we have quite some time until the node is reached, soooo we might as
-                        // well burn some cpu cycles to get a good path
+                        // we have quite some time until the node is reached,
+                        // soooo we might as well burn some cpu cycles to get a
+                        // good path
                         PathfinderTimeout::Time(Duration::from_secs(5))
                     } else {
                         PathfinderTimeout::Time(Duration::from_secs(1))

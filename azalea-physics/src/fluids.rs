@@ -34,8 +34,9 @@ pub fn update_in_water_state_and_do_fluid_pushing(
 
         update_in_water_state_and_do_water_current_pushing(&mut physics, &world, *position);
 
-        // right now doing registries.dimension_type() clones the entire registry which
-        // is very inefficient, so for now we're doing this instead
+        // right now doing registries.dimension_type() clones the entire
+        // registry which is very inefficient, so for now we're doing
+        // this instead
 
         let is_ultrawarm = world
             .registries
@@ -273,8 +274,8 @@ fn is_face_sturdy(
     _pos: BlockPos,
     _direction: Direction,
 ) -> bool {
-    // TODO: this does a whole bunch of physics shape checks for waterlogged blocks
-    // that i honestly cannot be bothered to implement right now
+    // TODO: this does a whole bunch of physics shape checks for waterlogged
+    // blocks that i honestly cannot be bothered to implement right now
 
     // see BlockBehavior.isFaceSturdy in the decompiled minecraft source
 

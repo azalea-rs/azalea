@@ -265,8 +265,8 @@ impl PathfinderClientExt for Client {
     }
 
     async fn wait_until_goto_target_reached(&self) {
-        // we do this to make sure the event got handled before we start checking
-        // is_goto_target_reached
+        // we do this to make sure the event got handled before we start
+        // checking is_goto_target_reached
         self.wait_updates(1).await;
 
         let mut tick_broadcaster = self.get_tick_broadcaster();
@@ -374,12 +374,14 @@ pub fn goto_listener(
         let custom_state = custom_state.cloned().unwrap_or_default();
         let opts = event.opts.clone();
 
-        // if we're executing a path, this might get replaced with something else
+        // if we're executing a path, this might get replaced with something
+        // else
         let mut start = cur_pos;
 
         if let Some(mut executing_path) = executing_path {
-            // first try calculating the path instantly, which allows us to react quickly
-            // for easy paths (but we'll fall back to spawning a thread if this fails)
+            // first try calculating the path instantly, which allows us to
+            // react quickly for easy paths (but we'll fall back to spawning a
+            // thread if this fails)
 
             // first, try starting at the node that we're going to
             let instant_path_start = simulating_path_state
@@ -413,8 +415,9 @@ pub fn goto_listener(
             {
                 debug!("Found path instantly!");
 
-                // instant_path_start needs to be equal to executing_path.path.back() for the
-                // path merging in path_found_listener to work correctly
+                // instant_path_start needs to be equal to
+                // `executing_path.path.back()` for the path merging in
+                // path_found_listener to work correctly
                 let instant_path_start_index = executing_path
                     .path
                     .iter()
@@ -439,16 +442,19 @@ pub fn goto_listener(
             }
 
             if !executing_path.path.is_empty() {
-                // if we're currently pathfinding and got a goto event, start a little ahead
+                // if we're currently pathfinding and got a goto event, start a
+                // little ahead
 
                 let executing_path_limit = 50;
 
-                // truncate the executing path so we can cleanly combine the two paths later
+                // truncate the executing path so we can cleanly combine the two
+                // paths later
                 executing_path.path.truncate(executing_path_limit);
 
-                // TODO: this should probably have better handling when we have a queued path
-                // (since it can result in skipped nodes which is very bad). you should probably
-                // write a test for this before trying to fix it, though.
+                // TODO: this should probably have better handling when we have
+                // a queued path (since it can result in skipped nodes which is
+                // very bad). you should probably write a test for this before
+                // trying to fix it, though.
                 start = executing_path
                     .path
                     .back()
@@ -569,7 +575,8 @@ pub fn calculate_path(ctx: CalculatePathCtx) -> Option<PathFoundEvent> {
 
     let goto_id_now = ctx.goto_id_atomic.load(atomic::Ordering::SeqCst);
     if goto_id != goto_id_now {
-        // we must've done another goto while calculating this path, so throw it away
+        // we must've done another goto while calculating this path, so throw it
+        // away
         warn!("finished calculating a path, but it's outdated");
         return None;
     }
@@ -594,8 +601,8 @@ pub fn calculate_path(ctx: CalculatePathCtx) -> Option<PathFoundEvent> {
         );
         current_position = found_edge.movement.target;
 
-        // we don't just clone the found_edge because we're using BlockPos instead of
-        // RelBlockPos as the target type
+        // we don't just clone the found_edge because we're using BlockPos
+        // instead of RelBlockPos as the target type
         mapped_path.push_back(Edge {
             movement: astar::Movement {
                 target: movement.target.apply(origin),
@@ -658,8 +665,8 @@ pub fn path_found_listener(
             if let Some(mut executing_path) = executing_path {
                 let mut new_path = VecDeque::new();
 
-                // combine the old and new paths if the first node of the new path is a
-                // successor of the last node of the old path
+                // combine the old and new paths if the first node of the new
+                // path is a successor of the last node of the old path
                 if let Some(last_node_of_current_path) = executing_path.path.back() {
                     let world_lock = worlds
                         .get(world_name)

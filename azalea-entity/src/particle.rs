@@ -144,8 +144,8 @@ impl From<ParticleKind> for Particle {
     /// If the particle has data attached (like block particles), then it's set
     /// to the default.
     fn from(kind: ParticleKind) -> Self {
-        // this is mostly just here so it fails to compile when a new particle is added
-        // to ParticleKind, since `Particle` has to be updated manually
+        // this is mostly just here so it fails to compile when a new particle
+        // is added to ParticleKind, since `Particle` has to be updated manually
         match kind {
             ParticleKind::AngryVillager => Self::AngryVillager,
             ParticleKind::Block => Self::Block(BlockParticle::default()),

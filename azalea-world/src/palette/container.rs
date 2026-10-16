@@ -223,8 +223,8 @@ impl<S: PalletedContainerKind> PalettedContainer<S> {
         // sanity check
         debug_assert_eq!(storage.size(), S::size());
 
-        // let palette = new_palette_type.as_empty_palette(1usize << (bits_per_entry as
-        // usize));
+        // let palette = new_palette_type.as_empty_palette(1usize <<
+        // (bits_per_entry as usize));
         let palette = new_palette_type.as_empty_palette();
         PalettedContainer {
             bits_per_entry,
@@ -238,8 +238,11 @@ impl<S: PalletedContainerKind> PalettedContainer<S> {
             "Resizing PalettedContainer from {} bpe to {bits_per_entry} for {value:?} with palette={:?}",
             self.bits_per_entry, self.palette
         );
-        // in vanilla this is always true, but it's sometimes false in purpur servers
+        // in vanilla this is always true, but it's sometimes false in purpur
+        // servers
+        // ```
         // assert!(bits_per_entry <= 5, "bits_per_entry must be <= 5");
+        // ```
         let mut new_data = self.create_or_reuse_data(bits_per_entry);
         new_data.copy_from(&self.palette, &self.storage);
         *self = new_data;
@@ -276,8 +279,8 @@ impl<S: PalletedContainerKind> PalettedContainer<S> {
                 }
             }
             Palette::Hashmap(palette) => {
-                // TODO? vanilla keeps this in memory as a hashmap, but it should be benchmarked
-                // before changing it
+                // TODO? vanilla keeps this in memory as a hashmap, but it
+                // should be benchmarked before changing it
                 if let Some(index) = palette.iter().position(|v| (*v).into() == value.into()) {
                     return index;
                 }

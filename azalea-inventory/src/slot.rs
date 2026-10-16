@@ -316,8 +316,8 @@ impl DataComponentPatch {
     ) -> Option<&dyn components::EncodableDataComponent> {
         self.components.get(&kind).and_then(|c| {
             c.as_ref().map(|c| {
-                // SAFETY: we just got the component from the map, so it must be the correct
-                // kind
+                // SAFETY: we just got the component from the map, so it must be
+                // the correct kind
                 unsafe { c.as_kind(kind) }
             })
         })
@@ -367,8 +367,8 @@ impl DataComponentPatch {
     ) {
         let existing = self.components.insert(kind, value);
         if let Some(Some(mut existing)) = existing {
-            // SAFETY: we just got it from self.components, so it must already be the
-            // correct type
+            // SAFETY: we just got it from self.components, so it must already
+            // be the correct type
             unsafe { existing.drop_as(kind) };
         }
     }
@@ -433,7 +433,8 @@ impl AzBuf for DataComponentPatch {
                 kind.azalea_write(buf)?;
 
                 component_buf.clear();
-                // SAFETY: we got the component from the map and are passing in the same kind
+                // SAFETY: we got the component from the map and are passing in
+                // the same kind
                 unsafe { component.azalea_write_as(*kind, &mut component_buf) }?;
                 buf.write_all(&component_buf)?;
             }
@@ -482,8 +483,9 @@ impl PartialEq for DataComponentPatch {
                 let Some(other_component) = other_component else {
                     return false;
                 };
-                // SAFETY: we already checked that the kinds are the same, and we got the
-                // components from the map, so they must be the correct kinds
+                // SAFETY: we already checked that the kinds are the same, and
+                // we got the components from the map, so they
+                // must be the correct kinds
                 if !unsafe { component.eq_as(other_component, *kind) } {
                     return false;
                 }

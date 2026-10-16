@@ -88,8 +88,8 @@ pub fn handle_attack_queued(
             entity: client_entity,
         });
 
-        // we can't attack if we're in spectator mode but it still sends the attack
-        // packet
+        // we can't attack if we're in spectator mode but it still sends the
+        // attack packet
         if game_mode == GameMode::Spectator {
             continue;
         };

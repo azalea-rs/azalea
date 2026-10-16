@@ -38,8 +38,8 @@ impl<R: Registry + 'static> RegistryTag<R> {
     }
 
     fn find(&self, value: &R) -> Option<usize> {
-        // TODO: tune this number; when does binary search actually start making a
-        // difference?
+        // TODO: tune this number; when does binary search actually start making
+        // a difference?
         if self.entries.len() > 64 {
             self.binary_search_find(value)
         } else {
@@ -53,8 +53,8 @@ impl<R: Registry + 'static> RegistryTag<R> {
         self.entries.binary_search(value).ok()
     }
 
-    // this exists for convenience since we can't always do HashSet::from if it's a
-    // LazyLock
+    // this exists for convenience since we can't always do HashSet::from if
+    // it's a LazyLock
     pub fn into_hashset(&self) -> HashSet<R> {
         self.clone().into_iter().collect()
     }

@@ -64,18 +64,20 @@ fn chat_listener(
         let mut client_chat_index = if let Ok(ref client_chat_state) = client_chat_state {
             client_chat_state.chat_index
         } else {
-            // if the client has no chat state, we default to this and insert it at the end
+            // if the client has no chat state, we default to this and insert it
+            // at the end
             global_chat_state.chat_min_index
         };
 
-        // When a bot receives a chat messages, it looks into the queue to find the
-        // earliest instance of the message content that's after the bot's chat index.
-        // If it finds it, then its personal index is simply updated. Otherwise, fire
-        // the event and add to the queue.
+        // When a bot receives a chat messages, it looks into the queue to find
+        // the earliest instance of the message content that's after the bot's
+        // chat index. If it finds it, then its personal index is simply
+        // updated. Otherwise, fire the event and add to the queue.
 
         let actual_vec_index = client_chat_index - global_chat_state.chat_min_index;
 
-        // go through the queue and find the first message that's after the bot's index
+        // go through the queue and find the first message that's after the
+        // bot's index
         let mut found = false;
         for (i, past_message) in global_chat_state
             .chat_queue
@@ -92,7 +94,8 @@ fn chat_listener(
         }
 
         if !found {
-            // didn't find the message, so fire the swarm event and add to the queue
+            // didn't find the message, so fire the swarm event and add to the
+            // queue
             new_chat_messages_events.write(NewChatMessageEvent(event.packet.clone()));
             global_chat_state.chat_queue.push_back(event.packet.clone());
             client_chat_index =
@@ -116,15 +119,17 @@ fn update_min_index_and_shrink_queue(
 ) {
     for event in events.read() {
         if let Some(swarm) = &swarm {
-            // it should also work if Swarm isn't present (so the tests don't need it)
+            // it should also work if Swarm isn't present (so the tests don't
+            // need it)
             swarm
                 .swarm_tx
                 .send(SwarmEvent::Chat(event.0.clone()))
                 .unwrap();
         }
-        // To make sure the queue doesn't grow too large, we keep a `chat_min_index`
-        // in Swarm that's set to the smallest index of all the bots, and we remove all
-        // messages from the queue that are before that index.
+        // To make sure the queue doesn't grow too large, we keep a
+        // `chat_min_index` in Swarm that's set to the smallest index of all the
+        // bots, and we remove all messages from the queue that are before that
+        // index.
 
         let mut new_chat_min_index = global_chat_state.chat_min_index;
         for client_chat_state in query.iter() {
@@ -155,8 +160,8 @@ mod tests {
 
     fn make_test_app() -> App {
         let mut app = App::new();
-        // we add the events like this instead of with .add_message so we can have our
-        // own event management in drain_messages
+        // we add the events like this instead of with .add_message so we can
+        // have our own event management in drain_messages
         app.init_resource::<Messages<ChatReceivedEvent>>()
             .init_resource::<Messages<NewChatMessageEvent>>()
             .add_systems(
@@ -217,8 +222,8 @@ mod tests {
         app.update();
         assert_eq!(drain_messages(app.world_mut()), vec![ChatPacket::new("a")]);
 
-        // alright and now the second bot got a different chat message and it should be
-        // sent
+        // alright and now the second bot got a different chat message and it
+        // should be sent
         app.world_mut().write_message(ChatReceivedEvent {
             entity: bot1,
             packet: ChatPacket::new("b"),

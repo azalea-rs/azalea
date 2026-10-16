@@ -105,7 +105,8 @@ fn handle_auto_mine(
             .as_block_hit_result_if_not_miss()
             .map(|b| b.block_pos);
 
-        // start mining if we're looking at a block and we're not already mining it
+        // start mining if we're looking at a block and we're not already mining
+        // it
         if let Some(block_pos) = block_pos
             && (mining.is_none()
                 || !is_same_mining_target(
@@ -184,8 +185,10 @@ fn handle_start_mining_block_event(
                 force: true,
             });
         } else {
+            // ```
             // let block_hit_result = hit_result.as_block_hit_result_if_not_miss();
             // let direction = block_hit_result.map_or(Direction::Down, |b| b.direction);
+            // ```
             if let Some(block_hit_result) = hit_result.as_block_hit_result_if_not_miss()
                 && block_hit_result.block_pos == event.position
             {
@@ -277,8 +280,8 @@ pub fn handle_mining_queued(
         }
 
         if game_mode == GameMode::Creative {
-            // In creative mode, first send START_DESTROY_BLOCK packet then immediately
-            // finish mining
+            // In creative mode, first send START_DESTROY_BLOCK packet then
+            // immediately finish mining
             commands.trigger(SendGamePacketEvent::new(
                 entity,
                 ServerboundPlayerAction {
@@ -666,8 +669,8 @@ pub fn continue_mining_block(
             **mine_ticks += 1.;
 
             if **mine_progress >= 1. {
-                // MiningQueued is removed in case we were doing an infinite loop that
-                // repeatedly inserts MiningQueued
+                // MiningQueued is removed in case we were doing an infinite
+                // loop that repeatedly inserts MiningQueued
                 commands.entity(entity).remove::<(Mining, MiningQueued)>();
                 trace!("finished mining block at {:?}", mining.pos);
                 commands.trigger(FinishMiningBlockEvent {

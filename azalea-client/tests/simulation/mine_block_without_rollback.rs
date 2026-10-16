@@ -34,8 +34,8 @@ fn test_mine_block_without_rollback() {
     simulation.tick();
     assert_eq!(simulation.get_block_state(pos), Some(BlockKind::Air.into()));
 
-    // server acknowledged our change by sending a BlockUpdate + BlockChangedAck, so
-    // no rollback
+    // server acknowledged our change by sending a BlockUpdate +
+    // BlockChangedAck, so no rollback
     simulation.receive_packet(ClientboundBlockUpdate {
         pos,
         block_state: BlockKind::Air.into(),

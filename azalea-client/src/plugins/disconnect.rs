@@ -107,8 +107,8 @@ pub fn remove_components_from_disconnected_players(
         // to reconnect they'll keep their state
 
         // now we have to remove ourselves from the LoadedBy for every entity.
-        // in theory this could be inefficient if we have massive swarms... but in
-        // practice this is fine.
+        // in theory this could be inefficient if we have massive swarms... but
+        // in practice this is fine.
         for mut loaded_by in &mut loaded_by_query.iter_mut() {
             loaded_by.remove(entity);
         }

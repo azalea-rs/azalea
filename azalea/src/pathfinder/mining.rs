@@ -99,8 +99,8 @@ impl MiningCache {
     }
 
     pub fn is_liquid(&self, block: BlockState) -> bool {
-        // this already runs in about 1 nanosecond, so if you wanna try optimizing it at
-        // least run the benchmarks (in benches/checks.rs)
+        // this already runs in about 1 nanosecond, so if you wanna try
+        // optimizing it at least run the benchmarks (in benches/checks.rs)
 
         self.water_block_state_range.contains(&block.id())
             || self.lava_block_state_range.contains(&block.id())

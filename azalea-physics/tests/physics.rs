@@ -75,7 +75,8 @@ fn test_gravity() {
     app.update();
     {
         let entity_pos = *app.world_mut().get::<Position>(entity).unwrap();
-        // delta is applied before gravity, so the first tick only sets the delta
+        // delta is applied before gravity, so the first tick only sets the
+        // delta
         assert_eq!(entity_pos.y, 70.);
         let entity_physics = app.world_mut().get::<Physics>(entity).unwrap();
         assert!(entity_physics.velocity.y < 0.);
@@ -84,7 +85,8 @@ fn test_gravity() {
     app.update();
     {
         let entity_pos = *app.world_mut().get::<Position>(entity).unwrap();
-        // the second tick applies the delta to the position, so now it should go down
+        // the second tick applies the delta to the position, so now it should
+        // go down
         assert!(
             entity_pos.y < 70.,
             "Entity y ({}) didn't go down after physics steps",
@@ -144,7 +146,8 @@ fn test_collision() {
     app.update();
     {
         let entity_pos = *app.world_mut().get::<Position>(entity).unwrap();
-        // the second tick applies the delta to the position, but it also does collision
+        // the second tick applies the delta to the position, but it also does
+        // collision
         assert_eq!(entity_pos.y, 70.);
     }
 }

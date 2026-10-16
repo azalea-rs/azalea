@@ -22,8 +22,8 @@ pub fn basic_move(ctx: &mut MovesCtx, node: RelBlockPos) {
 
 fn forward_move(ctx: &mut MovesCtx, pos: RelBlockPos) {
     let mut base_cost = SPRINT_ONE_BLOCK_COST;
-    // it's for us cheaper to have the water cost be applied when leaving the water
-    // rather than when entering
+    // it's for us cheaper to have the water cost be applied when leaving the
+    // water rather than when entering
     let currently_in_water = ctx.world.is_block_water(pos);
     if currently_in_water {
         if BARITONE_COMPAT {
@@ -84,20 +84,20 @@ fn execute_forward_move(mut ctx: ExecuteCtx) {
 }
 
 fn ascend_move(ctx: &mut MovesCtx, pos: RelBlockPos) {
-    // the block we're standing on must be solid (so we don't try to ascend from a
-    // bottom slab to a normal block in a way that's not possible)
+    // the block we're standing on must be solid (so we don't try to ascend from
+    // a bottom slab to a normal block in a way that's not possible)
 
     let is_unusual_shape = !ctx.world.is_block_solid(pos.down(1));
     let mut stair_facing = None;
 
     if is_unusual_shape && !ctx.world.is_block_water(pos) {
-        // this is potentially expensive but it's rare enough that it shouldn't matter
-        // much
+        // this is potentially expensive but it's rare enough that it shouldn't
+        // matter much
         let block_below = ctx.world.get_block_state(pos.down(1));
 
         let Some(found_stair_facing) = validate_stair_and_get_facing(block_below) else {
-            // return if it's not a stair or it's not facing the right way (like, if it's
-            // upside down or something)
+            // return if it's not a stair or it's not facing the right way
+            // (like, if it's upside down or something)
             return;
         };
 
@@ -169,8 +169,8 @@ fn execute_ascend_move(mut ctx: ExecuteCtx) {
     ctx.look_at(target_center);
     ctx.walk(WalkDirection::Forward);
 
-    // these checks are to make sure we don't fall if our velocity is too high in
-    // the wrong direction
+    // these checks are to make sure we don't fall if our velocity is too high
+    // in the wrong direction
 
     let x_axis = target.x - start.x; // -1, 0, or 1
     let z_axis = target.z - start.z; // -1, 0, or 1
@@ -193,8 +193,8 @@ fn execute_ascend_move(mut ctx: ExecuteCtx) {
         return;
     }
 
-    // if the target block is a stair that's facing in the direction we're going, we
-    // shouldn't jump
+    // if the target block is a stair that's facing in the direction we're
+    // going, we shouldn't jump
     let block_below_target = ctx.get_block_state(target.down(1));
     if let Some(stair_facing) = validate_stair_and_get_facing(block_below_target) {
         let expected_stair_facing = match (x_axis, z_axis) {
@@ -354,7 +354,8 @@ pub fn execute_descend_move(mut ctx: ExecuteCtx) {
         || horizontal_distance_from_target > 0.25
     {
         if horizontal_distance_from_start < 1.25 {
-            // this basically just exists to avoid doing spins while we're falling
+            // this basically just exists to avoid doing spins while we're
+            // falling
             ctx.look_at(dest_ahead);
             ctx.walk(WalkDirection::Forward);
         } else {
@@ -452,7 +453,8 @@ fn diagonal_move(ctx: &mut MovesCtx, pos: RelBlockPos) {
 
         if !left_passable || !right_passable {
             if !BARITONE_COMPAT {
-                // add a bit of cost because it'll probably be hugging a wall here
+                // add a bit of cost because it'll probably be hugging a wall
+                // here
                 cost += WALK_ONE_BLOCK_COST / 2.;
             } else {
                 cost = WALK_ONE_BLOCK_COST * (SQRT_2 - 0.001) * SQRT_2;

@@ -14,8 +14,8 @@ fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> Toke
     let DeriveInput { ident, data, .. } = parse_macro_input!(input);
 
     // technically it would still work with enums and non-named structs but for
-    // consistency in the api it's nicer if they are all just structs, which is why
-    // we enforce this here
+    // consistency in the api it's nicer if they are all just structs, which is
+    // why we enforce this here
     let syn::Data::Struct(syn::DataStruct { fields, .. }) = &data else {
         panic!("#[derive(*Packet)] can only be used on structs")
     };

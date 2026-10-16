@@ -453,7 +453,8 @@ impl Style {
             self
         };
 
-        // if any property was false/default and now it's true, add the right ansi codes
+        // if any property was false/default and now it's true, add the right
+        // ansi codes
         if !before.bold.unwrap_or_default() && after.bold.unwrap_or_default() {
             ansi_codes.push_str(Ansi::BOLD);
         }

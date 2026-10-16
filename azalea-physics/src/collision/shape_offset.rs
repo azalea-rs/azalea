@@ -18,8 +18,8 @@ pub fn apply_shape_offset(
     pos: BlockPos,
     shape: &'static VoxelShape,
 ) -> Cow<'static, VoxelShape> {
-    // don't waste time checking the block if it's already known to be empty. also,
-    // it's faster to compare addresses than to call `.is_empty`.
+    // don't waste time checking the block if it's already known to be empty.
+    // also, it's faster to compare addresses than to call `.is_empty`.
     if std::ptr::eq(shape, &*super::EMPTY_SHAPE) {
         return Cow::Borrowed(shape);
     }

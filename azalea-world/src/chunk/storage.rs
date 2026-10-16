@@ -37,8 +37,8 @@ pub trait ChunkStorageTrait: Send + Sync + Any {
     fn chunks(&self) -> Box<[&ChunkPos]>;
     fn clone_box(&self) -> Box<dyn ChunkStorageTrait>;
 
-    // these impls are here instead of in the `impl ChunkStorage` so rust is able to
-    // inline more and thus optimize them a lot better.
+    // these impls are here instead of in the `impl ChunkStorage` so rust is
+    // able to inline more and thus optimize them a lot better.
 
     /// Returns the [`BlockState`] at the given position.
     ///

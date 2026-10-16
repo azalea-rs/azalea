@@ -84,8 +84,8 @@ impl<S, R: CommandResultTrait> ContextChain<S, R> {
         let err = match res {
             Ok(res) => {
                 let Some(res) = res.as_i32() else {
-                    // these are treated as exceptions, so they can bubble up without doing anything
-                    // else
+                    // these are treated as exceptions, so they can bubble up
+                    // without doing anything else
                     return Ok(res);
                 };
                 result_consumer.on_command_complete(context_to_use, true, res);

@@ -35,10 +35,10 @@ impl World {
         // we do `while` instead of `for` so we can access iter later
         while let Some(chunk_pos) = iter.next() {
             let Some(chunk) = self.chunks.get(&chunk_pos) else {
-                // if the chunk isn't loaded then we skip it.
-                // we don't just return since it *could* cause issues if there's a random
-                // unloaded chunk and then more that are loaded.
-                // unlikely but still something to consider, and it's not like this slows it
+                // if the chunk isn't loaded then we skip it. we don't just
+                // return since it *could* cause issues if there's a random
+                // unloaded chunk and then more that are loaded. unlikely but
+                // still something to consider, and it's not like this slows it
                 // down much anyways.
                 continue;
             };
@@ -59,8 +59,9 @@ impl World {
             );
 
             if let Some(nearest_found_pos) = nearest_found_pos {
-                // this is required because find_block searches chunk-by-chunk, which can cause
-                // us to find blocks first that aren't actually the closest
+                // this is required because find_block searches chunk-by-chunk,
+                // which can cause us to find blocks first that aren't actually
+                // the closest
                 let required_chunk_distance = u32::max(
                     u32::max(
                         (chunk_pos.x - start_chunk.x).unsigned_abs(),
@@ -72,8 +73,8 @@ impl World {
                 ) + 1;
                 let nearest_chunk_distance = iter.layer;
 
-                // if we found the position and there's no chance there's something closer,
-                // return it
+                // if we found the position and there's no chance there's
+                // something closer, return it
                 if nearest_chunk_distance > required_chunk_distance {
                     return Some(nearest_found_pos);
                 }
@@ -147,10 +148,10 @@ impl Iterator for FindBlocks<'_> {
 
         while let Some(chunk_pos) = self.chunk_iterator.next() {
             let Some(chunk) = self.chunks.get(&chunk_pos) else {
-                // if the chunk isn't loaded then we skip it.
-                // we don't just return since it *could* cause issues if there's a random
-                // unloaded chunk and then more that are loaded.
-                // unlikely but still something to consider, and it's not like this slows it
+                // if the chunk isn't loaded then we skip it. we don't just
+                // return since it *could* cause issues if there's a random
+                // unloaded chunk and then more that are loaded. unlikely but
+                // still something to consider, and it's not like this slows it
                 // down much anyways.
                 continue;
             };
@@ -173,8 +174,9 @@ impl Iterator for FindBlocks<'_> {
             );
 
             if let Some(nearest_found_pos) = nearest_found_pos {
-                // this is required because find_block searches chunk-by-chunk, which can cause
-                // us to find blocks first that aren't actually the closest
+                // this is required because find_block searches chunk-by-chunk,
+                // which can cause us to find blocks first that aren't actually
+                // the closest
                 let required_chunk_distance = u32::max(
                     u32::max(
                         (chunk_pos.x - self.start_chunk.x).unsigned_abs(),
@@ -186,8 +188,8 @@ impl Iterator for FindBlocks<'_> {
                 ) + 1;
                 let nearest_chunk_distance = self.chunk_iterator.layer;
 
-                // if we found the position and there's no chance there's something closer,
-                // return it
+                // if we found the position and there's no chance there's
+                // something closer, return it
                 if nearest_chunk_distance > required_chunk_distance {
                     // sort so nearest is at the end
                     found.sort_unstable_by_key(|(_, distance)| u32::MAX - distance);

@@ -79,22 +79,25 @@ impl ChatPacket {
                     return (None, message);
                 }
 
-                // it's a system message, so we'll have to match the content with regex
+                // it's a system message, so we'll have to match the content
+                // with regex
 
-                // username surrounded by angle brackets (vanilla-like chat), and allow username
-                // prefixes like [Owner]
+                // username surrounded by angle brackets (vanilla-like chat),
+                // and allow username prefixes like [Owner]
                 if let Some(m) = regex!(r"^<(?:\[[^\]]+?\] )?(\w{1,16})> (.+)$").captures(&message)
                 {
                     return (Some(m[1].to_string()), m[2].to_string());
                 }
-                // username surrounded by square brackets (essentials whispers, vanilla-like
-                // /say), and allow username prefixes
+                // username surrounded by square brackets (essentials whispers,
+                // vanilla-like /say), and allow username
+                // prefixes
                 if let Some(m) =
                     regex!(r"^\[(?:\[[^\]]+?\] )?(\w{1,16})(?: -> me)?\] (.+)$").captures(&message)
                 {
                     return (Some(m[1].to_string()), m[2].to_string());
                 }
-                // username without angle brackets (2b2t whispers, vanilla-like whispers)
+                // username without angle brackets (2b2t whispers, vanilla-like
+                // whispers)
                 if let Some(m) =
                     regex!(r"^(\w{1,16}) whispers(?: to you)?: (.+)$").captures(&message)
                 {

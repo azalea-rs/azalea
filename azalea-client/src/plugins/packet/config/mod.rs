@@ -108,7 +108,8 @@ impl ConfigPacketHandler<'_> {
                     ServerboundFinishConfiguration,
                 ));
 
-                // these components are added now that we're going to be in the Game state
+                // these components are added now that we're going to be in the
+                // Game state
                 commands
                     .entity(self.player)
                     .remove::<InConfigState>()

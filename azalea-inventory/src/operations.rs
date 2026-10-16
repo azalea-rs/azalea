@@ -302,7 +302,8 @@ impl Menu {
                     // also offhand handling
 
                     if l == PlayerMenuLocation::Inventory {
-                        // shift-clicking in hotbar moves to inventory, and vice versa
+                        // shift-clicking in hotbar moves to inventory, and vice
+                        // versa
                         if Player::is_hotbar_slot(slot_index) {
                             self.try_move_item_to_slots(
                                 slot_index,
@@ -634,8 +635,8 @@ impl Menu {
             return false;
         }
         let item = self.slot(target_slot_index).unwrap();
-        // the default here probably doesn't matter since we should only be calling this
-        // if we already checked that the slot isn't empty
+        // the default here probably doesn't matter since we should only be
+        // calling this if we already checked that the slot isn't empty
         item.as_present()
             .is_some_and(|item| self.may_place(target_slot_index, item))
     }
@@ -700,7 +701,8 @@ impl Menu {
                 let slot_item_limit = self.max_stack_size(target_slot_index);
                 let new_target_slot_data = item.split(i32::min(slot_item_limit, item.count) as u32);
 
-                // get the target slot again but mut this time so we can update it
+                // get the target slot again but mut this time so we can update
+                // it
                 let target_slot = self.slot_mut(target_slot_index).unwrap();
                 *target_slot = ItemStack::from(new_target_slot_data);
 

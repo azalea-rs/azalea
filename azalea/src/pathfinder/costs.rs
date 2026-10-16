@@ -29,8 +29,8 @@ pub static JUMP_ONE_BLOCK_COST: LazyLock<f32> =
 
 // [0, 5.614727, 7.7880826, 9.468678, ..]
 pub static FALL_N_BLOCKS_COST: LazyLock<[f32; 4097]> = LazyLock::new(|| {
-    // mostly the same as calculating distance_to_ticks for every distance, but in
-    // linear time complexity
+    // mostly the same as calculating distance_to_ticks for every distance, but
+    // in linear time complexity
 
     let mut fall_n_blocks_cost = [0.; 4097];
     let mut last_distance_blocks = 0;
@@ -74,8 +74,8 @@ fn distance_to_ticks(distance: f32) -> f32 {
     loop {
         let fall_distance_per_tick = velocity(tick_count);
         if fall_distance_per_tick >= remaining_distance {
-            // add a bit extra to prefer smaller falls even if they're the same number of
-            // ticks
+            // add a bit extra to prefer smaller falls even if they're the same
+            // number of ticks
             return (tick_count as f32) + (remaining_distance / fall_distance_per_tick);
         }
         remaining_distance -= fall_distance_per_tick;

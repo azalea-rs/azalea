@@ -58,7 +58,8 @@ pub fn read_packets(ecs: &mut World) {
         }
 
         if raw_conn.network.is_none() {
-            // no network connection, don't bother with the normal packet handling
+            // no network connection, don't bother with the normal packet
+            // handling
             continue;
         }
 
@@ -132,8 +133,8 @@ pub fn read_packets(ecs: &mut World) {
 fn poll_all_writer_tasks(mut conn_query: Query<&mut RawConnection>) {
     for mut conn in conn_query.iter_mut() {
         if let Some(net_conn) = &mut conn.network {
-            // this needs to be done at some point every update to make sure packets are
-            // actually sent to the network
+            // this needs to be done at some point every update to make sure
+            // packets are actually sent to the network
 
             if net_conn.poll_writer().is_some() {
                 // means the writer task ended

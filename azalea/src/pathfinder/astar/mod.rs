@@ -127,9 +127,10 @@ where
                 }
             }
 
-            // we don't update the existing node, which means that the same node might be
-            // present in the open_set multiple times. this is fine because at the start of
-            // the loop we check `g_score > node_data.g_score`.
+            // we don't update the existing node, which means that the same node
+            // might be present in the open_set multiple times. this is fine
+            // because at the start of the loop we check `g_score >
+            // node_data.g_score`.
             open_set.push(WeightedNode {
                 index: neighbor_index,
                 g_score: tentative_g_score,
@@ -229,8 +230,9 @@ where
         }
         let came_from_position = *nodes.get_index(node.came_from).unwrap().0;
 
-        // find the movement data for this successor, we have to do this again because
-        // we don't include the movement data in the Node (as an optimization)
+        // find the movement data for this successor, we have to do this again
+        // because we don't include the movement data in the Node (as an
+        // optimization)
         let mut best_successor = None;
         let mut best_successor_cost = f32::INFINITY;
         for successor in successors(came_from_position) {

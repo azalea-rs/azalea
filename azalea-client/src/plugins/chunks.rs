@@ -76,10 +76,10 @@ pub fn handle_receive_chunk_event(
         let mut world = local_player.shared.write();
         let mut partial_world = local_player.partial.write();
 
-        // OPTIMIZATION: if we already know about the chunk from the shared world (and
-        // not ourselves), then we don't need to parse it again. This is only used when
-        // we have a shared world, since we check that the chunk isn't currently owned
-        // by this client.
+        // OPTIMIZATION: if we already know about the chunk from the shared
+        // world (and not ourselves), then we don't need to parse it
+        // again. This is only used when we have a shared world, since
+        // we check that the chunk isn't currently owned by this client.
         let shared_chunk = world.chunks.get(&pos);
         let this_client_has_chunk = partial_world.chunks.limited_get(&pos).is_some();
 
