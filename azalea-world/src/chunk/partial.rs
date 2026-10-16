@@ -140,6 +140,12 @@ impl PartialChunkStorage {
         Ok(())
     }
 
+    /// Returns whether the given chunk is currently loaded (which also requires
+    /// to be in range).
+    pub fn has(&self, pos: &ChunkPos) -> bool {
+        self.limited_get(pos).is_some()
+    }
+
     /// Get a [`Chunk`] within render distance, or `None` if it's not loaded.
     /// Use [`ChunkStorageTrait::get`] to get a chunk from the shared storage.
     ///
