@@ -4,10 +4,9 @@
 //! for entity positions and block positions, respectively.
 
 use std::{
-    fmt,
+    fmt::{self, Display},
     hash::{Hash, Hasher},
-    io,
-    io::{Cursor, Write},
+    io::{self, Cursor, Write},
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Rem, Sub},
     str::FromStr,
 };
@@ -919,16 +918,22 @@ impl From<Vec3> for ChunkBlockPos {
     }
 }
 
-impl fmt::Display for BlockPos {
+impl Display for BlockPos {
     /// Display a block position as `x y z`.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{} {} {}", self.x, self.y, self.z)
     }
 }
-impl fmt::Display for Vec3 {
+impl Display for Vec3 {
     /// Display a position as `x y z`.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{} {} {}", self.x, self.y, self.z)
+    }
+}
+impl Display for ChunkPos {
+    /// Display a chunk position as `x z`.
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{} {}", self.x, self.z)
     }
 }
 

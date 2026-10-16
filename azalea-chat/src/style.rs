@@ -1,4 +1,8 @@
-use std::{collections::HashMap, fmt, sync::LazyLock};
+use std::{
+    collections::HashMap,
+    fmt::{self, Display},
+    sync::LazyLock,
+};
 
 #[cfg(feature = "azalea-buf")]
 use azalea_buf::AzBuf;
@@ -69,7 +73,7 @@ impl TextColor {
     }
 }
 
-impl fmt::Display for TextColor {
+impl Display for TextColor {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.serialize())
     }
