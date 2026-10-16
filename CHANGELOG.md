@@ -26,6 +26,7 @@ is breaking anyways, semantic versioning is not followed.
 - The `AirSupply` metadata component was defaulting to `0` instead of `300`. (@wbbradley)
 - Chunk sections with more than 256 unique block states no longer panic (or get corrupted in release builds) when switching to the global palette.
 - `dragon_breath`, `effect`, `instant_effect`, `tinted_leaves`, `flash`, `trail`, `dust_pillar` and `block_crumble` particles now read their options instead of failing the `level_particles` packet.
+- `BeehiveOccupant::entity_data` is now an `EntityData`, fixing items with the `bees` component failing to parse.
 
 ## [0.16.0+mc26.1] - 2026-03-27
 
