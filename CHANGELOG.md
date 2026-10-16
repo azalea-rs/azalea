@@ -24,6 +24,8 @@ is breaking anyways, semantic versioning is not followed.
 
 - Incorrect `damage_kind` component protocol implementation.
 - The `AirSupply` metadata component was defaulting to `0` instead of `300`. (@wbbradley)
+- `ServerboundMoveVehicle` was missing the `on_ground` field, so servers kicked bots that sent it.
+- `ClientboundCooldown` now reads a cooldown group `Identifier` instead of an `ItemKind`.
 
 ## [0.16.0+mc26.1] - 2026-03-27
 
