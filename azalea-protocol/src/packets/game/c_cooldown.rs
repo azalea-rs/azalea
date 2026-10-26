@@ -1,10 +1,10 @@
 use azalea_buf::AzBuf;
 use azalea_protocol_macros::ClientboundGamePacket;
-use azalea_registry::builtin::ItemKind;
+use azalea_registry::identifier::Identifier;
 
 #[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundCooldown {
-    pub item: ItemKind,
+    pub cooldown_group: Identifier,
     #[var]
     pub duration: u32,
 }
