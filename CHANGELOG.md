@@ -24,6 +24,7 @@ is breaking anyways, semantic versioning is not followed.
 
 - Incorrect `damage_kind` component protocol implementation.
 - The `AirSupply` metadata component was defaulting to `0` instead of `300`. (@wbbradley)
+- `ClientboundCooldown` read an item ID where the packet has a cooldown group identifier. The `item` field is now `cooldown_group`.
 
 ## [0.16.0+mc26.1] - 2026-03-27
 
