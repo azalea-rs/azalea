@@ -204,7 +204,13 @@ pub fn patch_path(
             new_path.extend(found_path_patch);
 
             if !path_found_event.is_partial {
-                new_path.extend(executing_path.path.iter().skip(*patch_nodes.end()).cloned());
+                new_path.extend(
+                    executing_path
+                        .path
+                        .iter()
+                        .skip(*patch_nodes.end() + 1)
+                        .cloned(),
+                );
                 is_patch_complete = true;
                 debug!("the patch is not partial :)");
             } else {
@@ -271,4 +277,126 @@ where
     }
 
     None
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::atomic::AtomicUsize;
+
+    use azalea_core::position::ChunkPos;
+    use azalea_registry::builtin::BlockKind;
+    use azalea_world::{Chunk, PartialChunkStorage, World};
+
+    use super::*;
+
+    /// A stone floor at y 70 from x -4 to 40, z -4 to 4.
+    fn flat() -> (Arc<RwLock<World>>, PartialChunkStorage) {
+        let mut world = World::default();
+        let mut keep = PartialChunkStorage::new(4);
+        for x in -1..=3 {
+            for z in -1..=1 {
+                keep.set(
+                    &ChunkPos::new(x, z),
+                    Some(Chunk::default()),
+                    &mut world.chunks,
+                );
+            }
+        }
+        for x in -4..=40 {
+            for z in -4..=4 {
+                world
+                    .chunks
+                    .set_block_state(BlockPos::new(x, 70, z), BlockKind::Stone.into());
+            }
+        }
+        (Arc::new(RwLock::new(world)), keep)
+    }
+
+    fn opts() -> PathfinderOpts {
+        PathfinderOpts::new()
+            .successors_fn(moves::default_move)
+            .allow_mining(false)
+            .min_timeout(PathfinderTimeout::Nodes(20_000))
+            .max_timeout(PathfinderTimeout::Nodes(20_000))
+    }
+
+    /// `patch_path` on a path with nothing in the way gives back the same path:
+    /// no node twice in a row, and nothing for `check_path_obstructed` to find.
+    #[test]
+    fn patching_an_unobstructed_path_leaves_it_unobstructed() {
+        let (world, _keep) = flat();
+        let start = BlockPos::new(0, 71, 0);
+        let found = calculate_path(CalculatePathCtx {
+            entity: Entity::PLACEHOLDER,
+            start,
+            goal: Arc::new(BlockPosGoal(BlockPos::new(30, 71, 0))),
+            world_lock: world.clone(),
+            goto_id_atomic: Arc::new(AtomicUsize::new(0)),
+            mining_cache: MiningCache::new(None),
+            custom_state: CustomPathfinderState::default(),
+            opts: opts(),
+        })
+        .unwrap();
+        let mut executing_path = ExecutingPath {
+            path: found.path.unwrap(),
+            queued_path: None,
+            last_reached_node: start,
+            ticks_since_last_node_reached: 0,
+            is_path_partial: false,
+        };
+        let len_before = executing_path.path.len();
+        let obstructed = |executing_path: &ExecutingPath| {
+            let origin = executing_path.last_reached_node;
+            let cached_world = CachedWorld::new(world.clone(), origin);
+            let mining_cache = MiningCache::new(None);
+            let custom_state = CustomPathfinderState::default();
+            let custom_state_ref = custom_state.0.read();
+            let successors = |pos: RelBlockPos| {
+                call_successors_fn(
+                    &cached_world,
+                    &mining_cache,
+                    &custom_state_ref,
+                    moves::default_move,
+                    pos,
+                )
+            };
+            check_path_obstructed(
+                origin,
+                RelBlockPos::from_origin(origin, origin),
+                &executing_path.path,
+                successors,
+                Duration::from_secs(5),
+            )
+        };
+        assert_eq!(obstructed(&executing_path), None);
+
+        // The patch `patch_path_from_timeout` makes: nodes 0..=20.
+        patch_path(
+            0..=20,
+            &mut executing_path,
+            &mut Pathfinder::default(),
+            &Inventory::default(),
+            Entity::PLACEHOLDER,
+            world.clone(),
+            CustomPathfinderState::default(),
+            opts(),
+        );
+
+        let targets: Vec<BlockPos> = executing_path
+            .path
+            .iter()
+            .map(|e| e.movement.target)
+            .collect();
+        let repeated: Vec<&BlockPos> = targets
+            .windows(2)
+            .filter(|w| w[0] == w[1])
+            .map(|w| &w[0])
+            .collect();
+        assert!(
+            repeated.is_empty(),
+            "nodes in the patched path twice in a row: {repeated:?}"
+        );
+        assert_eq!(executing_path.path.len(), len_before);
+        assert_eq!(obstructed(&executing_path), None);
+    }
 }
