@@ -29,3 +29,6 @@ strict_registry = []
 
 [lints]
 workspace = true
+
+[dev-dependencies]
+stats_alloc = "0.1.10"

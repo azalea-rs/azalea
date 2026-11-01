@@ -134,7 +134,11 @@ impl ItemStack {
         if let ItemStack::Present(i) = &mut self {
             let component: Option<T> = component.into();
             let component: Option<DataComponentUnion> = component.map(|c| c.into());
-            i.component_patch.components.insert(T::KIND, component);
+            // SAFETY: T::KIND identifies the variant produced by T::into.
+            unsafe {
+                i.component_patch
+                    .unchecked_insert_component(T::KIND, component)
+            };
         }
         self
     }

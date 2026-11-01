@@ -43,15 +43,24 @@ impl EnchantmentData {
 
 impl simdnbt::Deserialize for EnchantmentData {
     fn from_compound(nbt: NbtCompound) -> Result<Self, DeserializeError> {
-        let mut effects: IndexMap<EnchantmentEffectComponentKind, Vec<EffectComponentUnion>> =
-            IndexMap::new();
+        // Own every decoded union immediately so errors also release its value.
+        let mut value = Self {
+            effects: IndexMap::new(),
+        };
 
         if let Some(effects_tag) = nbt.compound("effects") {
             for (key, list) in effects_tag.iter() {
                 let kind = EnchantmentEffectComponentKind::from_str(&key.to_str())
                     .map_err(|_| DeserializeError::UnknownField(key.to_string()))?;
 
-                let mut components = Vec::new();
+                let components = value.effects.entry(kind).or_default();
+                // Duplicate NBT keys keep the last value, just like
+                // IndexMap::insert.
+                for mut old in components.drain(..) {
+                    // SAFETY: the map key identifies the union's active
+                    // variant.
+                    unsafe { old.drop_as(kind) };
+                }
                 if let Some(tag) = list.compound() {
                     if !tag.is_empty() {
                         let value = EffectComponentUnion::from_effect_nbt_tag_as(
@@ -81,13 +90,21 @@ impl simdnbt::Deserialize for EnchantmentData {
                         components.push(value);
                     }
                 }
-
-                effects.insert(kind, components);
             }
         }
 
-        let value = Self { effects };
         Ok(value)
+    }
+}
+
+impl Drop for EnchantmentData {
+    fn drop(&mut self) {
+        for (kind, components) in &mut self.effects {
+            for component in components {
+                // SAFETY: each value was decoded or cloned with this map key.
+                unsafe { component.drop_as(*kind) };
+            }
+        }
     }
 }
 
