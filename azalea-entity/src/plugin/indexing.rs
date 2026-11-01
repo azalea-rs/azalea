@@ -75,8 +75,13 @@ impl EntityIdIndex {
     }
 
     pub fn insert(&mut self, id: MinecraftEntityId, entity: Entity) {
-        self.entity_by_id.insert(id, entity);
-        self.id_by_entity.insert(entity, id);
+        // Either side may already belong to a different pair.
+        if let Some(previous_entity) = self.entity_by_id.insert(id, entity) {
+            self.id_by_entity.remove(&previous_entity);
+        }
+        if let Some(previous_id) = self.id_by_entity.insert(entity, id) {
+            self.entity_by_id.remove(&previous_id);
+        }
         trace!("Inserted {id} -> {entity:?} into a client's EntityIdIndex");
     }
 
@@ -209,6 +214,10 @@ pub fn remove_despawned_entities_from_indexes(
                     "Tried to remove entity {entity:?} from the uuid index but it was not there."
                 );
             }
+            // The world is gone, but clients may still retain its entity IDs.
+            for mut entity_id_index in &mut entity_id_index_query {
+                entity_id_index.remove_by_ecs_entity(entity);
+            }
             // and now remove the entity from the ecs
             commands.entity(entity).despawn();
 
@@ -306,5 +315,115 @@ pub fn add_entity_to_indexes(
     if let Some(uuid) = entity_uuid {
         // per-world uuid index
         entity_uuid_index.insert(uuid, ecs_entity);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use azalea_core::position::Vec3;
+    use azalea_registry::identifier::Identifier;
+    use bevy_app::{App, Update};
+
+    use super::*;
+    use crate::Position;
+
+    #[test]
+    fn reassigning_an_entity_does_not_retain_old_network_ids() {
+        let mut world = bevy_ecs::world::World::new();
+        let entity = world.spawn_empty().id();
+        let mut index = EntityIdIndex::default();
+        for id in 0..20_000 {
+            index.insert(MinecraftEntityId(id), entity);
+            assert_eq!(index.entity_by_id.len(), 1);
+            assert_eq!(index.id_by_entity.len(), 1);
+            assert_eq!(index.get_by_ecs_entity(entity), Some(MinecraftEntityId(id)));
+            assert_eq!(
+                index.get_by_minecraft_entity(MinecraftEntityId(id)),
+                Some(entity)
+            );
+        }
+        assert_eq!(
+            index.remove_by_ecs_entity(entity),
+            Some(MinecraftEntityId(19_999))
+        );
+        assert!(index.entity_by_id.is_empty());
+        assert!(index.id_by_entity.is_empty());
+    }
+
+    #[test]
+    fn reusing_a_network_id_removes_the_previous_reverse_mapping() {
+        let mut world = bevy_ecs::world::World::new();
+        let previous = world.spawn_empty().id();
+        let current = world.spawn_empty().id();
+        let mut index = EntityIdIndex::default();
+        let id = MinecraftEntityId(42);
+        index.insert(id, previous);
+        index.insert(id, current);
+        assert_eq!(index.get_by_ecs_entity(previous), None);
+        assert_eq!(index.get_by_ecs_entity(current), Some(id));
+        assert_eq!(index.remove_by_ecs_entity(previous), None);
+        assert_eq!(index.get_by_minecraft_entity(id), Some(current));
+        assert_eq!(index.remove_by_minecraft_entity(id), Some(current));
+        assert!(index.id_by_entity.is_empty());
+    }
+
+    #[test]
+    fn rebinding_both_existing_sides_removes_both_previous_pairs() {
+        let mut world = bevy_ecs::world::World::new();
+        let a = world.spawn_empty().id();
+        let b = world.spawn_empty().id();
+        let mut index = EntityIdIndex::default();
+        index.insert(MinecraftEntityId(1), a);
+        index.insert(MinecraftEntityId(2), b);
+        index.insert(MinecraftEntityId(1), b);
+        assert_eq!(index.get_by_ecs_entity(a), None);
+        assert_eq!(index.get_by_minecraft_entity(MinecraftEntityId(2)), None);
+        assert_eq!(index.entity_by_id.len(), 1);
+        assert_eq!(index.id_by_entity.len(), 1);
+        index.insert(MinecraftEntityId(1), b);
+        assert_eq!(index.get_by_ecs_entity(b), Some(MinecraftEntityId(1)));
+        assert_eq!(index.get_by_minecraft_entity(MinecraftEntityId(1)), Some(b));
+    }
+
+    #[test]
+    fn unloading_a_missing_world_removes_every_client_index() {
+        let mut app = App::new();
+        app.init_resource::<Worlds>()
+            .init_resource::<EntityUuidIndex>()
+            .add_systems(Update, remove_despawned_entities_from_indexes);
+        let uuid = Uuid::from_u128(42);
+        let entity = app
+            .world_mut()
+            .spawn((
+                EntityUuid::new(uuid),
+                MinecraftEntityId(42),
+                Position::new(Vec3::ZERO),
+                WorldName(Identifier::new("test:unloaded")),
+                LoadedBy(HashSet::new()),
+            ))
+            .id();
+        app.world_mut()
+            .resource_mut::<EntityUuidIndex>()
+            .insert(uuid, entity);
+        let clients: Vec<_> = (0..2)
+            .map(|_| {
+                let mut index = EntityIdIndex::default();
+                index.insert(MinecraftEntityId(42), entity);
+                app.world_mut().spawn(index).id()
+            })
+            .collect();
+        app.update();
+        assert!(app.world().get_entity(entity).is_err());
+        assert!(
+            app.world()
+                .resource::<EntityUuidIndex>()
+                .get(&uuid)
+                .is_none()
+        );
+        for client in clients {
+            let index = app.world().get::<EntityIdIndex>(client).unwrap();
+            assert!(index.entity_by_id.is_empty());
+            assert!(index.id_by_entity.is_empty());
+        }
     }
 }
