@@ -7,4 +7,5 @@ pub mod movements;
 pub mod optional_compound_tag;
 pub mod recipe;
 pub mod server_links;
+pub mod sign;
 pub mod tags;
