@@ -219,10 +219,10 @@ pub fn compression_decoder(
 
     // VALIDATE_DECOMPRESSED should always be true, so the max they can make us
     // allocate here is 2mb
-    let mut decoded_buf = Vec::with_capacity(n as usize);
+    let mut decoded_buf = vec![0; n as usize];
 
     let mut decoder = ZlibDecoder::new(stream);
-    decoder.read_to_end(&mut decoded_buf)?;
+    decoder.read_exact(&mut decoded_buf)?;
 
     Ok(decoded_buf.into_boxed_slice())
 }
