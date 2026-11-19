@@ -1,4 +1,4 @@
-use std::{env, sync::LazyLock};
+use std::env;
 
 use quote::{ToTokens, quote};
 use syn::{Data, Field, FieldsNamed, Ident, punctuated::Punctuated, token::Comma};

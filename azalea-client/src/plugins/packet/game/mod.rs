@@ -694,7 +694,7 @@ impl GamePacketHandler<'_> {
             };
             let entity_kind = **entity_kind;
 
-            debug!("Got set entity data packet {p:?} for entity of kind {entity_kind:?}");
+            debug!("Got set entity data packet {p:?} for entity {entity} of kind {entity_kind:?}");
 
             let packed_items = p.packed_items.clone().to_vec();
 
