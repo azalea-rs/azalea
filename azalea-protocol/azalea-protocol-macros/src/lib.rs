@@ -27,7 +27,7 @@ fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> Toke
 
     let read_tracing_span = if cfg!(debug_assertions) {
         quote! {
-            let span = azalea_buf::tracing::span!(azalea_buf::tracing::Level::INFO, stringify!(#ident)).entered();
+            let span = azalea_buf::internal::tracing::span!(azalea_buf::internal::tracing::Level::INFO, stringify!(#ident)).entered();
         }
     } else {
         // don't bother inserting the code if debug mode is disabled

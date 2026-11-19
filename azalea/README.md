@@ -108,7 +108,14 @@ If it's a crash/panic and you believe it has to do with parsing a packet, you mi
 
 Note: If you get a `SetLoggerError`, it's because you have multiple loggers. Azalea comes with a logger by default, see [`bevy_log`] for more information. You can disable the default logging plugin by disabling the `log` feature.
 
-Some environment variables that you can set to possibly ease debugging are `AZALEA_DO_NOT_CUT_OFF_PACKET_LOGS=1` and `AZALEA_PANIC_ON_PACKET_ERROR=1`.
+Some environment variables that you can set to possibly ease debugging are:\
+
+- `AZALEA_DO_NOT_CUT_OFF_PACKET_LOGS=1` - Removes the 500 byte limit when logging raw packets.
+- `AZALEA_PANIC_ON_PACKET_ERROR=1` - Panic instead of warning when a packet parsing error occurs.
+- `AZALEA_LOG_ALL_PACKET_FIELDS=1` - Modifies the AzBuf macro to produce a trace log every time a field is read.
+
+Note that some of these will not produce observable behavior unless trace logs
+are enabled (`RUST_LOG=trace`).
 
 ## Deadlocks
 

@@ -7,6 +7,7 @@ use crate::packets::game::s_interact::InteractionHand;
 
 #[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundSwingAnimation {
+    #[var]
     pub entity_id: MinecraftEntityId,
     pub hand: InteractionHand,
     pub animation: SwingAnimation,

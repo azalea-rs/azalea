@@ -5,15 +5,14 @@
 
 mod definitions;
 pub mod impls;
+#[doc(hidden)]
+pub mod internal;
 mod serializable_uuid;
 
 pub use azalea_buf_macros::*;
 pub use definitions::*;
 pub use impls::*;
 pub use serializable_uuid::*;
-// re-export because the AzBuf macro will sometimes use this
-#[doc(hidden)]
-pub use tracing;
 
 // const DEFAULT_NBT_QUOTA: u32 = 2097152;
 const MAX_STRING_LENGTH: u32 = 32767;

@@ -9,6 +9,7 @@ use std::{
 };
 
 use thiserror::Error;
+use tracing::warn;
 
 /// A trait that's implemented on types that are used by the Minecraft protocol.
 pub trait AzBuf
@@ -122,6 +123,7 @@ macro_rules! buf_read_error_from_impl {
     };
 }
 buf_read_error_from_impl!(io::Error);
+#[cfg(feature = "serde_json")]
 buf_read_error_from_impl!(serde_json::Error);
 buf_read_error_from_impl!(simdnbt::Error);
 buf_read_error_from_impl!(simdnbt::DeserializeError);
@@ -130,10 +132,12 @@ pub(crate) fn read_bytes<'a>(
     buf: &'a mut Cursor<&[u8]>,
     length: usize,
 ) -> Result<&'a [u8], BufReadError> {
-    if length > (buf.get_ref().len() - buf.position() as usize) {
+    let max_length = buf.get_ref().len() - buf.position() as usize;
+    if length > max_length {
+        warn!("requested buf length {length} exceeds max length {max_length}");
         return Err(BufReadErrorRepr::UnexpectedEof {
             attempted_read: length,
-            actual_read: buf.get_ref().len() - buf.position() as usize,
+            actual_read: max_length,
         }
         .into());
     }
@@ -150,6 +154,7 @@ pub(crate) fn read_utf_with_len<'a>(
     let length = u32::azalea_read_var(buf)?;
     // multiply the max by 4 because this length is for unicode codepoints
     if length > max_length * 4 {
+        warn!("string length {length} exceeds max length {max_length}");
         return Err(BufReadErrorRepr::StringLengthTooLong {
             length,
             max_length: max_length * 4,
