@@ -15,15 +15,15 @@ azalea-buf = { workspace = true, optional = true }
 cfb8.workspace = true
 num-bigint.workspace = true
 rand = { workspace = true, features = ["sys_rng"] }
-rsa = { workspace = true, features = ["pkcs1v15"] }
+rsa = { workspace = true, features = ["pkcs1v15"], optional = true }
 rsa_public_encrypt_pkcs1.workspace = true
 sha1.workspace = true
-sha2.workspace = true
+sha2 = { workspace = true, optional = true }
 uuid.workspace = true
 md-5.workspace = true
 
 [features]
-signing = ["dep:azalea-buf"]
+signing = ["dep:azalea-buf", "dep:rsa", "dep:sha2"]
 
 [[bench]]
 harness = false

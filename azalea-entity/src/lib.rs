@@ -4,7 +4,7 @@
 pub mod attributes;
 mod data;
 pub mod dimensions;
-mod effects;
+pub mod effects;
 pub mod inventory;
 #[cfg(feature = "bevy_ecs")]
 pub mod metadata;

@@ -12,18 +12,38 @@ is breaking anyways, semantic versioning is not followed.
 
 - `azalea-brigadier` now optionally allows commands to return a `Result<i32, _>` instead of just an `i32`.
 - `azalea-chat` is now re-exported in `azalea::chat`.
-- Shape offsets were implemented, so bots no longer get stuck on bamboo and dripstone.
+- Shape offsets were implemented, so clients no longer get stuck on bamboo and dripstone.
 - Added the `TokioRuntimeHandle` resource to allow spawning Tokio tasks in the ECS again.
+- You can now remove accounts from the cache programmatically with `azalea_auth::cache::remove_account_in_cache`. (@EightFactorial)
+- Elytra physics. (@commandblock2, @bllryy)
+- Crouching in water now makes the player move down faster. (@ErriicGit)
+- `SwarmEvent::Tick`. (@Cheezer1656)
+- Add `Connection::write_batch` to allow batching packets with lower latency.
 
 ### Changed
 
+- Update to Minecraft 26.3.
 - Many functions in `Client` and `EntityRef` now return an `AzaleaResult` instead of panicking when getting entity data fails.
 - The previous `azalea::chat` module (from `azalea-client`) was moved to `azalea::client_chat`.
+- Improved trace logs for debugging protocol issues.
+- Moved documentation from `azalea.matdoes.dev` to `azalea.rs`.
+- `LocalGameMode` was split into `GameMode` and `PreviousGameMode`.
 
 ### Fixed
 
-- Incorrect `damage_kind` component protocol implementation.
+- Compressed packets are no longer allowed to be longer than their declared length, fixing a DoS vector.
+- Optimize reading some byte arrays. (@Hexay)
+- Improved performance for `BlockTrait`. (@urisinger)
 - The `AirSupply` metadata component was defaulting to `0` instead of `300`. (@wbbradley)
+- Fix `FormattedText` failing to parse translation strings containing longs. (@JunkyDeveloper)
+- `WalkDirection::Left` and `WalkDirection::Right` were swapped.
+- Seagrass and kelp were not being treated as water source blocks. (@Saintliy)
+- Piston and chest blocks had incorrect properties. (@Saintliy)
+- Fix repeated warnings when attacking an invalid entity.
+- Fix compiling on new Rust nightly versions. (@EightFactorial)
+- Incorrect `damage_kind` component protocol implementation.
+- Incorrect protocol implementation for `set_objective`. (@patyhank)
+- `find_blocks` would sometimes miss blocks.
 
 ## [0.16.0+mc26.1] - 2026-03-27
 

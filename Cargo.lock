@@ -448,7 +448,6 @@ dependencies = [
  "derive_more",
  "enum-as-inner",
  "nohash-hasher",
- "parking_lot 0.13.0",
  "thiserror 2.0.21",
  "tracing",
  "uuid",

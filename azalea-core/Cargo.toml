@@ -17,14 +17,14 @@ simdnbt.workspace = true
 tracing.workspace = true
 azalea-chat = { workspace = true, features = ["simdnbt"] }
 indexmap.workspace = true
-crc32c.workspace = true
+crc32c = { workspace = true, optional = true }
 thiserror.workspace = true
 uuid.workspace = true
 derive_more = { workspace = true, features = ["deref", "deref_mut"] }
 
 [features]
 bevy_ecs = ["dep:bevy_ecs"]
-serde = ["dep:serde", "azalea-registry/serde"]
+serde = ["dep:serde", "azalea-registry/serde", "dep:crc32c"]
 strict_registry = []
 
 [lints]
