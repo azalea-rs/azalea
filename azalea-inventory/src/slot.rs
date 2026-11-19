@@ -350,10 +350,9 @@ impl DataComponentPatch {
         ),
     > + 'a {
         self.components.iter().map(|(&kind, component)| {
-            component.as_ref().map_or_else(
-                || (kind, None),
-                |c| (kind, unsafe { Some(c.as_kind(kind)) }),
-            )
+            component
+                .as_ref()
+                .map_or((kind, None), |c| (kind, unsafe { Some(c.as_kind(kind)) }))
         })
     }
     /// Insert a new component into this patch, or mark a component as removed.
