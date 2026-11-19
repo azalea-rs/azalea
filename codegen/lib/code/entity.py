@@ -124,7 +124,10 @@ use azalea_core::{
     direction::Direction,
     position::{BlockPos, Vec3f32},
 };
-use azalea_inventory::{ItemStack, components};
+use azalea_inventory::{
+    ItemStack,
+    components::{self, DyeColor},
+};
 use azalea_registry::{DataRegistry, builtin::EntityKind};
 use bevy_ecs::{bundle::Bundle, component::Component};
 use derive_more::{Deref, DerefMut};
@@ -140,12 +143,20 @@ use crate::{HumanoidArm, particle::Particle};
 #[derive(Error, Debug)]
 pub enum UpdateMetadataError {
     #[error("Wrong type ({0:?})")]
-    WrongType(EntityDataValue),
+    WrongType(Box<WrongTypeError>),
 }
-impl From<EntityDataValue> for UpdateMetadataError {
-    fn from(value: EntityDataValue) -> Self {
-        Self::WrongType(value)
-    }
+#[derive(Debug)]
+pub struct WrongTypeError {
+    pub v: EntityDataValue,
+    pub id: u8,
+    pub struct_name: String,
+}
+fn e(v: EntityDataValue, id: u8, struct_name: &str) -> UpdateMetadataError {
+    UpdateMetadataError::WrongType(Box::new(WrongTypeError {
+        v,
+        id,
+        struct_name: struct_name.to_owned(),
+    }))
 }
 """)
 
@@ -375,9 +386,9 @@ impl From<EntityDataValue> for UpdateMetadataError {
         #         d: EntityDataItem,
         #     ) -> Result<(), UpdateMetadataError> {
         #         match d.index {
-        #             0..=15 => AbstractCreatureBundle::apply_metadata(entity, d)?,
-        #             16 => entity.insert(Dancing(d.value.into_boolean()?)),
-        #             17 => entity.insert(CanDuplicate(d.value.into_boolean()?)),
+        #             0..=15 => AbstractCreatureBundle::apply_metadata(entity, d).map_err(|v| e(v, d.index, "Allay"))?,
+        #             16 => entity.insert(Dancing(d.value.into_boolean().map_err(|v| e(v, d.index, "Allay"))?)),
+        #             17 => entity.insert(CanDuplicate(d.value.into_boolean().map_err(|v| e(v, d.index, Allay"))?)),
         #         }
         #         Ok(())
         #     }
@@ -418,17 +429,19 @@ impl From<EntityDataValue> for UpdateMetadataError {
                 type_name = metadata_type_data["name"]
 
                 type_name_field = to_snake_case(type_name)
+                error_handler = f'.map_err(|v| e(v, d.index, "{field_struct_name}"))?'
                 read_field_code = (
-                    f"{field_struct_name}(d.value.into_{type_name_field}()?)"
+                    f"{field_struct_name}(d.value.into_{type_name_field}(){error_handler})"
                     if field_struct_name
-                    else f"d.value.into_{type_name_field}()?"
+                    else f"d.value.into_{type_name_field}(){error_handler}"
                 )
                 code.append(
                     f"            {index} => {{ entity.insert({read_field_code}); }},"
                 )
             else:
+                error_handler = f'.map_err(|v| e(v, d.index, "<bitfield>"))?'
                 code.append(f"                {index} => {{")
-                code.append("let bitfield = d.value.into_byte()?;")
+                code.append(f"let bitfield = d.value.into_byte(){error_handler};")
                 for mask, name in name_or_bitfield.items():
                     name = maybe_rename_field(name, index)
                     field_struct_name = upper_first_letter(to_camel_case(name))

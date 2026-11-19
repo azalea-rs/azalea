@@ -1,8 +1,9 @@
 use std::sync::Arc;
 
 use azalea_buf::AzBuf;
-use azalea_core::bitset::BitSet;
 use azalea_protocol_macros::ClientboundGamePacket;
+
+use crate::common::bitset::BitSet;
 
 #[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundLightUpdate {

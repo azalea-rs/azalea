@@ -16,7 +16,7 @@ use std::{
     io::{self, Cursor, Write},
 };
 
-use azalea_buf::{AzBuf, AzBufVar, BufReadError};
+use azalea_buf::{AzBuf, AzBufVar, BufReadError, BufReadErrorRepr};
 #[cfg(feature = "serde")]
 use serde::Serialize;
 use simdnbt::{FromNbtTag, borrow::NbtTag};
@@ -33,7 +33,7 @@ macro_rules! define_deprecated_builtin {
         )*
     };
 }
-define_deprecated_builtin!(Activity Attribute BlockEntityKind BlockPredicateKind ChunkStatus CommandArgumentKind CustomStat EntityKind FloatProviderKind Fluid GameEvent HeightProviderKind IntProviderKind LootConditionKind LootFunctionKind LootNbtProviderKind LootNumberProviderKind LootPoolEntryKind LootScoreProviderKind MemoryModuleKind MobEffect ParticleKind PointOfInterestKind PosRuleTest PositionSourceKind Potion RecipeSerializer RecipeKind RuleTest SensorKind SoundEvent StatKind VillagerProfession VillagerKind WorldgenBiomeSource WorldgenBlockStateProviderKind WorldgenCarver WorldgenChunkGenerator WorldgenDensityFunctionKind WorldgenFeature WorldgenFeatureSizeKind WorldgenFoliagePlacerKind WorldgenMaterialCondition WorldgenMaterialRule WorldgenPlacementModifierKind WorldgenRootPlacerKind WorldgenStructurePiece WorldgenStructurePlacement WorldgenStructurePoolElement WorldgenStructureProcessor WorldgenStructureKind WorldgenTreeDecoratorKind WorldgenTrunkPlacerKind RuleBlockEntityModifier CreativeModeTab MenuKind WorldgenPoolAliasBinding TriggerKind NumberFormatKind DataComponentKind EntitySubPredicateKind MapDecorationKind EnchantmentEffectComponentKind EnchantmentEntityEffectKind EnchantmentLevelBasedValueKind EnchantmentLocationBasedEffectKind EnchantmentProviderKind EnchantmentValueEffectKind DecoratedPotPattern ConsumeEffectKind RecipeBookCategory RecipeDisplay SlotDisplay TicketKind TestEnvironmentDefinitionKind TestFunction TestInstanceKind DataComponentPredicateKind SpawnConditionKind DialogBodyKind DialogKind InputControlKind DialogActionKind DebugSubscription IncomingRpcMethods OutgoingRpcMethods AttributeKind EnvironmentAttribute GameRule PermissionCheckKind PermissionKind SlotSourceKind);
+define_deprecated_builtin!(Activity Attribute BlockEntityKind BlockPredicateKind ChunkStatus CommandArgumentKind CustomStat EntityKind FloatProviderKind Fluid GameEvent HeightProviderKind IntProviderKind LootConditionKind LootFunctionKind LootNbtProviderKind LootPoolEntryKind LootScoreProviderKind MemoryModuleKind MobEffect ParticleKind PointOfInterestKind PosRuleTest PositionSourceKind Potion RecipeSerializer RecipeKind RuleTest SensorKind SoundEvent StatKind VillagerProfession VillagerKind WorldgenBiomeSource WorldgenBlockStateProviderKind WorldgenChunkGenerator WorldgenDensityFunctionKind WorldgenFeatureSizeKind WorldgenFoliagePlacerKind WorldgenPlacementModifierKind WorldgenRootPlacerKind WorldgenStructurePiece WorldgenStructurePlacement WorldgenStructurePoolElement WorldgenStructureProcessor WorldgenStructureKind WorldgenTreeDecoratorKind WorldgenTrunkPlacerKind RuleBlockEntityModifier CreativeModeTab MenuKind WorldgenPoolAliasBinding TriggerKind NumberFormatKind DataComponentKind EntitySubPredicateKind MapDecorationKind EnchantmentEffectComponentKind EnchantmentEntityEffectKind EnchantmentLevelBasedValueKind EnchantmentLocationBasedEffectKind EnchantmentProviderKind EnchantmentValueEffectKind ConsumeEffectKind RecipeBookCategory RecipeDisplay SlotDisplay TicketKind TestEnvironmentDefinitionKind TestFunction TestInstanceKind DataComponentPredicateKind SpawnConditionKind DialogBodyKind DialogKind InputControlKind DialogActionKind DebugSubscription IncomingRpcMethods OutgoingRpcMethods AttributeKind EnvironmentAttribute GameRule PermissionCheckKind PermissionKind SlotSourceKind);
 macro_rules! define_deprecated_data {
     ($($r:ident) *) => {
         $(
@@ -75,7 +75,7 @@ impl<T: Registry> AzBuf for OptionalRegistry<T> {
             0 => None,
             value => Some(
                 T::from_u32(value - 1)
-                    .ok_or(BufReadError::UnexpectedEnumVariant { id: value as i32 })?,
+                    .ok_or(BufReadErrorRepr::UnexpectedEnumVariant { id: value as i32 })?,
             ),
         }))
     }
@@ -227,7 +227,7 @@ impl<R: Registry, Direct: AzBuf> AzBuf for Holder<R, Direct> {
         } else {
             let id = id - 1;
             let Some(value) = R::from_u32(id) else {
-                return Err(BufReadError::UnexpectedEnumVariant { id: id as i32 });
+                return Err(BufReadErrorRepr::UnexpectedEnumVariant { id: id as i32 }.into());
             };
             Ok(Self::Reference(value))
         }

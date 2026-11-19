@@ -563,9 +563,9 @@ fn is_moving_slowly(
     match *pose {
         Pose::Swimming => true,
         Pose::FallFlying => !**fall_flying,
-        // There is going to be a slowdown for a tick when the server sets the Fallflying shared
-        // flag while the client is still in the FallFlying Pose And that is totally
-        // intended
+        // There is going to be a slowdown for a tick when the server sets the
+        // Fallflying shared flag while the client is still in the FallFlying
+        // Pose And that is totally intended
         _ => false,
     }
 }

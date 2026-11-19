@@ -45,7 +45,7 @@ impl ResolvableAddr for &ResolvedAddr {
 /// ```
 /// use azalea_protocol::address::ServerAddr;
 ///
-/// let addr = ServerAddr::from_str("localhost:25565").unwrap();
+/// let addr = ServerAddr::try_from("localhost:25565").unwrap();
 /// assert_eq!(addr.host, "localhost");
 /// assert_eq!(addr.port, 25565);
 /// ```

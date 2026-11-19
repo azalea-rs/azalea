@@ -197,7 +197,7 @@ impl AzBuf for Section {
 
         for i in 0..states.storage.size() {
             if !BlockState::is_valid_state(states.storage.get(i) as BlockStateIntegerRepr) {
-                return Err(BufReadError::Custom(format!(
+                return Err(BufReadError::custom(format!(
                     "Invalid block state {} (index {i}) found in section.",
                     states.storage.get(i)
                 )));

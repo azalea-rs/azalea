@@ -1,11 +1,13 @@
 #![allow(clippy::redundant_field_names, reason = "Triggered by `Error` derive")]
 
 use std::{
+    backtrace::{Backtrace, BacktraceStatus},
+    env,
     fmt::Debug,
     io::Cursor,
     mem,
     sync::{
-        Arc,
+        Arc, LazyLock,
         atomic::{self, AtomicBool},
     },
 };
@@ -101,6 +103,33 @@ pub fn read_packets(ecs: &mut World) {
                         &mut queued_packet_events,
                     ) {
                         error!("Error reading packet: {e}");
+
+                        let mut backtrace_logged = false;
+
+                        let dyn_error = &e as &dyn std::error::Error;
+                        let backtrace = std::error::request_ref::<Backtrace>(dyn_error);
+                        if let Some(backtrace) = backtrace
+                            // this check ensures that RUST_BACKTRACE is set
+                            && backtrace.status() == BacktraceStatus::Captured
+                        {
+                            backtrace_logged = true;
+                            eprintln!("{}", backtrace);
+                        }
+
+                        static PANIC_ON_PACKET_ERROR: LazyLock<bool> = LazyLock::new(|| {
+                            // this is also mentioned in azalea's docs, if you
+                            // rename it, then don't forget to update that
+                            env::var("AZALEA_PANIC_ON_PACKET_ERROR")
+                                .map(|s| s == "1" || s == "true")
+                                .unwrap_or(false)
+                        });
+
+                        if *PANIC_ON_PACKET_ERROR {
+                            if backtrace_logged {
+                                println!("\n---\n");
+                            }
+                            panic!();
+                        }
                     }
                 }
                 Ok(None) => {

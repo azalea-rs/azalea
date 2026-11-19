@@ -776,7 +776,8 @@ impl nohash_hasher::IsEnabled for ChunkSectionBlockPos {}
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct GlobalPos {
-    // this is actually a ResourceKey in Minecraft, but i don't think it matters?
+    // this is actually a ResourceKey in Minecraft, but i don't think it
+    // matters?
     pub dimension: Identifier,
     pub pos: BlockPos,
 }

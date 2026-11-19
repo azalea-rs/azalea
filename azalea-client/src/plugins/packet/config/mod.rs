@@ -59,6 +59,7 @@ pub fn process_packet(ecs: &mut World, player: Entity, packet: &ClientboundConfi
             clear_dialog,
             show_dialog,
             code_of_conduct,
+            post_effects,
         ]
     );
 }
@@ -74,9 +75,14 @@ impl ConfigPacketHandler<'_> {
             let mut world = world_holder.shared.write();
 
             // add the new registry data
-            world
-                .registries
-                .append(p.registry_id.clone(), p.entries.clone());
+            world.registries.append(
+                p.registry_id.clone(),
+                p.entries
+                    .iter()
+                    .cloned()
+                    .map(|(ident, tag)| (ident, tag.map(|t| t.into())))
+                    .collect(),
+            )
         });
     }
 
@@ -115,8 +121,8 @@ impl ConfigPacketHandler<'_> {
                     .remove::<InConfigState>()
                     .insert((
                         crate::JoinedClientBundle::default(),
-                        // localentity should already be added, but in case the user forgot or
-                        // something we also add it here
+                        // localentity should already be added, but in case the
+                        // user forgot or something we also add it here
                         LocalEntity,
                     ));
             },
@@ -237,5 +243,8 @@ impl ConfigPacketHandler<'_> {
     }
     pub fn code_of_conduct(&mut self, p: &ClientboundCodeOfConduct) {
         debug!("Got code of conduct packet {p:?}");
+    }
+    pub fn post_effects(&mut self, p: &ClientboundPostEffects) {
+        debug!("Got post effects packet {p:?}");
     }
 }

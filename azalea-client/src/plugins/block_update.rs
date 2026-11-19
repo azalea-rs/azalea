@@ -13,8 +13,9 @@ impl Plugin for BlockUpdatePlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            // has to be after ReceiveChunkEvent is handled so if we get chunk+blockupdate in one
-            // Update then the block update actually gets applied
+            // has to be after ReceiveChunkEvent is handled so if we get
+            // chunk+blockupdate in one Update then the block update actually
+            // gets applied
             handle_block_update_event.after(handle_receive_chunk_event),
         );
     }

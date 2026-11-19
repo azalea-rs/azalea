@@ -7,12 +7,12 @@ pub mod status;
 
 use std::io::{self, Cursor, Write};
 
-use azalea_buf::{AzBuf, AzBufVar, BufReadError};
+use azalea_buf::{AzBuf, AzBufVar, BufReadError, BufReadErrorRepr};
 
 use crate::read::ReadPacketError;
 
-pub const PROTOCOL_VERSION: i32 = 776;
-pub const VERSION_NAME: &str = "26.2";
+pub const PROTOCOL_VERSION: i32 = 777;
+pub const VERSION_NAME: &str = "26.3";
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum ConnectionProtocol {
@@ -93,7 +93,7 @@ impl AzBuf for ClientIntention {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let id = i32::azalea_read_var(buf)?;
         id.try_into()
-            .map_err(|_| BufReadError::UnexpectedEnumVariant { id })
+            .map_err(|_| BufReadErrorRepr::UnexpectedEnumVariant { id }.into())
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         (*self as i32).azalea_write_var(buf)

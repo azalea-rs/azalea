@@ -93,7 +93,7 @@ pub fn handle_receive_chunk_event(
 
         if let Err(e) = partial_world.chunks.replace_with_packet_data(
             &pos,
-            &mut Cursor::new(&event.packet.chunk_data.data),
+            &mut Cursor::new(&event.packet.chunk_data.buffer),
             heightmaps,
             &mut world.chunks,
         ) {

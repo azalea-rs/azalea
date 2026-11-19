@@ -3,7 +3,7 @@ use std::{
     io::{Cursor, Write},
 };
 
-use azalea_buf::{AzBuf, BufReadError};
+use azalea_buf::{AzBuf, BufReadError, BufReadErrorRepr};
 use azalea_core::position::BlockPos;
 use azalea_protocol_macros::ServerboundGamePacket;
 use azalea_registry::identifier::Identifier;
@@ -33,7 +33,7 @@ impl AzBuf for JointType {
         match name.as_str() {
             "rollable" => Ok(JointType::Rollable),
             "aligned" => Ok(JointType::Aligned),
-            _ => Err(BufReadError::UnexpectedStringEnumVariant { id: name }),
+            _ => Err(BufReadErrorRepr::UnexpectedStringEnumVariant { id: name }.into()),
         }
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {

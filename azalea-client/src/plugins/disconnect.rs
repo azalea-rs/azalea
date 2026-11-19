@@ -26,7 +26,8 @@ impl Plugin for DisconnectPlugin {
             (
                 update_read_packets_task_running_component,
                 remove_components_from_disconnected_players,
-                // this happens after `remove_components_from_disconnected_players` since that
+                // this happens after
+                // `remove_components_from_disconnected_players` since that
                 // system removes `IsConnectionAlive`, which ensures that
                 // `DisconnectEvent` won't get called again from
                 // `disconnect_on_connection_dead`
@@ -79,8 +80,8 @@ pub struct RemoveOnDisconnectBundle {
     // TickCounter is reset on reconnect
     pub ticks_alive: TicksConnected,
 
-    // the rest of the mining components are already removed, as JoinedClientBundle includes
-    // MineBundle
+    // the rest of the mining components are already removed, as
+    // JoinedClientBundle includes MineBundle
     pub mining: mining::Mining,
 }
 

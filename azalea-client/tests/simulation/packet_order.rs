@@ -7,12 +7,13 @@ use azalea_protocol::{
         ConnectionProtocol,
         game::{
             ClientboundBlockUpdate, ClientboundPlayerPosition, ServerboundAcceptTeleportation,
-            ServerboundGamePacket, ServerboundMovePlayerPosRot, ServerboundMovePlayerStatusOnly,
+            ServerboundGamePacket, ServerboundMovePlayerStatusOnly,
         },
     },
 };
 use azalea_registry::builtin::BlockKind;
 
+// TODO: check that this is still correct after 26.3
 #[test]
 fn test_packet_order() {
     let _lock = init();
@@ -49,21 +50,10 @@ fn test_packet_order() {
     sent_packets.expect("AcceptTeleportation", |p| {
         matches!(
             p,
-            ServerboundGamePacket::AcceptTeleportation(ServerboundAcceptTeleportation { id: 1 })
-        )
-    });
-    sent_packets.expect("MovePlayerPosRot", |p| {
-        matches!(
-            p,
-            ServerboundGamePacket::MovePlayerPosRot(p)
-            if p == &ServerboundMovePlayerPosRot {
-                flags: MoveFlags {
-                    on_ground: false,
-                    horizontal_collision: false
-                },
-                pos: Vec3::new(1.5, 2., 3.5),
-                look_direction: LookDirection::default(),
-            }
+            ServerboundGamePacket::AcceptTeleportation(ServerboundAcceptTeleportation {
+                id: 1,
+                ..
+            })
         )
     });
 

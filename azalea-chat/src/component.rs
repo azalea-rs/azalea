@@ -651,9 +651,8 @@ impl AzBuf for FormattedText {
             nbt.as_ref().map(|n| n.as_tag().to_owned())
         );
         match nbt {
-            Some(nbt) => FormattedText::from_nbt_tag(nbt.as_tag()).ok_or(BufReadError::Custom(
-                "couldn't convert nbt to chat message".to_owned(),
-            )),
+            Some(nbt) => FormattedText::from_nbt_tag(nbt.as_tag())
+                .ok_or(BufReadError::custom("couldn't convert nbt to chat message")),
             _ => Ok(FormattedText::default()),
         }
     }

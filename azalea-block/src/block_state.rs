@@ -5,7 +5,7 @@ use std::{
     ops::Deref,
 };
 
-use azalea_buf::{AzBuf, AzBufVar, BufReadError};
+use azalea_buf::{AzBuf, AzBufVar, BufReadError, BufReadErrorRepr};
 use azalea_registry::builtin::BlockKind;
 
 use crate::BlockTrait;
@@ -144,8 +144,11 @@ impl From<BlockState> for u32 {
 impl AzBuf for BlockState {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let state_id = u32::azalea_read_var(buf)?;
-        Self::try_from(state_id).map_err(|_| BufReadError::UnexpectedEnumVariant {
-            id: state_id as i32,
+        Self::try_from(state_id).map_err(|_| {
+            BufReadErrorRepr::UnexpectedEnumVariant {
+                id: state_id as i32,
+            }
+            .into()
         })
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {

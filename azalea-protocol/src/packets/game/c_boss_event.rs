@@ -3,7 +3,7 @@ use std::{
     io::{Cursor, Write},
 };
 
-use azalea_buf::{AzBuf, AzBufVar, BufReadError};
+use azalea_buf::{AzBuf, AzBufVar, BufReadError, BufReadErrorRepr};
 use azalea_chat::FormattedText;
 use azalea_core::bitset::FixedBitSet;
 use azalea_protocol_macros::ClientboundGamePacket;
@@ -36,9 +36,10 @@ impl AzBuf for Operation {
             4 => Operation::UpdateStyle(Style::azalea_read(buf)?),
             5 => Operation::UpdateProperties(Properties::azalea_read(buf)?),
             _ => {
-                return Err(BufReadError::UnexpectedEnumVariant {
+                return Err(BufReadErrorRepr::UnexpectedEnumVariant {
                     id: operation_id as i32,
-                });
+                }
+                .into());
             }
         })
     }

@@ -96,8 +96,8 @@ pub type MaybePickableEntityQuery<'world, 'state, 'a> = Query<
     // search "isPickable" in the decompiled minecraft code
     (
         Or<(
-            // TODO: ender dragon parts are pickable but the ender dragon itself isn't. this needs
-            // more investigation.
+            // TODO: ender dragon parts are pickable but the ender dragon itself
+            // isn't. this needs more investigation.
             (With<Tnt>, Without<Dead>),
             (With<FallingBlock>, Without<Dead>),
             (With<AbstractMinecart>, Without<Dead>),

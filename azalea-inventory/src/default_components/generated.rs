@@ -18,6 +18,42 @@ use crate::{
     item::consume_effect::ConsumeEffect,
 };
 
+impl DefaultableComponent for AttackAnimation {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::CopperSpear => SwingAnimation {
+                kind: SwingAnimationKind::Stab,
+                duration: 17,
+            },
+            ItemKind::DiamondSpear => SwingAnimation {
+                kind: SwingAnimationKind::Stab,
+                duration: 21,
+            },
+            ItemKind::GoldenSpear => SwingAnimation {
+                kind: SwingAnimationKind::Stab,
+                duration: 19,
+            },
+            ItemKind::IronSpear => SwingAnimation {
+                kind: SwingAnimationKind::Stab,
+                duration: 19,
+            },
+            ItemKind::NetheriteSpear => SwingAnimation {
+                kind: SwingAnimationKind::Stab,
+                duration: 23,
+            },
+            ItemKind::StoneSpear => SwingAnimation {
+                kind: SwingAnimationKind::Stab,
+                duration: 15,
+            },
+            ItemKind::WoodenSpear => SwingAnimation {
+                kind: SwingAnimationKind::Stab,
+                duration: 13,
+            },
+            _ => SwingAnimation::new(),
+        };
+        Some(AttackAnimation { value: value })
+    }
+}
 impl DefaultableComponent for AttackRange {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
@@ -2171,6 +2207,35 @@ impl DefaultableComponent for BlockState {
         Some(BlockState { properties: value })
     }
 }
+impl DefaultableComponent for BlockTransformer {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::CopperAxe => azalea_registry::data::BlockTransformer::new_raw(0),
+            ItemKind::CopperHoe => azalea_registry::data::BlockTransformer::new_raw(0),
+            ItemKind::CopperShovel => azalea_registry::data::BlockTransformer::new_raw(0),
+            ItemKind::DiamondAxe => azalea_registry::data::BlockTransformer::new_raw(0),
+            ItemKind::DiamondHoe => azalea_registry::data::BlockTransformer::new_raw(0),
+            ItemKind::DiamondShovel => azalea_registry::data::BlockTransformer::new_raw(0),
+            ItemKind::GoldenAxe => azalea_registry::data::BlockTransformer::new_raw(0),
+            ItemKind::GoldenHoe => azalea_registry::data::BlockTransformer::new_raw(0),
+            ItemKind::GoldenShovel => azalea_registry::data::BlockTransformer::new_raw(0),
+            ItemKind::IronAxe => azalea_registry::data::BlockTransformer::new_raw(0),
+            ItemKind::IronHoe => azalea_registry::data::BlockTransformer::new_raw(0),
+            ItemKind::IronShovel => azalea_registry::data::BlockTransformer::new_raw(0),
+            ItemKind::NetheriteAxe => azalea_registry::data::BlockTransformer::new_raw(0),
+            ItemKind::NetheriteHoe => azalea_registry::data::BlockTransformer::new_raw(0),
+            ItemKind::NetheriteShovel => azalea_registry::data::BlockTransformer::new_raw(0),
+            ItemKind::StoneAxe => azalea_registry::data::BlockTransformer::new_raw(0),
+            ItemKind::StoneHoe => azalea_registry::data::BlockTransformer::new_raw(0),
+            ItemKind::StoneShovel => azalea_registry::data::BlockTransformer::new_raw(0),
+            ItemKind::WoodenAxe => azalea_registry::data::BlockTransformer::new_raw(0),
+            ItemKind::WoodenHoe => azalea_registry::data::BlockTransformer::new_raw(0),
+            ItemKind::WoodenShovel => azalea_registry::data::BlockTransformer::new_raw(0),
+            _ => return None,
+        };
+        Some(BlockTransformer { value: value })
+    }
+}
 impl DefaultableComponent for BlocksAttacks {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
@@ -2205,6 +2270,22 @@ impl DefaultableComponent for BreakSound {
             _ => azalea_registry::Holder::Reference(SoundEvent::EntityItemBreak),
         };
         Some(BreakSound { sound: value })
+    }
+}
+impl DefaultableComponent for BrewingFuel {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::BlazePowder => BrewingFuel {
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:brewing/speed_default".into(),
+                },
+                uses: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:brewing/uses_default".into(),
+                },
+            },
+            _ => return None,
+        };
+        Some(value)
     }
 }
 impl DefaultableComponent for BucketEntityData {
@@ -2265,6 +2346,380 @@ impl DefaultableComponent for ChickenVariant {
             _ => return None,
         };
         Some(ChickenVariant { data: value })
+    }
+}
+impl DefaultableComponent for Compostable {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::AcaciaLeaves => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::AcaciaSapling => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::Allium => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::Apple => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::Azalea => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::AzaleaLeaves => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::AzureBluet => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::BakedPotato => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium_high".into(),
+            },
+            ItemKind::Beetroot => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::BeetrootSeeds => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::BigDripleaf => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::BirchLeaves => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::BirchSapling => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::BlueOrchid => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::Bread => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium_high".into(),
+            },
+            ItemKind::BrownMushroom => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::BrownMushroomBlock => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium_high".into(),
+            },
+            ItemKind::Bush => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::Cactus => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low_medium".into(),
+            },
+            ItemKind::CactusFlower => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::Cake => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/always_add_one".into(),
+            },
+            ItemKind::Carrot => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::CarvedPumpkin => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::CherryLeaves => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::CherrySapling => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::ClosedEyeblossom => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::CocoaBeans => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::Cookie => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium_high".into(),
+            },
+            ItemKind::Cornflower => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::CrimsonFungus => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::CrimsonRoots => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::Dandelion => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::DarkOakLeaves => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::DarkOakSapling => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::DriedKelp => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::DriedKelpBlock => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low_medium".into(),
+            },
+            ItemKind::Fern => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::FireflyBush => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::FloweringAzalea => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium_high".into(),
+            },
+            ItemKind::FloweringAzaleaLeaves => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low_medium".into(),
+            },
+            ItemKind::GlowBerries => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::GlowLichen => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low_medium".into(),
+            },
+            ItemKind::HangingRoots => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::HayBlock => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium_high".into(),
+            },
+            ItemKind::JungleLeaves => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::JungleSapling => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::Kelp => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::LargeFern => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::LeafLitter => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::Lilac => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::LilyOfTheValley => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::LilyPad => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::MangroveLeaves => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::MangrovePropagule => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::MangroveRoots => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::Melon => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::MelonSeeds => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::MelonSlice => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low_medium".into(),
+            },
+            ItemKind::MossBlock => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::MossCarpet => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::MushroomStem => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::NetherSprouts => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low_medium".into(),
+            },
+            ItemKind::NetherWart => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::NetherWartBlock => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium_high".into(),
+            },
+            ItemKind::OakLeaves => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::OakSapling => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::OpenEyeblossom => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::OrangePoplarLeaves => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::OrangeTulip => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::OxeyeDaisy => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::PaleHangingMoss => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::PaleMossBlock => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::PaleMossCarpet => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::PaleOakLeaves => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::PaleOakSapling => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::Peony => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::PinkPetals => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::PinkTulip => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::PitcherPlant => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium_high".into(),
+            },
+            ItemKind::PitcherPod => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::PoplarSapling => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::Poppy => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::Potato => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::Pumpkin => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::PumpkinPie => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/always_add_one".into(),
+            },
+            ItemKind::PumpkinSeeds => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::RedMushroom => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::RedMushroomBlock => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium_high".into(),
+            },
+            ItemKind::RedPoplarLeaves => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::RedShrub => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::RedTulip => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::RoseBush => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::SeaPickle => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::Seagrass => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::ShelfMushroom => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::ShortDryGrass => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::ShortGrass => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::Shroomlight => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::SmallDripleaf => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::SporeBlossom => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::SpruceLeaves => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::SpruceSapling => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::StrawBed => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium_high".into(),
+            },
+            ItemKind::SugarCane => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low_medium".into(),
+            },
+            ItemKind::Sunflower => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::SweetBerries => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::TallDryGrass => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::TallGrass => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low_medium".into(),
+            },
+            ItemKind::Torchflower => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium_high".into(),
+            },
+            ItemKind::TorchflowerSeeds => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::TwistingVines => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low_medium".into(),
+            },
+            ItemKind::Vine => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low_medium".into(),
+            },
+            ItemKind::WarpedFungus => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::WarpedRoots => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::WarpedWartBlock => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium_high".into(),
+            },
+            ItemKind::WeepingVines => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low_medium".into(),
+            },
+            ItemKind::Wheat => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::WheatSeeds => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::WhiteTulip => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::Wildflowers => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            ItemKind::WitherRose => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/medium".into(),
+            },
+            ItemKind::YellowPoplarLeaves => ResolvableInt::Reference {
+                context_int_provider: "minecraft:compostable/low".into(),
+            },
+            _ => return None,
+        };
+        Some(Compostable { layers: value })
     }
 }
 impl DefaultableComponent for Consumable {
@@ -2540,6 +2995,7 @@ impl DefaultableComponent for Container {
             ItemKind::OrangeShulkerBox => vec![],
             ItemKind::PaleOakShelf => vec![],
             ItemKind::PinkShulkerBox => vec![],
+            ItemKind::PoplarShelf => vec![],
             ItemKind::PurpleShulkerBox => vec![],
             ItemKind::RedShulkerBox => vec![],
             ItemKind::ShulkerBox => vec![],
@@ -2553,6 +3009,2814 @@ impl DefaultableComponent for Container {
             _ => return None,
         };
         Some(Container { items: value })
+    }
+}
+impl DefaultableComponent for CookingFuel {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::AcaciaBoat => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_boats".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::AcaciaButton => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_extra_small".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::AcaciaChestBoat => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_boats".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::AcaciaDoor => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_large".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::AcaciaFence => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::AcaciaFenceGate => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::AcaciaHangingSign => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_hanging_signs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::AcaciaLog => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::AcaciaPlanks => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::AcaciaPressurePlate => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::AcaciaSapling => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_dry_plants".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::AcaciaShelf => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::AcaciaSign => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_large".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::AcaciaSlab => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::AcaciaStairs => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::AcaciaTrapdoor => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::AcaciaWood => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::Azalea => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_dry_plants".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::Bamboo => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_bamboo".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BambooBlock => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BambooButton => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_extra_small".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BambooChestRaft => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_boats".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BambooDoor => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_large".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BambooFence => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BambooFenceGate => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BambooHangingSign => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_hanging_signs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BambooMosaic => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BambooMosaicSlab => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BambooMosaicStairs => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BambooPlanks => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BambooPressurePlate => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BambooRaft => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_boats".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BambooShelf => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BambooSign => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_large".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BambooSlab => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BambooStairs => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BambooTrapdoor => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::Barrel => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BirchBoat => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_boats".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BirchButton => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_extra_small".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BirchChestBoat => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_boats".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BirchDoor => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_large".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BirchFence => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BirchFenceGate => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BirchHangingSign => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_hanging_signs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BirchLog => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BirchPlanks => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BirchPressurePlate => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BirchSapling => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_dry_plants".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BirchShelf => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BirchSign => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_large".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BirchSlab => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BirchStairs => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BirchTrapdoor => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BirchWood => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BlackBanner => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BlackCarpet => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_carpets".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BlackCushion => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BlackWool => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BlackWoolSlab => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BlackWoolStairs => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BlazeRod => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_blaze_rod".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BlueBanner => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BlueCarpet => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_carpets".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BlueCushion => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BlueWool => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BlueWoolSlab => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BlueWoolStairs => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::Bookshelf => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::Bow => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_small".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::Bowl => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_extra_small".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BrownBanner => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BrownCarpet => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_carpets".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BrownCushion => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BrownWool => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BrownWoolSlab => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::BrownWoolStairs => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::CartographyTable => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::Charcoal => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_coal".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::CherryBoat => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_boats".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::CherryButton => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_extra_small".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::CherryChestBoat => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_boats".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::CherryDoor => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_large".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::CherryFence => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::CherryFenceGate => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::CherryHangingSign => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_hanging_signs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::CherryLog => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::CherryPlanks => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::CherryPressurePlate => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::CherrySapling => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_dry_plants".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::CherryShelf => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::CherrySign => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_large".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::CherrySlab => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::CherryStairs => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::CherryTrapdoor => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::CherryWood => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::Chest => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::ChiseledBookshelf => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::Coal => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_coal".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::CoalBlock => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_coal_block".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::Composter => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::CraftingTable => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::Crossbow => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_small".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::CyanBanner => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::CyanCarpet => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_carpets".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::CyanCushion => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::CyanWool => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::CyanWoolSlab => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::CyanWoolStairs => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::DarkOakBoat => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_boats".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::DarkOakButton => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_extra_small".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::DarkOakChestBoat => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_boats".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::DarkOakDoor => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_large".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::DarkOakFence => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::DarkOakFenceGate => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::DarkOakHangingSign => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_hanging_signs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::DarkOakLog => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::DarkOakPlanks => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::DarkOakPressurePlate => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::DarkOakSapling => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_dry_plants".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::DarkOakShelf => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::DarkOakSign => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_large".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::DarkOakSlab => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::DarkOakStairs => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::DarkOakTrapdoor => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::DarkOakWood => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::DaylightDetector => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::DeadBush => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_dry_plants".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::DriedKelpBlock => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_dried_kelp_block".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::FishingRod => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_small".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::FletchingTable => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::FloweringAzalea => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_dry_plants".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::GrayBanner => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::GrayCarpet => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_carpets".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::GrayCushion => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::GrayWool => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::GrayWoolSlab => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::GrayWoolStairs => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::GreenBanner => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::GreenCarpet => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_carpets".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::GreenCushion => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::GreenWool => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::GreenWoolSlab => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::GreenWoolStairs => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::Jukebox => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::JungleBoat => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_boats".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::JungleButton => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_extra_small".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::JungleChestBoat => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_boats".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::JungleDoor => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_large".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::JungleFence => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::JungleFenceGate => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::JungleHangingSign => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_hanging_signs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::JungleLog => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::JunglePlanks => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::JunglePressurePlate => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::JungleSapling => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_dry_plants".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::JungleShelf => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::JungleSign => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_large".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::JungleSlab => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::JungleStairs => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::JungleTrapdoor => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::JungleWood => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::Ladder => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::LavaBucket => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_lava_bucket".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::LeafLitter => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_dry_plants".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::Lectern => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::LightBlueBanner => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::LightBlueCarpet => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_carpets".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::LightBlueCushion => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::LightBlueWool => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::LightBlueWoolSlab => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::LightBlueWoolStairs => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::LightGrayBanner => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::LightGrayCarpet => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_carpets".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::LightGrayCushion => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::LightGrayWool => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::LightGrayWoolSlab => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::LightGrayWoolStairs => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::LimeBanner => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::LimeCarpet => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_carpets".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::LimeCushion => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::LimeWool => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::LimeWoolSlab => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::LimeWoolStairs => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::Loom => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::MagentaBanner => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::MagentaCarpet => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_carpets".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::MagentaCushion => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::MagentaWool => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::MagentaWoolSlab => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::MagentaWoolStairs => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::MangroveBoat => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_boats".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::MangroveButton => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_extra_small".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::MangroveChestBoat => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_boats".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::MangroveDoor => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_large".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::MangroveFence => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::MangroveFenceGate => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::MangroveHangingSign => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_hanging_signs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::MangroveLog => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::MangrovePlanks => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::MangrovePressurePlate => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::MangrovePropagule => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_dry_plants".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::MangroveRoots => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_roots".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::MangroveShelf => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::MangroveSign => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_large".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::MangroveSlab => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::MangroveStairs => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::MangroveTrapdoor => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::MangroveWood => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::NoteBlock => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::OakBoat => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_boats".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::OakButton => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_extra_small".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::OakChestBoat => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_boats".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::OakDoor => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_large".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::OakFence => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::OakFenceGate => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::OakHangingSign => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_hanging_signs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::OakLog => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::OakPlanks => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::OakPressurePlate => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::OakSapling => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_dry_plants".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::OakShelf => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::OakSign => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_large".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::OakSlab => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::OakStairs => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::OakTrapdoor => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::OakWood => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::OrangeBanner => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::OrangeCarpet => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_carpets".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::OrangeCushion => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::OrangeWool => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::OrangeWoolSlab => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::OrangeWoolStairs => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PaleOakBoat => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_boats".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PaleOakButton => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_extra_small".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PaleOakChestBoat => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_boats".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PaleOakDoor => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_large".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PaleOakFence => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PaleOakFenceGate => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PaleOakHangingSign => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_hanging_signs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PaleOakLog => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PaleOakPlanks => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PaleOakPressurePlate => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PaleOakSapling => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_dry_plants".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PaleOakShelf => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PaleOakSign => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_large".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PaleOakSlab => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PaleOakStairs => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PaleOakTrapdoor => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PaleOakWood => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PinkBanner => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PinkCarpet => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_carpets".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PinkCushion => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PinkWool => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PinkWoolSlab => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PinkWoolStairs => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PoplarBoat => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_boats".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PoplarButton => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_extra_small".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PoplarChestBoat => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_boats".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PoplarDoor => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_large".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PoplarFence => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PoplarFenceGate => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PoplarHangingSign => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_hanging_signs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PoplarLog => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PoplarPlanks => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PoplarPressurePlate => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PoplarSapling => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_dry_plants".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PoplarShelf => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PoplarSign => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_large".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PoplarSlab => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PoplarStairs => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PoplarTrapdoor => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PoplarWood => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PurpleBanner => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PurpleCarpet => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_carpets".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PurpleCushion => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PurpleWool => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PurpleWoolSlab => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::PurpleWoolStairs => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::RedBanner => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::RedCarpet => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_carpets".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::RedCushion => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::RedWool => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::RedWoolSlab => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::RedWoolStairs => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::Scaffolding => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_bamboo".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::ShortDryGrass => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_dry_plants".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::SmithingTable => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::SpruceBoat => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_boats".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::SpruceButton => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_extra_small".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::SpruceChestBoat => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_boats".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::SpruceDoor => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_large".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::SpruceFence => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::SpruceFenceGate => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::SpruceHangingSign => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_hanging_signs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::SpruceLog => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::SprucePlanks => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::SprucePressurePlate => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::SpruceSapling => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_dry_plants".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::SpruceShelf => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::SpruceSign => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_large".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::SpruceSlab => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::SpruceStairs => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::SpruceTrapdoor => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::SpruceWood => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::Stick => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_dry_plants".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::StrippedAcaciaLog => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::StrippedAcaciaWood => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::StrippedBambooBlock => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::StrippedBirchLog => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::StrippedBirchWood => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::StrippedCherryLog => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::StrippedCherryWood => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::StrippedDarkOakLog => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::StrippedDarkOakWood => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::StrippedJungleLog => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::StrippedJungleWood => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::StrippedMangroveLog => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::StrippedMangroveWood => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::StrippedOakLog => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::StrippedOakWood => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::StrippedPaleOakLog => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::StrippedPaleOakWood => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::StrippedPoplarLog => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::StrippedPoplarWood => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::StrippedSpruceLog => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::StrippedSpruceWood => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::TallDryGrass => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_dry_plants".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::TrappedChest => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::WhiteBanner => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::WhiteCarpet => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_carpets".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::WhiteCushion => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::WhiteWool => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::WhiteWoolSlab => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::WhiteWoolStairs => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::WoodenAxe => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_large".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::WoodenHoe => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_large".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::WoodenPickaxe => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_large".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::WoodenShovel => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_large".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::WoodenSpear => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_large".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::WoodenSword => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_items_large".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::YellowBanner => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wood_blocks".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::YellowCarpet => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_carpets".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::YellowCushion => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::YellowWool => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::YellowWoolSlab => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool_slabs".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            ItemKind::YellowWoolStairs => CookingFuel {
+                burn_time: ResolvableInt::Reference {
+                    context_int_provider: "minecraft:cooking/time_wool".into(),
+                },
+                speed_multiplier: ResolvableFloat::Reference {
+                    context_float_provider: "minecraft:cooking/speed_default".into(),
+                },
+            },
+            _ => return None,
+        };
+        Some(value)
+    }
+}
+impl DefaultableComponent for CushionColor {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::BlackCushion => DyeColor::Black,
+            ItemKind::BlueCushion => DyeColor::Blue,
+            ItemKind::BrownCushion => DyeColor::Brown,
+            ItemKind::CyanCushion => DyeColor::Cyan,
+            ItemKind::GrayCushion => DyeColor::Gray,
+            ItemKind::GreenCushion => DyeColor::Green,
+            ItemKind::LightBlueCushion => DyeColor::LightBlue,
+            ItemKind::LightGrayCushion => DyeColor::LightGray,
+            ItemKind::LimeCushion => DyeColor::Lime,
+            ItemKind::MagentaCushion => DyeColor::Magenta,
+            ItemKind::OrangeCushion => DyeColor::Orange,
+            ItemKind::PinkCushion => DyeColor::Pink,
+            ItemKind::PurpleCushion => DyeColor::Purple,
+            ItemKind::RedCushion => DyeColor::Red,
+            ItemKind::WhiteCushion => DyeColor::White,
+            ItemKind::YellowCushion => DyeColor::Yellow,
+            _ => return None,
+        };
+        Some(CushionColor { value: value })
     }
 }
 impl DefaultableComponent for Damage {
@@ -4077,8 +7341,15 @@ impl DefaultableComponent for Instrument {
         Some(Instrument { value: value })
     }
 }
+impl DefaultableComponent for InteractAnimation {
+    fn default_for_item(_item: ItemKind) -> Option<Self> {
+        Some(InteractAnimation {
+            value: SwingAnimation::new(),
+        })
+    }
+}
 #[rustfmt::skip]
-static ITEM_MODEL_VALUES: [&str; 1537] = ["minecraft:air","minecraft:stone","minecraft:granite","minecraft:polished_granite","minecraft:diorite","minecraft:polished_diorite","minecraft:andesite","minecraft:polished_andesite","minecraft:deepslate","minecraft:cobbled_deepslate","minecraft:polished_deepslate","minecraft:calcite","minecraft:tuff","minecraft:tuff_slab","minecraft:tuff_stairs","minecraft:tuff_wall","minecraft:chiseled_tuff","minecraft:polished_tuff","minecraft:polished_tuff_slab","minecraft:polished_tuff_stairs","minecraft:polished_tuff_wall","minecraft:tuff_bricks","minecraft:tuff_brick_slab","minecraft:tuff_brick_stairs","minecraft:tuff_brick_wall","minecraft:chiseled_tuff_bricks","minecraft:sulfur","minecraft:potent_sulfur","minecraft:sulfur_slab","minecraft:sulfur_stairs","minecraft:sulfur_wall","minecraft:polished_sulfur","minecraft:polished_sulfur_slab","minecraft:polished_sulfur_stairs","minecraft:polished_sulfur_wall","minecraft:sulfur_bricks","minecraft:sulfur_brick_slab","minecraft:sulfur_brick_stairs","minecraft:sulfur_brick_wall","minecraft:chiseled_sulfur","minecraft:cinnabar","minecraft:cinnabar_slab","minecraft:cinnabar_stairs","minecraft:cinnabar_wall","minecraft:polished_cinnabar","minecraft:polished_cinnabar_slab","minecraft:polished_cinnabar_stairs","minecraft:polished_cinnabar_wall","minecraft:cinnabar_bricks","minecraft:cinnabar_brick_slab","minecraft:cinnabar_brick_stairs","minecraft:cinnabar_brick_wall","minecraft:chiseled_cinnabar","minecraft:dripstone_block","minecraft:grass_block","minecraft:dirt","minecraft:coarse_dirt","minecraft:podzol","minecraft:rooted_dirt","minecraft:mud","minecraft:crimson_nylium","minecraft:warped_nylium","minecraft:cobblestone","minecraft:oak_planks","minecraft:spruce_planks","minecraft:birch_planks","minecraft:jungle_planks","minecraft:acacia_planks","minecraft:cherry_planks","minecraft:dark_oak_planks","minecraft:pale_oak_planks","minecraft:mangrove_planks","minecraft:bamboo_planks","minecraft:crimson_planks","minecraft:warped_planks","minecraft:bamboo_mosaic","minecraft:oak_sapling","minecraft:spruce_sapling","minecraft:birch_sapling","minecraft:jungle_sapling","minecraft:acacia_sapling","minecraft:cherry_sapling","minecraft:dark_oak_sapling","minecraft:pale_oak_sapling","minecraft:mangrove_propagule","minecraft:bedrock","minecraft:sand","minecraft:suspicious_sand","minecraft:suspicious_gravel","minecraft:red_sand","minecraft:gravel","minecraft:coal_ore","minecraft:deepslate_coal_ore","minecraft:iron_ore","minecraft:deepslate_iron_ore","minecraft:copper_ore","minecraft:deepslate_copper_ore","minecraft:gold_ore","minecraft:deepslate_gold_ore","minecraft:redstone_ore","minecraft:deepslate_redstone_ore","minecraft:emerald_ore","minecraft:deepslate_emerald_ore","minecraft:lapis_ore","minecraft:deepslate_lapis_ore","minecraft:diamond_ore","minecraft:deepslate_diamond_ore","minecraft:nether_gold_ore","minecraft:nether_quartz_ore","minecraft:ancient_debris","minecraft:coal_block","minecraft:raw_iron_block","minecraft:raw_copper_block","minecraft:raw_gold_block","minecraft:heavy_core","minecraft:amethyst_block","minecraft:budding_amethyst","minecraft:iron_block","minecraft:copper_block","minecraft:exposed_copper","minecraft:weathered_copper","minecraft:oxidized_copper","minecraft:waxed_copper_block","minecraft:waxed_exposed_copper","minecraft:waxed_weathered_copper","minecraft:waxed_oxidized_copper","minecraft:gold_block","minecraft:diamond_block","minecraft:netherite_block","minecraft:chiseled_copper","minecraft:exposed_chiseled_copper","minecraft:weathered_chiseled_copper","minecraft:oxidized_chiseled_copper","minecraft:waxed_chiseled_copper","minecraft:waxed_exposed_chiseled_copper","minecraft:waxed_weathered_chiseled_copper","minecraft:waxed_oxidized_chiseled_copper","minecraft:cut_copper","minecraft:exposed_cut_copper","minecraft:weathered_cut_copper","minecraft:oxidized_cut_copper","minecraft:waxed_cut_copper","minecraft:waxed_exposed_cut_copper","minecraft:waxed_weathered_cut_copper","minecraft:waxed_oxidized_cut_copper","minecraft:cut_copper_stairs","minecraft:exposed_cut_copper_stairs","minecraft:weathered_cut_copper_stairs","minecraft:oxidized_cut_copper_stairs","minecraft:waxed_cut_copper_stairs","minecraft:waxed_exposed_cut_copper_stairs","minecraft:waxed_weathered_cut_copper_stairs","minecraft:waxed_oxidized_cut_copper_stairs","minecraft:cut_copper_slab","minecraft:exposed_cut_copper_slab","minecraft:weathered_cut_copper_slab","minecraft:oxidized_cut_copper_slab","minecraft:waxed_cut_copper_slab","minecraft:waxed_exposed_cut_copper_slab","minecraft:waxed_weathered_cut_copper_slab","minecraft:waxed_oxidized_cut_copper_slab","minecraft:oak_log","minecraft:spruce_log","minecraft:birch_log","minecraft:jungle_log","minecraft:acacia_log","minecraft:cherry_log","minecraft:pale_oak_log","minecraft:dark_oak_log","minecraft:mangrove_log","minecraft:mangrove_roots","minecraft:muddy_mangrove_roots","minecraft:crimson_stem","minecraft:warped_stem","minecraft:bamboo_block","minecraft:stripped_oak_log","minecraft:stripped_spruce_log","minecraft:stripped_birch_log","minecraft:stripped_jungle_log","minecraft:stripped_acacia_log","minecraft:stripped_cherry_log","minecraft:stripped_dark_oak_log","minecraft:stripped_pale_oak_log","minecraft:stripped_mangrove_log","minecraft:stripped_crimson_stem","minecraft:stripped_warped_stem","minecraft:stripped_oak_wood","minecraft:stripped_spruce_wood","minecraft:stripped_birch_wood","minecraft:stripped_jungle_wood","minecraft:stripped_acacia_wood","minecraft:stripped_cherry_wood","minecraft:stripped_dark_oak_wood","minecraft:stripped_pale_oak_wood","minecraft:stripped_mangrove_wood","minecraft:stripped_crimson_hyphae","minecraft:stripped_warped_hyphae","minecraft:stripped_bamboo_block","minecraft:oak_wood","minecraft:spruce_wood","minecraft:birch_wood","minecraft:jungle_wood","minecraft:acacia_wood","minecraft:cherry_wood","minecraft:pale_oak_wood","minecraft:dark_oak_wood","minecraft:mangrove_wood","minecraft:crimson_hyphae","minecraft:warped_hyphae","minecraft:oak_leaves","minecraft:spruce_leaves","minecraft:birch_leaves","minecraft:jungle_leaves","minecraft:acacia_leaves","minecraft:cherry_leaves","minecraft:dark_oak_leaves","minecraft:pale_oak_leaves","minecraft:mangrove_leaves","minecraft:azalea_leaves","minecraft:flowering_azalea_leaves","minecraft:sponge","minecraft:wet_sponge","minecraft:glass","minecraft:tinted_glass","minecraft:lapis_block","minecraft:sandstone","minecraft:chiseled_sandstone","minecraft:cut_sandstone","minecraft:cobweb","minecraft:short_grass","minecraft:fern","minecraft:bush","minecraft:azalea","minecraft:flowering_azalea","minecraft:dead_bush","minecraft:firefly_bush","minecraft:short_dry_grass","minecraft:tall_dry_grass","minecraft:seagrass","minecraft:sea_pickle","minecraft:white_wool","minecraft:orange_wool","minecraft:magenta_wool","minecraft:light_blue_wool","minecraft:yellow_wool","minecraft:lime_wool","minecraft:pink_wool","minecraft:gray_wool","minecraft:light_gray_wool","minecraft:cyan_wool","minecraft:purple_wool","minecraft:blue_wool","minecraft:brown_wool","minecraft:green_wool","minecraft:red_wool","minecraft:black_wool","minecraft:dandelion","minecraft:golden_dandelion","minecraft:open_eyeblossom","minecraft:closed_eyeblossom","minecraft:poppy","minecraft:blue_orchid","minecraft:allium","minecraft:azure_bluet","minecraft:red_tulip","minecraft:orange_tulip","minecraft:white_tulip","minecraft:pink_tulip","minecraft:oxeye_daisy","minecraft:cornflower","minecraft:lily_of_the_valley","minecraft:wither_rose","minecraft:torchflower","minecraft:pitcher_plant","minecraft:spore_blossom","minecraft:brown_mushroom","minecraft:red_mushroom","minecraft:crimson_fungus","minecraft:warped_fungus","minecraft:crimson_roots","minecraft:warped_roots","minecraft:nether_sprouts","minecraft:weeping_vines","minecraft:twisting_vines","minecraft:sugar_cane","minecraft:kelp","minecraft:pink_petals","minecraft:wildflowers","minecraft:leaf_litter","minecraft:moss_carpet","minecraft:moss_block","minecraft:pale_moss_carpet","minecraft:pale_hanging_moss","minecraft:pale_moss_block","minecraft:hanging_roots","minecraft:big_dripleaf","minecraft:small_dripleaf","minecraft:bamboo","minecraft:oak_slab","minecraft:spruce_slab","minecraft:birch_slab","minecraft:jungle_slab","minecraft:acacia_slab","minecraft:cherry_slab","minecraft:dark_oak_slab","minecraft:pale_oak_slab","minecraft:mangrove_slab","minecraft:bamboo_slab","minecraft:bamboo_mosaic_slab","minecraft:crimson_slab","minecraft:warped_slab","minecraft:stone_slab","minecraft:smooth_stone_slab","minecraft:sandstone_slab","minecraft:cut_sandstone_slab","minecraft:petrified_oak_slab","minecraft:cobblestone_slab","minecraft:brick_slab","minecraft:stone_brick_slab","minecraft:mud_brick_slab","minecraft:nether_brick_slab","minecraft:quartz_slab","minecraft:red_sandstone_slab","minecraft:cut_red_sandstone_slab","minecraft:purpur_slab","minecraft:prismarine_slab","minecraft:prismarine_brick_slab","minecraft:dark_prismarine_slab","minecraft:smooth_quartz","minecraft:smooth_red_sandstone","minecraft:smooth_sandstone","minecraft:smooth_stone","minecraft:bricks","minecraft:acacia_shelf","minecraft:bamboo_shelf","minecraft:birch_shelf","minecraft:cherry_shelf","minecraft:crimson_shelf","minecraft:dark_oak_shelf","minecraft:jungle_shelf","minecraft:mangrove_shelf","minecraft:oak_shelf","minecraft:pale_oak_shelf","minecraft:spruce_shelf","minecraft:warped_shelf","minecraft:bookshelf","minecraft:chiseled_bookshelf","minecraft:decorated_pot","minecraft:mossy_cobblestone","minecraft:obsidian","minecraft:torch","minecraft:end_rod","minecraft:chorus_plant","minecraft:chorus_flower","minecraft:purpur_block","minecraft:purpur_pillar","minecraft:purpur_stairs","minecraft:spawner","minecraft:creaking_heart","minecraft:chest","minecraft:crafting_table","minecraft:farmland","minecraft:furnace","minecraft:ladder","minecraft:cobblestone_stairs","minecraft:snow","minecraft:ice","minecraft:snow_block","minecraft:cactus","minecraft:cactus_flower","minecraft:clay","minecraft:jukebox","minecraft:oak_fence","minecraft:spruce_fence","minecraft:birch_fence","minecraft:jungle_fence","minecraft:acacia_fence","minecraft:cherry_fence","minecraft:dark_oak_fence","minecraft:pale_oak_fence","minecraft:mangrove_fence","minecraft:bamboo_fence","minecraft:crimson_fence","minecraft:warped_fence","minecraft:pumpkin","minecraft:carved_pumpkin","minecraft:jack_o_lantern","minecraft:netherrack","minecraft:soul_sand","minecraft:soul_soil","minecraft:basalt","minecraft:polished_basalt","minecraft:smooth_basalt","minecraft:soul_torch","minecraft:copper_torch","minecraft:glowstone","minecraft:infested_stone","minecraft:infested_cobblestone","minecraft:infested_stone_bricks","minecraft:infested_mossy_stone_bricks","minecraft:infested_cracked_stone_bricks","minecraft:infested_chiseled_stone_bricks","minecraft:infested_deepslate","minecraft:stone_bricks","minecraft:mossy_stone_bricks","minecraft:cracked_stone_bricks","minecraft:chiseled_stone_bricks","minecraft:packed_mud","minecraft:mud_bricks","minecraft:deepslate_bricks","minecraft:cracked_deepslate_bricks","minecraft:deepslate_tiles","minecraft:cracked_deepslate_tiles","minecraft:chiseled_deepslate","minecraft:reinforced_deepslate","minecraft:brown_mushroom_block","minecraft:red_mushroom_block","minecraft:mushroom_stem","minecraft:iron_bars","minecraft:copper_bars","minecraft:exposed_copper_bars","minecraft:weathered_copper_bars","minecraft:oxidized_copper_bars","minecraft:waxed_copper_bars","minecraft:waxed_exposed_copper_bars","minecraft:waxed_weathered_copper_bars","minecraft:waxed_oxidized_copper_bars","minecraft:iron_chain","minecraft:copper_chain","minecraft:exposed_copper_chain","minecraft:weathered_copper_chain","minecraft:oxidized_copper_chain","minecraft:waxed_copper_chain","minecraft:waxed_exposed_copper_chain","minecraft:waxed_weathered_copper_chain","minecraft:waxed_oxidized_copper_chain","minecraft:glass_pane","minecraft:melon","minecraft:vine","minecraft:glow_lichen","minecraft:resin_clump","minecraft:resin_block","minecraft:resin_bricks","minecraft:resin_brick_stairs","minecraft:resin_brick_slab","minecraft:resin_brick_wall","minecraft:chiseled_resin_bricks","minecraft:brick_stairs","minecraft:stone_brick_stairs","minecraft:mud_brick_stairs","minecraft:mycelium","minecraft:lily_pad","minecraft:nether_bricks","minecraft:cracked_nether_bricks","minecraft:chiseled_nether_bricks","minecraft:nether_brick_fence","minecraft:nether_brick_stairs","minecraft:sculk","minecraft:sculk_vein","minecraft:sculk_catalyst","minecraft:sculk_shrieker","minecraft:enchanting_table","minecraft:end_portal_frame","minecraft:end_stone","minecraft:end_stone_bricks","minecraft:dragon_egg","minecraft:sandstone_stairs","minecraft:ender_chest","minecraft:emerald_block","minecraft:oak_stairs","minecraft:spruce_stairs","minecraft:birch_stairs","minecraft:jungle_stairs","minecraft:acacia_stairs","minecraft:cherry_stairs","minecraft:dark_oak_stairs","minecraft:pale_oak_stairs","minecraft:mangrove_stairs","minecraft:bamboo_stairs","minecraft:bamboo_mosaic_stairs","minecraft:crimson_stairs","minecraft:warped_stairs","minecraft:command_block","minecraft:beacon","minecraft:cobblestone_wall","minecraft:mossy_cobblestone_wall","minecraft:brick_wall","minecraft:prismarine_wall","minecraft:red_sandstone_wall","minecraft:mossy_stone_brick_wall","minecraft:granite_wall","minecraft:stone_brick_wall","minecraft:mud_brick_wall","minecraft:nether_brick_wall","minecraft:andesite_wall","minecraft:red_nether_brick_wall","minecraft:sandstone_wall","minecraft:end_stone_brick_wall","minecraft:diorite_wall","minecraft:blackstone_wall","minecraft:polished_blackstone_wall","minecraft:polished_blackstone_brick_wall","minecraft:cobbled_deepslate_wall","minecraft:polished_deepslate_wall","minecraft:deepslate_brick_wall","minecraft:deepslate_tile_wall","minecraft:anvil","minecraft:chipped_anvil","minecraft:damaged_anvil","minecraft:chiseled_quartz_block","minecraft:quartz_block","minecraft:quartz_bricks","minecraft:quartz_pillar","minecraft:quartz_stairs","minecraft:white_terracotta","minecraft:orange_terracotta","minecraft:magenta_terracotta","minecraft:light_blue_terracotta","minecraft:yellow_terracotta","minecraft:lime_terracotta","minecraft:pink_terracotta","minecraft:gray_terracotta","minecraft:light_gray_terracotta","minecraft:cyan_terracotta","minecraft:purple_terracotta","minecraft:blue_terracotta","minecraft:brown_terracotta","minecraft:green_terracotta","minecraft:red_terracotta","minecraft:black_terracotta","minecraft:barrier","minecraft:light","minecraft:hay_block","minecraft:white_carpet","minecraft:orange_carpet","minecraft:magenta_carpet","minecraft:light_blue_carpet","minecraft:yellow_carpet","minecraft:lime_carpet","minecraft:pink_carpet","minecraft:gray_carpet","minecraft:light_gray_carpet","minecraft:cyan_carpet","minecraft:purple_carpet","minecraft:blue_carpet","minecraft:brown_carpet","minecraft:green_carpet","minecraft:red_carpet","minecraft:black_carpet","minecraft:terracotta","minecraft:packed_ice","minecraft:dirt_path","minecraft:sunflower","minecraft:lilac","minecraft:rose_bush","minecraft:peony","minecraft:tall_grass","minecraft:large_fern","minecraft:white_stained_glass","minecraft:orange_stained_glass","minecraft:magenta_stained_glass","minecraft:light_blue_stained_glass","minecraft:yellow_stained_glass","minecraft:lime_stained_glass","minecraft:pink_stained_glass","minecraft:gray_stained_glass","minecraft:light_gray_stained_glass","minecraft:cyan_stained_glass","minecraft:purple_stained_glass","minecraft:blue_stained_glass","minecraft:brown_stained_glass","minecraft:green_stained_glass","minecraft:red_stained_glass","minecraft:black_stained_glass","minecraft:white_stained_glass_pane","minecraft:orange_stained_glass_pane","minecraft:magenta_stained_glass_pane","minecraft:light_blue_stained_glass_pane","minecraft:yellow_stained_glass_pane","minecraft:lime_stained_glass_pane","minecraft:pink_stained_glass_pane","minecraft:gray_stained_glass_pane","minecraft:light_gray_stained_glass_pane","minecraft:cyan_stained_glass_pane","minecraft:purple_stained_glass_pane","minecraft:blue_stained_glass_pane","minecraft:brown_stained_glass_pane","minecraft:green_stained_glass_pane","minecraft:red_stained_glass_pane","minecraft:black_stained_glass_pane","minecraft:prismarine","minecraft:prismarine_bricks","minecraft:dark_prismarine","minecraft:prismarine_stairs","minecraft:prismarine_brick_stairs","minecraft:dark_prismarine_stairs","minecraft:sea_lantern","minecraft:red_sandstone","minecraft:chiseled_red_sandstone","minecraft:cut_red_sandstone","minecraft:red_sandstone_stairs","minecraft:repeating_command_block","minecraft:chain_command_block","minecraft:magma_block","minecraft:nether_wart_block","minecraft:warped_wart_block","minecraft:red_nether_bricks","minecraft:bone_block","minecraft:structure_void","minecraft:shulker_box","minecraft:white_shulker_box","minecraft:orange_shulker_box","minecraft:magenta_shulker_box","minecraft:light_blue_shulker_box","minecraft:yellow_shulker_box","minecraft:lime_shulker_box","minecraft:pink_shulker_box","minecraft:gray_shulker_box","minecraft:light_gray_shulker_box","minecraft:cyan_shulker_box","minecraft:purple_shulker_box","minecraft:blue_shulker_box","minecraft:brown_shulker_box","minecraft:green_shulker_box","minecraft:red_shulker_box","minecraft:black_shulker_box","minecraft:white_glazed_terracotta","minecraft:orange_glazed_terracotta","minecraft:magenta_glazed_terracotta","minecraft:light_blue_glazed_terracotta","minecraft:yellow_glazed_terracotta","minecraft:lime_glazed_terracotta","minecraft:pink_glazed_terracotta","minecraft:gray_glazed_terracotta","minecraft:light_gray_glazed_terracotta","minecraft:cyan_glazed_terracotta","minecraft:purple_glazed_terracotta","minecraft:blue_glazed_terracotta","minecraft:brown_glazed_terracotta","minecraft:green_glazed_terracotta","minecraft:red_glazed_terracotta","minecraft:black_glazed_terracotta","minecraft:white_concrete","minecraft:orange_concrete","minecraft:magenta_concrete","minecraft:light_blue_concrete","minecraft:yellow_concrete","minecraft:lime_concrete","minecraft:pink_concrete","minecraft:gray_concrete","minecraft:light_gray_concrete","minecraft:cyan_concrete","minecraft:purple_concrete","minecraft:blue_concrete","minecraft:brown_concrete","minecraft:green_concrete","minecraft:red_concrete","minecraft:black_concrete","minecraft:white_concrete_powder","minecraft:orange_concrete_powder","minecraft:magenta_concrete_powder","minecraft:light_blue_concrete_powder","minecraft:yellow_concrete_powder","minecraft:lime_concrete_powder","minecraft:pink_concrete_powder","minecraft:gray_concrete_powder","minecraft:light_gray_concrete_powder","minecraft:cyan_concrete_powder","minecraft:purple_concrete_powder","minecraft:blue_concrete_powder","minecraft:brown_concrete_powder","minecraft:green_concrete_powder","minecraft:red_concrete_powder","minecraft:black_concrete_powder","minecraft:turtle_egg","minecraft:sniffer_egg","minecraft:dried_ghast","minecraft:dead_tube_coral_block","minecraft:dead_brain_coral_block","minecraft:dead_bubble_coral_block","minecraft:dead_fire_coral_block","minecraft:dead_horn_coral_block","minecraft:tube_coral_block","minecraft:brain_coral_block","minecraft:bubble_coral_block","minecraft:fire_coral_block","minecraft:horn_coral_block","minecraft:tube_coral","minecraft:brain_coral","minecraft:bubble_coral","minecraft:fire_coral","minecraft:horn_coral","minecraft:dead_brain_coral","minecraft:dead_bubble_coral","minecraft:dead_fire_coral","minecraft:dead_horn_coral","minecraft:dead_tube_coral","minecraft:tube_coral_fan","minecraft:brain_coral_fan","minecraft:bubble_coral_fan","minecraft:fire_coral_fan","minecraft:horn_coral_fan","minecraft:dead_tube_coral_fan","minecraft:dead_brain_coral_fan","minecraft:dead_bubble_coral_fan","minecraft:dead_fire_coral_fan","minecraft:dead_horn_coral_fan","minecraft:blue_ice","minecraft:conduit","minecraft:polished_granite_stairs","minecraft:smooth_red_sandstone_stairs","minecraft:mossy_stone_brick_stairs","minecraft:polished_diorite_stairs","minecraft:mossy_cobblestone_stairs","minecraft:end_stone_brick_stairs","minecraft:stone_stairs","minecraft:smooth_sandstone_stairs","minecraft:smooth_quartz_stairs","minecraft:granite_stairs","minecraft:andesite_stairs","minecraft:red_nether_brick_stairs","minecraft:polished_andesite_stairs","minecraft:diorite_stairs","minecraft:cobbled_deepslate_stairs","minecraft:polished_deepslate_stairs","minecraft:deepslate_brick_stairs","minecraft:deepslate_tile_stairs","minecraft:polished_granite_slab","minecraft:smooth_red_sandstone_slab","minecraft:mossy_stone_brick_slab","minecraft:polished_diorite_slab","minecraft:mossy_cobblestone_slab","minecraft:end_stone_brick_slab","minecraft:smooth_sandstone_slab","minecraft:smooth_quartz_slab","minecraft:granite_slab","minecraft:andesite_slab","minecraft:red_nether_brick_slab","minecraft:polished_andesite_slab","minecraft:diorite_slab","minecraft:cobbled_deepslate_slab","minecraft:polished_deepslate_slab","minecraft:deepslate_brick_slab","minecraft:deepslate_tile_slab","minecraft:scaffolding","minecraft:redstone","minecraft:redstone_torch","minecraft:redstone_block","minecraft:repeater","minecraft:comparator","minecraft:piston","minecraft:sticky_piston","minecraft:slime_block","minecraft:honey_block","minecraft:observer","minecraft:hopper","minecraft:dispenser","minecraft:dropper","minecraft:lectern","minecraft:target","minecraft:lever","minecraft:lightning_rod","minecraft:exposed_lightning_rod","minecraft:weathered_lightning_rod","minecraft:oxidized_lightning_rod","minecraft:waxed_lightning_rod","minecraft:waxed_exposed_lightning_rod","minecraft:waxed_weathered_lightning_rod","minecraft:waxed_oxidized_lightning_rod","minecraft:daylight_detector","minecraft:sculk_sensor","minecraft:calibrated_sculk_sensor","minecraft:tripwire_hook","minecraft:trapped_chest","minecraft:tnt","minecraft:redstone_lamp","minecraft:note_block","minecraft:stone_button","minecraft:polished_blackstone_button","minecraft:oak_button","minecraft:spruce_button","minecraft:birch_button","minecraft:jungle_button","minecraft:acacia_button","minecraft:cherry_button","minecraft:dark_oak_button","minecraft:pale_oak_button","minecraft:mangrove_button","minecraft:bamboo_button","minecraft:crimson_button","minecraft:warped_button","minecraft:stone_pressure_plate","minecraft:polished_blackstone_pressure_plate","minecraft:light_weighted_pressure_plate","minecraft:heavy_weighted_pressure_plate","minecraft:oak_pressure_plate","minecraft:spruce_pressure_plate","minecraft:birch_pressure_plate","minecraft:jungle_pressure_plate","minecraft:acacia_pressure_plate","minecraft:cherry_pressure_plate","minecraft:dark_oak_pressure_plate","minecraft:pale_oak_pressure_plate","minecraft:mangrove_pressure_plate","minecraft:bamboo_pressure_plate","minecraft:crimson_pressure_plate","minecraft:warped_pressure_plate","minecraft:iron_door","minecraft:oak_door","minecraft:spruce_door","minecraft:birch_door","minecraft:jungle_door","minecraft:acacia_door","minecraft:cherry_door","minecraft:dark_oak_door","minecraft:pale_oak_door","minecraft:mangrove_door","minecraft:bamboo_door","minecraft:crimson_door","minecraft:warped_door","minecraft:copper_door","minecraft:exposed_copper_door","minecraft:weathered_copper_door","minecraft:oxidized_copper_door","minecraft:waxed_copper_door","minecraft:waxed_exposed_copper_door","minecraft:waxed_weathered_copper_door","minecraft:waxed_oxidized_copper_door","minecraft:iron_trapdoor","minecraft:oak_trapdoor","minecraft:spruce_trapdoor","minecraft:birch_trapdoor","minecraft:jungle_trapdoor","minecraft:acacia_trapdoor","minecraft:cherry_trapdoor","minecraft:dark_oak_trapdoor","minecraft:pale_oak_trapdoor","minecraft:mangrove_trapdoor","minecraft:bamboo_trapdoor","minecraft:crimson_trapdoor","minecraft:warped_trapdoor","minecraft:copper_trapdoor","minecraft:exposed_copper_trapdoor","minecraft:weathered_copper_trapdoor","minecraft:oxidized_copper_trapdoor","minecraft:waxed_copper_trapdoor","minecraft:waxed_exposed_copper_trapdoor","minecraft:waxed_weathered_copper_trapdoor","minecraft:waxed_oxidized_copper_trapdoor","minecraft:oak_fence_gate","minecraft:spruce_fence_gate","minecraft:birch_fence_gate","minecraft:jungle_fence_gate","minecraft:acacia_fence_gate","minecraft:cherry_fence_gate","minecraft:dark_oak_fence_gate","minecraft:pale_oak_fence_gate","minecraft:mangrove_fence_gate","minecraft:bamboo_fence_gate","minecraft:crimson_fence_gate","minecraft:warped_fence_gate","minecraft:powered_rail","minecraft:detector_rail","minecraft:rail","minecraft:activator_rail","minecraft:saddle","minecraft:white_harness","minecraft:orange_harness","minecraft:magenta_harness","minecraft:light_blue_harness","minecraft:yellow_harness","minecraft:lime_harness","minecraft:pink_harness","minecraft:gray_harness","minecraft:light_gray_harness","minecraft:cyan_harness","minecraft:purple_harness","minecraft:blue_harness","minecraft:brown_harness","minecraft:green_harness","minecraft:red_harness","minecraft:black_harness","minecraft:minecart","minecraft:chest_minecart","minecraft:furnace_minecart","minecraft:tnt_minecart","minecraft:hopper_minecart","minecraft:carrot_on_a_stick","minecraft:warped_fungus_on_a_stick","minecraft:phantom_membrane","minecraft:elytra","minecraft:oak_boat","minecraft:oak_chest_boat","minecraft:spruce_boat","minecraft:spruce_chest_boat","minecraft:birch_boat","minecraft:birch_chest_boat","minecraft:jungle_boat","minecraft:jungle_chest_boat","minecraft:acacia_boat","minecraft:acacia_chest_boat","minecraft:cherry_boat","minecraft:cherry_chest_boat","minecraft:dark_oak_boat","minecraft:dark_oak_chest_boat","minecraft:pale_oak_boat","minecraft:pale_oak_chest_boat","minecraft:mangrove_boat","minecraft:mangrove_chest_boat","minecraft:bamboo_raft","minecraft:bamboo_chest_raft","minecraft:structure_block","minecraft:jigsaw","minecraft:test_block","minecraft:test_instance_block","minecraft:turtle_helmet","minecraft:turtle_scute","minecraft:armadillo_scute","minecraft:wolf_armor","minecraft:flint_and_steel","minecraft:bowl","minecraft:apple","minecraft:bow","minecraft:arrow","minecraft:coal","minecraft:charcoal","minecraft:diamond","minecraft:emerald","minecraft:lapis_lazuli","minecraft:quartz","minecraft:amethyst_shard","minecraft:raw_iron","minecraft:iron_ingot","minecraft:raw_copper","minecraft:copper_ingot","minecraft:raw_gold","minecraft:gold_ingot","minecraft:netherite_ingot","minecraft:netherite_scrap","minecraft:wooden_sword","minecraft:wooden_shovel","minecraft:wooden_pickaxe","minecraft:wooden_axe","minecraft:wooden_hoe","minecraft:copper_sword","minecraft:copper_shovel","minecraft:copper_pickaxe","minecraft:copper_axe","minecraft:copper_hoe","minecraft:stone_sword","minecraft:stone_shovel","minecraft:stone_pickaxe","minecraft:stone_axe","minecraft:stone_hoe","minecraft:golden_sword","minecraft:golden_shovel","minecraft:golden_pickaxe","minecraft:golden_axe","minecraft:golden_hoe","minecraft:iron_sword","minecraft:iron_shovel","minecraft:iron_pickaxe","minecraft:iron_axe","minecraft:iron_hoe","minecraft:diamond_sword","minecraft:diamond_shovel","minecraft:diamond_pickaxe","minecraft:diamond_axe","minecraft:diamond_hoe","minecraft:netherite_sword","minecraft:netherite_shovel","minecraft:netherite_pickaxe","minecraft:netherite_axe","minecraft:netherite_hoe","minecraft:stick","minecraft:mushroom_stew","minecraft:string","minecraft:feather","minecraft:gunpowder","minecraft:wheat_seeds","minecraft:wheat","minecraft:bread","minecraft:leather_helmet","minecraft:leather_chestplate","minecraft:leather_leggings","minecraft:leather_boots","minecraft:copper_helmet","minecraft:copper_chestplate","minecraft:copper_leggings","minecraft:copper_boots","minecraft:chainmail_helmet","minecraft:chainmail_chestplate","minecraft:chainmail_leggings","minecraft:chainmail_boots","minecraft:iron_helmet","minecraft:iron_chestplate","minecraft:iron_leggings","minecraft:iron_boots","minecraft:diamond_helmet","minecraft:diamond_chestplate","minecraft:diamond_leggings","minecraft:diamond_boots","minecraft:golden_helmet","minecraft:golden_chestplate","minecraft:golden_leggings","minecraft:golden_boots","minecraft:netherite_helmet","minecraft:netherite_chestplate","minecraft:netherite_leggings","minecraft:netherite_boots","minecraft:flint","minecraft:porkchop","minecraft:cooked_porkchop","minecraft:painting","minecraft:golden_apple","minecraft:enchanted_golden_apple","minecraft:oak_sign","minecraft:spruce_sign","minecraft:birch_sign","minecraft:jungle_sign","minecraft:acacia_sign","minecraft:cherry_sign","minecraft:dark_oak_sign","minecraft:pale_oak_sign","minecraft:mangrove_sign","minecraft:bamboo_sign","minecraft:crimson_sign","minecraft:warped_sign","minecraft:oak_hanging_sign","minecraft:spruce_hanging_sign","minecraft:birch_hanging_sign","minecraft:jungle_hanging_sign","minecraft:acacia_hanging_sign","minecraft:cherry_hanging_sign","minecraft:dark_oak_hanging_sign","minecraft:pale_oak_hanging_sign","minecraft:mangrove_hanging_sign","minecraft:bamboo_hanging_sign","minecraft:crimson_hanging_sign","minecraft:warped_hanging_sign","minecraft:bucket","minecraft:water_bucket","minecraft:lava_bucket","minecraft:powder_snow_bucket","minecraft:snowball","minecraft:leather","minecraft:milk_bucket","minecraft:pufferfish_bucket","minecraft:salmon_bucket","minecraft:cod_bucket","minecraft:tropical_fish_bucket","minecraft:axolotl_bucket","minecraft:sulfur_cube_bucket","minecraft:tadpole_bucket","minecraft:brick","minecraft:clay_ball","minecraft:dried_kelp_block","minecraft:paper","minecraft:book","minecraft:slime_ball","minecraft:egg","minecraft:blue_egg","minecraft:brown_egg","minecraft:compass","minecraft:recovery_compass","minecraft:bundle","minecraft:white_bundle","minecraft:orange_bundle","minecraft:magenta_bundle","minecraft:light_blue_bundle","minecraft:yellow_bundle","minecraft:lime_bundle","minecraft:pink_bundle","minecraft:gray_bundle","minecraft:light_gray_bundle","minecraft:cyan_bundle","minecraft:purple_bundle","minecraft:blue_bundle","minecraft:brown_bundle","minecraft:green_bundle","minecraft:red_bundle","minecraft:black_bundle","minecraft:fishing_rod","minecraft:clock","minecraft:spyglass","minecraft:glowstone_dust","minecraft:cod","minecraft:salmon","minecraft:tropical_fish","minecraft:pufferfish","minecraft:cooked_cod","minecraft:cooked_salmon","minecraft:ink_sac","minecraft:glow_ink_sac","minecraft:cocoa_beans","minecraft:white_dye","minecraft:orange_dye","minecraft:magenta_dye","minecraft:light_blue_dye","minecraft:yellow_dye","minecraft:lime_dye","minecraft:pink_dye","minecraft:gray_dye","minecraft:light_gray_dye","minecraft:cyan_dye","minecraft:purple_dye","minecraft:blue_dye","minecraft:brown_dye","minecraft:green_dye","minecraft:red_dye","minecraft:black_dye","minecraft:bone_meal","minecraft:bone","minecraft:sugar","minecraft:cake","minecraft:white_bed","minecraft:orange_bed","minecraft:magenta_bed","minecraft:light_blue_bed","minecraft:yellow_bed","minecraft:lime_bed","minecraft:pink_bed","minecraft:gray_bed","minecraft:light_gray_bed","minecraft:cyan_bed","minecraft:purple_bed","minecraft:blue_bed","minecraft:brown_bed","minecraft:green_bed","minecraft:red_bed","minecraft:black_bed","minecraft:cookie","minecraft:crafter","minecraft:filled_map","minecraft:shears","minecraft:melon_slice","minecraft:dried_kelp","minecraft:pumpkin_seeds","minecraft:melon_seeds","minecraft:beef","minecraft:cooked_beef","minecraft:chicken","minecraft:cooked_chicken","minecraft:rotten_flesh","minecraft:ender_pearl","minecraft:blaze_rod","minecraft:ghast_tear","minecraft:gold_nugget","minecraft:nether_wart","minecraft:glass_bottle","minecraft:potion","minecraft:spider_eye","minecraft:fermented_spider_eye","minecraft:blaze_powder","minecraft:magma_cream","minecraft:brewing_stand","minecraft:cauldron","minecraft:ender_eye","minecraft:glistering_melon_slice","minecraft:chicken_spawn_egg","minecraft:cow_spawn_egg","minecraft:pig_spawn_egg","minecraft:sheep_spawn_egg","minecraft:camel_spawn_egg","minecraft:donkey_spawn_egg","minecraft:horse_spawn_egg","minecraft:mule_spawn_egg","minecraft:cat_spawn_egg","minecraft:parrot_spawn_egg","minecraft:wolf_spawn_egg","minecraft:armadillo_spawn_egg","minecraft:bat_spawn_egg","minecraft:bee_spawn_egg","minecraft:fox_spawn_egg","minecraft:goat_spawn_egg","minecraft:llama_spawn_egg","minecraft:ocelot_spawn_egg","minecraft:panda_spawn_egg","minecraft:polar_bear_spawn_egg","minecraft:rabbit_spawn_egg","minecraft:axolotl_spawn_egg","minecraft:cod_spawn_egg","minecraft:dolphin_spawn_egg","minecraft:frog_spawn_egg","minecraft:glow_squid_spawn_egg","minecraft:nautilus_spawn_egg","minecraft:pufferfish_spawn_egg","minecraft:salmon_spawn_egg","minecraft:squid_spawn_egg","minecraft:tadpole_spawn_egg","minecraft:tropical_fish_spawn_egg","minecraft:turtle_spawn_egg","minecraft:allay_spawn_egg","minecraft:mooshroom_spawn_egg","minecraft:sniffer_spawn_egg","minecraft:sulfur_cube_spawn_egg","minecraft:copper_golem_spawn_egg","minecraft:iron_golem_spawn_egg","minecraft:snow_golem_spawn_egg","minecraft:trader_llama_spawn_egg","minecraft:villager_spawn_egg","minecraft:wandering_trader_spawn_egg","minecraft:bogged_spawn_egg","minecraft:camel_husk_spawn_egg","minecraft:drowned_spawn_egg","minecraft:husk_spawn_egg","minecraft:parched_spawn_egg","minecraft:skeleton_spawn_egg","minecraft:skeleton_horse_spawn_egg","minecraft:stray_spawn_egg","minecraft:wither_spawn_egg","minecraft:wither_skeleton_spawn_egg","minecraft:zombie_spawn_egg","minecraft:zombie_horse_spawn_egg","minecraft:zombie_nautilus_spawn_egg","minecraft:zombie_villager_spawn_egg","minecraft:cave_spider_spawn_egg","minecraft:spider_spawn_egg","minecraft:breeze_spawn_egg","minecraft:creaking_spawn_egg","minecraft:creeper_spawn_egg","minecraft:elder_guardian_spawn_egg","minecraft:guardian_spawn_egg","minecraft:phantom_spawn_egg","minecraft:silverfish_spawn_egg","minecraft:slime_spawn_egg","minecraft:warden_spawn_egg","minecraft:witch_spawn_egg","minecraft:evoker_spawn_egg","minecraft:pillager_spawn_egg","minecraft:ravager_spawn_egg","minecraft:vindicator_spawn_egg","minecraft:vex_spawn_egg","minecraft:blaze_spawn_egg","minecraft:ghast_spawn_egg","minecraft:happy_ghast_spawn_egg","minecraft:hoglin_spawn_egg","minecraft:magma_cube_spawn_egg","minecraft:piglin_spawn_egg","minecraft:piglin_brute_spawn_egg","minecraft:strider_spawn_egg","minecraft:zoglin_spawn_egg","minecraft:zombified_piglin_spawn_egg","minecraft:ender_dragon_spawn_egg","minecraft:enderman_spawn_egg","minecraft:endermite_spawn_egg","minecraft:shulker_spawn_egg","minecraft:experience_bottle","minecraft:fire_charge","minecraft:wind_charge","minecraft:writable_book","minecraft:written_book","minecraft:breeze_rod","minecraft:mace","minecraft:item_frame","minecraft:glow_item_frame","minecraft:flower_pot","minecraft:carrot","minecraft:potato","minecraft:baked_potato","minecraft:poisonous_potato","minecraft:map","minecraft:golden_carrot","minecraft:skeleton_skull","minecraft:wither_skeleton_skull","minecraft:player_head","minecraft:zombie_head","minecraft:creeper_head","minecraft:dragon_head","minecraft:piglin_head","minecraft:nether_star","minecraft:pumpkin_pie","minecraft:firework_rocket","minecraft:firework_star","minecraft:enchanted_book","minecraft:nether_brick","minecraft:resin_brick","minecraft:prismarine_shard","minecraft:prismarine_crystals","minecraft:rabbit","minecraft:cooked_rabbit","minecraft:rabbit_stew","minecraft:rabbit_foot","minecraft:rabbit_hide","minecraft:armor_stand","minecraft:copper_horse_armor","minecraft:iron_horse_armor","minecraft:golden_horse_armor","minecraft:diamond_horse_armor","minecraft:netherite_horse_armor","minecraft:leather_horse_armor","minecraft:lead","minecraft:name_tag","minecraft:command_block_minecart","minecraft:mutton","minecraft:cooked_mutton","minecraft:white_banner","minecraft:orange_banner","minecraft:magenta_banner","minecraft:light_blue_banner","minecraft:yellow_banner","minecraft:lime_banner","minecraft:pink_banner","minecraft:gray_banner","minecraft:light_gray_banner","minecraft:cyan_banner","minecraft:purple_banner","minecraft:blue_banner","minecraft:brown_banner","minecraft:green_banner","minecraft:red_banner","minecraft:black_banner","minecraft:end_crystal","minecraft:chorus_fruit","minecraft:popped_chorus_fruit","minecraft:torchflower_seeds","minecraft:pitcher_pod","minecraft:beetroot","minecraft:beetroot_seeds","minecraft:beetroot_soup","minecraft:dragon_breath","minecraft:splash_potion","minecraft:spectral_arrow","minecraft:tipped_arrow","minecraft:lingering_potion","minecraft:shield","minecraft:wooden_spear","minecraft:stone_spear","minecraft:copper_spear","minecraft:iron_spear","minecraft:golden_spear","minecraft:diamond_spear","minecraft:netherite_spear","minecraft:totem_of_undying","minecraft:shulker_shell","minecraft:iron_nugget","minecraft:copper_nugget","minecraft:knowledge_book","minecraft:debug_stick","minecraft:music_disc_13","minecraft:music_disc_cat","minecraft:music_disc_blocks","minecraft:music_disc_bounce","minecraft:music_disc_chirp","minecraft:music_disc_creator","minecraft:music_disc_creator_music_box","minecraft:music_disc_far","minecraft:music_disc_lava_chicken","minecraft:music_disc_mall","minecraft:music_disc_mellohi","minecraft:music_disc_stal","minecraft:music_disc_strad","minecraft:music_disc_ward","minecraft:music_disc_11","minecraft:music_disc_wait","minecraft:music_disc_otherside","minecraft:music_disc_relic","minecraft:music_disc_5","minecraft:music_disc_pigstep","minecraft:music_disc_precipice","minecraft:music_disc_tears","minecraft:disc_fragment_5","minecraft:trident","minecraft:nautilus_shell","minecraft:iron_nautilus_armor","minecraft:golden_nautilus_armor","minecraft:diamond_nautilus_armor","minecraft:netherite_nautilus_armor","minecraft:copper_nautilus_armor","minecraft:heart_of_the_sea","minecraft:crossbow","minecraft:suspicious_stew","minecraft:loom","minecraft:flower_banner_pattern","minecraft:creeper_banner_pattern","minecraft:skull_banner_pattern","minecraft:mojang_banner_pattern","minecraft:globe_banner_pattern","minecraft:piglin_banner_pattern","minecraft:flow_banner_pattern","minecraft:guster_banner_pattern","minecraft:field_masoned_banner_pattern","minecraft:bordure_indented_banner_pattern","minecraft:goat_horn","minecraft:composter","minecraft:barrel","minecraft:smoker","minecraft:blast_furnace","minecraft:cartography_table","minecraft:fletching_table","minecraft:grindstone","minecraft:smithing_table","minecraft:stonecutter","minecraft:bell","minecraft:lantern","minecraft:soul_lantern","minecraft:copper_lantern","minecraft:exposed_copper_lantern","minecraft:weathered_copper_lantern","minecraft:oxidized_copper_lantern","minecraft:waxed_copper_lantern","minecraft:waxed_exposed_copper_lantern","minecraft:waxed_weathered_copper_lantern","minecraft:waxed_oxidized_copper_lantern","minecraft:sweet_berries","minecraft:glow_berries","minecraft:campfire","minecraft:soul_campfire","minecraft:shroomlight","minecraft:honeycomb","minecraft:bee_nest","minecraft:beehive","minecraft:honey_bottle","minecraft:honeycomb_block","minecraft:lodestone","minecraft:crying_obsidian","minecraft:blackstone","minecraft:blackstone_slab","minecraft:blackstone_stairs","minecraft:gilded_blackstone","minecraft:polished_blackstone","minecraft:polished_blackstone_slab","minecraft:polished_blackstone_stairs","minecraft:chiseled_polished_blackstone","minecraft:polished_blackstone_bricks","minecraft:polished_blackstone_brick_slab","minecraft:polished_blackstone_brick_stairs","minecraft:cracked_polished_blackstone_bricks","minecraft:respawn_anchor","minecraft:candle","minecraft:white_candle","minecraft:orange_candle","minecraft:magenta_candle","minecraft:light_blue_candle","minecraft:yellow_candle","minecraft:lime_candle","minecraft:pink_candle","minecraft:gray_candle","minecraft:light_gray_candle","minecraft:cyan_candle","minecraft:purple_candle","minecraft:blue_candle","minecraft:brown_candle","minecraft:green_candle","minecraft:red_candle","minecraft:black_candle","minecraft:small_amethyst_bud","minecraft:medium_amethyst_bud","minecraft:large_amethyst_bud","minecraft:amethyst_cluster","minecraft:pointed_dripstone","minecraft:sulfur_spike","minecraft:ochre_froglight","minecraft:verdant_froglight","minecraft:pearlescent_froglight","minecraft:frogspawn","minecraft:echo_shard","minecraft:brush","minecraft:netherite_upgrade_smithing_template","minecraft:sentry_armor_trim_smithing_template","minecraft:dune_armor_trim_smithing_template","minecraft:coast_armor_trim_smithing_template","minecraft:wild_armor_trim_smithing_template","minecraft:ward_armor_trim_smithing_template","minecraft:eye_armor_trim_smithing_template","minecraft:vex_armor_trim_smithing_template","minecraft:tide_armor_trim_smithing_template","minecraft:snout_armor_trim_smithing_template","minecraft:rib_armor_trim_smithing_template","minecraft:spire_armor_trim_smithing_template","minecraft:wayfinder_armor_trim_smithing_template","minecraft:shaper_armor_trim_smithing_template","minecraft:silence_armor_trim_smithing_template","minecraft:raiser_armor_trim_smithing_template","minecraft:host_armor_trim_smithing_template","minecraft:flow_armor_trim_smithing_template","minecraft:bolt_armor_trim_smithing_template","minecraft:angler_pottery_sherd","minecraft:archer_pottery_sherd","minecraft:arms_up_pottery_sherd","minecraft:blade_pottery_sherd","minecraft:brewer_pottery_sherd","minecraft:burn_pottery_sherd","minecraft:danger_pottery_sherd","minecraft:explorer_pottery_sherd","minecraft:flow_pottery_sherd","minecraft:friend_pottery_sherd","minecraft:guster_pottery_sherd","minecraft:heart_pottery_sherd","minecraft:heartbreak_pottery_sherd","minecraft:howl_pottery_sherd","minecraft:miner_pottery_sherd","minecraft:mourner_pottery_sherd","minecraft:plenty_pottery_sherd","minecraft:prize_pottery_sherd","minecraft:scrape_pottery_sherd","minecraft:sheaf_pottery_sherd","minecraft:shelter_pottery_sherd","minecraft:skull_pottery_sherd","minecraft:snort_pottery_sherd","minecraft:copper_grate","minecraft:exposed_copper_grate","minecraft:weathered_copper_grate","minecraft:oxidized_copper_grate","minecraft:waxed_copper_grate","minecraft:waxed_exposed_copper_grate","minecraft:waxed_weathered_copper_grate","minecraft:waxed_oxidized_copper_grate","minecraft:copper_bulb","minecraft:exposed_copper_bulb","minecraft:weathered_copper_bulb","minecraft:oxidized_copper_bulb","minecraft:waxed_copper_bulb","minecraft:waxed_exposed_copper_bulb","minecraft:waxed_weathered_copper_bulb","minecraft:waxed_oxidized_copper_bulb","minecraft:copper_chest","minecraft:exposed_copper_chest","minecraft:weathered_copper_chest","minecraft:oxidized_copper_chest","minecraft:waxed_copper_chest","minecraft:waxed_exposed_copper_chest","minecraft:waxed_weathered_copper_chest","minecraft:waxed_oxidized_copper_chest","minecraft:copper_golem_statue","minecraft:exposed_copper_golem_statue","minecraft:weathered_copper_golem_statue","minecraft:oxidized_copper_golem_statue","minecraft:waxed_copper_golem_statue","minecraft:waxed_exposed_copper_golem_statue","minecraft:waxed_weathered_copper_golem_statue","minecraft:waxed_oxidized_copper_golem_statue","minecraft:trial_spawner","minecraft:trial_key","minecraft:ominous_trial_key","minecraft:vault","minecraft:ominous_bottle"];
+static ITEM_MODEL_VALUES: [&str; 1658] = ["minecraft:air","minecraft:stone","minecraft:granite","minecraft:polished_granite","minecraft:diorite","minecraft:polished_diorite","minecraft:andesite","minecraft:polished_andesite","minecraft:deepslate","minecraft:cobbled_deepslate","minecraft:polished_deepslate","minecraft:calcite","minecraft:tuff","minecraft:tuff_slab","minecraft:tuff_stairs","minecraft:tuff_wall","minecraft:chiseled_tuff","minecraft:polished_tuff","minecraft:polished_tuff_slab","minecraft:polished_tuff_stairs","minecraft:polished_tuff_wall","minecraft:tuff_bricks","minecraft:tuff_brick_slab","minecraft:tuff_brick_stairs","minecraft:tuff_brick_wall","minecraft:chiseled_tuff_bricks","minecraft:sulfur","minecraft:potent_sulfur","minecraft:sulfur_slab","minecraft:sulfur_stairs","minecraft:sulfur_wall","minecraft:polished_sulfur","minecraft:polished_sulfur_slab","minecraft:polished_sulfur_stairs","minecraft:polished_sulfur_wall","minecraft:sulfur_bricks","minecraft:sulfur_brick_slab","minecraft:sulfur_brick_stairs","minecraft:sulfur_brick_wall","minecraft:chiseled_sulfur","minecraft:cinnabar","minecraft:cinnabar_slab","minecraft:cinnabar_stairs","minecraft:cinnabar_wall","minecraft:polished_cinnabar","minecraft:polished_cinnabar_slab","minecraft:polished_cinnabar_stairs","minecraft:polished_cinnabar_wall","minecraft:cinnabar_bricks","minecraft:cinnabar_brick_slab","minecraft:cinnabar_brick_stairs","minecraft:cinnabar_brick_wall","minecraft:chiseled_cinnabar","minecraft:dripstone_block","minecraft:grass_block","minecraft:dirt","minecraft:coarse_dirt","minecraft:podzol","minecraft:rooted_dirt","minecraft:mud","minecraft:crimson_nylium","minecraft:warped_nylium","minecraft:cobblestone","minecraft:oak_planks","minecraft:spruce_planks","minecraft:birch_planks","minecraft:jungle_planks","minecraft:acacia_planks","minecraft:cherry_planks","minecraft:dark_oak_planks","minecraft:pale_oak_planks","minecraft:mangrove_planks","minecraft:poplar_planks","minecraft:bamboo_planks","minecraft:crimson_planks","minecraft:warped_planks","minecraft:bamboo_mosaic","minecraft:oak_sapling","minecraft:spruce_sapling","minecraft:birch_sapling","minecraft:jungle_sapling","minecraft:acacia_sapling","minecraft:cherry_sapling","minecraft:dark_oak_sapling","minecraft:pale_oak_sapling","minecraft:mangrove_propagule","minecraft:poplar_sapling","minecraft:bedrock","minecraft:sand","minecraft:suspicious_sand","minecraft:suspicious_gravel","minecraft:red_sand","minecraft:gravel","minecraft:coal_ore","minecraft:deepslate_coal_ore","minecraft:iron_ore","minecraft:deepslate_iron_ore","minecraft:copper_ore","minecraft:deepslate_copper_ore","minecraft:gold_ore","minecraft:deepslate_gold_ore","minecraft:redstone_ore","minecraft:deepslate_redstone_ore","minecraft:emerald_ore","minecraft:deepslate_emerald_ore","minecraft:lapis_ore","minecraft:deepslate_lapis_ore","minecraft:diamond_ore","minecraft:deepslate_diamond_ore","minecraft:nether_gold_ore","minecraft:nether_quartz_ore","minecraft:ancient_debris","minecraft:coal_block","minecraft:raw_iron_block","minecraft:raw_copper_block","minecraft:raw_gold_block","minecraft:heavy_core","minecraft:amethyst_block","minecraft:budding_amethyst","minecraft:iron_block","minecraft:copper_block","minecraft:exposed_copper","minecraft:weathered_copper","minecraft:oxidized_copper","minecraft:waxed_copper_block","minecraft:waxed_exposed_copper","minecraft:waxed_weathered_copper","minecraft:waxed_oxidized_copper","minecraft:gold_block","minecraft:diamond_block","minecraft:netherite_block","minecraft:chiseled_copper","minecraft:exposed_chiseled_copper","minecraft:weathered_chiseled_copper","minecraft:oxidized_chiseled_copper","minecraft:waxed_chiseled_copper","minecraft:waxed_exposed_chiseled_copper","minecraft:waxed_weathered_chiseled_copper","minecraft:waxed_oxidized_chiseled_copper","minecraft:cut_copper","minecraft:exposed_cut_copper","minecraft:weathered_cut_copper","minecraft:oxidized_cut_copper","minecraft:waxed_cut_copper","minecraft:waxed_exposed_cut_copper","minecraft:waxed_weathered_cut_copper","minecraft:waxed_oxidized_cut_copper","minecraft:cut_copper_stairs","minecraft:exposed_cut_copper_stairs","minecraft:weathered_cut_copper_stairs","minecraft:oxidized_cut_copper_stairs","minecraft:waxed_cut_copper_stairs","minecraft:waxed_exposed_cut_copper_stairs","minecraft:waxed_weathered_cut_copper_stairs","minecraft:waxed_oxidized_cut_copper_stairs","minecraft:cut_copper_slab","minecraft:exposed_cut_copper_slab","minecraft:weathered_cut_copper_slab","minecraft:oxidized_cut_copper_slab","minecraft:waxed_cut_copper_slab","minecraft:waxed_exposed_cut_copper_slab","minecraft:waxed_weathered_cut_copper_slab","minecraft:waxed_oxidized_cut_copper_slab","minecraft:oak_log","minecraft:spruce_log","minecraft:birch_log","minecraft:jungle_log","minecraft:acacia_log","minecraft:cherry_log","minecraft:pale_oak_log","minecraft:dark_oak_log","minecraft:mangrove_log","minecraft:poplar_log","minecraft:mangrove_roots","minecraft:muddy_mangrove_roots","minecraft:crimson_stem","minecraft:warped_stem","minecraft:bamboo_block","minecraft:stripped_oak_log","minecraft:stripped_spruce_log","minecraft:stripped_birch_log","minecraft:stripped_jungle_log","minecraft:stripped_acacia_log","minecraft:stripped_cherry_log","minecraft:stripped_dark_oak_log","minecraft:stripped_pale_oak_log","minecraft:stripped_mangrove_log","minecraft:stripped_poplar_log","minecraft:stripped_crimson_stem","minecraft:stripped_warped_stem","minecraft:stripped_oak_wood","minecraft:stripped_spruce_wood","minecraft:stripped_birch_wood","minecraft:stripped_jungle_wood","minecraft:stripped_acacia_wood","minecraft:stripped_cherry_wood","minecraft:stripped_dark_oak_wood","minecraft:stripped_pale_oak_wood","minecraft:stripped_mangrove_wood","minecraft:stripped_poplar_wood","minecraft:stripped_crimson_hyphae","minecraft:stripped_warped_hyphae","minecraft:stripped_bamboo_block","minecraft:oak_wood","minecraft:spruce_wood","minecraft:birch_wood","minecraft:jungle_wood","minecraft:acacia_wood","minecraft:cherry_wood","minecraft:pale_oak_wood","minecraft:dark_oak_wood","minecraft:mangrove_wood","minecraft:poplar_wood","minecraft:crimson_hyphae","minecraft:warped_hyphae","minecraft:oak_leaves","minecraft:spruce_leaves","minecraft:birch_leaves","minecraft:jungle_leaves","minecraft:acacia_leaves","minecraft:cherry_leaves","minecraft:dark_oak_leaves","minecraft:pale_oak_leaves","minecraft:mangrove_leaves","minecraft:red_poplar_leaves","minecraft:orange_poplar_leaves","minecraft:yellow_poplar_leaves","minecraft:azalea_leaves","minecraft:flowering_azalea_leaves","minecraft:sponge","minecraft:wet_sponge","minecraft:glass","minecraft:tinted_glass","minecraft:lapis_block","minecraft:sandstone","minecraft:chiseled_sandstone","minecraft:cut_sandstone","minecraft:cobweb","minecraft:short_grass","minecraft:fern","minecraft:bush","minecraft:red_shrub","minecraft:azalea","minecraft:flowering_azalea","minecraft:dead_bush","minecraft:firefly_bush","minecraft:short_dry_grass","minecraft:tall_dry_grass","minecraft:seagrass","minecraft:sea_pickle","minecraft:white_wool","minecraft:orange_wool","minecraft:magenta_wool","minecraft:light_blue_wool","minecraft:yellow_wool","minecraft:lime_wool","minecraft:pink_wool","minecraft:gray_wool","minecraft:light_gray_wool","minecraft:cyan_wool","minecraft:purple_wool","minecraft:blue_wool","minecraft:brown_wool","minecraft:green_wool","minecraft:red_wool","minecraft:black_wool","minecraft:white_wool_stairs","minecraft:orange_wool_stairs","minecraft:magenta_wool_stairs","minecraft:light_blue_wool_stairs","minecraft:yellow_wool_stairs","minecraft:lime_wool_stairs","minecraft:pink_wool_stairs","minecraft:gray_wool_stairs","minecraft:light_gray_wool_stairs","minecraft:cyan_wool_stairs","minecraft:purple_wool_stairs","minecraft:blue_wool_stairs","minecraft:brown_wool_stairs","minecraft:green_wool_stairs","minecraft:red_wool_stairs","minecraft:black_wool_stairs","minecraft:white_wool_slab","minecraft:orange_wool_slab","minecraft:magenta_wool_slab","minecraft:light_blue_wool_slab","minecraft:yellow_wool_slab","minecraft:lime_wool_slab","minecraft:pink_wool_slab","minecraft:gray_wool_slab","minecraft:light_gray_wool_slab","minecraft:cyan_wool_slab","minecraft:purple_wool_slab","minecraft:blue_wool_slab","minecraft:brown_wool_slab","minecraft:green_wool_slab","minecraft:red_wool_slab","minecraft:black_wool_slab","minecraft:dandelion","minecraft:golden_dandelion","minecraft:open_eyeblossom","minecraft:closed_eyeblossom","minecraft:poppy","minecraft:blue_orchid","minecraft:allium","minecraft:azure_bluet","minecraft:red_tulip","minecraft:orange_tulip","minecraft:white_tulip","minecraft:pink_tulip","minecraft:oxeye_daisy","minecraft:cornflower","minecraft:lily_of_the_valley","minecraft:wither_rose","minecraft:torchflower","minecraft:pitcher_plant","minecraft:spore_blossom","minecraft:brown_mushroom","minecraft:red_mushroom","minecraft:shelf_mushroom","minecraft:crimson_fungus","minecraft:warped_fungus","minecraft:crimson_roots","minecraft:warped_roots","minecraft:nether_sprouts","minecraft:weeping_vines","minecraft:twisting_vines","minecraft:sugar_cane","minecraft:kelp","minecraft:pink_petals","minecraft:wildflowers","minecraft:leaf_litter","minecraft:moss_carpet","minecraft:moss_block","minecraft:pale_moss_carpet","minecraft:pale_hanging_moss","minecraft:pale_moss_block","minecraft:hanging_roots","minecraft:big_dripleaf","minecraft:small_dripleaf","minecraft:bamboo","minecraft:oak_slab","minecraft:spruce_slab","minecraft:birch_slab","minecraft:jungle_slab","minecraft:acacia_slab","minecraft:cherry_slab","minecraft:dark_oak_slab","minecraft:pale_oak_slab","minecraft:mangrove_slab","minecraft:poplar_slab","minecraft:bamboo_slab","minecraft:bamboo_mosaic_slab","minecraft:crimson_slab","minecraft:warped_slab","minecraft:stone_slab","minecraft:smooth_stone_slab","minecraft:sandstone_slab","minecraft:cut_sandstone_slab","minecraft:petrified_oak_slab","minecraft:cobblestone_slab","minecraft:brick_slab","minecraft:stone_brick_slab","minecraft:mud_brick_slab","minecraft:nether_brick_slab","minecraft:quartz_slab","minecraft:red_sandstone_slab","minecraft:cut_red_sandstone_slab","minecraft:purpur_slab","minecraft:prismarine_slab","minecraft:prismarine_brick_slab","minecraft:dark_prismarine_slab","minecraft:smooth_quartz","minecraft:smooth_red_sandstone","minecraft:smooth_sandstone","minecraft:smooth_stone","minecraft:bricks","minecraft:acacia_shelf","minecraft:bamboo_shelf","minecraft:birch_shelf","minecraft:cherry_shelf","minecraft:crimson_shelf","minecraft:dark_oak_shelf","minecraft:jungle_shelf","minecraft:mangrove_shelf","minecraft:poplar_shelf","minecraft:oak_shelf","minecraft:pale_oak_shelf","minecraft:spruce_shelf","minecraft:warped_shelf","minecraft:bookshelf","minecraft:chiseled_bookshelf","minecraft:decorated_pot","minecraft:mossy_cobblestone","minecraft:obsidian","minecraft:torch","minecraft:end_rod","minecraft:chorus_plant","minecraft:chorus_flower","minecraft:purpur_block","minecraft:purpur_pillar","minecraft:purpur_stairs","minecraft:spawner","minecraft:creaking_heart","minecraft:chest","minecraft:crafting_table","minecraft:farmland","minecraft:furnace","minecraft:ladder","minecraft:cobblestone_stairs","minecraft:snow","minecraft:ice","minecraft:snow_block","minecraft:cactus","minecraft:cactus_flower","minecraft:clay","minecraft:jukebox","minecraft:oak_fence","minecraft:spruce_fence","minecraft:birch_fence","minecraft:jungle_fence","minecraft:acacia_fence","minecraft:cherry_fence","minecraft:dark_oak_fence","minecraft:pale_oak_fence","minecraft:mangrove_fence","minecraft:poplar_fence","minecraft:bamboo_fence","minecraft:crimson_fence","minecraft:warped_fence","minecraft:pumpkin","minecraft:carved_pumpkin","minecraft:jack_o_lantern","minecraft:netherrack","minecraft:soul_sand","minecraft:soul_soil","minecraft:basalt","minecraft:polished_basalt","minecraft:smooth_basalt","minecraft:soul_torch","minecraft:copper_torch","minecraft:glowstone","minecraft:infested_stone","minecraft:infested_cobblestone","minecraft:infested_stone_bricks","minecraft:infested_mossy_stone_bricks","minecraft:infested_cracked_stone_bricks","minecraft:infested_chiseled_stone_bricks","minecraft:infested_deepslate","minecraft:stone_bricks","minecraft:mossy_stone_bricks","minecraft:cracked_stone_bricks","minecraft:chiseled_stone_bricks","minecraft:packed_mud","minecraft:mud_bricks","minecraft:deepslate_bricks","minecraft:cracked_deepslate_bricks","minecraft:deepslate_tiles","minecraft:cracked_deepslate_tiles","minecraft:chiseled_deepslate","minecraft:reinforced_deepslate","minecraft:brown_mushroom_block","minecraft:red_mushroom_block","minecraft:mushroom_stem","minecraft:iron_bars","minecraft:copper_bars","minecraft:exposed_copper_bars","minecraft:weathered_copper_bars","minecraft:oxidized_copper_bars","minecraft:waxed_copper_bars","minecraft:waxed_exposed_copper_bars","minecraft:waxed_weathered_copper_bars","minecraft:waxed_oxidized_copper_bars","minecraft:iron_chain","minecraft:copper_chain","minecraft:exposed_copper_chain","minecraft:weathered_copper_chain","minecraft:oxidized_copper_chain","minecraft:waxed_copper_chain","minecraft:waxed_exposed_copper_chain","minecraft:waxed_weathered_copper_chain","minecraft:waxed_oxidized_copper_chain","minecraft:glass_pane","minecraft:melon","minecraft:vine","minecraft:glow_lichen","minecraft:resin_clump","minecraft:resin_block","minecraft:resin_bricks","minecraft:resin_brick_stairs","minecraft:resin_brick_slab","minecraft:resin_brick_wall","minecraft:chiseled_resin_bricks","minecraft:brick_stairs","minecraft:stone_brick_stairs","minecraft:mud_brick_stairs","minecraft:mycelium","minecraft:lily_pad","minecraft:nether_bricks","minecraft:cracked_nether_bricks","minecraft:chiseled_nether_bricks","minecraft:nether_brick_fence","minecraft:nether_brick_stairs","minecraft:sculk","minecraft:sculk_vein","minecraft:sculk_catalyst","minecraft:sculk_shrieker","minecraft:enchanting_table","minecraft:end_portal_frame","minecraft:end_stone","minecraft:end_stone_bricks","minecraft:dragon_egg","minecraft:sandstone_stairs","minecraft:ender_chest","minecraft:emerald_block","minecraft:oak_stairs","minecraft:spruce_stairs","minecraft:birch_stairs","minecraft:jungle_stairs","minecraft:acacia_stairs","minecraft:cherry_stairs","minecraft:dark_oak_stairs","minecraft:pale_oak_stairs","minecraft:mangrove_stairs","minecraft:poplar_stairs","minecraft:bamboo_stairs","minecraft:bamboo_mosaic_stairs","minecraft:crimson_stairs","minecraft:warped_stairs","minecraft:command_block","minecraft:beacon","minecraft:cobblestone_wall","minecraft:mossy_cobblestone_wall","minecraft:brick_wall","minecraft:prismarine_wall","minecraft:red_sandstone_wall","minecraft:mossy_stone_brick_wall","minecraft:granite_wall","minecraft:stone_brick_wall","minecraft:mud_brick_wall","minecraft:nether_brick_wall","minecraft:andesite_wall","minecraft:red_nether_brick_wall","minecraft:sandstone_wall","minecraft:end_stone_brick_wall","minecraft:diorite_wall","minecraft:blackstone_wall","minecraft:polished_blackstone_wall","minecraft:polished_blackstone_brick_wall","minecraft:cobbled_deepslate_wall","minecraft:polished_deepslate_wall","minecraft:deepslate_brick_wall","minecraft:deepslate_tile_wall","minecraft:anvil","minecraft:chipped_anvil","minecraft:damaged_anvil","minecraft:chiseled_quartz_block","minecraft:quartz_block","minecraft:quartz_bricks","minecraft:quartz_pillar","minecraft:quartz_stairs","minecraft:white_terracotta","minecraft:orange_terracotta","minecraft:magenta_terracotta","minecraft:light_blue_terracotta","minecraft:yellow_terracotta","minecraft:lime_terracotta","minecraft:pink_terracotta","minecraft:gray_terracotta","minecraft:light_gray_terracotta","minecraft:cyan_terracotta","minecraft:purple_terracotta","minecraft:blue_terracotta","minecraft:brown_terracotta","minecraft:green_terracotta","minecraft:red_terracotta","minecraft:black_terracotta","minecraft:barrier","minecraft:light","minecraft:hay_block","minecraft:white_carpet","minecraft:orange_carpet","minecraft:magenta_carpet","minecraft:light_blue_carpet","minecraft:yellow_carpet","minecraft:lime_carpet","minecraft:pink_carpet","minecraft:gray_carpet","minecraft:light_gray_carpet","minecraft:cyan_carpet","minecraft:purple_carpet","minecraft:blue_carpet","minecraft:brown_carpet","minecraft:green_carpet","minecraft:red_carpet","minecraft:black_carpet","minecraft:terracotta","minecraft:packed_ice","minecraft:dirt_path","minecraft:sunflower","minecraft:lilac","minecraft:rose_bush","minecraft:peony","minecraft:tall_grass","minecraft:large_fern","minecraft:white_stained_glass","minecraft:orange_stained_glass","minecraft:magenta_stained_glass","minecraft:light_blue_stained_glass","minecraft:yellow_stained_glass","minecraft:lime_stained_glass","minecraft:pink_stained_glass","minecraft:gray_stained_glass","minecraft:light_gray_stained_glass","minecraft:cyan_stained_glass","minecraft:purple_stained_glass","minecraft:blue_stained_glass","minecraft:brown_stained_glass","minecraft:green_stained_glass","minecraft:red_stained_glass","minecraft:black_stained_glass","minecraft:white_stained_glass_pane","minecraft:orange_stained_glass_pane","minecraft:magenta_stained_glass_pane","minecraft:light_blue_stained_glass_pane","minecraft:yellow_stained_glass_pane","minecraft:lime_stained_glass_pane","minecraft:pink_stained_glass_pane","minecraft:gray_stained_glass_pane","minecraft:light_gray_stained_glass_pane","minecraft:cyan_stained_glass_pane","minecraft:purple_stained_glass_pane","minecraft:blue_stained_glass_pane","minecraft:brown_stained_glass_pane","minecraft:green_stained_glass_pane","minecraft:red_stained_glass_pane","minecraft:black_stained_glass_pane","minecraft:prismarine","minecraft:prismarine_bricks","minecraft:dark_prismarine","minecraft:prismarine_stairs","minecraft:prismarine_brick_stairs","minecraft:dark_prismarine_stairs","minecraft:sea_lantern","minecraft:red_sandstone","minecraft:chiseled_red_sandstone","minecraft:cut_red_sandstone","minecraft:red_sandstone_stairs","minecraft:repeating_command_block","minecraft:chain_command_block","minecraft:magma_block","minecraft:nether_wart_block","minecraft:warped_wart_block","minecraft:red_nether_bricks","minecraft:bone_block","minecraft:structure_void","minecraft:shulker_box","minecraft:white_shulker_box","minecraft:orange_shulker_box","minecraft:magenta_shulker_box","minecraft:light_blue_shulker_box","minecraft:yellow_shulker_box","minecraft:lime_shulker_box","minecraft:pink_shulker_box","minecraft:gray_shulker_box","minecraft:light_gray_shulker_box","minecraft:cyan_shulker_box","minecraft:purple_shulker_box","minecraft:blue_shulker_box","minecraft:brown_shulker_box","minecraft:green_shulker_box","minecraft:red_shulker_box","minecraft:black_shulker_box","minecraft:white_glazed_terracotta","minecraft:orange_glazed_terracotta","minecraft:magenta_glazed_terracotta","minecraft:light_blue_glazed_terracotta","minecraft:yellow_glazed_terracotta","minecraft:lime_glazed_terracotta","minecraft:pink_glazed_terracotta","minecraft:gray_glazed_terracotta","minecraft:light_gray_glazed_terracotta","minecraft:cyan_glazed_terracotta","minecraft:purple_glazed_terracotta","minecraft:blue_glazed_terracotta","minecraft:brown_glazed_terracotta","minecraft:green_glazed_terracotta","minecraft:red_glazed_terracotta","minecraft:black_glazed_terracotta","minecraft:white_concrete","minecraft:orange_concrete","minecraft:magenta_concrete","minecraft:light_blue_concrete","minecraft:yellow_concrete","minecraft:lime_concrete","minecraft:pink_concrete","minecraft:gray_concrete","minecraft:light_gray_concrete","minecraft:cyan_concrete","minecraft:purple_concrete","minecraft:blue_concrete","minecraft:brown_concrete","minecraft:green_concrete","minecraft:red_concrete","minecraft:black_concrete","minecraft:white_concrete_stairs","minecraft:orange_concrete_stairs","minecraft:magenta_concrete_stairs","minecraft:light_blue_concrete_stairs","minecraft:yellow_concrete_stairs","minecraft:lime_concrete_stairs","minecraft:pink_concrete_stairs","minecraft:gray_concrete_stairs","minecraft:light_gray_concrete_stairs","minecraft:cyan_concrete_stairs","minecraft:purple_concrete_stairs","minecraft:blue_concrete_stairs","minecraft:brown_concrete_stairs","minecraft:green_concrete_stairs","minecraft:red_concrete_stairs","minecraft:black_concrete_stairs","minecraft:white_concrete_slab","minecraft:orange_concrete_slab","minecraft:magenta_concrete_slab","minecraft:light_blue_concrete_slab","minecraft:yellow_concrete_slab","minecraft:lime_concrete_slab","minecraft:pink_concrete_slab","minecraft:gray_concrete_slab","minecraft:light_gray_concrete_slab","minecraft:cyan_concrete_slab","minecraft:purple_concrete_slab","minecraft:blue_concrete_slab","minecraft:brown_concrete_slab","minecraft:green_concrete_slab","minecraft:red_concrete_slab","minecraft:black_concrete_slab","minecraft:white_concrete_powder","minecraft:orange_concrete_powder","minecraft:magenta_concrete_powder","minecraft:light_blue_concrete_powder","minecraft:yellow_concrete_powder","minecraft:lime_concrete_powder","minecraft:pink_concrete_powder","minecraft:gray_concrete_powder","minecraft:light_gray_concrete_powder","minecraft:cyan_concrete_powder","minecraft:purple_concrete_powder","minecraft:blue_concrete_powder","minecraft:brown_concrete_powder","minecraft:green_concrete_powder","minecraft:red_concrete_powder","minecraft:black_concrete_powder","minecraft:turtle_egg","minecraft:sniffer_egg","minecraft:dried_ghast","minecraft:dead_tube_coral_block","minecraft:dead_brain_coral_block","minecraft:dead_bubble_coral_block","minecraft:dead_fire_coral_block","minecraft:dead_horn_coral_block","minecraft:tube_coral_block","minecraft:brain_coral_block","minecraft:bubble_coral_block","minecraft:fire_coral_block","minecraft:horn_coral_block","minecraft:tube_coral","minecraft:brain_coral","minecraft:bubble_coral","minecraft:fire_coral","minecraft:horn_coral","minecraft:dead_brain_coral","minecraft:dead_bubble_coral","minecraft:dead_fire_coral","minecraft:dead_horn_coral","minecraft:dead_tube_coral","minecraft:tube_coral_fan","minecraft:brain_coral_fan","minecraft:bubble_coral_fan","minecraft:fire_coral_fan","minecraft:horn_coral_fan","minecraft:dead_tube_coral_fan","minecraft:dead_brain_coral_fan","minecraft:dead_bubble_coral_fan","minecraft:dead_fire_coral_fan","minecraft:dead_horn_coral_fan","minecraft:blue_ice","minecraft:conduit","minecraft:polished_granite_stairs","minecraft:smooth_red_sandstone_stairs","minecraft:mossy_stone_brick_stairs","minecraft:polished_diorite_stairs","minecraft:mossy_cobblestone_stairs","minecraft:end_stone_brick_stairs","minecraft:stone_stairs","minecraft:smooth_sandstone_stairs","minecraft:smooth_quartz_stairs","minecraft:granite_stairs","minecraft:andesite_stairs","minecraft:red_nether_brick_stairs","minecraft:polished_andesite_stairs","minecraft:diorite_stairs","minecraft:cobbled_deepslate_stairs","minecraft:polished_deepslate_stairs","minecraft:deepslate_brick_stairs","minecraft:deepslate_tile_stairs","minecraft:polished_granite_slab","minecraft:smooth_red_sandstone_slab","minecraft:mossy_stone_brick_slab","minecraft:polished_diorite_slab","minecraft:mossy_cobblestone_slab","minecraft:end_stone_brick_slab","minecraft:smooth_sandstone_slab","minecraft:smooth_quartz_slab","minecraft:granite_slab","minecraft:andesite_slab","minecraft:red_nether_brick_slab","minecraft:polished_andesite_slab","minecraft:diorite_slab","minecraft:cobbled_deepslate_slab","minecraft:polished_deepslate_slab","minecraft:deepslate_brick_slab","minecraft:deepslate_tile_slab","minecraft:scaffolding","minecraft:redstone","minecraft:redstone_torch","minecraft:redstone_block","minecraft:repeater","minecraft:comparator","minecraft:piston","minecraft:sticky_piston","minecraft:slime_block","minecraft:honey_block","minecraft:observer","minecraft:hopper","minecraft:dispenser","minecraft:dropper","minecraft:lectern","minecraft:target","minecraft:lever","minecraft:lightning_rod","minecraft:exposed_lightning_rod","minecraft:weathered_lightning_rod","minecraft:oxidized_lightning_rod","minecraft:waxed_lightning_rod","minecraft:waxed_exposed_lightning_rod","minecraft:waxed_weathered_lightning_rod","minecraft:waxed_oxidized_lightning_rod","minecraft:daylight_detector","minecraft:sculk_sensor","minecraft:calibrated_sculk_sensor","minecraft:tripwire_hook","minecraft:trapped_chest","minecraft:tnt","minecraft:redstone_lamp","minecraft:note_block","minecraft:stone_button","minecraft:polished_blackstone_button","minecraft:oak_button","minecraft:spruce_button","minecraft:birch_button","minecraft:jungle_button","minecraft:acacia_button","minecraft:cherry_button","minecraft:dark_oak_button","minecraft:pale_oak_button","minecraft:mangrove_button","minecraft:poplar_button","minecraft:bamboo_button","minecraft:crimson_button","minecraft:warped_button","minecraft:stone_pressure_plate","minecraft:polished_blackstone_pressure_plate","minecraft:light_weighted_pressure_plate","minecraft:heavy_weighted_pressure_plate","minecraft:oak_pressure_plate","minecraft:spruce_pressure_plate","minecraft:birch_pressure_plate","minecraft:jungle_pressure_plate","minecraft:acacia_pressure_plate","minecraft:cherry_pressure_plate","minecraft:dark_oak_pressure_plate","minecraft:pale_oak_pressure_plate","minecraft:mangrove_pressure_plate","minecraft:poplar_pressure_plate","minecraft:bamboo_pressure_plate","minecraft:crimson_pressure_plate","minecraft:warped_pressure_plate","minecraft:iron_door","minecraft:oak_door","minecraft:spruce_door","minecraft:birch_door","minecraft:jungle_door","minecraft:acacia_door","minecraft:cherry_door","minecraft:dark_oak_door","minecraft:pale_oak_door","minecraft:mangrove_door","minecraft:poplar_door","minecraft:bamboo_door","minecraft:crimson_door","minecraft:warped_door","minecraft:copper_door","minecraft:exposed_copper_door","minecraft:weathered_copper_door","minecraft:oxidized_copper_door","minecraft:waxed_copper_door","minecraft:waxed_exposed_copper_door","minecraft:waxed_weathered_copper_door","minecraft:waxed_oxidized_copper_door","minecraft:iron_trapdoor","minecraft:oak_trapdoor","minecraft:spruce_trapdoor","minecraft:birch_trapdoor","minecraft:jungle_trapdoor","minecraft:acacia_trapdoor","minecraft:cherry_trapdoor","minecraft:dark_oak_trapdoor","minecraft:pale_oak_trapdoor","minecraft:mangrove_trapdoor","minecraft:poplar_trapdoor","minecraft:bamboo_trapdoor","minecraft:crimson_trapdoor","minecraft:warped_trapdoor","minecraft:copper_trapdoor","minecraft:exposed_copper_trapdoor","minecraft:weathered_copper_trapdoor","minecraft:oxidized_copper_trapdoor","minecraft:waxed_copper_trapdoor","minecraft:waxed_exposed_copper_trapdoor","minecraft:waxed_weathered_copper_trapdoor","minecraft:waxed_oxidized_copper_trapdoor","minecraft:oak_fence_gate","minecraft:spruce_fence_gate","minecraft:birch_fence_gate","minecraft:jungle_fence_gate","minecraft:acacia_fence_gate","minecraft:cherry_fence_gate","minecraft:dark_oak_fence_gate","minecraft:pale_oak_fence_gate","minecraft:mangrove_fence_gate","minecraft:poplar_fence_gate","minecraft:bamboo_fence_gate","minecraft:crimson_fence_gate","minecraft:warped_fence_gate","minecraft:powered_rail","minecraft:detector_rail","minecraft:rail","minecraft:activator_rail","minecraft:saddle","minecraft:white_harness","minecraft:orange_harness","minecraft:magenta_harness","minecraft:light_blue_harness","minecraft:yellow_harness","minecraft:lime_harness","minecraft:pink_harness","minecraft:gray_harness","minecraft:light_gray_harness","minecraft:cyan_harness","minecraft:purple_harness","minecraft:blue_harness","minecraft:brown_harness","minecraft:green_harness","minecraft:red_harness","minecraft:black_harness","minecraft:minecart","minecraft:chest_minecart","minecraft:furnace_minecart","minecraft:tnt_minecart","minecraft:hopper_minecart","minecraft:carrot_on_a_stick","minecraft:warped_fungus_on_a_stick","minecraft:phantom_membrane","minecraft:elytra","minecraft:oak_boat","minecraft:oak_chest_boat","minecraft:spruce_boat","minecraft:spruce_chest_boat","minecraft:birch_boat","minecraft:birch_chest_boat","minecraft:jungle_boat","minecraft:jungle_chest_boat","minecraft:acacia_boat","minecraft:acacia_chest_boat","minecraft:cherry_boat","minecraft:cherry_chest_boat","minecraft:dark_oak_boat","minecraft:dark_oak_chest_boat","minecraft:pale_oak_boat","minecraft:pale_oak_chest_boat","minecraft:mangrove_boat","minecraft:mangrove_chest_boat","minecraft:poplar_boat","minecraft:poplar_chest_boat","minecraft:bamboo_raft","minecraft:bamboo_chest_raft","minecraft:structure_block","minecraft:jigsaw","minecraft:test_block","minecraft:test_instance_block","minecraft:turtle_helmet","minecraft:turtle_scute","minecraft:armadillo_scute","minecraft:wolf_armor","minecraft:flint_and_steel","minecraft:bowl","minecraft:apple","minecraft:bow","minecraft:arrow","minecraft:coal","minecraft:charcoal","minecraft:diamond","minecraft:emerald","minecraft:lapis_lazuli","minecraft:quartz","minecraft:amethyst_shard","minecraft:raw_iron","minecraft:iron_ingot","minecraft:raw_copper","minecraft:copper_ingot","minecraft:raw_gold","minecraft:gold_ingot","minecraft:netherite_ingot","minecraft:netherite_scrap","minecraft:wooden_sword","minecraft:wooden_shovel","minecraft:wooden_pickaxe","minecraft:wooden_axe","minecraft:wooden_hoe","minecraft:copper_sword","minecraft:copper_shovel","minecraft:copper_pickaxe","minecraft:copper_axe","minecraft:copper_hoe","minecraft:stone_sword","minecraft:stone_shovel","minecraft:stone_pickaxe","minecraft:stone_axe","minecraft:stone_hoe","minecraft:golden_sword","minecraft:golden_shovel","minecraft:golden_pickaxe","minecraft:golden_axe","minecraft:golden_hoe","minecraft:iron_sword","minecraft:iron_shovel","minecraft:iron_pickaxe","minecraft:iron_axe","minecraft:iron_hoe","minecraft:diamond_sword","minecraft:diamond_shovel","minecraft:diamond_pickaxe","minecraft:diamond_axe","minecraft:diamond_hoe","minecraft:netherite_sword","minecraft:netherite_shovel","minecraft:netherite_pickaxe","minecraft:netherite_axe","minecraft:netherite_hoe","minecraft:stick","minecraft:mushroom_stew","minecraft:string","minecraft:feather","minecraft:gunpowder","minecraft:wheat_seeds","minecraft:wheat","minecraft:bread","minecraft:leather_helmet","minecraft:leather_chestplate","minecraft:leather_leggings","minecraft:leather_boots","minecraft:copper_helmet","minecraft:copper_chestplate","minecraft:copper_leggings","minecraft:copper_boots","minecraft:chainmail_helmet","minecraft:chainmail_chestplate","minecraft:chainmail_leggings","minecraft:chainmail_boots","minecraft:iron_helmet","minecraft:iron_chestplate","minecraft:iron_leggings","minecraft:iron_boots","minecraft:diamond_helmet","minecraft:diamond_chestplate","minecraft:diamond_leggings","minecraft:diamond_boots","minecraft:golden_helmet","minecraft:golden_chestplate","minecraft:golden_leggings","minecraft:golden_boots","minecraft:netherite_helmet","minecraft:netherite_chestplate","minecraft:netherite_leggings","minecraft:netherite_boots","minecraft:flint","minecraft:porkchop","minecraft:cooked_porkchop","minecraft:painting","minecraft:golden_apple","minecraft:enchanted_golden_apple","minecraft:oak_sign","minecraft:spruce_sign","minecraft:birch_sign","minecraft:jungle_sign","minecraft:acacia_sign","minecraft:cherry_sign","minecraft:dark_oak_sign","minecraft:pale_oak_sign","minecraft:mangrove_sign","minecraft:poplar_sign","minecraft:bamboo_sign","minecraft:crimson_sign","minecraft:warped_sign","minecraft:oak_hanging_sign","minecraft:spruce_hanging_sign","minecraft:birch_hanging_sign","minecraft:jungle_hanging_sign","minecraft:acacia_hanging_sign","minecraft:cherry_hanging_sign","minecraft:dark_oak_hanging_sign","minecraft:pale_oak_hanging_sign","minecraft:mangrove_hanging_sign","minecraft:poplar_hanging_sign","minecraft:bamboo_hanging_sign","minecraft:crimson_hanging_sign","minecraft:warped_hanging_sign","minecraft:bucket","minecraft:water_bucket","minecraft:lava_bucket","minecraft:powder_snow_bucket","minecraft:snowball","minecraft:leather","minecraft:milk_bucket","minecraft:pufferfish_bucket","minecraft:salmon_bucket","minecraft:cod_bucket","minecraft:tropical_fish_bucket","minecraft:axolotl_bucket","minecraft:sulfur_cube_bucket","minecraft:tadpole_bucket","minecraft:brick","minecraft:clay_ball","minecraft:dried_kelp_block","minecraft:paper","minecraft:book","minecraft:slime_ball","minecraft:egg","minecraft:blue_egg","minecraft:brown_egg","minecraft:compass","minecraft:recovery_compass","minecraft:bundle","minecraft:white_bundle","minecraft:orange_bundle","minecraft:magenta_bundle","minecraft:light_blue_bundle","minecraft:yellow_bundle","minecraft:lime_bundle","minecraft:pink_bundle","minecraft:gray_bundle","minecraft:light_gray_bundle","minecraft:cyan_bundle","minecraft:purple_bundle","minecraft:blue_bundle","minecraft:brown_bundle","minecraft:green_bundle","minecraft:red_bundle","minecraft:black_bundle","minecraft:white_cushion","minecraft:orange_cushion","minecraft:magenta_cushion","minecraft:light_blue_cushion","minecraft:yellow_cushion","minecraft:lime_cushion","minecraft:pink_cushion","minecraft:gray_cushion","minecraft:light_gray_cushion","minecraft:cyan_cushion","minecraft:purple_cushion","minecraft:blue_cushion","minecraft:brown_cushion","minecraft:green_cushion","minecraft:red_cushion","minecraft:black_cushion","minecraft:fishing_rod","minecraft:clock","minecraft:spyglass","minecraft:glowstone_dust","minecraft:cod","minecraft:salmon","minecraft:tropical_fish","minecraft:pufferfish","minecraft:cooked_cod","minecraft:cooked_salmon","minecraft:ink_sac","minecraft:glow_ink_sac","minecraft:cocoa_beans","minecraft:white_dye","minecraft:orange_dye","minecraft:magenta_dye","minecraft:light_blue_dye","minecraft:yellow_dye","minecraft:lime_dye","minecraft:pink_dye","minecraft:gray_dye","minecraft:light_gray_dye","minecraft:cyan_dye","minecraft:purple_dye","minecraft:blue_dye","minecraft:brown_dye","minecraft:green_dye","minecraft:red_dye","minecraft:black_dye","minecraft:bone_meal","minecraft:bone","minecraft:sugar","minecraft:cake","minecraft:white_bed","minecraft:orange_bed","minecraft:magenta_bed","minecraft:light_blue_bed","minecraft:yellow_bed","minecraft:lime_bed","minecraft:pink_bed","minecraft:gray_bed","minecraft:light_gray_bed","minecraft:cyan_bed","minecraft:purple_bed","minecraft:blue_bed","minecraft:brown_bed","minecraft:green_bed","minecraft:red_bed","minecraft:black_bed","minecraft:straw_bed","minecraft:cookie","minecraft:crafter","minecraft:filled_map","minecraft:ocean_monument_map","minecraft:woodland_mansion_map","minecraft:buried_trial_chambers_map","minecraft:jungle_pyramid_map","minecraft:swamp_hut_map","minecraft:desert_village_map","minecraft:plains_village_map","minecraft:savanna_village_map","minecraft:snowy_village_map","minecraft:taiga_village_map","minecraft:buried_treasure_map","minecraft:buried_ancient_city_map","minecraft:buried_mineshaft_map","minecraft:desert_pyramid_map","minecraft:abandoned_camp_map","minecraft:warm_ocean_ruins_map","minecraft:shears","minecraft:melon_slice","minecraft:dried_kelp","minecraft:pumpkin_seeds","minecraft:melon_seeds","minecraft:beef","minecraft:cooked_beef","minecraft:chicken","minecraft:cooked_chicken","minecraft:rotten_flesh","minecraft:ender_pearl","minecraft:blaze_rod","minecraft:ghast_tear","minecraft:gold_nugget","minecraft:nether_wart","minecraft:glass_bottle","minecraft:potion","minecraft:spider_eye","minecraft:fermented_spider_eye","minecraft:blaze_powder","minecraft:magma_cream","minecraft:brewing_stand","minecraft:cauldron","minecraft:ender_eye","minecraft:glistering_melon_slice","minecraft:chicken_spawn_egg","minecraft:cow_spawn_egg","minecraft:pig_spawn_egg","minecraft:sheep_spawn_egg","minecraft:camel_spawn_egg","minecraft:donkey_spawn_egg","minecraft:horse_spawn_egg","minecraft:mule_spawn_egg","minecraft:cat_spawn_egg","minecraft:parrot_spawn_egg","minecraft:wolf_spawn_egg","minecraft:armadillo_spawn_egg","minecraft:bat_spawn_egg","minecraft:bee_spawn_egg","minecraft:fox_spawn_egg","minecraft:goat_spawn_egg","minecraft:llama_spawn_egg","minecraft:ocelot_spawn_egg","minecraft:panda_spawn_egg","minecraft:polar_bear_spawn_egg","minecraft:rabbit_spawn_egg","minecraft:axolotl_spawn_egg","minecraft:cod_spawn_egg","minecraft:dolphin_spawn_egg","minecraft:frog_spawn_egg","minecraft:glow_squid_spawn_egg","minecraft:nautilus_spawn_egg","minecraft:pufferfish_spawn_egg","minecraft:salmon_spawn_egg","minecraft:squid_spawn_egg","minecraft:tadpole_spawn_egg","minecraft:tropical_fish_spawn_egg","minecraft:turtle_spawn_egg","minecraft:allay_spawn_egg","minecraft:mooshroom_spawn_egg","minecraft:sniffer_spawn_egg","minecraft:sulfur_cube_spawn_egg","minecraft:copper_golem_spawn_egg","minecraft:iron_golem_spawn_egg","minecraft:snow_golem_spawn_egg","minecraft:trader_llama_spawn_egg","minecraft:villager_spawn_egg","minecraft:wandering_trader_spawn_egg","minecraft:bogged_spawn_egg","minecraft:camel_husk_spawn_egg","minecraft:drowned_spawn_egg","minecraft:husk_spawn_egg","minecraft:parched_spawn_egg","minecraft:skeleton_spawn_egg","minecraft:skeleton_horse_spawn_egg","minecraft:stray_spawn_egg","minecraft:wither_spawn_egg","minecraft:wither_skeleton_spawn_egg","minecraft:zombie_spawn_egg","minecraft:zombie_horse_spawn_egg","minecraft:zombie_nautilus_spawn_egg","minecraft:zombie_villager_spawn_egg","minecraft:cave_spider_spawn_egg","minecraft:spider_spawn_egg","minecraft:breeze_spawn_egg","minecraft:creaking_spawn_egg","minecraft:creeper_spawn_egg","minecraft:elder_guardian_spawn_egg","minecraft:guardian_spawn_egg","minecraft:phantom_spawn_egg","minecraft:silverfish_spawn_egg","minecraft:slime_spawn_egg","minecraft:warden_spawn_egg","minecraft:witch_spawn_egg","minecraft:evoker_spawn_egg","minecraft:pillager_spawn_egg","minecraft:ravager_spawn_egg","minecraft:vindicator_spawn_egg","minecraft:vex_spawn_egg","minecraft:blaze_spawn_egg","minecraft:ghast_spawn_egg","minecraft:happy_ghast_spawn_egg","minecraft:hoglin_spawn_egg","minecraft:magma_cube_spawn_egg","minecraft:piglin_spawn_egg","minecraft:piglin_brute_spawn_egg","minecraft:strider_spawn_egg","minecraft:zoglin_spawn_egg","minecraft:zombified_piglin_spawn_egg","minecraft:ender_dragon_spawn_egg","minecraft:enderman_spawn_egg","minecraft:endermite_spawn_egg","minecraft:shulker_spawn_egg","minecraft:experience_bottle","minecraft:fire_charge","minecraft:wind_charge","minecraft:writable_book","minecraft:written_book","minecraft:breeze_rod","minecraft:mace","minecraft:item_frame","minecraft:glow_item_frame","minecraft:flower_pot","minecraft:carrot","minecraft:potato","minecraft:baked_potato","minecraft:poisonous_potato","minecraft:map","minecraft:golden_carrot","minecraft:skeleton_skull","minecraft:wither_skeleton_skull","minecraft:player_head","minecraft:zombie_head","minecraft:creeper_head","minecraft:dragon_head","minecraft:piglin_head","minecraft:nether_star","minecraft:pumpkin_pie","minecraft:firework_rocket","minecraft:firework_star","minecraft:enchanted_book","minecraft:nether_brick","minecraft:resin_brick","minecraft:prismarine_shard","minecraft:prismarine_crystals","minecraft:rabbit","minecraft:cooked_rabbit","minecraft:rabbit_stew","minecraft:rabbit_foot","minecraft:rabbit_hide","minecraft:armor_stand","minecraft:copper_horse_armor","minecraft:iron_horse_armor","minecraft:golden_horse_armor","minecraft:diamond_horse_armor","minecraft:netherite_horse_armor","minecraft:leather_horse_armor","minecraft:lead","minecraft:name_tag","minecraft:command_block_minecart","minecraft:mutton","minecraft:cooked_mutton","minecraft:white_banner","minecraft:orange_banner","minecraft:magenta_banner","minecraft:light_blue_banner","minecraft:yellow_banner","minecraft:lime_banner","minecraft:pink_banner","minecraft:gray_banner","minecraft:light_gray_banner","minecraft:cyan_banner","minecraft:purple_banner","minecraft:blue_banner","minecraft:brown_banner","minecraft:green_banner","minecraft:red_banner","minecraft:black_banner","minecraft:end_crystal","minecraft:chorus_fruit","minecraft:popped_chorus_fruit","minecraft:torchflower_seeds","minecraft:pitcher_pod","minecraft:beetroot","minecraft:beetroot_seeds","minecraft:beetroot_soup","minecraft:dragon_breath","minecraft:splash_potion","minecraft:spectral_arrow","minecraft:tipped_arrow","minecraft:lingering_potion","minecraft:shield","minecraft:wooden_spear","minecraft:stone_spear","minecraft:copper_spear","minecraft:iron_spear","minecraft:golden_spear","minecraft:diamond_spear","minecraft:netherite_spear","minecraft:totem_of_undying","minecraft:shulker_shell","minecraft:iron_nugget","minecraft:copper_nugget","minecraft:knowledge_book","minecraft:debug_stick","minecraft:music_disc_13","minecraft:music_disc_cat","minecraft:music_disc_blocks","minecraft:music_disc_bounce","minecraft:music_disc_chirp","minecraft:music_disc_creator","minecraft:music_disc_creator_music_box","minecraft:music_disc_far","minecraft:music_disc_lava_chicken","minecraft:music_disc_mall","minecraft:music_disc_mellohi","minecraft:music_disc_stal","minecraft:music_disc_strad","minecraft:music_disc_ward","minecraft:music_disc_11","minecraft:music_disc_wait","minecraft:music_disc_otherside","minecraft:music_disc_relic","minecraft:music_disc_5","minecraft:music_disc_pigstep","minecraft:music_disc_precipice","minecraft:music_disc_tears","minecraft:disc_fragment_5","minecraft:trident","minecraft:nautilus_shell","minecraft:iron_nautilus_armor","minecraft:golden_nautilus_armor","minecraft:diamond_nautilus_armor","minecraft:netherite_nautilus_armor","minecraft:copper_nautilus_armor","minecraft:heart_of_the_sea","minecraft:crossbow","minecraft:suspicious_stew","minecraft:loom","minecraft:flower_banner_pattern","minecraft:creeper_banner_pattern","minecraft:skull_banner_pattern","minecraft:mojang_banner_pattern","minecraft:globe_banner_pattern","minecraft:piglin_banner_pattern","minecraft:flow_banner_pattern","minecraft:guster_banner_pattern","minecraft:field_masoned_banner_pattern","minecraft:bordure_indented_banner_pattern","minecraft:goat_horn","minecraft:composter","minecraft:barrel","minecraft:smoker","minecraft:blast_furnace","minecraft:cartography_table","minecraft:fletching_table","minecraft:grindstone","minecraft:smithing_table","minecraft:stonecutter","minecraft:bell","minecraft:lantern","minecraft:soul_lantern","minecraft:copper_lantern","minecraft:exposed_copper_lantern","minecraft:weathered_copper_lantern","minecraft:oxidized_copper_lantern","minecraft:waxed_copper_lantern","minecraft:waxed_exposed_copper_lantern","minecraft:waxed_weathered_copper_lantern","minecraft:waxed_oxidized_copper_lantern","minecraft:sweet_berries","minecraft:glow_berries","minecraft:campfire","minecraft:soul_campfire","minecraft:shroomlight","minecraft:honeycomb","minecraft:bee_nest","minecraft:beehive","minecraft:honey_bottle","minecraft:honeycomb_block","minecraft:lodestone","minecraft:crying_obsidian","minecraft:blackstone","minecraft:blackstone_slab","minecraft:blackstone_stairs","minecraft:gilded_blackstone","minecraft:polished_blackstone","minecraft:polished_blackstone_slab","minecraft:polished_blackstone_stairs","minecraft:chiseled_polished_blackstone","minecraft:polished_blackstone_bricks","minecraft:polished_blackstone_brick_slab","minecraft:polished_blackstone_brick_stairs","minecraft:cracked_polished_blackstone_bricks","minecraft:respawn_anchor","minecraft:candle","minecraft:white_candle","minecraft:orange_candle","minecraft:magenta_candle","minecraft:light_blue_candle","minecraft:yellow_candle","minecraft:lime_candle","minecraft:pink_candle","minecraft:gray_candle","minecraft:light_gray_candle","minecraft:cyan_candle","minecraft:purple_candle","minecraft:blue_candle","minecraft:brown_candle","minecraft:green_candle","minecraft:red_candle","minecraft:black_candle","minecraft:small_amethyst_bud","minecraft:medium_amethyst_bud","minecraft:large_amethyst_bud","minecraft:amethyst_cluster","minecraft:pointed_dripstone","minecraft:sulfur_spike","minecraft:ochre_froglight","minecraft:verdant_froglight","minecraft:pearlescent_froglight","minecraft:frogspawn","minecraft:echo_shard","minecraft:brush","minecraft:netherite_upgrade_smithing_template","minecraft:sentry_armor_trim_smithing_template","minecraft:dune_armor_trim_smithing_template","minecraft:coast_armor_trim_smithing_template","minecraft:wild_armor_trim_smithing_template","minecraft:ward_armor_trim_smithing_template","minecraft:eye_armor_trim_smithing_template","minecraft:vex_armor_trim_smithing_template","minecraft:tide_armor_trim_smithing_template","minecraft:snout_armor_trim_smithing_template","minecraft:rib_armor_trim_smithing_template","minecraft:spire_armor_trim_smithing_template","minecraft:wayfinder_armor_trim_smithing_template","minecraft:shaper_armor_trim_smithing_template","minecraft:silence_armor_trim_smithing_template","minecraft:raiser_armor_trim_smithing_template","minecraft:host_armor_trim_smithing_template","minecraft:flow_armor_trim_smithing_template","minecraft:bolt_armor_trim_smithing_template","minecraft:angler_pottery_sherd","minecraft:archer_pottery_sherd","minecraft:arms_up_pottery_sherd","minecraft:blade_pottery_sherd","minecraft:brewer_pottery_sherd","minecraft:burn_pottery_sherd","minecraft:danger_pottery_sherd","minecraft:explorer_pottery_sherd","minecraft:flow_pottery_sherd","minecraft:friend_pottery_sherd","minecraft:guster_pottery_sherd","minecraft:heart_pottery_sherd","minecraft:heartbreak_pottery_sherd","minecraft:howl_pottery_sherd","minecraft:miner_pottery_sherd","minecraft:mourner_pottery_sherd","minecraft:plenty_pottery_sherd","minecraft:prize_pottery_sherd","minecraft:scrape_pottery_sherd","minecraft:sheaf_pottery_sherd","minecraft:shelter_pottery_sherd","minecraft:skull_pottery_sherd","minecraft:snort_pottery_sherd","minecraft:copper_grate","minecraft:exposed_copper_grate","minecraft:weathered_copper_grate","minecraft:oxidized_copper_grate","minecraft:waxed_copper_grate","minecraft:waxed_exposed_copper_grate","minecraft:waxed_weathered_copper_grate","minecraft:waxed_oxidized_copper_grate","minecraft:copper_bulb","minecraft:exposed_copper_bulb","minecraft:weathered_copper_bulb","minecraft:oxidized_copper_bulb","minecraft:waxed_copper_bulb","minecraft:waxed_exposed_copper_bulb","minecraft:waxed_weathered_copper_bulb","minecraft:waxed_oxidized_copper_bulb","minecraft:copper_chest","minecraft:exposed_copper_chest","minecraft:weathered_copper_chest","minecraft:oxidized_copper_chest","minecraft:waxed_copper_chest","minecraft:waxed_exposed_copper_chest","minecraft:waxed_weathered_copper_chest","minecraft:waxed_oxidized_copper_chest","minecraft:copper_golem_statue","minecraft:exposed_copper_golem_statue","minecraft:weathered_copper_golem_statue","minecraft:oxidized_copper_golem_statue","minecraft:waxed_copper_golem_statue","minecraft:waxed_exposed_copper_golem_statue","minecraft:waxed_weathered_copper_golem_statue","minecraft:waxed_oxidized_copper_golem_statue","minecraft:trial_spawner","minecraft:trial_key","minecraft:ominous_trial_key","minecraft:vault","minecraft:ominous_bottle"];
 impl DefaultableComponent for ItemModel {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = ITEM_MODEL_VALUES[item as usize];
@@ -4088,7 +7359,7 @@ impl DefaultableComponent for ItemModel {
     }
 }
 #[rustfmt::skip]
-static ITEM_NAME_VALUES: [&str; 1537] = ["block.minecraft.air","block.minecraft.stone","block.minecraft.granite","block.minecraft.polished_granite","block.minecraft.diorite","block.minecraft.polished_diorite","block.minecraft.andesite","block.minecraft.polished_andesite","block.minecraft.deepslate","block.minecraft.cobbled_deepslate","block.minecraft.polished_deepslate","block.minecraft.calcite","block.minecraft.tuff","block.minecraft.tuff_slab","block.minecraft.tuff_stairs","block.minecraft.tuff_wall","block.minecraft.chiseled_tuff","block.minecraft.polished_tuff","block.minecraft.polished_tuff_slab","block.minecraft.polished_tuff_stairs","block.minecraft.polished_tuff_wall","block.minecraft.tuff_bricks","block.minecraft.tuff_brick_slab","block.minecraft.tuff_brick_stairs","block.minecraft.tuff_brick_wall","block.minecraft.chiseled_tuff_bricks","block.minecraft.sulfur","block.minecraft.potent_sulfur","block.minecraft.sulfur_slab","block.minecraft.sulfur_stairs","block.minecraft.sulfur_wall","block.minecraft.polished_sulfur","block.minecraft.polished_sulfur_slab","block.minecraft.polished_sulfur_stairs","block.minecraft.polished_sulfur_wall","block.minecraft.sulfur_bricks","block.minecraft.sulfur_brick_slab","block.minecraft.sulfur_brick_stairs","block.minecraft.sulfur_brick_wall","block.minecraft.chiseled_sulfur","block.minecraft.cinnabar","block.minecraft.cinnabar_slab","block.minecraft.cinnabar_stairs","block.minecraft.cinnabar_wall","block.minecraft.polished_cinnabar","block.minecraft.polished_cinnabar_slab","block.minecraft.polished_cinnabar_stairs","block.minecraft.polished_cinnabar_wall","block.minecraft.cinnabar_bricks","block.minecraft.cinnabar_brick_slab","block.minecraft.cinnabar_brick_stairs","block.minecraft.cinnabar_brick_wall","block.minecraft.chiseled_cinnabar","block.minecraft.dripstone_block","block.minecraft.grass_block","block.minecraft.dirt","block.minecraft.coarse_dirt","block.minecraft.podzol","block.minecraft.rooted_dirt","block.minecraft.mud","block.minecraft.crimson_nylium","block.minecraft.warped_nylium","block.minecraft.cobblestone","block.minecraft.oak_planks","block.minecraft.spruce_planks","block.minecraft.birch_planks","block.minecraft.jungle_planks","block.minecraft.acacia_planks","block.minecraft.cherry_planks","block.minecraft.dark_oak_planks","block.minecraft.pale_oak_planks","block.minecraft.mangrove_planks","block.minecraft.bamboo_planks","block.minecraft.crimson_planks","block.minecraft.warped_planks","block.minecraft.bamboo_mosaic","block.minecraft.oak_sapling","block.minecraft.spruce_sapling","block.minecraft.birch_sapling","block.minecraft.jungle_sapling","block.minecraft.acacia_sapling","block.minecraft.cherry_sapling","block.minecraft.dark_oak_sapling","block.minecraft.pale_oak_sapling","block.minecraft.mangrove_propagule","block.minecraft.bedrock","block.minecraft.sand","block.minecraft.suspicious_sand","block.minecraft.suspicious_gravel","block.minecraft.red_sand","block.minecraft.gravel","block.minecraft.coal_ore","block.minecraft.deepslate_coal_ore","block.minecraft.iron_ore","block.minecraft.deepslate_iron_ore","block.minecraft.copper_ore","block.minecraft.deepslate_copper_ore","block.minecraft.gold_ore","block.minecraft.deepslate_gold_ore","block.minecraft.redstone_ore","block.minecraft.deepslate_redstone_ore","block.minecraft.emerald_ore","block.minecraft.deepslate_emerald_ore","block.minecraft.lapis_ore","block.minecraft.deepslate_lapis_ore","block.minecraft.diamond_ore","block.minecraft.deepslate_diamond_ore","block.minecraft.nether_gold_ore","block.minecraft.nether_quartz_ore","block.minecraft.ancient_debris","block.minecraft.coal_block","block.minecraft.raw_iron_block","block.minecraft.raw_copper_block","block.minecraft.raw_gold_block","block.minecraft.heavy_core","block.minecraft.amethyst_block","block.minecraft.budding_amethyst","block.minecraft.iron_block","block.minecraft.copper_block","block.minecraft.exposed_copper","block.minecraft.weathered_copper","block.minecraft.oxidized_copper","block.minecraft.waxed_copper_block","block.minecraft.waxed_exposed_copper","block.minecraft.waxed_weathered_copper","block.minecraft.waxed_oxidized_copper","block.minecraft.gold_block","block.minecraft.diamond_block","block.minecraft.netherite_block","block.minecraft.chiseled_copper","block.minecraft.exposed_chiseled_copper","block.minecraft.weathered_chiseled_copper","block.minecraft.oxidized_chiseled_copper","block.minecraft.waxed_chiseled_copper","block.minecraft.waxed_exposed_chiseled_copper","block.minecraft.waxed_weathered_chiseled_copper","block.minecraft.waxed_oxidized_chiseled_copper","block.minecraft.cut_copper","block.minecraft.exposed_cut_copper","block.minecraft.weathered_cut_copper","block.minecraft.oxidized_cut_copper","block.minecraft.waxed_cut_copper","block.minecraft.waxed_exposed_cut_copper","block.minecraft.waxed_weathered_cut_copper","block.minecraft.waxed_oxidized_cut_copper","block.minecraft.cut_copper_stairs","block.minecraft.exposed_cut_copper_stairs","block.minecraft.weathered_cut_copper_stairs","block.minecraft.oxidized_cut_copper_stairs","block.minecraft.waxed_cut_copper_stairs","block.minecraft.waxed_exposed_cut_copper_stairs","block.minecraft.waxed_weathered_cut_copper_stairs","block.minecraft.waxed_oxidized_cut_copper_stairs","block.minecraft.cut_copper_slab","block.minecraft.exposed_cut_copper_slab","block.minecraft.weathered_cut_copper_slab","block.minecraft.oxidized_cut_copper_slab","block.minecraft.waxed_cut_copper_slab","block.minecraft.waxed_exposed_cut_copper_slab","block.minecraft.waxed_weathered_cut_copper_slab","block.minecraft.waxed_oxidized_cut_copper_slab","block.minecraft.oak_log","block.minecraft.spruce_log","block.minecraft.birch_log","block.minecraft.jungle_log","block.minecraft.acacia_log","block.minecraft.cherry_log","block.minecraft.pale_oak_log","block.minecraft.dark_oak_log","block.minecraft.mangrove_log","block.minecraft.mangrove_roots","block.minecraft.muddy_mangrove_roots","block.minecraft.crimson_stem","block.minecraft.warped_stem","block.minecraft.bamboo_block","block.minecraft.stripped_oak_log","block.minecraft.stripped_spruce_log","block.minecraft.stripped_birch_log","block.minecraft.stripped_jungle_log","block.minecraft.stripped_acacia_log","block.minecraft.stripped_cherry_log","block.minecraft.stripped_dark_oak_log","block.minecraft.stripped_pale_oak_log","block.minecraft.stripped_mangrove_log","block.minecraft.stripped_crimson_stem","block.minecraft.stripped_warped_stem","block.minecraft.stripped_oak_wood","block.minecraft.stripped_spruce_wood","block.minecraft.stripped_birch_wood","block.minecraft.stripped_jungle_wood","block.minecraft.stripped_acacia_wood","block.minecraft.stripped_cherry_wood","block.minecraft.stripped_dark_oak_wood","block.minecraft.stripped_pale_oak_wood","block.minecraft.stripped_mangrove_wood","block.minecraft.stripped_crimson_hyphae","block.minecraft.stripped_warped_hyphae","block.minecraft.stripped_bamboo_block","block.minecraft.oak_wood","block.minecraft.spruce_wood","block.minecraft.birch_wood","block.minecraft.jungle_wood","block.minecraft.acacia_wood","block.minecraft.cherry_wood","block.minecraft.pale_oak_wood","block.minecraft.dark_oak_wood","block.minecraft.mangrove_wood","block.minecraft.crimson_hyphae","block.minecraft.warped_hyphae","block.minecraft.oak_leaves","block.minecraft.spruce_leaves","block.minecraft.birch_leaves","block.minecraft.jungle_leaves","block.minecraft.acacia_leaves","block.minecraft.cherry_leaves","block.minecraft.dark_oak_leaves","block.minecraft.pale_oak_leaves","block.minecraft.mangrove_leaves","block.minecraft.azalea_leaves","block.minecraft.flowering_azalea_leaves","block.minecraft.sponge","block.minecraft.wet_sponge","block.minecraft.glass","block.minecraft.tinted_glass","block.minecraft.lapis_block","block.minecraft.sandstone","block.minecraft.chiseled_sandstone","block.minecraft.cut_sandstone","block.minecraft.cobweb","block.minecraft.short_grass","block.minecraft.fern","block.minecraft.bush","block.minecraft.azalea","block.minecraft.flowering_azalea","block.minecraft.dead_bush","block.minecraft.firefly_bush","block.minecraft.short_dry_grass","block.minecraft.tall_dry_grass","block.minecraft.seagrass","block.minecraft.sea_pickle","block.minecraft.white_wool","block.minecraft.orange_wool","block.minecraft.magenta_wool","block.minecraft.light_blue_wool","block.minecraft.yellow_wool","block.minecraft.lime_wool","block.minecraft.pink_wool","block.minecraft.gray_wool","block.minecraft.light_gray_wool","block.minecraft.cyan_wool","block.minecraft.purple_wool","block.minecraft.blue_wool","block.minecraft.brown_wool","block.minecraft.green_wool","block.minecraft.red_wool","block.minecraft.black_wool","block.minecraft.dandelion","block.minecraft.golden_dandelion","block.minecraft.open_eyeblossom","block.minecraft.closed_eyeblossom","block.minecraft.poppy","block.minecraft.blue_orchid","block.minecraft.allium","block.minecraft.azure_bluet","block.minecraft.red_tulip","block.minecraft.orange_tulip","block.minecraft.white_tulip","block.minecraft.pink_tulip","block.minecraft.oxeye_daisy","block.minecraft.cornflower","block.minecraft.lily_of_the_valley","block.minecraft.wither_rose","block.minecraft.torchflower","block.minecraft.pitcher_plant","block.minecraft.spore_blossom","block.minecraft.brown_mushroom","block.minecraft.red_mushroom","block.minecraft.crimson_fungus","block.minecraft.warped_fungus","block.minecraft.crimson_roots","block.minecraft.warped_roots","block.minecraft.nether_sprouts","block.minecraft.weeping_vines","block.minecraft.twisting_vines","block.minecraft.sugar_cane","block.minecraft.kelp","block.minecraft.pink_petals","block.minecraft.wildflowers","block.minecraft.leaf_litter","block.minecraft.moss_carpet","block.minecraft.moss_block","block.minecraft.pale_moss_carpet","block.minecraft.pale_hanging_moss","block.minecraft.pale_moss_block","block.minecraft.hanging_roots","block.minecraft.big_dripleaf","block.minecraft.small_dripleaf","block.minecraft.bamboo","block.minecraft.oak_slab","block.minecraft.spruce_slab","block.minecraft.birch_slab","block.minecraft.jungle_slab","block.minecraft.acacia_slab","block.minecraft.cherry_slab","block.minecraft.dark_oak_slab","block.minecraft.pale_oak_slab","block.minecraft.mangrove_slab","block.minecraft.bamboo_slab","block.minecraft.bamboo_mosaic_slab","block.minecraft.crimson_slab","block.minecraft.warped_slab","block.minecraft.stone_slab","block.minecraft.smooth_stone_slab","block.minecraft.sandstone_slab","block.minecraft.cut_sandstone_slab","block.minecraft.petrified_oak_slab","block.minecraft.cobblestone_slab","block.minecraft.brick_slab","block.minecraft.stone_brick_slab","block.minecraft.mud_brick_slab","block.minecraft.nether_brick_slab","block.minecraft.quartz_slab","block.minecraft.red_sandstone_slab","block.minecraft.cut_red_sandstone_slab","block.minecraft.purpur_slab","block.minecraft.prismarine_slab","block.minecraft.prismarine_brick_slab","block.minecraft.dark_prismarine_slab","block.minecraft.smooth_quartz","block.minecraft.smooth_red_sandstone","block.minecraft.smooth_sandstone","block.minecraft.smooth_stone","block.minecraft.bricks","block.minecraft.acacia_shelf","block.minecraft.bamboo_shelf","block.minecraft.birch_shelf","block.minecraft.cherry_shelf","block.minecraft.crimson_shelf","block.minecraft.dark_oak_shelf","block.minecraft.jungle_shelf","block.minecraft.mangrove_shelf","block.minecraft.oak_shelf","block.minecraft.pale_oak_shelf","block.minecraft.spruce_shelf","block.minecraft.warped_shelf","block.minecraft.bookshelf","block.minecraft.chiseled_bookshelf","block.minecraft.decorated_pot","block.minecraft.mossy_cobblestone","block.minecraft.obsidian","block.minecraft.torch","block.minecraft.end_rod","block.minecraft.chorus_plant","block.minecraft.chorus_flower","block.minecraft.purpur_block","block.minecraft.purpur_pillar","block.minecraft.purpur_stairs","block.minecraft.spawner","block.minecraft.creaking_heart","block.minecraft.chest","block.minecraft.crafting_table","block.minecraft.farmland","block.minecraft.furnace","block.minecraft.ladder","block.minecraft.cobblestone_stairs","block.minecraft.snow","block.minecraft.ice","block.minecraft.snow_block","block.minecraft.cactus","block.minecraft.cactus_flower","block.minecraft.clay","block.minecraft.jukebox","block.minecraft.oak_fence","block.minecraft.spruce_fence","block.minecraft.birch_fence","block.minecraft.jungle_fence","block.minecraft.acacia_fence","block.minecraft.cherry_fence","block.minecraft.dark_oak_fence","block.minecraft.pale_oak_fence","block.minecraft.mangrove_fence","block.minecraft.bamboo_fence","block.minecraft.crimson_fence","block.minecraft.warped_fence","block.minecraft.pumpkin","block.minecraft.carved_pumpkin","block.minecraft.jack_o_lantern","block.minecraft.netherrack","block.minecraft.soul_sand","block.minecraft.soul_soil","block.minecraft.basalt","block.minecraft.polished_basalt","block.minecraft.smooth_basalt","block.minecraft.soul_torch","block.minecraft.copper_torch","block.minecraft.glowstone","block.minecraft.infested_stone","block.minecraft.infested_cobblestone","block.minecraft.infested_stone_bricks","block.minecraft.infested_mossy_stone_bricks","block.minecraft.infested_cracked_stone_bricks","block.minecraft.infested_chiseled_stone_bricks","block.minecraft.infested_deepslate","block.minecraft.stone_bricks","block.minecraft.mossy_stone_bricks","block.minecraft.cracked_stone_bricks","block.minecraft.chiseled_stone_bricks","block.minecraft.packed_mud","block.minecraft.mud_bricks","block.minecraft.deepslate_bricks","block.minecraft.cracked_deepslate_bricks","block.minecraft.deepslate_tiles","block.minecraft.cracked_deepslate_tiles","block.minecraft.chiseled_deepslate","block.minecraft.reinforced_deepslate","block.minecraft.brown_mushroom_block","block.minecraft.red_mushroom_block","block.minecraft.mushroom_stem","block.minecraft.iron_bars","block.minecraft.copper_bars","block.minecraft.exposed_copper_bars","block.minecraft.weathered_copper_bars","block.minecraft.oxidized_copper_bars","block.minecraft.waxed_copper_bars","block.minecraft.waxed_exposed_copper_bars","block.minecraft.waxed_weathered_copper_bars","block.minecraft.waxed_oxidized_copper_bars","block.minecraft.iron_chain","block.minecraft.copper_chain","block.minecraft.exposed_copper_chain","block.minecraft.weathered_copper_chain","block.minecraft.oxidized_copper_chain","block.minecraft.waxed_copper_chain","block.minecraft.waxed_exposed_copper_chain","block.minecraft.waxed_weathered_copper_chain","block.minecraft.waxed_oxidized_copper_chain","block.minecraft.glass_pane","block.minecraft.melon","block.minecraft.vine","block.minecraft.glow_lichen","item.minecraft.resin_clump","block.minecraft.resin_block","block.minecraft.resin_bricks","block.minecraft.resin_brick_stairs","block.minecraft.resin_brick_slab","block.minecraft.resin_brick_wall","block.minecraft.chiseled_resin_bricks","block.minecraft.brick_stairs","block.minecraft.stone_brick_stairs","block.minecraft.mud_brick_stairs","block.minecraft.mycelium","block.minecraft.lily_pad","block.minecraft.nether_bricks","block.minecraft.cracked_nether_bricks","block.minecraft.chiseled_nether_bricks","block.minecraft.nether_brick_fence","block.minecraft.nether_brick_stairs","block.minecraft.sculk","block.minecraft.sculk_vein","block.minecraft.sculk_catalyst","block.minecraft.sculk_shrieker","block.minecraft.enchanting_table","block.minecraft.end_portal_frame","block.minecraft.end_stone","block.minecraft.end_stone_bricks","block.minecraft.dragon_egg","block.minecraft.sandstone_stairs","block.minecraft.ender_chest","block.minecraft.emerald_block","block.minecraft.oak_stairs","block.minecraft.spruce_stairs","block.minecraft.birch_stairs","block.minecraft.jungle_stairs","block.minecraft.acacia_stairs","block.minecraft.cherry_stairs","block.minecraft.dark_oak_stairs","block.minecraft.pale_oak_stairs","block.minecraft.mangrove_stairs","block.minecraft.bamboo_stairs","block.minecraft.bamboo_mosaic_stairs","block.minecraft.crimson_stairs","block.minecraft.warped_stairs","block.minecraft.command_block","block.minecraft.beacon","block.minecraft.cobblestone_wall","block.minecraft.mossy_cobblestone_wall","block.minecraft.brick_wall","block.minecraft.prismarine_wall","block.minecraft.red_sandstone_wall","block.minecraft.mossy_stone_brick_wall","block.minecraft.granite_wall","block.minecraft.stone_brick_wall","block.minecraft.mud_brick_wall","block.minecraft.nether_brick_wall","block.minecraft.andesite_wall","block.minecraft.red_nether_brick_wall","block.minecraft.sandstone_wall","block.minecraft.end_stone_brick_wall","block.minecraft.diorite_wall","block.minecraft.blackstone_wall","block.minecraft.polished_blackstone_wall","block.minecraft.polished_blackstone_brick_wall","block.minecraft.cobbled_deepslate_wall","block.minecraft.polished_deepslate_wall","block.minecraft.deepslate_brick_wall","block.minecraft.deepslate_tile_wall","block.minecraft.anvil","block.minecraft.chipped_anvil","block.minecraft.damaged_anvil","block.minecraft.chiseled_quartz_block","block.minecraft.quartz_block","block.minecraft.quartz_bricks","block.minecraft.quartz_pillar","block.minecraft.quartz_stairs","block.minecraft.white_terracotta","block.minecraft.orange_terracotta","block.minecraft.magenta_terracotta","block.minecraft.light_blue_terracotta","block.minecraft.yellow_terracotta","block.minecraft.lime_terracotta","block.minecraft.pink_terracotta","block.minecraft.gray_terracotta","block.minecraft.light_gray_terracotta","block.minecraft.cyan_terracotta","block.minecraft.purple_terracotta","block.minecraft.blue_terracotta","block.minecraft.brown_terracotta","block.minecraft.green_terracotta","block.minecraft.red_terracotta","block.minecraft.black_terracotta","block.minecraft.barrier","block.minecraft.light","block.minecraft.hay_block","block.minecraft.white_carpet","block.minecraft.orange_carpet","block.minecraft.magenta_carpet","block.minecraft.light_blue_carpet","block.minecraft.yellow_carpet","block.minecraft.lime_carpet","block.minecraft.pink_carpet","block.minecraft.gray_carpet","block.minecraft.light_gray_carpet","block.minecraft.cyan_carpet","block.minecraft.purple_carpet","block.minecraft.blue_carpet","block.minecraft.brown_carpet","block.minecraft.green_carpet","block.minecraft.red_carpet","block.minecraft.black_carpet","block.minecraft.terracotta","block.minecraft.packed_ice","block.minecraft.dirt_path","block.minecraft.sunflower","block.minecraft.lilac","block.minecraft.rose_bush","block.minecraft.peony","block.minecraft.tall_grass","block.minecraft.large_fern","block.minecraft.white_stained_glass","block.minecraft.orange_stained_glass","block.minecraft.magenta_stained_glass","block.minecraft.light_blue_stained_glass","block.minecraft.yellow_stained_glass","block.minecraft.lime_stained_glass","block.minecraft.pink_stained_glass","block.minecraft.gray_stained_glass","block.minecraft.light_gray_stained_glass","block.minecraft.cyan_stained_glass","block.minecraft.purple_stained_glass","block.minecraft.blue_stained_glass","block.minecraft.brown_stained_glass","block.minecraft.green_stained_glass","block.minecraft.red_stained_glass","block.minecraft.black_stained_glass","block.minecraft.white_stained_glass_pane","block.minecraft.orange_stained_glass_pane","block.minecraft.magenta_stained_glass_pane","block.minecraft.light_blue_stained_glass_pane","block.minecraft.yellow_stained_glass_pane","block.minecraft.lime_stained_glass_pane","block.minecraft.pink_stained_glass_pane","block.minecraft.gray_stained_glass_pane","block.minecraft.light_gray_stained_glass_pane","block.minecraft.cyan_stained_glass_pane","block.minecraft.purple_stained_glass_pane","block.minecraft.blue_stained_glass_pane","block.minecraft.brown_stained_glass_pane","block.minecraft.green_stained_glass_pane","block.minecraft.red_stained_glass_pane","block.minecraft.black_stained_glass_pane","block.minecraft.prismarine","block.minecraft.prismarine_bricks","block.minecraft.dark_prismarine","block.minecraft.prismarine_stairs","block.minecraft.prismarine_brick_stairs","block.minecraft.dark_prismarine_stairs","block.minecraft.sea_lantern","block.minecraft.red_sandstone","block.minecraft.chiseled_red_sandstone","block.minecraft.cut_red_sandstone","block.minecraft.red_sandstone_stairs","block.minecraft.repeating_command_block","block.minecraft.chain_command_block","block.minecraft.magma_block","block.minecraft.nether_wart_block","block.minecraft.warped_wart_block","block.minecraft.red_nether_bricks","block.minecraft.bone_block","block.minecraft.structure_void","block.minecraft.shulker_box","block.minecraft.white_shulker_box","block.minecraft.orange_shulker_box","block.minecraft.magenta_shulker_box","block.minecraft.light_blue_shulker_box","block.minecraft.yellow_shulker_box","block.minecraft.lime_shulker_box","block.minecraft.pink_shulker_box","block.minecraft.gray_shulker_box","block.minecraft.light_gray_shulker_box","block.minecraft.cyan_shulker_box","block.minecraft.purple_shulker_box","block.minecraft.blue_shulker_box","block.minecraft.brown_shulker_box","block.minecraft.green_shulker_box","block.minecraft.red_shulker_box","block.minecraft.black_shulker_box","block.minecraft.white_glazed_terracotta","block.minecraft.orange_glazed_terracotta","block.minecraft.magenta_glazed_terracotta","block.minecraft.light_blue_glazed_terracotta","block.minecraft.yellow_glazed_terracotta","block.minecraft.lime_glazed_terracotta","block.minecraft.pink_glazed_terracotta","block.minecraft.gray_glazed_terracotta","block.minecraft.light_gray_glazed_terracotta","block.minecraft.cyan_glazed_terracotta","block.minecraft.purple_glazed_terracotta","block.minecraft.blue_glazed_terracotta","block.minecraft.brown_glazed_terracotta","block.minecraft.green_glazed_terracotta","block.minecraft.red_glazed_terracotta","block.minecraft.black_glazed_terracotta","block.minecraft.white_concrete","block.minecraft.orange_concrete","block.minecraft.magenta_concrete","block.minecraft.light_blue_concrete","block.minecraft.yellow_concrete","block.minecraft.lime_concrete","block.minecraft.pink_concrete","block.minecraft.gray_concrete","block.minecraft.light_gray_concrete","block.minecraft.cyan_concrete","block.minecraft.purple_concrete","block.minecraft.blue_concrete","block.minecraft.brown_concrete","block.minecraft.green_concrete","block.minecraft.red_concrete","block.minecraft.black_concrete","block.minecraft.white_concrete_powder","block.minecraft.orange_concrete_powder","block.minecraft.magenta_concrete_powder","block.minecraft.light_blue_concrete_powder","block.minecraft.yellow_concrete_powder","block.minecraft.lime_concrete_powder","block.minecraft.pink_concrete_powder","block.minecraft.gray_concrete_powder","block.minecraft.light_gray_concrete_powder","block.minecraft.cyan_concrete_powder","block.minecraft.purple_concrete_powder","block.minecraft.blue_concrete_powder","block.minecraft.brown_concrete_powder","block.minecraft.green_concrete_powder","block.minecraft.red_concrete_powder","block.minecraft.black_concrete_powder","block.minecraft.turtle_egg","block.minecraft.sniffer_egg","block.minecraft.dried_ghast","block.minecraft.dead_tube_coral_block","block.minecraft.dead_brain_coral_block","block.minecraft.dead_bubble_coral_block","block.minecraft.dead_fire_coral_block","block.minecraft.dead_horn_coral_block","block.minecraft.tube_coral_block","block.minecraft.brain_coral_block","block.minecraft.bubble_coral_block","block.minecraft.fire_coral_block","block.minecraft.horn_coral_block","block.minecraft.tube_coral","block.minecraft.brain_coral","block.minecraft.bubble_coral","block.minecraft.fire_coral","block.minecraft.horn_coral","block.minecraft.dead_brain_coral","block.minecraft.dead_bubble_coral","block.minecraft.dead_fire_coral","block.minecraft.dead_horn_coral","block.minecraft.dead_tube_coral","block.minecraft.tube_coral_fan","block.minecraft.brain_coral_fan","block.minecraft.bubble_coral_fan","block.minecraft.fire_coral_fan","block.minecraft.horn_coral_fan","block.minecraft.dead_tube_coral_fan","block.minecraft.dead_brain_coral_fan","block.minecraft.dead_bubble_coral_fan","block.minecraft.dead_fire_coral_fan","block.minecraft.dead_horn_coral_fan","block.minecraft.blue_ice","block.minecraft.conduit","block.minecraft.polished_granite_stairs","block.minecraft.smooth_red_sandstone_stairs","block.minecraft.mossy_stone_brick_stairs","block.minecraft.polished_diorite_stairs","block.minecraft.mossy_cobblestone_stairs","block.minecraft.end_stone_brick_stairs","block.minecraft.stone_stairs","block.minecraft.smooth_sandstone_stairs","block.minecraft.smooth_quartz_stairs","block.minecraft.granite_stairs","block.minecraft.andesite_stairs","block.minecraft.red_nether_brick_stairs","block.minecraft.polished_andesite_stairs","block.minecraft.diorite_stairs","block.minecraft.cobbled_deepslate_stairs","block.minecraft.polished_deepslate_stairs","block.minecraft.deepslate_brick_stairs","block.minecraft.deepslate_tile_stairs","block.minecraft.polished_granite_slab","block.minecraft.smooth_red_sandstone_slab","block.minecraft.mossy_stone_brick_slab","block.minecraft.polished_diorite_slab","block.minecraft.mossy_cobblestone_slab","block.minecraft.end_stone_brick_slab","block.minecraft.smooth_sandstone_slab","block.minecraft.smooth_quartz_slab","block.minecraft.granite_slab","block.minecraft.andesite_slab","block.minecraft.red_nether_brick_slab","block.minecraft.polished_andesite_slab","block.minecraft.diorite_slab","block.minecraft.cobbled_deepslate_slab","block.minecraft.polished_deepslate_slab","block.minecraft.deepslate_brick_slab","block.minecraft.deepslate_tile_slab","block.minecraft.scaffolding","item.minecraft.redstone","block.minecraft.redstone_torch","block.minecraft.redstone_block","block.minecraft.repeater","block.minecraft.comparator","block.minecraft.piston","block.minecraft.sticky_piston","block.minecraft.slime_block","block.minecraft.honey_block","block.minecraft.observer","block.minecraft.hopper","block.minecraft.dispenser","block.minecraft.dropper","block.minecraft.lectern","block.minecraft.target","block.minecraft.lever","block.minecraft.lightning_rod","block.minecraft.exposed_lightning_rod","block.minecraft.weathered_lightning_rod","block.minecraft.oxidized_lightning_rod","block.minecraft.waxed_lightning_rod","block.minecraft.waxed_exposed_lightning_rod","block.minecraft.waxed_weathered_lightning_rod","block.minecraft.waxed_oxidized_lightning_rod","block.minecraft.daylight_detector","block.minecraft.sculk_sensor","block.minecraft.calibrated_sculk_sensor","block.minecraft.tripwire_hook","block.minecraft.trapped_chest","block.minecraft.tnt","block.minecraft.redstone_lamp","block.minecraft.note_block","block.minecraft.stone_button","block.minecraft.polished_blackstone_button","block.minecraft.oak_button","block.minecraft.spruce_button","block.minecraft.birch_button","block.minecraft.jungle_button","block.minecraft.acacia_button","block.minecraft.cherry_button","block.minecraft.dark_oak_button","block.minecraft.pale_oak_button","block.minecraft.mangrove_button","block.minecraft.bamboo_button","block.minecraft.crimson_button","block.minecraft.warped_button","block.minecraft.stone_pressure_plate","block.minecraft.polished_blackstone_pressure_plate","block.minecraft.light_weighted_pressure_plate","block.minecraft.heavy_weighted_pressure_plate","block.minecraft.oak_pressure_plate","block.minecraft.spruce_pressure_plate","block.minecraft.birch_pressure_plate","block.minecraft.jungle_pressure_plate","block.minecraft.acacia_pressure_plate","block.minecraft.cherry_pressure_plate","block.minecraft.dark_oak_pressure_plate","block.minecraft.pale_oak_pressure_plate","block.minecraft.mangrove_pressure_plate","block.minecraft.bamboo_pressure_plate","block.minecraft.crimson_pressure_plate","block.minecraft.warped_pressure_plate","block.minecraft.iron_door","block.minecraft.oak_door","block.minecraft.spruce_door","block.minecraft.birch_door","block.minecraft.jungle_door","block.minecraft.acacia_door","block.minecraft.cherry_door","block.minecraft.dark_oak_door","block.minecraft.pale_oak_door","block.minecraft.mangrove_door","block.minecraft.bamboo_door","block.minecraft.crimson_door","block.minecraft.warped_door","block.minecraft.copper_door","block.minecraft.exposed_copper_door","block.minecraft.weathered_copper_door","block.minecraft.oxidized_copper_door","block.minecraft.waxed_copper_door","block.minecraft.waxed_exposed_copper_door","block.minecraft.waxed_weathered_copper_door","block.minecraft.waxed_oxidized_copper_door","block.minecraft.iron_trapdoor","block.minecraft.oak_trapdoor","block.minecraft.spruce_trapdoor","block.minecraft.birch_trapdoor","block.minecraft.jungle_trapdoor","block.minecraft.acacia_trapdoor","block.minecraft.cherry_trapdoor","block.minecraft.dark_oak_trapdoor","block.minecraft.pale_oak_trapdoor","block.minecraft.mangrove_trapdoor","block.minecraft.bamboo_trapdoor","block.minecraft.crimson_trapdoor","block.minecraft.warped_trapdoor","block.minecraft.copper_trapdoor","block.minecraft.exposed_copper_trapdoor","block.minecraft.weathered_copper_trapdoor","block.minecraft.oxidized_copper_trapdoor","block.minecraft.waxed_copper_trapdoor","block.minecraft.waxed_exposed_copper_trapdoor","block.minecraft.waxed_weathered_copper_trapdoor","block.minecraft.waxed_oxidized_copper_trapdoor","block.minecraft.oak_fence_gate","block.minecraft.spruce_fence_gate","block.minecraft.birch_fence_gate","block.minecraft.jungle_fence_gate","block.minecraft.acacia_fence_gate","block.minecraft.cherry_fence_gate","block.minecraft.dark_oak_fence_gate","block.minecraft.pale_oak_fence_gate","block.minecraft.mangrove_fence_gate","block.minecraft.bamboo_fence_gate","block.minecraft.crimson_fence_gate","block.minecraft.warped_fence_gate","block.minecraft.powered_rail","block.minecraft.detector_rail","block.minecraft.rail","block.minecraft.activator_rail","item.minecraft.saddle","item.minecraft.white_harness","item.minecraft.orange_harness","item.minecraft.magenta_harness","item.minecraft.light_blue_harness","item.minecraft.yellow_harness","item.minecraft.lime_harness","item.minecraft.pink_harness","item.minecraft.gray_harness","item.minecraft.light_gray_harness","item.minecraft.cyan_harness","item.minecraft.purple_harness","item.minecraft.blue_harness","item.minecraft.brown_harness","item.minecraft.green_harness","item.minecraft.red_harness","item.minecraft.black_harness","item.minecraft.minecart","item.minecraft.chest_minecart","item.minecraft.furnace_minecart","item.minecraft.tnt_minecart","item.minecraft.hopper_minecart","item.minecraft.carrot_on_a_stick","item.minecraft.warped_fungus_on_a_stick","item.minecraft.phantom_membrane","item.minecraft.elytra","item.minecraft.oak_boat","item.minecraft.oak_chest_boat","item.minecraft.spruce_boat","item.minecraft.spruce_chest_boat","item.minecraft.birch_boat","item.minecraft.birch_chest_boat","item.minecraft.jungle_boat","item.minecraft.jungle_chest_boat","item.minecraft.acacia_boat","item.minecraft.acacia_chest_boat","item.minecraft.cherry_boat","item.minecraft.cherry_chest_boat","item.minecraft.dark_oak_boat","item.minecraft.dark_oak_chest_boat","item.minecraft.pale_oak_boat","item.minecraft.pale_oak_chest_boat","item.minecraft.mangrove_boat","item.minecraft.mangrove_chest_boat","item.minecraft.bamboo_raft","item.minecraft.bamboo_chest_raft","block.minecraft.structure_block","block.minecraft.jigsaw","block.minecraft.test_block","block.minecraft.test_instance_block","item.minecraft.turtle_helmet","item.minecraft.turtle_scute","item.minecraft.armadillo_scute","item.minecraft.wolf_armor","item.minecraft.flint_and_steel","item.minecraft.bowl","item.minecraft.apple","item.minecraft.bow","item.minecraft.arrow","item.minecraft.coal","item.minecraft.charcoal","item.minecraft.diamond","item.minecraft.emerald","item.minecraft.lapis_lazuli","item.minecraft.quartz","item.minecraft.amethyst_shard","item.minecraft.raw_iron","item.minecraft.iron_ingot","item.minecraft.raw_copper","item.minecraft.copper_ingot","item.minecraft.raw_gold","item.minecraft.gold_ingot","item.minecraft.netherite_ingot","item.minecraft.netherite_scrap","item.minecraft.wooden_sword","item.minecraft.wooden_shovel","item.minecraft.wooden_pickaxe","item.minecraft.wooden_axe","item.minecraft.wooden_hoe","item.minecraft.copper_sword","item.minecraft.copper_shovel","item.minecraft.copper_pickaxe","item.minecraft.copper_axe","item.minecraft.copper_hoe","item.minecraft.stone_sword","item.minecraft.stone_shovel","item.minecraft.stone_pickaxe","item.minecraft.stone_axe","item.minecraft.stone_hoe","item.minecraft.golden_sword","item.minecraft.golden_shovel","item.minecraft.golden_pickaxe","item.minecraft.golden_axe","item.minecraft.golden_hoe","item.minecraft.iron_sword","item.minecraft.iron_shovel","item.minecraft.iron_pickaxe","item.minecraft.iron_axe","item.minecraft.iron_hoe","item.minecraft.diamond_sword","item.minecraft.diamond_shovel","item.minecraft.diamond_pickaxe","item.minecraft.diamond_axe","item.minecraft.diamond_hoe","item.minecraft.netherite_sword","item.minecraft.netherite_shovel","item.minecraft.netherite_pickaxe","item.minecraft.netherite_axe","item.minecraft.netherite_hoe","item.minecraft.stick","item.minecraft.mushroom_stew","item.minecraft.string","item.minecraft.feather","item.minecraft.gunpowder","item.minecraft.wheat_seeds","item.minecraft.wheat","item.minecraft.bread","item.minecraft.leather_helmet","item.minecraft.leather_chestplate","item.minecraft.leather_leggings","item.minecraft.leather_boots","item.minecraft.copper_helmet","item.minecraft.copper_chestplate","item.minecraft.copper_leggings","item.minecraft.copper_boots","item.minecraft.chainmail_helmet","item.minecraft.chainmail_chestplate","item.minecraft.chainmail_leggings","item.minecraft.chainmail_boots","item.minecraft.iron_helmet","item.minecraft.iron_chestplate","item.minecraft.iron_leggings","item.minecraft.iron_boots","item.minecraft.diamond_helmet","item.minecraft.diamond_chestplate","item.minecraft.diamond_leggings","item.minecraft.diamond_boots","item.minecraft.golden_helmet","item.minecraft.golden_chestplate","item.minecraft.golden_leggings","item.minecraft.golden_boots","item.minecraft.netherite_helmet","item.minecraft.netherite_chestplate","item.minecraft.netherite_leggings","item.minecraft.netherite_boots","item.minecraft.flint","item.minecraft.porkchop","item.minecraft.cooked_porkchop","item.minecraft.painting","item.minecraft.golden_apple","item.minecraft.enchanted_golden_apple","block.minecraft.oak_sign","block.minecraft.spruce_sign","block.minecraft.birch_sign","block.minecraft.jungle_sign","block.minecraft.acacia_sign","block.minecraft.cherry_sign","block.minecraft.dark_oak_sign","block.minecraft.pale_oak_sign","block.minecraft.mangrove_sign","block.minecraft.bamboo_sign","block.minecraft.crimson_sign","block.minecraft.warped_sign","block.minecraft.oak_hanging_sign","block.minecraft.spruce_hanging_sign","block.minecraft.birch_hanging_sign","block.minecraft.jungle_hanging_sign","block.minecraft.acacia_hanging_sign","block.minecraft.cherry_hanging_sign","block.minecraft.dark_oak_hanging_sign","block.minecraft.pale_oak_hanging_sign","block.minecraft.mangrove_hanging_sign","block.minecraft.bamboo_hanging_sign","block.minecraft.crimson_hanging_sign","block.minecraft.warped_hanging_sign","item.minecraft.bucket","item.minecraft.water_bucket","item.minecraft.lava_bucket","item.minecraft.powder_snow_bucket","item.minecraft.snowball","item.minecraft.leather","item.minecraft.milk_bucket","item.minecraft.pufferfish_bucket","item.minecraft.salmon_bucket","item.minecraft.cod_bucket","item.minecraft.tropical_fish_bucket","item.minecraft.axolotl_bucket","item.minecraft.sulfur_cube_bucket","item.minecraft.tadpole_bucket","item.minecraft.brick","item.minecraft.clay_ball","block.minecraft.dried_kelp_block","item.minecraft.paper","item.minecraft.book","item.minecraft.slime_ball","item.minecraft.egg","item.minecraft.blue_egg","item.minecraft.brown_egg","item.minecraft.compass","item.minecraft.recovery_compass","item.minecraft.bundle","item.minecraft.white_bundle","item.minecraft.orange_bundle","item.minecraft.magenta_bundle","item.minecraft.light_blue_bundle","item.minecraft.yellow_bundle","item.minecraft.lime_bundle","item.minecraft.pink_bundle","item.minecraft.gray_bundle","item.minecraft.light_gray_bundle","item.minecraft.cyan_bundle","item.minecraft.purple_bundle","item.minecraft.blue_bundle","item.minecraft.brown_bundle","item.minecraft.green_bundle","item.minecraft.red_bundle","item.minecraft.black_bundle","item.minecraft.fishing_rod","item.minecraft.clock","item.minecraft.spyglass","item.minecraft.glowstone_dust","item.minecraft.cod","item.minecraft.salmon","item.minecraft.tropical_fish","item.minecraft.pufferfish","item.minecraft.cooked_cod","item.minecraft.cooked_salmon","item.minecraft.ink_sac","item.minecraft.glow_ink_sac","item.minecraft.cocoa_beans","item.minecraft.white_dye","item.minecraft.orange_dye","item.minecraft.magenta_dye","item.minecraft.light_blue_dye","item.minecraft.yellow_dye","item.minecraft.lime_dye","item.minecraft.pink_dye","item.minecraft.gray_dye","item.minecraft.light_gray_dye","item.minecraft.cyan_dye","item.minecraft.purple_dye","item.minecraft.blue_dye","item.minecraft.brown_dye","item.minecraft.green_dye","item.minecraft.red_dye","item.minecraft.black_dye","item.minecraft.bone_meal","item.minecraft.bone","item.minecraft.sugar","block.minecraft.cake","block.minecraft.white_bed","block.minecraft.orange_bed","block.minecraft.magenta_bed","block.minecraft.light_blue_bed","block.minecraft.yellow_bed","block.minecraft.lime_bed","block.minecraft.pink_bed","block.minecraft.gray_bed","block.minecraft.light_gray_bed","block.minecraft.cyan_bed","block.minecraft.purple_bed","block.minecraft.blue_bed","block.minecraft.brown_bed","block.minecraft.green_bed","block.minecraft.red_bed","block.minecraft.black_bed","item.minecraft.cookie","block.minecraft.crafter","item.minecraft.filled_map","item.minecraft.shears","item.minecraft.melon_slice","item.minecraft.dried_kelp","item.minecraft.pumpkin_seeds","item.minecraft.melon_seeds","item.minecraft.beef","item.minecraft.cooked_beef","item.minecraft.chicken","item.minecraft.cooked_chicken","item.minecraft.rotten_flesh","item.minecraft.ender_pearl","item.minecraft.blaze_rod","item.minecraft.ghast_tear","item.minecraft.gold_nugget","item.minecraft.nether_wart","item.minecraft.glass_bottle","item.minecraft.potion","item.minecraft.spider_eye","item.minecraft.fermented_spider_eye","item.minecraft.blaze_powder","item.minecraft.magma_cream","block.minecraft.brewing_stand","block.minecraft.cauldron","item.minecraft.ender_eye","item.minecraft.glistering_melon_slice","item.minecraft.chicken_spawn_egg","item.minecraft.cow_spawn_egg","item.minecraft.pig_spawn_egg","item.minecraft.sheep_spawn_egg","item.minecraft.camel_spawn_egg","item.minecraft.donkey_spawn_egg","item.minecraft.horse_spawn_egg","item.minecraft.mule_spawn_egg","item.minecraft.cat_spawn_egg","item.minecraft.parrot_spawn_egg","item.minecraft.wolf_spawn_egg","item.minecraft.armadillo_spawn_egg","item.minecraft.bat_spawn_egg","item.minecraft.bee_spawn_egg","item.minecraft.fox_spawn_egg","item.minecraft.goat_spawn_egg","item.minecraft.llama_spawn_egg","item.minecraft.ocelot_spawn_egg","item.minecraft.panda_spawn_egg","item.minecraft.polar_bear_spawn_egg","item.minecraft.rabbit_spawn_egg","item.minecraft.axolotl_spawn_egg","item.minecraft.cod_spawn_egg","item.minecraft.dolphin_spawn_egg","item.minecraft.frog_spawn_egg","item.minecraft.glow_squid_spawn_egg","item.minecraft.nautilus_spawn_egg","item.minecraft.pufferfish_spawn_egg","item.minecraft.salmon_spawn_egg","item.minecraft.squid_spawn_egg","item.minecraft.tadpole_spawn_egg","item.minecraft.tropical_fish_spawn_egg","item.minecraft.turtle_spawn_egg","item.minecraft.allay_spawn_egg","item.minecraft.mooshroom_spawn_egg","item.minecraft.sniffer_spawn_egg","item.minecraft.sulfur_cube_spawn_egg","item.minecraft.copper_golem_spawn_egg","item.minecraft.iron_golem_spawn_egg","item.minecraft.snow_golem_spawn_egg","item.minecraft.trader_llama_spawn_egg","item.minecraft.villager_spawn_egg","item.minecraft.wandering_trader_spawn_egg","item.minecraft.bogged_spawn_egg","item.minecraft.camel_husk_spawn_egg","item.minecraft.drowned_spawn_egg","item.minecraft.husk_spawn_egg","item.minecraft.parched_spawn_egg","item.minecraft.skeleton_spawn_egg","item.minecraft.skeleton_horse_spawn_egg","item.minecraft.stray_spawn_egg","item.minecraft.wither_spawn_egg","item.minecraft.wither_skeleton_spawn_egg","item.minecraft.zombie_spawn_egg","item.minecraft.zombie_horse_spawn_egg","item.minecraft.zombie_nautilus_spawn_egg","item.minecraft.zombie_villager_spawn_egg","item.minecraft.cave_spider_spawn_egg","item.minecraft.spider_spawn_egg","item.minecraft.breeze_spawn_egg","item.minecraft.creaking_spawn_egg","item.minecraft.creeper_spawn_egg","item.minecraft.elder_guardian_spawn_egg","item.minecraft.guardian_spawn_egg","item.minecraft.phantom_spawn_egg","item.minecraft.silverfish_spawn_egg","item.minecraft.slime_spawn_egg","item.minecraft.warden_spawn_egg","item.minecraft.witch_spawn_egg","item.minecraft.evoker_spawn_egg","item.minecraft.pillager_spawn_egg","item.minecraft.ravager_spawn_egg","item.minecraft.vindicator_spawn_egg","item.minecraft.vex_spawn_egg","item.minecraft.blaze_spawn_egg","item.minecraft.ghast_spawn_egg","item.minecraft.happy_ghast_spawn_egg","item.minecraft.hoglin_spawn_egg","item.minecraft.magma_cube_spawn_egg","item.minecraft.piglin_spawn_egg","item.minecraft.piglin_brute_spawn_egg","item.minecraft.strider_spawn_egg","item.minecraft.zoglin_spawn_egg","item.minecraft.zombified_piglin_spawn_egg","item.minecraft.ender_dragon_spawn_egg","item.minecraft.enderman_spawn_egg","item.minecraft.endermite_spawn_egg","item.minecraft.shulker_spawn_egg","item.minecraft.experience_bottle","item.minecraft.fire_charge","item.minecraft.wind_charge","item.minecraft.writable_book","item.minecraft.written_book","item.minecraft.breeze_rod","item.minecraft.mace","item.minecraft.item_frame","item.minecraft.glow_item_frame","block.minecraft.flower_pot","item.minecraft.carrot","item.minecraft.potato","item.minecraft.baked_potato","item.minecraft.poisonous_potato","item.minecraft.map","item.minecraft.golden_carrot","block.minecraft.skeleton_skull","block.minecraft.wither_skeleton_skull","block.minecraft.player_head","block.minecraft.zombie_head","block.minecraft.creeper_head","block.minecraft.dragon_head","block.minecraft.piglin_head","item.minecraft.nether_star","item.minecraft.pumpkin_pie","item.minecraft.firework_rocket","item.minecraft.firework_star","item.minecraft.enchanted_book","item.minecraft.nether_brick","item.minecraft.resin_brick","item.minecraft.prismarine_shard","item.minecraft.prismarine_crystals","item.minecraft.rabbit","item.minecraft.cooked_rabbit","item.minecraft.rabbit_stew","item.minecraft.rabbit_foot","item.minecraft.rabbit_hide","item.minecraft.armor_stand","item.minecraft.copper_horse_armor","item.minecraft.iron_horse_armor","item.minecraft.golden_horse_armor","item.minecraft.diamond_horse_armor","item.minecraft.netherite_horse_armor","item.minecraft.leather_horse_armor","item.minecraft.lead","item.minecraft.name_tag","item.minecraft.command_block_minecart","item.minecraft.mutton","item.minecraft.cooked_mutton","block.minecraft.white_banner","block.minecraft.orange_banner","block.minecraft.magenta_banner","block.minecraft.light_blue_banner","block.minecraft.yellow_banner","block.minecraft.lime_banner","block.minecraft.pink_banner","block.minecraft.gray_banner","block.minecraft.light_gray_banner","block.minecraft.cyan_banner","block.minecraft.purple_banner","block.minecraft.blue_banner","block.minecraft.brown_banner","block.minecraft.green_banner","block.minecraft.red_banner","block.minecraft.black_banner","item.minecraft.end_crystal","item.minecraft.chorus_fruit","item.minecraft.popped_chorus_fruit","item.minecraft.torchflower_seeds","item.minecraft.pitcher_pod","item.minecraft.beetroot","item.minecraft.beetroot_seeds","item.minecraft.beetroot_soup","item.minecraft.dragon_breath","item.minecraft.splash_potion","item.minecraft.spectral_arrow","item.minecraft.tipped_arrow","item.minecraft.lingering_potion","item.minecraft.shield","item.minecraft.wooden_spear","item.minecraft.stone_spear","item.minecraft.copper_spear","item.minecraft.iron_spear","item.minecraft.golden_spear","item.minecraft.diamond_spear","item.minecraft.netherite_spear","item.minecraft.totem_of_undying","item.minecraft.shulker_shell","item.minecraft.iron_nugget","item.minecraft.copper_nugget","item.minecraft.knowledge_book","item.minecraft.debug_stick","item.minecraft.music_disc_13","item.minecraft.music_disc_cat","item.minecraft.music_disc_blocks","item.minecraft.music_disc_bounce","item.minecraft.music_disc_chirp","item.minecraft.music_disc_creator","item.minecraft.music_disc_creator_music_box","item.minecraft.music_disc_far","item.minecraft.music_disc_lava_chicken","item.minecraft.music_disc_mall","item.minecraft.music_disc_mellohi","item.minecraft.music_disc_stal","item.minecraft.music_disc_strad","item.minecraft.music_disc_ward","item.minecraft.music_disc_11","item.minecraft.music_disc_wait","item.minecraft.music_disc_otherside","item.minecraft.music_disc_relic","item.minecraft.music_disc_5","item.minecraft.music_disc_pigstep","item.minecraft.music_disc_precipice","item.minecraft.music_disc_tears","item.minecraft.disc_fragment_5","item.minecraft.trident","item.minecraft.nautilus_shell","item.minecraft.iron_nautilus_armor","item.minecraft.golden_nautilus_armor","item.minecraft.diamond_nautilus_armor","item.minecraft.netherite_nautilus_armor","item.minecraft.copper_nautilus_armor","item.minecraft.heart_of_the_sea","item.minecraft.crossbow","item.minecraft.suspicious_stew","block.minecraft.loom","item.minecraft.flower_banner_pattern","item.minecraft.creeper_banner_pattern","item.minecraft.skull_banner_pattern","item.minecraft.mojang_banner_pattern","item.minecraft.globe_banner_pattern","item.minecraft.piglin_banner_pattern","item.minecraft.flow_banner_pattern","item.minecraft.guster_banner_pattern","item.minecraft.field_masoned_banner_pattern","item.minecraft.bordure_indented_banner_pattern","item.minecraft.goat_horn","block.minecraft.composter","block.minecraft.barrel","block.minecraft.smoker","block.minecraft.blast_furnace","block.minecraft.cartography_table","block.minecraft.fletching_table","block.minecraft.grindstone","block.minecraft.smithing_table","block.minecraft.stonecutter","block.minecraft.bell","block.minecraft.lantern","block.minecraft.soul_lantern","block.minecraft.copper_lantern","block.minecraft.exposed_copper_lantern","block.minecraft.weathered_copper_lantern","block.minecraft.oxidized_copper_lantern","block.minecraft.waxed_copper_lantern","block.minecraft.waxed_exposed_copper_lantern","block.minecraft.waxed_weathered_copper_lantern","block.minecraft.waxed_oxidized_copper_lantern","item.minecraft.sweet_berries","item.minecraft.glow_berries","block.minecraft.campfire","block.minecraft.soul_campfire","block.minecraft.shroomlight","item.minecraft.honeycomb","block.minecraft.bee_nest","block.minecraft.beehive","item.minecraft.honey_bottle","block.minecraft.honeycomb_block","block.minecraft.lodestone","block.minecraft.crying_obsidian","block.minecraft.blackstone","block.minecraft.blackstone_slab","block.minecraft.blackstone_stairs","block.minecraft.gilded_blackstone","block.minecraft.polished_blackstone","block.minecraft.polished_blackstone_slab","block.minecraft.polished_blackstone_stairs","block.minecraft.chiseled_polished_blackstone","block.minecraft.polished_blackstone_bricks","block.minecraft.polished_blackstone_brick_slab","block.minecraft.polished_blackstone_brick_stairs","block.minecraft.cracked_polished_blackstone_bricks","block.minecraft.respawn_anchor","block.minecraft.candle","block.minecraft.white_candle","block.minecraft.orange_candle","block.minecraft.magenta_candle","block.minecraft.light_blue_candle","block.minecraft.yellow_candle","block.minecraft.lime_candle","block.minecraft.pink_candle","block.minecraft.gray_candle","block.minecraft.light_gray_candle","block.minecraft.cyan_candle","block.minecraft.purple_candle","block.minecraft.blue_candle","block.minecraft.brown_candle","block.minecraft.green_candle","block.minecraft.red_candle","block.minecraft.black_candle","block.minecraft.small_amethyst_bud","block.minecraft.medium_amethyst_bud","block.minecraft.large_amethyst_bud","block.minecraft.amethyst_cluster","block.minecraft.pointed_dripstone","block.minecraft.sulfur_spike","block.minecraft.ochre_froglight","block.minecraft.verdant_froglight","block.minecraft.pearlescent_froglight","block.minecraft.frogspawn","item.minecraft.echo_shard","item.minecraft.brush","item.minecraft.netherite_upgrade_smithing_template","item.minecraft.sentry_armor_trim_smithing_template","item.minecraft.dune_armor_trim_smithing_template","item.minecraft.coast_armor_trim_smithing_template","item.minecraft.wild_armor_trim_smithing_template","item.minecraft.ward_armor_trim_smithing_template","item.minecraft.eye_armor_trim_smithing_template","item.minecraft.vex_armor_trim_smithing_template","item.minecraft.tide_armor_trim_smithing_template","item.minecraft.snout_armor_trim_smithing_template","item.minecraft.rib_armor_trim_smithing_template","item.minecraft.spire_armor_trim_smithing_template","item.minecraft.wayfinder_armor_trim_smithing_template","item.minecraft.shaper_armor_trim_smithing_template","item.minecraft.silence_armor_trim_smithing_template","item.minecraft.raiser_armor_trim_smithing_template","item.minecraft.host_armor_trim_smithing_template","item.minecraft.flow_armor_trim_smithing_template","item.minecraft.bolt_armor_trim_smithing_template","item.minecraft.angler_pottery_sherd","item.minecraft.archer_pottery_sherd","item.minecraft.arms_up_pottery_sherd","item.minecraft.blade_pottery_sherd","item.minecraft.brewer_pottery_sherd","item.minecraft.burn_pottery_sherd","item.minecraft.danger_pottery_sherd","item.minecraft.explorer_pottery_sherd","item.minecraft.flow_pottery_sherd","item.minecraft.friend_pottery_sherd","item.minecraft.guster_pottery_sherd","item.minecraft.heart_pottery_sherd","item.minecraft.heartbreak_pottery_sherd","item.minecraft.howl_pottery_sherd","item.minecraft.miner_pottery_sherd","item.minecraft.mourner_pottery_sherd","item.minecraft.plenty_pottery_sherd","item.minecraft.prize_pottery_sherd","item.minecraft.scrape_pottery_sherd","item.minecraft.sheaf_pottery_sherd","item.minecraft.shelter_pottery_sherd","item.minecraft.skull_pottery_sherd","item.minecraft.snort_pottery_sherd","block.minecraft.copper_grate","block.minecraft.exposed_copper_grate","block.minecraft.weathered_copper_grate","block.minecraft.oxidized_copper_grate","block.minecraft.waxed_copper_grate","block.minecraft.waxed_exposed_copper_grate","block.minecraft.waxed_weathered_copper_grate","block.minecraft.waxed_oxidized_copper_grate","block.minecraft.copper_bulb","block.minecraft.exposed_copper_bulb","block.minecraft.weathered_copper_bulb","block.minecraft.oxidized_copper_bulb","block.minecraft.waxed_copper_bulb","block.minecraft.waxed_exposed_copper_bulb","block.minecraft.waxed_weathered_copper_bulb","block.minecraft.waxed_oxidized_copper_bulb","block.minecraft.copper_chest","block.minecraft.exposed_copper_chest","block.minecraft.weathered_copper_chest","block.minecraft.oxidized_copper_chest","block.minecraft.waxed_copper_chest","block.minecraft.waxed_exposed_copper_chest","block.minecraft.waxed_weathered_copper_chest","block.minecraft.waxed_oxidized_copper_chest","block.minecraft.copper_golem_statue","block.minecraft.exposed_copper_golem_statue","block.minecraft.weathered_copper_golem_statue","block.minecraft.oxidized_copper_golem_statue","block.minecraft.waxed_copper_golem_statue","block.minecraft.waxed_exposed_copper_golem_statue","block.minecraft.waxed_weathered_copper_golem_statue","block.minecraft.waxed_oxidized_copper_golem_statue","block.minecraft.trial_spawner","item.minecraft.trial_key","item.minecraft.ominous_trial_key","block.minecraft.vault","item.minecraft.ominous_bottle"];
+static ITEM_NAME_VALUES: [&str; 1658] = ["block.minecraft.air","block.minecraft.stone","block.minecraft.granite","block.minecraft.polished_granite","block.minecraft.diorite","block.minecraft.polished_diorite","block.minecraft.andesite","block.minecraft.polished_andesite","block.minecraft.deepslate","block.minecraft.cobbled_deepslate","block.minecraft.polished_deepslate","block.minecraft.calcite","block.minecraft.tuff","block.minecraft.tuff_slab","block.minecraft.tuff_stairs","block.minecraft.tuff_wall","block.minecraft.chiseled_tuff","block.minecraft.polished_tuff","block.minecraft.polished_tuff_slab","block.minecraft.polished_tuff_stairs","block.minecraft.polished_tuff_wall","block.minecraft.tuff_bricks","block.minecraft.tuff_brick_slab","block.minecraft.tuff_brick_stairs","block.minecraft.tuff_brick_wall","block.minecraft.chiseled_tuff_bricks","block.minecraft.sulfur","block.minecraft.potent_sulfur","block.minecraft.sulfur_slab","block.minecraft.sulfur_stairs","block.minecraft.sulfur_wall","block.minecraft.polished_sulfur","block.minecraft.polished_sulfur_slab","block.minecraft.polished_sulfur_stairs","block.minecraft.polished_sulfur_wall","block.minecraft.sulfur_bricks","block.minecraft.sulfur_brick_slab","block.minecraft.sulfur_brick_stairs","block.minecraft.sulfur_brick_wall","block.minecraft.chiseled_sulfur","block.minecraft.cinnabar","block.minecraft.cinnabar_slab","block.minecraft.cinnabar_stairs","block.minecraft.cinnabar_wall","block.minecraft.polished_cinnabar","block.minecraft.polished_cinnabar_slab","block.minecraft.polished_cinnabar_stairs","block.minecraft.polished_cinnabar_wall","block.minecraft.cinnabar_bricks","block.minecraft.cinnabar_brick_slab","block.minecraft.cinnabar_brick_stairs","block.minecraft.cinnabar_brick_wall","block.minecraft.chiseled_cinnabar","block.minecraft.dripstone_block","block.minecraft.grass_block","block.minecraft.dirt","block.minecraft.coarse_dirt","block.minecraft.podzol","block.minecraft.rooted_dirt","block.minecraft.mud","block.minecraft.crimson_nylium","block.minecraft.warped_nylium","block.minecraft.cobblestone","block.minecraft.oak_planks","block.minecraft.spruce_planks","block.minecraft.birch_planks","block.minecraft.jungle_planks","block.minecraft.acacia_planks","block.minecraft.cherry_planks","block.minecraft.dark_oak_planks","block.minecraft.pale_oak_planks","block.minecraft.mangrove_planks","block.minecraft.poplar_planks","block.minecraft.bamboo_planks","block.minecraft.crimson_planks","block.minecraft.warped_planks","block.minecraft.bamboo_mosaic","block.minecraft.oak_sapling","block.minecraft.spruce_sapling","block.minecraft.birch_sapling","block.minecraft.jungle_sapling","block.minecraft.acacia_sapling","block.minecraft.cherry_sapling","block.minecraft.dark_oak_sapling","block.minecraft.pale_oak_sapling","block.minecraft.mangrove_propagule","block.minecraft.poplar_sapling","block.minecraft.bedrock","block.minecraft.sand","block.minecraft.suspicious_sand","block.minecraft.suspicious_gravel","block.minecraft.red_sand","block.minecraft.gravel","block.minecraft.coal_ore","block.minecraft.deepslate_coal_ore","block.minecraft.iron_ore","block.minecraft.deepslate_iron_ore","block.minecraft.copper_ore","block.minecraft.deepslate_copper_ore","block.minecraft.gold_ore","block.minecraft.deepslate_gold_ore","block.minecraft.redstone_ore","block.minecraft.deepslate_redstone_ore","block.minecraft.emerald_ore","block.minecraft.deepslate_emerald_ore","block.minecraft.lapis_ore","block.minecraft.deepslate_lapis_ore","block.minecraft.diamond_ore","block.minecraft.deepslate_diamond_ore","block.minecraft.nether_gold_ore","block.minecraft.nether_quartz_ore","block.minecraft.ancient_debris","block.minecraft.coal_block","block.minecraft.raw_iron_block","block.minecraft.raw_copper_block","block.minecraft.raw_gold_block","block.minecraft.heavy_core","block.minecraft.amethyst_block","block.minecraft.budding_amethyst","block.minecraft.iron_block","block.minecraft.copper_block","block.minecraft.exposed_copper","block.minecraft.weathered_copper","block.minecraft.oxidized_copper","block.minecraft.waxed_copper_block","block.minecraft.waxed_exposed_copper","block.minecraft.waxed_weathered_copper","block.minecraft.waxed_oxidized_copper","block.minecraft.gold_block","block.minecraft.diamond_block","block.minecraft.netherite_block","block.minecraft.chiseled_copper","block.minecraft.exposed_chiseled_copper","block.minecraft.weathered_chiseled_copper","block.minecraft.oxidized_chiseled_copper","block.minecraft.waxed_chiseled_copper","block.minecraft.waxed_exposed_chiseled_copper","block.minecraft.waxed_weathered_chiseled_copper","block.minecraft.waxed_oxidized_chiseled_copper","block.minecraft.cut_copper","block.minecraft.exposed_cut_copper","block.minecraft.weathered_cut_copper","block.minecraft.oxidized_cut_copper","block.minecraft.waxed_cut_copper","block.minecraft.waxed_exposed_cut_copper","block.minecraft.waxed_weathered_cut_copper","block.minecraft.waxed_oxidized_cut_copper","block.minecraft.cut_copper_stairs","block.minecraft.exposed_cut_copper_stairs","block.minecraft.weathered_cut_copper_stairs","block.minecraft.oxidized_cut_copper_stairs","block.minecraft.waxed_cut_copper_stairs","block.minecraft.waxed_exposed_cut_copper_stairs","block.minecraft.waxed_weathered_cut_copper_stairs","block.minecraft.waxed_oxidized_cut_copper_stairs","block.minecraft.cut_copper_slab","block.minecraft.exposed_cut_copper_slab","block.minecraft.weathered_cut_copper_slab","block.minecraft.oxidized_cut_copper_slab","block.minecraft.waxed_cut_copper_slab","block.minecraft.waxed_exposed_cut_copper_slab","block.minecraft.waxed_weathered_cut_copper_slab","block.minecraft.waxed_oxidized_cut_copper_slab","block.minecraft.oak_log","block.minecraft.spruce_log","block.minecraft.birch_log","block.minecraft.jungle_log","block.minecraft.acacia_log","block.minecraft.cherry_log","block.minecraft.pale_oak_log","block.minecraft.dark_oak_log","block.minecraft.mangrove_log","block.minecraft.poplar_log","block.minecraft.mangrove_roots","block.minecraft.muddy_mangrove_roots","block.minecraft.crimson_stem","block.minecraft.warped_stem","block.minecraft.bamboo_block","block.minecraft.stripped_oak_log","block.minecraft.stripped_spruce_log","block.minecraft.stripped_birch_log","block.minecraft.stripped_jungle_log","block.minecraft.stripped_acacia_log","block.minecraft.stripped_cherry_log","block.minecraft.stripped_dark_oak_log","block.minecraft.stripped_pale_oak_log","block.minecraft.stripped_mangrove_log","block.minecraft.stripped_poplar_log","block.minecraft.stripped_crimson_stem","block.minecraft.stripped_warped_stem","block.minecraft.stripped_oak_wood","block.minecraft.stripped_spruce_wood","block.minecraft.stripped_birch_wood","block.minecraft.stripped_jungle_wood","block.minecraft.stripped_acacia_wood","block.minecraft.stripped_cherry_wood","block.minecraft.stripped_dark_oak_wood","block.minecraft.stripped_pale_oak_wood","block.minecraft.stripped_mangrove_wood","block.minecraft.stripped_poplar_wood","block.minecraft.stripped_crimson_hyphae","block.minecraft.stripped_warped_hyphae","block.minecraft.stripped_bamboo_block","block.minecraft.oak_wood","block.minecraft.spruce_wood","block.minecraft.birch_wood","block.minecraft.jungle_wood","block.minecraft.acacia_wood","block.minecraft.cherry_wood","block.minecraft.pale_oak_wood","block.minecraft.dark_oak_wood","block.minecraft.mangrove_wood","block.minecraft.poplar_wood","block.minecraft.crimson_hyphae","block.minecraft.warped_hyphae","block.minecraft.oak_leaves","block.minecraft.spruce_leaves","block.minecraft.birch_leaves","block.minecraft.jungle_leaves","block.minecraft.acacia_leaves","block.minecraft.cherry_leaves","block.minecraft.dark_oak_leaves","block.minecraft.pale_oak_leaves","block.minecraft.mangrove_leaves","block.minecraft.red_poplar_leaves","block.minecraft.orange_poplar_leaves","block.minecraft.yellow_poplar_leaves","block.minecraft.azalea_leaves","block.minecraft.flowering_azalea_leaves","block.minecraft.sponge","block.minecraft.wet_sponge","block.minecraft.glass","block.minecraft.tinted_glass","block.minecraft.lapis_block","block.minecraft.sandstone","block.minecraft.chiseled_sandstone","block.minecraft.cut_sandstone","block.minecraft.cobweb","block.minecraft.short_grass","block.minecraft.fern","block.minecraft.bush","block.minecraft.red_shrub","block.minecraft.azalea","block.minecraft.flowering_azalea","block.minecraft.dead_bush","block.minecraft.firefly_bush","block.minecraft.short_dry_grass","block.minecraft.tall_dry_grass","block.minecraft.seagrass","block.minecraft.sea_pickle","block.minecraft.white_wool","block.minecraft.orange_wool","block.minecraft.magenta_wool","block.minecraft.light_blue_wool","block.minecraft.yellow_wool","block.minecraft.lime_wool","block.minecraft.pink_wool","block.minecraft.gray_wool","block.minecraft.light_gray_wool","block.minecraft.cyan_wool","block.minecraft.purple_wool","block.minecraft.blue_wool","block.minecraft.brown_wool","block.minecraft.green_wool","block.minecraft.red_wool","block.minecraft.black_wool","block.minecraft.white_wool_stairs","block.minecraft.orange_wool_stairs","block.minecraft.magenta_wool_stairs","block.minecraft.light_blue_wool_stairs","block.minecraft.yellow_wool_stairs","block.minecraft.lime_wool_stairs","block.minecraft.pink_wool_stairs","block.minecraft.gray_wool_stairs","block.minecraft.light_gray_wool_stairs","block.minecraft.cyan_wool_stairs","block.minecraft.purple_wool_stairs","block.minecraft.blue_wool_stairs","block.minecraft.brown_wool_stairs","block.minecraft.green_wool_stairs","block.minecraft.red_wool_stairs","block.minecraft.black_wool_stairs","block.minecraft.white_wool_slab","block.minecraft.orange_wool_slab","block.minecraft.magenta_wool_slab","block.minecraft.light_blue_wool_slab","block.minecraft.yellow_wool_slab","block.minecraft.lime_wool_slab","block.minecraft.pink_wool_slab","block.minecraft.gray_wool_slab","block.minecraft.light_gray_wool_slab","block.minecraft.cyan_wool_slab","block.minecraft.purple_wool_slab","block.minecraft.blue_wool_slab","block.minecraft.brown_wool_slab","block.minecraft.green_wool_slab","block.minecraft.red_wool_slab","block.minecraft.black_wool_slab","block.minecraft.dandelion","block.minecraft.golden_dandelion","block.minecraft.open_eyeblossom","block.minecraft.closed_eyeblossom","block.minecraft.poppy","block.minecraft.blue_orchid","block.minecraft.allium","block.minecraft.azure_bluet","block.minecraft.red_tulip","block.minecraft.orange_tulip","block.minecraft.white_tulip","block.minecraft.pink_tulip","block.minecraft.oxeye_daisy","block.minecraft.cornflower","block.minecraft.lily_of_the_valley","block.minecraft.wither_rose","block.minecraft.torchflower","block.minecraft.pitcher_plant","block.minecraft.spore_blossom","block.minecraft.brown_mushroom","block.minecraft.red_mushroom","block.minecraft.shelf_mushroom","block.minecraft.crimson_fungus","block.minecraft.warped_fungus","block.minecraft.crimson_roots","block.minecraft.warped_roots","block.minecraft.nether_sprouts","block.minecraft.weeping_vines","block.minecraft.twisting_vines","block.minecraft.sugar_cane","block.minecraft.kelp","block.minecraft.pink_petals","block.minecraft.wildflowers","block.minecraft.leaf_litter","block.minecraft.moss_carpet","block.minecraft.moss_block","block.minecraft.pale_moss_carpet","block.minecraft.pale_hanging_moss","block.minecraft.pale_moss_block","block.minecraft.hanging_roots","block.minecraft.big_dripleaf","block.minecraft.small_dripleaf","block.minecraft.bamboo","block.minecraft.oak_slab","block.minecraft.spruce_slab","block.minecraft.birch_slab","block.minecraft.jungle_slab","block.minecraft.acacia_slab","block.minecraft.cherry_slab","block.minecraft.dark_oak_slab","block.minecraft.pale_oak_slab","block.minecraft.mangrove_slab","block.minecraft.poplar_slab","block.minecraft.bamboo_slab","block.minecraft.bamboo_mosaic_slab","block.minecraft.crimson_slab","block.minecraft.warped_slab","block.minecraft.stone_slab","block.minecraft.smooth_stone_slab","block.minecraft.sandstone_slab","block.minecraft.cut_sandstone_slab","block.minecraft.petrified_oak_slab","block.minecraft.cobblestone_slab","block.minecraft.brick_slab","block.minecraft.stone_brick_slab","block.minecraft.mud_brick_slab","block.minecraft.nether_brick_slab","block.minecraft.quartz_slab","block.minecraft.red_sandstone_slab","block.minecraft.cut_red_sandstone_slab","block.minecraft.purpur_slab","block.minecraft.prismarine_slab","block.minecraft.prismarine_brick_slab","block.minecraft.dark_prismarine_slab","block.minecraft.smooth_quartz","block.minecraft.smooth_red_sandstone","block.minecraft.smooth_sandstone","block.minecraft.smooth_stone","block.minecraft.bricks","block.minecraft.acacia_shelf","block.minecraft.bamboo_shelf","block.minecraft.birch_shelf","block.minecraft.cherry_shelf","block.minecraft.crimson_shelf","block.minecraft.dark_oak_shelf","block.minecraft.jungle_shelf","block.minecraft.mangrove_shelf","block.minecraft.poplar_shelf","block.minecraft.oak_shelf","block.minecraft.pale_oak_shelf","block.minecraft.spruce_shelf","block.minecraft.warped_shelf","block.minecraft.bookshelf","block.minecraft.chiseled_bookshelf","block.minecraft.decorated_pot","block.minecraft.mossy_cobblestone","block.minecraft.obsidian","block.minecraft.torch","block.minecraft.end_rod","block.minecraft.chorus_plant","block.minecraft.chorus_flower","block.minecraft.purpur_block","block.minecraft.purpur_pillar","block.minecraft.purpur_stairs","block.minecraft.spawner","block.minecraft.creaking_heart","block.minecraft.chest","block.minecraft.crafting_table","block.minecraft.farmland","block.minecraft.furnace","block.minecraft.ladder","block.minecraft.cobblestone_stairs","block.minecraft.snow","block.minecraft.ice","block.minecraft.snow_block","block.minecraft.cactus","block.minecraft.cactus_flower","block.minecraft.clay","block.minecraft.jukebox","block.minecraft.oak_fence","block.minecraft.spruce_fence","block.minecraft.birch_fence","block.minecraft.jungle_fence","block.minecraft.acacia_fence","block.minecraft.cherry_fence","block.minecraft.dark_oak_fence","block.minecraft.pale_oak_fence","block.minecraft.mangrove_fence","block.minecraft.poplar_fence","block.minecraft.bamboo_fence","block.minecraft.crimson_fence","block.minecraft.warped_fence","block.minecraft.pumpkin","block.minecraft.carved_pumpkin","block.minecraft.jack_o_lantern","block.minecraft.netherrack","block.minecraft.soul_sand","block.minecraft.soul_soil","block.minecraft.basalt","block.minecraft.polished_basalt","block.minecraft.smooth_basalt","block.minecraft.soul_torch","block.minecraft.copper_torch","block.minecraft.glowstone","block.minecraft.infested_stone","block.minecraft.infested_cobblestone","block.minecraft.infested_stone_bricks","block.minecraft.infested_mossy_stone_bricks","block.minecraft.infested_cracked_stone_bricks","block.minecraft.infested_chiseled_stone_bricks","block.minecraft.infested_deepslate","block.minecraft.stone_bricks","block.minecraft.mossy_stone_bricks","block.minecraft.cracked_stone_bricks","block.minecraft.chiseled_stone_bricks","block.minecraft.packed_mud","block.minecraft.mud_bricks","block.minecraft.deepslate_bricks","block.minecraft.cracked_deepslate_bricks","block.minecraft.deepslate_tiles","block.minecraft.cracked_deepslate_tiles","block.minecraft.chiseled_deepslate","block.minecraft.reinforced_deepslate","block.minecraft.brown_mushroom_block","block.minecraft.red_mushroom_block","block.minecraft.mushroom_stem","block.minecraft.iron_bars","block.minecraft.copper_bars","block.minecraft.exposed_copper_bars","block.minecraft.weathered_copper_bars","block.minecraft.oxidized_copper_bars","block.minecraft.waxed_copper_bars","block.minecraft.waxed_exposed_copper_bars","block.minecraft.waxed_weathered_copper_bars","block.minecraft.waxed_oxidized_copper_bars","block.minecraft.iron_chain","block.minecraft.copper_chain","block.minecraft.exposed_copper_chain","block.minecraft.weathered_copper_chain","block.minecraft.oxidized_copper_chain","block.minecraft.waxed_copper_chain","block.minecraft.waxed_exposed_copper_chain","block.minecraft.waxed_weathered_copper_chain","block.minecraft.waxed_oxidized_copper_chain","block.minecraft.glass_pane","block.minecraft.melon","block.minecraft.vine","block.minecraft.glow_lichen","item.minecraft.resin_clump","block.minecraft.resin_block","block.minecraft.resin_bricks","block.minecraft.resin_brick_stairs","block.minecraft.resin_brick_slab","block.minecraft.resin_brick_wall","block.minecraft.chiseled_resin_bricks","block.minecraft.brick_stairs","block.minecraft.stone_brick_stairs","block.minecraft.mud_brick_stairs","block.minecraft.mycelium","block.minecraft.lily_pad","block.minecraft.nether_bricks","block.minecraft.cracked_nether_bricks","block.minecraft.chiseled_nether_bricks","block.minecraft.nether_brick_fence","block.minecraft.nether_brick_stairs","block.minecraft.sculk","block.minecraft.sculk_vein","block.minecraft.sculk_catalyst","block.minecraft.sculk_shrieker","block.minecraft.enchanting_table","block.minecraft.end_portal_frame","block.minecraft.end_stone","block.minecraft.end_stone_bricks","block.minecraft.dragon_egg","block.minecraft.sandstone_stairs","block.minecraft.ender_chest","block.minecraft.emerald_block","block.minecraft.oak_stairs","block.minecraft.spruce_stairs","block.minecraft.birch_stairs","block.minecraft.jungle_stairs","block.minecraft.acacia_stairs","block.minecraft.cherry_stairs","block.minecraft.dark_oak_stairs","block.minecraft.pale_oak_stairs","block.minecraft.mangrove_stairs","block.minecraft.poplar_stairs","block.minecraft.bamboo_stairs","block.minecraft.bamboo_mosaic_stairs","block.minecraft.crimson_stairs","block.minecraft.warped_stairs","block.minecraft.command_block","block.minecraft.beacon","block.minecraft.cobblestone_wall","block.minecraft.mossy_cobblestone_wall","block.minecraft.brick_wall","block.minecraft.prismarine_wall","block.minecraft.red_sandstone_wall","block.minecraft.mossy_stone_brick_wall","block.minecraft.granite_wall","block.minecraft.stone_brick_wall","block.minecraft.mud_brick_wall","block.minecraft.nether_brick_wall","block.minecraft.andesite_wall","block.minecraft.red_nether_brick_wall","block.minecraft.sandstone_wall","block.minecraft.end_stone_brick_wall","block.minecraft.diorite_wall","block.minecraft.blackstone_wall","block.minecraft.polished_blackstone_wall","block.minecraft.polished_blackstone_brick_wall","block.minecraft.cobbled_deepslate_wall","block.minecraft.polished_deepslate_wall","block.minecraft.deepslate_brick_wall","block.minecraft.deepslate_tile_wall","block.minecraft.anvil","block.minecraft.chipped_anvil","block.minecraft.damaged_anvil","block.minecraft.chiseled_quartz_block","block.minecraft.quartz_block","block.minecraft.quartz_bricks","block.minecraft.quartz_pillar","block.minecraft.quartz_stairs","block.minecraft.white_terracotta","block.minecraft.orange_terracotta","block.minecraft.magenta_terracotta","block.minecraft.light_blue_terracotta","block.minecraft.yellow_terracotta","block.minecraft.lime_terracotta","block.minecraft.pink_terracotta","block.minecraft.gray_terracotta","block.minecraft.light_gray_terracotta","block.minecraft.cyan_terracotta","block.minecraft.purple_terracotta","block.minecraft.blue_terracotta","block.minecraft.brown_terracotta","block.minecraft.green_terracotta","block.minecraft.red_terracotta","block.minecraft.black_terracotta","block.minecraft.barrier","block.minecraft.light","block.minecraft.hay_block","block.minecraft.white_carpet","block.minecraft.orange_carpet","block.minecraft.magenta_carpet","block.minecraft.light_blue_carpet","block.minecraft.yellow_carpet","block.minecraft.lime_carpet","block.minecraft.pink_carpet","block.minecraft.gray_carpet","block.minecraft.light_gray_carpet","block.minecraft.cyan_carpet","block.minecraft.purple_carpet","block.minecraft.blue_carpet","block.minecraft.brown_carpet","block.minecraft.green_carpet","block.minecraft.red_carpet","block.minecraft.black_carpet","block.minecraft.terracotta","block.minecraft.packed_ice","block.minecraft.dirt_path","block.minecraft.sunflower","block.minecraft.lilac","block.minecraft.rose_bush","block.minecraft.peony","block.minecraft.tall_grass","block.minecraft.large_fern","block.minecraft.white_stained_glass","block.minecraft.orange_stained_glass","block.minecraft.magenta_stained_glass","block.minecraft.light_blue_stained_glass","block.minecraft.yellow_stained_glass","block.minecraft.lime_stained_glass","block.minecraft.pink_stained_glass","block.minecraft.gray_stained_glass","block.minecraft.light_gray_stained_glass","block.minecraft.cyan_stained_glass","block.minecraft.purple_stained_glass","block.minecraft.blue_stained_glass","block.minecraft.brown_stained_glass","block.minecraft.green_stained_glass","block.minecraft.red_stained_glass","block.minecraft.black_stained_glass","block.minecraft.white_stained_glass_pane","block.minecraft.orange_stained_glass_pane","block.minecraft.magenta_stained_glass_pane","block.minecraft.light_blue_stained_glass_pane","block.minecraft.yellow_stained_glass_pane","block.minecraft.lime_stained_glass_pane","block.minecraft.pink_stained_glass_pane","block.minecraft.gray_stained_glass_pane","block.minecraft.light_gray_stained_glass_pane","block.minecraft.cyan_stained_glass_pane","block.minecraft.purple_stained_glass_pane","block.minecraft.blue_stained_glass_pane","block.minecraft.brown_stained_glass_pane","block.minecraft.green_stained_glass_pane","block.minecraft.red_stained_glass_pane","block.minecraft.black_stained_glass_pane","block.minecraft.prismarine","block.minecraft.prismarine_bricks","block.minecraft.dark_prismarine","block.minecraft.prismarine_stairs","block.minecraft.prismarine_brick_stairs","block.minecraft.dark_prismarine_stairs","block.minecraft.sea_lantern","block.minecraft.red_sandstone","block.minecraft.chiseled_red_sandstone","block.minecraft.cut_red_sandstone","block.minecraft.red_sandstone_stairs","block.minecraft.repeating_command_block","block.minecraft.chain_command_block","block.minecraft.magma_block","block.minecraft.nether_wart_block","block.minecraft.warped_wart_block","block.minecraft.red_nether_bricks","block.minecraft.bone_block","block.minecraft.structure_void","block.minecraft.shulker_box","block.minecraft.white_shulker_box","block.minecraft.orange_shulker_box","block.minecraft.magenta_shulker_box","block.minecraft.light_blue_shulker_box","block.minecraft.yellow_shulker_box","block.minecraft.lime_shulker_box","block.minecraft.pink_shulker_box","block.minecraft.gray_shulker_box","block.minecraft.light_gray_shulker_box","block.minecraft.cyan_shulker_box","block.minecraft.purple_shulker_box","block.minecraft.blue_shulker_box","block.minecraft.brown_shulker_box","block.minecraft.green_shulker_box","block.minecraft.red_shulker_box","block.minecraft.black_shulker_box","block.minecraft.white_glazed_terracotta","block.minecraft.orange_glazed_terracotta","block.minecraft.magenta_glazed_terracotta","block.minecraft.light_blue_glazed_terracotta","block.minecraft.yellow_glazed_terracotta","block.minecraft.lime_glazed_terracotta","block.minecraft.pink_glazed_terracotta","block.minecraft.gray_glazed_terracotta","block.minecraft.light_gray_glazed_terracotta","block.minecraft.cyan_glazed_terracotta","block.minecraft.purple_glazed_terracotta","block.minecraft.blue_glazed_terracotta","block.minecraft.brown_glazed_terracotta","block.minecraft.green_glazed_terracotta","block.minecraft.red_glazed_terracotta","block.minecraft.black_glazed_terracotta","block.minecraft.white_concrete","block.minecraft.orange_concrete","block.minecraft.magenta_concrete","block.minecraft.light_blue_concrete","block.minecraft.yellow_concrete","block.minecraft.lime_concrete","block.minecraft.pink_concrete","block.minecraft.gray_concrete","block.minecraft.light_gray_concrete","block.minecraft.cyan_concrete","block.minecraft.purple_concrete","block.minecraft.blue_concrete","block.minecraft.brown_concrete","block.minecraft.green_concrete","block.minecraft.red_concrete","block.minecraft.black_concrete","block.minecraft.white_concrete_stairs","block.minecraft.orange_concrete_stairs","block.minecraft.magenta_concrete_stairs","block.minecraft.light_blue_concrete_stairs","block.minecraft.yellow_concrete_stairs","block.minecraft.lime_concrete_stairs","block.minecraft.pink_concrete_stairs","block.minecraft.gray_concrete_stairs","block.minecraft.light_gray_concrete_stairs","block.minecraft.cyan_concrete_stairs","block.minecraft.purple_concrete_stairs","block.minecraft.blue_concrete_stairs","block.minecraft.brown_concrete_stairs","block.minecraft.green_concrete_stairs","block.minecraft.red_concrete_stairs","block.minecraft.black_concrete_stairs","block.minecraft.white_concrete_slab","block.minecraft.orange_concrete_slab","block.minecraft.magenta_concrete_slab","block.minecraft.light_blue_concrete_slab","block.minecraft.yellow_concrete_slab","block.minecraft.lime_concrete_slab","block.minecraft.pink_concrete_slab","block.minecraft.gray_concrete_slab","block.minecraft.light_gray_concrete_slab","block.minecraft.cyan_concrete_slab","block.minecraft.purple_concrete_slab","block.minecraft.blue_concrete_slab","block.minecraft.brown_concrete_slab","block.minecraft.green_concrete_slab","block.minecraft.red_concrete_slab","block.minecraft.black_concrete_slab","block.minecraft.white_concrete_powder","block.minecraft.orange_concrete_powder","block.minecraft.magenta_concrete_powder","block.minecraft.light_blue_concrete_powder","block.minecraft.yellow_concrete_powder","block.minecraft.lime_concrete_powder","block.minecraft.pink_concrete_powder","block.minecraft.gray_concrete_powder","block.minecraft.light_gray_concrete_powder","block.minecraft.cyan_concrete_powder","block.minecraft.purple_concrete_powder","block.minecraft.blue_concrete_powder","block.minecraft.brown_concrete_powder","block.minecraft.green_concrete_powder","block.minecraft.red_concrete_powder","block.minecraft.black_concrete_powder","block.minecraft.turtle_egg","block.minecraft.sniffer_egg","block.minecraft.dried_ghast","block.minecraft.dead_tube_coral_block","block.minecraft.dead_brain_coral_block","block.minecraft.dead_bubble_coral_block","block.minecraft.dead_fire_coral_block","block.minecraft.dead_horn_coral_block","block.minecraft.tube_coral_block","block.minecraft.brain_coral_block","block.minecraft.bubble_coral_block","block.minecraft.fire_coral_block","block.minecraft.horn_coral_block","block.minecraft.tube_coral","block.minecraft.brain_coral","block.minecraft.bubble_coral","block.minecraft.fire_coral","block.minecraft.horn_coral","block.minecraft.dead_brain_coral","block.minecraft.dead_bubble_coral","block.minecraft.dead_fire_coral","block.minecraft.dead_horn_coral","block.minecraft.dead_tube_coral","block.minecraft.tube_coral_fan","block.minecraft.brain_coral_fan","block.minecraft.bubble_coral_fan","block.minecraft.fire_coral_fan","block.minecraft.horn_coral_fan","block.minecraft.dead_tube_coral_fan","block.minecraft.dead_brain_coral_fan","block.minecraft.dead_bubble_coral_fan","block.minecraft.dead_fire_coral_fan","block.minecraft.dead_horn_coral_fan","block.minecraft.blue_ice","block.minecraft.conduit","block.minecraft.polished_granite_stairs","block.minecraft.smooth_red_sandstone_stairs","block.minecraft.mossy_stone_brick_stairs","block.minecraft.polished_diorite_stairs","block.minecraft.mossy_cobblestone_stairs","block.minecraft.end_stone_brick_stairs","block.minecraft.stone_stairs","block.minecraft.smooth_sandstone_stairs","block.minecraft.smooth_quartz_stairs","block.minecraft.granite_stairs","block.minecraft.andesite_stairs","block.minecraft.red_nether_brick_stairs","block.minecraft.polished_andesite_stairs","block.minecraft.diorite_stairs","block.minecraft.cobbled_deepslate_stairs","block.minecraft.polished_deepslate_stairs","block.minecraft.deepslate_brick_stairs","block.minecraft.deepslate_tile_stairs","block.minecraft.polished_granite_slab","block.minecraft.smooth_red_sandstone_slab","block.minecraft.mossy_stone_brick_slab","block.minecraft.polished_diorite_slab","block.minecraft.mossy_cobblestone_slab","block.minecraft.end_stone_brick_slab","block.minecraft.smooth_sandstone_slab","block.minecraft.smooth_quartz_slab","block.minecraft.granite_slab","block.minecraft.andesite_slab","block.minecraft.red_nether_brick_slab","block.minecraft.polished_andesite_slab","block.minecraft.diorite_slab","block.minecraft.cobbled_deepslate_slab","block.minecraft.polished_deepslate_slab","block.minecraft.deepslate_brick_slab","block.minecraft.deepslate_tile_slab","block.minecraft.scaffolding","item.minecraft.redstone","block.minecraft.redstone_torch","block.minecraft.redstone_block","block.minecraft.repeater","block.minecraft.comparator","block.minecraft.piston","block.minecraft.sticky_piston","block.minecraft.slime_block","block.minecraft.honey_block","block.minecraft.observer","block.minecraft.hopper","block.minecraft.dispenser","block.minecraft.dropper","block.minecraft.lectern","block.minecraft.target","block.minecraft.lever","block.minecraft.lightning_rod","block.minecraft.exposed_lightning_rod","block.minecraft.weathered_lightning_rod","block.minecraft.oxidized_lightning_rod","block.minecraft.waxed_lightning_rod","block.minecraft.waxed_exposed_lightning_rod","block.minecraft.waxed_weathered_lightning_rod","block.minecraft.waxed_oxidized_lightning_rod","block.minecraft.daylight_detector","block.minecraft.sculk_sensor","block.minecraft.calibrated_sculk_sensor","block.minecraft.tripwire_hook","block.minecraft.trapped_chest","block.minecraft.tnt","block.minecraft.redstone_lamp","block.minecraft.note_block","block.minecraft.stone_button","block.minecraft.polished_blackstone_button","block.minecraft.oak_button","block.minecraft.spruce_button","block.minecraft.birch_button","block.minecraft.jungle_button","block.minecraft.acacia_button","block.minecraft.cherry_button","block.minecraft.dark_oak_button","block.minecraft.pale_oak_button","block.minecraft.mangrove_button","block.minecraft.poplar_button","block.minecraft.bamboo_button","block.minecraft.crimson_button","block.minecraft.warped_button","block.minecraft.stone_pressure_plate","block.minecraft.polished_blackstone_pressure_plate","block.minecraft.light_weighted_pressure_plate","block.minecraft.heavy_weighted_pressure_plate","block.minecraft.oak_pressure_plate","block.minecraft.spruce_pressure_plate","block.minecraft.birch_pressure_plate","block.minecraft.jungle_pressure_plate","block.minecraft.acacia_pressure_plate","block.minecraft.cherry_pressure_plate","block.minecraft.dark_oak_pressure_plate","block.minecraft.pale_oak_pressure_plate","block.minecraft.mangrove_pressure_plate","block.minecraft.poplar_pressure_plate","block.minecraft.bamboo_pressure_plate","block.minecraft.crimson_pressure_plate","block.minecraft.warped_pressure_plate","block.minecraft.iron_door","block.minecraft.oak_door","block.minecraft.spruce_door","block.minecraft.birch_door","block.minecraft.jungle_door","block.minecraft.acacia_door","block.minecraft.cherry_door","block.minecraft.dark_oak_door","block.minecraft.pale_oak_door","block.minecraft.mangrove_door","block.minecraft.poplar_door","block.minecraft.bamboo_door","block.minecraft.crimson_door","block.minecraft.warped_door","block.minecraft.copper_door","block.minecraft.exposed_copper_door","block.minecraft.weathered_copper_door","block.minecraft.oxidized_copper_door","block.minecraft.waxed_copper_door","block.minecraft.waxed_exposed_copper_door","block.minecraft.waxed_weathered_copper_door","block.minecraft.waxed_oxidized_copper_door","block.minecraft.iron_trapdoor","block.minecraft.oak_trapdoor","block.minecraft.spruce_trapdoor","block.minecraft.birch_trapdoor","block.minecraft.jungle_trapdoor","block.minecraft.acacia_trapdoor","block.minecraft.cherry_trapdoor","block.minecraft.dark_oak_trapdoor","block.minecraft.pale_oak_trapdoor","block.minecraft.mangrove_trapdoor","block.minecraft.poplar_trapdoor","block.minecraft.bamboo_trapdoor","block.minecraft.crimson_trapdoor","block.minecraft.warped_trapdoor","block.minecraft.copper_trapdoor","block.minecraft.exposed_copper_trapdoor","block.minecraft.weathered_copper_trapdoor","block.minecraft.oxidized_copper_trapdoor","block.minecraft.waxed_copper_trapdoor","block.minecraft.waxed_exposed_copper_trapdoor","block.minecraft.waxed_weathered_copper_trapdoor","block.minecraft.waxed_oxidized_copper_trapdoor","block.minecraft.oak_fence_gate","block.minecraft.spruce_fence_gate","block.minecraft.birch_fence_gate","block.minecraft.jungle_fence_gate","block.minecraft.acacia_fence_gate","block.minecraft.cherry_fence_gate","block.minecraft.dark_oak_fence_gate","block.minecraft.pale_oak_fence_gate","block.minecraft.mangrove_fence_gate","block.minecraft.poplar_fence_gate","block.minecraft.bamboo_fence_gate","block.minecraft.crimson_fence_gate","block.minecraft.warped_fence_gate","block.minecraft.powered_rail","block.minecraft.detector_rail","block.minecraft.rail","block.minecraft.activator_rail","item.minecraft.saddle","item.minecraft.white_harness","item.minecraft.orange_harness","item.minecraft.magenta_harness","item.minecraft.light_blue_harness","item.minecraft.yellow_harness","item.minecraft.lime_harness","item.minecraft.pink_harness","item.minecraft.gray_harness","item.minecraft.light_gray_harness","item.minecraft.cyan_harness","item.minecraft.purple_harness","item.minecraft.blue_harness","item.minecraft.brown_harness","item.minecraft.green_harness","item.minecraft.red_harness","item.minecraft.black_harness","item.minecraft.minecart","item.minecraft.chest_minecart","item.minecraft.furnace_minecart","item.minecraft.tnt_minecart","item.minecraft.hopper_minecart","item.minecraft.carrot_on_a_stick","item.minecraft.warped_fungus_on_a_stick","item.minecraft.phantom_membrane","item.minecraft.elytra","item.minecraft.oak_boat","item.minecraft.oak_chest_boat","item.minecraft.spruce_boat","item.minecraft.spruce_chest_boat","item.minecraft.birch_boat","item.minecraft.birch_chest_boat","item.minecraft.jungle_boat","item.minecraft.jungle_chest_boat","item.minecraft.acacia_boat","item.minecraft.acacia_chest_boat","item.minecraft.cherry_boat","item.minecraft.cherry_chest_boat","item.minecraft.dark_oak_boat","item.minecraft.dark_oak_chest_boat","item.minecraft.pale_oak_boat","item.minecraft.pale_oak_chest_boat","item.minecraft.mangrove_boat","item.minecraft.mangrove_chest_boat","item.minecraft.poplar_boat","item.minecraft.poplar_chest_boat","item.minecraft.bamboo_raft","item.minecraft.bamboo_chest_raft","block.minecraft.structure_block","block.minecraft.jigsaw","block.minecraft.test_block","block.minecraft.test_instance_block","item.minecraft.turtle_helmet","item.minecraft.turtle_scute","item.minecraft.armadillo_scute","item.minecraft.wolf_armor","item.minecraft.flint_and_steel","item.minecraft.bowl","item.minecraft.apple","item.minecraft.bow","item.minecraft.arrow","item.minecraft.coal","item.minecraft.charcoal","item.minecraft.diamond","item.minecraft.emerald","item.minecraft.lapis_lazuli","item.minecraft.quartz","item.minecraft.amethyst_shard","item.minecraft.raw_iron","item.minecraft.iron_ingot","item.minecraft.raw_copper","item.minecraft.copper_ingot","item.minecraft.raw_gold","item.minecraft.gold_ingot","item.minecraft.netherite_ingot","item.minecraft.netherite_scrap","item.minecraft.wooden_sword","item.minecraft.wooden_shovel","item.minecraft.wooden_pickaxe","item.minecraft.wooden_axe","item.minecraft.wooden_hoe","item.minecraft.copper_sword","item.minecraft.copper_shovel","item.minecraft.copper_pickaxe","item.minecraft.copper_axe","item.minecraft.copper_hoe","item.minecraft.stone_sword","item.minecraft.stone_shovel","item.minecraft.stone_pickaxe","item.minecraft.stone_axe","item.minecraft.stone_hoe","item.minecraft.golden_sword","item.minecraft.golden_shovel","item.minecraft.golden_pickaxe","item.minecraft.golden_axe","item.minecraft.golden_hoe","item.minecraft.iron_sword","item.minecraft.iron_shovel","item.minecraft.iron_pickaxe","item.minecraft.iron_axe","item.minecraft.iron_hoe","item.minecraft.diamond_sword","item.minecraft.diamond_shovel","item.minecraft.diamond_pickaxe","item.minecraft.diamond_axe","item.minecraft.diamond_hoe","item.minecraft.netherite_sword","item.minecraft.netherite_shovel","item.minecraft.netherite_pickaxe","item.minecraft.netherite_axe","item.minecraft.netherite_hoe","item.minecraft.stick","item.minecraft.mushroom_stew","item.minecraft.string","item.minecraft.feather","item.minecraft.gunpowder","item.minecraft.wheat_seeds","item.minecraft.wheat","item.minecraft.bread","item.minecraft.leather_helmet","item.minecraft.leather_chestplate","item.minecraft.leather_leggings","item.minecraft.leather_boots","item.minecraft.copper_helmet","item.minecraft.copper_chestplate","item.minecraft.copper_leggings","item.minecraft.copper_boots","item.minecraft.chainmail_helmet","item.minecraft.chainmail_chestplate","item.minecraft.chainmail_leggings","item.minecraft.chainmail_boots","item.minecraft.iron_helmet","item.minecraft.iron_chestplate","item.minecraft.iron_leggings","item.minecraft.iron_boots","item.minecraft.diamond_helmet","item.minecraft.diamond_chestplate","item.minecraft.diamond_leggings","item.minecraft.diamond_boots","item.minecraft.golden_helmet","item.minecraft.golden_chestplate","item.minecraft.golden_leggings","item.minecraft.golden_boots","item.minecraft.netherite_helmet","item.minecraft.netherite_chestplate","item.minecraft.netherite_leggings","item.minecraft.netherite_boots","item.minecraft.flint","item.minecraft.porkchop","item.minecraft.cooked_porkchop","item.minecraft.painting","item.minecraft.golden_apple","item.minecraft.enchanted_golden_apple","block.minecraft.oak_sign","block.minecraft.spruce_sign","block.minecraft.birch_sign","block.minecraft.jungle_sign","block.minecraft.acacia_sign","block.minecraft.cherry_sign","block.minecraft.dark_oak_sign","block.minecraft.pale_oak_sign","block.minecraft.mangrove_sign","block.minecraft.poplar_sign","block.minecraft.bamboo_sign","block.minecraft.crimson_sign","block.minecraft.warped_sign","block.minecraft.oak_hanging_sign","block.minecraft.spruce_hanging_sign","block.minecraft.birch_hanging_sign","block.minecraft.jungle_hanging_sign","block.minecraft.acacia_hanging_sign","block.minecraft.cherry_hanging_sign","block.minecraft.dark_oak_hanging_sign","block.minecraft.pale_oak_hanging_sign","block.minecraft.mangrove_hanging_sign","block.minecraft.poplar_hanging_sign","block.minecraft.bamboo_hanging_sign","block.minecraft.crimson_hanging_sign","block.minecraft.warped_hanging_sign","item.minecraft.bucket","item.minecraft.water_bucket","item.minecraft.lava_bucket","item.minecraft.powder_snow_bucket","item.minecraft.snowball","item.minecraft.leather","item.minecraft.milk_bucket","item.minecraft.pufferfish_bucket","item.minecraft.salmon_bucket","item.minecraft.cod_bucket","item.minecraft.tropical_fish_bucket","item.minecraft.axolotl_bucket","item.minecraft.sulfur_cube_bucket","item.minecraft.tadpole_bucket","item.minecraft.brick","item.minecraft.clay_ball","block.minecraft.dried_kelp_block","item.minecraft.paper","item.minecraft.book","item.minecraft.slime_ball","item.minecraft.egg","item.minecraft.blue_egg","item.minecraft.brown_egg","item.minecraft.compass","item.minecraft.recovery_compass","item.minecraft.bundle","item.minecraft.white_bundle","item.minecraft.orange_bundle","item.minecraft.magenta_bundle","item.minecraft.light_blue_bundle","item.minecraft.yellow_bundle","item.minecraft.lime_bundle","item.minecraft.pink_bundle","item.minecraft.gray_bundle","item.minecraft.light_gray_bundle","item.minecraft.cyan_bundle","item.minecraft.purple_bundle","item.minecraft.blue_bundle","item.minecraft.brown_bundle","item.minecraft.green_bundle","item.minecraft.red_bundle","item.minecraft.black_bundle","item.minecraft.white_cushion","item.minecraft.orange_cushion","item.minecraft.magenta_cushion","item.minecraft.light_blue_cushion","item.minecraft.yellow_cushion","item.minecraft.lime_cushion","item.minecraft.pink_cushion","item.minecraft.gray_cushion","item.minecraft.light_gray_cushion","item.minecraft.cyan_cushion","item.minecraft.purple_cushion","item.minecraft.blue_cushion","item.minecraft.brown_cushion","item.minecraft.green_cushion","item.minecraft.red_cushion","item.minecraft.black_cushion","item.minecraft.fishing_rod","item.minecraft.clock","item.minecraft.spyglass","item.minecraft.glowstone_dust","item.minecraft.cod","item.minecraft.salmon","item.minecraft.tropical_fish","item.minecraft.pufferfish","item.minecraft.cooked_cod","item.minecraft.cooked_salmon","item.minecraft.ink_sac","item.minecraft.glow_ink_sac","item.minecraft.cocoa_beans","item.minecraft.white_dye","item.minecraft.orange_dye","item.minecraft.magenta_dye","item.minecraft.light_blue_dye","item.minecraft.yellow_dye","item.minecraft.lime_dye","item.minecraft.pink_dye","item.minecraft.gray_dye","item.minecraft.light_gray_dye","item.minecraft.cyan_dye","item.minecraft.purple_dye","item.minecraft.blue_dye","item.minecraft.brown_dye","item.minecraft.green_dye","item.minecraft.red_dye","item.minecraft.black_dye","item.minecraft.bone_meal","item.minecraft.bone","item.minecraft.sugar","block.minecraft.cake","block.minecraft.white_bed","block.minecraft.orange_bed","block.minecraft.magenta_bed","block.minecraft.light_blue_bed","block.minecraft.yellow_bed","block.minecraft.lime_bed","block.minecraft.pink_bed","block.minecraft.gray_bed","block.minecraft.light_gray_bed","block.minecraft.cyan_bed","block.minecraft.purple_bed","block.minecraft.blue_bed","block.minecraft.brown_bed","block.minecraft.green_bed","block.minecraft.red_bed","block.minecraft.black_bed","block.minecraft.straw_bed","item.minecraft.cookie","block.minecraft.crafter","item.minecraft.filled_map","item.minecraft.ocean_monument_map","item.minecraft.woodland_mansion_map","item.minecraft.buried_trial_chambers_map","item.minecraft.jungle_pyramid_map","item.minecraft.swamp_hut_map","item.minecraft.desert_village_map","item.minecraft.plains_village_map","item.minecraft.savanna_village_map","item.minecraft.snowy_village_map","item.minecraft.taiga_village_map","item.minecraft.buried_treasure_map","item.minecraft.buried_ancient_city_map","item.minecraft.buried_mineshaft_map","item.minecraft.desert_pyramid_map","item.minecraft.abandoned_camp_map","item.minecraft.warm_ocean_ruins_map","item.minecraft.shears","item.minecraft.melon_slice","item.minecraft.dried_kelp","item.minecraft.pumpkin_seeds","item.minecraft.melon_seeds","item.minecraft.beef","item.minecraft.cooked_beef","item.minecraft.chicken","item.minecraft.cooked_chicken","item.minecraft.rotten_flesh","item.minecraft.ender_pearl","item.minecraft.blaze_rod","item.minecraft.ghast_tear","item.minecraft.gold_nugget","item.minecraft.nether_wart","item.minecraft.glass_bottle","item.minecraft.potion","item.minecraft.spider_eye","item.minecraft.fermented_spider_eye","item.minecraft.blaze_powder","item.minecraft.magma_cream","block.minecraft.brewing_stand","block.minecraft.cauldron","item.minecraft.ender_eye","item.minecraft.glistering_melon_slice","item.minecraft.chicken_spawn_egg","item.minecraft.cow_spawn_egg","item.minecraft.pig_spawn_egg","item.minecraft.sheep_spawn_egg","item.minecraft.camel_spawn_egg","item.minecraft.donkey_spawn_egg","item.minecraft.horse_spawn_egg","item.minecraft.mule_spawn_egg","item.minecraft.cat_spawn_egg","item.minecraft.parrot_spawn_egg","item.minecraft.wolf_spawn_egg","item.minecraft.armadillo_spawn_egg","item.minecraft.bat_spawn_egg","item.minecraft.bee_spawn_egg","item.minecraft.fox_spawn_egg","item.minecraft.goat_spawn_egg","item.minecraft.llama_spawn_egg","item.minecraft.ocelot_spawn_egg","item.minecraft.panda_spawn_egg","item.minecraft.polar_bear_spawn_egg","item.minecraft.rabbit_spawn_egg","item.minecraft.axolotl_spawn_egg","item.minecraft.cod_spawn_egg","item.minecraft.dolphin_spawn_egg","item.minecraft.frog_spawn_egg","item.minecraft.glow_squid_spawn_egg","item.minecraft.nautilus_spawn_egg","item.minecraft.pufferfish_spawn_egg","item.minecraft.salmon_spawn_egg","item.minecraft.squid_spawn_egg","item.minecraft.tadpole_spawn_egg","item.minecraft.tropical_fish_spawn_egg","item.minecraft.turtle_spawn_egg","item.minecraft.allay_spawn_egg","item.minecraft.mooshroom_spawn_egg","item.minecraft.sniffer_spawn_egg","item.minecraft.sulfur_cube_spawn_egg","item.minecraft.copper_golem_spawn_egg","item.minecraft.iron_golem_spawn_egg","item.minecraft.snow_golem_spawn_egg","item.minecraft.trader_llama_spawn_egg","item.minecraft.villager_spawn_egg","item.minecraft.wandering_trader_spawn_egg","item.minecraft.bogged_spawn_egg","item.minecraft.camel_husk_spawn_egg","item.minecraft.drowned_spawn_egg","item.minecraft.husk_spawn_egg","item.minecraft.parched_spawn_egg","item.minecraft.skeleton_spawn_egg","item.minecraft.skeleton_horse_spawn_egg","item.minecraft.stray_spawn_egg","item.minecraft.wither_spawn_egg","item.minecraft.wither_skeleton_spawn_egg","item.minecraft.zombie_spawn_egg","item.minecraft.zombie_horse_spawn_egg","item.minecraft.zombie_nautilus_spawn_egg","item.minecraft.zombie_villager_spawn_egg","item.minecraft.cave_spider_spawn_egg","item.minecraft.spider_spawn_egg","item.minecraft.breeze_spawn_egg","item.minecraft.creaking_spawn_egg","item.minecraft.creeper_spawn_egg","item.minecraft.elder_guardian_spawn_egg","item.minecraft.guardian_spawn_egg","item.minecraft.phantom_spawn_egg","item.minecraft.silverfish_spawn_egg","item.minecraft.slime_spawn_egg","item.minecraft.warden_spawn_egg","item.minecraft.witch_spawn_egg","item.minecraft.evoker_spawn_egg","item.minecraft.pillager_spawn_egg","item.minecraft.ravager_spawn_egg","item.minecraft.vindicator_spawn_egg","item.minecraft.vex_spawn_egg","item.minecraft.blaze_spawn_egg","item.minecraft.ghast_spawn_egg","item.minecraft.happy_ghast_spawn_egg","item.minecraft.hoglin_spawn_egg","item.minecraft.magma_cube_spawn_egg","item.minecraft.piglin_spawn_egg","item.minecraft.piglin_brute_spawn_egg","item.minecraft.strider_spawn_egg","item.minecraft.zoglin_spawn_egg","item.minecraft.zombified_piglin_spawn_egg","item.minecraft.ender_dragon_spawn_egg","item.minecraft.enderman_spawn_egg","item.minecraft.endermite_spawn_egg","item.minecraft.shulker_spawn_egg","item.minecraft.experience_bottle","item.minecraft.fire_charge","item.minecraft.wind_charge","item.minecraft.writable_book","item.minecraft.written_book","item.minecraft.breeze_rod","item.minecraft.mace","item.minecraft.item_frame","item.minecraft.glow_item_frame","block.minecraft.flower_pot","item.minecraft.carrot","item.minecraft.potato","item.minecraft.baked_potato","item.minecraft.poisonous_potato","item.minecraft.map","item.minecraft.golden_carrot","block.minecraft.skeleton_skull","block.minecraft.wither_skeleton_skull","block.minecraft.player_head","block.minecraft.zombie_head","block.minecraft.creeper_head","block.minecraft.dragon_head","block.minecraft.piglin_head","item.minecraft.nether_star","item.minecraft.pumpkin_pie","item.minecraft.firework_rocket","item.minecraft.firework_star","item.minecraft.enchanted_book","item.minecraft.nether_brick","item.minecraft.resin_brick","item.minecraft.prismarine_shard","item.minecraft.prismarine_crystals","item.minecraft.rabbit","item.minecraft.cooked_rabbit","item.minecraft.rabbit_stew","item.minecraft.rabbit_foot","item.minecraft.rabbit_hide","item.minecraft.armor_stand","item.minecraft.copper_horse_armor","item.minecraft.iron_horse_armor","item.minecraft.golden_horse_armor","item.minecraft.diamond_horse_armor","item.minecraft.netherite_horse_armor","item.minecraft.leather_horse_armor","item.minecraft.lead","item.minecraft.name_tag","item.minecraft.command_block_minecart","item.minecraft.mutton","item.minecraft.cooked_mutton","block.minecraft.white_banner","block.minecraft.orange_banner","block.minecraft.magenta_banner","block.minecraft.light_blue_banner","block.minecraft.yellow_banner","block.minecraft.lime_banner","block.minecraft.pink_banner","block.minecraft.gray_banner","block.minecraft.light_gray_banner","block.minecraft.cyan_banner","block.minecraft.purple_banner","block.minecraft.blue_banner","block.minecraft.brown_banner","block.minecraft.green_banner","block.minecraft.red_banner","block.minecraft.black_banner","item.minecraft.end_crystal","item.minecraft.chorus_fruit","item.minecraft.popped_chorus_fruit","item.minecraft.torchflower_seeds","item.minecraft.pitcher_pod","item.minecraft.beetroot","item.minecraft.beetroot_seeds","item.minecraft.beetroot_soup","item.minecraft.dragon_breath","item.minecraft.splash_potion","item.minecraft.spectral_arrow","item.minecraft.tipped_arrow","item.minecraft.lingering_potion","item.minecraft.shield","item.minecraft.wooden_spear","item.minecraft.stone_spear","item.minecraft.copper_spear","item.minecraft.iron_spear","item.minecraft.golden_spear","item.minecraft.diamond_spear","item.minecraft.netherite_spear","item.minecraft.totem_of_undying","item.minecraft.shulker_shell","item.minecraft.iron_nugget","item.minecraft.copper_nugget","item.minecraft.knowledge_book","item.minecraft.debug_stick","item.minecraft.music_disc_13","item.minecraft.music_disc_cat","item.minecraft.music_disc_blocks","item.minecraft.music_disc_bounce","item.minecraft.music_disc_chirp","item.minecraft.music_disc_creator","item.minecraft.music_disc_creator_music_box","item.minecraft.music_disc_far","item.minecraft.music_disc_lava_chicken","item.minecraft.music_disc_mall","item.minecraft.music_disc_mellohi","item.minecraft.music_disc_stal","item.minecraft.music_disc_strad","item.minecraft.music_disc_ward","item.minecraft.music_disc_11","item.minecraft.music_disc_wait","item.minecraft.music_disc_otherside","item.minecraft.music_disc_relic","item.minecraft.music_disc_5","item.minecraft.music_disc_pigstep","item.minecraft.music_disc_precipice","item.minecraft.music_disc_tears","item.minecraft.disc_fragment_5","item.minecraft.trident","item.minecraft.nautilus_shell","item.minecraft.iron_nautilus_armor","item.minecraft.golden_nautilus_armor","item.minecraft.diamond_nautilus_armor","item.minecraft.netherite_nautilus_armor","item.minecraft.copper_nautilus_armor","item.minecraft.heart_of_the_sea","item.minecraft.crossbow","item.minecraft.suspicious_stew","block.minecraft.loom","item.minecraft.flower_banner_pattern","item.minecraft.creeper_banner_pattern","item.minecraft.skull_banner_pattern","item.minecraft.mojang_banner_pattern","item.minecraft.globe_banner_pattern","item.minecraft.piglin_banner_pattern","item.minecraft.flow_banner_pattern","item.minecraft.guster_banner_pattern","item.minecraft.field_masoned_banner_pattern","item.minecraft.bordure_indented_banner_pattern","item.minecraft.goat_horn","block.minecraft.composter","block.minecraft.barrel","block.minecraft.smoker","block.minecraft.blast_furnace","block.minecraft.cartography_table","block.minecraft.fletching_table","block.minecraft.grindstone","block.minecraft.smithing_table","block.minecraft.stonecutter","block.minecraft.bell","block.minecraft.lantern","block.minecraft.soul_lantern","block.minecraft.copper_lantern","block.minecraft.exposed_copper_lantern","block.minecraft.weathered_copper_lantern","block.minecraft.oxidized_copper_lantern","block.minecraft.waxed_copper_lantern","block.minecraft.waxed_exposed_copper_lantern","block.minecraft.waxed_weathered_copper_lantern","block.minecraft.waxed_oxidized_copper_lantern","item.minecraft.sweet_berries","item.minecraft.glow_berries","block.minecraft.campfire","block.minecraft.soul_campfire","block.minecraft.shroomlight","item.minecraft.honeycomb","block.minecraft.bee_nest","block.minecraft.beehive","item.minecraft.honey_bottle","block.minecraft.honeycomb_block","block.minecraft.lodestone","block.minecraft.crying_obsidian","block.minecraft.blackstone","block.minecraft.blackstone_slab","block.minecraft.blackstone_stairs","block.minecraft.gilded_blackstone","block.minecraft.polished_blackstone","block.minecraft.polished_blackstone_slab","block.minecraft.polished_blackstone_stairs","block.minecraft.chiseled_polished_blackstone","block.minecraft.polished_blackstone_bricks","block.minecraft.polished_blackstone_brick_slab","block.minecraft.polished_blackstone_brick_stairs","block.minecraft.cracked_polished_blackstone_bricks","block.minecraft.respawn_anchor","block.minecraft.candle","block.minecraft.white_candle","block.minecraft.orange_candle","block.minecraft.magenta_candle","block.minecraft.light_blue_candle","block.minecraft.yellow_candle","block.minecraft.lime_candle","block.minecraft.pink_candle","block.minecraft.gray_candle","block.minecraft.light_gray_candle","block.minecraft.cyan_candle","block.minecraft.purple_candle","block.minecraft.blue_candle","block.minecraft.brown_candle","block.minecraft.green_candle","block.minecraft.red_candle","block.minecraft.black_candle","block.minecraft.small_amethyst_bud","block.minecraft.medium_amethyst_bud","block.minecraft.large_amethyst_bud","block.minecraft.amethyst_cluster","block.minecraft.pointed_dripstone","block.minecraft.sulfur_spike","block.minecraft.ochre_froglight","block.minecraft.verdant_froglight","block.minecraft.pearlescent_froglight","block.minecraft.frogspawn","item.minecraft.echo_shard","item.minecraft.brush","item.minecraft.netherite_upgrade_smithing_template","item.minecraft.sentry_armor_trim_smithing_template","item.minecraft.dune_armor_trim_smithing_template","item.minecraft.coast_armor_trim_smithing_template","item.minecraft.wild_armor_trim_smithing_template","item.minecraft.ward_armor_trim_smithing_template","item.minecraft.eye_armor_trim_smithing_template","item.minecraft.vex_armor_trim_smithing_template","item.minecraft.tide_armor_trim_smithing_template","item.minecraft.snout_armor_trim_smithing_template","item.minecraft.rib_armor_trim_smithing_template","item.minecraft.spire_armor_trim_smithing_template","item.minecraft.wayfinder_armor_trim_smithing_template","item.minecraft.shaper_armor_trim_smithing_template","item.minecraft.silence_armor_trim_smithing_template","item.minecraft.raiser_armor_trim_smithing_template","item.minecraft.host_armor_trim_smithing_template","item.minecraft.flow_armor_trim_smithing_template","item.minecraft.bolt_armor_trim_smithing_template","item.minecraft.angler_pottery_sherd","item.minecraft.archer_pottery_sherd","item.minecraft.arms_up_pottery_sherd","item.minecraft.blade_pottery_sherd","item.minecraft.brewer_pottery_sherd","item.minecraft.burn_pottery_sherd","item.minecraft.danger_pottery_sherd","item.minecraft.explorer_pottery_sherd","item.minecraft.flow_pottery_sherd","item.minecraft.friend_pottery_sherd","item.minecraft.guster_pottery_sherd","item.minecraft.heart_pottery_sherd","item.minecraft.heartbreak_pottery_sherd","item.minecraft.howl_pottery_sherd","item.minecraft.miner_pottery_sherd","item.minecraft.mourner_pottery_sherd","item.minecraft.plenty_pottery_sherd","item.minecraft.prize_pottery_sherd","item.minecraft.scrape_pottery_sherd","item.minecraft.sheaf_pottery_sherd","item.minecraft.shelter_pottery_sherd","item.minecraft.skull_pottery_sherd","item.minecraft.snort_pottery_sherd","block.minecraft.copper_grate","block.minecraft.exposed_copper_grate","block.minecraft.weathered_copper_grate","block.minecraft.oxidized_copper_grate","block.minecraft.waxed_copper_grate","block.minecraft.waxed_exposed_copper_grate","block.minecraft.waxed_weathered_copper_grate","block.minecraft.waxed_oxidized_copper_grate","block.minecraft.copper_bulb","block.minecraft.exposed_copper_bulb","block.minecraft.weathered_copper_bulb","block.minecraft.oxidized_copper_bulb","block.minecraft.waxed_copper_bulb","block.minecraft.waxed_exposed_copper_bulb","block.minecraft.waxed_weathered_copper_bulb","block.minecraft.waxed_oxidized_copper_bulb","block.minecraft.copper_chest","block.minecraft.exposed_copper_chest","block.minecraft.weathered_copper_chest","block.minecraft.oxidized_copper_chest","block.minecraft.waxed_copper_chest","block.minecraft.waxed_exposed_copper_chest","block.minecraft.waxed_weathered_copper_chest","block.minecraft.waxed_oxidized_copper_chest","block.minecraft.copper_golem_statue","block.minecraft.exposed_copper_golem_statue","block.minecraft.weathered_copper_golem_statue","block.minecraft.oxidized_copper_golem_statue","block.minecraft.waxed_copper_golem_statue","block.minecraft.waxed_exposed_copper_golem_statue","block.minecraft.waxed_weathered_copper_golem_statue","block.minecraft.waxed_oxidized_copper_golem_statue","block.minecraft.trial_spawner","item.minecraft.trial_key","item.minecraft.ominous_trial_key","block.minecraft.vault","item.minecraft.ominous_bottle"];
 impl DefaultableComponent for ItemName {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = ITEM_NAME_VALUES[item as usize];
@@ -4349,19 +7620,26 @@ impl DefaultableComponent for Lore {
         Some(Lore { lines: vec![] })
     }
 }
-impl DefaultableComponent for MapColor {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::FilledMap => 4603950,
-            _ => return None,
-        };
-        Some(MapColor { color: value })
-    }
-}
 impl DefaultableComponent for MapDecorations {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
+            ItemKind::AbandonedCampMap => NbtCompound::from_values(vec![]),
+            ItemKind::BuriedAncientCityMap => NbtCompound::from_values(vec![]),
+            ItemKind::BuriedMineshaftMap => NbtCompound::from_values(vec![]),
+            ItemKind::BuriedTreasureMap => NbtCompound::from_values(vec![]),
+            ItemKind::BuriedTrialChambersMap => NbtCompound::from_values(vec![]),
+            ItemKind::DesertPyramidMap => NbtCompound::from_values(vec![]),
+            ItemKind::DesertVillageMap => NbtCompound::from_values(vec![]),
             ItemKind::FilledMap => NbtCompound::from_values(vec![]),
+            ItemKind::JunglePyramidMap => NbtCompound::from_values(vec![]),
+            ItemKind::OceanMonumentMap => NbtCompound::from_values(vec![]),
+            ItemKind::PlainsVillageMap => NbtCompound::from_values(vec![]),
+            ItemKind::SavannaVillageMap => NbtCompound::from_values(vec![]),
+            ItemKind::SnowyVillageMap => NbtCompound::from_values(vec![]),
+            ItemKind::SwampHutMap => NbtCompound::from_values(vec![]),
+            ItemKind::TaigaVillageMap => NbtCompound::from_values(vec![]),
+            ItemKind::WarmOceanRuinsMap => NbtCompound::from_values(vec![]),
+            ItemKind::WoodlandMansionMap => NbtCompound::from_values(vec![]),
             _ => return None,
         };
         Some(MapDecorations { decorations: value })
@@ -4460,7 +7738,7 @@ impl DefaultableComponent for MaxDamage {
     }
 }
 #[rustfmt::skip]
-static MAX_STACK_SIZE_VALUES: [i32; 1537] = [64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,64,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,64,64,64,64,1,64,64,1,1,64,64,1,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,64,1,64,64,64,64,64,64,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,64,64,64,64,64,64,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,1,1,1,16,64,1,1,1,1,1,1,1,1,64,64,64,64,64,64,16,16,16,64,64,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,64,1,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,64,64,64,1,64,64,64,64,64,64,64,64,64,16,64,64,64,64,64,1,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,1,16,64,1,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,1,64,64,64,64,64,64,1,64,64,16,1,1,1,1,1,1,64,64,1,64,64,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,64,64,64,64,64,64,64,1,64,1,64,64,1,1,1,1,1,1,1,1,1,1,64,64,64,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,64,1,64,1,1,1,1,1,64,1,1,64,1,1,1,1,1,1,1,1,1,1,1,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,1,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64];
+static MAX_STACK_SIZE_VALUES: [i32; 1658] = [64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,64,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,64,64,64,64,1,64,64,1,1,64,64,1,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,64,1,64,64,64,64,64,64,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,64,64,64,64,64,64,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,1,1,1,16,64,1,1,1,1,1,1,1,1,64,64,64,64,64,64,16,16,16,64,64,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,1,64,1,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,16,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,1,64,64,64,64,64,64,64,64,64,16,64,64,64,64,64,1,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,1,16,64,1,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,1,64,64,64,64,64,64,1,64,64,16,1,1,1,1,1,1,64,64,1,64,64,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,64,64,64,64,64,64,64,1,64,1,64,64,1,1,1,1,1,1,1,1,1,1,64,64,64,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,64,1,64,1,1,1,1,1,64,1,1,64,1,1,1,1,1,1,1,1,1,1,1,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,1,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64];
 impl DefaultableComponent for MaxStackSize {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = MAX_STACK_SIZE_VALUES[item as usize];
@@ -4480,6 +7758,38 @@ impl DefaultableComponent for MinimumAttackCharge {
             _ => return None,
         };
         Some(MinimumAttackCharge { value: value })
+    }
+}
+impl DefaultableComponent for MobVisibility {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::CreeperHead => MobVisibility {
+                targeting_entity_types: HolderSet::Direct {
+                    contents: vec![EntityKind::Creeper],
+                },
+                visibility: 0.5,
+            },
+            ItemKind::PiglinHead => MobVisibility {
+                targeting_entity_types: HolderSet::Direct {
+                    contents: vec![EntityKind::Piglin, EntityKind::PiglinBrute],
+                },
+                visibility: 0.5,
+            },
+            ItemKind::SkeletonSkull => MobVisibility {
+                targeting_entity_types: HolderSet::Direct {
+                    contents: vec![EntityKind::Skeleton],
+                },
+                visibility: 0.5,
+            },
+            ItemKind::ZombieHead => MobVisibility {
+                targeting_entity_types: HolderSet::Direct {
+                    contents: vec![EntityKind::Zombie],
+                },
+                visibility: 0.5,
+            },
+            _ => return None,
+        };
+        Some(value)
     }
 }
 impl DefaultableComponent for OminousBottleAmplifier {
@@ -4553,15 +7863,15 @@ impl DefaultableComponent for PiercingWeapon {
 impl DefaultableComponent for PotDecorations {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::DecoratedPot => vec![
-                ItemKind::Brick,
-                ItemKind::Brick,
-                ItemKind::Brick,
-                ItemKind::Brick,
-            ],
+            ItemKind::DecoratedPot => PotDecorations {
+                back: Some(ItemStack::from(ItemKind::Brick)),
+                front: Some(ItemStack::from(ItemKind::Brick)),
+                left: Some(ItemStack::from(ItemKind::Brick)),
+                right: Some(ItemStack::from(ItemKind::Brick)),
+            },
             _ => return None,
         };
-        Some(PotDecorations { items: value })
+        Some(value)
     }
 }
 impl DefaultableComponent for PotionContents {
@@ -4602,6 +7912,41 @@ impl DefaultableComponent for ProvidesBannerPatterns {
             _ => return None,
         };
         Some(ProvidesBannerPatterns { key: value })
+    }
+}
+impl DefaultableComponent for ProvidesPotteryPattern {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::AnglerPotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::ArcherPotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::ArmsUpPotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::BladePotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::BrewerPotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::BurnPotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::DangerPotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::ExplorerPotterySherd => {
+                azalea_registry::data::DecoratedPotPattern::new_raw(0)
+            }
+            ItemKind::FlowPotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::FriendPotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::GusterPotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::HeartPotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::HeartbreakPotterySherd => {
+                azalea_registry::data::DecoratedPotPattern::new_raw(0)
+            }
+            ItemKind::HowlPotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::MinerPotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::MournerPotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::PlentyPotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::PrizePotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::ScrapePotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::SheafPotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::ShelterPotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::SkullPotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::SnortPotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
+            _ => return None,
+        };
+        Some(ProvidesPotteryPattern { value: value })
     }
 }
 impl DefaultableComponent for ProvidesTrimMaterial {
@@ -5234,6 +8579,594 @@ impl DefaultableComponent for Repairable {
         Some(Repairable { items: value })
     }
 }
+impl DefaultableComponent for SignTextBack {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::AcaciaHangingSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::AcaciaSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::BambooHangingSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::BambooSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::BirchHangingSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::BirchSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::CherryHangingSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::CherrySign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::CrimsonHangingSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::CrimsonSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::DarkOakHangingSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::DarkOakSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::JungleHangingSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::JungleSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::MangroveHangingSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::MangroveSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::OakHangingSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::OakSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::PaleOakHangingSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::PaleOakSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::PoplarHangingSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::PoplarSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::SpruceHangingSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::SpruceSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::WarpedHangingSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::WarpedSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            _ => return None,
+        };
+        Some(SignTextBack { value: value })
+    }
+}
+impl DefaultableComponent for SignTextFront {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::AcaciaHangingSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::AcaciaSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::BambooHangingSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::BambooSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::BirchHangingSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::BirchSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::CherryHangingSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::CherrySign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::CrimsonHangingSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::CrimsonSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::DarkOakHangingSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::DarkOakSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::JungleHangingSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::JungleSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::MangroveHangingSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::MangroveSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::OakHangingSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::OakSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::PaleOakHangingSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::PaleOakSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::PoplarHangingSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::PoplarSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::SpruceHangingSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::SpruceSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::WarpedHangingSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            ItemKind::WarpedSign => SignText {
+                color: DyeColor::Black,
+                has_glowing_text: false,
+                messages: [
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                    Default::default(),
+                ],
+                ..SignText::new()
+            },
+            _ => return None,
+        };
+        Some(SignTextFront { value: value })
+    }
+}
 impl DefaultableComponent for StoredEnchantments {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
@@ -5252,42 +9185,6 @@ impl DefaultableComponent for SuspiciousStewEffects {
             _ => return None,
         };
         Some(SuspiciousStewEffects { effects: value })
-    }
-}
-impl DefaultableComponent for SwingAnimation {
-    fn default_for_item(item: ItemKind) -> Option<Self> {
-        let value = match item {
-            ItemKind::CopperSpear => SwingAnimation {
-                kind: SwingAnimationKind::Stab,
-                duration: 17,
-            },
-            ItemKind::DiamondSpear => SwingAnimation {
-                kind: SwingAnimationKind::Stab,
-                duration: 21,
-            },
-            ItemKind::GoldenSpear => SwingAnimation {
-                kind: SwingAnimationKind::Stab,
-                duration: 19,
-            },
-            ItemKind::IronSpear => SwingAnimation {
-                kind: SwingAnimationKind::Stab,
-                duration: 19,
-            },
-            ItemKind::NetheriteSpear => SwingAnimation {
-                kind: SwingAnimationKind::Stab,
-                duration: 23,
-            },
-            ItemKind::StoneSpear => SwingAnimation {
-                kind: SwingAnimationKind::Stab,
-                duration: 15,
-            },
-            ItemKind::WoodenSpear => SwingAnimation {
-                kind: SwingAnimationKind::Stab,
-                duration: 13,
-            },
-            _ => SwingAnimation::new(),
-        };
-        Some(value)
     }
 }
 impl DefaultableComponent for Tool {
@@ -6373,6 +10270,18 @@ impl DefaultableComponent for UseRemainder {
         Some(UseRemainder {
             convert_into: value,
         })
+    }
+}
+impl DefaultableComponent for VillagerFood {
+    fn default_for_item(item: ItemKind) -> Option<Self> {
+        let value = match item {
+            ItemKind::Beetroot => 1,
+            ItemKind::Bread => 4,
+            ItemKind::Carrot => 1,
+            ItemKind::Potato => 1,
+            _ => return None,
+        };
+        Some(VillagerFood { nutrition: value })
     }
 }
 impl DefaultableComponent for Weapon {

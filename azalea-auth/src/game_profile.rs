@@ -3,7 +3,7 @@ use std::{
     sync::Arc,
 };
 
-use azalea_buf::{AzBuf, AzBufLimited, AzBufVar, BufReadError};
+use azalea_buf::{AzBuf, AzBufLimited, AzBufVar, BufReadError, BufReadErrorRepr};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize, Serializer};
 use uuid::Uuid;
@@ -56,10 +56,11 @@ impl AzBuf for GameProfileProperties {
         let mut properties = IndexMap::new();
         let properties_len = u32::azalea_read_var(buf)?;
         if properties_len > 16 {
-            return Err(BufReadError::VecLengthTooLong {
+            return Err(BufReadErrorRepr::VecLengthTooLong {
                 length: properties_len,
                 max_length: 16,
-            });
+            }
+            .into());
         }
         for _ in 0..properties_len {
             let key = String::azalea_read_limited(buf, 16)?;

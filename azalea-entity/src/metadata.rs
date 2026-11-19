@@ -16,6 +16,7 @@
 //! - [AbstractEntity]
 //!   - [AreaEffectCloud]
 //!   - [BreezeWindCharge]
+//!   - [Cushion]
 //!   - [DragonFireball]
 //!   - [EndCrystal]
 //!   - [EvokerFangs]
@@ -68,11 +69,8 @@
 //!         - [Tadpole]
 //!         - [AbstractAgeable]
 //!           - [Dolphin]
-//!           - [MagmaCube]
-//!           - [Slime]
 //!           - [Squid]
 //!             - [GlowSquid]
-//!           - [SulfurCube]
 //!           - [AbstractAnimal]
 //!             - [Armadillo]
 //!             - [Axolotl]
@@ -112,6 +110,10 @@
 //!               - [AbstractNautilus]
 //!                 - [Nautilus]
 //!                 - [ZombieNautilus]
+//!           - [AbstractCubeMob]
+//!             - [MagmaCube]
+//!             - [Slime]
+//!             - [SulfurCube]
 //!           - [AbstractVillager]
 //!             - [Villager]
 //!             - [WanderingTrader]
@@ -184,6 +186,8 @@
 //!       - [OakChestBoat]
 //!       - [PaleOakBoat]
 //!       - [PaleOakChestBoat]
+//!       - [PoplarBoat]
+//!       - [PoplarChestBoat]
 //!       - [SpruceBoat]
 //!       - [SpruceChestBoat]
 //!     - [AbstractMinecart]
@@ -202,7 +206,10 @@ use azalea_core::{
     direction::Direction,
     position::{BlockPos, Vec3f32},
 };
-use azalea_inventory::{ItemStack, components};
+use azalea_inventory::{
+    ItemStack,
+    components::{self, DyeColor},
+};
 use azalea_registry::{DataRegistry, builtin::EntityKind};
 use bevy_ecs::{bundle::Bundle, component::Component};
 use derive_more::{Deref, DerefMut};
@@ -218,12 +225,20 @@ use crate::{HumanoidArm, particle::Particle};
 #[derive(Error, Debug)]
 pub enum UpdateMetadataError {
     #[error("Wrong type ({0:?})")]
-    WrongType(EntityDataValue),
+    WrongType(Box<WrongTypeError>),
 }
-impl From<EntityDataValue> for UpdateMetadataError {
-    fn from(value: EntityDataValue) -> Self {
-        Self::WrongType(value)
-    }
+#[derive(Debug)]
+pub struct WrongTypeError {
+    pub v: EntityDataValue,
+    pub id: u8,
+    pub struct_name: String,
+}
+fn e(v: EntityDataValue, id: u8, struct_name: &str) -> UpdateMetadataError {
+    UpdateMetadataError::WrongType(Box::new(WrongTypeError {
+        v,
+        id,
+        struct_name: struct_name.to_owned(),
+    }))
 }
 
 #[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
@@ -294,6 +309,7 @@ pub struct TicksFrozen(pub i32);
 ///
 /// - [AreaEffectCloud]
 /// - [BreezeWindCharge]
+/// - [Cushion]
 /// - [DragonFireball]
 /// - [EndCrystal]
 /// - [EvokerFangs]
@@ -346,11 +362,8 @@ pub struct TicksFrozen(pub i32);
 ///       - [Tadpole]
 ///       - [AbstractAgeable]
 ///         - [Dolphin]
-///         - [MagmaCube]
-///         - [Slime]
 ///         - [Squid]
 ///           - [GlowSquid]
-///         - [SulfurCube]
 ///         - [AbstractAnimal]
 ///           - [Armadillo]
 ///           - [Axolotl]
@@ -390,6 +403,10 @@ pub struct TicksFrozen(pub i32);
 ///             - [AbstractNautilus]
 ///               - [Nautilus]
 ///               - [ZombieNautilus]
+///         - [AbstractCubeMob]
+///           - [MagmaCube]
+///           - [Slime]
+///           - [SulfurCube]
 ///         - [AbstractVillager]
 ///           - [Villager]
 ///           - [WanderingTrader]
@@ -462,6 +479,8 @@ pub struct TicksFrozen(pub i32);
 ///     - [OakChestBoat]
 ///     - [PaleOakBoat]
 ///     - [PaleOakChestBoat]
+///     - [PoplarBoat]
+///     - [PoplarChestBoat]
 ///     - [SpruceBoat]
 ///     - [SpruceChestBoat]
 ///   - [AbstractMinecart]
@@ -481,7 +500,10 @@ impl AbstractEntity {
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0 => {
-                let bitfield = d.value.into_byte()?;
+                let bitfield = d
+                    .value
+                    .into_byte()
+                    .map_err(|v| e(v, d.index, "<bitfield>"))?;
                 entity.insert(OnFire(bitfield & 0x1 != 0));
                 entity.insert(AbstractEntityShiftKeyDown(bitfield & 0x2 != 0));
                 entity.insert(Sprinting(bitfield & 0x8 != 0));
@@ -491,25 +513,47 @@ impl AbstractEntity {
                 entity.insert(FallFlying(bitfield & 0x80 != 0));
             }
             1 => {
-                entity.insert(AirSupply(d.value.into_int()?));
+                entity.insert(AirSupply(
+                    d.value.into_int().map_err(|v| e(v, d.index, "AirSupply"))?,
+                ));
             }
             2 => {
-                entity.insert(CustomName(d.value.into_optional_formatted_text()?));
+                entity.insert(CustomName(
+                    d.value
+                        .into_optional_formatted_text()
+                        .map_err(|v| e(v, d.index, "CustomName"))?,
+                ));
             }
             3 => {
-                entity.insert(CustomNameVisible(d.value.into_boolean()?));
+                entity.insert(CustomNameVisible(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "CustomNameVisible"))?,
+                ));
             }
             4 => {
-                entity.insert(Silent(d.value.into_boolean()?));
+                entity.insert(Silent(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "Silent"))?,
+                ));
             }
             5 => {
-                entity.insert(NoGravity(d.value.into_boolean()?));
+                entity.insert(NoGravity(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "NoGravity"))?,
+                ));
             }
             6 => {
-                entity.insert(d.value.into_pose()?);
+                entity.insert(d.value.into_pose().map_err(|v| e(v, d.index, ""))?);
             }
             7 => {
-                entity.insert(TicksFrozen(d.value.into_int()?));
+                entity.insert(TicksFrozen(
+                    d.value
+                        .into_int()
+                        .map_err(|v| e(v, d.index, "TicksFrozen"))?,
+                ));
             }
             _ => {}
         }
@@ -597,13 +641,19 @@ impl AreaEffectCloud {
         match d.index {
             0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
-                entity.insert(Radius(d.value.into_float()?));
+                entity.insert(Radius(
+                    d.value.into_float().map_err(|v| e(v, d.index, "Radius"))?,
+                ));
             }
             9 => {
-                entity.insert(Waiting(d.value.into_boolean()?));
+                entity.insert(Waiting(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "Waiting"))?,
+                ));
             }
             10 => {
-                entity.insert(d.value.into_particle()?);
+                entity.insert(d.value.into_particle().map_err(|v| e(v, d.index, ""))?);
             }
             _ => {}
         }
@@ -679,6 +729,69 @@ impl Default for BreezeWindChargeMetadataBundle {
         Self {
             _marker: BreezeWindCharge,
             parent: Default::default(),
+        }
+    }
+}
+
+/// A metadata field for [Cushion].
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
+pub struct CushionColor(pub DyeColor);
+/// The marker component for entities of type `minecraft:cushion`.
+///
+/// # Metadata
+///
+/// These are the metadata components that all `Cushion` entities are guaranteed
+/// to have, in addition to the metadata components from parent types:
+///
+/// - [CushionColor]
+///
+/// # Parents
+///
+/// Entities with `Cushion` will also have the following marker components and
+/// their metadata fields:
+///
+/// - [AbstractEntity]
+///
+/// # Children
+///
+/// This entity type has no children types.
+#[derive(Component)]
+pub struct Cushion;
+impl Cushion {
+    fn apply_metadata(
+        entity: &mut bevy_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
+            8 => {
+                entity.insert(CushionColor(
+                    d.value
+                        .into_dye_color()
+                        .map_err(|v| e(v, d.index, "CushionColor"))?,
+                ));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+/// The metadata bundle for [Cushion].
+///
+/// This type should generally not be used directly.
+#[derive(Bundle)]
+pub struct CushionMetadataBundle {
+    _marker: Cushion,
+    parent: AbstractEntityMetadataBundle,
+    cushion_color: CushionColor,
+}
+impl Default for CushionMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Cushion,
+            parent: Default::default(),
+            cushion_color: CushionColor(Default::default()),
         }
     }
 }
@@ -769,10 +882,18 @@ impl EndCrystal {
         match d.index {
             0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
-                entity.insert(BeamTarget(d.value.into_optional_block_pos()?));
+                entity.insert(BeamTarget(
+                    d.value
+                        .into_optional_block_pos()
+                        .map_err(|v| e(v, d.index, "BeamTarget"))?,
+                ));
             }
             9 => {
-                entity.insert(ShowBottom(d.value.into_boolean()?));
+                entity.insert(ShowBottom(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "ShowBottom"))?,
+                ));
             }
             _ => {}
         }
@@ -883,7 +1004,9 @@ impl ExperienceOrb {
         match d.index {
             0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
-                entity.insert(Value(d.value.into_int()?));
+                entity.insert(Value(
+                    d.value.into_int().map_err(|v| e(v, d.index, "Value"))?,
+                ));
             }
             _ => {}
         }
@@ -943,7 +1066,11 @@ impl EyeOfEnder {
         match d.index {
             0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
-                entity.insert(EyeOfEnderItemStack(d.value.into_item_stack()?));
+                entity.insert(EyeOfEnderItemStack(
+                    d.value
+                        .into_item_stack()
+                        .map_err(|v| e(v, d.index, "EyeOfEnderItemStack"))?,
+                ));
             }
             _ => {}
         }
@@ -1003,7 +1130,11 @@ impl FallingBlock {
         match d.index {
             0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
-                entity.insert(StartPos(d.value.into_block_pos()?));
+                entity.insert(StartPos(
+                    d.value
+                        .into_block_pos()
+                        .map_err(|v| e(v, d.index, "StartPos"))?,
+                ));
             }
             _ => {}
         }
@@ -1063,7 +1194,11 @@ impl Fireball {
         match d.index {
             0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
-                entity.insert(FireballItemStack(d.value.into_item_stack()?));
+                entity.insert(FireballItemStack(
+                    d.value
+                        .into_item_stack()
+                        .map_err(|v| e(v, d.index, "FireballItemStack"))?,
+                ));
             }
             _ => {}
         }
@@ -1131,13 +1266,25 @@ impl FireworkRocket {
         match d.index {
             0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
-                entity.insert(FireworksItem(d.value.into_item_stack()?));
+                entity.insert(FireworksItem(
+                    d.value
+                        .into_item_stack()
+                        .map_err(|v| e(v, d.index, "FireworksItem"))?,
+                ));
             }
             9 => {
-                entity.insert(AttachedToTarget(d.value.into_optional_unsigned_int()?));
+                entity.insert(AttachedToTarget(
+                    d.value
+                        .into_optional_unsigned_int()
+                        .map_err(|v| e(v, d.index, "AttachedToTarget"))?,
+                ));
             }
             10 => {
-                entity.insert(ShotAtAngle(d.value.into_boolean()?));
+                entity.insert(ShotAtAngle(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "ShotAtAngle"))?,
+                ));
             }
             _ => {}
         }
@@ -1205,10 +1352,18 @@ impl FishingBobber {
         match d.index {
             0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
-                entity.insert(HookedEntity(d.value.into_int()?));
+                entity.insert(HookedEntity(
+                    d.value
+                        .into_int()
+                        .map_err(|v| e(v, d.index, "HookedEntity"))?,
+                ));
             }
             9 => {
-                entity.insert(Biting(d.value.into_boolean()?));
+                entity.insert(Biting(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "Biting"))?,
+                ));
             }
             _ => {}
         }
@@ -1278,13 +1433,25 @@ impl Interaction {
         match d.index {
             0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
-                entity.insert(InteractionWidth(d.value.into_float()?));
+                entity.insert(InteractionWidth(
+                    d.value
+                        .into_float()
+                        .map_err(|v| e(v, d.index, "InteractionWidth"))?,
+                ));
             }
             9 => {
-                entity.insert(InteractionHeight(d.value.into_float()?));
+                entity.insert(InteractionHeight(
+                    d.value
+                        .into_float()
+                        .map_err(|v| e(v, d.index, "InteractionHeight"))?,
+                ));
             }
             10 => {
-                entity.insert(Response(d.value.into_boolean()?));
+                entity.insert(Response(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "Response"))?,
+                ));
             }
             _ => {}
         }
@@ -1347,7 +1514,11 @@ impl Item {
         match d.index {
             0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
-                entity.insert(ItemItem(d.value.into_item_stack()?));
+                entity.insert(ItemItem(
+                    d.value
+                        .into_item_stack()
+                        .map_err(|v| e(v, d.index, "ItemItem"))?,
+                ));
             }
             _ => {}
         }
@@ -1415,13 +1586,23 @@ impl ItemFrame {
         match d.index {
             0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
-                entity.insert(ItemFrameDirection(d.value.into_direction()?));
+                entity.insert(ItemFrameDirection(
+                    d.value
+                        .into_direction()
+                        .map_err(|v| e(v, d.index, "ItemFrameDirection"))?,
+                ));
             }
             9 => {
-                entity.insert(ItemFrameItem(d.value.into_item_stack()?));
+                entity.insert(ItemFrameItem(
+                    d.value
+                        .into_item_stack()
+                        .map_err(|v| e(v, d.index, "ItemFrameItem"))?,
+                ));
             }
             10 => {
-                entity.insert(Rotation(d.value.into_int()?));
+                entity.insert(Rotation(
+                    d.value.into_int().map_err(|v| e(v, d.index, "Rotation"))?,
+                ));
             }
             _ => {}
         }
@@ -1731,7 +1912,11 @@ impl OminousItemSpawner {
         match d.index {
             0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
-                entity.insert(OminousItemSpawnerItem(d.value.into_item_stack()?));
+                entity.insert(OminousItemSpawnerItem(
+                    d.value
+                        .into_item_stack()
+                        .map_err(|v| e(v, d.index, "OminousItemSpawnerItem"))?,
+                ));
             }
             _ => {}
         }
@@ -1795,10 +1980,18 @@ impl Painting {
         match d.index {
             0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
-                entity.insert(PaintingDirection(d.value.into_direction()?));
+                entity.insert(PaintingDirection(
+                    d.value
+                        .into_direction()
+                        .map_err(|v| e(v, d.index, "PaintingDirection"))?,
+                ));
             }
             9 => {
-                entity.insert(PaintingVariant(d.value.into_painting_variant()?));
+                entity.insert(PaintingVariant(
+                    d.value
+                        .into_painting_variant()
+                        .map_err(|v| e(v, d.index, "PaintingVariant"))?,
+                ));
             }
             _ => {}
         }
@@ -1909,7 +2102,11 @@ impl SmallFireball {
         match d.index {
             0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
-                entity.insert(SmallFireballItemStack(d.value.into_item_stack()?));
+                entity.insert(SmallFireballItemStack(
+                    d.value
+                        .into_item_stack()
+                        .map_err(|v| e(v, d.index, "SmallFireballItemStack"))?,
+                ));
             }
             _ => {}
         }
@@ -1972,10 +2169,14 @@ impl Tnt {
         match d.index {
             0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
-                entity.insert(Fuse(d.value.into_int()?));
+                entity.insert(Fuse(d.value.into_int().map_err(|v| e(v, d.index, "Fuse"))?));
             }
             9 => {
-                entity.insert(TntBlockState(d.value.into_block_state()?));
+                entity.insert(TntBlockState(
+                    d.value
+                        .into_block_state()
+                        .map_err(|v| e(v, d.index, "TntBlockState"))?,
+                ));
             }
             _ => {}
         }
@@ -2086,7 +2287,11 @@ impl WitherSkull {
         match d.index {
             0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
-                entity.insert(Dangerous(d.value.into_boolean()?));
+                entity.insert(Dangerous(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "Dangerous"))?,
+                ));
             }
             _ => {}
         }
@@ -2160,15 +2365,26 @@ impl AbstractArrow {
         match d.index {
             0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
-                let bitfield = d.value.into_byte()?;
+                let bitfield = d
+                    .value
+                    .into_byte()
+                    .map_err(|v| e(v, d.index, "<bitfield>"))?;
                 entity.insert(CritArrow(bitfield & 0x1 != 0));
                 entity.insert(NoPhysics(bitfield & 0x2 != 0));
             }
             9 => {
-                entity.insert(PierceLevel(d.value.into_byte()?));
+                entity.insert(PierceLevel(
+                    d.value
+                        .into_byte()
+                        .map_err(|v| e(v, d.index, "PierceLevel"))?,
+                ));
             }
             10 => {
-                entity.insert(InGround(d.value.into_boolean()?));
+                entity.insert(InGround(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "InGround"))?,
+                ));
             }
             _ => {}
         }
@@ -2234,7 +2450,11 @@ impl Arrow {
         match d.index {
             0..=10 => AbstractArrow::apply_metadata(entity, d)?,
             11 => {
-                entity.insert(EffectColor(d.value.into_int()?));
+                entity.insert(EffectColor(
+                    d.value
+                        .into_int()
+                        .map_err(|v| e(v, d.index, "EffectColor"))?,
+                ));
             }
             _ => {}
         }
@@ -2348,10 +2568,14 @@ impl Trident {
         match d.index {
             0..=10 => AbstractArrow::apply_metadata(entity, d)?,
             11 => {
-                entity.insert(Loyalty(d.value.into_byte()?));
+                entity.insert(Loyalty(
+                    d.value.into_byte().map_err(|v| e(v, d.index, "Loyalty"))?,
+                ));
             }
             12 => {
-                entity.insert(Foil(d.value.into_boolean()?));
+                entity.insert(Foil(
+                    d.value.into_boolean().map_err(|v| e(v, d.index, "Foil"))?,
+                ));
             }
             _ => {}
         }
@@ -2472,50 +2696,106 @@ impl AbstractDisplay {
             0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
                 entity.insert(TransformationInterpolationStartDeltaTicks(
-                    d.value.into_int()?,
+                    d.value
+                        .into_int()
+                        .map_err(|v| e(v, d.index, "TransformationInterpolationStartDeltaTicks"))?,
                 ));
             }
             9 => {
-                entity.insert(TransformationInterpolationDuration(d.value.into_int()?));
+                entity.insert(TransformationInterpolationDuration(
+                    d.value
+                        .into_int()
+                        .map_err(|v| e(v, d.index, "TransformationInterpolationDuration"))?,
+                ));
             }
             10 => {
-                entity.insert(PosRotInterpolationDuration(d.value.into_int()?));
+                entity.insert(PosRotInterpolationDuration(
+                    d.value
+                        .into_int()
+                        .map_err(|v| e(v, d.index, "PosRotInterpolationDuration"))?,
+                ));
             }
             11 => {
-                entity.insert(Translation(d.value.into_vector3()?));
+                entity.insert(Translation(
+                    d.value
+                        .into_vector3()
+                        .map_err(|v| e(v, d.index, "Translation"))?,
+                ));
             }
             12 => {
-                entity.insert(Scale(d.value.into_vector3()?));
+                entity.insert(Scale(
+                    d.value.into_vector3().map_err(|v| e(v, d.index, "Scale"))?,
+                ));
             }
             13 => {
-                entity.insert(LeftRotation(d.value.into_quaternion()?));
+                entity.insert(LeftRotation(
+                    d.value
+                        .into_quaternion()
+                        .map_err(|v| e(v, d.index, "LeftRotation"))?,
+                ));
             }
             14 => {
-                entity.insert(RightRotation(d.value.into_quaternion()?));
+                entity.insert(RightRotation(
+                    d.value
+                        .into_quaternion()
+                        .map_err(|v| e(v, d.index, "RightRotation"))?,
+                ));
             }
             15 => {
-                entity.insert(BillboardRenderConstraints(d.value.into_byte()?));
+                entity.insert(BillboardRenderConstraints(
+                    d.value
+                        .into_byte()
+                        .map_err(|v| e(v, d.index, "BillboardRenderConstraints"))?,
+                ));
             }
             16 => {
-                entity.insert(BrightnessOverride(d.value.into_int()?));
+                entity.insert(BrightnessOverride(
+                    d.value
+                        .into_int()
+                        .map_err(|v| e(v, d.index, "BrightnessOverride"))?,
+                ));
             }
             17 => {
-                entity.insert(ViewRange(d.value.into_float()?));
+                entity.insert(ViewRange(
+                    d.value
+                        .into_float()
+                        .map_err(|v| e(v, d.index, "ViewRange"))?,
+                ));
             }
             18 => {
-                entity.insert(ShadowRadius(d.value.into_float()?));
+                entity.insert(ShadowRadius(
+                    d.value
+                        .into_float()
+                        .map_err(|v| e(v, d.index, "ShadowRadius"))?,
+                ));
             }
             19 => {
-                entity.insert(ShadowStrength(d.value.into_float()?));
+                entity.insert(ShadowStrength(
+                    d.value
+                        .into_float()
+                        .map_err(|v| e(v, d.index, "ShadowStrength"))?,
+                ));
             }
             20 => {
-                entity.insert(AbstractDisplayWidth(d.value.into_float()?));
+                entity.insert(AbstractDisplayWidth(
+                    d.value
+                        .into_float()
+                        .map_err(|v| e(v, d.index, "AbstractDisplayWidth"))?,
+                ));
             }
             21 => {
-                entity.insert(AbstractDisplayHeight(d.value.into_float()?));
+                entity.insert(AbstractDisplayHeight(
+                    d.value
+                        .into_float()
+                        .map_err(|v| e(v, d.index, "AbstractDisplayHeight"))?,
+                ));
             }
             22 => {
-                entity.insert(GlowColorOverride(d.value.into_int()?));
+                entity.insert(GlowColorOverride(
+                    d.value
+                        .into_int()
+                        .map_err(|v| e(v, d.index, "GlowColorOverride"))?,
+                ));
             }
             _ => {}
         }
@@ -2623,7 +2903,11 @@ impl BlockDisplay {
         match d.index {
             0..=22 => AbstractDisplay::apply_metadata(entity, d)?,
             23 => {
-                entity.insert(BlockDisplayBlockState(d.value.into_block_state()?));
+                entity.insert(BlockDisplayBlockState(
+                    d.value
+                        .into_block_state()
+                        .map_err(|v| e(v, d.index, "BlockDisplayBlockState"))?,
+                ));
             }
             _ => {}
         }
@@ -2688,10 +2972,18 @@ impl ItemDisplay {
         match d.index {
             0..=22 => AbstractDisplay::apply_metadata(entity, d)?,
             23 => {
-                entity.insert(ItemDisplayItemStack(d.value.into_item_stack()?));
+                entity.insert(ItemDisplayItemStack(
+                    d.value
+                        .into_item_stack()
+                        .map_err(|v| e(v, d.index, "ItemDisplayItemStack"))?,
+                ));
             }
             24 => {
-                entity.insert(ItemDisplayItemDisplay(d.value.into_byte()?));
+                entity.insert(ItemDisplayItemDisplay(
+                    d.value
+                        .into_byte()
+                        .map_err(|v| e(v, d.index, "ItemDisplayItemDisplay"))?,
+                ));
             }
             _ => {}
         }
@@ -2770,19 +3062,37 @@ impl TextDisplay {
         match d.index {
             0..=22 => AbstractDisplay::apply_metadata(entity, d)?,
             23 => {
-                entity.insert(Text(d.value.into_formatted_text()?));
+                entity.insert(Text(
+                    d.value
+                        .into_formatted_text()
+                        .map_err(|v| e(v, d.index, "Text"))?,
+                ));
             }
             24 => {
-                entity.insert(LineWidth(d.value.into_int()?));
+                entity.insert(LineWidth(
+                    d.value.into_int().map_err(|v| e(v, d.index, "LineWidth"))?,
+                ));
             }
             25 => {
-                entity.insert(BackgroundColor(d.value.into_int()?));
+                entity.insert(BackgroundColor(
+                    d.value
+                        .into_int()
+                        .map_err(|v| e(v, d.index, "BackgroundColor"))?,
+                ));
             }
             26 => {
-                entity.insert(TextOpacity(d.value.into_byte()?));
+                entity.insert(TextOpacity(
+                    d.value
+                        .into_byte()
+                        .map_err(|v| e(v, d.index, "TextOpacity"))?,
+                ));
             }
             27 => {
-                entity.insert(StyleFlags(d.value.into_byte()?));
+                entity.insert(StyleFlags(
+                    d.value
+                        .into_byte()
+                        .map_err(|v| e(v, d.index, "StyleFlags"))?,
+                ));
             }
             _ => {}
         }
@@ -2886,11 +3196,8 @@ pub struct SleepingPos(pub Option<BlockPos>);
 ///     - [Tadpole]
 ///     - [AbstractAgeable]
 ///       - [Dolphin]
-///       - [MagmaCube]
-///       - [Slime]
 ///       - [Squid]
 ///         - [GlowSquid]
-///       - [SulfurCube]
 ///       - [AbstractAnimal]
 ///         - [Armadillo]
 ///         - [Axolotl]
@@ -2930,6 +3237,10 @@ pub struct SleepingPos(pub Option<BlockPos>);
 ///           - [AbstractNautilus]
 ///             - [Nautilus]
 ///             - [ZombieNautilus]
+///       - [AbstractCubeMob]
+///         - [MagmaCube]
+///         - [Slime]
+///         - [SulfurCube]
 ///       - [AbstractVillager]
 ///         - [Villager]
 ///         - [WanderingTrader]
@@ -2985,27 +3296,52 @@ impl AbstractLiving {
         match d.index {
             0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
-                let bitfield = d.value.into_byte()?;
+                let bitfield = d
+                    .value
+                    .into_byte()
+                    .map_err(|v| e(v, d.index, "<bitfield>"))?;
                 entity.insert(AutoSpinAttack(bitfield & 0x4 != 0));
                 entity.insert(AbstractLivingUsingItem(bitfield & 0x1 != 0));
             }
             9 => {
-                entity.insert(Health(d.value.into_float()?));
+                entity.insert(Health(
+                    d.value.into_float().map_err(|v| e(v, d.index, "Health"))?,
+                ));
             }
             10 => {
-                entity.insert(EffectParticles(d.value.into_particles()?));
+                entity.insert(EffectParticles(
+                    d.value
+                        .into_particles()
+                        .map_err(|v| e(v, d.index, "EffectParticles"))?,
+                ));
             }
             11 => {
-                entity.insert(EffectAmbience(d.value.into_boolean()?));
+                entity.insert(EffectAmbience(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "EffectAmbience"))?,
+                ));
             }
             12 => {
-                entity.insert(ArrowCount(d.value.into_int()?));
+                entity.insert(ArrowCount(
+                    d.value
+                        .into_int()
+                        .map_err(|v| e(v, d.index, "ArrowCount"))?,
+                ));
             }
             13 => {
-                entity.insert(StingerCount(d.value.into_int()?));
+                entity.insert(StingerCount(
+                    d.value
+                        .into_int()
+                        .map_err(|v| e(v, d.index, "StingerCount"))?,
+                ));
             }
             14 => {
-                entity.insert(SleepingPos(d.value.into_optional_block_pos()?));
+                entity.insert(SleepingPos(
+                    d.value
+                        .into_optional_block_pos()
+                        .map_err(|v| e(v, d.index, "SleepingPos"))?,
+                ));
             }
             _ => {}
         }
@@ -3116,29 +3452,56 @@ impl ArmorStand {
         match d.index {
             0..=14 => AbstractLiving::apply_metadata(entity, d)?,
             15 => {
-                let bitfield = d.value.into_byte()?;
+                let bitfield = d
+                    .value
+                    .into_byte()
+                    .map_err(|v| e(v, d.index, "<bitfield>"))?;
                 entity.insert(Small(bitfield & 0x1 != 0));
                 entity.insert(ShowArms(bitfield & 0x4 != 0));
                 entity.insert(ShowBasePlate(bitfield & 0x8 != 0));
                 entity.insert(ArmorStandMarker(bitfield & 0x10 != 0));
             }
             16 => {
-                entity.insert(HeadPose(d.value.into_rotations()?));
+                entity.insert(HeadPose(
+                    d.value
+                        .into_rotations()
+                        .map_err(|v| e(v, d.index, "HeadPose"))?,
+                ));
             }
             17 => {
-                entity.insert(BodyPose(d.value.into_rotations()?));
+                entity.insert(BodyPose(
+                    d.value
+                        .into_rotations()
+                        .map_err(|v| e(v, d.index, "BodyPose"))?,
+                ));
             }
             18 => {
-                entity.insert(LeftArmPose(d.value.into_rotations()?));
+                entity.insert(LeftArmPose(
+                    d.value
+                        .into_rotations()
+                        .map_err(|v| e(v, d.index, "LeftArmPose"))?,
+                ));
             }
             19 => {
-                entity.insert(RightArmPose(d.value.into_rotations()?));
+                entity.insert(RightArmPose(
+                    d.value
+                        .into_rotations()
+                        .map_err(|v| e(v, d.index, "RightArmPose"))?,
+                ));
             }
             20 => {
-                entity.insert(LeftLegPose(d.value.into_rotations()?));
+                entity.insert(LeftLegPose(
+                    d.value
+                        .into_rotations()
+                        .map_err(|v| e(v, d.index, "LeftLegPose"))?,
+                ));
             }
             21 => {
-                entity.insert(RightLegPose(d.value.into_rotations()?));
+                entity.insert(RightLegPose(
+                    d.value
+                        .into_rotations()
+                        .map_err(|v| e(v, d.index, "RightLegPose"))?,
+                ));
             }
             _ => {}
         }
@@ -3222,10 +3585,18 @@ impl AbstractAvatar {
         match d.index {
             0..=14 => AbstractLiving::apply_metadata(entity, d)?,
             15 => {
-                entity.insert(PlayerMainHand(d.value.into_humanoid_arm()?));
+                entity.insert(PlayerMainHand(
+                    d.value
+                        .into_humanoid_arm()
+                        .map_err(|v| e(v, d.index, "PlayerMainHand"))?,
+                ));
             }
             16 => {
-                entity.insert(PlayerModeCustomisation(d.value.into_byte()?));
+                entity.insert(PlayerModeCustomisation(
+                    d.value
+                        .into_byte()
+                        .map_err(|v| e(v, d.index, "PlayerModeCustomisation"))?,
+                ));
             }
             _ => {}
         }
@@ -3297,13 +3668,25 @@ impl Mannequin {
         match d.index {
             0..=16 => AbstractAvatar::apply_metadata(entity, d)?,
             17 => {
-                entity.insert(Profile(d.value.into_resolvable_profile()?));
+                entity.insert(Profile(
+                    d.value
+                        .into_resolvable_profile()
+                        .map_err(|v| e(v, d.index, "Profile"))?,
+                ));
             }
             18 => {
-                entity.insert(Immovable(d.value.into_boolean()?));
+                entity.insert(Immovable(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "Immovable"))?,
+                ));
             }
             19 => {
-                entity.insert(Description(d.value.into_optional_formatted_text()?));
+                entity.insert(Description(
+                    d.value
+                        .into_optional_formatted_text()
+                        .map_err(|v| e(v, d.index, "Description"))?,
+                ));
             }
             _ => {}
         }
@@ -3380,16 +3763,30 @@ impl Player {
         match d.index {
             0..=16 => AbstractAvatar::apply_metadata(entity, d)?,
             17 => {
-                entity.insert(PlayerAbsorption(d.value.into_float()?));
+                entity.insert(PlayerAbsorption(
+                    d.value
+                        .into_float()
+                        .map_err(|v| e(v, d.index, "PlayerAbsorption"))?,
+                ));
             }
             18 => {
-                entity.insert(Score(d.value.into_int()?));
+                entity.insert(Score(
+                    d.value.into_int().map_err(|v| e(v, d.index, "Score"))?,
+                ));
             }
             19 => {
-                entity.insert(ShoulderParrotLeft(d.value.into_optional_unsigned_int()?));
+                entity.insert(ShoulderParrotLeft(
+                    d.value
+                        .into_optional_unsigned_int()
+                        .map_err(|v| e(v, d.index, "ShoulderParrotLeft"))?,
+                ));
             }
             20 => {
-                entity.insert(ShoulderParrotRight(d.value.into_optional_unsigned_int()?));
+                entity.insert(ShoulderParrotRight(
+                    d.value
+                        .into_optional_unsigned_int()
+                        .map_err(|v| e(v, d.index, "ShoulderParrotRight"))?,
+                ));
             }
             _ => {}
         }
@@ -3467,11 +3864,8 @@ pub struct Aggressive(pub bool);
 ///   - [Tadpole]
 ///   - [AbstractAgeable]
 ///     - [Dolphin]
-///     - [MagmaCube]
-///     - [Slime]
 ///     - [Squid]
 ///       - [GlowSquid]
-///     - [SulfurCube]
 ///     - [AbstractAnimal]
 ///       - [Armadillo]
 ///       - [Axolotl]
@@ -3511,6 +3905,10 @@ pub struct Aggressive(pub bool);
 ///         - [AbstractNautilus]
 ///           - [Nautilus]
 ///           - [ZombieNautilus]
+///     - [AbstractCubeMob]
+///       - [MagmaCube]
+///       - [Slime]
+///       - [SulfurCube]
 ///     - [AbstractVillager]
 ///       - [Villager]
 ///       - [WanderingTrader]
@@ -3566,7 +3964,10 @@ impl AbstractInsentient {
         match d.index {
             0..=14 => AbstractLiving::apply_metadata(entity, d)?,
             15 => {
-                let bitfield = d.value.into_byte()?;
+                let bitfield = d
+                    .value
+                    .into_byte()
+                    .map_err(|v| e(v, d.index, "<bitfield>"))?;
                 entity.insert(NoAi(bitfield & 0x1 != 0));
                 entity.insert(LeftHanded(bitfield & 0x2 != 0));
                 entity.insert(Aggressive(bitfield & 0x4 != 0));
@@ -3634,7 +4035,10 @@ impl Bat {
         match d.index {
             0..=15 => AbstractInsentient::apply_metadata(entity, d)?,
             16 => {
-                let bitfield = d.value.into_byte()?;
+                let bitfield = d
+                    .value
+                    .into_byte()
+                    .map_err(|v| e(v, d.index, "<bitfield>"))?;
                 entity.insert(Resting(bitfield & 0x1 != 0));
             }
             _ => {}
@@ -3697,7 +4101,9 @@ impl EnderDragon {
         match d.index {
             0..=15 => AbstractInsentient::apply_metadata(entity, d)?,
             16 => {
-                entity.insert(Phase(d.value.into_int()?));
+                entity.insert(Phase(
+                    d.value.into_int().map_err(|v| e(v, d.index, "Phase"))?,
+                ));
             }
             _ => {}
         }
@@ -3758,7 +4164,11 @@ impl Ghast {
         match d.index {
             0..=15 => AbstractInsentient::apply_metadata(entity, d)?,
             16 => {
-                entity.insert(IsCharging(d.value.into_boolean()?));
+                entity.insert(IsCharging(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "IsCharging"))?,
+                ));
             }
             _ => {}
         }
@@ -3819,7 +4229,11 @@ impl Phantom {
         match d.index {
             0..=15 => AbstractInsentient::apply_metadata(entity, d)?,
             16 => {
-                entity.insert(PhantomSize(d.value.into_int()?));
+                entity.insert(PhantomSize(
+                    d.value
+                        .into_int()
+                        .map_err(|v| e(v, d.index, "PhantomSize"))?,
+                ));
             }
             _ => {}
         }
@@ -3873,11 +4287,8 @@ impl Default for PhantomMetadataBundle {
 /// - [Tadpole]
 /// - [AbstractAgeable]
 ///   - [Dolphin]
-///   - [MagmaCube]
-///   - [Slime]
 ///   - [Squid]
 ///     - [GlowSquid]
-///   - [SulfurCube]
 ///   - [AbstractAnimal]
 ///     - [Armadillo]
 ///     - [Axolotl]
@@ -3917,6 +4328,10 @@ impl Default for PhantomMetadataBundle {
 ///       - [AbstractNautilus]
 ///         - [Nautilus]
 ///         - [ZombieNautilus]
+///   - [AbstractCubeMob]
+///     - [MagmaCube]
+///     - [Slime]
+///     - [SulfurCube]
 ///   - [AbstractVillager]
 ///     - [Villager]
 ///     - [WanderingTrader]
@@ -4033,10 +4448,18 @@ impl Allay {
         match d.index {
             0..=15 => AbstractCreature::apply_metadata(entity, d)?,
             16 => {
-                entity.insert(Dancing(d.value.into_boolean()?));
+                entity.insert(Dancing(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "Dancing"))?,
+                ));
             }
             17 => {
-                entity.insert(CanDuplicate(d.value.into_boolean()?));
+                entity.insert(CanDuplicate(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "CanDuplicate"))?,
+                ));
             }
             _ => {}
         }
@@ -4105,10 +4528,18 @@ impl CopperGolem {
         match d.index {
             0..=15 => AbstractCreature::apply_metadata(entity, d)?,
             16 => {
-                entity.insert(WeatherState(d.value.into_weathering_copper_state()?));
+                entity.insert(WeatherState(
+                    d.value
+                        .into_weathering_copper_state()
+                        .map_err(|v| e(v, d.index, "WeatherState"))?,
+                ));
             }
             17 => {
-                entity.insert(CopperGolemState(d.value.into_copper_golem_state()?));
+                entity.insert(CopperGolemState(
+                    d.value
+                        .into_copper_golem_state()
+                        .map_err(|v| e(v, d.index, "CopperGolemState"))?,
+                ));
             }
             _ => {}
         }
@@ -4173,7 +4604,10 @@ impl IronGolem {
         match d.index {
             0..=15 => AbstractCreature::apply_metadata(entity, d)?,
             16 => {
-                let bitfield = d.value.into_byte()?;
+                let bitfield = d
+                    .value
+                    .into_byte()
+                    .map_err(|v| e(v, d.index, "<bitfield>"))?;
                 entity.insert(PlayerCreated(bitfield & 0x1 != 0));
             }
             _ => {}
@@ -4241,10 +4675,16 @@ impl Pufferfish {
         match d.index {
             0..=15 => AbstractCreature::apply_metadata(entity, d)?,
             16 => {
-                entity.insert(PufferfishFromBucket(d.value.into_boolean()?));
+                entity.insert(PufferfishFromBucket(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "PufferfishFromBucket"))?,
+                ));
             }
             17 => {
-                entity.insert(PuffState(d.value.into_int()?));
+                entity.insert(PuffState(
+                    d.value.into_int().map_err(|v| e(v, d.index, "PuffState"))?,
+                ));
             }
             _ => {}
         }
@@ -4281,7 +4721,7 @@ pub struct AttachFace(pub Direction);
 pub struct Peek(pub u8);
 /// A metadata field for [Shulker].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct Color(pub u8);
+pub struct ShulkerColor(pub u8);
 /// The marker component for entities of type `minecraft:shulker`.
 ///
 /// # Metadata
@@ -4291,7 +4731,7 @@ pub struct Color(pub u8);
 ///
 /// - [AttachFace]
 /// - [Peek]
-/// - [Color]
+/// - [ShulkerColor]
 ///
 /// # Parents
 ///
@@ -4316,13 +4756,23 @@ impl Shulker {
         match d.index {
             0..=15 => AbstractCreature::apply_metadata(entity, d)?,
             16 => {
-                entity.insert(AttachFace(d.value.into_direction()?));
+                entity.insert(AttachFace(
+                    d.value
+                        .into_direction()
+                        .map_err(|v| e(v, d.index, "AttachFace"))?,
+                ));
             }
             17 => {
-                entity.insert(Peek(d.value.into_byte()?));
+                entity.insert(Peek(
+                    d.value.into_byte().map_err(|v| e(v, d.index, "Peek"))?,
+                ));
             }
             18 => {
-                entity.insert(Color(d.value.into_byte()?));
+                entity.insert(ShulkerColor(
+                    d.value
+                        .into_byte()
+                        .map_err(|v| e(v, d.index, "ShulkerColor"))?,
+                ));
             }
             _ => {}
         }
@@ -4339,7 +4789,7 @@ pub struct ShulkerMetadataBundle {
     parent: AbstractCreatureMetadataBundle,
     attach_face: AttachFace,
     peek: Peek,
-    color: Color,
+    shulker_color: ShulkerColor,
 }
 impl Default for ShulkerMetadataBundle {
     fn default() -> Self {
@@ -4348,7 +4798,7 @@ impl Default for ShulkerMetadataBundle {
             parent: Default::default(),
             attach_face: AttachFace(Default::default()),
             peek: Peek(0),
-            color: Color(16),
+            shulker_color: ShulkerColor(16),
         }
     }
 }
@@ -4389,7 +4839,10 @@ impl SnowGolem {
         match d.index {
             0..=15 => AbstractCreature::apply_metadata(entity, d)?,
             16 => {
-                let bitfield = d.value.into_byte()?;
+                let bitfield = d
+                    .value
+                    .into_byte()
+                    .map_err(|v| e(v, d.index, "<bitfield>"))?;
                 entity.insert(HasPumpkin(bitfield & 0x10 != 0));
             }
             _ => {}
@@ -4456,10 +4909,18 @@ impl Tadpole {
         match d.index {
             0..=15 => AbstractCreature::apply_metadata(entity, d)?,
             16 => {
-                entity.insert(TadpoleFromBucket(d.value.into_boolean()?));
+                entity.insert(TadpoleFromBucket(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "TadpoleFromBucket"))?,
+                ));
             }
             17 => {
-                entity.insert(TadpoleAgeLocked(d.value.into_boolean()?));
+                entity.insert(TadpoleAgeLocked(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "TadpoleAgeLocked"))?,
+                ));
             }
             _ => {}
         }
@@ -4518,11 +4979,8 @@ pub struct AbstractAgeableAgeLocked(pub bool);
 /// # Children
 ///
 /// - [Dolphin]
-/// - [MagmaCube]
-/// - [Slime]
 /// - [Squid]
 ///   - [GlowSquid]
-/// - [SulfurCube]
 /// - [AbstractAnimal]
 ///   - [Armadillo]
 ///   - [Axolotl]
@@ -4562,6 +5020,10 @@ pub struct AbstractAgeableAgeLocked(pub bool);
 ///     - [AbstractNautilus]
 ///       - [Nautilus]
 ///       - [ZombieNautilus]
+/// - [AbstractCubeMob]
+///   - [MagmaCube]
+///   - [Slime]
+///   - [SulfurCube]
 /// - [AbstractVillager]
 ///   - [Villager]
 ///   - [WanderingTrader]
@@ -4575,10 +5037,18 @@ impl AbstractAgeable {
         match d.index {
             0..=15 => AbstractCreature::apply_metadata(entity, d)?,
             16 => {
-                entity.insert(AbstractAgeableBaby(d.value.into_boolean()?));
+                entity.insert(AbstractAgeableBaby(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "AbstractAgeableBaby"))?,
+                ));
             }
             17 => {
-                entity.insert(AbstractAgeableAgeLocked(d.value.into_boolean()?));
+                entity.insert(AbstractAgeableAgeLocked(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "AbstractAgeableAgeLocked"))?,
+                ));
             }
             _ => {}
         }
@@ -4647,10 +5117,18 @@ impl Dolphin {
         match d.index {
             0..=17 => AbstractAgeable::apply_metadata(entity, d)?,
             18 => {
-                entity.insert(GotFish(d.value.into_boolean()?));
+                entity.insert(GotFish(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "GotFish"))?,
+                ));
             }
             19 => {
-                entity.insert(MoistnessLevel(d.value.into_int()?));
+                entity.insert(MoistnessLevel(
+                    d.value
+                        .into_int()
+                        .map_err(|v| e(v, d.index, "MoistnessLevel"))?,
+                ));
             }
             _ => {}
         }
@@ -4675,133 +5153,6 @@ impl Default for DolphinMetadataBundle {
             parent: Default::default(),
             got_fish: GotFish(false),
             moistness_level: MoistnessLevel(2400),
-        }
-    }
-}
-
-/// A metadata field for [MagmaCube].
-#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct MagmaCubeSize(pub i32);
-/// The marker component for entities of type `minecraft:magma_cube`.
-///
-/// # Metadata
-///
-/// These are the metadata components that all `MagmaCube` entities are
-/// guaranteed to have, in addition to the metadata components from parent
-/// types:
-///
-/// - [MagmaCubeSize]
-///
-/// # Parents
-///
-/// Entities with `MagmaCube` will also have the following marker components and
-/// their metadata fields:
-///
-/// - [AbstractAgeable]
-/// - [AbstractCreature]
-/// - [AbstractInsentient]
-/// - [AbstractLiving]
-/// - [AbstractEntity]
-///
-/// # Children
-///
-/// This entity type has no children types.
-#[derive(Component)]
-pub struct MagmaCube;
-impl MagmaCube {
-    fn apply_metadata(
-        entity: &mut bevy_ecs::system::EntityCommands,
-        d: EntityDataItem,
-    ) -> Result<(), UpdateMetadataError> {
-        match d.index {
-            0..=17 => AbstractAgeable::apply_metadata(entity, d)?,
-            18 => {
-                entity.insert(MagmaCubeSize(d.value.into_int()?));
-            }
-            _ => {}
-        }
-        Ok(())
-    }
-}
-
-/// The metadata bundle for [MagmaCube].
-///
-/// This type should generally not be used directly.
-#[derive(Bundle)]
-pub struct MagmaCubeMetadataBundle {
-    _marker: MagmaCube,
-    parent: AbstractAgeableMetadataBundle,
-    magma_cube_size: MagmaCubeSize,
-}
-impl Default for MagmaCubeMetadataBundle {
-    fn default() -> Self {
-        Self {
-            _marker: MagmaCube,
-            parent: Default::default(),
-            magma_cube_size: MagmaCubeSize(1),
-        }
-    }
-}
-
-/// A metadata field for [Slime].
-#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct SlimeSize(pub i32);
-/// The marker component for entities of type `minecraft:slime`.
-///
-/// # Metadata
-///
-/// These are the metadata components that all `Slime` entities are guaranteed
-/// to have, in addition to the metadata components from parent types:
-///
-/// - [SlimeSize]
-///
-/// # Parents
-///
-/// Entities with `Slime` will also have the following marker components and
-/// their metadata fields:
-///
-/// - [AbstractAgeable]
-/// - [AbstractCreature]
-/// - [AbstractInsentient]
-/// - [AbstractLiving]
-/// - [AbstractEntity]
-///
-/// # Children
-///
-/// This entity type has no children types.
-#[derive(Component)]
-pub struct Slime;
-impl Slime {
-    fn apply_metadata(
-        entity: &mut bevy_ecs::system::EntityCommands,
-        d: EntityDataItem,
-    ) -> Result<(), UpdateMetadataError> {
-        match d.index {
-            0..=17 => AbstractAgeable::apply_metadata(entity, d)?,
-            18 => {
-                entity.insert(SlimeSize(d.value.into_int()?));
-            }
-            _ => {}
-        }
-        Ok(())
-    }
-}
-
-/// The metadata bundle for [Slime].
-///
-/// This type should generally not be used directly.
-#[derive(Bundle)]
-pub struct SlimeMetadataBundle {
-    _marker: Slime,
-    parent: AbstractAgeableMetadataBundle,
-    slime_size: SlimeSize,
-}
-impl Default for SlimeMetadataBundle {
-    fn default() -> Self {
-        Self {
-            _marker: Slime,
-            parent: Default::default(),
-            slime_size: SlimeSize(1),
         }
     }
 }
@@ -4897,7 +5248,11 @@ impl GlowSquid {
         match d.index {
             0..=17 => Squid::apply_metadata(entity, d)?,
             18 => {
-                entity.insert(DarkTicksRemaining(d.value.into_int()?));
+                entity.insert(DarkTicksRemaining(
+                    d.value
+                        .into_int()
+                        .map_err(|v| e(v, d.index, "DarkTicksRemaining"))?,
+                ));
             }
             _ => {}
         }
@@ -4920,88 +5275,6 @@ impl Default for GlowSquidMetadataBundle {
             _marker: GlowSquid,
             parent: Default::default(),
             dark_ticks_remaining: DarkTicksRemaining(0),
-        }
-    }
-}
-
-/// A metadata field for [SulfurCube].
-#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct SulfurCubeSize(pub i32);
-/// A metadata field for [SulfurCube].
-#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct MaxFuse(pub i32);
-/// A metadata field for [SulfurCube].
-#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct SulfurCubeFromBucket(pub bool);
-/// The marker component for entities of type `minecraft:sulfur_cube`.
-///
-/// # Metadata
-///
-/// These are the metadata components that all `SulfurCube` entities are
-/// guaranteed to have, in addition to the metadata components from parent
-/// types:
-///
-/// - [SulfurCubeSize]
-/// - [MaxFuse]
-/// - [SulfurCubeFromBucket]
-///
-/// # Parents
-///
-/// Entities with `SulfurCube` will also have the following marker components
-/// and their metadata fields:
-///
-/// - [AbstractAgeable]
-/// - [AbstractCreature]
-/// - [AbstractInsentient]
-/// - [AbstractLiving]
-/// - [AbstractEntity]
-///
-/// # Children
-///
-/// This entity type has no children types.
-#[derive(Component)]
-pub struct SulfurCube;
-impl SulfurCube {
-    fn apply_metadata(
-        entity: &mut bevy_ecs::system::EntityCommands,
-        d: EntityDataItem,
-    ) -> Result<(), UpdateMetadataError> {
-        match d.index {
-            0..=17 => AbstractAgeable::apply_metadata(entity, d)?,
-            18 => {
-                entity.insert(SulfurCubeSize(d.value.into_int()?));
-            }
-            19 => {
-                entity.insert(MaxFuse(d.value.into_int()?));
-            }
-            20 => {
-                entity.insert(SulfurCubeFromBucket(d.value.into_boolean()?));
-            }
-            _ => {}
-        }
-        Ok(())
-    }
-}
-
-/// The metadata bundle for [SulfurCube].
-///
-/// This type should generally not be used directly.
-#[derive(Bundle)]
-pub struct SulfurCubeMetadataBundle {
-    _marker: SulfurCube,
-    parent: AbstractAgeableMetadataBundle,
-    sulfur_cube_size: SulfurCubeSize,
-    max_fuse: MaxFuse,
-    sulfur_cube_from_bucket: SulfurCubeFromBucket,
-}
-impl Default for SulfurCubeMetadataBundle {
-    fn default() -> Self {
-        Self {
-            _marker: SulfurCube,
-            parent: Default::default(),
-            sulfur_cube_size: SulfurCubeSize(1),
-            max_fuse: MaxFuse(-1),
-            sulfur_cube_from_bucket: SulfurCubeFromBucket(false),
         }
     }
 }
@@ -5134,7 +5407,11 @@ impl Armadillo {
         match d.index {
             0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
             18 => {
-                entity.insert(ArmadilloState(d.value.into_armadillo_state()?));
+                entity.insert(ArmadilloState(
+                    d.value
+                        .into_armadillo_state()
+                        .map_err(|v| e(v, d.index, "ArmadilloState"))?,
+                ));
             }
             _ => {}
         }
@@ -5206,13 +5483,25 @@ impl Axolotl {
         match d.index {
             0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
             18 => {
-                entity.insert(AxolotlVariant(d.value.into_int()?));
+                entity.insert(AxolotlVariant(
+                    d.value
+                        .into_int()
+                        .map_err(|v| e(v, d.index, "AxolotlVariant"))?,
+                ));
             }
             19 => {
-                entity.insert(PlayingDead(d.value.into_boolean()?));
+                entity.insert(PlayingDead(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "PlayingDead"))?,
+                ));
             }
             20 => {
-                entity.insert(AxolotlFromBucket(d.value.into_boolean()?));
+                entity.insert(AxolotlFromBucket(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "AxolotlFromBucket"))?,
+                ));
             }
             _ => {}
         }
@@ -5292,13 +5581,20 @@ impl Bee {
         match d.index {
             0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
             18 => {
-                let bitfield = d.value.into_byte()?;
+                let bitfield = d
+                    .value
+                    .into_byte()
+                    .map_err(|v| e(v, d.index, "<bitfield>"))?;
                 entity.insert(HasNectar(bitfield & 0x8 != 0));
                 entity.insert(HasStung(bitfield & 0x4 != 0));
                 entity.insert(BeeRolling(bitfield & 0x2 != 0));
             }
             19 => {
-                entity.insert(BeeAngerEndTime(d.value.into_long()?));
+                entity.insert(BeeAngerEndTime(
+                    d.value
+                        .into_long()
+                        .map_err(|v| e(v, d.index, "BeeAngerEndTime"))?,
+                ));
             }
             _ => {}
         }
@@ -5372,10 +5668,18 @@ impl Chicken {
         match d.index {
             0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
             18 => {
-                entity.insert(ChickenVariant(d.value.into_chicken_variant()?));
+                entity.insert(ChickenVariant(
+                    d.value
+                        .into_chicken_variant()
+                        .map_err(|v| e(v, d.index, "ChickenVariant"))?,
+                ));
             }
             19 => {
-                entity.insert(ChickenSoundVariant(d.value.into_chicken_sound_variant()?));
+                entity.insert(ChickenSoundVariant(
+                    d.value
+                        .into_chicken_sound_variant()
+                        .map_err(|v| e(v, d.index, "ChickenSoundVariant"))?,
+                ));
             }
             _ => {}
         }
@@ -5447,10 +5751,18 @@ impl Cow {
         match d.index {
             0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
             18 => {
-                entity.insert(CowVariant(d.value.into_cow_variant()?));
+                entity.insert(CowVariant(
+                    d.value
+                        .into_cow_variant()
+                        .map_err(|v| e(v, d.index, "CowVariant"))?,
+                ));
             }
             19 => {
-                entity.insert(CowSoundVariant(d.value.into_cow_sound_variant()?));
+                entity.insert(CowSoundVariant(
+                    d.value
+                        .into_cow_sound_variant()
+                        .map_err(|v| e(v, d.index, "CowSoundVariant"))?,
+                ));
             }
             _ => {}
         }
@@ -5552,10 +5864,15 @@ impl Fox {
         match d.index {
             0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
             18 => {
-                entity.insert(FoxKind(d.value.into_int()?));
+                entity.insert(FoxKind(
+                    d.value.into_int().map_err(|v| e(v, d.index, "FoxKind"))?,
+                ));
             }
             19 => {
-                let bitfield = d.value.into_byte()?;
+                let bitfield = d
+                    .value
+                    .into_byte()
+                    .map_err(|v| e(v, d.index, "<bitfield>"))?;
                 entity.insert(FoxSitting(bitfield & 0x1 != 0));
                 entity.insert(Faceplanted(bitfield & 0x40 != 0));
                 entity.insert(Defending(bitfield & 0x80 != 0));
@@ -5565,10 +5882,18 @@ impl Fox {
                 entity.insert(FoxInterested(bitfield & 0x8 != 0));
             }
             20 => {
-                entity.insert(TrustedId0(d.value.into_optional_living_entity_reference()?));
+                entity.insert(TrustedId0(
+                    d.value
+                        .into_optional_living_entity_reference()
+                        .map_err(|v| e(v, d.index, "TrustedId0"))?,
+                ));
             }
             21 => {
-                entity.insert(TrustedId1(d.value.into_optional_living_entity_reference()?));
+                entity.insert(TrustedId1(
+                    d.value
+                        .into_optional_living_entity_reference()
+                        .map_err(|v| e(v, d.index, "TrustedId1"))?,
+                ));
             }
             _ => {}
         }
@@ -5654,10 +5979,18 @@ impl Frog {
         match d.index {
             0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
             18 => {
-                entity.insert(FrogVariant(d.value.into_frog_variant()?));
+                entity.insert(FrogVariant(
+                    d.value
+                        .into_frog_variant()
+                        .map_err(|v| e(v, d.index, "FrogVariant"))?,
+                ));
             }
             19 => {
-                entity.insert(TongueTarget(d.value.into_optional_unsigned_int()?));
+                entity.insert(TongueTarget(
+                    d.value
+                        .into_optional_unsigned_int()
+                        .map_err(|v| e(v, d.index, "TongueTarget"))?,
+                ));
             }
             _ => {}
         }
@@ -5731,13 +6064,25 @@ impl Goat {
         match d.index {
             0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
             18 => {
-                entity.insert(IsScreamingGoat(d.value.into_boolean()?));
+                entity.insert(IsScreamingGoat(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "IsScreamingGoat"))?,
+                ));
             }
             19 => {
-                entity.insert(HasLeftHorn(d.value.into_boolean()?));
+                entity.insert(HasLeftHorn(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "HasLeftHorn"))?,
+                ));
             }
             20 => {
-                entity.insert(HasRightHorn(d.value.into_boolean()?));
+                entity.insert(HasRightHorn(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "HasRightHorn"))?,
+                ));
             }
             _ => {}
         }
@@ -5810,10 +6155,18 @@ impl HappyGhast {
         match d.index {
             0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
             18 => {
-                entity.insert(IsLeashHolder(d.value.into_boolean()?));
+                entity.insert(IsLeashHolder(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "IsLeashHolder"))?,
+                ));
             }
             19 => {
-                entity.insert(StaysStill(d.value.into_boolean()?));
+                entity.insert(StaysStill(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "StaysStill"))?,
+                ));
             }
             _ => {}
         }
@@ -5879,7 +6232,11 @@ impl Hoglin {
         match d.index {
             0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
             18 => {
-                entity.insert(HoglinImmuneToZombification(d.value.into_boolean()?));
+                entity.insert(HoglinImmuneToZombification(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "HoglinImmuneToZombification"))?,
+                ));
             }
             _ => {}
         }
@@ -5944,7 +6301,11 @@ impl Mooshroom {
         match d.index {
             0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
             18 => {
-                entity.insert(MooshroomKind(d.value.into_int()?));
+                entity.insert(MooshroomKind(
+                    d.value
+                        .into_int()
+                        .map_err(|v| e(v, d.index, "MooshroomKind"))?,
+                ));
             }
             _ => {}
         }
@@ -6008,7 +6369,11 @@ impl Ocelot {
         match d.index {
             0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
             18 => {
-                entity.insert(Trusting(d.value.into_boolean()?));
+                entity.insert(Trusting(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "Trusting"))?,
+                ));
             }
             _ => {}
         }
@@ -6104,26 +6469,49 @@ impl Panda {
         match d.index {
             0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
             18 => {
-                entity.insert(PandaUnhappyCounter(d.value.into_int()?));
+                entity.insert(PandaUnhappyCounter(
+                    d.value
+                        .into_int()
+                        .map_err(|v| e(v, d.index, "PandaUnhappyCounter"))?,
+                ));
             }
             19 => {
-                entity.insert(SneezeCounter(d.value.into_int()?));
+                entity.insert(SneezeCounter(
+                    d.value
+                        .into_int()
+                        .map_err(|v| e(v, d.index, "SneezeCounter"))?,
+                ));
             }
             20 => {
-                entity.insert(EatCounter(d.value.into_int()?));
+                entity.insert(EatCounter(
+                    d.value
+                        .into_int()
+                        .map_err(|v| e(v, d.index, "EatCounter"))?,
+                ));
             }
             21 => {
-                let bitfield = d.value.into_byte()?;
+                let bitfield = d
+                    .value
+                    .into_byte()
+                    .map_err(|v| e(v, d.index, "<bitfield>"))?;
                 entity.insert(Sneezing(bitfield & 0x2 != 0));
                 entity.insert(PandaSitting(bitfield & 0x8 != 0));
                 entity.insert(OnBack(bitfield & 0x10 != 0));
                 entity.insert(PandaRolling(bitfield & 0x4 != 0));
             }
             22 => {
-                entity.insert(HiddenGene(d.value.into_byte()?));
+                entity.insert(HiddenGene(
+                    d.value
+                        .into_byte()
+                        .map_err(|v| e(v, d.index, "HiddenGene"))?,
+                ));
             }
             23 => {
-                entity.insert(PandaFlags(d.value.into_byte()?));
+                entity.insert(PandaFlags(
+                    d.value
+                        .into_byte()
+                        .map_err(|v| e(v, d.index, "PandaFlags"))?,
+                ));
             }
             _ => {}
         }
@@ -6211,13 +6599,25 @@ impl Pig {
         match d.index {
             0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
             18 => {
-                entity.insert(PigBoostTime(d.value.into_int()?));
+                entity.insert(PigBoostTime(
+                    d.value
+                        .into_int()
+                        .map_err(|v| e(v, d.index, "PigBoostTime"))?,
+                ));
             }
             19 => {
-                entity.insert(PigVariant(d.value.into_pig_variant()?));
+                entity.insert(PigVariant(
+                    d.value
+                        .into_pig_variant()
+                        .map_err(|v| e(v, d.index, "PigVariant"))?,
+                ));
             }
             20 => {
-                entity.insert(PigSoundVariant(d.value.into_pig_sound_variant()?));
+                entity.insert(PigSoundVariant(
+                    d.value
+                        .into_pig_sound_variant()
+                        .map_err(|v| e(v, d.index, "PigSoundVariant"))?,
+                ));
             }
             _ => {}
         }
@@ -6286,7 +6686,11 @@ impl PolarBear {
         match d.index {
             0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
             18 => {
-                entity.insert(PolarBearStanding(d.value.into_boolean()?));
+                entity.insert(PolarBearStanding(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "PolarBearStanding"))?,
+                ));
             }
             _ => {}
         }
@@ -6350,7 +6754,11 @@ impl Rabbit {
         match d.index {
             0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
             18 => {
-                entity.insert(RabbitKind(d.value.into_int()?));
+                entity.insert(RabbitKind(
+                    d.value
+                        .into_int()
+                        .map_err(|v| e(v, d.index, "RabbitKind"))?,
+                ));
             }
             _ => {}
         }
@@ -6414,7 +6822,10 @@ impl Sheep {
         match d.index {
             0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
             18 => {
-                let bitfield = d.value.into_byte()?;
+                let bitfield = d
+                    .value
+                    .into_byte()
+                    .map_err(|v| e(v, d.index, "<bitfield>"))?;
                 entity.insert(SheepSheared(bitfield & 0x10 != 0));
             }
             _ => {}
@@ -6483,10 +6894,18 @@ impl Sniffer {
         match d.index {
             0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
             18 => {
-                entity.insert(SnifferState(d.value.into_sniffer_state()?));
+                entity.insert(SnifferState(
+                    d.value
+                        .into_sniffer_state()
+                        .map_err(|v| e(v, d.index, "SnifferState"))?,
+                ));
             }
             19 => {
-                entity.insert(DropSeedAtTick(d.value.into_int()?));
+                entity.insert(DropSeedAtTick(
+                    d.value
+                        .into_int()
+                        .map_err(|v| e(v, d.index, "DropSeedAtTick"))?,
+                ));
             }
             _ => {}
         }
@@ -6556,10 +6975,18 @@ impl Strider {
         match d.index {
             0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
             18 => {
-                entity.insert(StriderBoostTime(d.value.into_int()?));
+                entity.insert(StriderBoostTime(
+                    d.value
+                        .into_int()
+                        .map_err(|v| e(v, d.index, "StriderBoostTime"))?,
+                ));
             }
             19 => {
-                entity.insert(Suffocating(d.value.into_boolean()?));
+                entity.insert(Suffocating(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "Suffocating"))?,
+                ));
             }
             _ => {}
         }
@@ -6629,10 +7056,18 @@ impl Turtle {
         match d.index {
             0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
             18 => {
-                entity.insert(HasEgg(d.value.into_boolean()?));
+                entity.insert(HasEgg(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "HasEgg"))?,
+                ));
             }
             19 => {
-                entity.insert(LayingEgg(d.value.into_boolean()?));
+                entity.insert(LayingEgg(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "LayingEgg"))?,
+                ));
             }
             _ => {}
         }
@@ -6720,7 +7155,10 @@ impl AbstractHorse {
         match d.index {
             0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
             18 => {
-                let bitfield = d.value.into_byte()?;
+                let bitfield = d
+                    .value
+                    .into_byte()
+                    .map_err(|v| e(v, d.index, "<bitfield>"))?;
                 entity.insert(Tamed(bitfield & 0x2 != 0));
                 entity.insert(Eating(bitfield & 0x10 != 0));
                 entity.insert(AbstractHorseStanding(bitfield & 0x20 != 0));
@@ -6799,10 +7237,18 @@ impl Camel {
         match d.index {
             0..=18 => AbstractHorse::apply_metadata(entity, d)?,
             19 => {
-                entity.insert(CamelDash(d.value.into_boolean()?));
+                entity.insert(CamelDash(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "CamelDash"))?,
+                ));
             }
             20 => {
-                entity.insert(LastPoseChangeTick(d.value.into_long()?));
+                entity.insert(LastPoseChangeTick(
+                    d.value
+                        .into_long()
+                        .map_err(|v| e(v, d.index, "LastPoseChangeTick"))?,
+                ));
             }
             _ => {}
         }
@@ -6925,7 +7371,11 @@ impl Horse {
         match d.index {
             0..=18 => AbstractHorse::apply_metadata(entity, d)?,
             19 => {
-                entity.insert(HorseTypeVariant(d.value.into_int()?));
+                entity.insert(HorseTypeVariant(
+                    d.value
+                        .into_int()
+                        .map_err(|v| e(v, d.index, "HorseTypeVariant"))?,
+                ));
             }
             _ => {}
         }
@@ -7104,7 +7554,9 @@ impl AbstractChestedHorse {
         match d.index {
             0..=18 => AbstractHorse::apply_metadata(entity, d)?,
             19 => {
-                entity.insert(Chest(d.value.into_boolean()?));
+                entity.insert(Chest(
+                    d.value.into_boolean().map_err(|v| e(v, d.index, "Chest"))?,
+                ));
             }
             _ => {}
         }
@@ -7230,10 +7682,16 @@ impl Llama {
         match d.index {
             0..=19 => AbstractChestedHorse::apply_metadata(entity, d)?,
             20 => {
-                entity.insert(Strength(d.value.into_int()?));
+                entity.insert(Strength(
+                    d.value.into_int().map_err(|v| e(v, d.index, "Strength"))?,
+                ));
             }
             21 => {
-                entity.insert(LlamaVariant(d.value.into_int()?));
+                entity.insert(LlamaVariant(
+                    d.value
+                        .into_int()
+                        .map_err(|v| e(v, d.index, "LlamaVariant"))?,
+                ));
             }
             _ => {}
         }
@@ -7426,12 +7884,19 @@ impl AbstractTameable {
         match d.index {
             0..=17 => AbstractAnimal::apply_metadata(entity, d)?,
             18 => {
-                let bitfield = d.value.into_byte()?;
+                let bitfield = d
+                    .value
+                    .into_byte()
+                    .map_err(|v| e(v, d.index, "<bitfield>"))?;
                 entity.insert(Tame(bitfield & 0x4 != 0));
                 entity.insert(InSittingPose(bitfield & 0x1 != 0));
             }
             19 => {
-                entity.insert(Owneruuid(d.value.into_optional_living_entity_reference()?));
+                entity.insert(Owneruuid(
+                    d.value
+                        .into_optional_living_entity_reference()
+                        .map_err(|v| e(v, d.index, "Owneruuid"))?,
+                ));
             }
             _ => {}
         }
@@ -7516,19 +7981,39 @@ impl Cat {
         match d.index {
             0..=19 => AbstractTameable::apply_metadata(entity, d)?,
             20 => {
-                entity.insert(CatVariant(d.value.into_cat_variant()?));
+                entity.insert(CatVariant(
+                    d.value
+                        .into_cat_variant()
+                        .map_err(|v| e(v, d.index, "CatVariant"))?,
+                ));
             }
             21 => {
-                entity.insert(IsLying(d.value.into_boolean()?));
+                entity.insert(IsLying(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "IsLying"))?,
+                ));
             }
             22 => {
-                entity.insert(RelaxStateOne(d.value.into_boolean()?));
+                entity.insert(RelaxStateOne(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "RelaxStateOne"))?,
+                ));
             }
             23 => {
-                entity.insert(CatCollarColor(d.value.into_int()?));
+                entity.insert(CatCollarColor(
+                    d.value
+                        .into_int()
+                        .map_err(|v| e(v, d.index, "CatCollarColor"))?,
+                ));
             }
             24 => {
-                entity.insert(CatSoundVariant(d.value.into_cat_sound_variant()?));
+                entity.insert(CatSoundVariant(
+                    d.value
+                        .into_cat_sound_variant()
+                        .map_err(|v| e(v, d.index, "CatSoundVariant"))?,
+                ));
             }
             _ => {}
         }
@@ -7601,7 +8086,11 @@ impl Parrot {
         match d.index {
             0..=19 => AbstractTameable::apply_metadata(entity, d)?,
             20 => {
-                entity.insert(ParrotVariant(d.value.into_int()?));
+                entity.insert(ParrotVariant(
+                    d.value
+                        .into_int()
+                        .map_err(|v| e(v, d.index, "ParrotVariant"))?,
+                ));
             }
             _ => {}
         }
@@ -7682,19 +8171,39 @@ impl Wolf {
         match d.index {
             0..=19 => AbstractTameable::apply_metadata(entity, d)?,
             20 => {
-                entity.insert(WolfInterested(d.value.into_boolean()?));
+                entity.insert(WolfInterested(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "WolfInterested"))?,
+                ));
             }
             21 => {
-                entity.insert(WolfCollarColor(d.value.into_int()?));
+                entity.insert(WolfCollarColor(
+                    d.value
+                        .into_int()
+                        .map_err(|v| e(v, d.index, "WolfCollarColor"))?,
+                ));
             }
             22 => {
-                entity.insert(WolfAngerEndTime(d.value.into_long()?));
+                entity.insert(WolfAngerEndTime(
+                    d.value
+                        .into_long()
+                        .map_err(|v| e(v, d.index, "WolfAngerEndTime"))?,
+                ));
             }
             23 => {
-                entity.insert(WolfVariant(d.value.into_wolf_variant()?));
+                entity.insert(WolfVariant(
+                    d.value
+                        .into_wolf_variant()
+                        .map_err(|v| e(v, d.index, "WolfVariant"))?,
+                ));
             }
             24 => {
-                entity.insert(WolfSoundVariant(d.value.into_wolf_sound_variant()?));
+                entity.insert(WolfSoundVariant(
+                    d.value
+                        .into_wolf_sound_variant()
+                        .map_err(|v| e(v, d.index, "WolfSoundVariant"))?,
+                ));
             }
             _ => {}
         }
@@ -7771,7 +8280,11 @@ impl AbstractNautilus {
         match d.index {
             0..=19 => AbstractTameable::apply_metadata(entity, d)?,
             20 => {
-                entity.insert(AbstractNautilusDash(d.value.into_boolean()?));
+                entity.insert(AbstractNautilusDash(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "AbstractNautilusDash"))?,
+                ));
             }
             _ => {}
         }
@@ -7895,7 +8408,9 @@ impl ZombieNautilus {
             0..=20 => AbstractNautilus::apply_metadata(entity, d)?,
             21 => {
                 entity.insert(ZombieNautilusVariant(
-                    d.value.into_zombie_nautilus_variant()?,
+                    d.value
+                        .into_zombie_nautilus_variant()
+                        .map_err(|v| e(v, d.index, "ZombieNautilusVariant"))?,
                 ));
             }
             _ => {}
@@ -7921,6 +8436,264 @@ impl Default for ZombieNautilusMetadataBundle {
             zombie_nautilus_variant: ZombieNautilusVariant(
                 azalea_registry::data::ZombieNautilusVariant::new_raw(0),
             ),
+        }
+    }
+}
+
+/// A metadata field for [AbstractCubeMob].
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
+pub struct AbstractCubeMobSize(pub i32);
+/// An abstract entity marker component.
+///
+/// # Metadata
+///
+/// These are the metadata components that all `AbstractCubeMob` entities are
+/// guaranteed to have, in addition to the metadata components from parent
+/// types:
+///
+/// - [AbstractCubeMobSize]
+///
+/// # Parents
+///
+/// Entities with `AbstractCubeMob` will also have the following marker
+/// components and their metadata fields:
+///
+/// - [AbstractAgeable]
+/// - [AbstractCreature]
+/// - [AbstractInsentient]
+/// - [AbstractLiving]
+/// - [AbstractEntity]
+///
+/// # Children
+///
+/// - [MagmaCube]
+/// - [Slime]
+/// - [SulfurCube]
+#[derive(Component)]
+pub struct AbstractCubeMob;
+impl AbstractCubeMob {
+    fn apply_metadata(
+        entity: &mut bevy_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=17 => AbstractAgeable::apply_metadata(entity, d)?,
+            18 => {
+                entity.insert(AbstractCubeMobSize(
+                    d.value
+                        .into_int()
+                        .map_err(|v| e(v, d.index, "AbstractCubeMobSize"))?,
+                ));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+/// The metadata bundle for [AbstractCubeMob].
+///
+/// This type should generally not be used directly.
+#[derive(Bundle)]
+pub struct AbstractCubeMobMetadataBundle {
+    _marker: AbstractCubeMob,
+    parent: AbstractAgeableMetadataBundle,
+    abstract_cube_mob_size: AbstractCubeMobSize,
+}
+impl Default for AbstractCubeMobMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: AbstractCubeMob,
+            parent: Default::default(),
+            abstract_cube_mob_size: AbstractCubeMobSize(1),
+        }
+    }
+}
+
+/// The marker component for entities of type `minecraft:magma_cube`.
+///
+/// # Metadata
+///
+/// This entity type does not add any additional metadata. It will still have
+/// metadata from parent types.
+///
+/// # Parents
+///
+/// Entities with `MagmaCube` will also have the following marker components and
+/// their metadata fields:
+///
+/// - [AbstractCubeMob]
+/// - [AbstractAgeable]
+/// - [AbstractCreature]
+/// - [AbstractInsentient]
+/// - [AbstractLiving]
+/// - [AbstractEntity]
+///
+/// # Children
+///
+/// This entity type has no children types.
+#[derive(Component)]
+pub struct MagmaCube;
+impl MagmaCube {
+    fn apply_metadata(
+        entity: &mut bevy_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=18 => AbstractCubeMob::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+/// The metadata bundle for [MagmaCube].
+///
+/// This type should generally not be used directly.
+#[derive(Bundle)]
+pub struct MagmaCubeMetadataBundle {
+    _marker: MagmaCube,
+    parent: AbstractCubeMobMetadataBundle,
+}
+impl Default for MagmaCubeMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: MagmaCube,
+            parent: Default::default(),
+        }
+    }
+}
+
+/// The marker component for entities of type `minecraft:slime`.
+///
+/// # Metadata
+///
+/// This entity type does not add any additional metadata. It will still have
+/// metadata from parent types.
+///
+/// # Parents
+///
+/// Entities with `Slime` will also have the following marker components and
+/// their metadata fields:
+///
+/// - [AbstractCubeMob]
+/// - [AbstractAgeable]
+/// - [AbstractCreature]
+/// - [AbstractInsentient]
+/// - [AbstractLiving]
+/// - [AbstractEntity]
+///
+/// # Children
+///
+/// This entity type has no children types.
+#[derive(Component)]
+pub struct Slime;
+impl Slime {
+    fn apply_metadata(
+        entity: &mut bevy_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=18 => AbstractCubeMob::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+/// The metadata bundle for [Slime].
+///
+/// This type should generally not be used directly.
+#[derive(Bundle)]
+pub struct SlimeMetadataBundle {
+    _marker: Slime,
+    parent: AbstractCubeMobMetadataBundle,
+}
+impl Default for SlimeMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Slime,
+            parent: Default::default(),
+        }
+    }
+}
+
+/// A metadata field for [SulfurCube].
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
+pub struct MaxFuse(pub i32);
+/// A metadata field for [SulfurCube].
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
+pub struct SulfurCubeFromBucket(pub bool);
+/// The marker component for entities of type `minecraft:sulfur_cube`.
+///
+/// # Metadata
+///
+/// These are the metadata components that all `SulfurCube` entities are
+/// guaranteed to have, in addition to the metadata components from parent
+/// types:
+///
+/// - [MaxFuse]
+/// - [SulfurCubeFromBucket]
+///
+/// # Parents
+///
+/// Entities with `SulfurCube` will also have the following marker components
+/// and their metadata fields:
+///
+/// - [AbstractCubeMob]
+/// - [AbstractAgeable]
+/// - [AbstractCreature]
+/// - [AbstractInsentient]
+/// - [AbstractLiving]
+/// - [AbstractEntity]
+///
+/// # Children
+///
+/// This entity type has no children types.
+#[derive(Component)]
+pub struct SulfurCube;
+impl SulfurCube {
+    fn apply_metadata(
+        entity: &mut bevy_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=18 => AbstractCubeMob::apply_metadata(entity, d)?,
+            19 => {
+                entity.insert(MaxFuse(
+                    d.value.into_int().map_err(|v| e(v, d.index, "MaxFuse"))?,
+                ));
+            }
+            20 => {
+                entity.insert(SulfurCubeFromBucket(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "SulfurCubeFromBucket"))?,
+                ));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+/// The metadata bundle for [SulfurCube].
+///
+/// This type should generally not be used directly.
+#[derive(Bundle)]
+pub struct SulfurCubeMetadataBundle {
+    _marker: SulfurCube,
+    parent: AbstractCubeMobMetadataBundle,
+    max_fuse: MaxFuse,
+    sulfur_cube_from_bucket: SulfurCubeFromBucket,
+}
+impl Default for SulfurCubeMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: SulfurCube,
+            parent: Default::default(),
+            max_fuse: MaxFuse(-1),
+            sulfur_cube_from_bucket: SulfurCubeFromBucket(false),
         }
     }
 }
@@ -7963,7 +8736,11 @@ impl AbstractVillager {
         match d.index {
             0..=17 => AbstractAgeable::apply_metadata(entity, d)?,
             18 => {
-                entity.insert(AbstractVillagerUnhappyCounter(d.value.into_int()?));
+                entity.insert(AbstractVillagerUnhappyCounter(
+                    d.value
+                        .into_int()
+                        .map_err(|v| e(v, d.index, "AbstractVillagerUnhappyCounter"))?,
+                ));
             }
             _ => {}
         }
@@ -8032,10 +8809,18 @@ impl Villager {
         match d.index {
             0..=18 => AbstractVillager::apply_metadata(entity, d)?,
             19 => {
-                entity.insert(VillagerVillagerData(d.value.into_villager_data()?));
+                entity.insert(VillagerVillagerData(
+                    d.value
+                        .into_villager_data()
+                        .map_err(|v| e(v, d.index, "VillagerVillagerData"))?,
+                ));
             }
             20 => {
-                entity.insert(VillagerVillagerDataFinalized(d.value.into_boolean()?));
+                entity.insert(VillagerVillagerDataFinalized(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "VillagerVillagerDataFinalized"))?,
+                ));
             }
             _ => {}
         }
@@ -8160,7 +8945,11 @@ impl AbstractFish {
         match d.index {
             0..=15 => AbstractCreature::apply_metadata(entity, d)?,
             16 => {
-                entity.insert(AbstractFishFromBucket(d.value.into_boolean()?));
+                entity.insert(AbstractFishFromBucket(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "AbstractFishFromBucket"))?,
+                ));
             }
             _ => {}
         }
@@ -8276,7 +9065,11 @@ impl Salmon {
         match d.index {
             0..=16 => AbstractFish::apply_metadata(entity, d)?,
             17 => {
-                entity.insert(SalmonKind(d.value.into_int()?));
+                entity.insert(SalmonKind(
+                    d.value
+                        .into_int()
+                        .map_err(|v| e(v, d.index, "SalmonKind"))?,
+                ));
             }
             _ => {}
         }
@@ -8340,7 +9133,11 @@ impl TropicalFish {
         match d.index {
             0..=16 => AbstractFish::apply_metadata(entity, d)?,
             17 => {
-                entity.insert(TropicalFishTypeVariant(d.value.into_int()?));
+                entity.insert(TropicalFishTypeVariant(
+                    d.value
+                        .into_int()
+                        .map_err(|v| e(v, d.index, "TropicalFishTypeVariant"))?,
+                ));
             }
             _ => {}
         }
@@ -8491,7 +9288,10 @@ impl Blaze {
         match d.index {
             0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             16 => {
-                let bitfield = d.value.into_byte()?;
+                let bitfield = d
+                    .value
+                    .into_byte()
+                    .map_err(|v| e(v, d.index, "<bitfield>"))?;
                 entity.insert(Charged(bitfield & 0x1 != 0));
             }
             _ => {}
@@ -8555,7 +9355,11 @@ impl Bogged {
         match d.index {
             0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             16 => {
-                entity.insert(BoggedSheared(d.value.into_boolean()?));
+                entity.insert(BoggedSheared(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "BoggedSheared"))?,
+                ));
             }
             _ => {}
         }
@@ -8684,16 +9488,32 @@ impl Creaking {
         match d.index {
             0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             16 => {
-                entity.insert(CanMove(d.value.into_boolean()?));
+                entity.insert(CanMove(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "CanMove"))?,
+                ));
             }
             17 => {
-                entity.insert(IsActive(d.value.into_boolean()?));
+                entity.insert(IsActive(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "IsActive"))?,
+                ));
             }
             18 => {
-                entity.insert(IsTearingDown(d.value.into_boolean()?));
+                entity.insert(IsTearingDown(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "IsTearingDown"))?,
+                ));
             }
             19 => {
-                entity.insert(HomePos(d.value.into_optional_block_pos()?));
+                entity.insert(HomePos(
+                    d.value
+                        .into_optional_block_pos()
+                        .map_err(|v| e(v, d.index, "HomePos"))?,
+                ));
             }
             _ => {}
         }
@@ -8770,13 +9590,23 @@ impl Creeper {
         match d.index {
             0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             16 => {
-                entity.insert(SwellDir(d.value.into_int()?));
+                entity.insert(SwellDir(
+                    d.value.into_int().map_err(|v| e(v, d.index, "SwellDir"))?,
+                ));
             }
             17 => {
-                entity.insert(IsPowered(d.value.into_boolean()?));
+                entity.insert(IsPowered(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "IsPowered"))?,
+                ));
             }
             18 => {
-                entity.insert(IsIgnited(d.value.into_boolean()?));
+                entity.insert(IsIgnited(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "IsIgnited"))?,
+                ));
             }
             _ => {}
         }
@@ -8852,13 +9682,25 @@ impl Enderman {
         match d.index {
             0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             16 => {
-                entity.insert(CarryState(d.value.into_optional_block_state()?));
+                entity.insert(CarryState(
+                    d.value
+                        .into_optional_block_state()
+                        .map_err(|v| e(v, d.index, "CarryState"))?,
+                ));
             }
             17 => {
-                entity.insert(Creepy(d.value.into_boolean()?));
+                entity.insert(Creepy(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "Creepy"))?,
+                ));
             }
             18 => {
-                entity.insert(StaredAt(d.value.into_boolean()?));
+                entity.insert(StaredAt(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "StaredAt"))?,
+                ));
             }
             _ => {}
         }
@@ -9036,10 +9878,18 @@ impl Guardian {
         match d.index {
             0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             16 => {
-                entity.insert(Moving(d.value.into_boolean()?));
+                entity.insert(Moving(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "Moving"))?,
+                ));
             }
             17 => {
-                entity.insert(AttackTarget(d.value.into_int()?));
+                entity.insert(AttackTarget(
+                    d.value
+                        .into_int()
+                        .map_err(|v| e(v, d.index, "AttackTarget"))?,
+                ));
             }
             _ => {}
         }
@@ -9265,7 +10115,11 @@ impl Skeleton {
         match d.index {
             0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             16 => {
-                entity.insert(StrayConversion(d.value.into_boolean()?));
+                entity.insert(StrayConversion(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "StrayConversion"))?,
+                ));
             }
             _ => {}
         }
@@ -9328,7 +10182,10 @@ impl Spider {
         match d.index {
             0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             16 => {
-                let bitfield = d.value.into_byte()?;
+                let bitfield = d
+                    .value
+                    .into_byte()
+                    .map_err(|v| e(v, d.index, "<bitfield>"))?;
                 entity.insert(Climbing(bitfield & 0x1 != 0));
             }
             _ => {}
@@ -9499,7 +10356,9 @@ impl Vex {
         match d.index {
             0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             16 => {
-                entity.insert(VexFlags(d.value.into_byte()?));
+                entity.insert(VexFlags(
+                    d.value.into_byte().map_err(|v| e(v, d.index, "VexFlags"))?,
+                ));
             }
             _ => {}
         }
@@ -9562,7 +10421,11 @@ impl Warden {
         match d.index {
             0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             16 => {
-                entity.insert(ClientAngerLevel(d.value.into_int()?));
+                entity.insert(ClientAngerLevel(
+                    d.value
+                        .into_int()
+                        .map_err(|v| e(v, d.index, "ClientAngerLevel"))?,
+                ));
             }
             _ => {}
         }
@@ -9637,16 +10500,22 @@ impl Wither {
         match d.index {
             0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             16 => {
-                entity.insert(TargetA(d.value.into_int()?));
+                entity.insert(TargetA(
+                    d.value.into_int().map_err(|v| e(v, d.index, "TargetA"))?,
+                ));
             }
             17 => {
-                entity.insert(TargetB(d.value.into_int()?));
+                entity.insert(TargetB(
+                    d.value.into_int().map_err(|v| e(v, d.index, "TargetB"))?,
+                ));
             }
             18 => {
-                entity.insert(TargetC(d.value.into_int()?));
+                entity.insert(TargetC(
+                    d.value.into_int().map_err(|v| e(v, d.index, "TargetC"))?,
+                ));
             }
             19 => {
-                entity.insert(Inv(d.value.into_int()?));
+                entity.insert(Inv(d.value.into_int().map_err(|v| e(v, d.index, "Inv"))?));
             }
             _ => {}
         }
@@ -9768,7 +10637,11 @@ impl Zoglin {
         match d.index {
             0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             16 => {
-                entity.insert(ZoglinBaby(d.value.into_boolean()?));
+                entity.insert(ZoglinBaby(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "ZoglinBaby"))?,
+                ));
             }
             _ => {}
         }
@@ -9842,13 +10715,25 @@ impl Zombie {
         match d.index {
             0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             16 => {
-                entity.insert(ZombieBaby(d.value.into_boolean()?));
+                entity.insert(ZombieBaby(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "ZombieBaby"))?,
+                ));
             }
             17 => {
-                entity.insert(SpecialType(d.value.into_int()?));
+                entity.insert(SpecialType(
+                    d.value
+                        .into_int()
+                        .map_err(|v| e(v, d.index, "SpecialType"))?,
+                ));
             }
             18 => {
-                entity.insert(DrownedConversion(d.value.into_boolean()?));
+                entity.insert(DrownedConversion(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "DrownedConversion"))?,
+                ));
             }
             _ => {}
         }
@@ -10033,13 +10918,25 @@ impl ZombieVillager {
         match d.index {
             0..=18 => Zombie::apply_metadata(entity, d)?,
             19 => {
-                entity.insert(Converting(d.value.into_boolean()?));
+                entity.insert(Converting(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "Converting"))?,
+                ));
             }
             20 => {
-                entity.insert(ZombieVillagerVillagerData(d.value.into_villager_data()?));
+                entity.insert(ZombieVillagerVillagerData(
+                    d.value
+                        .into_villager_data()
+                        .map_err(|v| e(v, d.index, "ZombieVillagerVillagerData"))?,
+                ));
             }
             21 => {
-                entity.insert(ZombieVillagerVillagerDataFinalized(d.value.into_boolean()?));
+                entity.insert(ZombieVillagerVillagerDataFinalized(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "ZombieVillagerVillagerDataFinalized"))?,
+                ));
             }
             _ => {}
         }
@@ -10166,7 +11063,11 @@ impl AbstractPiglin {
         match d.index {
             0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             16 => {
-                entity.insert(AbstractPiglinImmuneToZombification(d.value.into_boolean()?));
+                entity.insert(AbstractPiglinImmuneToZombification(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "AbstractPiglinImmuneToZombification"))?,
+                ));
             }
             _ => {}
         }
@@ -10238,13 +11139,25 @@ impl Piglin {
         match d.index {
             0..=16 => AbstractPiglin::apply_metadata(entity, d)?,
             17 => {
-                entity.insert(PiglinBaby(d.value.into_boolean()?));
+                entity.insert(PiglinBaby(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "PiglinBaby"))?,
+                ));
             }
             18 => {
-                entity.insert(PiglinIsChargingCrossbow(d.value.into_boolean()?));
+                entity.insert(PiglinIsChargingCrossbow(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "PiglinIsChargingCrossbow"))?,
+                ));
             }
             19 => {
-                entity.insert(IsDancing(d.value.into_boolean()?));
+                entity.insert(IsDancing(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "IsDancing"))?,
+                ));
             }
             _ => {}
         }
@@ -10372,7 +11285,11 @@ impl AbstractRaider {
         match d.index {
             0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             16 => {
-                entity.insert(IsCelebrating(d.value.into_boolean()?));
+                entity.insert(IsCelebrating(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "IsCelebrating"))?,
+                ));
             }
             _ => {}
         }
@@ -10437,7 +11354,11 @@ impl Pillager {
         match d.index {
             0..=16 => AbstractRaider::apply_metadata(entity, d)?,
             17 => {
-                entity.insert(PillagerIsChargingCrossbow(d.value.into_boolean()?));
+                entity.insert(PillagerIsChargingCrossbow(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "PillagerIsChargingCrossbow"))?,
+                ));
             }
             _ => {}
         }
@@ -10609,7 +11530,11 @@ impl Witch {
         match d.index {
             0..=16 => AbstractRaider::apply_metadata(entity, d)?,
             17 => {
-                entity.insert(WitchUsingItem(d.value.into_boolean()?));
+                entity.insert(WitchUsingItem(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "WitchUsingItem"))?,
+                ));
             }
             _ => {}
         }
@@ -10675,7 +11600,11 @@ impl AbstractSpellcasterIllager {
         match d.index {
             0..=16 => AbstractRaider::apply_metadata(entity, d)?,
             17 => {
-                entity.insert(SpellCasting(d.value.into_byte()?));
+                entity.insert(SpellCasting(
+                    d.value
+                        .into_byte()
+                        .map_err(|v| e(v, d.index, "SpellCasting"))?,
+                ));
             }
             _ => {}
         }
@@ -10851,7 +11780,9 @@ impl AbstractThrownItemProjectile {
             0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
                 entity.insert(AbstractThrownItemProjectileItemStack(
-                    d.value.into_item_stack()?,
+                    d.value
+                        .into_item_stack()
+                        .map_err(|v| e(v, d.index, "AbstractThrownItemProjectileItemStack"))?,
                 ));
             }
             _ => {}
@@ -11230,6 +12161,8 @@ pub struct Damage(pub f32);
 ///   - [OakChestBoat]
 ///   - [PaleOakBoat]
 ///   - [PaleOakChestBoat]
+///   - [PoplarBoat]
+///   - [PoplarChestBoat]
 ///   - [SpruceBoat]
 ///   - [SpruceChestBoat]
 /// - [AbstractMinecart]
@@ -11250,13 +12183,17 @@ impl AbstractVehicle {
         match d.index {
             0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
-                entity.insert(Hurt(d.value.into_int()?));
+                entity.insert(Hurt(d.value.into_int().map_err(|v| e(v, d.index, "Hurt"))?));
             }
             9 => {
-                entity.insert(Hurtdir(d.value.into_int()?));
+                entity.insert(Hurtdir(
+                    d.value.into_int().map_err(|v| e(v, d.index, "Hurtdir"))?,
+                ));
             }
             10 => {
-                entity.insert(Damage(d.value.into_float()?));
+                entity.insert(Damage(
+                    d.value.into_float().map_err(|v| e(v, d.index, "Damage"))?,
+                ));
             }
             _ => {}
         }
@@ -11336,6 +12273,8 @@ pub struct BubbleTime(pub i32);
 /// - [OakChestBoat]
 /// - [PaleOakBoat]
 /// - [PaleOakChestBoat]
+/// - [PoplarBoat]
+/// - [PoplarChestBoat]
 /// - [SpruceBoat]
 /// - [SpruceChestBoat]
 #[derive(Component)]
@@ -11348,13 +12287,25 @@ impl AbstractBoat {
         match d.index {
             0..=10 => AbstractVehicle::apply_metadata(entity, d)?,
             11 => {
-                entity.insert(PaddleLeft(d.value.into_boolean()?));
+                entity.insert(PaddleLeft(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "PaddleLeft"))?,
+                ));
             }
             12 => {
-                entity.insert(PaddleRight(d.value.into_boolean()?));
+                entity.insert(PaddleRight(
+                    d.value
+                        .into_boolean()
+                        .map_err(|v| e(v, d.index, "PaddleRight"))?,
+                ));
             }
             13 => {
-                entity.insert(BubbleTime(d.value.into_int()?));
+                entity.insert(BubbleTime(
+                    d.value
+                        .into_int()
+                        .map_err(|v| e(v, d.index, "BubbleTime"))?,
+                ));
             }
             _ => {}
         }
@@ -12303,6 +13254,108 @@ impl Default for PaleOakChestBoatMetadataBundle {
     }
 }
 
+/// The marker component for entities of type `minecraft:poplar_boat`.
+///
+/// # Metadata
+///
+/// This entity type does not add any additional metadata. It will still have
+/// metadata from parent types.
+///
+/// # Parents
+///
+/// Entities with `PoplarBoat` will also have the following marker components
+/// and their metadata fields:
+///
+/// - [AbstractBoat]
+/// - [AbstractVehicle]
+/// - [AbstractEntity]
+///
+/// # Children
+///
+/// This entity type has no children types.
+#[derive(Component)]
+pub struct PoplarBoat;
+impl PoplarBoat {
+    fn apply_metadata(
+        entity: &mut bevy_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=13 => AbstractBoat::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+/// The metadata bundle for [PoplarBoat].
+///
+/// This type should generally not be used directly.
+#[derive(Bundle)]
+pub struct PoplarBoatMetadataBundle {
+    _marker: PoplarBoat,
+    parent: AbstractBoatMetadataBundle,
+}
+impl Default for PoplarBoatMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: PoplarBoat,
+            parent: Default::default(),
+        }
+    }
+}
+
+/// The marker component for entities of type `minecraft:poplar_chest_boat`.
+///
+/// # Metadata
+///
+/// This entity type does not add any additional metadata. It will still have
+/// metadata from parent types.
+///
+/// # Parents
+///
+/// Entities with `PoplarChestBoat` will also have the following marker
+/// components and their metadata fields:
+///
+/// - [AbstractBoat]
+/// - [AbstractVehicle]
+/// - [AbstractEntity]
+///
+/// # Children
+///
+/// This entity type has no children types.
+#[derive(Component)]
+pub struct PoplarChestBoat;
+impl PoplarChestBoat {
+    fn apply_metadata(
+        entity: &mut bevy_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=13 => AbstractBoat::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+/// The metadata bundle for [PoplarChestBoat].
+///
+/// This type should generally not be used directly.
+#[derive(Bundle)]
+pub struct PoplarChestBoatMetadataBundle {
+    _marker: PoplarChestBoat,
+    parent: AbstractBoatMetadataBundle,
+}
+impl Default for PoplarChestBoatMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: PoplarChestBoat,
+            parent: Default::default(),
+        }
+    }
+}
+
 /// The marker component for entities of type `minecraft:spruce_boat`.
 ///
 /// # Metadata
@@ -12449,10 +13502,18 @@ impl AbstractMinecart {
         match d.index {
             0..=10 => AbstractVehicle::apply_metadata(entity, d)?,
             11 => {
-                entity.insert(CustomDisplayBlock(d.value.into_optional_block_state()?));
+                entity.insert(CustomDisplayBlock(
+                    d.value
+                        .into_optional_block_state()
+                        .map_err(|v| e(v, d.index, "CustomDisplayBlock"))?,
+                ));
             }
             12 => {
-                entity.insert(DisplayOffset(d.value.into_int()?));
+                entity.insert(DisplayOffset(
+                    d.value
+                        .into_int()
+                        .map_err(|v| e(v, d.index, "DisplayOffset"))?,
+                ));
             }
             _ => {}
         }
@@ -12572,10 +13633,18 @@ impl CommandBlockMinecart {
         match d.index {
             0..=12 => AbstractMinecart::apply_metadata(entity, d)?,
             13 => {
-                entity.insert(CommandName(d.value.into_string()?));
+                entity.insert(CommandName(
+                    d.value
+                        .into_string()
+                        .map_err(|v| e(v, d.index, "CommandName"))?,
+                ));
             }
             14 => {
-                entity.insert(LastOutput(d.value.into_formatted_text()?));
+                entity.insert(LastOutput(
+                    d.value
+                        .into_formatted_text()
+                        .map_err(|v| e(v, d.index, "LastOutput"))?,
+                ));
             }
             _ => {}
         }
@@ -12639,7 +13708,9 @@ impl FurnaceMinecart {
         match d.index {
             0..=12 => AbstractMinecart::apply_metadata(entity, d)?,
             13 => {
-                entity.insert(Fuel(d.value.into_boolean()?));
+                entity.insert(Fuel(
+                    d.value.into_boolean().map_err(|v| e(v, d.index, "Fuel"))?,
+                ));
             }
             _ => {}
         }
@@ -13041,6 +14112,11 @@ pub fn apply_metadata(
                 Creeper::apply_metadata(entity, d)?;
             }
         }
+        EntityKind::Cushion => {
+            for d in items {
+                Cushion::apply_metadata(entity, d)?;
+            }
+        }
         EntityKind::DarkOakBoat => {
             for d in items {
                 DarkOakBoat::apply_metadata(entity, d)?;
@@ -13416,6 +14492,16 @@ pub fn apply_metadata(
                 PolarBear::apply_metadata(entity, d)?;
             }
         }
+        EntityKind::PoplarBoat => {
+            for d in items {
+                PoplarBoat::apply_metadata(entity, d)?;
+            }
+        }
+        EntityKind::PoplarChestBoat => {
+            for d in items {
+                PoplarChestBoat::apply_metadata(entity, d)?;
+            }
+        }
         EntityKind::Pufferfish => {
             for d in items {
                 Pufferfish::apply_metadata(entity, d)?;
@@ -13771,6 +14857,9 @@ pub fn apply_default_metadata(entity: &mut bevy_ecs::system::EntityCommands, kin
         EntityKind::Creeper => {
             entity.insert(CreeperMetadataBundle::default());
         }
+        EntityKind::Cushion => {
+            entity.insert(CushionMetadataBundle::default());
+        }
         EntityKind::DarkOakBoat => {
             entity.insert(DarkOakBoatMetadataBundle::default());
         }
@@ -13995,6 +15084,12 @@ pub fn apply_default_metadata(entity: &mut bevy_ecs::system::EntityCommands, kin
         }
         EntityKind::PolarBear => {
             entity.insert(PolarBearMetadataBundle::default());
+        }
+        EntityKind::PoplarBoat => {
+            entity.insert(PoplarBoatMetadataBundle::default());
+        }
+        EntityKind::PoplarChestBoat => {
+            entity.insert(PoplarChestBoatMetadataBundle::default());
         }
         EntityKind::Pufferfish => {
             entity.insert(PufferfishMetadataBundle::default());

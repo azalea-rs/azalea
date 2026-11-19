@@ -275,8 +275,8 @@ impl CanStandOnFluidPredicate {
     pub fn matches(&self, _state: &FluidState) -> bool {
         match self {
             Self::AlwaysTrue => true,
-            // minecraft sometimes returns true for striders here, false for every other entity
-            // though
+            // minecraft sometimes returns true for striders here, false for
+            // every other entity though
             Self::PassToEntity => false,
         }
     }

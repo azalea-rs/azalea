@@ -1,3 +1,5 @@
+use std::env;
+
 use quote::{ToTokens, quote};
 use syn::{Data, Field, FieldsNamed, Ident, punctuated::Punctuated, token::Comma};
 
@@ -150,10 +152,42 @@ fn read_named_fields(
     let read_fields = named
         .iter()
         .map(|f| {
-            let field_name = &f.ident;
+            let field_name = f.ident.as_ref().unwrap();
 
             let reader_call = get_reader_call(f);
-            quote! { let #field_name = #reader_call; }
+            let ty = &f.ty;
+
+            // this is only done in debug mode for performance
+            if cfg!(debug_assertions) {
+                let span_message = field_name.to_string();
+
+                // updated by the build.rs. it's done this way so the user
+                // doesn't have to force a recompile themselves if they change
+                // the env variable.
+                let log_all_packet_fields =
+                    env!("__INTERNAL_AZALEA_LOG_ALL_PACKET_FIELDS") == "true";
+
+                let trace_field_value_code = if log_all_packet_fields {
+                    quote! {
+                        let __internal_debug = azalea_buf::internal::debug_format_any!(#field_name);
+                        azalea_buf::internal::tracing::trace!("{__internal_debug}");
+                    }
+                } else {
+                    quote! {}
+                };
+
+                quote! {
+                    let span = azalea_buf::internal::tracing::span!(
+                        azalea_buf::internal::tracing::Level::INFO,
+                        #span_message
+                    ).entered();
+                    let #field_name: #ty = #reader_call;
+                    #trace_field_value_code
+                    span.exit();
+                }
+            } else {
+                quote! { let #field_name = #reader_call; }
+            }
         })
         .collect::<Vec<_>>();
     let read_field_names = named.iter().map(|f| &f.ident).collect::<Vec<_>>();

@@ -8,6 +8,9 @@ use crate::packets::game::c_move_entity_pos_rot::CompactLookDirection;
 pub struct ClientboundMoveEntityRot {
     #[var]
     pub entity_id: MinecraftEntityId,
-    pub look_direction: CompactLookDirection,
     pub on_ground: bool,
+    pub look_direction: CompactLookDirection,
 }
+
+// this doesn't use the Properties from c_move_entity_pos_rot because that just
+// provides the step count, which we don't need if we don't have movement

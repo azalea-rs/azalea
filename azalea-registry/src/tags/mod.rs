@@ -10,13 +10,13 @@ pub mod items;
 /// A set of registry items.
 #[derive(Clone, Debug)]
 pub struct RegistryTag<R: Registry + 'static> {
-    // yes, this *could* be a Box<[R]>, but there are cases in which the user may want to cheaply
-    // mutate this.
-    // yes, it could also be a [R; N] using a const generic, but that makes RegistryTag annoying if
-    // the user wants to put it in their own code.
-    // yes, if the aforementioned issues are ignored then we could even avoid a LazyLock. but that
-    // would provide nearly no benefit and result in wasted memory for unused tags.
-    // having it be a vec is fine.
+    // yes, this *could* be a Box<[R]>, but there are cases in which the user
+    // may want to cheaply mutate this.
+    // yes, it could also be a [R; N] using a const generic, but that makes
+    // RegistryTag annoying if the user wants to put it in their own code.
+    // yes, if the aforementioned issues are ignored then we could even avoid a
+    // LazyLock. but that would provide nearly no benefit and result in wasted
+    // memory for unused tags. having it be a vec is fine.
     entries: Vec<R>,
 }
 impl<R: Registry + 'static> RegistryTag<R> {

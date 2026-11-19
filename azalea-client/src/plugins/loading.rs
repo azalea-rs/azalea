@@ -37,9 +37,10 @@ pub fn player_loaded_packet(
         (
             With<LocalEntity>,
             Without<HasClientLoaded>,
-            // the vanilla client waits for the chunk mesh to be "compiled" for the renderer (or
-            // some other conditions) before sending PlayerLoaded. see LevelLoadStatusManager.tick
-            // in the decompiled source
+            // the vanilla client waits for the chunk mesh to be "compiled" for
+            // the renderer (or some other conditions) before sending
+            // PlayerLoaded. see LevelLoadStatusManager.tick in the decompiled
+            // source
             With<InLoadedChunk>,
         ),
     >,

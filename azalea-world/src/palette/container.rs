@@ -135,9 +135,7 @@ impl<S: PalletedContainerKind> PalettedContainer<S> {
             Ok(storage) => storage,
             Err(e) => {
                 warn!("Failed to create bit storage: {:?}", e);
-                return Err(BufReadError::Custom(
-                    "Failed to create bit storage".to_owned(),
-                ));
+                return Err(BufReadError::custom("Failed to create bit storage"));
             }
         };
 

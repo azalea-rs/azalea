@@ -5,6 +5,8 @@
 
 mod definitions;
 pub mod impls;
+#[doc(hidden)]
+pub mod internal;
 mod serializable_uuid;
 
 pub use azalea_buf_macros::*;

@@ -17,7 +17,8 @@ impl Plugin for TickEndPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             GameTick,
-            // this has to happen after every other event that might send packets
+            // this has to happen after every other event that might send
+            // packets
             game_tick_packet
                 .after(PhysicsSystems)
                 .after(MiningSystems)

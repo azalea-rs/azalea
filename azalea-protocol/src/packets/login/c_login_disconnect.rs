@@ -19,7 +19,7 @@ impl AzBuf for ClientboundLoginDisconnect {
             match serde_json::from_str::<serde_json::Value>(disconnect_string.as_str()) {
                 Ok(json) => json,
                 Err(err) => {
-                    return Err(BufReadError::Custom(format!(
+                    return Err(BufReadError::custom(format!(
                         "Failed to deserialize disconnect JSON {disconnect_string:?}: {err}"
                     )));
                 }

@@ -4,11 +4,11 @@ use std::{
     ops::Range,
 };
 
-use azalea_buf::{AzBuf, BufReadError};
+use azalea_buf::{AzBuf, AzBufVar, BufReadError};
 
 /// Represents Java's BitSet, a list of bits.
 #[derive(AzBuf, Clone, Debug, Default, Eq, Hash, PartialEq)]
-pub struct BitSet {
+pub struct JavaBitSet {
     data: Box<[u64]>,
 }
 
@@ -16,10 +16,10 @@ pub struct BitSet {
 const LOG2_BITS_PER_WORD: usize = 6;
 
 // the Index trait requires us to return a reference, but we can't do that
-impl BitSet {
+impl JavaBitSet {
     #[inline]
     pub fn new(num_bits: usize) -> Self {
-        BitSet {
+        JavaBitSet {
             data: vec![0; num_bits.div_ceil(64)].into(),
         }
     }
@@ -154,19 +154,19 @@ impl BitSet {
     }
 }
 
-impl From<Vec<u64>> for BitSet {
+impl From<Vec<u64>> for JavaBitSet {
     fn from(data: Vec<u64>) -> Self {
-        BitSet { data: data.into() }
+        JavaBitSet { data: data.into() }
     }
 }
 
-impl From<Vec<u8>> for BitSet {
+impl From<Vec<u8>> for JavaBitSet {
     fn from(data: Vec<u8>) -> Self {
         let mut words = vec![0; data.len().div_ceil(8)];
         for (i, byte) in data.iter().enumerate() {
             words[i / 8] |= (*byte as u64) << ((i % 8) * 8);
         }
-        BitSet { data: words.into() }
+        JavaBitSet { data: words.into() }
     }
 }
 
@@ -232,6 +232,19 @@ impl<const N: usize> FixedBitSet<N> {
 
         self.data[bit_index / 8] |= 1u8 << (bit_index % 8);
     }
+    #[inline]
+    pub fn unset(&mut self, bit_index: usize) {
+        let byte = &mut self.data[bit_index / 8];
+        *byte = !((!*byte) | (1u8 << (bit_index % 8)));
+    }
+    #[inline]
+    pub fn set_to(&mut self, bit_index: usize, value: bool) {
+        if value {
+            self.set(bit_index);
+        } else {
+            self.unset(bit_index);
+        }
+    }
 }
 
 impl<const N: usize> AzBuf for FixedBitSet<N> {
@@ -242,6 +255,7 @@ impl<const N: usize> AzBuf for FixedBitSet<N> {
         }
         Ok(FixedBitSet { data })
     }
+    #[allow(clippy::needless_range_loop, reason = "Indexing into bitset")]
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         for item in self.data {
             item.azalea_write(buf)?;
@@ -249,6 +263,23 @@ impl<const N: usize> AzBuf for FixedBitSet<N> {
         Ok(())
     }
 }
+// special case that makes #[var] FixedBitSet<32>, be represented as a varint :)
+impl AzBufVar for FixedBitSet<32>
+where
+    [u8; 8]: Sized,
+{
+    fn azalea_read_var(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let data = u32::azalea_read_var(buf)?;
+        Ok(Self {
+            data: data.to_be_bytes(),
+        })
+    }
+    fn azalea_write_var(&self, buf: &mut impl Write) -> io::Result<()> {
+        let data = u32::from_be_bytes(self.data);
+        data.azalea_write_var(buf)
+    }
+}
+
 impl<const N: usize> Default for FixedBitSet<N> {
     #[inline]
     fn default() -> Self {
@@ -324,7 +355,7 @@ mod tests {
 
     #[test]
     fn test_bitset() {
-        let mut bitset = BitSet::new(64);
+        let mut bitset = JavaBitSet::new(64);
         assert!(!bitset.index(0));
         assert!(!bitset.index(1));
         assert!(!bitset.index(2));
@@ -336,7 +367,7 @@ mod tests {
 
     #[test]
     fn test_clear() {
-        let mut bitset = BitSet::new(128);
+        let mut bitset = JavaBitSet::new(128);
         bitset.set(62);
         bitset.set(63);
         bitset.set(64);
@@ -354,7 +385,7 @@ mod tests {
 
     #[test]
     fn test_clear_2() {
-        let mut bitset = BitSet::new(128);
+        let mut bitset = JavaBitSet::new(128);
         bitset.set(64);
         bitset.set(65);
         bitset.set(66);

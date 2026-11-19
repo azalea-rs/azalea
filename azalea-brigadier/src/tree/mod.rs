@@ -28,7 +28,8 @@ pub type Command<S, R> =
 pub struct CommandNode<S, R = i32> {
     pub value: ArgumentBuilderType<S, R>,
 
-    // this is a BTreeMap because children need to be ordered when getting command suggestions
+    // this is a BTreeMap because children need to be ordered when getting
+    // command suggestions
     pub children: BTreeMap<String, Arc<RwLock<CommandNode<S, R>>>>,
     pub literals: HashMap<String, Arc<RwLock<CommandNode<S, R>>>>,
     pub arguments: HashMap<String, Arc<RwLock<CommandNode<S, R>>>>,

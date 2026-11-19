@@ -2,7 +2,6 @@
 #![allow(clippy::redundant_field_names, reason = "Triggered by `Error` derive")]
 
 use std::{
-    backtrace::Backtrace,
     env,
     fmt::Debug,
     io,
@@ -10,7 +9,7 @@ use std::{
     sync::LazyLock,
 };
 
-use azalea_buf::{AzBufVar, BufReadError};
+use azalea_buf::{AzBufVar, BufReadError, BufReadErrorRepr};
 use azalea_crypto::Aes128CfbDec;
 use flate2::read::ZlibDecoder;
 use futures::StreamExt;
@@ -31,7 +30,7 @@ pub enum ReadPacketError {
     Parse {
         packet_id: u32,
         packet_name: String,
-        backtrace: Box<Backtrace>,
+        #[backtrace]
         source: BufReadError,
     },
     #[error("Unknown packet id {id} in state {state_name}")]
@@ -92,8 +91,8 @@ fn parse_frame(buffer: &mut Cursor<Vec<u8>>) -> Result<Box<[u8]>, FrameSplitterE
     // Packet Length
     let length = match u32::azalea_read_var(&mut buffer_copy) {
         Ok(length) => length as usize,
-        Err(err) => match err {
-            BufReadError::Io { source } => return Err(FrameSplitterError::Io { source }),
+        Err(err) => match err.source {
+            BufReadErrorRepr::Io { source } => return Err(FrameSplitterError::Io { source }),
             _ => return Err(err.into()),
         },
     };
