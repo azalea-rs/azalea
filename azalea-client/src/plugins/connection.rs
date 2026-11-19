@@ -117,8 +117,8 @@ pub fn read_packets(ecs: &mut World) {
                         }
 
                         static PANIC_ON_PACKET_ERROR: LazyLock<bool> = LazyLock::new(|| {
-                            // this is also mentioned in azalea's docs, if you rename it, then don't
-                            // forget to update that
+                            // this is also mentioned in azalea's docs, if you
+                            // rename it, then don't forget to update that
                             env::var("AZALEA_PANIC_ON_PACKET_ERROR")
                                 .map(|s| s == "1" || s == "true")
                                 .unwrap_or(false)

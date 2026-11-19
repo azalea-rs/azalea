@@ -15,7 +15,10 @@
 //! `game` state, so some early packets will be decoded incorrectly.
 
 use std::{
-    error::Error, io::Cursor, str::FromStr, sync::{Arc, LazyLock},
+    error::Error,
+    io::Cursor,
+    str::FromStr,
+    sync::{Arc, LazyLock},
 };
 
 use azalea_auth::{AuthOpts, sessionserver::ClientSessionServerError};

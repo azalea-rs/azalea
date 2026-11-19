@@ -19,8 +19,8 @@ fn test_mine_block_without_rollback() {
     let pos = BlockPos::new(1, 2, 3);
     simulation.receive_packet(ClientboundBlockUpdate {
         pos,
-        // tnt is used for this test because it's insta-mineable so we don't have to waste ticks
-        // waiting
+        // tnt is used for this test because it's insta-mineable so we don't
+        // have to waste ticks waiting
         block_state: BlockKind::Tnt.into(),
     });
     simulation.tick();

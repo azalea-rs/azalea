@@ -32,9 +32,9 @@ use tracing::error;
 /// client in a world.
 #[derive(Clone, Debug, Default)]
 pub struct RegistryHolder {
-    // if you add new fields here, don't forget to also update `RegistryHolder::append`,
-    // `protocol_id_to_identifier`, and `define_default_deserializes_to!` in
-    // `data_registry.rs`.
+    // if you add new fields here, don't forget to also update
+    // `RegistryHolder::append`, `protocol_id_to_identifier`, and
+    // `define_default_deserializes_to!` in `data_registry.rs`.
     #[rustfmt::skip] // allow empty line
 
     /// Attributes about the dimension.

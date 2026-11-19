@@ -263,7 +263,8 @@ fn test_jumps_with_more_sideways_momentum() {
             BlockPos::new(0, 71, 3),
             BlockPos::new(0, 72, 6),
             BlockPos::new(0, 73, 9),
-            // this is the point where the bot might fall if it has too much momentum
+            // this is the point where the bot might fall if it has too much
+            // momentum
             BlockPos::new(2, 73, 9),
             BlockPos::new(4, 73, 9),
         ],
@@ -282,8 +283,8 @@ fn test_mine_through_non_colliding_block() {
         &[
             (BlockPos::new(0, 71, 0), BlockKind::SculkVein.into()),
             (BlockPos::new(0, 70, 0), BlockKind::GrassBlock.into()),
-            // this is an extra check to make sure that we don't accidentally break the block
-            // below (since tnt will break instantly)
+            // this is an extra check to make sure that we don't accidentally
+            // break the block below (since tnt will break instantly)
             (BlockPos::new(0, 69, 0), BlockKind::Tnt.into()),
         ],
     );

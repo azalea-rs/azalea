@@ -290,8 +290,8 @@ impl GamePacketHandler<'_> {
                     azalea_world::chunk::calculate_chunk_storage_range(
                         client_information.view_distance.into(),
                     ),
-                    // this argument makes it so other clients don't update this player entity in a
-                    // shared world
+                    // this argument makes it so other clients don't update this
+                    // player entity in a shared world
                     Some(self.player),
                 );
                 {
@@ -667,8 +667,9 @@ impl GamePacketHandler<'_> {
         as_system::<(
             Commands,
             Query<(&EntityIdIndex, &WorldHolder)>,
-            // this is a separate query since it's applied on the entity id that's being updated
-            // instead of the player that received the packet
+            // this is a separate query since it's applied on the entity id
+            // that's being updated instead of the player that received the
+            // packet
             Query<&EntityKindComponent>,
         )>(self.ecs, |(mut commands, query, entity_kind_query)| {
             let (entity_id_index, world_holder) = query.get(self.player).unwrap();

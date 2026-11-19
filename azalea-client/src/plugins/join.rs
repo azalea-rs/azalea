@@ -53,7 +53,8 @@ pub struct StartJoinServerEvent {
     pub account: Account,
     pub connect_opts: ConnectOpts,
 
-    // this is mpsc instead of oneshot so it can be cloned (since it's sent in an event)
+    // this is mpsc instead of oneshot so it can be cloned (since it's sent in
+    // an event)
     pub start_join_callback_tx: Option<mpsc::UnboundedSender<Entity>>,
 }
 
@@ -134,12 +135,14 @@ pub fn handle_start_join_server_event(
         let mut entity_mut = commands.entity(entity);
 
         entity_mut.insert((
-            // add the Account to the entity now so plugins can access it earlier
+            // add the Account to the entity now so plugins can access it
+            // earlier
             event.account.to_owned(),
-            // localentity is always present for our clients, even if we're not actually logged
-            // in
+            // localentity is always present for our clients, even if we're not
+            // actually logged in
             LocalEntity,
-            // this is inserted early so the user can always access and modify it
+            // this is inserted early so the user can always access and modify
+            // it
             ClientInformation::default(),
             // ConnectOpts is inserted as a component here
             event.connect_opts.clone(),
@@ -212,8 +215,8 @@ pub fn poll_create_connection_task(
             let world = World::default();
             let world_holder = WorldHolder::new(
                 entity,
-                // default to an empty world, it'll be set correctly later when we
-                // get the login packet
+                // default to an empty world, it'll be set correctly later when
+                // we get the login packet
                 Arc::new(RwLock::new(world)),
             );
 

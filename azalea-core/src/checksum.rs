@@ -378,7 +378,8 @@ pub struct ChecksumMapSerializer<'a, 'r> {
     // this is only written to at the end
     hasher: &'a mut Crc32cHasher,
     registries: &'r RegistryHolder,
-    // we have to keep track of the elements like this because they're sorted at the end
+    // we have to keep track of the elements like this because they're sorted at
+    // the end
     entries: Vec<(Checksum, Checksum)>,
 }
 impl<'a, 'r> ser::SerializeMap for ChecksumMapSerializer<'a, 'r> {

@@ -13,10 +13,10 @@ pub struct BitSet {
 
 impl From<BitSet> for JavaBitSet {
     fn from(bitset: BitSet) -> Self {
-        // this is unlikely to be a bottleneck in a real program, so the implementation
-        // is deliberately prioritizes readability over performance. if it does end up
-        // needing to be optimized at at some point, we should also add tests for this
-        // then
+        // this is unlikely to be a bottleneck in a real program, so the
+        // implementation is deliberately prioritizes readability over
+        // performance. if it does end up needing to be optimized at at some
+        // point, we should also add tests for this then
         let num_bits = bitset.data.len() * 8;
         let mut result = JavaBitSet::new(num_bits);
         for index in 0..num_bits {
@@ -43,7 +43,8 @@ impl From<JavaBitSet> for BitSet {
 }
 
 impl BitSet {
-    // this is private because the user should convert to a javabitset before use
+    // this is private because the user should convert to a javabitset before
+    // use
     fn get(&self, index: usize) -> Option<bool> {
         self.data
             .get(index / 8)

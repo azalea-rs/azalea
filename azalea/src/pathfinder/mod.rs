@@ -126,8 +126,8 @@ pub struct ExecutingPath {
     pub path: VecDeque<astar::Edge<BlockPos, moves::MoveData>>,
     pub queued_path: Option<VecDeque<astar::Edge<BlockPos, moves::MoveData>>>,
     pub last_reached_node: BlockPos,
-    // count ticks instead of using real time to make our timeouts more consistent, in case we lag
-    // and our ticks take a while
+    // count ticks instead of using real time to make our timeouts more
+    // consistent, in case we lag and our ticks take a while
     pub ticks_since_last_node_reached: usize,
     pub is_path_partial: bool,
 }

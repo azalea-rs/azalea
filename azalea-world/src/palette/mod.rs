@@ -16,8 +16,8 @@ pub use container::*;
 pub enum Palette<S: PalletedContainerKind> {
     /// ID of the corresponding entry in its global palette
     SingleValue(S),
-    // in vanilla this keeps a `size` field that might be less than the length, but i'm not sure
-    // it's actually needed?
+    // in vanilla this keeps a `size` field that might be less than the length,
+    // but i'm not sure it's actually needed?
     Linear(Vec<S>),
     Hashmap(Vec<S>),
     Global,
@@ -65,8 +65,8 @@ impl PaletteKind {
         buf: &mut Cursor<&[u8]>,
     ) -> Result<Palette<S>, BufReadError> {
         Ok(match self {
-            // since they're read as varints it's actually fine to just use BlockStateIntegerRepr
-            // instead of the correct type (u32)
+            // since they're read as varints it's actually fine to just use
+            // BlockStateIntegerRepr instead of the correct type (u32)
             PaletteKind::SingleValue => {
                 Palette::SingleValue(S::try_from(u32::azalea_read_var(buf)?).unwrap_or_default())
             }

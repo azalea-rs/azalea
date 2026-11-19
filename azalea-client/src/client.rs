@@ -55,7 +55,8 @@ pub struct LocalPlayerBundle {
 /// If you want to filter for this, use [`InGameState`].
 #[derive(Bundle, Default)]
 pub struct JoinedClientBundle {
-    // note that WorldHolder isn't here because it's set slightly before we fully join the world
+    // note that WorldHolder isn't here because it's set slightly before we
+    // fully join the world
     pub physics_state: ClientMovementState,
     pub inventory: Inventory,
     pub tab_list: TabList,

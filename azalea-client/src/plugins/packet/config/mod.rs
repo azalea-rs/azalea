@@ -121,8 +121,8 @@ impl ConfigPacketHandler<'_> {
                     .remove::<InConfigState>()
                     .insert((
                         crate::JoinedClientBundle::default(),
-                        // localentity should already be added, but in case the user forgot or
-                        // something we also add it here
+                        // localentity should already be added, but in case the
+                        // user forgot or something we also add it here
                         LocalEntity,
                     ));
             },

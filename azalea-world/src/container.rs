@@ -21,16 +21,17 @@ use crate::{ChunkStorage, World};
 /// world then it will be forgotten.
 #[derive(Default, Resource)]
 pub struct Worlds {
-    // We just refer to the chunks here and don't include entities because there's not that many
-    // cases where we'd want to get every entity in the world (just getting the entities in chunks
-    // should work fine).
+    // We just refer to the chunks here and don't include entities because
+    // there's not that many cases where we'd want to get every entity in the
+    // world (just getting the entities in chunks should work fine).
 
-    // Entities are garbage collected (by manual reference counting in EntityUuidIndex) so we don't
-    // need to worry about them here.
+    // Entities are garbage collected (by manual reference counting in
+    // EntityUuidIndex) so we don't need to worry about them here.
 
-    // If it looks like we're relying on the server giving us unique world names, that's because we
-    // are. An evil server could give us two worlds with the same name and then we'd have no way of
-    // telling them apart. We hope most servers are nice and don't do that. Perhaps this should be
+    // If it looks like we're relying on the server giving us unique world
+    // names, that's because we are. An evil server could give us two worlds
+    // with the same name and then we'd have no way of telling them apart. We
+    // hope most servers are nice and don't do that. Perhaps this should be
     // changed in the future to be configurable.
     pub map: FxHashMap<WorldName, Weak<RwLock<World>>>,
 }
