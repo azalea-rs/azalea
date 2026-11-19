@@ -349,7 +349,7 @@ pub fn register(commands: &mut Dispatcher) {
             writeln!(report).unwrap();
 
 
-            for (info, _) in ecs.iter_resources() {
+            for (_, info, _) in ecs.iter_resources() {
                 let name = info.name().to_string();
                 writeln!(report, "Resource: {name}").unwrap();
                 // writeln!(report, "- Size: {} bytes",

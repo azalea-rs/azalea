@@ -228,8 +228,8 @@ pub fn handle_start_use_item_queued(
             warn!("Got a StartUseItemEvent for a client that was mining");
         }
 
-        // TODO: this also skips if LocalPlayer.handsBusy is true, which is used when
-        // rowing a boat
+        // TODO: this also skips if LocalPlayer.handsBusy is true, which is used
+        // when rowing a boat
 
         let mut hit_result = (**hit_result).clone();
 
@@ -339,8 +339,8 @@ pub fn handle_entity_interact(
         {
             entity_hit_result.location
         } else {
-            // if we're not looking at the entity, make up a value that's good enough by
-            // using the entity's position
+            // if we're not looking at the entity, make up a value that's good
+            // enough by using the entity's position
             let Ok(target_position) = target_query.get(trigger.target) else {
                 warn!("tried to look at an entity without the entity having a position");
                 return;
@@ -357,12 +357,12 @@ pub fn handle_entity_interact(
     };
     commands.trigger(SendGamePacketEvent::new(trigger.client, interact.clone()));
 
-    // TODO: this is true if the interaction failed, which i think can only happen
-    // in certain cases when interacting with armor stands
+    // TODO: this is true if the interaction failed, which i think can only
+    // happen in certain cases when interacting with armor stands
     let consumes_action = false;
     if !consumes_action {
-        // but yes, most of the time vanilla really does send two identical interact
-        // packets like this
+        // but yes, most of the time vanilla really does send two identical
+        // interact packets like this
         commands.trigger(SendGamePacketEvent::new(trigger.client, interact));
     }
 }

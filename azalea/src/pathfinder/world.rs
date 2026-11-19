@@ -86,8 +86,8 @@ impl CachedSections {
             return;
         }
 
-        // this benchmarks better than pushing even when we linear search later. i guess
-        // it has better cache locality?
+        // this benchmarks better than pushing even when we linear search later.
+        // i guess it has better cache locality?
         let index = self
             .fallback_sections
             .binary_search_by(|s| s.pos.cmp(&section.pos))
@@ -400,8 +400,8 @@ impl CachedWorld {
             ChunkSectionBlockPos::from(pos),
         );
 
-        // we use this as an optimization to avoid getting the section again if the
-        // block is in the same section
+        // we use this as an optimization to avoid getting the section again if
+        // the block is in the same section
         let up_is_in_same_section = section_block_pos.y != 15;
         let north_is_in_same_section = section_block_pos.z != 0;
         let east_is_in_same_section = section_block_pos.x != 15;
@@ -466,13 +466,14 @@ impl CachedWorld {
                 }
             }
 
-            // the block is probably safe to break, we'll have to check the adjacent blocks
-            // that weren't in the same section next though
+            // the block is probably safe to break, we'll have to check the
+            // adjacent blocks that weren't in the same section next though
             mining_cost
         }) else {
             // the chunk isn't loaded
             let cost = if self.is_block_pos_solid(pos) {
-                // assume it's unbreakable if it's solid and out of render distance
+                // assume it's unbreakable if it's solid and out of render
+                // distance
                 f32::INFINITY
             } else {
                 0.
@@ -610,8 +611,8 @@ fn calculate_cached_mining_costs_index(pos: RelBlockPos) -> usize {
 
 /// Whether our client could pass through this block.
 pub fn is_block_state_passable(block_state: BlockState) -> bool {
-    // i already tried optimizing this by having it cache in an IntMap/FxHashMap but
-    // it wasn't measurably faster
+    // i already tried optimizing this by having it cache in an IntMap/FxHashMap
+    // but it wasn't measurably faster
 
     if block_state.is_air() {
         // fast path
@@ -633,8 +634,8 @@ pub fn is_block_state_passable(block_state: BlockState) -> bool {
     if registry_block == BlockKind::Lava {
         return false;
     }
-    // block.waterlogged currently doesn't account for seagrass and some other water
-    // blocks
+    // block.waterlogged currently doesn't account for seagrass and some other
+    // water blocks
     if block_state == BlockKind::Seagrass.into() {
         return false;
     }

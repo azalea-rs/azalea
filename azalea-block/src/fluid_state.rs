@@ -68,8 +68,8 @@ impl Default for FluidState {
 
 impl From<BlockState> for FluidState {
     fn from(state: BlockState) -> Self {
-        // note that 8 here might be treated as 9 in some cases if there's another fluid
-        // block of the same type above it
+        // note that 8 here might be treated as 9 in some cases if there's
+        // another fluid block of the same type above it
 
         if state
             .property::<crate::properties::Waterlogged>()

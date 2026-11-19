@@ -258,8 +258,9 @@ where
             .map(|found_edge| found_edge.cost > edge.cost)
             .unwrap_or(true)
         {
-            // if the node that we're currently executing was obstructed then it's often too
-            // late to change the path, so it's usually better to just ignore this case :/
+            // if the node that we're currently executing was obstructed then
+            // it's often too late to change the path, so it's usually better to
+            // just ignore this case :/
             if i == 0 {
                 warn!("path obstructed at index 0 ({edge:?}), ignoring");
                 continue;

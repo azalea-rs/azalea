@@ -37,8 +37,8 @@ fn handle_receive_hello_event(
     let client = receive_hello.entity;
 
     // we store the auth proxy in the ConnectOpts component to make it easily
-    // configurable. that component should've definitely been inserted by now, but
-    // if it somehow wasn't then we should let the user know.
+    // configurable. that component should've definitely been inserted by now,
+    // but if it somehow wasn't then we should let the user know.
     let connect_opts = if let Ok(opts) = query.get(client) {
         opts.sessionserver_proxy.clone()
     } else {
@@ -68,9 +68,10 @@ pub fn poll_auth_task(
                 .insert(IsAuthenticated);
             match poll_res {
                 Ok((packet, private_key)) => {
-                    // we use this instead of SendLoginPacketEvent to ensure that it's sent right
-                    // before encryption is enabled. i guess another option would be to make a
-                    // Trigger+observer for set_encryption_key; the current implementation is
+                    // we use this instead of SendLoginPacketEvent to ensure
+                    // that it's sent right before encryption is enabled. i
+                    // guess another option would be to make a Trigger+observer
+                    // for set_encryption_key; the current implementation is
                     // simpler though.
                     if let Err(e) = raw_conn.write(packet) {
                         error!("Error sending key packet: {e:?}");
@@ -128,8 +129,8 @@ pub async fn auth_with_account(
             return Ok((key_packet, private_key));
         };
 
-        // keep track of the number of times we tried authenticating so we can give up
-        // after too many
+        // keep track of the number of times we tried authenticating so we can
+        // give up after too many
         let mut attempts: usize = 1;
 
         let proxy = proxy.map(Proxy::into);
@@ -137,8 +138,8 @@ pub async fn auth_with_account(
         while let Err(err) = {
             let proxy = proxy.clone();
 
-            // this is necessary since reqwest usually depends on tokio and we're using
-            // `futures` here
+            // this is necessary since reqwest usually depends on tokio and
+            // we're using `futures` here
             async_compat::Compat::new(async {
                 account
                     .join(&packet.public_key, &private_key, &packet.server_id, proxy)

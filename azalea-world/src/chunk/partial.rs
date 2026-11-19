@@ -44,9 +44,10 @@ impl PartialChunkStorage {
     /// This should be called when the client receives a `SetChunkCacheCenter`
     /// packet.
     pub fn update_view_center(&mut self, view_center: ChunkPos) {
-        // this code block makes it force unload the chunks that are out of range after
-        // updating the view center. it's usually fine without it but the commented code
-        // is there in case you want to temporarily uncomment to test something
+        // this code block makes it force unload the chunks that are out of
+        // range after updating the view center. it's usually fine without it
+        // but the commented code is there in case you want to temporarily
+        // uncomment to test something
 
         // ```
         // for index in 0..self.chunks.len() {
@@ -137,6 +138,12 @@ impl PartialChunkStorage {
         trace!("Loaded chunk {pos:?}");
 
         Ok(())
+    }
+
+    /// Returns whether the given chunk is currently loaded (which also requires
+    /// to be in range).
+    pub fn has(&self, pos: &ChunkPos) -> bool {
+        self.limited_get(pos).is_some()
     }
 
     /// Get a [`Chunk`] within render distance, or `None` if it's not loaded.

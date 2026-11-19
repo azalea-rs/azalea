@@ -45,8 +45,8 @@ pub trait DataComponentTrait:
 pub trait EncodableDataComponent: Send + Sync + Any + Debug {
     fn encode(&self, buf: &mut Vec<u8>) -> io::Result<()>;
     fn crc_hash(&self, registries: &RegistryHolder) -> Checksum;
-    // using the Clone trait makes it not be object-safe, so we have our own clone
-    // function instead
+    // using the Clone trait makes it not be object-safe, so we have our own
+    // clone function instead
     fn clone(&self) -> Box<dyn EncodableDataComponent>;
     // same thing here
     fn eq(&self, other: &dyn EncodableDataComponent) -> bool;

@@ -14,8 +14,8 @@ fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> Toke
     let DeriveInput { ident, data, .. } = parse_macro_input!(input);
 
     // technically it would still work with enums and non-named structs but for
-    // consistency in the api it's nicer if they are all just structs, which is why
-    // we enforce this here
+    // consistency in the api it's nicer if they are all just structs, which is
+    // why we enforce this here
     let syn::Data::Struct(syn::DataStruct { fields, .. }) = &data else {
         panic!("#[derive(*Packet)] can only be used on structs")
     };
@@ -205,246 +205,151 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
 
     let state_name_litstr = syn::LitStr::new(&input.name.to_string(), input.name.span());
 
-    let has_clientbound_packets = !input.clientbound.packets.is_empty();
-    let has_serverbound_packets = !input.serverbound.packets.is_empty();
+    fn protocol_packet_impl(
+        packet_name_idents: &[Ident],
+        direction: &str,
+        directional_state_name: &Ident,
+        state_name_litstr: &syn::LitStr,
+    ) -> proc_macro2::TokenStream {
+        let mut mod_and_use_statements_contents = quote! {};
+        let has_serverbound_packets = !packet_name_idents.is_empty();
 
-    let mut mod_and_use_statements_contents = quote! {};
-    let mut clientbound_enum_contents = quote! {};
-    let mut serverbound_enum_contents = quote! {};
-    let mut clientbound_id_match_contents = quote! {};
-    let mut serverbound_id_match_contents = quote! {};
-    let mut clientbound_name_match_contents = quote! {};
-    let mut serverbound_name_match_contents = quote! {};
-    let mut clientbound_write_match_contents = quote! {};
-    let mut serverbound_write_match_contents = quote! {};
-    let mut clientbound_read_match_contents = quote! {};
-    let mut serverbound_read_match_contents = quote! {};
+        let mut directional_enum_contents = quote! {};
+        let mut directional_id_match_contents = quote! {};
+        let mut directional_name_match_contents = quote! {};
+        let mut directional_write_match_contents = quote! {};
+        let mut directional_read_match_contents = quote! {};
 
-    for (id, packet_name) in input.clientbound.packets.iter().enumerate() {
-        let id = id as u32;
+        for (id, packet_name) in packet_name_idents.iter().enumerate() {
+            let id = id as u32;
 
-        let struct_name = packet_name_to_struct_name(packet_name, "clientbound");
-        let module_name = packet_name_to_module_name(packet_name, "clientbound");
-        let variant_name = packet_name_to_variant_name(packet_name);
-        let packet_name_litstr = syn::LitStr::new(&packet_name.to_string(), packet_name.span());
+            let struct_name = packet_name_to_struct_name(packet_name, direction);
+            let module_name = packet_name_to_module_name(packet_name, direction);
+            let variant_name = packet_name_to_variant_name(packet_name);
+            let packet_name_litstr = syn::LitStr::new(&packet_name.to_string(), packet_name.span());
 
-        mod_and_use_statements_contents.extend(quote! {
-            pub mod #module_name;
-            pub use #module_name::#struct_name;
-        });
+            mod_and_use_statements_contents.extend(quote! {
+                pub mod #module_name;
+                pub use #module_name::#struct_name;
+            });
 
-        clientbound_enum_contents.extend(quote! {
-            #variant_name(#module_name::#struct_name),
-        });
-        clientbound_id_match_contents.extend(quote! {
-            #clientbound_state_name::#variant_name(..) => #id,
-        });
-        clientbound_name_match_contents.extend(quote! {
-            #clientbound_state_name::#variant_name(..) => #packet_name_litstr,
-        });
-        clientbound_write_match_contents.extend(quote! {
-            #clientbound_state_name::#variant_name(packet) => packet.write(buf),
-        });
-        clientbound_read_match_contents.extend(quote! {
+            directional_enum_contents.extend(quote! {
+                #variant_name(#module_name::#struct_name),
+            });
+            directional_id_match_contents.extend(quote! {
+                Self::#variant_name(..) => #id,
+            });
+            directional_name_match_contents.extend(quote! {
+                Self::#variant_name(..) => #packet_name_litstr,
+            });
+            directional_write_match_contents.extend(quote! {
+                Self::#variant_name(packet) => packet.write(buf),
+            });
+            directional_read_match_contents.extend(quote! {
             #id => {
-                let data = #module_name::#struct_name::read(buf).map_err(|e| crate::read::ReadPacketError::Parse {
-                    source: e,
-                    packet_id: #id,
-                    packet_name: #packet_name_litstr.to_string(),
-                })?;
-                #[cfg(debug_assertions)]
-                {
-                    let mut leftover = Vec::new();
-                    let _ = std::io::Read::read_to_end(buf, &mut leftover);
-                    if !leftover.is_empty() {
-                        return Err(
-                            Box::new(
-                                crate::read::ReadPacketError::LeftoverData {
-                                    packet_name: #packet_name_litstr.to_string(),
-                                    data: leftover
-                                }
-                            )
-                        );
+                // separated into a separate function to reduce stack space
+                fn parse(buf: &mut std::io::Cursor<&[u8]>) -> Result<#directional_state_name, Box<crate::read::ReadPacketError>> {
+                    let data = #module_name::#struct_name::read(buf).map_err(|e| crate::read::ReadPacketError::Parse {
+                        source: e,
+                        packet_id: #id,
+                        packet_name: #packet_name_litstr.to_string(),
+                    })?;
+                    #[cfg(debug_assertions)]
+                    {
+                        let mut leftover = Vec::new();
+                        let _ = std::io::Read::read_to_end(buf, &mut leftover);
+                        if !leftover.is_empty() {
+                            return Err(Box::new(crate::read::ReadPacketError::LeftoverData { packet_name: #packet_name_litstr.to_string(), data: leftover }));
+                        }
                     }
-                }
-                data
+                    Ok(data)
+                };
+                parse
             },
         });
-    }
-    for (id, packet_name) in input.serverbound.packets.iter().enumerate() {
-        let id = id as u32;
-
-        let struct_name = packet_name_to_struct_name(packet_name, "serverbound");
-        let module_name = packet_name_to_module_name(packet_name, "serverbound");
-        let variant_name = packet_name_to_variant_name(packet_name);
-        let packet_name_litstr = syn::LitStr::new(&packet_name.to_string(), packet_name.span());
-
-        mod_and_use_statements_contents.extend(quote! {
-            pub mod #module_name;
-            pub use #module_name::#struct_name;
-        });
-
-        serverbound_enum_contents.extend(quote! {
-            #variant_name(#module_name::#struct_name),
-        });
-        serverbound_id_match_contents.extend(quote! {
-            #serverbound_state_name::#variant_name(..) => #id,
-        });
-        serverbound_name_match_contents.extend(quote! {
-            #serverbound_state_name::#variant_name(..) => #packet_name_litstr,
-        });
-        serverbound_write_match_contents.extend(quote! {
-            #serverbound_state_name::#variant_name(packet) => packet.write(buf),
-        });
-        serverbound_read_match_contents.extend(quote! {
-            #id => {
-                let data = #module_name::#struct_name::read(buf).map_err(|e| crate::read::ReadPacketError::Parse {
-                    source: e,
-                    packet_id: #id,
-                    packet_name: #packet_name_litstr.to_string(),
-                })?;
-                #[cfg(debug_assertions)]
-                {
-                    let mut leftover = Vec::new();
-                    let _ = std::io::Read::read_to_end(buf, &mut leftover);
-                    if !leftover.is_empty() {
-                        return Err(Box::new(crate::read::ReadPacketError::LeftoverData { packet_name: #packet_name_litstr.to_string(), data: leftover }));
-                    }
-                }
-                data
-            },
-        });
-    }
-
-    if !has_serverbound_packets {
-        serverbound_id_match_contents.extend(quote! {
-            _ => unreachable!("This enum is empty and can't exist.")
-        });
-        serverbound_name_match_contents.extend(quote! {
-            _ => unreachable!("This enum is empty and can't exist.")
-        });
-        serverbound_write_match_contents.extend(quote! {
-            _ => unreachable!("This enum is empty and can't exist.")
-        });
-    }
-    if !has_clientbound_packets {
-        clientbound_id_match_contents.extend(quote! {
-            _ => unreachable!("This enum is empty and can't exist.")
-        });
-        clientbound_name_match_contents.extend(quote! {
-            _ => unreachable!("This enum is empty and can't exist.")
-        });
-        clientbound_write_match_contents.extend(quote! {
-            _ => unreachable!("This enum is empty and can't exist.")
-        });
-    }
-
-    let mut contents = quote! {
-        #mod_and_use_statements_contents
-
-        #[derive(Clone, Debug, PartialEq)]
-        pub enum #clientbound_state_name
-        where
-            Self: Sized,
-        {
-            #clientbound_enum_contents
         }
-        #[derive(Clone, Debug, PartialEq)]
-        pub enum #serverbound_state_name
-        where
-        Self: Sized,
-        {
-            #serverbound_enum_contents
+
+        if !has_serverbound_packets {
+            directional_id_match_contents.extend(quote! {
+                _ => unreachable!("This enum is empty and can't exist.")
+            });
+            directional_name_match_contents.extend(quote! {
+                _ => unreachable!("This enum is empty and can't exist.")
+            });
+            directional_write_match_contents.extend(quote! {
+                _ => unreachable!("This enum is empty and can't exist.")
+            });
         }
-    };
 
-    contents.extend(quote! {
-        #[allow(unreachable_code)]
-        impl crate::packets::ProtocolPacket for #serverbound_state_name {
-            fn id(&self) -> u32 {
-                match self {
-                    #serverbound_id_match_contents
-                }
-            }
+        quote! {
+            #mod_and_use_statements_contents
 
-            fn name(&self) -> &'static str {
-                match self {
-                    #serverbound_name_match_contents
-                }
-            }
-
-            fn write(&self, buf: &mut impl std::io::Write) -> std::io::Result<()> {
-                match self {
-                    #serverbound_write_match_contents
-                }
-            }
-
-            /// Read a packet by its ID, `ConnectionProtocol`, and flow.
-            fn read(
-                id: u32,
-                buf: &mut std::io::Cursor<&[u8]>,
-            ) -> Result<#serverbound_state_name, Box<crate::read::ReadPacketError>>
+            #[derive(Clone, Debug, PartialEq)]
+            pub enum #directional_state_name
             where
                 Self: Sized,
             {
-                Ok(match id {
-                    #serverbound_read_match_contents
-                    _ => return Err(Box::new(crate::read::ReadPacketError::UnknownPacketId { state_name: #state_name_litstr.to_string(), id })),
-                })
+                #directional_enum_contents
             }
-        }
 
-        impl crate::packets::Packet<#serverbound_state_name> for #serverbound_state_name {
-            /// No-op, exists so you can pass a packet enum when a Packet<> is expected.
-            fn into_variant(self) -> #serverbound_state_name {
-                self
-            }
-        }
-    });
+            #[allow(unreachable_code)]
+            impl crate::packets::ProtocolPacket for #directional_state_name {
+                fn id(&self) -> u32 {
+                    match self {
+                        #directional_id_match_contents
+                    }
+                }
 
-    contents.extend(quote! {
-        #[allow(unreachable_code)]
-        impl crate::packets::ProtocolPacket for #clientbound_state_name {
-            fn id(&self) -> u32 {
-                match self {
-                    #clientbound_id_match_contents
+                fn name(&self) -> &'static str {
+                    match self {
+                        #directional_name_match_contents
+                    }
+                }
+
+                fn write(&self, buf: &mut impl std::io::Write) -> std::io::Result<()> {
+                    match self {
+                        #directional_write_match_contents
+                    }
+                }
+
+                /// Read a packet by its ID, `ConnectionProtocol`, and flow.
+                fn read(
+                    id: u32,
+                    buf: &mut std::io::Cursor<&[u8]>,
+                ) -> Result<#directional_state_name, Box<crate::read::ReadPacketError>>
+                where
+                    Self: Sized,
+                {
+                    let parse_fn: fn(buf: &mut std::io::Cursor<&[u8]>) -> Result<#directional_state_name, Box<crate::read::ReadPacketError>> = match id {
+                        #directional_read_match_contents
+                        _ => return Err(Box::new(crate::read::ReadPacketError::UnknownPacketId { state_name: #state_name_litstr.to_string(), id })),
+                    };
+                    parse_fn(buf)
                 }
             }
 
-            fn name(&self) -> &'static str {
-                match self {
-                    #clientbound_name_match_contents
+            impl crate::packets::Packet<#directional_state_name> for #directional_state_name {
+                /// No-op, exists so you can pass a packet enum when a Packet<> is expected.
+                fn into_variant(self) -> #directional_state_name {
+                    self
                 }
             }
-
-            fn write(&self, buf: &mut impl std::io::Write) -> std::io::Result<()> {
-                match self {
-                    #clientbound_write_match_contents
-                }
-            }
-
-            /// Read a packet by its ID, `ConnectionProtocol`, and flow.
-            fn read(
-                id: u32,
-                buf: &mut std::io::Cursor<&[u8]>,
-            ) -> Result<#clientbound_state_name, Box<crate::read::ReadPacketError>>
-            where
-                Self: Sized,
-            {
-                Ok(match id {
-                    #clientbound_read_match_contents
-                    _ => return Err(Box::new(crate::read::ReadPacketError::UnknownPacketId { state_name: #state_name_litstr.to_string(), id })),
-                })
-            }
         }
+    }
 
-        impl crate::packets::Packet<#clientbound_state_name> for #clientbound_state_name {
-            /// No-op, exists so you can pass a packet enum when a Packet<> is expected.
-            fn into_variant(self) -> #clientbound_state_name {
-                self
-            }
-        }
-    });
+    let mut contents = quote! {};
+    contents.extend(protocol_packet_impl(
+        &input.serverbound.packets,
+        "serverbound",
+        &serverbound_state_name,
+        &state_name_litstr,
+    ));
+    contents.extend(protocol_packet_impl(
+        &input.clientbound.packets,
+        "clientbound",
+        &clientbound_state_name,
+        &state_name_litstr,
+    ));
 
     contents.into()
 }

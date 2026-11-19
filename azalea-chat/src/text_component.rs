@@ -65,14 +65,14 @@ pub fn legacy_color_code_to_text_component(legacy_color_code: &str) -> TextCompo
     }
 
     let mut components: Vec<TextComponent> = Vec::with_capacity(1);
-    // iterate over legacy_color_code, if it starts with LEGACY_COLOR_CODE_SYMBOL
-    // then read the next character and get the style from that otherwise, add
-    // the character to the text
+    // iterate over legacy_color_code, if it starts with
+    // LEGACY_COLOR_CODE_SYMBOL then read the next character and get the
+    // style from that otherwise, add the character to the text
 
     let mut cur_component = TextComponent::new("");
 
-    // we don't use a normal for loop since we need to be able to skip after reading
-    // the formatter code symbol
+    // we don't use a normal for loop since we need to be able to skip after
+    // reading the formatter code symbol
     let mut i = 0;
     while i < legacy_color_code.chars().count() {
         if legacy_color_code.chars().nth(i).unwrap() == LEGACY_FORMATTING_CODE_SYMBOL {

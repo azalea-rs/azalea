@@ -35,7 +35,8 @@ pub fn create_fn_azalea_write(data: &Data) -> proc_macro2::TokenStream {
             }
         },
         syn::Data::Enum(syn::DataEnum { variants, .. }) => {
-            // remember whether it's a data variant so we can do an optimization later
+            // remember whether it's a data variant so we can do an optimization
+            // later
             let mut is_data_enum = false;
             let mut match_arms = quote!();
             let mut match_arms_without_id = quote!();

@@ -1,4 +1,7 @@
-use std::{error::Error, fmt};
+use std::{
+    error::Error,
+    fmt::{self, Display},
+};
 
 // fast constant division
 #[rustfmt::skip]
@@ -87,7 +90,7 @@ pub struct BitStorage {
 pub enum BitStorageError {
     InvalidLength { got: usize, expected: usize },
 }
-impl fmt::Display for BitStorageError {
+impl Display for BitStorageError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             BitStorageError::InvalidLength { got, expected } => write!(

@@ -105,8 +105,8 @@ impl Inventory {
             if self.carried.is_empty() {
                 return self.reset_quick_craft();
             }
-            // if we were starting or ending, or now we aren't ending and the status
-            // changed, reset
+            // if we were starting or ending, or now we aren't ending and the
+            // status changed, reset
             if (last_quick_craft_status == QuickCraftStatusKind::Start
                 || last_quick_craft_status == QuickCraftStatusKind::End
                 || self.quick_craft_status != QuickCraftStatusKind::End)
@@ -132,7 +132,8 @@ impl Inventory {
                 {
                     // minecraft also checks slot.may_place(carried) and
                     // menu.can_drag_to(slot)
-                    // but they always return true so they're not relevant for us
+                    // but they always return true so they're not relevant for
+                    // us
                     if can_item_quick_replace(slot_item, &self.carried, true)
                         && (self.quick_craft_kind == QuickCraftKind::Right
                             || carried.count as usize > self.quick_craft_slots.len())
@@ -230,8 +231,8 @@ impl Inventory {
                         }
 
                         carried_count -= new_carried.count - slot_item_count;
-                        // we have to inline self.menu_mut() here to avoid the borrow checker
-                        // complaining
+                        // we have to inline self.menu_mut() here to avoid the
+                        // borrow checker complaining
                         let menu = match &mut self.container_menu {
                             Some(menu) => menu,
                             _ => &mut self.inventory_menu,
@@ -244,8 +245,8 @@ impl Inventory {
                 return self.reset_quick_craft();
             }
         }
-        // the quick craft status should always be in start if we're not in quick craft
-        // mode
+        // the quick craft status should always be in start if we're not in
+        // quick craft mode
         if self.quick_craft_status != QuickCraftStatusKind::Start {
             return self.reset_quick_craft();
         }
@@ -257,8 +258,8 @@ impl Inventory {
             {
                 // vanilla has `player.drop`s but they're only used
                 // server-side
-                // they're included as comments here in case you want to adapt this for a server
-                // implementation
+                // they're included as comments here in case you want to adapt
+                // this for a server implementation
 
                 // player.drop(self.carried, true);
                 self.carried = ItemStack::Empty;
@@ -351,8 +352,9 @@ impl Inventory {
             &ClickOperation::QuickMove(
                 QuickMoveClick::Left { slot } | QuickMoveClick::Right { slot },
             ) => {
-                // in vanilla it also tests if QuickMove has a slot index of -999
-                // but i don't think that's ever possible so it's not covered here
+                // in vanilla it also tests if QuickMove has a slot index of
+                // -999 but i don't think that's ever possible so it's not
+                // covered here
                 let slot = slot as usize;
                 loop {
                     let new_slot_item = self.menu_mut().quick_move_stack(slot);
@@ -402,7 +404,8 @@ impl Inventory {
                     if self.menu().may_place(source_slot_index, target_item) {
                         let source_max_stack = self.menu().max_stack_size(source_slot_index);
                         if target_slot.count() > source_max_stack {
-                            // if there's more than the max stack size in the target slot
+                            // if there's more than the max stack size in the
+                            // target slot
 
                             let target_slot = self.menu_mut().slot_mut(target_slot_index).unwrap();
                             let new_source_slot =
@@ -498,7 +501,8 @@ impl Inventory {
                                 && (round != 0
                                     || checking_item.count != checking_item.kind.max_stack_size())
                             {
-                                // get the checking_slot and checking_item again but mutable
+                                // get the checking_slot and checking_item again
+                                // but mutable
                                 let checking_slot = self.menu_mut().slot_mut(i).unwrap();
 
                                 let taken_item = checking_slot.split(checking_slot.count() as u32);
@@ -581,7 +585,8 @@ impl Inventory {
         if count <= 0 {
             return None;
         }
-        // vanilla calls .remove here but i think it has the same behavior as split?
+        // vanilla calls .remove here but i think it has the same behavior as
+        // split?
         let removed = slot_item.split(count as u32);
 
         if removed.is_present() && slot_item.is_empty() {
@@ -608,9 +613,10 @@ impl Inventory {
             EquipmentSlot::Chest => &player.armor[1],
             EquipmentSlot::Head => &player.armor[0],
             EquipmentSlot::Body => {
-                // TODO: when riding entities is implemented, mount/horse inventories should be
-                // implemented too. note that horse inventories aren't a normal menu (they're
-                // not in MenuKind), maybe they should be a separate field in `Inventory`?
+                // TODO: when riding entities is implemented, mount/horse
+                // inventories should be implemented too. note that horse
+                // inventories aren't a normal menu (they're not in MenuKind),
+                // maybe they should be a separate field in `Inventory`?
                 return None;
             }
             EquipmentSlot::Saddle => {

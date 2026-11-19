@@ -190,8 +190,8 @@ impl AzBuf for Section {
         // TODO: ^ this comment was written ages ago. needs more investigation.
         // assert!(
         //     block_count <= 16 * 16 * 16,
-        //     "A section has more blocks than what should be possible. This is a bug!"
-        // );
+        //     "A section has more blocks than what should be possible. This is
+        // a bug!" );
 
         let states = PalettedContainer::<BlockState>::read(buf)?;
 

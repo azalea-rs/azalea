@@ -107,8 +107,8 @@ pub struct BufReadError {
 impl BufReadError {
     // maybe we should add more of these in the future
     pub fn custom(message: impl Into<String>) -> Self {
-        // ^ this is intentionally Into<String> rather than ToString to avoid being too
-        // permissive
+        // ^ this is intentionally Into<String> rather than ToString to avoid
+        // being too permissive
         Self::from(BufReadErrorRepr::Custom(message.into()))
     }
 }

@@ -110,10 +110,11 @@ pub fn request_certs_if_needed(
 
         let certs = account.certs();
         let should_refresh = if let Some(certs) = certs {
-            // certs were already requested and we're waiting for them to refresh
+            // certs were already requested and we're waiting for them to
+            // refresh
 
-            // but maybe they weren't sent yet, in which case we still want to send the
-            // certs
+            // but maybe they weren't sent yet, in which case we still want to
+            // send the certs
             if chat_signing_session.is_none() {
                 true
             } else {

@@ -96,8 +96,8 @@ pub fn ai_step(
     {
         let is_player = **entity_kind == EntityKind::Player;
 
-        // vanilla does movement interpolation here, doesn't really matter much for a
-        // bot though
+        // vanilla does movement interpolation here, doesn't really matter much
+        // for a bot though
 
         if physics.no_jump_delay > 0 {
             physics.no_jump_delay -= 1;
@@ -210,8 +210,8 @@ pub fn apply_effects_from_blocks(
         //     var4.getBlock().stepOn(this.level(), var3, var4, this);
         //  }
 
-        // minecraft adds more entries to the list when the code is running on the
-        // server
+        // minecraft adds more entries to the list when the code is running on
+        // the server
         let movement_this_tick = [EntityMovement {
             from: physics.old_position,
             to: **position,
@@ -260,8 +260,8 @@ fn check_inside_blocks(
             this.onInsideBlock(traversedBlockState);
             */
 
-            // this is different for end portal frames and tripwire hooks, i don't think it
-            // actually matters for a client though
+            // this is different for end portal frames and tripwire hooks, i
+            // don't think it actually matters for a client though
             let entity_inside_collision_shape = &*BLOCK_SHAPE;
 
             if entity_inside_collision_shape != &*BLOCK_SHAPE
@@ -422,13 +422,8 @@ fn handle_relative_friction_and_calculate_movement(ctx: &mut MoveCtx, block_fric
     );
 
     move_colliding(ctx, ctx.physics.velocity);
-    // let delta_movement = entity.delta;
-    // ladders
-    //   if ((entity.horizontalCollision || entity.jumping) && (entity.onClimbable()
-    // || entity.getFeetBlockState().is(Blocks.POWDER_SNOW) &&
-    // PowderSnowBlock.canEntityWalkOnPowderSnow(entity))) {      var3 = new
-    // Vec3(var3.x, 0.2D, var3.z);   }
 
+    // ladders
     if ctx.physics.horizontal_collision || *ctx.jumping {
         let block_at_feet: BlockKind = ctx
             .world

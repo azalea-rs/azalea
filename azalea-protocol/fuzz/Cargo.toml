@@ -73,3 +73,6 @@ path = "fuzz_targets/serverbound_status.rs"
 test = false
 doc = false
 bench = false
+
+[lints]
+workspace = true

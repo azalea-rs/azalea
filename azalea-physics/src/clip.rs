@@ -28,8 +28,8 @@ impl ClipContext {
     /// Get the shape of given block, using the type of shape set in
     /// [`Self::block_shape_type`].
     pub fn block_shape(&self, block_state: BlockState, pos: BlockPos) -> Cow<'static, VoxelShape> {
-        // minecraft passes in the world and blockpos to this function but it's not
-        // actually necessary. it is for fluid_shape though
+        // minecraft passes in the world and blockpos to this function but it's
+        // not actually necessary. it is for fluid_shape though
         match self.block_shape_type {
             BlockShapeType::Collider => block_state.collision_shape(pos),
             BlockShapeType::Outline => block_state.outline_shape(pos),

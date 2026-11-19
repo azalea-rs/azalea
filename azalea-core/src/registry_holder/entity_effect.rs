@@ -180,8 +180,9 @@ pub struct PlaySound {
 impl Deserialize for PlaySound {
     fn from_compound(nbt: NbtCompound) -> Result<Self, DeserializeError> {
         let sound = if let Some(list) = nbt.list("sound") {
-            // TODO: this will probably break in the future because it's only handling lists
-            // of strings. you should refactor simdnbt to have an owned NbtTag enum that
+            // TODO: this will probably break in the future because it's only
+            // handling lists of strings. you should refactor
+            // simdnbt to have an owned NbtTag enum that
             // contains the borrow types so this works for more than just
             // strings.
             list.strings()

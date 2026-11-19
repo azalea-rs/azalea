@@ -51,8 +51,8 @@ impl Parse for PropertyWithNameAndDefault {
             // must be a unit struct if it's not an enum
             let content;
             let _paren_token: token::Paren = parenthesized!(content in input);
-            // we use this instead of .parse so it works with rust keywords like true and
-            // false
+            // we use this instead of .parse so it works with rust keywords like
+            // true and false
             let unit_struct_inner = content.call(Ident::parse_any)?;
             let unit_struct_inner_string = unit_struct_inner.to_string();
 

@@ -64,14 +64,6 @@ fn run_physics_benchmark(b: &mut Bencher<'_>) {
 
     let mut simulation_set = SimulationSet::new(world);
 
-    // let entity = simulation_set.spawn(SimulatedPlayerBundle::new(Vec3::new(0.0,
-    // 4.0, 0.0))); for _ in 0..20 {
-    //     simulation_set.tick();
-    //     println!("tick over");
-    // }
-    // simulation_set.despawn(entity);
-    // std::process::exit(0);
-
     b.iter(|| {
         let entity = simulation_set.spawn(SimulatedPlayerBundle::new(Vec3::new(0.5, 2.0, 0.5)));
         for _ in 0..200 {

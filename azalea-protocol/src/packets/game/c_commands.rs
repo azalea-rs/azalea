@@ -244,7 +244,7 @@ impl AzBuf for BrigadierNodeStub {
         }
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        let mut flags = FixedBitSet::<4>::new();
+        let mut flags = FixedBitSet::<5>::new();
         if self.is_executable {
             flags.set(2);
         }

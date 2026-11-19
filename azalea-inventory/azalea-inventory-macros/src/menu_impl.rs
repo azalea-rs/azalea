@@ -46,7 +46,8 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
                 let end = i - 1;
 
                 if field_name == "inventory" {
-                    // it only subtracts 8 here since it's inclusive (there's 9 total hotbar slots)
+                    // it only subtracts 8 here since it's inclusive (there's 9
+                    // total hotbar slots)
                     hotbar_slots_start = end - 8;
                     hotbar_slots_end = end;
 

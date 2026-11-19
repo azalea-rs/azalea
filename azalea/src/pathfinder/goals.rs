@@ -94,14 +94,14 @@ fn y_heuristic(dy: f32) -> f32 {
             return *JUMP_ONE_BLOCK_COST * dy;
         }
 
-        // forward+up is the main way to ascend, so make sure to match that. we subtract
-        // SPRINT_ONE_BLOCK_COST to cancel out the value that should've been
-        // added by the xz heuristic.
+        // forward+up is the main way to ascend, so make sure to match that. we
+        // subtract SPRINT_ONE_BLOCK_COST to cancel out the value that should've
+        // been added by the xz heuristic.
         (f32::max(*JUMP_ONE_BLOCK_COST, WALK_ONE_BLOCK_COST) + JUMP_PENALTY - SPRINT_ONE_BLOCK_COST)
             * dy
     } else if dy < 0. {
-        // this is also an overestimate (copied from baritone), but fixing it makes perf
-        // too much worse
+        // this is also an overestimate (copied from baritone), but fixing it
+        // makes perf too much worse
         (FALL_N_BLOCKS_COST[2] / 2.) * -dy
     } else {
         0.
@@ -258,8 +258,8 @@ impl Goal for ReachBlockPosGoal {
     }
     fn success(&self, n: BlockPos) -> bool {
         let head = n.up(1);
-        // the player's head is in the block or adjacent to it, so assume that it's
-        // always reachable (we do this to account for mining)
+        // the player's head is in the block or adjacent to it, so assume that
+        // it's always reachable (we do this to account for mining)
         if head == self.pos
             || head.north(1) == self.pos
             || head.south(1) == self.pos

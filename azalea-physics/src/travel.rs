@@ -369,7 +369,6 @@ pub fn no_collision(
     } else {
         let collision = border_collision(entity_physics, aabb);
         if let Some(collision) = collision {
-            // !Shapes.joinIsNotEmpty(collision, Shapes.create(aabb), BooleanOp.AND);
             !Shapes::matches_anywhere(&collision.into(), &aabb.into(), |a, b| a && b)
         } else {
             true
@@ -410,8 +409,8 @@ fn get_effective_gravity() -> f64 {
 }
 
 pub fn fluid_jump_threshold() -> f64 {
-    // this is 0.0 for entities with an eye height lower than 0.4, but that's not
-    // implemented since it's usually not relevant for players (unless the player
-    // was shrunk)
+    // this is 0.0 for entities with an eye height lower than 0.4, but that's
+    // not implemented since it's usually not relevant for players (unless the
+    // player was shrunk)
     0.4
 }

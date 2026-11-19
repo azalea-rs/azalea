@@ -45,7 +45,7 @@ impl ResolvableAddr for &ResolvedAddr {
 /// ```
 /// use azalea_protocol::address::ServerAddr;
 ///
-/// let addr = ServerAddr::try_from("localhost:25565").unwrap();
+/// let addr = ServerAddr::from_str("localhost:25565").unwrap();
 /// assert_eq!(addr.host, "localhost");
 /// assert_eq!(addr.port, 25565);
 /// ```
@@ -63,12 +63,12 @@ pub struct ServerAddr {
 #[derive(Debug)]
 pub struct ServerAddrParseError;
 
-impl TryFrom<&str> for ServerAddr {
-    type Error = ServerAddrParseError;
+impl FromStr for ServerAddr {
+    type Err = ServerAddrParseError;
 
     /// Convert a Minecraft server address (`host:port`, the port is optional)
     /// to a `ServerAddress`
-    fn try_from(string: &str) -> Result<Self, Self::Error> {
+    fn from_str(string: &str) -> Result<Self, Self::Err> {
         if string.is_empty() {
             return Err(ServerAddrParseError);
         }
@@ -80,11 +80,18 @@ impl TryFrom<&str> for ServerAddr {
         Ok(ServerAddr { host, port })
     }
 }
+impl TryFrom<&str> for ServerAddr {
+    type Error = ServerAddrParseError;
+
+    fn try_from(string: &str) -> Result<Self, Self::Error> {
+        ServerAddr::from_str(string)
+    }
+}
 impl TryFrom<String> for ServerAddr {
     type Error = ServerAddrParseError;
 
     fn try_from(string: String) -> Result<Self, Self::Error> {
-        ServerAddr::try_from(string.as_str())
+        ServerAddr::from_str(string.as_str())
     }
 }
 
@@ -117,7 +124,7 @@ impl<'de> serde::Deserialize<'de> for ServerAddr {
         D: serde::Deserializer<'de>,
     {
         let string = String::deserialize(deserializer)?;
-        ServerAddr::try_from(string.as_str())
+        ServerAddr::from_str(string.as_str())
             .map_err(|_| serde::de::Error::custom("failed to parse address"))
     }
 }

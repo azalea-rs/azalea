@@ -15,9 +15,7 @@
 //! `game` state, so some early packets will be decoded incorrectly.
 
 use std::{
-    error::Error,
-    io::Cursor,
-    sync::{Arc, LazyLock},
+    error::Error, io::Cursor, str::FromStr, sync::{Arc, LazyLock},
 };
 
 use azalea_auth::{AuthOpts, sessionserver::ClientSessionServerError};
@@ -158,8 +156,9 @@ async fn handle_connection(stream: TcpStream) -> eyre::Result<()> {
                 }
             }
         }
-        // If the client intends to join the proxy, wait for them to send the `Hello` packet to log
-        // their username and uuid, then start proxying their connection.
+        // If the client intends to join the proxy, wait for them to send the
+        // `Hello` packet to log their username and uuid, then start proxying
+        // their connection.
         ClientIntention::Login => {
             let mut conn = conn.login();
             loop {
@@ -206,7 +205,7 @@ async fn proxy_conn(
     mut client_conn: Connection<ServerboundLoginPacket, ClientboundLoginPacket>,
 ) -> Result<(), Box<dyn Error>> {
     // resolve TARGET_ADDR
-    let parsed_target_addr = ServerAddr::try_from(TARGET_ADDR).unwrap();
+    let parsed_target_addr = ServerAddr::from_str(TARGET_ADDR).unwrap();
     let resolved_target_addr = resolve_address(&parsed_target_addr).await?;
 
     let mut server_conn = Connection::new(&resolved_target_addr).await?;

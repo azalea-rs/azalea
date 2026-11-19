@@ -182,8 +182,8 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
 
         let mut properties_with_name: Vec<PropertyWithNameAndDefault> =
             Vec::with_capacity(block.properties_and_defaults.len());
-        // Used to determine the index of the property so we can optionally add a number
-        // to it
+        // Used to determine the index of the property so we can optionally add
+        // a number to it
         let mut previous_names: Vec<String> = Vec::new();
         for property in &block.properties_and_defaults {
             let index: Option<usize> = if block
@@ -294,7 +294,8 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 let variant = &combination[i];
                 let variant_ident = variant.ident.clone();
 
-                // property.default is a TokenStream, so we have to parse it like this
+                // property.default is a TokenStream, so we have to parse it
+                // like this
                 let property_default_ident = property
                     .default
                     .clone()
@@ -400,7 +401,8 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             let conversion_code = {
                 if &property_value_type.to_string() == "bool" {
                     assert_eq!(property_variants_count, 2);
-                    // this is not a mistake, it starts with true for some reason
+                    // this is not a mistake, it starts with true for some
+                    // reason
                     quote! {(b / #division) % #property_variants_count == 0}
                 } else {
                     quote! {properties::#property_struct_name_ident::from((b / #division) % #property_variants_count)}
@@ -425,8 +427,8 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             let property_variants = &block_properties_vec[i];
             let property_variants_count = property_variants.len() as crate::BlockStateIntegerRepr;
             if &property_value_type.to_string() == "bool" {
-                // this is not a mistake, it starts with true for some reason, so invert it to
-                // make `true be 0`
+                // this is not a mistake, it starts with true for some reason,
+                // so invert it to make `true be 0`
                 as_block_state_inner.extend(
                     quote! { + (!self.#property_name_ident as BlockStateIntegerRepr) * #factor},
                 );

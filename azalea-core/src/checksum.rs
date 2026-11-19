@@ -195,8 +195,8 @@ impl<'a, 'r> ser::Serializer for ChecksumSerializer<'a, 'r> {
     where
         T: ?Sized + Serialize,
     {
-        // we can't have custom handlers with serde's traits, so we use this silly hack
-        // to make serializing data-driven registries work
+        // we can't have custom handlers with serde's traits, so we use this
+        // silly hack to make serializing data-driven registries work
         if name.starts_with("minecraft:") {
             let value = self
                 .registries

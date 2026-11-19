@@ -132,9 +132,9 @@ pub struct PickOpts<'world, 'state, 'a, 'b, 'c> {
 ///
 /// Also see [`pick_block`].
 pub fn pick(opts: PickOpts<'_, '_, '_, '_, '_>) -> HitResult {
-    // vanilla does extra math here to calculate the pick result in between ticks by
-    // interpolating, but since clients can still only interact on exact ticks, that
-    // isn't relevant for us.
+    // vanilla does extra math here to calculate the pick result in between
+    // ticks by interpolating, but since clients can still only interact on
+    // exact ticks, that isn't relevant for us.
 
     let mut max_range = opts.entity_pick_range.max(opts.block_pick_range);
     let mut max_range_squared = max_range.powi(2);
@@ -166,8 +166,8 @@ pub fn pick(opts: PickOpts<'_, '_, '_, '_, '_>) -> HitResult {
             return false;
         }
 
-        // TODO: ender dragon has extra logic here. also, we shouldn't be able to pick
-        // spectators.
+        // TODO: ender dragon has extra logic here. also, we shouldn't be able
+        // to pick spectators.
         if let Ok((armor_stand_marker, arrow_in_ground)) = opts.pickable_query.get(entity) {
             !(armor_stand_marker == Some(&ArmorStandMarker(true))
                 || arrow_in_ground == Some(&InGround(true)))
@@ -265,9 +265,9 @@ fn pick_entity(opts: PickEntityOpts) -> Option<EntityHitResult> {
         opts.predicate,
         opts.aabb_query,
     ) {
-        // TODO: if the entity is "REDIRECTABLE_PROJECTILE" then this should be 1.0.
-        // azalea needs support for entity tags first for this to be possible. see
-        // getPickRadius in decompiled minecraft source
+        // TODO: if the entity is "REDIRECTABLE_PROJECTILE" then this should be
+        // 1.0. azalea needs support for entity tags first for this to be
+        // possible. see getPickRadius in decompiled minecraft source
         let candidate_pick_radius = 0.;
         let candidate_aabb = candidate_aabb.inflate_all(candidate_pick_radius);
         let clip_location = candidate_aabb.clip(opts.eye_position, opts.end_position);

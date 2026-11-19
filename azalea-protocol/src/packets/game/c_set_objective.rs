@@ -23,13 +23,13 @@ pub enum Method {
     Add {
         display_name: FormattedText,
         render_type: ObjectiveCriteria,
-        number_format: NumberFormat,
+        number_format: Option<NumberFormat>,
     },
     Remove,
     Change {
         display_name: FormattedText,
         render_type: ObjectiveCriteria,
-        number_format: NumberFormat,
+        number_format: Option<NumberFormat>,
     },
 }
 
@@ -40,13 +40,13 @@ impl AzBuf for Method {
             MethodKind::Add => Ok(Method::Add {
                 display_name: FormattedText::azalea_read(buf)?,
                 render_type: ObjectiveCriteria::azalea_read(buf)?,
-                number_format: NumberFormat::azalea_read(buf)?,
+                number_format: Option::<NumberFormat>::azalea_read(buf)?,
             }),
             MethodKind::Remove => Ok(Method::Remove),
             MethodKind::Change => Ok(Method::Change {
                 display_name: FormattedText::azalea_read(buf)?,
                 render_type: ObjectiveCriteria::azalea_read(buf)?,
-                number_format: NumberFormat::azalea_read(buf)?,
+                number_format: Option::<NumberFormat>::azalea_read(buf)?,
             }),
         }
     }

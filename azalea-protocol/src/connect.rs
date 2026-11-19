@@ -312,7 +312,7 @@ pub enum ConnectionError {
     Io(#[from] io::Error),
 }
 
-use socks5_impl::protocol::UserKey;
+use socks5_impl::UserKey;
 
 /// An address and authentication method for connecting to a SOCKS5 proxy.
 #[derive(Clone, Debug)]

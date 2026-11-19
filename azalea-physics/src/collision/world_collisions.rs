@@ -98,7 +98,8 @@ impl<'a> BlockCollisionsState<'a> {
             return;
         }
 
-        // TODO: if self.only_suffocating_blocks, return if the block isn't suffocating
+        // TODO: if self.only_suffocating_blocks, return if the block isn't
+        // suffocating
 
         // if it's a full block do a faster collision check
         if block_state.is_collision_shape_full() {
@@ -158,17 +159,20 @@ impl<'a> BlockCollisionsState<'a> {
         let chunk_pos = ChunkPos::new(chunk_x, chunk_z);
 
         // TODO: minecraft caches chunk here
+        // ```
         // int chunkX = SectionPos.blockToSectionCoord(blockX);
         // int chunkZ = SectionPos.blockToSectionCoord(blockZ);
         // long chunkPosLong = ChunkPos.asLong(chunkX, chunkZ);
         // if (this.cachedBlockGetter != null && this.cachedBlockGetterPos == var5) {
-        //    return this.cachedBlockGetter;
+        //     return this.cachedBlockGetter;
         // } else {
-        //    BlockGetter var7 = this.collisionGetter.getChunkForCollisions(chunkX,
-        // chunkZ);    this.cachedBlockGetter = var7;
-        //    this.cachedBlockGetterPos = chunkPosLong;
+        //    BlockGetter var7 = this.collisionGetter.getChunkForCollisions(chunkX, chunkZ);
+        //    this.cachedBlockGetter = var7;
+        //    this.cachedBlockGetterPos =
+        //    chunkPosLong;
         //    return var7;
         // }
+        // ```
 
         self.world.chunks.get(&chunk_pos)
     }
@@ -212,8 +216,8 @@ impl<'a> BlockCollisionsState<'a> {
         block_state: BlockState,
         pos: BlockPos,
     ) -> Cow<'static, VoxelShape> {
-        // TODO (2026-05-06): does this cache still help? i'm pretty sure getting shapes
-        // has been optimized since this cache was implemented
+        // TODO (2026-05-06): does this cache still help? i'm pretty sure
+        // getting shapes has been optimized since this cache was implemented
         for (cached_block_state, cached_shape) in &self.cached_block_shapes {
             if block_state == *cached_block_state {
                 return Cow::Borrowed(cached_shape);
@@ -221,7 +225,8 @@ impl<'a> BlockCollisionsState<'a> {
         }
 
         let shape = block_state.collision_shape(pos);
-        // if it has a random offset then we can't cache them, and it'll be a Cow::Owned
+        // if it has a random offset then we can't cache them, and it'll be a
+        // Cow::Owned
         if let Cow::Borrowed(shape) = shape {
             self.cached_block_shapes.push((block_state, shape));
         }

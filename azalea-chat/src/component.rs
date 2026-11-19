@@ -334,7 +334,8 @@ impl<'de> Deserialize<'de> for FormattedText {
                         translate, fallback, with_array,
                     ));
                 } else {
-                    // if it doesn't have a "with", just have the with_array be empty
+                    // if it doesn't have a "with", just have the with_array be
+                    // empty
                     component = FormattedText::Translatable(TranslatableComponent::with_fallback(
                         translate,
                         fallback,
@@ -411,8 +412,8 @@ impl<'de> Deserialize<'de> for FormattedText {
         if json_array.is_empty() {
             return Ok(FormattedText::default());
         }
-        // the first item in the array is the one that we're gonna return, the others
-        // are siblings
+        // the first item in the array is the one that we're gonna return, the
+        // others are siblings
         let mut component =
             FormattedText::deserialize(&json_array[0]).map_err(de::Error::custom)?;
         for i in 1..json_array.len() {
@@ -511,10 +512,9 @@ impl FormattedText {
                     }
                 } else if let Some(with) = with_list.compounds() {
                     for item in with {
-                        // if it's a string component with no styling and no siblings,
-                        // just add a string to
-                        // with_array otherwise add the
-                        // component to the array
+                        // if it's a string component with no styling and no
+                        // siblings, just add a string to with_array. otherwise,
+                        // add the component to the array
                         if let Some(primitive) = item.get("") {
                             // minecraft does this sometimes, for example
                             // for the /give system messages
@@ -564,7 +564,8 @@ impl FormattedText {
                 component =
                     FormattedText::Translatable(TranslatableComponent::new(translate, with_array));
             } else {
-                // if it doesn't have a "with", just have the with_array be empty
+                // if it doesn't have a "with", just have the with_array be
+                // empty
                 component =
                     FormattedText::Translatable(TranslatableComponent::new(translate, Vec::new()));
             }

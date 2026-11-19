@@ -79,7 +79,8 @@ fn get_delay(
     };
 
     if delay == Some(Duration::MAX) {
-        // if the duration is set to max, treat that as autoreconnect being disabled
+        // if the duration is set to max, treat that as autoreconnect being
+        // disabled
         return None;
     }
     delay

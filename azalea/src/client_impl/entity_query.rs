@@ -83,10 +83,11 @@ impl Client {
         &self,
         f: impl FnOnce(QueryItem<D>) -> R,
     ) -> AzaleaResult<R> {
-        self.query_entity(self.entity, f).map_err(|mut err| {
-            err.entity_description = "Player";
-            err
-        })
+        self.query_entity::<D, R>(self.entity, f)
+            .map_err(|mut err| {
+                err.entity_description = "Player";
+                err
+            })
     }
 
     #[doc(hidden)]

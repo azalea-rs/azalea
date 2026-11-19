@@ -63,8 +63,8 @@ pub(crate) fn as_system<T>(ecs: &mut World, f: impl FnOnce(T::Item<'_, '_>))
 where
     T: SystemParam + 'static,
 {
-    // creating a new SystemState is expensive, so we save them as a Resource in the
-    // ecs
+    // creating a new SystemState is expensive, so we save them as a Resource in
+    // the ecs
     let mut system_state = match ecs.remove_resource::<CachedSystemState<T>>() {
         Some(s) => s.0,
         None => SystemState::<T>::new(ecs),

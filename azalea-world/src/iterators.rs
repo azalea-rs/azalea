@@ -200,6 +200,10 @@ impl Iterator for ChunkIterator {
     type Item = ChunkPos;
 
     fn next(&mut self) -> Option<Self::Item> {
+        if self.layer == self.max_distance {
+            return None;
+        }
+
         match self.leg {
             -1 => {
                 self.leg = 0;

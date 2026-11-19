@@ -107,8 +107,8 @@ pub fn accurate_best_tool_in_hotbar_for_block(
                 ));
             }
             ItemStack::Present(item_stack) => {
-                // lazy way to avoid checking durability since azalea doesn't have durability
-                // data yet
+                // lazy way to avoid checking durability since azalea doesn't
+                // have durability data yet
                 if !item_stack.component_patch.has::<components::Damage>() {
                     this_item_speed = Some(azalea_entity::mining::get_mine_progress(
                         block,

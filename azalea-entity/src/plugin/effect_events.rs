@@ -47,8 +47,8 @@ pub fn handle_remove_effects(
         active_effects.remove(effect);
 
         if let Some((attribute, modifier)) = attribute_modifier_for_effect(effect) {
-            // we're just trying to get the id of the modifier, so the amplifier passed here
-            // doesn't matter
+            // we're just trying to get the id of the modifier, so the amplifier
+            // passed here doesn't matter
             let modifier = modifier.create(0);
             if let Some(attribute) = attributes.get_mut(attribute) {
                 attribute.remove(&modifier.id);

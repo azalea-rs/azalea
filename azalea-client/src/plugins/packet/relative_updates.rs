@@ -88,14 +88,15 @@ pub fn should_apply_entity_update(
     let partial_entity_infos = &mut partial_world.entity_infos;
 
     if Some(entity) == partial_entity_infos.owner_entity {
-        // if the entity owns this partial world, it's always allowed to update itself
+        // if the entity owns this partial world, it's always allowed to update
+        // itself
         return true;
     };
 
     let Ok((minecraft_entity_id, updates_received, local_entity)) = entity_update_query.get(entity)
     else {
-        // this can happen when the entity despawns in the same Update that we got a
-        // relative update for it
+        // this can happen when the entity despawns in the same Update that we
+        // got a relative update for it
         debug!("called should_apply_entity_update on an entity with missing components {entity:?}");
         return false;
     };
