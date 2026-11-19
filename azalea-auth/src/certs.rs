@@ -1,6 +1,6 @@
 use base64::Engine;
 use chrono::{DateTime, Utc};
-use rsa::{RsaPrivateKey, pkcs8::DecodePrivateKey};
+use rsa::{PrivateKey, pkcs8::DecodePrivateKey};
 use serde::Deserialize;
 use thiserror::Error;
 use tracing::trace;
@@ -29,7 +29,7 @@ pub async fn fetch_certificates(
         .await?;
     trace!("{:?}", res);
 
-    // using RsaPrivateKey::from_pkcs8_pem gives an error with decoding base64
+    // using PrivateKey::from_pkcs8_pem gives an error with decoding base64
     // so we just decode it ourselves
 
     // remove the first and last lines of the private key
@@ -56,7 +56,7 @@ pub async fn fetch_certificates(
         .unwrap();
 
     // the private key also contains the public key so it's basically a keypair
-    let private_key = RsaPrivateKey::from_pkcs8_der(&private_key_der).unwrap();
+    let private_key = PrivateKey::from_pkcs8_der(&private_key_der).unwrap();
 
     let certificates = Certificates {
         private_key,
@@ -80,7 +80,7 @@ pub async fn fetch_certificates(
 #[derive(Clone, Debug)]
 pub struct Certificates {
     /// The RSA private key.
-    pub private_key: RsaPrivateKey,
+    pub private_key: PrivateKey,
     /// The RSA public key encoded as DER.
     pub public_key_der: Vec<u8>,
 

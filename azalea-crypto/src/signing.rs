@@ -4,7 +4,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use azalea_buf::AzBuf;
 use rsa::{
-    RsaPrivateKey,
+    PrivateKey,
     signature::{RandomizedSigner, SignatureEncoding},
 };
 use sha2::Sha256;
@@ -47,7 +47,7 @@ pub struct SignChatMessageOptions {
     /// The message that we're sending in chat.
     pub message: String,
 
-    pub private_key: RsaPrivateKey,
+    pub private_key: PrivateKey,
 }
 
 pub fn sign_chat_message(opts: &SignChatMessageOptions) -> MessageSignature {
