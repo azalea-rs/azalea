@@ -12,8 +12,7 @@ use azalea_protocol::{
         ConnectionProtocol, Packet,
         game::{
             ClientboundBlockUpdate, ClientboundPlayerPosition, ServerboundPlayerAction,
-            ServerboundSetCarriedItem, ServerboundSwing, s_interact::InteractionHand,
-            s_player_action,
+            ServerboundPunch, ServerboundSetCarriedItem, s_player_action,
         },
     },
 };
@@ -79,32 +78,17 @@ fn test_packet_order_set_carried_item() {
         }
         .into_variant()
     });
-    sent_packets.expect("Swing 1", |p| {
-        p == &ServerboundSwing {
-            hand: InteractionHand::MainHand,
-        }
-        .into_variant()
-    });
+    sent_packets.expect("Swing 1", |p| p == &ServerboundPunch.into_variant());
     sent_packets.expect("SetCarriedItem", |p| {
         p == &ServerboundSetCarriedItem { slot: 1 }.into_variant()
     });
-    sent_packets.expect("Swing 2", |p| {
-        p == &ServerboundSwing {
-            hand: InteractionHand::MainHand,
-        }
-        .into_variant()
-    });
+    sent_packets.expect("Swing 2", |p| p == &ServerboundPunch.into_variant());
     sent_packets.expect_tick_end();
     sent_packets.expect_empty();
 
     simulation.tick();
 
-    sent_packets.expect("Swing", |p| {
-        p == &ServerboundSwing {
-            hand: InteractionHand::MainHand,
-        }
-        .into_variant()
-    });
+    sent_packets.expect("Swing", |p| p == &ServerboundPunch.into_variant());
     sent_packets.expect_tick_end();
     sent_packets.expect_empty();
 }

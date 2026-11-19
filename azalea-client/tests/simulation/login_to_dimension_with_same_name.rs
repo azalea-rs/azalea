@@ -39,10 +39,10 @@ fn generic_test_login_to_dimension_with_same_name(using_respawn: bool) {
         registry_id: Identifier::new("minecraft:dimension_type"),
         entries: vec![(
             Identifier::new("minecraft:overworld"),
-            Some(NbtCompound::from_values(vec![
+            Some(NbtTag::from(NbtCompound::from_values(vec![
                 ("height".into(), NbtTag::Int(384)),
                 ("min_y".into(), NbtTag::Int(-64)),
-            ])),
+            ]))),
         )]
         .into_iter()
         .collect(),
@@ -87,10 +87,10 @@ fn generic_test_login_to_dimension_with_same_name(using_respawn: bool) {
         registry_id: Identifier::new("minecraft:dimension_type"),
         entries: vec![(
             Identifier::new("minecraft:overworld"),
-            Some(NbtCompound::from_values(vec![
+            Some(NbtTag::from(NbtCompound::from_values(vec![
                 ("height".into(), NbtTag::Int(256)),
                 ("min_y".into(), NbtTag::Int(0)),
-            ])),
+            ]))),
         )]
         .into_iter()
         .collect(),

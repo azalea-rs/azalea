@@ -133,7 +133,7 @@ mod tests {
     #[test]
     fn test() {
         let packet = ClientboundUpdateAdvancements {
-            reset: true,
+            should_reset: true,
             added: [PositionedAdvancement {
                 advancement: AdvancementHolder {
                     id: Identifier::new("minecraft:test"),
@@ -181,15 +181,15 @@ mod tests {
         let mut buf: Cursor<&[u8]> = Cursor::new(&data);
 
         let read_packet = ClientboundUpdateAdvancements::azalea_read(&mut buf).unwrap();
-        assert_eq!(packet.reset, read_packet.reset);
+        assert_eq!(packet.should_reset, read_packet.should_reset);
         assert_eq!(packet.removed, read_packet.removed);
 
         let advancement = packet
             .added
             .into_iter()
             .find_map(|a| {
-                if a.id == Identifier::new("minecraft:test") {
-                    Some(a.value)
+                if a.advancement.id == Identifier::new("minecraft:test") {
+                    Some(a.advancement.value)
                 } else {
                     None
                 }
@@ -200,8 +200,8 @@ mod tests {
             .added
             .into_iter()
             .find_map(|a| {
-                if a.id == Identifier::new("minecraft:test") {
-                    Some(a.value)
+                if a.advancement.id == Identifier::new("minecraft:test") {
+                    Some(a.advancement.value)
                 } else {
                     None
                 }

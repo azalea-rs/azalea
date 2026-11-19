@@ -18,10 +18,10 @@ fn test_enchantments() {
         registry_id: Identifier::new("minecraft:dimension_type"),
         entries: vec![(
             Identifier::new("minecraft:overworld"),
-            Some(NbtCompound::from_values(vec![
+            Some(NbtTag::from(NbtCompound::from_values(vec![
                 ("height".into(), NbtTag::Int(384)),
                 ("min_y".into(), NbtTag::Int(-64)),
-            ])),
+            ]))),
         )]
         .into_iter()
         .collect(),
@@ -31,7 +31,7 @@ fn test_enchantments() {
         registry_id: Identifier::new("minecraft:enchantment"),
         entries: vec![(
             Identifier::new("minecraft:efficiency"),
-            Some(NbtCompound::from([
+            Some(NbtTag::from(NbtCompound::from([
                 (
                     "description",
                     [("translate", "enchantment.minecraft.efficiency".into())].into(),
@@ -70,7 +70,7 @@ fn test_enchantments() {
                 ("weight", 10.into()),
                 ("slots", ["mainhand"].into()),
                 ("supported_items", "#minecraft:enchantable/mining".into()),
-            ])),
+            ]))),
         )]
         .into_iter()
         .collect(),

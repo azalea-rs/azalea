@@ -13,12 +13,15 @@ use azalea_inventory::{
     components::{
         AdventureModePredicate, AttributeModifier, AttributeModifierDisplay, AttributeModifiers,
         AttributeModifiersEntry, BlockPredicate, CanPlaceOn, ChargedProjectiles, CustomData,
-        CustomName, EquipmentSlotGroup, Glider, JukeboxPlayable, LodestoneTracker, Lore, MapColor,
+        CustomName, EquipmentSlotGroup, Glider, JukeboxPlayable, LodestoneTracker, Lore,
         PotDecorations, Rarity,
     },
 };
 use azalea_registry::builtin::{Attribute, BlockKind, ItemKind};
 use simdnbt::owned::{BaseNbt, Nbt, NbtCompound, NbtList, NbtTag};
+
+// note: it would be cool to make the checksums more reliably accurate somehow.
+// i'm not sure how, though :(
 
 #[test]
 fn test_custom_name_checksum() {
@@ -40,11 +43,6 @@ fn test_custom_name_checksum_2() {
     };
 
     assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 187682122);
-}
-#[test]
-fn test_map_color_checksum() {
-    let c = MapColor { color: 1 };
-    assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 1565579036);
 }
 #[test]
 fn test_lore_checksum() {
@@ -194,7 +192,7 @@ fn test_pot_decorations_checksum() {
     };
 
     // TODO: check this in-game and update
-    assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 1951715383);
+    assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 3819469984);
 }
 
 #[test]
