@@ -12,7 +12,7 @@ use crate::auto_tool::best_tool_in_hotbar_for_block;
 
 pub struct MiningCache {
     block_state_id_costs: UnsafeCell<IntMap<BlockStateIntegerRepr, f32>>,
-    inventory_menu: Option<Menu>,
+    inventory_menu: Option<Box<Menu>>,
 
     water_block_state_range: RangeInclusive<BlockStateIntegerRepr>,
     lava_block_state_range: RangeInclusive<BlockStateIntegerRepr>,
@@ -21,7 +21,7 @@ pub struct MiningCache {
 }
 
 impl MiningCache {
-    pub fn new(inventory_menu: Option<Menu>) -> Self {
+    pub fn new(inventory_menu: Option<Box<Menu>>) -> Self {
         let water_block_states = BlockStates::from(BlockKind::Water);
         let lava_block_states = BlockStates::from(BlockKind::Lava);
 

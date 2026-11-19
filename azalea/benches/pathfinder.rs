@@ -131,8 +131,9 @@ fn run_pathfinder_benchmark(
 
     b.iter(|| {
         let cached_world = CachedWorld::new(Arc::new(RwLock::new(world.clone().into())), origin);
-        let mining_cache =
-            MiningCache::new(Some(Menu::Player(azalea_inventory::Player::default())));
+        let mining_cache = MiningCache::new(Some(Box::new(Menu::Player(
+            azalea_inventory::Player::default(),
+        ))));
         let goal = BlockPosGoal(end);
 
         let successors = |pos: RelBlockPos| {

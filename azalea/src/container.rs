@@ -216,7 +216,7 @@ impl ContainerHandleRef {
     /// Note that any modifications you make to the `Menu` you're given will not
     /// actually cause any packets to be sent. If you're trying to modify your
     /// inventory, use [`Self::click`] instead
-    pub fn menu(&self) -> AzaleaResult<Option<Menu>> {
+    pub fn menu(&self) -> AzaleaResult<Option<Box<Menu>>> {
         self.map_inventory(|inv| {
             if self.id == 0 {
                 inv.inventory_menu.clone()
@@ -267,6 +267,7 @@ impl ContainerHandleRef {
     pub fn title(&self) -> Option<FormattedText> {
         self.map_inventory(|inv| inv.container_menu_title.clone())
             .ok()??
+            .map(|t| *t)
     }
 
     /// A shortcut for [`Self::click`] with `PickupClick::Left`.

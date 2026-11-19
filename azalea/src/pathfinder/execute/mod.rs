@@ -281,7 +281,7 @@ pub fn timeout_movement(
     {
         if !executing_path.path.is_empty() {
             let (start, end) = if let Some(s) = &simulating_path_state
-                && let SimulatingPathState::Simulated(simulating_path_state) = &**s
+                && let SimulatingPathState::Simulated(ref simulating_path_state) = **s
             {
                 (simulating_path_state.start, simulating_path_state.target)
             } else {

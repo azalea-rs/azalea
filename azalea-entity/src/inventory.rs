@@ -22,7 +22,7 @@ pub struct Inventory {
     ///
     /// We keep it as a [`Menu`] since `Menu` has some useful functions that
     /// bare [`azalea_inventory::Player`] doesn't have.
-    pub inventory_menu: azalea_inventory::Menu,
+    pub inventory_menu: Box<azalea_inventory::Menu>,
 
     /// The ID of the container that's currently open.
     ///
@@ -32,11 +32,11 @@ pub struct Inventory {
     pub id: i32,
     /// The current container menu that the player has open, or `None` if no
     /// container is open.
-    pub container_menu: Option<azalea_inventory::Menu>,
+    pub container_menu: Option<Box<azalea_inventory::Menu>>,
     /// The custom name of the menu that's currently open.
     ///
     /// This can only be `Some` when `container_menu` is `Some`.
-    pub container_menu_title: Option<FormattedText>,
+    pub container_menu_title: Option<Box<FormattedText>>,
     /// The item that is currently held by the cursor, or `Slot::Empty` if
     /// nothing is currently being held.
     ///
@@ -671,7 +671,7 @@ fn get_quick_craft_slot_count(
 impl Default for Inventory {
     fn default() -> Self {
         Inventory {
-            inventory_menu: Menu::Player(azalea_inventory::Player::default()),
+            inventory_menu: Box::new(Menu::Player(azalea_inventory::Player::default())),
             id: 0,
             container_menu: None,
             container_menu_title: None,
@@ -697,14 +697,14 @@ mod tests {
         let spruce_planks = ItemStack::new(ItemKind::SprucePlanks, 4);
 
         let mut inventory = Inventory {
-            inventory_menu: Menu::Player(azalea_inventory::Player::default()),
+            inventory_menu: Box::new(Menu::Player(azalea_inventory::Player::default())),
             id: 1,
-            container_menu: Some(Menu::Crafting {
+            container_menu: Some(Box::new(Menu::Crafting {
                 result: spruce_planks.clone(),
                 // simulate_click won't delete the items from here
                 grid: SlotList::default(),
                 player: SlotList::default(),
-            }),
+            })),
             container_menu_title: None,
             carried: ItemStack::Empty,
             state_id: 0,

@@ -154,27 +154,28 @@ pub fn tick_execute_path(
             }
         }
 
-        let simulating_path_state = if let Some(simulating_path_state) = simulating_path_state {
-            Cow::Borrowed(simulating_path_state)
-        } else {
-            let start = Instant::now();
+        let simulating_path_state: Cow<'_, SimulatingPathState> =
+            if let Some(simulating_path_state) = simulating_path_state {
+                Cow::Borrowed(&simulating_path_state)
+            } else {
+                let start = Instant::now();
 
-            let new_state = run_simulations(
-                &executing_path,
-                world_holder,
-                SimulatedPlayerBundle {
-                    position: *position,
-                    physics: physics.clone(),
-                    physics_state: physics_state.clone(),
-                    look_direction: *look_direction,
-                    attributes: attributes.clone(),
-                    inventory: inventory.clone(),
-                },
-            );
-            debug!("found sim in {:?}: {new_state:?}", start.elapsed());
-            commands.entity(entity).insert(new_state.clone());
-            Cow::Owned(new_state)
-        };
+                let new_state = run_simulations(
+                    &executing_path,
+                    world_holder,
+                    SimulatedPlayerBundle {
+                        position: *position,
+                        physics: physics.clone(),
+                        physics_state: physics_state.clone(),
+                        look_direction: *look_direction,
+                        attributes: attributes.clone(),
+                        inventory: inventory.clone(),
+                    },
+                );
+                debug!("found sim in {:?}: {new_state:?}", start.elapsed());
+                commands.entity(entity).insert(new_state.clone());
+                Cow::Owned(new_state)
+            };
 
         match &*simulating_path_state {
             SimulatingPathState::Fail => {

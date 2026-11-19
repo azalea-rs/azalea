@@ -225,7 +225,8 @@ pub fn register(commands: &mut Dispatcher) {
 
         let mut edges = Vec::new();
         let cached_world = CachedWorld::new(source.bot.world()?, position);
-        let mining_cache = MiningCache::new(Some(Menu::Player(inventory::Player::default())));
+        let mining_cache =
+            MiningCache::new(Some(Box::new(Menu::Player(inventory::Player::default()))));
         let custom_state = CustomPathfinderStateRef::default();
 
         azalea::pathfinder::moves::default_move(

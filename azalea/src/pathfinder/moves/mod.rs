@@ -76,7 +76,7 @@ pub struct ExecuteCtx<'s, 'w1, 'w2, 'w3, 'w4, 'w5, 'w6, 'a> {
     pub is_currently_mining: bool,
     pub can_mine: bool,
     pub world: Arc<RwLock<World>>,
-    pub menu: Menu,
+    pub menu: Box<Menu>,
 
     pub commands: &'a mut Commands<'w1, 's>,
     pub look_at_events: &'a mut MessageWriter<'w2, LookAtEvent>,

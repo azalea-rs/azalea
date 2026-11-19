@@ -71,8 +71,8 @@ pub struct MenuOpenedEvent {
 fn handle_menu_opened_trigger(event: On<MenuOpenedEvent>, mut query: Query<&mut Inv>) {
     let mut inventory = query.get_mut(event.entity).unwrap();
     inventory.id = event.window_id;
-    inventory.container_menu = Some(Menu::from_kind(event.menu_type));
-    inventory.container_menu_title = Some(event.title.clone());
+    inventory.container_menu = Some(Box::new(Menu::from_kind(event.menu_type)));
+    inventory.container_menu_title = Some(Box::new(event.title.clone()));
 }
 
 /// Tell the server that we want to close a container.

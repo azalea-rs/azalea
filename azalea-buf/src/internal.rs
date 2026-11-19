@@ -23,6 +23,7 @@ impl<T: Debug> DebugNormal for T {
 #[macro_export]
 macro_rules! debug_format_any {
     ($e:expr) => {{
+        #[allow(unused)]
         use $crate::internal::{DebugNormal, DebugUnknown};
         (&$e).internal_fmt()
     }};
