@@ -32,7 +32,12 @@ macro_rules! number_from_other_impl {
 }
 number_from_other_impl!(i8, i8, i32, Byte);
 number_from_other_impl!(i16, i16, i32, Short);
+
+// allow unsigned integers for convenience
 number_from_other_impl!(u8, i8, i8, Byte);
+number_from_other_impl!(u16, i16, i16, Short);
+number_from_other_impl!(u32, i32, i32, Int);
+number_from_other_impl!(u64, i64, i64, Long);
 
 macro_rules! number_cast_impl {
     ($t:ty, $variant:ident) => {

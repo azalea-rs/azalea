@@ -1,11 +1,14 @@
+use azalea_codec::{Codec, Incomplete as _, MapLike as _};
 use serde::{Serialize, ser::SerializeMap};
 
 use crate::{FormattedText, style::Style};
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Codec)]
 pub struct BaseComponent {
     /// Components in the "extra" field.
+    #[codec(default, rename = "extra")]
     pub siblings: Vec<FormattedText>,
+    #[codec(flatten)]
     pub style: Box<Style>,
 }
 

@@ -348,6 +348,7 @@ name = "azalea-chat"
 version = "0.16.0+mc26.3"
 dependencies = [
  "azalea-buf",
+ "azalea-codec",
  "azalea-language",
  "azalea-registry",
  "serde",

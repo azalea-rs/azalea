@@ -1,4 +1,4 @@
-use serde_json::Value;
+use serde_json::{Value, json};
 
 use crate::{
     MapLike, Number, Ops,
@@ -9,6 +9,10 @@ use crate::{
 impl Ops for Value {
     type List = Vec<Value>;
     type Map = serde_json::Map<String, Value>;
+
+    fn empty() -> Self {
+        json!({})
+    }
 
     fn get_number(&self) -> ReadResult<Number> {
         Ok(match self {
@@ -30,7 +34,6 @@ impl Ops for Value {
             _ => return Err(ReadError::custom("not a number")),
         })
     }
-
     fn create_number(&self, n: Number) -> WriteResult<Self> {
         let n = if n.is_numeric_integer() {
             serde_json::Number::from_u128(n.into()).unwrap()
@@ -38,6 +41,16 @@ impl Ops for Value {
             serde_json::Number::from_f64(n.into()).unwrap()
         };
         Ok(Value::Number(n))
+    }
+
+    fn get_boolean(&self) -> ReadResult<bool> {
+        let Value::Bool(v) = self else {
+            return Err(ReadError::custom("not a boolean"));
+        };
+        Ok(*v)
+    }
+    fn create_boolean(&self, v: bool) -> WriteResult<Self> {
+        Ok(Value::Bool(v))
     }
 
     fn get_list(&self) -> ReadResult<Self::List> {

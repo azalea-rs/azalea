@@ -1,12 +1,8 @@
-use serde::Serialize;
+use azalea_codec::{Codec, types::StringLiteral};
 #[cfg(feature = "simdnbt")]
-use simdnbt::{
-    DeserializeError,
-    owned::{Nbt, NbtCompound},
-};
+use simdnbt::owned::{Nbt, NbtCompound, NbtTag};
 
-#[cfg(feature = "simdnbt")]
-use crate::get_in_compound;
+use crate::base_component::BaseComponent;
 
 macro_rules! define_click_event_struct {
     (
@@ -20,7 +16,7 @@ macro_rules! define_click_event_struct {
         ),*
         $(,)?
     ) => {
-        #[derive(Clone, Debug, PartialEq, Serialize)]
+        #[derive(Clone, Debug, PartialEq, Serialize, Codec)]
         #[serde(rename_all = "snake_case", tag = "action")]
         pub enum ClickEvent {
             $(
@@ -32,71 +28,45 @@ macro_rules! define_click_event_struct {
                 }
             ),*
         }
-
-        #[cfg(feature = "simdnbt")]
-        impl simdnbt::Serialize for ClickEvent {
-            fn to_compound(self) -> NbtCompound {
-                let mut compound = NbtCompound::new();
-                match self {
-                    $(
-                        Self::$action_variant { $($field),* } => {
-                            compound.insert("action", stringify!($action_name));
-                            $(
-                                compound.insert(stringify!($field), $field);
-                            )*
-                        }
-                    )*
-                };
-                compound
-            }
-        }
-
-        #[cfg(feature = "simdnbt")]
-        impl simdnbt::Deserialize for ClickEvent {
-            fn from_compound(
-                compound: simdnbt::borrow::NbtCompound,
-            ) -> Result<Self, simdnbt::DeserializeError> {
-                let action = get_in_compound::<String>(&compound, "action")?;
-                Ok(match action.as_str() {
-                    $(
-                        stringify!($action_name) => Self::$action_variant {
-                            $(
-                                $field: get_in_compound(&compound, stringify!($field))?
-                            ),*
-                        },
-                    )*
-                    _ => return Err(DeserializeError::MismatchedFieldType(action.to_owned())),
-                })
-            }
-        }
-
     }
 }
 
-define_click_event_struct! {
-    open_url: OpenUrl {
+#[derive(Clone, Debug, PartialEq, Codec)]
+pub enum ClickEvent {
+    OpenUrl {
+        action: StringLiteral<"open_url">,
         url: String,
     },
-    open_file: OpenFile {
+    OpenFile {
+        action: StringLiteral<"open_file">,
         path: String,
     },
-    run_command: RunCommand {
+    RunCommand {
+        action: StringLiteral<"run_command">,
         command: String,
     },
-    suggest_command: SuggestCommand {
+    SuggestCommand {
+        action: StringLiteral<"suggest_command">,
         command: String,
     },
     // TODO: this uses Dialog.CODEC
-    show_dialog: ShowDialog {},
-    change_page: ChangePage {
+    ShowDialog {
+        action: StringLiteral<"show_dialog">,
+        #[codec(flatten)]
+        remaining: azalea_codec::types::Drain,
+    },
+    ChangePage {
+        action: StringLiteral<"change_page">,
         page: i32,
     },
-    copy_to_clipboard: CopyToClipboard {
+    CopyToClipboard {
+        action: StringLiteral<"copy_to_clipboard">,
         value: String,
     },
-    custom: Custom {
+    Custom {
+        action: StringLiteral<"custom">,
         id: String,
         #[cfg(feature = "simdnbt")]
-        payload: Nbt,
+        payload: NbtTag,
     },
 }

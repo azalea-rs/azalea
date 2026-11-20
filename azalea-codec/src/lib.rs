@@ -1,6 +1,10 @@
 #![feature(associated_type_defaults)]
+// #![feature(min_specialization)]
+// needed for StringLiteral
+#![allow(incomplete_features)]
+#![feature(adt_const_params, unsized_const_params)]
 
-use azalea_codec_macros::Codec;
+pub use azalea_codec_macros::Codec;
 
 use crate::{
     error::{ReadError, ReadResult, WriteError, WriteResult},
@@ -14,7 +18,9 @@ pub mod json;
 pub mod nbt;
 pub mod number;
 pub mod rust;
+pub mod types;
 
+#[diagnostic::on_unimplemented(message = "type `{Self}` does not implement `azalea_codec::Codec`.")]
 pub trait Codec<O: Ops>: Sized {
     type Incomplete = ReadResult<Self>;
 
@@ -22,19 +28,24 @@ pub trait Codec<O: Ops>: Sized {
     fn codec_write(self, ops: &O) -> WriteResult<O>;
 }
 
+#[diagnostic::on_unimplemented(message = "type `{Self}` is not a map that can be flattened.")]
 pub trait MapCodec<O: Ops>: Sized + Codec<O> {
+    // this doesn't return a ReadResult because the errors are stored in the
+    // Incomplete struct
     fn codec_read_map_item(incomplete: &mut <Self as Codec<O>>::Incomplete, k: &O, v: &O);
-    fn codec_write_to_map(self, ops: &O, map: &mut Vec<(O, O)>);
+    fn codec_write_to_map(self, ops: &O, map: &mut Vec<(O, O)>) -> WriteResult<()>;
+
+    /// For normal structs, this sets `incomplete.__result = Ok(())`.
+    fn get_and_reset_result(incomplete: &mut <Self as Codec<O>>::Incomplete) -> ReadResult<()>;
 }
 
 // https://github.com/Mojang/DataFixerUpper/blob/master/src/main/java/com/mojang/serialization/DynamicOps.java
-pub trait Ops: Sized {
+pub trait Ops: Sized + Clone {
     type List: IntoIterator<Item = Self>;
     type Map: MapLike<Self>;
 
-    fn empty(&self) -> WriteResult<Self> {
-        self.create_map(&[])
-    }
+    /// An empty map, usually.
+    fn empty() -> Self;
     fn empty_list(&self) -> WriteResult<Self> {
         self.create_list(&[])
     }
@@ -43,6 +54,13 @@ pub trait Ops: Sized {
         Err(ReadError::unimplemented())
     }
     fn create_number(&self, _n: Number) -> WriteResult<Self> {
+        Err(WriteError::unimplemented())
+    }
+
+    fn get_boolean(&self) -> ReadResult<bool> {
+        Err(ReadError::unimplemented())
+    }
+    fn create_boolean(&self, _v: bool) -> WriteResult<Self> {
         Err(WriteError::unimplemented())
     }
 
@@ -103,12 +121,20 @@ fn fallback_create_list<O: Ops, N: Into<Number> + Copy>(o: &O, v: &[N]) -> Write
     )
 }
 
-pub trait MapLike<T>: Sized {
+pub trait MapLike<T: Clone>: Sized {
     fn for_each(&self, cb: impl FnMut(&T, &T));
+
+    fn into_values(&self) -> Box<[(T, T)]> {
+        let mut values: Vec<(T, T)> = Vec::new();
+        self.for_each(|k, v| {
+            values.push((k.clone(), v.clone()));
+        });
+        values.into_boxed_slice()
+    }
 }
 
 pub struct NoMap;
-impl<T> MapLike<T> for NoMap {
+impl<T: Clone> MapLike<T> for NoMap {
     fn for_each(&self, _: impl FnMut(&T, &T)) {
         unimplemented!()
     }

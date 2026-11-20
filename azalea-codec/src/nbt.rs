@@ -1,7 +1,10 @@
-use simdnbt::owned::{NbtCompound, NbtList, NbtTag};
+use simdnbt::{
+    Mutf8String,
+    owned::{NbtCompound, NbtList, NbtTag},
+};
 
 use crate::{
-    MapLike, Number, Ops,
+    Codec, MapLike, Number, Ops,
     error::{ReadError, ReadResult, WriteError, WriteResult},
 };
 
@@ -9,6 +12,10 @@ use crate::{
 impl Ops for NbtTag {
     type Map = NbtCompound;
     type List = std::vec::IntoIter<NbtTag>;
+
+    fn empty() -> Self {
+        NbtCompound::new().into()
+    }
 
     fn get_number(&self) -> ReadResult<Number> {
         Ok(match *self {
@@ -31,6 +38,14 @@ impl Ops for NbtTag {
             Number::Double(n) => NbtTag::Double(n),
         })
     }
+
+    fn get_boolean(&self) -> ReadResult<bool> {
+        Ok(f64::from(self.get_number()?) != 0.0)
+    }
+    fn create_boolean(&self, v: bool) -> WriteResult<Self> {
+        Ok(NbtTag::Byte(v as i8))
+    }
+
     fn get_list(&self) -> ReadResult<<NbtTag as Ops>::List> {
         let items: Vec<NbtTag> = match self {
             NbtTag::ByteArray(items) => items.into_iter().map(|&i| NbtTag::Byte(i as i8)).collect(),
@@ -109,5 +124,63 @@ impl MapLike<NbtTag> for NbtCompound {
         for (k, v) in self.iter() {
             cb(&NbtTag::String(k.into()), v);
         }
+    }
+}
+
+// impl Codec<NbtTag> for NbtTag {
+//     default fn codec_read(ops: &NbtTag) -> ReadResult<Self> {
+//         Ok(ops.clone())
+//     }
+//     default fn codec_write(self, _: &NbtTag) -> WriteResult<NbtTag> {
+//         Ok(self)
+//     }
+// }
+
+// equivalent to convertTo in mojang codecs
+impl<O: Ops> Codec<O> for NbtTag {
+    fn codec_read(ops: &O) -> ReadResult<Self> {
+        if let Ok(s) = ops.get_string()
+            && let Ok(v) = NbtTag::empty().create_string(&s)
+        {
+            return Ok(v);
+        }
+        if let Ok(n) = ops.get_number()
+            && let Ok(v) = NbtTag::empty().create_number(n)
+        {
+            return Ok(v);
+        }
+        if let Ok(b) = ops.get_boolean()
+            && let Ok(v) = NbtTag::empty().create_boolean(b)
+        {
+            return Ok(v);
+        }
+        if let Ok(map) = ops.get_map() {
+            let original_values = map.into_values();
+            let mut values = Vec::with_capacity(original_values.len());
+            for (k, v) in original_values {
+                let k = Self::codec_read(&k)?;
+                let v = Self::codec_read(&v)?;
+                values.push((k, v));
+            }
+            if let Ok(map) = NbtTag::empty().create_map(&values) {
+                return Ok(map);
+            }
+        }
+        if let Ok(list) = ops.get_list() {
+            let values = list
+                .into_iter()
+                .map(|i| Self::codec_read(&i))
+                .collect::<ReadResult<Box<[NbtTag]>>>();
+            if let Ok(values) = values
+                && let Ok(map) = NbtTag::empty().create_list(&values)
+            {
+                return Ok(map);
+            }
+        }
+
+        Err(ReadError::custom("unknown type"))
+    }
+    fn codec_write(self, ops: &O) -> WriteResult<O> {
+        Ok(ops.clone())
     }
 }

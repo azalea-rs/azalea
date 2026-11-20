@@ -6,6 +6,7 @@ use std::{
 
 #[cfg(feature = "azalea-buf")]
 use azalea_buf::AzBuf;
+use azalea_codec::Codec;
 use serde::{Serialize, Serializer, ser::SerializeMap};
 use serde_json::Value;
 #[cfg(feature = "simdnbt")]
@@ -13,7 +14,7 @@ use simdnbt::owned::{NbtCompound, NbtTag};
 
 use crate::{click_event::ClickEvent, hover_event::HoverEvent};
 
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq, Codec)]
 pub struct TextColor {
     pub value: u32,
     pub name: Option<String>,
@@ -315,7 +316,7 @@ impl TryFrom<ChatFormatting> for TextColor {
 
 macro_rules! define_style_struct {
     ($($(#[$doc:meta])* $field:ident : $type:ty),* $(,)?) => {
-        #[derive(Clone, Debug, Default, PartialEq, serde::Serialize)]
+        #[derive(Clone, Debug, Default, PartialEq, serde::Serialize, Codec)]
         #[non_exhaustive]
         pub struct Style {
             $(

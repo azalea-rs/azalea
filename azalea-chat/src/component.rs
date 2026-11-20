@@ -7,6 +7,7 @@ use std::{
 
 #[cfg(all(feature = "azalea-buf", feature = "simdnbt"))]
 use azalea_buf::{AzBuf, BufReadError};
+use azalea_codec::Codec;
 use serde::{Deserialize, Deserializer, Serialize, de};
 
 use crate::{
@@ -17,7 +18,7 @@ use crate::{
 };
 
 /// A chat component, basically anything you can see in chat.
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Codec)]
 #[serde(untagged)]
 pub enum FormattedText {
     Text(TextComponent),

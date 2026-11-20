@@ -1,5 +1,6 @@
 use std::fmt::{self, Display};
 
+use azalea_codec::Codec;
 use serde::{Serialize, Serializer, ser::SerializeMap};
 
 use crate::{
@@ -9,8 +10,9 @@ use crate::{
 };
 
 /// A component that contains text that's the same in all locales.
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq, Codec)]
 pub struct TextComponent {
+    #[codec(flatten)]
     pub base: BaseComponent,
     pub text: String,
 }
