@@ -7,6 +7,7 @@ members = [
     "azalea-buf",
     "azalea-chat",
     "azalea-client",
+    "azalea-codec",
     "azalea-core",
     "azalea-crypto",
     "azalea-entity",
@@ -95,6 +96,8 @@ azalea-buf-macros = { path = "azalea-buf/azalea-buf-macros", version = "0.16.0",
 azalea-buf = { path = "azalea-buf", version = "0.16.0", default-features = false }
 azalea-chat = { path = "azalea-chat", version = "0.16.0", default-features = false }
 azalea-client = { path = "azalea-client", version = "0.16.0", default-features = false }
+azalea-codec = { path = "azalea-codec", version = "0.16.0", default-features = false }
+azalea-codec-macros = { path = "azalea-codec/azalea-codec-macros", version = "0.16.0", default-features = false }
 azalea-core = { path = "azalea-core", version = "0.16.0", default-features = false }
 azalea-crypto = { path = "azalea-crypto", version = "0.16.0", default-features = false }
 azalea-entity = { path = "azalea-entity", version = "0.16.0", default-features = false }

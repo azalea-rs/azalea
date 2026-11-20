@@ -395,6 +395,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "azalea-codec"
+version = "0.16.0+mc26.3"
+dependencies = [
+ "azalea-codec-macros",
+ "simdnbt",
+]
+
+[[package]]
+name = "azalea-codec-macros"
+version = "0.16.0+mc26.3"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 3.0.10",
+]
+
+[[package]]
 name = "azalea-core"
 version = "0.16.0+mc26.3"
 dependencies = [
