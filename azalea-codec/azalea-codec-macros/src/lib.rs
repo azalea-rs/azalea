@@ -104,22 +104,22 @@ fn derive_codec_for_struct(ident: &Ident, fields: FieldsNamed) -> TokenStream {
 
         if attrs.flatten {
             codec_write_to_map_impl.extend(quote! {
-                self.#field_name.codec_write_to_map(ops, map);
+                self.#field_name.codec_write_to_map(ops, map)?;
             });
         } else if attrs.lenient || attrs.default {
             codec_write_to_map_impl.extend(quote! {
                 if Defaultable::<O>::is_default(&self.#field_name) {
                     map.push((
-                        ops.create_string(#field_name_string),
-                        self.#field_name.codec_write(ops),
+                        ops.create_string(#field_name_string)?,
+                        self.#field_name.codec_write(ops)?,
                     ));
                 }
             });
         } else {
             codec_write_to_map_impl.extend(quote! {
                 map.push((
-                    ops.create_string(#field_name_string),
-                    self.#field_name.codec_write(ops)
+                    ops.create_string(#field_name_string)?,
+                    self.#field_name.codec_write(ops)?
                 ));
             })
         }
@@ -167,8 +167,9 @@ fn derive_codec_for_struct(ident: &Ident, fields: FieldsNamed) -> TokenStream {
             }
         }
 
-        fn codec_write_to_map(self, ops: &O, map: &mut Vec<(O, O)>) {
+        fn codec_write_to_map(self, ops: &O, map: &mut Vec<(O, O)>) -> ::azalea_codec_error::WriteResult<()> {
             #codec_write_to_map_impl
+            Ok(())
         }
     }
 
@@ -183,9 +184,9 @@ fn derive_codec_for_struct(ident: &Ident, fields: FieldsNamed) -> TokenStream {
             });
             incomplete.build()
         }
-        fn codec_write(self, ops: &O) -> O {
+        fn codec_write(self, ops: &O) -> azalea_codec::error::WriteResult<O> {
             let mut map = Vec::new();
-            Self::codec_write_to_map(self, ops, &mut map);
+            Self::codec_write_to_map(self, ops, &mut map)?;
             ops.create_map(&map)
         }
     }
@@ -275,7 +276,7 @@ fn derive_codec_for_enum(ident: &Ident, variants: Punctuated<Variant, Comma>) ->
             #codec_read_map_item_impl
         }
 
-        fn codec_write_to_map(self, ops: &O, map: &mut Vec<(O, O)>) {
+        fn codec_write_to_map(self, ops: &O, map: &mut Vec<(O, O)>) -> ::azalea_codec_error::WriteResult<()> {
             match self {
                 #codec_write_to_map_impl
             }
@@ -285,7 +286,7 @@ fn derive_codec_for_enum(ident: &Ident, variants: Punctuated<Variant, Comma>) ->
     #[automatically_derived]
     impl<O: Ops> Codec<O> for #ident {
         type Incomplete = #incomplete<O>;
-        fn codec_read(ops: &O) -> Result<Self> {
+        fn codec_read(ops: &O) -> azalea_codec::error::Result<Self> {
             let map = ops.get_map()?;
             let mut incomplete = Self::Incomplete::new_unnamed();
             map.for_each(|k, v| {
@@ -293,9 +294,9 @@ fn derive_codec_for_enum(ident: &Ident, variants: Punctuated<Variant, Comma>) ->
             });
             incomplete.build()
         }
-        fn codec_write(self, ops: &O) -> O {
+        fn codec_write(self, ops: &O) -> azalea_codec::error::WriteResult<O> {
             let mut map = Vec::new();
-            Self::codec_write_to_map(self, ops, &mut map);
+            Self::codec_write_to_map(self, ops, &mut map)?;
             ops.create_map(&map)
         }
     }

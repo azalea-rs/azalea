@@ -7,7 +7,13 @@ repository.workspace = true
 
 [dependencies]
 azalea-codec-macros.workspace = true
-simdnbt.workspace = true
+serde_json = { workspace = true, optional = true }
+simdnbt = { workspace = true, optional = true }
 
 [lints]
 workspace = true
+
+[features]
+default = ["serde_json", "simdnbt"]
+serde_json = ["dep:serde_json"]
+simdnbt = ["dep:simdnbt"]
