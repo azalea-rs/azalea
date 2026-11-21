@@ -1,23 +1,26 @@
+mod attrs;
+
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{
-    DeriveInput, FieldsNamed, FieldsUnnamed, Ident, Variant, Visibility,
-    parse::{Parse, ParseStream},
-    parse_macro_input,
-    punctuated::Punctuated,
-    token::Comma,
+    Attribute, DeriveInput, FieldsNamed, FieldsUnnamed, Ident, Variant, Visibility,
+    parse_macro_input, punctuated::Punctuated, token::Comma,
 };
 
 #[proc_macro_derive(Codec, attributes(codec))]
 pub fn derive_codec(input: TokenStream) -> TokenStream {
     let DeriveInput {
-        ident, data, vis, ..
+        ident,
+        data,
+        vis,
+        attrs,
+        ..
     } = parse_macro_input!(input);
 
     match data {
         syn::Data::Struct(syn::DataStruct { fields, .. }) => match fields {
             syn::Fields::Named(fields) => {
-                derive_codec_for_named_fields_struct(&vis, &ident, fields)
+                derive_codec_for_named_fields_struct(&vis, &attrs, &ident, fields)
             }
             syn::Fields::Unnamed(fields) => derive_codec_for_unnamed_fields_struct(&ident, fields),
             syn::Fields::Unit => panic!("#[derive(Codec)] cannot be used on unit structs."),
@@ -33,9 +36,12 @@ pub fn derive_codec(input: TokenStream) -> TokenStream {
 
 fn derive_codec_for_named_fields_struct(
     vis: &Visibility,
+    attrs: &[Attribute],
     ident: &Ident,
     fields: FieldsNamed,
 ) -> TokenStream {
+    let attrs = attrs::parse_struct_attrs(attrs);
+
     let incomplete = Ident::new(&format!("__Incomplete{ident}"), ident.span());
 
     let mut incomplete_struct = quote! {};
@@ -61,7 +67,7 @@ fn derive_codec_for_named_fields_struct(
         let field_name = field.ident.as_ref().expect("fields must be named");
         let field_type = &field.ty;
 
-        let attrs = parse_field_attrs(&field.attrs);
+        let attrs = attrs::parse_field_attrs(&field.attrs);
 
         let field_name_string = attrs.rename.unwrap_or_else(|| field_name.to_string());
 
@@ -139,6 +145,12 @@ fn derive_codec_for_named_fields_struct(
         }
     }
 
+    if !attrs.allow_unknown_keys {
+        codec_read_map_item_remaining_impl.extend(
+            quote! { incomplete.__result = Err(::azalea_codec::error::ReadError::unknown_key(name)); },
+        );
+    }
+
     quote! {
     #[doc(hidden)]
     #[allow(nonstandard_style)]
@@ -179,8 +191,6 @@ fn derive_codec_for_named_fields_struct(
                 #codec_read_map_item_impl
                 name => {
                     #codec_read_map_item_remaining_impl
-
-                    incomplete.__result = Err(::azalea_codec::error::ReadError::unknown_key(name));
                 }
             }
         }
@@ -273,10 +283,17 @@ fn derive_codec_for_enum(
             let variant_struct_name_ident = Ident::new(&field_name_string, ident.span());
 
             let variant_struct_contents = &variant.fields;
+
+            let mut variant_codec_attrs = quote! {};
+            for a in attrs::filter_codec_attrs(&variant.attrs) {
+                variant_codec_attrs.extend(quote! {#a});
+            }
+
             separate_variant_struct_decls.extend(quote! {
                 #[doc(hidden)]
                 #[allow(nonstandard_style)]
                 #[derive(::azalea_codec::Codec)]
+                #variant_codec_attrs
                 #vis struct #variant_struct_name_ident #variant_struct_contents
             });
 
@@ -353,67 +370,4 @@ fn derive_codec_for_enum(
     }
     }
     .into()
-}
-
-#[derive(Default, Debug)]
-struct FieldAttrs {
-    pub rename: Option<String>,
-    pub flatten: bool,
-    pub optional: bool,
-    pub lenient: bool,
-}
-impl Parse for FieldAttrs {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        let mut attrs = Self::default();
-
-        while !input.is_empty() {
-            let attr = input.parse::<proc_macro2::Ident>()?;
-            match attr.to_string().as_str() {
-                "rename" => {
-                    input.parse::<syn::Token![=]>()?;
-                    let rename = input.parse::<syn::LitStr>()?;
-
-                    attrs.rename = Some(rename.value());
-                }
-                "flatten" => {
-                    attrs.flatten = true;
-                }
-                "optional" => {
-                    attrs.optional = true;
-                }
-                "lenient" => {
-                    attrs.lenient = true;
-                }
-                attr => panic!("unknown attribute '{attr}'"),
-            }
-
-            let _ = input.parse::<syn::Token![,]>();
-        }
-
-        Ok(attrs)
-    }
-}
-
-fn parse_field_attrs(attrs: &[syn::Attribute]) -> FieldAttrs {
-    let mut a = FieldAttrs::default();
-
-    for attr in attrs.iter().filter(|attr| attr.path().is_ident("codec")) {
-        let n = attr.parse_args::<FieldAttrs>().expect("invalid codec attr");
-
-        if let Some(rename) = n.rename {
-            a.rename = Some(rename);
-        }
-        a.flatten |= n.flatten;
-        a.optional |= n.optional;
-        a.lenient |= n.lenient;
-    }
-
-    if a.optional && a.lenient {
-        panic!("conflicting 'optional' and 'lenient'; optional already implies lenient")
-    }
-    if a.flatten && a.lenient {
-        panic!("conflicting 'flatten' and 'lenient'")
-    }
-
-    a
 }

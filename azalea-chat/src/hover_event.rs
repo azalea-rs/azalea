@@ -4,28 +4,23 @@ use crate::FormattedText;
 
 #[derive(Clone, Debug, PartialEq, Codec)]
 pub enum HoverEvent {
+    #[codec(allow_unknown_keys)]
     ShowText {
         action: StringLiteral<"show_text">,
         value: Box<FormattedText>,
-
-        #[codec(flatten)]
-        remaining: azalea_codec::types::Drain,
     },
     // TODO
+    #[codec(allow_unknown_keys)]
     ShowItem {
         action: StringLiteral<"show_item">,
         // item: ItemStack,
-        #[codec(flatten)]
-        remaining: azalea_codec::types::Drain,
     },
+    #[codec(allow_unknown_keys)]
     ShowEntity {
         action: StringLiteral<"show_entity">,
         id: i32,
         // uuid: Uuid,
         name: Box<FormattedText>,
-
-        #[codec(flatten)]
-        remaining: azalea_codec::types::Drain,
     },
     Unknown(azalea_codec::types::Drain),
 }

@@ -5,15 +5,13 @@ use azalea_codec::Codec;
 use crate::{FormattedText, style::Style};
 
 #[derive(Clone, PartialEq, Codec)]
+#[codec(allow_unknown_keys)]
 pub struct BaseComponent {
     /// Components in the "extra" field.
     #[codec(optional, rename = "extra")]
     pub siblings: Vec<FormattedText>,
     #[codec(optional, flatten)]
     pub style: Box<Style>,
-
-    #[codec(flatten)]
-    pub _unused: azalea_codec::types::Drain,
 }
 
 impl BaseComponent {
@@ -21,7 +19,6 @@ impl BaseComponent {
         Self {
             siblings: Vec::new(),
             style: Default::default(),
-            _unused: Default::default(),
         }
     }
     pub fn with_style(self, style: Style) -> Self {
