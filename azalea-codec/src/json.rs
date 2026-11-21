@@ -1,7 +1,7 @@
 use serde_json::{Value, json};
 
 use crate::{
-    MapLike, Number, Ops,
+    Codec, MapLike, Number, Ops,
     error::{ReadError, ReadResult, WriteError, WriteResult},
 };
 
@@ -9,10 +9,6 @@ use crate::{
 impl Ops for Value {
     type List = Vec<Value>;
     type Map = serde_json::Map<String, Value>;
-
-    fn empty() -> Self {
-        json!({})
-    }
 
     fn get_number(&self) -> ReadResult<Number> {
         Ok(match self {
@@ -34,7 +30,7 @@ impl Ops for Value {
             _ => return Err(ReadError::custom("not a number")),
         })
     }
-    fn create_number(&self, n: Number) -> WriteResult<Self> {
+    fn create_number(n: Number) -> WriteResult<Self> {
         let n = if n.is_numeric_integer() {
             serde_json::Number::from_u128(n.into()).unwrap()
         } else {
@@ -49,7 +45,7 @@ impl Ops for Value {
         };
         Ok(*v)
     }
-    fn create_boolean(&self, v: bool) -> WriteResult<Self> {
+    fn create_boolean(v: bool) -> WriteResult<Self> {
         Ok(Value::Bool(v))
     }
 
@@ -59,7 +55,7 @@ impl Ops for Value {
         };
         Ok(values.clone())
     }
-    fn create_list(&self, list: &[Self]) -> WriteResult<Self> {
+    fn create_list(list: &[Self]) -> WriteResult<Self> {
         Ok(Value::Array(list.to_owned()))
     }
 
@@ -70,7 +66,7 @@ impl Ops for Value {
         Ok(values.clone())
     }
 
-    fn create_map(&self, map: &[(Self, Self)]) -> WriteResult<Self> {
+    fn create_map(map: &[(Self, Self)]) -> WriteResult<Self> {
         let mut values = serde_json::Map::new();
         for (k, v) in map {
             let Ok(k) = k.get_string() else {
@@ -86,7 +82,7 @@ impl Ops for Value {
             .map(|s| s.to_owned())
             .ok_or_else(|| ReadError::custom("not a string"))
     }
-    fn create_string(&self, v: &str) -> WriteResult<Self> {
+    fn create_string(v: &str) -> WriteResult<Self> {
         Ok(Value::String(v.to_owned()))
     }
 }
@@ -97,3 +93,24 @@ impl MapLike<Value> for serde_json::Map<String, Value> {
             .for_each(|(k, v)| cb(&Value::String(k.to_owned()), v));
     }
 }
+
+pub struct Serde<T: Codec<Value>>(pub T);
+
+impl<T: Codec<Value>> serde::Serialize for Serde<T> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let value: serde_json::Value = self.0.codec_write().unwrap();
+        value.serialize(serializer)
+    }
+}
+
+// impl<'de, T: Codec<Value>> serde::Deserialize<'de> for Serde<T> {
+//     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+//     where
+//         D: serde::Deserializer<'de>,
+//     {
+//         // let value: serde_json::Value = component.codec_write().unwrap();
+//     }
+// }

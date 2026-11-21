@@ -1,3 +1,5 @@
+use crate::{Codec, Ops};
+
 // a port of Java's Number abstract class
 #[derive(Copy, Clone, Debug)]
 pub enum Number {
@@ -13,6 +15,15 @@ impl Number {
     /// Whether the number is an integer, i.e. not a float or double.
     pub fn is_numeric_integer(&self) -> bool {
         !matches!(self, Self::Float(_) | Self::Double(_))
+    }
+}
+
+impl<O: Ops> Codec<O> for Number {
+    fn codec_read(ops: &O) -> crate::error::ReadResult<Self> {
+        ops.get_number()
+    }
+    fn codec_write(self) -> crate::error::WriteResult<O> {
+        O::create_number(self)
     }
 }
 

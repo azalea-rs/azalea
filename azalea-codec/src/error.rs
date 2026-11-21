@@ -1,14 +1,23 @@
-use std::backtrace::Backtrace;
+use std::{
+    backtrace::Backtrace,
+    fmt::{self, Debug},
+};
+
+use thiserror::Error;
 
 pub type ReadResult<T> = std::result::Result<T, ReadError>;
 pub type WriteResult<T> = std::result::Result<T, WriteError>;
 
+#[derive(Debug)]
 pub enum ReadErrorKind {
     Unimplemented,
     UnknownKey(Box<str>),
     MissingKey(&'static str),
     Custom(Box<str>),
 }
+
+#[derive(Debug, Error)]
+#[error("{kind:?}")]
 pub struct ReadError {
     pub kind: ReadErrorKind,
     pub backtrace: Backtrace,
@@ -39,11 +48,13 @@ impl ReadError {
         }
     }
 }
-
+#[derive(Debug)]
 pub enum WriteErrorKind {
     Unimplemented,
     Custom(Box<str>),
 }
+#[derive(Debug, Error)]
+#[error("{kind:?}")]
 pub struct WriteError {
     pub kind: WriteErrorKind,
     pub backtrace: Backtrace,

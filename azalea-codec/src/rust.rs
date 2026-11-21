@@ -1,14 +1,14 @@
 use crate::{
     Codec, Defaultable, Incomplete, MapCodec, Ops,
-    error::{ReadError, ReadResult, WriteResult},
+    error::{ReadResult, WriteResult},
 };
 
 impl<O: Ops> Codec<O> for String {
     fn codec_read(ops: &O) -> ReadResult<Self> {
         ops.get_string()
     }
-    fn codec_write(self, ops: &O) -> WriteResult<O> {
-        ops.create_string(&self)
+    fn codec_write(self) -> WriteResult<O> {
+        O::create_string(&self)
     }
 }
 
@@ -16,8 +16,8 @@ impl<O: Ops> Codec<O> for bool {
     fn codec_read(ops: &O) -> ReadResult<Self> {
         ops.get_boolean()
     }
-    fn codec_write(self, ops: &O) -> WriteResult<O> {
-        ops.create_boolean(self)
+    fn codec_write(self) -> WriteResult<O> {
+        O::create_boolean(self)
     }
 }
 
@@ -28,8 +28,8 @@ macro_rules! impl_numbers {
                 fn codec_read(ops: &O) -> ReadResult<Self> {
                     Ok(ops.get_number()?.into())
                 }
-                fn codec_write(self, ops: &O) -> WriteResult<O> {
-                    ops.create_number(self.into())
+                fn codec_write(self) -> WriteResult<O> {
+                    O::create_number(self.into())
                 }
             }
         )*
@@ -52,11 +52,11 @@ impl<O: Ops, T: Codec<O>> Codec<O> for Vec<T> {
             })
             .flatten()
     }
-    fn codec_write(self, ops: &O) -> WriteResult<O> {
-        ops.create_list(
+    fn codec_write(self) -> WriteResult<O> {
+        O::create_list(
             &self
                 .into_iter()
-                .map(|i| i.codec_write(ops))
+                .map(|i| i.codec_write())
                 .collect::<WriteResult<Box<[O]>>>()?,
         )
     }
@@ -71,11 +71,11 @@ impl<O: Ops, T: Codec<O>> Codec<O> for Option<T> {
     fn codec_read(ops: &O) -> ReadResult<Self> {
         T::codec_read(ops).map(Some)
     }
-    fn codec_write(self, ops: &O) -> WriteResult<O> {
+    fn codec_write(self) -> WriteResult<O> {
         if let Some(v) = self {
-            v.codec_write(ops)
+            v.codec_write()
         } else {
-            Ok(O::empty())
+            O::empty()
         }
     }
 }
@@ -90,16 +90,16 @@ impl<O: Ops, T: Codec<O>> Codec<O> for Box<T> {
     fn codec_read(ops: &O) -> ReadResult<Self> {
         T::codec_read(ops).map(Box::new)
     }
-    fn codec_write(self, ops: &O) -> WriteResult<O> {
-        (*self).codec_write(ops)
+    fn codec_write(self) -> WriteResult<O> {
+        (*self).codec_write()
     }
 }
 impl<O: Ops, T: MapCodec<O>> MapCodec<O> for Box<T> {
     fn codec_read_map_item(incomplete: &mut <Self as Codec<O>>::Incomplete, k: &O, v: &O) {
         T::codec_read_map_item(incomplete, k, v)
     }
-    fn codec_write_to_map(self, ops: &O, map: &mut Vec<(O, O)>) -> WriteResult<()> {
-        (*self).codec_write_to_map(ops, map)
+    fn codec_write_to_map(self, map: &mut Vec<(O, O)>) -> WriteResult<()> {
+        (*self).codec_write_to_map(map)
     }
     fn get_and_reset_result(incomplete: &mut <Self as Codec<O>>::Incomplete) -> ReadResult<()> {
         T::get_and_reset_result(incomplete)

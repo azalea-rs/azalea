@@ -13,10 +13,6 @@ impl Ops for NbtTag {
     type Map = NbtCompound;
     type List = std::vec::IntoIter<NbtTag>;
 
-    fn empty() -> Self {
-        NbtCompound::new().into()
-    }
-
     fn get_number(&self) -> ReadResult<Number> {
         Ok(match *self {
             NbtTag::Byte(v) => Number::Byte(v),
@@ -28,21 +24,14 @@ impl Ops for NbtTag {
             _ => return Err(ReadError::custom("not a number")),
         })
     }
-    fn create_number(&self, n: Number) -> WriteResult<Self> {
-        Ok(match n {
-            Number::Byte(n) => NbtTag::Byte(n),
-            Number::Short(n) => NbtTag::Short(n),
-            Number::Int(n) => NbtTag::Int(n),
-            Number::Long(n) => NbtTag::Long(n),
-            Number::Float(n) => NbtTag::Float(n),
-            Number::Double(n) => NbtTag::Double(n),
-        })
+    fn create_number(n: Number) -> WriteResult<Self> {
+        Ok(n.into())
     }
 
     fn get_boolean(&self) -> ReadResult<bool> {
         Ok(f64::from(self.get_number()?) != 0.0)
     }
-    fn create_boolean(&self, v: bool) -> WriteResult<Self> {
+    fn create_boolean(v: bool) -> WriteResult<Self> {
         Ok(NbtTag::Byte(v as i8))
     }
 
@@ -56,7 +45,7 @@ impl Ops for NbtTag {
         };
         Ok(items.into_iter())
     }
-    fn create_list(&self, list: &[Self]) -> WriteResult<Self> {
+    fn create_list(list: &[Self]) -> WriteResult<Self> {
         // this does the homogenizing for us
         Ok(NbtTag::List(NbtList::from(list.to_owned())))
     }
@@ -65,7 +54,7 @@ impl Ops for NbtTag {
             .cloned()
             .ok_or_else(|| ReadError::custom("not a map"))
     }
-    fn create_map(&self, map: &[(Self, Self)]) -> WriteResult<Self> {
+    fn create_map(map: &[(Self, Self)]) -> WriteResult<Self> {
         let mut items = Vec::with_capacity(map.len());
         for (k, v) in map {
             let Some(k) = k.string() else {
@@ -86,7 +75,7 @@ impl Ops for NbtTag {
             Err(ReadError::custom("not a string"))
         }
     }
-    fn create_string(&self, v: &str) -> WriteResult<Self> {
+    fn create_string(v: &str) -> WriteResult<Self> {
         Ok(NbtTag::String(v.into()))
     }
     fn get_byte_buffer(&self) -> ReadResult<Box<[u8]>> {
@@ -95,7 +84,7 @@ impl Ops for NbtTag {
             .map(|o| o.get_number().map(|n| n.into()))
             .collect()
     }
-    fn create_byte_list(&self, v: &[u8]) -> WriteResult<Self> {
+    fn create_byte_list(v: &[u8]) -> WriteResult<Self> {
         Ok(NbtTag::ByteArray(v.to_owned()))
     }
     fn get_int_list(&self) -> ReadResult<Box<[i32]>> {
@@ -104,7 +93,7 @@ impl Ops for NbtTag {
             .map(|o| o.get_number().map(|n| n.into()))
             .collect()
     }
-    fn create_int_list(&self, v: &[i32]) -> WriteResult<Self> {
+    fn create_int_list(v: &[i32]) -> WriteResult<Self> {
         Ok(NbtTag::IntArray(v.to_owned()))
     }
     fn get_long_list(&self) -> ReadResult<Box<[i64]>> {
@@ -114,8 +103,21 @@ impl Ops for NbtTag {
             .collect()
     }
 
-    fn create_long_list(&self, v: &[i64]) -> WriteResult<Self> {
+    fn create_long_list(v: &[i64]) -> WriteResult<Self> {
         Ok(NbtTag::LongArray(v.to_owned()))
+    }
+}
+
+impl From<Number> for NbtTag {
+    fn from(n: Number) -> Self {
+        match n {
+            Number::Byte(n) => NbtTag::Byte(n),
+            Number::Short(n) => NbtTag::Short(n),
+            Number::Int(n) => NbtTag::Int(n),
+            Number::Long(n) => NbtTag::Long(n),
+            Number::Float(n) => NbtTag::Float(n),
+            Number::Double(n) => NbtTag::Double(n),
+        }
     }
 }
 
@@ -139,48 +141,78 @@ impl MapLike<NbtTag> for NbtCompound {
 // equivalent to convertTo in mojang codecs
 impl<O: Ops> Codec<O> for NbtTag {
     fn codec_read(ops: &O) -> ReadResult<Self> {
-        if let Ok(s) = ops.get_string()
-            && let Ok(v) = NbtTag::empty().create_string(&s)
-        {
-            return Ok(v);
+        if let Ok(v) = Mutf8String::codec_read(ops) {
+            return Ok(NbtTag::String(v));
         }
-        if let Ok(n) = ops.get_number()
-            && let Ok(v) = NbtTag::empty().create_number(n)
-        {
-            return Ok(v);
+        if let Ok(v) = Number::codec_read(ops) {
+            return Ok(NbtTag::from(v));
         }
-        if let Ok(b) = ops.get_boolean()
-            && let Ok(v) = NbtTag::empty().create_boolean(b)
-        {
-            return Ok(v);
+        if let Ok(v) = bool::codec_read(ops) {
+            return Ok(NbtTag::Byte(v as i8));
         }
-        if let Ok(map) = ops.get_map() {
-            let original_values = map.into_values();
-            let mut values = Vec::with_capacity(original_values.len());
-            for (k, v) in original_values {
-                let k = Self::codec_read(&k)?;
-                let v = Self::codec_read(&v)?;
-                values.push((k, v));
-            }
-            if let Ok(map) = NbtTag::empty().create_map(&values) {
-                return Ok(map);
-            }
+        if let Ok(v) = NbtCompound::codec_read(ops) {
+            return Ok(NbtTag::Compound(v));
         }
-        if let Ok(list) = ops.get_list() {
-            let values = list
-                .into_iter()
-                .map(|i| Self::codec_read(&i))
-                .collect::<ReadResult<Box<[NbtTag]>>>();
-            if let Ok(values) = values
-                && let Ok(map) = NbtTag::empty().create_list(&values)
-            {
-                return Ok(map);
-            }
+        if let Ok(v) = NbtList::codec_read(ops) {
+            return Ok(NbtTag::List(v));
         }
 
         Err(ReadError::custom("unknown type"))
     }
-    fn codec_write(self, ops: &O) -> WriteResult<O> {
-        Ok(ops.clone())
+    fn codec_write(self) -> WriteResult<O> {
+        match self {
+            NbtTag::Byte(v) => v.codec_write(),
+            NbtTag::Short(v) => v.codec_write(),
+            NbtTag::Int(v) => v.codec_write(),
+            NbtTag::Long(v) => v.codec_write(),
+            NbtTag::Float(v) => v.codec_write(),
+            NbtTag::Double(v) => v.codec_write(),
+            NbtTag::ByteArray(v) => v.codec_write(),
+            NbtTag::String(v) => v.codec_write(),
+            NbtTag::List(v) => v.codec_write(),
+            NbtTag::Compound(v) => v.codec_write(),
+            NbtTag::IntArray(v) => v.codec_write(),
+            NbtTag::LongArray(v) => v.codec_write(),
+        }
+    }
+}
+
+impl<O: Ops> Codec<O> for Mutf8String {
+    fn codec_read(ops: &O) -> ReadResult<Self> {
+        Ok(String::codec_read(ops)?.into())
+    }
+    fn codec_write(self) -> WriteResult<O> {
+        self.to_string().codec_write()
+    }
+}
+impl<O: Ops> Codec<O> for NbtList {
+    fn codec_read(ops: &O) -> ReadResult<Self> {
+        Ok(Vec::<NbtTag>::codec_read(ops)?.into())
+    }
+    fn codec_write(self) -> WriteResult<O> {
+        self.as_nbt_tags().codec_write()
+    }
+}
+impl<O: Ops> Codec<O> for NbtCompound {
+    fn codec_read(ops: &O) -> ReadResult<Self> {
+        let map = ops.get_map()?;
+
+        let mut values = Vec::new();
+        map.for_each(|k, v| {
+            let k = Mutf8String::codec_read(k);
+            let v = NbtTag::codec_read(v);
+            let r = k.and_then(|k| v.map(|v| (k, v)));
+            values.push(r);
+        });
+        let values = values.into_iter().collect::<ReadResult<Vec<_>>>()?;
+
+        Ok(NbtCompound::from_values(values))
+    }
+    fn codec_write(self) -> WriteResult<O> {
+        let mut map = Vec::new();
+        for (k, v) in self {
+            map.push((k.codec_write()?, v.codec_write()?))
+        }
+        O::create_map(&map)
     }
 }

@@ -34,15 +34,15 @@ impl<O: azalea_codec::Ops> Codec<O> for TextComponent {
             "not a text component",
         ))
     }
-    fn codec_write(self, ops: &O) -> azalea_codec::error::WriteResult<O> {
+    fn codec_write(self) -> azalea_codec::error::WriteResult<O> {
         if self.base.is_empty() {
-            return self.text.codec_write(ops);
+            return self.text.codec_write();
         }
         ProperTextComponent {
             base: self.base,
             text: self.text,
         }
-        .codec_write(ops)
+        .codec_write()
     }
 }
 #[derive(Codec)]
@@ -260,10 +260,10 @@ mod tests {
     fn test_serialize_to_json() {
         let component = TextComponent::new("Hello §aworld".to_owned()).get();
 
-        let value = component.codec_write(ops);
+        let value: serde_json::Value = component.codec_write().unwrap();
 
         assert_eq!(
-            serde_json::to_string(&component).unwrap(),
+            serde_json::to_string(&value).unwrap(),
             "{\"text\":\"\",\"extra\":[\"Hello \",{\"text\":\"world\",\"color\":\"#55FF55\"}]}"
         );
     }
