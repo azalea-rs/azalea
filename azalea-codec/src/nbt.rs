@@ -37,7 +37,7 @@ impl Ops for NbtTag {
 
     fn get_list(&self) -> ReadResult<<NbtTag as Ops>::List> {
         let items: Vec<NbtTag> = match self {
-            NbtTag::ByteArray(items) => items.into_iter().map(|&i| NbtTag::Byte(i as i8)).collect(),
+            NbtTag::ByteArray(items) => items.iter().map(|&i| NbtTag::Byte(i as i8)).collect(),
             NbtTag::List(items) => {
                 if let Some(compounds) = items.compounds() {
                     // dehomogenize lists of compounds
@@ -56,8 +56,8 @@ impl Ops for NbtTag {
                     items.as_nbt_tags()
                 }
             }
-            NbtTag::IntArray(items) => items.into_iter().map(|&i| NbtTag::Byte(i as i8)).collect(),
-            NbtTag::LongArray(items) => items.into_iter().map(|&i| NbtTag::Byte(i as i8)).collect(),
+            NbtTag::IntArray(items) => items.iter().map(|&i| NbtTag::Byte(i as i8)).collect(),
+            NbtTag::LongArray(items) => items.iter().map(|&i| NbtTag::Byte(i as i8)).collect(),
             _ => return Err(ReadError::custom("not a list")),
         };
         Ok(items.into_iter())
@@ -97,7 +97,6 @@ impl Ops for NbtTag {
     }
     fn get_byte_buffer(&self) -> ReadResult<Box<[u8]>> {
         self.get_list()?
-            .into_iter()
             .map(|o| o.get_number().and_then(|n| n.try_into()))
             .collect()
     }
@@ -106,7 +105,6 @@ impl Ops for NbtTag {
     }
     fn get_int_list(&self) -> ReadResult<Box<[i32]>> {
         self.get_list()?
-            .into_iter()
             .map(|o| o.get_number().and_then(|n| n.try_into()))
             .collect()
     }
@@ -115,7 +113,6 @@ impl Ops for NbtTag {
     }
     fn get_long_list(&self) -> ReadResult<Box<[i64]>> {
         self.get_list()?
-            .into_iter()
             .map(|o| o.get_number().and_then(|n| n.try_into()))
             .collect()
     }

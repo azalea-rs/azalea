@@ -8,7 +8,7 @@ impl<O: Ops> Codec<O> for String {
         ops.get_string()
     }
     fn codec_write(&self) -> WriteResult<O> {
-        O::create_string(&self)
+        O::create_string(self)
     }
 }
 
@@ -22,14 +22,14 @@ impl<O: Ops> Codec<O> for bool {
 }
 impl<O: Ops> Defaultable<O> for bool {
     fn is_default(&self) -> bool {
-        *self == false
+        !*self
     }
 }
 
 impl<O: Ops> Codec<O> for () {
     fn codec_read(ops: &O) -> ReadResult<Self> {
         if let Ok(map) = ops.get_map()
-            && map.into_values().is_empty()
+            && map.to_values().is_empty()
         {
             return Ok(());
         }
@@ -45,7 +45,7 @@ macro_rules! impl_numbers {
         $(
             impl<O: Ops> Codec<O> for $n {
                 fn codec_read(ops: &O) -> ReadResult<Self> {
-                    Ok(ops.get_number()?.try_into()?)
+                    ops.get_number()?.try_into().map_err(Into::into)
                 }
                 fn codec_write(&self) -> WriteResult<O> {
                     O::create_number((*self).try_into()?)
@@ -64,18 +64,16 @@ impl_numbers!(
 
 impl<O: Ops, T: Codec<O>> Codec<O> for Vec<T> {
     fn codec_read(ops: &O) -> ReadResult<Self> {
-        ops.get_list()
-            .map(|l| {
-                l.into_iter()
-                    .map(|i| T::codec_read(&i))
-                    .collect::<ReadResult<Vec<T>>>()
-            })
-            .flatten()
+        ops.get_list().and_then(|l| {
+            l.into_iter()
+                .map(|i| T::codec_read(&i))
+                .collect::<ReadResult<Vec<T>>>()
+        })
     }
     fn codec_write(&self) -> WriteResult<O> {
         O::create_list(
             &self
-                .into_iter()
+                .iter()
                 .map(|i| i.codec_write())
                 .collect::<WriteResult<Box<[O]>>>()?,
         )

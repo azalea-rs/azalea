@@ -155,8 +155,8 @@ pub fn tick_execute_path(
         }
 
         let simulating_path_state: Cow<'_, SimulatingPathState> =
-            if let Some(simulating_path_state) = simulating_path_state {
-                Cow::Borrowed(&simulating_path_state)
+            if let Some(simulating_path_state) = &simulating_path_state {
+                Cow::Borrowed(simulating_path_state)
             } else {
                 let start = Instant::now();
 

@@ -154,9 +154,7 @@ fn derive_codec_for_named_fields_struct(
             }
         }
         fn build(self) -> ::azalea_codec::error::ReadResult<Self::Complete> {
-            if let Err(e) = self.__result {
-                return Err(e);
-            }
+            self.__result?;
 
             Ok(#ident {
                 #incomplete_struct_build

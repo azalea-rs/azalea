@@ -131,7 +131,7 @@ fn fallback_create_list<O: Ops, N: Into<Number> + Copy>(v: &[N]) -> WriteResult<
 pub trait MapLike<T: Clone>: Sized {
     fn for_each(&self, cb: impl FnMut(&T, &T));
 
-    fn into_values(&self) -> Box<[(T, T)]> {
+    fn to_values(&self) -> Box<[(T, T)]> {
         let mut values: Vec<(T, T)> = Vec::new();
         self.for_each(|k, v| {
             values.push((k.clone(), v.clone()));

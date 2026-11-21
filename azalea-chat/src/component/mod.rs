@@ -215,7 +215,7 @@ impl FormattedText {
         let mut output = String::new();
 
         let mut running_style = Style::default();
-        self.clone().to_custom_format_recursive(
+        self.clone().into_custom_format_recursive(
             &mut output,
             &mut style_formatter,
             &mut text_formatter,
@@ -227,7 +227,7 @@ impl FormattedText {
         output
     }
 
-    fn to_custom_format_recursive<F, S>(
+    fn into_custom_format_recursive<F, S>(
         self,
         output: &mut String,
         style_formatter: &mut F,
@@ -256,7 +256,7 @@ impl FormattedText {
 
         if !text.is_empty() {
             let (formatted_style_prefix, formatted_style_suffix) =
-                style_formatter(&last_style, &expected_style);
+                style_formatter(last_style, &expected_style);
             let formatted_text = text_formatter(text);
 
             output.push_str(&formatted_style_prefix);
@@ -267,7 +267,7 @@ impl FormattedText {
         }
 
         for sibling in c.base.siblings {
-            sibling.to_custom_format_recursive(
+            sibling.into_custom_format_recursive(
                 output,
                 style_formatter,
                 text_formatter,

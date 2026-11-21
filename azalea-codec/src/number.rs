@@ -37,7 +37,7 @@ impl TryFrom<Number> for i64 {
             Number::Byte(v) => v as i64,
             Number::Short(v) => v as i64,
             Number::Int(v) => v as i64,
-            Number::Long(v) => v as i64,
+            Number::Long(v) => v,
             Number::Float(_) | Number::Double(_) => return Err(ReadError::number_too_big(n)),
         })
     }
@@ -51,7 +51,7 @@ impl From<Number> for f64 {
             Number::Int(v) => v as f64,
             Number::Long(v) => v as f64,
             Number::Float(v) => v as f64,
-            Number::Double(v) => v as f64,
+            Number::Double(v) => v,
         }
     }
 }
