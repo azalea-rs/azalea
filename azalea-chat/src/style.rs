@@ -7,10 +7,10 @@ use std::{
 #[cfg(feature = "azalea-buf")]
 use azalea_buf::AzBuf;
 use azalea_codec::Codec;
-use serde::{Serialize, Serializer, ser::SerializeMap};
+use serde::{Serialize, Serializer};
 use serde_json::Value;
 #[cfg(feature = "simdnbt")]
-use simdnbt::owned::{NbtCompound, NbtTag};
+use simdnbt::owned::NbtTag;
 
 use crate::{click_event::ClickEvent, hover_event::HoverEvent};
 
@@ -316,11 +316,11 @@ impl TryFrom<ChatFormatting> for TextColor {
 
 macro_rules! define_style_struct {
     ($($(#[$doc:meta])* $field:ident : $type:ty),* $(,)?) => {
-        #[derive(Clone, Debug, Default, PartialEq, serde::Serialize, Codec)]
+        #[derive(Clone, Debug, Default, PartialEq, Codec)]
         #[non_exhaustive]
         pub struct Style {
             $(
-                #[serde(skip_serializing_if = "Option::is_none")]
+                #[codec(optional)]
                 $(#[$doc])*
                 pub $field: Option<$type>,
             )*
@@ -334,18 +334,6 @@ macro_rules! define_style_struct {
                 }
             )*
 
-            pub fn serialize_map<S>(&self, state: &mut S::SerializeMap) -> Result<(), S::Error>
-            where
-                S: serde::Serializer,
-            {
-                $(
-                    if let Some(value) = &self.$field {
-                        state.serialize_entry(stringify!($field), value)?;
-                    }
-                )*
-                Ok(())
-            }
-
             /// Apply another style to this one
             pub fn apply(&mut self, style: &Style) {
                 $(
@@ -353,21 +341,6 @@ macro_rules! define_style_struct {
                         self.$field = Some(value.clone());
                     }
                 )*
-            }
-        }
-
-        #[cfg(feature = "simdnbt")]
-        impl simdnbt::Serialize for Style {
-            fn to_compound(self) -> NbtCompound {
-                let mut compound = NbtCompound::new();
-
-                $(
-                    if let Some(value) = self.$field {
-                        compound.insert(stringify!($field), value);
-                    }
-                )*
-
-                compound
             }
         }
     };
@@ -581,43 +554,6 @@ impl Style {
         }
 
         style
-    }
-}
-
-#[cfg(feature = "simdnbt")]
-impl simdnbt::Deserialize for Style {
-    fn from_compound(
-        compound: simdnbt::borrow::NbtCompound,
-    ) -> Result<Self, simdnbt::DeserializeError> {
-        use crate::get_in_compound;
-
-        let color: Option<TextColor> = compound
-            .string("color")
-            .and_then(|v| TextColor::parse(&v.to_str()));
-        let shadow_color = get_in_compound(&compound, "shadow_color").ok();
-        let bold = get_in_compound(&compound, "bold").ok();
-        let italic = get_in_compound(&compound, "italic").ok();
-        let underlined = get_in_compound(&compound, "underlined").ok();
-        let strikethrough = get_in_compound(&compound, "strikethrough").ok();
-        let obfuscated = get_in_compound(&compound, "obfuscated").ok();
-        let click_event = get_in_compound(&compound, "click_event").ok();
-        // TODO
-        // let hover_event = get_in_compound(&compound, "hover_event")?;
-        let insertion = get_in_compound(&compound, "insertion").ok();
-        let font = get_in_compound(&compound, "font").ok();
-        Ok(Style {
-            color,
-            shadow_color,
-            bold,
-            italic,
-            underlined,
-            strikethrough,
-            obfuscated,
-            click_event,
-            hover_event: None,
-            insertion,
-            font,
-        })
     }
 }
 

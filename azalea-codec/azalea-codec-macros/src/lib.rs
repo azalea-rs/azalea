@@ -4,13 +4,11 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::{
     DeriveInput, FieldsNamed, Ident, Variant,
-    parse::{Parse, ParseStream, discouraged::AnyDelimiter},
+    parse::{Parse, ParseStream},
     parse_macro_input,
     punctuated::Punctuated,
     token::Comma,
 };
-
-use crate::utils::to_snake_case;
 
 #[proc_macro_derive(Codec, attributes(codec))]
 pub fn derive_codec(input: TokenStream) -> TokenStream {
@@ -61,7 +59,7 @@ fn derive_codec_for_struct(ident: &Ident, fields: FieldsNamed) -> TokenStream {
             #field_name: <#field_type as ::azalea_codec::Codec<O>>::Incomplete,
         });
 
-        if attrs.default || attrs.lenient {
+        if attrs.optional || attrs.lenient {
             incomplete_struct_new.extend(quote! {
                 #field_name: Ok(Default::default()),
             });
@@ -107,7 +105,7 @@ fn derive_codec_for_struct(ident: &Ident, fields: FieldsNamed) -> TokenStream {
             codec_write_to_map_impl.extend(quote! {
                 self.#field_name.codec_write_to_map(__codec_ops, __codec_map)?;
             });
-        } else if attrs.lenient || attrs.default {
+        } else if attrs.lenient || attrs.optional {
             codec_write_to_map_impl.extend(quote! {
                 if ::azalea_codec::Defaultable::<O>::is_default(&self.#field_name) {
                     __codec_map.push((
@@ -207,14 +205,8 @@ fn derive_codec_for_struct(ident: &Ident, fields: FieldsNamed) -> TokenStream {
 }
 
 fn derive_codec_for_enum(ident: &Ident, variants: Punctuated<Variant, Comma>) -> TokenStream {
-    let incomplete = Ident::new(&format!("__Incomplete{ident}"), ident.span());
-
-    let mut incomplete_struct = quote! {};
-    let mut incomplete_struct_new = quote! {};
-    let mut incomplete_struct_build = quote! {};
-
-    let mut codec_read_map_item_impl = quote! {};
-    let mut codec_write_to_map_impl = quote! {};
+    let mut codec_read = quote! {};
+    let mut codec_write = quote! {};
 
     let mut separate_variant_struct_decls = quote! {};
 
@@ -222,16 +214,11 @@ fn derive_codec_for_enum(ident: &Ident, variants: Punctuated<Variant, Comma>) ->
         assert_ne!(variant.fields.len(), 0, "enum variants must not be empty");
 
         let variant_name = &variant.ident;
-        let field_name = Ident::new(
-            &to_snake_case(&variant_name.to_string()),
-            variant_name.span(),
-        );
 
         let first_variant_field = variant.fields.iter().next().unwrap();
 
         let field_type: syn::Type;
         let field_name_string: String;
-        let build_variant_code: proc_macro2::TokenStream;
 
         if first_variant_field.ident.is_some() {
             // named enum
@@ -241,7 +228,6 @@ fn derive_codec_for_enum(ident: &Ident, variants: Punctuated<Variant, Comma>) ->
             // struct that's marked #[derive(Codec)]
             field_name_string = format!("Codec__{ident}__{variant_name}");
             let variant_struct_name_ident = Ident::new(&field_name_string, ident.span());
-            field_type = syn::Type::Verbatim(quote! { #variant_struct_name_ident });
 
             let variant_struct_contents = &variant.fields;
             separate_variant_struct_decls.extend(quote! {
@@ -251,27 +237,27 @@ fn derive_codec_for_enum(ident: &Ident, variants: Punctuated<Variant, Comma>) ->
                 struct #variant_struct_name_ident #variant_struct_contents
             });
 
-            let mut build_fields = quote! {};
             let mut comma_separated_field_names = quote! {};
             for field in variant_struct_contents.iter() {
                 let field_name = field
                     .ident
                     .as_ref()
                     .expect("cannot mix named and unnamed fields in Codec enums");
-                build_fields.extend(quote! {
-                    #field_name: b.#field_name,
-                });
-
                 comma_separated_field_names.extend(quote! { #field_name, });
             }
 
-            build_variant_code = quote! { { #build_fields } };
-
-            codec_write_to_map_impl.extend(quote! {
-                Self::#variant_name { #comma_separated_field_names } => {
-                    #variant_struct_name_ident { #comma_separated_field_names }.codec_write_to_map(__codec_ops, __codec_map)
+            codec_read.extend(quote! {
+                if let Ok(#variant_struct_name_ident { #comma_separated_field_names }) =
+                    <#variant_struct_name_ident>::codec_read(__codec_ops)
+                {
+                    return Ok(Self::#variant_name { #comma_separated_field_names });
                 }
-            })
+            });
+            codec_write.extend(quote! {
+                Self::#variant_name { #comma_separated_field_names } => {
+                    #variant_struct_name_ident { #comma_separated_field_names }.codec_write(__codec_ops)
+                },
+            });
         } else {
             // unnamed enum
             assert_eq!(
@@ -280,97 +266,35 @@ fn derive_codec_for_enum(ident: &Ident, variants: Punctuated<Variant, Comma>) ->
                 "unnamed enum variants must have exactly one field"
             );
             field_type = first_variant_field.ty.clone();
-            field_name_string = field_name.to_string();
-            build_variant_code = quote! { (b) };
 
-            codec_write_to_map_impl.extend(quote! {
-                Self::#variant_name(c) => c.codec_write_to_map(__codec_ops, __codec_map),
-            })
+            codec_read.extend(quote! {
+                if let Ok(r) = <#field_type>::codec_read(__codec_ops) {
+                    return Ok(Self::#variant_name(r));
+                }
+            });
+            codec_write.extend(quote! {
+                Self::#variant_name(v) => v.codec_write(__codec_ops),
+            });
         }
-
-        incomplete_struct.extend(quote! {
-            #field_name: <#field_type as ::azalea_codec::Codec<O>>::Incomplete,
-        });
-
-        incomplete_struct_new.extend(quote! {
-            #field_name: ::azalea_codec::Incomplete::new(#field_name_string),
-        });
-
-        incomplete_struct_build.extend(quote! {
-            if let Ok(b) = self.#field_name.build() {
-                return Ok(Self::Complete::#variant_name #build_variant_code);
-            }
-        });
-
-        codec_read_map_item_impl.extend(quote! {
-            #field_type::codec_read_map_item(&mut incomplete.#field_name, k, v);
-        });
     }
 
     quote! {
     #separate_variant_struct_decls
 
-    #[doc(hidden)]
-    #[allow(nonstandard_style)]
-    pub struct #incomplete<O: ::azalea_codec::Ops> {
-        #incomplete_struct
-    }
-    #[automatically_derived]
-    impl<O: ::azalea_codec::Ops> ::azalea_codec::Incomplete for #incomplete<O> {
-        type Complete = #ident;
-        fn new(_: &str) -> Self {
-            Self {
-                #incomplete_struct_new
-            }
-        }
-        fn build(self) -> ::azalea_codec::error::ReadResult<Self::Complete> {
-            #incomplete_struct_build
-
-            Err(::azalea_codec::error::ReadError::custom("no variants matched"))
-        }
-    }
-
-
-    #[automatically_derived]
-    impl<O: ::azalea_codec::Ops> ::azalea_codec::MapCodec<O> for #ident {
-        fn codec_read_map_item(
-            incomplete: &mut <Self as ::azalea_codec::Codec<O>>::Incomplete,
-            k: &O,
-            v: &O,
-        ) {
-            #codec_read_map_item_impl
-        }
-
-        fn codec_write_to_map(self, __codec_ops: &O, __codec_map: &mut Vec<(O, O)>) -> ::azalea_codec::error::WriteResult<()> {
-            match self {
-                #codec_write_to_map_impl
-            }
-        }
-
-        fn get_and_reset_result(incomplete: &mut <Self as Codec<O>>::Incomplete) -> ::azalea_codec::error::ReadResult<()> {
-            unimplemented!();
-        }
-    }
-
     #[automatically_derived]
     impl<O: ::azalea_codec::Ops> ::azalea_codec::Codec<O> for #ident {
-        type Incomplete = #incomplete<O>;
+        type Incomplete = ::azalea_codec::error::ReadResult<()>;
         fn codec_read(__codec_ops: &O) -> ::azalea_codec::error::ReadResult<Self> {
-            use ::azalea_codec::{Incomplete, MapCodec, MapLike};
+            #codec_read
 
-            let __codec_map = __codec_ops.get_map()?;
-            let mut incomplete = Self::Incomplete::new_unnamed();
-            __codec_map.for_each(|k, v| {
-                Self::codec_read_map_item(&mut incomplete, k, v);
-            });
-            incomplete.build()
-        }
+            Err(::azalea_codec::error::ReadError::custom(
+            "no variants matched",
+        ))
+    }
         fn codec_write(self, __codec_ops: &O) -> ::azalea_codec::error::WriteResult<O> {
-            use ::azalea_codec::MapCodec;
-
-            let mut __codec_map = Vec::new();
-            Self::codec_write_to_map(self, __codec_ops, &mut __codec_map)?;
-            __codec_ops.create_map(&__codec_map)
+            match self {
+                #codec_write
+            }
         }
     }
     }
@@ -381,7 +305,7 @@ fn derive_codec_for_enum(ident: &Ident, variants: Punctuated<Variant, Comma>) ->
 struct FieldAttrs {
     pub rename: Option<String>,
     pub flatten: bool,
-    pub default: bool,
+    pub optional: bool,
     pub lenient: bool,
 }
 impl Parse for FieldAttrs {
@@ -400,8 +324,8 @@ impl Parse for FieldAttrs {
                 "flatten" => {
                     attrs.flatten = true;
                 }
-                "default" => {
-                    attrs.default = true;
+                "optional" => {
+                    attrs.optional = true;
                 }
                 "lenient" => {
                     attrs.lenient = true;
@@ -426,12 +350,12 @@ fn parse_field_attrs(attrs: &[syn::Attribute]) -> FieldAttrs {
             a.rename = Some(rename);
         }
         a.flatten |= n.flatten;
-        a.default |= n.default;
+        a.optional |= n.optional;
         a.lenient |= n.lenient;
     }
 
-    if a.default && a.lenient {
-        panic!("conflicting 'default' and 'lenient'; default already implies lenient")
+    if a.optional && a.lenient {
+        panic!("conflicting 'optional' and 'lenient'; optional already implies lenient")
     }
     if a.flatten && a.lenient {
         panic!("conflicting 'flatten' and 'lenient'")

@@ -1,7 +1,6 @@
 use std::fmt::{self, Display};
 
 use azalea_codec::Codec;
-use serde::{Serialize, Serializer, ser::SerializeMap};
 
 use crate::{
     FormattedText,
@@ -10,50 +9,47 @@ use crate::{
 };
 
 /// A component that contains text that's the same in all locales.
-#[derive(Clone, Debug, Default, PartialEq, Codec)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct TextComponent {
-    #[codec(flatten)]
     pub base: BaseComponent,
     pub text: String,
 }
-impl Serialize for TextComponent {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        if self.base == BaseComponent::default() {
-            return serializer.serialize_str(&self.text);
+impl<O: azalea_codec::Ops> Codec<O> for TextComponent {
+    fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
+        if let Ok(text) = String::codec_read(ops) {
+            return Ok(Self {
+                base: Default::default(),
+                text,
+            });
         }
 
-        let mut state = serializer.serialize_map(None)?;
-        state.serialize_entry("text", &self.text)?;
+        if let Ok(r) = ProperTextComponent::codec_read(ops) {
+            return Ok(Self {
+                base: r.base,
+                text: r.text,
+            });
+        }
 
-        self.base.serialize_map::<S>(&mut state)?;
-
-        state.end()
+        Err(azalea_codec::error::ReadError::custom(
+            "not a text component",
+        ))
+    }
+    fn codec_write(self, ops: &O) -> azalea_codec::error::WriteResult<O> {
+        if self.base.is_empty() {
+            return self.text.codec_write(ops);
+        }
+        ProperTextComponent {
+            base: self.base,
+            text: self.text,
+        }
+        .codec_write(ops)
     }
 }
-
-#[cfg(feature = "simdnbt")]
-impl simdnbt::Serialize for TextComponent {
-    fn to_compound(self) -> simdnbt::owned::NbtCompound {
-        let mut compound = simdnbt::owned::NbtCompound::new();
-        compound.insert("text", self.text);
-        compound.extend(self.base.style.to_compound());
-        if !self.base.siblings.is_empty() {
-            compound.insert(
-                "extra",
-                simdnbt::owned::NbtList::from(
-                    self.base
-                        .siblings
-                        .into_iter()
-                        .map(|component| component.to_compound())
-                        .collect::<Vec<_>>(),
-                ),
-            );
-        }
-        compound
-    }
+#[derive(Codec)]
+pub struct ProperTextComponent {
+    #[codec(flatten)]
+    pub base: BaseComponent,
+    pub text: String,
 }
 
 pub const LEGACY_FORMATTING_CODE_SYMBOL: char = '§';
@@ -263,6 +259,9 @@ mod tests {
     #[test]
     fn test_serialize_to_json() {
         let component = TextComponent::new("Hello §aworld".to_owned()).get();
+
+        let value = component.codec_write(ops);
+
         assert_eq!(
             serde_json::to_string(&component).unwrap(),
             "{\"text\":\"\",\"extra\":[\"Hello \",{\"text\":\"world\",\"color\":\"#55FF55\"}]}"

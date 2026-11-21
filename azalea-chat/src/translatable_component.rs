@@ -10,7 +10,7 @@ use simdnbt::{
 
 use crate::{FormattedText, base_component::BaseComponent, text_component::TextComponent};
 
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize, Codec)]
 #[serde(untagged)]
 pub enum PrimitiveOrComponent {
     Boolean(bool),
@@ -21,44 +21,6 @@ pub enum PrimitiveOrComponent {
     Double(f64),
     String(String),
     FormattedText(FormattedText),
-}
-
-// Recursive expansion of Codec macro
-// ===================================
-
-#[automatically_derived]
-impl<O: ::azalea_codec::Ops> ::azalea_codec::Codec<O> for PrimitiveOrComponent {
-    type Incomplete = ::azalea_codec::error::ReadResult;
-    fn codec_read(__codec_ops: &O) -> ::azalea_codec::error::ReadResult<Self> {
-        if let Ok(r) = bool::codec_read(__codec_ops) {
-            return Ok(Self::Boolean(r));
-        }
-        if let Ok(r) = i16::codec_read(__codec_ops) {
-            return Ok(Self::Short(r));
-        }
-        Err(::azalea_codec::error::ReadError::custom(
-            "no variants matched",
-        ))
-
-        // use ::azalea_codec::{Incomplete, MapCodec, MapLike};
-        // let __codec_map = __codec_ops.get_map()?;
-        // let mut incomplete = Self::Incomplete::new_unnamed();
-        // __codec_map.for_each(|k, v| {
-        //     Self::codec_read_map_item(&mut incomplete, k, v);
-        // });
-        // incomplete.build()
-    }
-    fn codec_write(self, __codec_ops: &O) -> ::azalea_codec::error::WriteResult<O> {
-        match self {
-            Self::Boolean(v) => v.codec_write(__codec_ops),
-            Self::Short(v) => v.codec_write(__codec_ops),
-        }
-
-        // use ::azalea_codec::MapCodec;
-        // let mut __codec_map = Vec::new();
-        // Self::codec_write_to_map(self, __codec_ops, &mut __codec_map)?;
-        // __codec_ops.create_map(&__codec_map)
-    }
 }
 
 #[cfg(feature = "simdnbt")]
@@ -78,18 +40,14 @@ impl simdnbt::ToNbtTag for PrimitiveOrComponent {
 }
 
 /// A message whose content depends on the client's language.
-#[derive(Clone, Debug, PartialEq, Serialize, Codec)]
+#[derive(Clone, Debug, PartialEq, Codec)]
 pub struct TranslatableComponent {
-    #[serde(flatten)]
     #[codec(flatten)]
     pub base: BaseComponent,
-    #[serde(rename = "translate")]
     #[codec(rename = "translate")]
     pub key: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[codec(default)]
+    #[codec(optional)]
     pub fallback: Option<String>,
-    #[serde(rename = "with")]
     #[codec(rename = "with")]
     pub args: Vec<PrimitiveOrComponent>,
 }
@@ -101,18 +59,6 @@ fn serialize_args_as_nbt(args: Vec<PrimitiveOrComponent>) -> NbtList {
         .map(|arg| arg.to_nbt_tag())
         .collect::<Vec<NbtTag>>();
     NbtList::from(tags)
-}
-
-#[cfg(feature = "simdnbt")]
-impl simdnbt::Serialize for TranslatableComponent {
-    fn to_compound(self) -> simdnbt::owned::NbtCompound {
-        let mut compound = simdnbt::owned::NbtCompound::new();
-        compound.insert("translate", self.key);
-        compound.extend(self.base.style.to_compound());
-
-        compound.insert("with", serialize_args_as_nbt(self.args));
-        compound
-    }
 }
 
 impl TranslatableComponent {

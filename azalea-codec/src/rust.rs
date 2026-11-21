@@ -1,5 +1,5 @@
 use crate::{
-    Codec, Defaultable, Ops,
+    Codec, Defaultable, Incomplete, MapCodec, Ops,
     error::{ReadError, ReadResult, WriteResult},
 };
 
@@ -86,11 +86,32 @@ impl<T: Codec<O>, O: Ops> Defaultable<O> for Option<T> {
 }
 
 impl<O: Ops, T: Codec<O>> Codec<O> for Box<T> {
+    type Incomplete = Box<T::Incomplete>;
     fn codec_read(ops: &O) -> ReadResult<Self> {
         T::codec_read(ops).map(Box::new)
     }
     fn codec_write(self, ops: &O) -> WriteResult<O> {
         (*self).codec_write(ops)
+    }
+}
+impl<O: Ops, T: MapCodec<O>> MapCodec<O> for Box<T> {
+    fn codec_read_map_item(incomplete: &mut <Self as Codec<O>>::Incomplete, k: &O, v: &O) {
+        T::codec_read_map_item(incomplete, k, v)
+    }
+    fn codec_write_to_map(self, ops: &O, map: &mut Vec<(O, O)>) -> WriteResult<()> {
+        (*self).codec_write_to_map(ops, map)
+    }
+    fn get_and_reset_result(incomplete: &mut <Self as Codec<O>>::Incomplete) -> ReadResult<()> {
+        T::get_and_reset_result(incomplete)
+    }
+}
+impl<T: Incomplete> Incomplete for Box<T> {
+    type Complete = Box<T::Complete>;
+    fn new(name: &'static str) -> Self {
+        Box::new(T::new(name))
+    }
+    fn build(self) -> ReadResult<Self::Complete> {
+        (*self).build().map(Box::new)
     }
 }
 impl<T: Codec<O> + Defaultable<O>, O: Ops> Defaultable<O> for Box<T> {
