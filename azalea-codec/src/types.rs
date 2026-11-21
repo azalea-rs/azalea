@@ -18,7 +18,7 @@ impl<const S: &'static str, O: Ops> Codec<O> for StringLiteral<S> {
             Err(ReadError::custom(format!("'{s}' != '{S}'")))
         }
     }
-    fn codec_write(self) -> WriteResult<O> {
+    fn codec_write(&self) -> WriteResult<O> {
         O::create_string(S)
     }
 }
@@ -31,7 +31,7 @@ impl<O: Ops> Codec<O> for Drain {
     fn codec_read(_ops: &O) -> ReadResult<Self> {
         Ok(Self)
     }
-    fn codec_write(self) -> WriteResult<O> {
+    fn codec_write(&self) -> WriteResult<O> {
         O::empty()
     }
 }
@@ -42,7 +42,7 @@ impl<O: Ops> MapCodec<O> for Drain {
         _v: &O,
     ) {
     }
-    fn codec_write_to_map(self, _map: &mut Vec<(O, O)>) -> WriteResult<()> {
+    fn codec_write_to_map(&self, _map: &mut Vec<(O, O)>) -> WriteResult<()> {
         Ok(())
     }
     fn get_and_reset_result(_incomplete: &mut <Self as Codec<O>>::Incomplete) -> ReadResult<()> {

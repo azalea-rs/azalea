@@ -1,7 +1,7 @@
-use serde_json::{Value, json};
+use serde_json::Value;
 
 use crate::{
-    Codec, MapLike, Number, Ops, Wrapper,
+    MapLike, Number, Ops,
     error::{ReadError, ReadResult, WriteError, WriteResult},
 };
 
@@ -31,8 +31,8 @@ impl Ops for Value {
         })
     }
     fn create_number(n: Number) -> WriteResult<Self> {
-        let n = if n.is_numeric_integer() {
-            serde_json::Number::from_u128(n.into()).unwrap()
+        let n = if let Ok(n) = n.try_into() {
+            serde_json::Number::from_i128(n).unwrap()
         } else {
             serde_json::Number::from_f64(n.into()).unwrap()
         };
@@ -91,20 +91,5 @@ impl MapLike<Value> for serde_json::Map<String, Value> {
     fn for_each(&self, mut cb: impl FnMut(&Value, &Value)) {
         self.iter()
             .for_each(|(k, v)| cb(&Value::String(k.to_owned()), v));
-    }
-}
-
-impl<T: Codec<Value> + Clone> serde::Serialize for Wrapper<T> {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        let value: serde_json::Value = self.0.clone().codec_write().unwrap();
-        value.serialize(serializer)
-    }
-}
-impl<T: Clone + Codec<Value>> Wrapper<T> {
-    pub fn into_json(self) -> Value {
-        self.into_codec()
     }
 }

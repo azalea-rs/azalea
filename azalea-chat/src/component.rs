@@ -8,7 +8,6 @@ use std::{
 #[cfg(all(feature = "azalea-buf", feature = "simdnbt"))]
 use azalea_buf::{AzBuf, BufReadError};
 use azalea_codec::Codec;
-use serde::Deserialize;
 #[cfg(all(feature = "azalea-buf", feature = "simdnbt"))]
 use simdnbt::owned::NbtTag;
 
@@ -16,14 +15,84 @@ use crate::{
     base_component::BaseComponent,
     style::{ChatFormatting, Style},
     text_component::TextComponent,
-    translatable_component::{PrimitiveOrComponent, TranslatableComponent},
+    translatable_component::TranslatableComponent,
 };
 
 /// A chat component, basically anything you can see in chat.
-#[derive(Clone, Debug, PartialEq, Codec)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum FormattedText {
     Text(TextComponent),
     Translatable(TranslatableComponent),
+}
+
+impl<O: azalea_codec::Ops> azalea_codec::Codec<O> for FormattedText {
+    type Incomplete = azalea_codec::error::ReadResult<Self>;
+    fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
+        let mut errors = Vec::new();
+        match String::codec_read(ops) {
+            Ok(r) => {
+                return Ok(Self::Text(TextComponent::new(r)));
+            }
+            Err(e) => {
+                errors.push(("String", e));
+            }
+        }
+        match TextComponent::codec_read(ops) {
+            Ok(r) => {
+                return Ok(Self::Text(r));
+            }
+            Err(e) => {
+                errors.push(("TextComponent", e));
+            }
+        }
+        match TranslatableComponent::codec_read(ops) {
+            Ok(r) => {
+                return Ok(Self::Translatable(r));
+            }
+            Err(e) => {
+                errors.push(("TranslatableComponent", e));
+            }
+        }
+
+        match Vec::<FormattedText>::codec_read(ops) {
+            Ok(r) => {
+                let mut iter = r.into_iter();
+                let Some(mut first) = iter.next() else {
+                    // an empty array is parsed as an empty string component
+                    return Ok(Self::default());
+                };
+                // if first.get_base().siblings.is_empty() {
+                //     // add the rest of the components as siblings on the
+                // first     // component
+                //     first.extend(iter);
+                // } else {
+                let style = first.get_base().style.clone();
+
+                first = TextComponent::empty_with_siblings(vec![first])
+                    .with_additional_siblings(iter)
+                    .with_style(*style)
+                    .into();
+                // }
+                return Ok(first);
+            }
+            Err(e) => {
+                errors.push(("String", e));
+            }
+        }
+
+        Err(azalea_codec::error::ReadError::no_variants_matched(errors))
+    }
+    fn codec_write(&self) -> ::azalea_codec::error::WriteResult<O> {
+        match self {
+            Self::Text(v) => {
+                if v.base.is_empty() {
+                    return v.text.codec_write();
+                }
+                v.codec_write()
+            }
+            Self::Translatable(v) => v.codec_write(),
+        }
+    }
 }
 
 pub static DEFAULT_STYLE: LazyLock<Style> = LazyLock::new(|| Style {
@@ -47,9 +116,12 @@ impl FormattedText {
         }
     }
 
-    /// Add a component as a sibling of this one
-    fn append(&mut self, sibling: FormattedText) {
-        self.get_base_mut().siblings.push(sibling);
+    /// Add a component as a sibling of this one.
+    pub fn append(&mut self, sibling: FormattedText) {
+        self.extend([sibling]);
+    }
+    pub fn extend(&mut self, siblings: impl IntoIterator<Item = FormattedText>) {
+        self.get_base_mut().siblings.extend(siblings);
     }
 
     /// Render all components into a single `String`, using your custom
@@ -109,7 +181,7 @@ impl FormattedText {
         let mut output = String::new();
 
         let mut running_style = Style::default();
-        self.to_custom_format_recursive(
+        self.clone().to_custom_format_recursive(
             &mut output,
             &mut style_formatter,
             &mut text_formatter,
@@ -122,61 +194,47 @@ impl FormattedText {
     }
 
     fn to_custom_format_recursive<F, S>(
-        &self,
+        self,
         output: &mut String,
         style_formatter: &mut F,
         text_formatter: &mut S,
         parent_style: &Style,
-        running_style: &mut Style,
+        last_style: &mut Style,
     ) where
         F: FnMut(&Style, &Style) -> (String, String),
         S: FnMut(&str) -> String,
     {
-        let component_style = &self.get_base().style;
-        let new_style = parent_style.merged_with(component_style);
+        let mut expected_style = parent_style.clone();
 
-        let mut append_text = |text: &str| {
-            if !text.is_empty() {
-                let (formatted_style_prefix, formatted_style_suffix) =
-                    style_formatter(running_style, &new_style);
-                let formatted_text = text_formatter(text);
-
-                output.push_str(&formatted_style_prefix);
-                output.push_str(&formatted_text);
-                output.push_str(&formatted_style_suffix);
-
-                *running_style = new_style.clone();
-            }
+        // convert it into a TextComponent
+        let c = match self {
+            FormattedText::Text(c) => c,
+            FormattedText::Translatable(c) => c.into_text_component().unwrap_or_default(),
         };
 
-        match &self {
-            Self::Text(c) => {
-                append_text(&c.text);
-            }
-            Self::Translatable(c) => match c.read() {
-                Ok(c) => {
-                    FormattedText::Text(c).to_custom_format_recursive(
-                        output,
-                        style_formatter,
-                        text_formatter,
-                        &new_style,
-                        running_style,
-                    );
-                }
-                Err(_) => {
-                    append_text(&c.key);
-                }
-            },
-        };
+        let text = &c.text;
+        expected_style = expected_style.merged_with(&c.base.style);
 
-        for sibling in &self.get_base().siblings {
+        if !text.is_empty() {
+            let (formatted_style_prefix, formatted_style_suffix) =
+                style_formatter(&last_style, &expected_style);
+            let formatted_text = text_formatter(text);
+
+            output.push_str(&formatted_style_prefix);
+            output.push_str(&formatted_text);
+            output.push_str(&formatted_style_suffix);
+
+            *last_style = expected_style.clone();
+        }
+
+        for sibling in c.base.siblings {
             sibling.to_custom_format_recursive(
                 output,
                 style_formatter,
                 text_formatter,
-                &new_style,
-                running_style,
-            );
+                &expected_style,
+                last_style,
+            )
         }
     }
 
@@ -189,7 +247,7 @@ impl FormattedText {
         self.to_custom_format(
             |running, new| (running.compare_ansi(new), "".to_owned()),
             |text| text.to_owned(),
-            |style| if !style.is_empty() { "\u{1b}[m" } else { "" }.to_owned(),
+            |style| if !style.is_empty() { "\x1b[m" } else { "" }.to_owned(),
             default_style,
         )
     }
@@ -268,14 +326,11 @@ impl IntoIterator for FormattedText {
 #[cfg(all(feature = "azalea-buf", feature = "simdnbt"))]
 impl AzBuf for FormattedText {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        use simdnbt::FromNbtTag;
-        use tracing::trace;
-
         let nbt = simdnbt::borrow::read_optional_tag(buf)?;
-        trace!(
-            "Reading NBT for FormattedText: {:?}",
-            nbt.as_ref().map(|n| n.as_tag().to_owned())
-        );
+        // trace!(
+        //     "Reading NBT for FormattedText: {:?}",
+        //     nbt.as_ref().map(|n| n.as_tag().to_owned())
+        // );
 
         match nbt {
             Some(nbt) => FormattedText::codec_read(&nbt.as_tag().to_owned())
@@ -284,10 +339,8 @@ impl AzBuf for FormattedText {
         }
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        let nbt: NbtTag = self
-            .codec_write()
-            .map_err(|_| io::Error::other("couldn't convert to nbt"))?;
-        nbt.azalea_write(buf);
+        let nbt: NbtTag = self.codec_write().map_err(io::Error::other)?;
+        nbt.azalea_write(buf)?;
         Ok(())
     }
 }
@@ -312,10 +365,13 @@ impl Display for FormattedText {
     /// If you want the text to be styled, consider using [`Self::to_ansi`] or
     /// [`Self::to_html`].
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            FormattedText::Text(c) => c.fmt(f),
-            FormattedText::Translatable(c) => c.fmt(f),
-        }
+        let s = self.to_custom_format(
+            |_, _| ("".to_owned(), "".to_owned()),
+            |text| text.to_owned(),
+            |_| "".to_owned(),
+            &Style::default(),
+        );
+        f.write_str(&s)
     }
 }
 
@@ -325,19 +381,39 @@ impl Default for FormattedText {
     }
 }
 
+impl serde::Serialize for FormattedText {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let json: serde_json::Value = self.codec_write().map_err(serde::ser::Error::custom)?;
+        json.serialize(serializer)
+    }
+}
+impl<'de> serde::Deserialize<'de> for FormattedText {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let json = serde_json::Value::deserialize(deserializer)?;
+        Self::codec_read(&json).map_err(serde::de::Error::custom)
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use serde::Deserialize;
     use serde_json::Value;
 
     use super::*;
-    use crate::style::TextColor;
+    use crate::{style::TextColor, translatable_component::PrimitiveOrComponent};
 
     #[test]
     fn deserialize_translation() {
         let j: Value =
             serde_json::from_str(r#"{"translate": "translation.test.args", "with": ["a", "b"]}"#)
                 .unwrap();
-        let component = FormattedText::deserialize(&j).unwrap();
+        let component = FormattedText::codec_read(&j).unwrap();
         assert_eq!(
             component,
             FormattedText::Translatable(TranslatableComponent::new(
@@ -354,13 +430,13 @@ mod tests {
     fn deserialize_translation_invalid_arguments() {
         let j: Value =
             serde_json::from_str(r#"{"translate": "translation.test.args", "with": {}}"#).unwrap();
-        assert!(FormattedText::deserialize(&j).is_err());
+        assert!(FormattedText::codec_read(&j).is_err());
     }
 
     #[test]
     fn deserialize_translation_fallback() {
         let j: Value = serde_json::from_str(r#"{"translate": "translation.test.undefined", "fallback": "fallback: %s", "with": ["a"]}"#).unwrap();
-        let component = FormattedText::deserialize(&j).unwrap();
+        let component = FormattedText::codec_read(&j).unwrap();
         assert_eq!(
             component,
             FormattedText::Translatable(TranslatableComponent::with_fallback(
@@ -377,7 +453,7 @@ mod tests {
             r#"{"translate": "translation.test.undefined", "fallback": {"text": "invalid"}}"#,
         )
         .unwrap();
-        assert!(FormattedText::deserialize(&j).is_err());
+        assert!(FormattedText::codec_read(&j).is_err());
     }
     #[test]
     fn deserialize_translation_primitive_args() {
@@ -409,8 +485,9 @@ mod tests {
             "color": "green",
             "with": [{"text": "Acquire Hardware"}]
         });
-        let component = FormattedText::deserialize(&json).unwrap();
+        let component = FormattedText::codec_read(&json).unwrap();
         let ansi = component.to_ansi();
+        println!("{ansi}");
         assert!(ansi.contains("\u{1b}[38;2;85;255;85m"));
     }
 }

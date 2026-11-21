@@ -1,5 +1,3 @@
-mod utils;
-
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{
@@ -59,9 +57,10 @@ fn derive_codec_for_struct(ident: &Ident, fields: FieldsNamed) -> TokenStream {
             #field_name: <#field_type as ::azalea_codec::Codec<O>>::Incomplete,
         });
 
-        if attrs.optional || attrs.lenient {
+        if attrs.optional || attrs.lenient || attrs.flatten {
+            // cool and normal
             incomplete_struct_new.extend(quote! {
-                #field_name: Ok(Default::default()),
+                #field_name: <<#field_type as ::azalea_codec::Codec<O>>::Incomplete as ::azalea_codec::NewOk<_>>::new_ok(),
             });
         } else {
             incomplete_struct_new.extend(quote! {
@@ -70,7 +69,7 @@ fn derive_codec_for_struct(ident: &Ident, fields: FieldsNamed) -> TokenStream {
         }
 
         incomplete_struct_build.extend(quote! {
-            #field_name: self.#field_name.build()?,
+            #field_name: self.#field_name.build()?.into(),
         });
 
         if attrs.flatten {
@@ -107,7 +106,7 @@ fn derive_codec_for_struct(ident: &Ident, fields: FieldsNamed) -> TokenStream {
             });
         } else if attrs.lenient || attrs.optional {
             codec_write_to_map_impl.extend(quote! {
-                if ::azalea_codec::Defaultable::<O>::is_default(&self.#field_name) {
+                if !::azalea_codec::Defaultable::<O>::is_default(&self.#field_name) {
                     __codec_map.push((
                         O::create_string(#field_name_string)?,
                         self.#field_name.codec_write()?,
@@ -148,6 +147,12 @@ fn derive_codec_for_struct(ident: &Ident, fields: FieldsNamed) -> TokenStream {
             })
         }
     }
+    #[automatically_derived]
+    impl<O: ::azalea_codec::Ops> ::azalea_codec::NewOk<O> for #incomplete<O> {
+        fn new_ok() -> Self {
+            <Self as ::azalea_codec::Incomplete>::new_unnamed()
+        }
+    }
 
 
     #[automatically_derived]
@@ -167,7 +172,7 @@ fn derive_codec_for_struct(ident: &Ident, fields: FieldsNamed) -> TokenStream {
             }
         }
 
-        fn codec_write_to_map(self, __codec_map: &mut Vec<(O, O)>) -> ::azalea_codec::error::WriteResult<()> {
+        fn codec_write_to_map(&self, __codec_map: &mut Vec<(O, O)>) -> ::azalea_codec::error::WriteResult<()> {
             #codec_write_to_map_impl
             Ok(())
         }
@@ -192,11 +197,11 @@ fn derive_codec_for_struct(ident: &Ident, fields: FieldsNamed) -> TokenStream {
             });
             incomplete.build()
         }
-        fn codec_write(self) -> ::azalea_codec::error::WriteResult<O> {
+        fn codec_write(&self) -> ::azalea_codec::error::WriteResult<O> {
             use ::azalea_codec::MapCodec;
 
             let mut __codec_map = Vec::new();
-            Self::codec_write_to_map(self, &mut __codec_map)?;
+            Self::codec_write_to_map(&self, &mut __codec_map)?;
             O::create_map(&__codec_map)
         }
     }
@@ -234,28 +239,33 @@ fn derive_codec_for_enum(ident: &Ident, variants: Punctuated<Variant, Comma>) ->
                 #[doc(hidden)]
                 #[allow(nonstandard_style)]
                 #[derive(::azalea_codec::Codec)]
-                struct #variant_struct_name_ident #variant_struct_contents
+                pub struct #variant_struct_name_ident #variant_struct_contents
             });
 
             let mut comma_separated_field_names = quote! {};
+            let mut clone_fields = quote! {};
             for field in variant_struct_contents.iter() {
                 let field_name = field
                     .ident
                     .as_ref()
                     .expect("cannot mix named and unnamed fields in Codec enums");
                 comma_separated_field_names.extend(quote! { #field_name, });
+                clone_fields.extend(quote! { #field_name: #field_name.clone(), });
             }
 
             codec_read.extend(quote! {
-                if let Ok(#variant_struct_name_ident { #comma_separated_field_names }) =
-                    <#variant_struct_name_ident>::codec_read(__codec_ops)
-                {
-                    return Ok(Self::#variant_name { #comma_separated_field_names });
+                match <#variant_struct_name_ident>::codec_read(__codec_ops) {
+                    Ok(#variant_struct_name_ident { #comma_separated_field_names }) => {
+                        return Ok(Self::#variant_name { #comma_separated_field_names });
+                    }
+                    Err(e) => {
+                        __errors.push((#field_name_string, e));
+                    }
                 }
             });
             codec_write.extend(quote! {
                 Self::#variant_name { #comma_separated_field_names } => {
-                    #variant_struct_name_ident { #comma_separated_field_names }.codec_write()
+                    #variant_struct_name_ident { #clone_fields }.codec_write()
                 },
             });
         } else {
@@ -268,8 +278,13 @@ fn derive_codec_for_enum(ident: &Ident, variants: Punctuated<Variant, Comma>) ->
             field_type = first_variant_field.ty.clone();
 
             codec_read.extend(quote! {
-                if let Ok(r) = <#field_type>::codec_read(__codec_ops) {
-                    return Ok(Self::#variant_name(r));
+                match <#field_type>::codec_read(__codec_ops) {
+                    Ok(r) => {
+                        return Ok(Self::#variant_name(r));
+                    }
+                    Err(e) => {
+                        __errors.push((stringify!(#field_type), e));
+                    }
                 }
             });
             codec_write.extend(quote! {
@@ -283,15 +298,16 @@ fn derive_codec_for_enum(ident: &Ident, variants: Punctuated<Variant, Comma>) ->
 
     #[automatically_derived]
     impl<O: ::azalea_codec::Ops> ::azalea_codec::Codec<O> for #ident {
-        type Incomplete = ::azalea_codec::error::ReadResult<()>;
+        type Incomplete = ::azalea_codec::error::ReadResult<Self>;
         fn codec_read(__codec_ops: &O) -> ::azalea_codec::error::ReadResult<Self> {
+            let mut __errors = Vec::<(&'static str, ::azalea_codec::error::ReadError)>::new();
+
             #codec_read
 
-            Err(::azalea_codec::error::ReadError::custom(
-            "no variants matched",
-        ))
-    }
-        fn codec_write(self) -> ::azalea_codec::error::WriteResult<O> {
+            Err(::azalea_codec::error::ReadError::no_variants_matched(__errors))
+        }
+
+        fn codec_write(&self) -> ::azalea_codec::error::WriteResult<O> {
             match self {
                 #codec_write
             }

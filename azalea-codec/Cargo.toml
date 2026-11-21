@@ -17,5 +17,6 @@ workspace = true
 
 [features]
 default = ["serde_json", "simdnbt"]
+
 serde_json = ["dep:serde_json", "dep:serde"]
 simdnbt = ["dep:simdnbt"]

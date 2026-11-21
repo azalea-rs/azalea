@@ -25,8 +25,10 @@ pub mod types;
 pub trait Codec<O: Ops>: Sized {
     type Incomplete = ReadResult<Self>;
 
+    /// Convert from a **data format** to a **data structure**.
     fn codec_read(ops: &O) -> ReadResult<Self>;
-    fn codec_write(self) -> WriteResult<O>;
+    /// Convert from a **data structure** to a **data format**.
+    fn codec_write(&self) -> WriteResult<O>;
 }
 
 #[diagnostic::on_unimplemented(message = "type `{Self}` is not a map that can be flattened.")]
@@ -34,7 +36,7 @@ pub trait MapCodec<O: Ops>: Sized + Codec<O> {
     // this doesn't return a ReadResult because the errors are stored in the
     // Incomplete struct
     fn codec_read_map_item(incomplete: &mut <Self as Codec<O>>::Incomplete, k: &O, v: &O);
-    fn codec_write_to_map(self, map: &mut Vec<(O, O)>) -> WriteResult<()>;
+    fn codec_write_to_map(&self, map: &mut Vec<(O, O)>) -> WriteResult<()>;
 
     /// For normal structs, this sets `incomplete.__result = Ok(())`.
     fn get_and_reset_result(incomplete: &mut <Self as Codec<O>>::Incomplete) -> ReadResult<()>;
@@ -112,10 +114,10 @@ pub trait Ops: Sized + Clone {
     }
 }
 
-fn fallback_get_list<O: Ops, N: From<Number>>(o: &O) -> ReadResult<Box<[N]>> {
+fn fallback_get_list<O: Ops, N: TryFrom<Number, Error = ReadError>>(o: &O) -> ReadResult<Box<[N]>> {
     o.get_list()?
         .into_iter()
-        .map(|o| o.get_number().map(|n| n.into()))
+        .map(|o| o.get_number().and_then(|n| n.try_into()))
         .collect()
 }
 fn fallback_create_list<O: Ops, N: Into<Number> + Copy>(v: &[N]) -> WriteResult<O> {
@@ -166,17 +168,15 @@ impl<T> Incomplete for ReadResult<T> {
     }
 }
 
-pub trait Defaultable<O: Ops>: Codec<O> {
-    fn is_default(&self) -> bool;
+pub trait NewOk<T>: Incomplete {
+    fn new_ok() -> Self;
+}
+impl<T: Default> NewOk<T> for ReadResult<T> {
+    fn new_ok() -> ReadResult<T> {
+        Ok(T::default())
+    }
 }
 
-/// A wrapper type that allows for easier conversions between codec types.
-pub struct Wrapper<T>(pub T);
-impl<T: Clone> Wrapper<T> {
-    pub fn into_codec<O: Ops>(self) -> O
-    where
-        T: Codec<O>,
-    {
-        self.0.clone().codec_write().unwrap()
-    }
+pub trait Defaultable<O: Ops>: Codec<O> {
+    fn is_default(&self) -> bool;
 }

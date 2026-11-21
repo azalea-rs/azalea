@@ -1,35 +1,6 @@
 use azalea_codec::{Codec, types::StringLiteral};
 #[cfg(feature = "simdnbt")]
-use simdnbt::owned::{Nbt, NbtCompound, NbtTag};
-
-use crate::base_component::BaseComponent;
-
-macro_rules! define_click_event_struct {
-    (
-        $(
-            $action_name:ident : $action_variant:ident {
-                $(
-                    $(#[$meta:meta])* $field:ident : $type:ty
-                ),*
-                $(,)?
-            }
-        ),*
-        $(,)?
-    ) => {
-        #[derive(Clone, Debug, PartialEq, Serialize, Codec)]
-        #[serde(rename_all = "snake_case", tag = "action")]
-        pub enum ClickEvent {
-            $(
-                $action_variant {
-                    $(
-                        $(#[$meta])*
-                        $field: $type
-                    ),*
-                }
-            ),*
-        }
-    }
-}
+use simdnbt::owned::NbtTag;
 
 #[derive(Clone, Debug, PartialEq, Codec)]
 pub enum ClickEvent {
@@ -68,5 +39,7 @@ pub enum ClickEvent {
         id: String,
         #[cfg(feature = "simdnbt")]
         payload: NbtTag,
+        #[codec(flatten)]
+        remaining: azalea_codec::types::Drain,
     },
 }

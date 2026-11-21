@@ -81,7 +81,7 @@ impl Ops for NbtTag {
     fn get_byte_buffer(&self) -> ReadResult<Box<[u8]>> {
         self.get_list()?
             .into_iter()
-            .map(|o| o.get_number().map(|n| n.into()))
+            .map(|o| o.get_number().and_then(|n| n.try_into()))
             .collect()
     }
     fn create_byte_list(v: &[u8]) -> WriteResult<Self> {
@@ -90,7 +90,7 @@ impl Ops for NbtTag {
     fn get_int_list(&self) -> ReadResult<Box<[i32]>> {
         self.get_list()?
             .into_iter()
-            .map(|o| o.get_number().map(|n| n.into()))
+            .map(|o| o.get_number().and_then(|n| n.try_into()))
             .collect()
     }
     fn create_int_list(v: &[i32]) -> WriteResult<Self> {
@@ -99,7 +99,7 @@ impl Ops for NbtTag {
     fn get_long_list(&self) -> ReadResult<Box<[i64]>> {
         self.get_list()?
             .into_iter()
-            .map(|o| o.get_number().map(|n| n.into()))
+            .map(|o| o.get_number().and_then(|n| n.try_into()))
             .collect()
     }
 
@@ -159,7 +159,7 @@ impl<O: Ops> Codec<O> for NbtTag {
 
         Err(ReadError::custom("unknown type"))
     }
-    fn codec_write(self) -> WriteResult<O> {
+    fn codec_write(&self) -> WriteResult<O> {
         match self {
             NbtTag::Byte(v) => v.codec_write(),
             NbtTag::Short(v) => v.codec_write(),
@@ -181,7 +181,7 @@ impl<O: Ops> Codec<O> for Mutf8String {
     fn codec_read(ops: &O) -> ReadResult<Self> {
         Ok(String::codec_read(ops)?.into())
     }
-    fn codec_write(self) -> WriteResult<O> {
+    fn codec_write(&self) -> WriteResult<O> {
         self.to_string().codec_write()
     }
 }
@@ -189,7 +189,7 @@ impl<O: Ops> Codec<O> for NbtList {
     fn codec_read(ops: &O) -> ReadResult<Self> {
         Ok(Vec::<NbtTag>::codec_read(ops)?.into())
     }
-    fn codec_write(self) -> WriteResult<O> {
+    fn codec_write(&self) -> WriteResult<O> {
         self.as_nbt_tags().codec_write()
     }
 }
@@ -208,10 +208,10 @@ impl<O: Ops> Codec<O> for NbtCompound {
 
         Ok(NbtCompound::from_values(values))
     }
-    fn codec_write(self) -> WriteResult<O> {
+    fn codec_write(&self) -> WriteResult<O> {
         let mut map = Vec::new();
-        for (k, v) in self {
-            map.push((k.codec_write()?, v.codec_write()?))
+        for (k, v) in self.iter() {
+            map.push((k.to_owned().codec_write()?, v.codec_write()?))
         }
         O::create_map(&map)
     }

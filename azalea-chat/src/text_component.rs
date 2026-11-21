@@ -1,4 +1,7 @@
-use std::fmt::{self, Display};
+use std::{
+    fmt::{self, Display},
+    mem,
+};
 
 use azalea_codec::Codec;
 
@@ -9,47 +12,11 @@ use crate::{
 };
 
 /// A component that contains text that's the same in all locales.
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq, Codec)]
 pub struct TextComponent {
-    pub base: BaseComponent,
     pub text: String,
-}
-impl<O: azalea_codec::Ops> Codec<O> for TextComponent {
-    fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
-        if let Ok(text) = String::codec_read(ops) {
-            return Ok(Self {
-                base: Default::default(),
-                text,
-            });
-        }
-
-        if let Ok(r) = ProperTextComponent::codec_read(ops) {
-            return Ok(Self {
-                base: r.base,
-                text: r.text,
-            });
-        }
-
-        Err(azalea_codec::error::ReadError::custom(
-            "not a text component",
-        ))
-    }
-    fn codec_write(self) -> azalea_codec::error::WriteResult<O> {
-        if self.base.is_empty() {
-            return self.text.codec_write();
-        }
-        ProperTextComponent {
-            base: self.base,
-            text: self.text,
-        }
-        .codec_write()
-    }
-}
-#[derive(Codec)]
-pub struct ProperTextComponent {
     #[codec(flatten)]
     pub base: BaseComponent,
-    pub text: String,
 }
 
 pub const LEGACY_FORMATTING_CODE_SYMBOL: char = '§';
@@ -61,6 +28,9 @@ pub fn legacy_color_code_to_text_component(legacy_color_code: &str) -> TextCompo
     if legacy_color_code.is_empty() {
         return TextComponent::new("");
     }
+
+    // only used when resetting
+    let mut sections: Vec<TextComponent> = Vec::with_capacity(1);
 
     let mut components: Vec<TextComponent> = Vec::with_capacity(1);
     // iterate over legacy_color_code, if it starts with
@@ -96,11 +66,16 @@ pub fn legacy_color_code_to_text_component(legacy_color_code: &str) -> TextCompo
 
                 i += 6;
             } else if let Some(formatter) = ChatFormatting::from_code(formatting_code) {
-                if !cur_component.text.is_empty() || formatter == ChatFormatting::Reset {
+                if !cur_component.text.is_empty() {
                     // we need to split this into a new component
                     components.push(cur_component.clone());
                     cur_component.text = "".to_owned();
-                };
+                }
+                if formatter == ChatFormatting::Reset {
+                    sections.push(TextComponent::empty_with_text_component_siblings(
+                        mem::take(&mut components),
+                    ));
+                }
                 cur_component.base.style.apply_formatting(&formatter);
             }
             i += 1;
@@ -113,14 +88,15 @@ pub fn legacy_color_code_to_text_component(legacy_color_code: &str) -> TextCompo
     }
 
     components.push(cur_component);
+    sections.push(TextComponent::empty_with_text_component_siblings(
+        components,
+    ));
 
-    // create the final component by adding all of the components as siblings
-    let mut final_component = TextComponent::new("");
-    for component in components {
-        final_component.base.siblings.push(component.get());
+    if sections.len() == 1 {
+        return sections.into_iter().next().unwrap();
     }
 
-    final_component
+    TextComponent::empty_with_text_component_siblings(sections)
 }
 
 impl TextComponent {
@@ -136,29 +112,40 @@ impl TextComponent {
             }
         }
     }
+    pub fn empty_with_siblings(siblings: Vec<FormattedText>) -> Self {
+        Self {
+            text: "".into(),
+            base: BaseComponent {
+                siblings,
+                ..Default::default()
+            },
+        }
+    }
+    pub fn empty_with_text_component_siblings(siblings: Vec<TextComponent>) -> Self {
+        Self::empty_with_siblings(siblings.into_iter().map(|t| t.into()).collect())
+    }
 
-    fn get(self) -> FormattedText {
+    /// Get the [`FormattedText`] for this text component.
+    pub fn into_formatted_text(self) -> FormattedText {
         FormattedText::Text(self)
     }
+
     pub fn with_style(mut self, style: Style) -> Self {
         *self.base.style = style;
+        self
+    }
+    pub fn with_additional_siblings(
+        mut self,
+        siblings: impl IntoIterator<Item = FormattedText>,
+    ) -> Self {
+        self.base.siblings.extend(siblings);
         self
     }
 }
 
 impl Display for TextComponent {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        // this contains the final string will all the ansi escape codes
-        for component in FormattedText::Text(self.clone()).into_iter() {
-            let component_text = match &component {
-                FormattedText::Text(c) => c.text.to_string(),
-                FormattedText::Translatable(c) => c.read()?.to_string(),
-            };
-
-            f.write_str(&component_text)?;
-        }
-
-        Ok(())
+        FormattedText::Text(self.clone()).fmt(f)
     }
 }
 
@@ -177,7 +164,7 @@ mod tests {
     fn test_hypixel_motd_ansi() {
         let component =
             TextComponent::new("§aHypixel Network  §c[1.8-1.18]\n§b§lHAPPY HOLIDAYS".to_owned())
-                .get();
+                .into_formatted_text();
         assert_eq!(
             component.to_ansi(),
             format!(
@@ -195,7 +182,7 @@ mod tests {
     fn test_hypixel_motd_html() {
         let component =
             TextComponent::new("§aHypixel Network  §c[1.8-1.18]\n§b§lHAPPY HOLIDAYS".to_owned())
-                .get();
+                .into_formatted_text();
 
         assert_eq!(
             component.to_html(),
@@ -211,7 +198,7 @@ mod tests {
 
     #[test]
     fn test_xss_html() {
-        let component = TextComponent::new("§a<b>&\n§b</b>".to_owned()).get();
+        let component = TextComponent::new("§a<b>&\n§b</b>".to_owned()).into_formatted_text();
 
         assert_eq!(
             component.to_html(),
@@ -226,26 +213,34 @@ mod tests {
 
     #[test]
     fn test_legacy_color_code_to_component() {
-        let component = TextComponent::new("§lHello §r§1w§2o§3r§4l§5d".to_owned()).get();
-        assert_eq!(
-            component.to_ansi(),
-            format!(
-                "{BOLD}{WHITE}Hello {RESET}{DARK_BLUE}w{DARK_GREEN}o{DARK_AQUA}r{DARK_RED}l{DARK_PURPLE}d{RESET}",
-                BOLD = Ansi::BOLD,
-                WHITE = Ansi::rgb(ChatFormatting::White.color().unwrap()),
-                RESET = Ansi::RESET,
-                DARK_BLUE = Ansi::rgb(ChatFormatting::DarkBlue.color().unwrap()),
-                DARK_GREEN = Ansi::rgb(ChatFormatting::DarkGreen.color().unwrap()),
-                DARK_AQUA = Ansi::rgb(ChatFormatting::DarkAqua.color().unwrap()),
-                DARK_RED = Ansi::rgb(ChatFormatting::DarkRed.color().unwrap()),
-                DARK_PURPLE = Ansi::rgb(ChatFormatting::DarkPurple.color().unwrap())
-            )
+        let component =
+            TextComponent::new("§lHello §r§1w§2o§3r§4l§5d".to_owned()).into_formatted_text();
+
+        println!("component: {component:?}");
+
+        let attempt = component.to_ansi();
+        let solution = format!(
+            "{BOLD}{WHITE}Hello {RESET}{DARK_BLUE}w{DARK_GREEN}o{DARK_AQUA}r{DARK_RED}l{DARK_PURPLE}d{RESET}",
+            BOLD = Ansi::BOLD,
+            WHITE = Ansi::rgb(ChatFormatting::White.color().unwrap()),
+            RESET = Ansi::RESET,
+            DARK_BLUE = Ansi::rgb(ChatFormatting::DarkBlue.color().unwrap()),
+            DARK_GREEN = Ansi::rgb(ChatFormatting::DarkGreen.color().unwrap()),
+            DARK_AQUA = Ansi::rgb(ChatFormatting::DarkAqua.color().unwrap()),
+            DARK_RED = Ansi::rgb(ChatFormatting::DarkRed.color().unwrap()),
+            DARK_PURPLE = Ansi::rgb(ChatFormatting::DarkPurple.color().unwrap())
         );
+
+        println!("{attempt}");
+        println!("{solution}");
+
+        assert_eq!(attempt, solution);
     }
 
     #[test]
     fn test_legacy_color_code_with_rgb() {
-        let component = TextComponent::new("§#Ff0000This is a test message".to_owned()).get();
+        let component =
+            TextComponent::new("§#Ff0000This is a test message".to_owned()).into_formatted_text();
         assert_eq!(
             component.to_ansi(),
             format!(
@@ -258,7 +253,7 @@ mod tests {
 
     #[test]
     fn test_serialize_to_json() {
-        let component = TextComponent::new("Hello §aworld".to_owned()).get();
+        let component = TextComponent::new("Hello §aworld".to_owned()).into_formatted_text();
 
         let value: serde_json::Value = component.codec_write().unwrap();
 

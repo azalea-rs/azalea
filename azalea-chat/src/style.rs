@@ -1,38 +1,27 @@
 use std::{
     collections::HashMap,
-    fmt::{self, Display},
+    fmt::{self, Debug, Display},
     sync::LazyLock,
 };
 
 #[cfg(feature = "azalea-buf")]
 use azalea_buf::AzBuf;
 use azalea_codec::Codec;
-use serde::{Serialize, Serializer};
-use serde_json::Value;
-#[cfg(feature = "simdnbt")]
-use simdnbt::owned::NbtTag;
 
 use crate::{click_event::ClickEvent, hover_event::HoverEvent};
 
-#[derive(Clone, Debug, Eq, Hash, PartialEq, Codec)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct TextColor {
     pub value: u32,
     pub name: Option<String>,
 }
-
-impl Serialize for TextColor {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        serializer.serialize_str(&self.serialize())
+impl<O: azalea_codec::Ops> Codec<O> for TextColor {
+    fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
+        TextColor::parse(&ops.get_string()?)
+            .ok_or_else(|| azalea_codec::error::ReadError::custom("not a color"))
     }
-}
-
-#[cfg(feature = "simdnbt")]
-impl simdnbt::ToNbtTag for TextColor {
-    fn to_nbt_tag(self) -> simdnbt::owned::NbtTag {
-        NbtTag::String(self.serialize().into())
+    fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
+        self.serialize().codec_write()
     }
 }
 
@@ -316,7 +305,7 @@ impl TryFrom<ChatFormatting> for TextColor {
 
 macro_rules! define_style_struct {
     ($($(#[$doc:meta])* $field:ident : $type:ty),* $(,)?) => {
-        #[derive(Clone, Debug, Default, PartialEq, Codec)]
+        #[derive(Clone, Default, PartialEq, Codec)]
         #[non_exhaustive]
         pub struct Style {
             $(
@@ -341,6 +330,24 @@ macro_rules! define_style_struct {
                         self.$field = Some(value.clone());
                     }
                 )*
+            }
+        }
+
+        // don't include all the None values in there
+        impl Debug for Style {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                let mut s = f.debug_struct("Style");
+                let mut is_plain = true;
+                $(
+                    if let Some($field) = &self.$field {
+                        is_plain = false;
+                        s.field(stringify!($field), $field);
+                    }
+                )*
+                if is_plain {
+                    s = f.debug_struct("(plain)");
+                }
+                s.finish()
             }
         }
     };
@@ -368,36 +375,6 @@ impl Style {
 
     pub fn empty() -> Self {
         Self::default()
-    }
-
-    pub fn deserialize(json: &Value) -> Style {
-        let Some(j) = json.as_object() else {
-            return Style::default();
-        };
-
-        Style {
-            color: j
-                .get("color")
-                .and_then(|v| v.as_str())
-                .and_then(TextColor::parse),
-            shadow_color: j
-                .get("shadow_color")
-                .and_then(|v| v.as_u64())
-                .map(|v| v as u32),
-            bold: j.get("bold").and_then(|v| v.as_bool()),
-            italic: j.get("italic").and_then(|v| v.as_bool()),
-            underlined: j.get("underlined").and_then(|v| v.as_bool()),
-            strikethrough: j.get("strikethrough").and_then(|v| v.as_bool()),
-            obfuscated: j.get("obfuscated").and_then(|v| v.as_bool()),
-            // TODO: impl deserialize functions for click_event and hover_event
-            click_event: Default::default(),
-            hover_event: Default::default(),
-            insertion: j
-                .get("insertion")
-                .and_then(|v| v.as_str())
-                .map(|s| s.to_owned()),
-            font: j.get("font").and_then(|v| v.as_str()).map(|s| s.to_owned()),
-        }
     }
 
     /// Check if a style has no attributes set
@@ -489,7 +466,7 @@ impl Style {
         }
     }
 
-    /// Apply a ChatFormatting to this style
+    /// Apply a [`ChatFormatting`] to this style.
     pub fn apply_formatting(&mut self, formatting: &ChatFormatting) {
         match *formatting {
             ChatFormatting::Bold => self.bold = Some(true),

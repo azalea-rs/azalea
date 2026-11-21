@@ -1,4 +1,7 @@
-use crate::{Codec, Ops};
+use crate::{
+    Codec, Ops,
+    error::{ReadError, WriteError},
+};
 
 // a port of Java's Number abstract class
 #[derive(Copy, Clone, Debug)]
@@ -22,69 +25,98 @@ impl<O: Ops> Codec<O> for Number {
     fn codec_read(ops: &O) -> crate::error::ReadResult<Self> {
         ops.get_number()
     }
-    fn codec_write(self) -> crate::error::WriteResult<O> {
-        O::create_number(self)
+    fn codec_write(&self) -> crate::error::WriteResult<O> {
+        O::create_number(*self)
     }
 }
 
-macro_rules! number_from_other_impl {
-    ($from_ty:ty, $stored_as_ty:ty, $intermediate_ty:ty, $variant:ident) => {
-        impl From<$from_ty> for Number {
-            fn from(n: $from_ty) -> Self {
-                Self::$variant(n as $intermediate_ty as $stored_as_ty)
-            }
+impl TryFrom<Number> for i64 {
+    type Error = ReadError;
+    fn try_from(n: Number) -> Result<Self, Self::Error> {
+        Ok(match n {
+            Number::Byte(v) => v as i64,
+            Number::Short(v) => v as i64,
+            Number::Int(v) => v as i64,
+            Number::Long(v) => v as i64,
+            Number::Float(_) | Number::Double(_) => return Err(ReadError::number_too_big(n)),
+        })
+    }
+}
+
+impl From<Number> for f64 {
+    fn from(n: Number) -> Self {
+        match n {
+            Number::Byte(v) => v as f64,
+            Number::Short(v) => v as f64,
+            Number::Int(v) => v as f64,
+            Number::Long(v) => v as f64,
+            Number::Float(v) => v as f64,
+            Number::Double(v) => v as f64,
         }
-        impl From<Number> for $from_ty {
-            fn from(n: Number) -> Self {
-                <$intermediate_ty>::from(n) as $from_ty
+    }
+}
+impl From<Number> for f32 {
+    fn from(n: Number) -> Self {
+        f64::from(n) as f32
+    }
+}
+
+macro_rules! try_from_number {
+    ($($n:ty),*) => {
+        $(
+            impl TryFrom<Number> for $n {
+                type Error = ReadError;
+                fn try_from(n: Number) -> Result<Self, Self::Error> {
+                    i64::try_from(n)
+                        .and_then(|v| v.try_into().map_err(|_| ReadError::number_too_big(n)))
+                }
             }
-        }
+        )*
     };
 }
-number_from_other_impl!(i8, i8, i32, Byte);
-number_from_other_impl!(i16, i16, i32, Short);
+try_from_number!(
+    i8, i16, i32, i128, //
+    u8, u16, u32, u64
+);
 
-// allow unsigned integers for convenience
-number_from_other_impl!(u8, i8, i8, Byte);
-number_from_other_impl!(u16, i16, i16, Short);
-number_from_other_impl!(u32, i32, i32, Int);
-number_from_other_impl!(u64, i64, i64, Long);
-
-macro_rules! number_cast_impl {
-    ($t:ty, $variant:ident) => {
-        impl From<$t> for Number {
-            fn from(n: $t) -> Self {
+macro_rules! from_literal {
+    ($n:ty, $variant:ident) => {
+        impl From<$n> for Number {
+            fn from(n: $n) -> Self {
                 Self::$variant(n)
             }
         }
-        impl From<Number> for $t {
-            fn from(n: Number) -> Self {
-                cast_to!(n, $t)
-            }
-        }
     };
 }
+from_literal!(i64, Long);
+from_literal!(i32, Int);
+from_literal!(i16, Short);
+from_literal!(i8, Byte);
+from_literal!(f32, Float);
+from_literal!(f64, Double);
 
-// truncating and rounding is intentional, per https://docs.oracle.com/javase/8/docs/api/java/lang/Number.html
-macro_rules! cast_to {
-    ($i:ident, $t:ty) => {
-        match $i {
-            Number::Byte(v) => v as $t,
-            Number::Short(v) => v as $t,
-            Number::Int(v) => v as $t,
-            Number::Long(v) => v as $t,
-            Number::Float(v) => v as $t,
-            Number::Double(v) => v as $t,
-        }
-    };
+impl From<u8> for Number {
+    fn from(n: u8) -> Self {
+        Self::Byte(n as i8)
+    }
 }
-number_cast_impl!(i32, Int);
-number_cast_impl!(i64, Long);
-number_cast_impl!(f32, Float);
-number_cast_impl!(f64, Double);
 
-impl From<Number> for u128 {
-    fn from(n: Number) -> Self {
-        cast_to!(n, u128)
+impl From<u32> for Number {
+    fn from(n: u32) -> Self {
+        Self::Long(n as i64)
+    }
+}
+impl From<u16> for Number {
+    fn from(n: u16) -> Self {
+        Self::Int(n as i32)
+    }
+}
+
+impl TryFrom<u64> for Number {
+    type Error = WriteError;
+    fn try_from(n: u64) -> Result<Self, Self::Error> {
+        Ok(Self::Long(
+            n.try_into().map_err(|_| WriteError::number_too_big(n))?,
+        ))
     }
 }
