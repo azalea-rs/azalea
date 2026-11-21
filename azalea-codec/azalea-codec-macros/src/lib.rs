@@ -3,7 +3,7 @@ mod attrs;
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{
-    Attribute, DeriveInput, FieldsNamed, FieldsUnnamed, Ident, Variant, Visibility,
+    Attribute, DeriveInput, Field, FieldsNamed, FieldsUnnamed, Ident, Variant, Visibility,
     parse_macro_input, punctuated::Punctuated, token::Comma,
 };
 
@@ -22,7 +22,14 @@ pub fn derive_codec(input: TokenStream) -> TokenStream {
             syn::Fields::Named(fields) => {
                 derive_codec_for_named_fields_struct(&vis, &attrs, &ident, fields)
             }
-            syn::Fields::Unnamed(fields) => derive_codec_for_unnamed_fields_struct(&ident, fields),
+            syn::Fields::Unnamed(fields) => {
+                assert_eq!(
+                    fields.unnamed.len(),
+                    1,
+                    "#[derive(Codec)] cannot be used on structs with more than one unnamed field."
+                );
+                return derive_transparent_impl(&ident, &fields.unnamed[0]);
+            }
             syn::Fields::Unit => panic!("#[derive(Codec)] cannot be used on unit structs."),
         },
         syn::Data::Enum(syn::DataEnum { variants, .. }) => {
@@ -41,6 +48,14 @@ fn derive_codec_for_named_fields_struct(
     fields: FieldsNamed,
 ) -> TokenStream {
     let attrs = attrs::parse_struct_attrs(attrs);
+    if attrs.transparent {
+        assert_eq!(
+            fields.named.len(),
+            1,
+            "cannot mark structs with more than one field as transparent"
+        );
+        return derive_transparent_impl(ident, &fields.named[0]);
+    }
 
     let incomplete = Ident::new(&format!("__Incomplete{ident}"), ident.span());
 
@@ -232,25 +247,34 @@ fn derive_codec_for_named_fields_struct(
     .into()
 }
 
-fn derive_codec_for_unnamed_fields_struct(ident: &Ident, fields: FieldsUnnamed) -> TokenStream {
-    assert_eq!(
-        fields.unnamed.len(),
-        1,
-        "#[derive(Codec)] cannot be used on structs with more than one unnamed field"
-    );
+fn derive_transparent_impl(ident: &Ident, field: &Field) -> TokenStream {
+    if let Some(field_ident) = &field.ident {
+        quote! {
+        impl<O: ::azalea_codec::Ops> ::azalea_codec::Codec<O> for #ident {
+            fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
+                Ok(Self { #field_ident: <_>::codec_read(ops)? })
+            }
 
-    quote! {
-    impl<O: ::azalea_codec::Ops> ::azalea_codec::Codec<O> for #ident {
-        fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
-            <_>::codec_read(ops).map(Self)
+            fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
+                self.#field_ident.codec_write()
+            }
         }
+        }
+        .into()
+    } else {
+        quote! {
+        impl<O: ::azalea_codec::Ops> ::azalea_codec::Codec<O> for #ident {
+            fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
+                <_>::codec_read(ops).map(Self)
+            }
 
-        fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
-            self.0.codec_write()
+            fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
+                self.0.codec_write()
+            }
         }
+        }
+        .into()
     }
-    }
-    .into()
 }
 
 fn derive_codec_for_enum(

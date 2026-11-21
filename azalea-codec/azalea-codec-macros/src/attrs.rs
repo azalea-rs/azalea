@@ -58,6 +58,7 @@ pub fn parse_field_attrs(attrs: &[syn::Attribute]) -> FieldAttrs {
 #[derive(Default, Debug)]
 pub struct StructAttrs {
     pub allow_unknown_keys: bool,
+    pub transparent: bool,
 }
 impl Parse for StructAttrs {
     fn parse(input: ParseStream) -> syn::Result<Self> {
@@ -66,6 +67,7 @@ impl Parse for StructAttrs {
             let attr = input.parse::<proc_macro2::Ident>()?;
             match attr.to_string().as_str() {
                 "allow_unknown_keys" => attrs.allow_unknown_keys = true,
+                "transparent" => attrs.transparent = true,
                 attr => panic!("unknown attribute '{attr}'"),
             }
             let _ = input.parse::<syn::Token![,]>();
@@ -80,6 +82,12 @@ pub fn parse_struct_attrs(attrs: &[syn::Attribute]) -> StructAttrs {
             .parse_args::<StructAttrs>()
             .expect("invalid codec attr");
         a.allow_unknown_keys |= n.allow_unknown_keys;
+        a.transparent |= n.transparent;
     }
+
+    if a.transparent && a.allow_unknown_keys {
+        panic!("conflicting 'transparent' and 'allow_unknown_keys'")
+    }
+
     a
 }

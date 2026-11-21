@@ -11,6 +11,7 @@ use std::{
 
 use azalea_buf::{AzBuf, BufReadError};
 use azalea_chat::FormattedText;
+use azalea_codec::Codec;
 use azalea_core::{
     attribute_modifier_operation::AttributeModifierOperation,
     checksum::{Checksum, get_checksum},
@@ -31,7 +32,7 @@ use azalea_registry::{
 };
 pub use profile::*;
 use serde::{Serialize, Serializer, ser::SerializeMap};
-use simdnbt::owned::{Nbt, NbtCompound};
+use simdnbt::owned::NbtCompound;
 use tracing::trace;
 
 use crate::{ItemStack, item::consume_effect::ConsumeEffect};
@@ -320,10 +321,11 @@ define_data_components!(
     CushionColor,
 );
 
-#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize, Codec)]
 #[serde(transparent)]
+#[codec(transparent)]
 pub struct CustomData {
-    pub nbt: Nbt,
+    pub nbt: NbtCompound,
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
