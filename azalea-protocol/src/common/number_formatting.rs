@@ -1,16 +1,12 @@
 //! Contains a few ways to style numbers. At the time of writing, Minecraft only
 //! uses this for rendering scoreboard objectives.
 
-#[cfg(feature = "azalea-buf")]
 use std::io::{self, Cursor, Write};
 
-#[cfg(feature = "azalea-buf")]
 use azalea_buf::AzBuf;
-#[cfg(feature = "azalea-buf")]
+use azalea_chat::FormattedText;
 use azalea_registry::builtin::NumberFormatKind;
 use simdnbt::owned::Nbt;
-
-use crate::FormattedText;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum NumberFormat {
@@ -19,7 +15,6 @@ pub enum NumberFormat {
     Fixed { value: FormattedText },
 }
 
-#[cfg(feature = "azalea-buf")]
 impl AzBuf for NumberFormat {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
         let kind = NumberFormatKind::azalea_read(buf)?;

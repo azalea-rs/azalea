@@ -1,13 +1,18 @@
 #![doc = include_str!("../README.md")]
 
-pub mod base_component;
 pub mod click_event;
-mod component;
+pub mod component;
 pub mod hover_event;
-#[cfg(feature = "numbers")]
-pub mod numbers;
 pub mod style;
-pub mod text_component;
-pub mod translatable_component;
 
 pub use component::{DEFAULT_STYLE, FormattedText};
+
+pub mod translatable_component {
+    #![deprecated]
+    pub type TranslatableComponent = crate::component::translatable::TranslatableComponent;
+    pub type PrimitiveOrComponent = crate::component::translatable::PrimitiveOrComponent;
+}
+pub mod text_component {
+    #![deprecated]
+    pub type TextComponent = crate::component::text::TextComponent;
+}

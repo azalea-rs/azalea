@@ -1,6 +1,8 @@
 use azalea_buf::AzBuf;
-use azalea_chat::{numbers::NumberFormat, FormattedText};
+use azalea_chat::FormattedText;
 use azalea_protocol_macros::ClientboundGamePacket;
+
+use crate::common::number_formatting::NumberFormat;
 
 #[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundSetScore {

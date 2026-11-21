@@ -2,19 +2,10 @@ use std::fmt::{self, Display};
 
 use azalea_codec::Codec;
 
-use crate::{FormattedText, base_component::BaseComponent, text_component::TextComponent};
-
-#[derive(Clone, Debug, PartialEq, Codec)]
-pub enum PrimitiveOrComponent {
-    Short(i16),
-    Integer(i32),
-    Long(i64),
-    Float(f32),
-    Double(f64),
-    Boolean(bool),
-    String(String),
-    FormattedText(FormattedText),
-}
+use crate::{
+    FormattedText,
+    component::{base::BaseComponent, text::TextComponent},
+};
 
 /// A message whose content depends on the client's language.
 #[derive(Clone, Debug, PartialEq, Codec)]
@@ -27,6 +18,18 @@ pub struct TranslatableComponent {
     pub args: Vec<PrimitiveOrComponent>,
     #[codec(flatten)]
     pub base: BaseComponent,
+}
+
+#[derive(Clone, Debug, PartialEq, Codec)]
+pub enum PrimitiveOrComponent {
+    Short(i16),
+    Integer(i32),
+    Long(i64),
+    Float(f32),
+    Double(f64),
+    Boolean(bool),
+    String(String),
+    FormattedText(FormattedText),
 }
 
 impl TranslatableComponent {

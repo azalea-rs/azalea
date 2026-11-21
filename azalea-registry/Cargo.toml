@@ -8,12 +8,13 @@ repository.workspace = true
 
 [dependencies]
 azalea-buf.workspace = true
+azalea-codec.workspace = true
 azalea-registry-macros.workspace = true
 serde = { workspace = true, optional = true, features = ["derive"] }
 simdnbt.workspace = true
 
 [features]
-serde = ["azalea-registry-macros/serde", "dep:serde"]
+serde = ["azalea-registry-macros/serde", "dep:serde", "azalea-codec/serde_json"]
 default = ["serde"]
 
 [lints]

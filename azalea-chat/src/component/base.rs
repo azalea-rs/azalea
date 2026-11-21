@@ -31,7 +31,7 @@ impl BaseComponent {
         }
     }
     /// Whether this base component has no siblings and the default style.
-    pub fn is_empty(&self) -> bool {
+    pub fn is_default(&self) -> bool {
         self == &BaseComponent::new()
     }
 }

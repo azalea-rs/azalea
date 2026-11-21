@@ -1,7 +1,7 @@
 use azalea_buf::AzBuf;
 use azalea_chat::{
     FormattedText,
-    translatable_component::{PrimitiveOrComponent, TranslatableComponent},
+    component::translatable::{PrimitiveOrComponent, TranslatableComponent},
 };
 use azalea_core::registry_holder::RegistryHolder;
 use azalea_protocol_macros::ClientboundGamePacket;

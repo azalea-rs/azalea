@@ -1,7 +1,7 @@
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{
-    DeriveInput, FieldsNamed, Ident, Variant,
+    DeriveInput, FieldsNamed, FieldsUnnamed, Ident, Variant, Visibility,
     parse::{Parse, ParseStream},
     parse_macro_input,
     punctuated::Punctuated,
@@ -10,23 +10,32 @@ use syn::{
 
 #[proc_macro_derive(Codec, attributes(codec))]
 pub fn derive_codec(input: TokenStream) -> TokenStream {
-    let DeriveInput { ident, data, .. } = parse_macro_input!(input);
+    let DeriveInput {
+        ident, data, vis, ..
+    } = parse_macro_input!(input);
 
     match data {
-        syn::Data::Struct(syn::DataStruct { fields, .. }) => {
-            let syn::Fields::Named(fields) = fields else {
-                panic!("#[derive(Codec)] can only be used on structs with named fields")
-            };
-            derive_codec_for_struct(&ident, fields)
+        syn::Data::Struct(syn::DataStruct { fields, .. }) => match fields {
+            syn::Fields::Named(fields) => {
+                derive_codec_for_named_fields_struct(&vis, &ident, fields)
+            }
+            syn::Fields::Unnamed(fields) => derive_codec_for_unnamed_fields_struct(&ident, fields),
+            syn::Fields::Unit => panic!("#[derive(Codec)] cannot be used on unit structs."),
+        },
+        syn::Data::Enum(syn::DataEnum { variants, .. }) => {
+            derive_codec_for_enum(&vis, &ident, variants)
         }
-        syn::Data::Enum(syn::DataEnum { variants, .. }) => derive_codec_for_enum(&ident, variants),
         _ => {
             panic!("#[derive(Codec)] can only be used on structs")
         }
     }
 }
 
-fn derive_codec_for_struct(ident: &Ident, fields: FieldsNamed) -> TokenStream {
+fn derive_codec_for_named_fields_struct(
+    vis: &Visibility,
+    ident: &Ident,
+    fields: FieldsNamed,
+) -> TokenStream {
     let incomplete = Ident::new(&format!("__Incomplete{ident}"), ident.span());
 
     let mut incomplete_struct = quote! {};
@@ -37,12 +46,15 @@ fn derive_codec_for_struct(ident: &Ident, fields: FieldsNamed) -> TokenStream {
     let mut codec_read_map_item_remaining_impl = quote! {};
     let mut codec_write_to_map_impl = quote! {};
 
-    // used for error tracking in individual variants
     incomplete_struct.extend(quote! {
+        // used for error tracking in individual variants
         __result: ::azalea_codec::error::ReadResult<()>,
+        // O isn't used if we're not flattening anything
+        __unused: ::std::marker::PhantomData<O>,
     });
     incomplete_struct_new.extend(quote! {
         __result: Ok(()),
+        __unused: Default::default(),
     });
 
     for field in &fields.named {
@@ -53,16 +65,20 @@ fn derive_codec_for_struct(ident: &Ident, fields: FieldsNamed) -> TokenStream {
 
         let field_name_string = attrs.rename.unwrap_or_else(|| field_name.to_string());
 
-        incomplete_struct.extend(quote! {
-            #field_name: <#field_type as ::azalea_codec::Codec<O>>::Incomplete,
-        });
-
         if attrs.optional || attrs.lenient || attrs.flatten {
+            incomplete_struct.extend(quote! {
+                #field_name: <#field_type as ::azalea_codec::Codec<O>>::Incomplete,
+            });
+
             // cool and normal
             incomplete_struct_new.extend(quote! {
                 #field_name: <<#field_type as ::azalea_codec::Codec<O>>::Incomplete as ::azalea_codec::NewOk<_>>::new_ok(),
             });
         } else {
+            incomplete_struct.extend(quote! {
+                #field_name: ::azalea_codec::error::ReadResult<#field_type>,
+            });
+
             incomplete_struct_new.extend(quote! {
                 #field_name: ::azalea_codec::Incomplete::new(#field_name_string),
             });
@@ -89,7 +105,7 @@ fn derive_codec_for_struct(ident: &Ident, fields: FieldsNamed) -> TokenStream {
         } else if attrs.lenient {
             codec_read_map_item_impl.extend(quote! {
                 #field_name_string => {
-                    incomplete.#field_name = Ok(Codec::codec_read(v).ok());
+                    incomplete.#field_name = Ok(Codec::codec_read(v).unwrap_or_default());
                 }
             });
         } else {
@@ -126,7 +142,7 @@ fn derive_codec_for_struct(ident: &Ident, fields: FieldsNamed) -> TokenStream {
     quote! {
     #[doc(hidden)]
     #[allow(nonstandard_style)]
-    pub struct #incomplete<O: ::azalea_codec::Ops> {
+    #vis struct #incomplete<O: ::azalea_codec::Ops> {
         #incomplete_struct
     }
     #[automatically_derived]
@@ -153,7 +169,6 @@ fn derive_codec_for_struct(ident: &Ident, fields: FieldsNamed) -> TokenStream {
             <Self as ::azalea_codec::Incomplete>::new_unnamed()
         }
     }
-
 
     #[automatically_derived]
     impl<O: ::azalea_codec::Ops> ::azalea_codec::MapCodec<O> for #ident {
@@ -209,7 +224,32 @@ fn derive_codec_for_struct(ident: &Ident, fields: FieldsNamed) -> TokenStream {
     .into()
 }
 
-fn derive_codec_for_enum(ident: &Ident, variants: Punctuated<Variant, Comma>) -> TokenStream {
+fn derive_codec_for_unnamed_fields_struct(ident: &Ident, fields: FieldsUnnamed) -> TokenStream {
+    assert_eq!(
+        fields.unnamed.len(),
+        1,
+        "#[derive(Codec)] cannot be used on structs with more than one unnamed field"
+    );
+
+    quote! {
+    impl<O: ::azalea_codec::Ops> ::azalea_codec::Codec<O> for #ident {
+        fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
+            <_>::codec_read(ops).map(Self)
+        }
+
+        fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
+            self.0.codec_write()
+        }
+    }
+    }
+    .into()
+}
+
+fn derive_codec_for_enum(
+    vis: &Visibility,
+    ident: &Ident,
+    variants: Punctuated<Variant, Comma>,
+) -> TokenStream {
     let mut codec_read = quote! {};
     let mut codec_write = quote! {};
 
@@ -239,7 +279,7 @@ fn derive_codec_for_enum(ident: &Ident, variants: Punctuated<Variant, Comma>) ->
                 #[doc(hidden)]
                 #[allow(nonstandard_style)]
                 #[derive(::azalea_codec::Codec)]
-                pub struct #variant_struct_name_ident #variant_struct_contents
+                #vis struct #variant_struct_name_ident #variant_struct_contents
             });
 
             let mut comma_separated_field_names = quote! {};

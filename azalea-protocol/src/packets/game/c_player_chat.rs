@@ -6,7 +6,7 @@ use std::{
 use azalea_buf::{AzBuf, AzBufVar, BufReadError};
 use azalea_chat::{
     FormattedText,
-    translatable_component::{PrimitiveOrComponent, TranslatableComponent},
+    component::translatable::{PrimitiveOrComponent, TranslatableComponent},
 };
 use azalea_core::{
     bitset::JavaBitSet,

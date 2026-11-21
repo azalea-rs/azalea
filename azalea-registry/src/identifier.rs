@@ -9,6 +9,7 @@ use std::{
 };
 
 use azalea_buf::{AzBuf, BufReadError};
+use azalea_codec::{Codec, error::ReadError};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
 use simdnbt::{FromNbtTag, ToNbtTag, owned::NbtTag};
@@ -143,6 +144,17 @@ impl<'de> Deserialize<'de> for Identifier {
                 &"a valid Identifier",
             ))
         }
+    }
+}
+
+impl<O: azalea_codec::Ops> Codec<O> for Identifier {
+    fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
+        ops.get_string()?
+            .parse()
+            .map_err(|_| ReadError::custom("invalid identifier"))
+    }
+    fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
+        self.to_string().codec_write()
     }
 }
 

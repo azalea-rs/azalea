@@ -7,16 +7,52 @@ use azalea_codec::Codec;
 
 use crate::{
     FormattedText,
-    base_component::BaseComponent,
+    component::base::BaseComponent,
     style::{ChatFormatting, Style, TextColor},
 };
 
 /// A component that contains text that's the same in all locales.
-#[derive(Clone, Debug, Default, PartialEq, Codec)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct TextComponent {
     pub text: String,
-    #[codec(flatten)]
     pub base: BaseComponent,
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Codec)]
+struct TextComponentCodec {
+    text: String,
+    #[codec(flatten)]
+    base: BaseComponent,
+}
+impl<O: azalea_codec::Ops> Codec<O> for TextComponent {
+    fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
+        let r = TextComponentCodec::codec_read(ops)?;
+
+        // make sure it goes through the constructor so legacy formatting is
+        // handled
+        let legacy_formatted = Self::new(r.text);
+
+        if legacy_formatted.base.is_default() {
+            return Ok(legacy_formatted.with_base(r.base));
+        }
+
+        // this will happen if legacy formatting is being mixed with modern
+        // formatting. in this case, we want to wrap it like `{text: "", color:
+        // etc, extra: [legacy, ...siblings]}`
+
+        let mut siblings = vec![legacy_formatted.into()];
+        siblings.extend(r.base.siblings);
+
+        Ok(TextComponent::empty_with_siblings(siblings).with_style(*r.base.style))
+    }
+
+    fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
+        TextComponentCodec {
+            text: self.text.clone(),
+            base: self.base.clone(),
+        }
+        .codec_write()
+    }
 }
 
 pub const LEGACY_FORMATTING_CODE_SYMBOL: char = '§';
@@ -102,9 +138,11 @@ pub fn legacy_color_code_to_text_component(legacy_color_code: &str) -> TextCompo
 impl TextComponent {
     pub fn new(text: impl Into<String>) -> Self {
         let text = text.into();
-        // if it contains a LEGACY_FORMATTING_CODE_SYMBOL, format it
+        // if it contains a §, format it
         if text.contains(LEGACY_FORMATTING_CODE_SYMBOL) {
-            legacy_color_code_to_text_component(&text)
+            let r = legacy_color_code_to_text_component(&text);
+            println!("created from legacy: {r:?}");
+            r
         } else {
             Self {
                 base: BaseComponent::new(),
@@ -130,6 +168,10 @@ impl TextComponent {
         FormattedText::Text(self)
     }
 
+    pub fn with_base(mut self, base: BaseComponent) -> Self {
+        self.base = base;
+        self
+    }
     pub fn with_style(mut self, style: Style) -> Self {
         *self.base.style = style;
         self

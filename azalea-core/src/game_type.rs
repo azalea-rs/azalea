@@ -1,7 +1,7 @@
 use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzBuf, AzBufVar, BufReadError, BufReadErrorRepr};
-use azalea_chat::translatable_component::TranslatableComponent;
+use azalea_chat::component::translatable::TranslatableComponent;
 use tracing::debug;
 
 /// A Minecraft gamemode, like survival or creative.

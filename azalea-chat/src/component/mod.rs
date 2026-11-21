@@ -1,3 +1,13 @@
+pub mod base;
+pub mod common;
+pub mod keybind;
+pub mod nbt;
+pub mod object;
+pub mod score;
+pub mod selector;
+pub mod text;
+pub mod translatable;
+
 #[cfg(all(feature = "azalea-buf", feature = "simdnbt"))]
 use std::io::{self, Cursor, Write};
 use std::{
@@ -12,10 +22,12 @@ use azalea_codec::Codec;
 use simdnbt::owned::NbtTag;
 
 use crate::{
-    base_component::BaseComponent,
+    component::{
+        base::BaseComponent, keybind::KeybindComponent, nbt::NbtComponent, object::ObjectComponent,
+        score::ScoreComponent, selector::SelectorComponent, text::TextComponent,
+        translatable::TranslatableComponent,
+    },
     style::{ChatFormatting, Style},
-    text_component::TextComponent,
-    translatable_component::TranslatableComponent,
 };
 
 /// A chat component, basically anything you can see in chat.
@@ -23,6 +35,11 @@ use crate::{
 pub enum FormattedText {
     Text(TextComponent),
     Translatable(TranslatableComponent),
+    Keybind(KeybindComponent),
+    Score(ScoreComponent),
+    Selector(SelectorComponent),
+    Nbt(NbtComponent),
+    Object(ObjectComponent),
 }
 
 impl<O: azalea_codec::Ops> azalea_codec::Codec<O> for FormattedText {
@@ -56,23 +73,24 @@ impl<O: azalea_codec::Ops> azalea_codec::Codec<O> for FormattedText {
 
         match Vec::<FormattedText>::codec_read(ops) {
             Ok(r) => {
+                let num_components = r.len();
                 let mut iter = r.into_iter();
                 let Some(mut first) = iter.next() else {
                     // an empty array is parsed as an empty string component
                     return Ok(Self::default());
                 };
-                // if first.get_base().siblings.is_empty() {
-                //     // add the rest of the components as siblings on the
-                // first     // component
-                //     first.extend(iter);
-                // } else {
-                let style = first.get_base().style.clone();
+                if num_components == 1 {
+                    // putting a single component in a list just unwraps it
+                    return Ok(first);
+                }
 
+                let style = first.get_base().style.clone();
+                // put them all as siblings of an empty component, but copying
+                // the style of the first component
                 first = TextComponent::empty_with_siblings(vec![first])
                     .with_additional_siblings(iter)
                     .with_style(*style)
                     .into();
-                // }
                 return Ok(first);
             }
             Err(e) => {
@@ -85,12 +103,18 @@ impl<O: azalea_codec::Ops> azalea_codec::Codec<O> for FormattedText {
     fn codec_write(&self) -> ::azalea_codec::error::WriteResult<O> {
         match self {
             Self::Text(v) => {
-                if v.base.is_empty() {
+                // write as a string instead of map when possible
+                if v.base.is_default() {
                     return v.text.codec_write();
                 }
                 v.codec_write()
             }
             Self::Translatable(v) => v.codec_write(),
+            Self::Keybind(v) => v.codec_write(),
+            Self::Score(v) => v.codec_write(),
+            Self::Selector(v) => v.codec_write(),
+            Self::Nbt(v) => v.codec_write(),
+            Self::Object(v) => v.codec_write(),
         }
     }
 }
@@ -106,6 +130,11 @@ impl FormattedText {
         match self {
             Self::Text(c) => &mut c.base,
             Self::Translatable(c) => &mut c.base,
+            Self::Keybind(c) => &mut c.base,
+            Self::Score(c) => &mut c.base,
+            Self::Selector(c) => &mut c.base,
+            Self::Nbt(c) => &mut c.base,
+            Self::Object(c) => &mut c.base,
         }
     }
 
@@ -113,6 +142,11 @@ impl FormattedText {
         match self {
             Self::Text(c) => &c.base,
             Self::Translatable(c) => &c.base,
+            Self::Keybind(c) => &c.base,
+            Self::Score(c) => &c.base,
+            Self::Selector(c) => &c.base,
+            Self::Nbt(c) => &c.base,
+            Self::Object(c) => &c.base,
         }
     }
 
@@ -210,6 +244,11 @@ impl FormattedText {
         let c = match self {
             FormattedText::Text(c) => c,
             FormattedText::Translatable(c) => c.into_text_component().unwrap_or_default(),
+            FormattedText::Keybind(c) => c.into_text_component(),
+            FormattedText::Score(c) => c.into_text_component(),
+            FormattedText::Selector(c) => c.into_text_component(),
+            FormattedText::Nbt(c) => c.into_text_component(),
+            FormattedText::Object(c) => c.into_text_component(),
         };
 
         let text = &c.text;
@@ -327,6 +366,7 @@ impl IntoIterator for FormattedText {
 impl AzBuf for FormattedText {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let nbt = simdnbt::borrow::read_optional_tag(buf)?;
+
         println!(
             "Reading NBT for FormattedText: {:?}",
             nbt.as_ref().map(|n| n.as_tag().to_owned())
@@ -405,7 +445,7 @@ mod tests {
     use serde_json::Value;
 
     use super::*;
-    use crate::{style::TextColor, translatable_component::PrimitiveOrComponent};
+    use crate::{component::translatable::PrimitiveOrComponent, style::TextColor};
 
     #[test]
     fn deserialize_translation() {

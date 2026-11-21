@@ -20,6 +20,12 @@ impl<O: Ops> Codec<O> for bool {
         O::create_boolean(*self)
     }
 }
+impl<O: Ops> Defaultable<O> for bool {
+    fn is_default(&self) -> bool {
+        *self == false
+    }
+}
+
 impl<O: Ops> Codec<O> for () {
     fn codec_read(ops: &O) -> ReadResult<Self> {
         if let Ok(map) = ops.get_map()

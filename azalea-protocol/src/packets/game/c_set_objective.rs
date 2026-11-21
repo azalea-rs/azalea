@@ -1,9 +1,11 @@
 use std::io::{self, Cursor, Write};
 
 use azalea_buf::AzBuf;
-use azalea_chat::{FormattedText, numbers::NumberFormat};
+use azalea_chat::FormattedText;
 use azalea_core::objectives::ObjectiveCriteria;
 use azalea_protocol_macros::ClientboundGamePacket;
+
+use crate::common::number_formatting::NumberFormat;
 
 #[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundSetObjective {

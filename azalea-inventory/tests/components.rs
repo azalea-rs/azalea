@@ -1,7 +1,7 @@
 use azalea_chat::{
     FormattedText,
+    component::text::TextComponent,
     style::{Style, TextColor},
-    text_component::TextComponent,
 };
 use azalea_core::{
     attribute_modifier_operation::AttributeModifierOperation,
