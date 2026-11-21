@@ -43,7 +43,6 @@ fn running_styles2() {
         serde_json::from_str(r#"[{"text":"","extra":[{"text":"a","color":"red"}]},{"text":"b"}]"#)
             .unwrap();
     let component = FormattedText::deserialize(&j).unwrap();
-    println!("{component:?}");
     assert_eq!(
         component.to_ansi(),
         format!(
@@ -85,7 +84,6 @@ fn complex_ansi_test() {
     )
     .unwrap();
     let component = FormattedText::codec_read(&j).unwrap();
-    println!("{component:?}");
 
     let attempt = component.to_ansi();
     let solution = format!(
@@ -99,9 +97,6 @@ fn complex_ansi_test() {
         obfuscated = Ansi::OBFUSCATED,
         abcdef = Ansi::rgb(TextColor::parse("#abcdef").unwrap().value),
     );
-
-    println!("{attempt}");
-    println!("{solution}");
 
     assert_eq!(attempt, solution);
 }

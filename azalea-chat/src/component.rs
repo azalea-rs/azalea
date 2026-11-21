@@ -76,7 +76,7 @@ impl<O: azalea_codec::Ops> azalea_codec::Codec<O> for FormattedText {
                 return Ok(first);
             }
             Err(e) => {
-                errors.push(("String", e));
+                errors.push(("Vec<TextComponent>", e));
             }
         }
 
@@ -327,14 +327,13 @@ impl IntoIterator for FormattedText {
 impl AzBuf for FormattedText {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let nbt = simdnbt::borrow::read_optional_tag(buf)?;
-        // trace!(
-        //     "Reading NBT for FormattedText: {:?}",
-        //     nbt.as_ref().map(|n| n.as_tag().to_owned())
-        // );
+        println!(
+            "Reading NBT for FormattedText: {:?}",
+            nbt.as_ref().map(|n| n.as_tag().to_owned())
+        );
 
         match nbt {
-            Some(nbt) => FormattedText::codec_read(&nbt.as_tag().to_owned())
-                .map_err(|_| BufReadError::custom("couldn't convert nbt to chat message")),
+            Some(nbt) => Ok(FormattedText::codec_read(&nbt.as_tag().to_owned()).unwrap()),
             _ => Ok(FormattedText::default()),
         }
     }
@@ -430,7 +429,9 @@ mod tests {
     fn deserialize_translation_invalid_arguments() {
         let j: Value =
             serde_json::from_str(r#"{"translate": "translation.test.args", "with": {}}"#).unwrap();
-        assert!(FormattedText::codec_read(&j).is_err());
+        let res = FormattedText::codec_read(&j);
+        println!("{res:?}");
+        assert!(res.is_err());
     }
 
     #[test]
@@ -487,7 +488,6 @@ mod tests {
         });
         let component = FormattedText::codec_read(&json).unwrap();
         let ansi = component.to_ansi();
-        println!("{ansi}");
         assert!(ansi.contains("\u{1b}[38;2;85;255;85m"));
     }
 }

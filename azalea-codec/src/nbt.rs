@@ -38,7 +38,24 @@ impl Ops for NbtTag {
     fn get_list(&self) -> ReadResult<<NbtTag as Ops>::List> {
         let items: Vec<NbtTag> = match self {
             NbtTag::ByteArray(items) => items.into_iter().map(|&i| NbtTag::Byte(i as i8)).collect(),
-            NbtTag::List(items) => items.as_nbt_tags(),
+            NbtTag::List(items) => {
+                if let Some(compounds) = items.compounds() {
+                    // dehomogenize lists of compounds
+                    let mut tags = Vec::new();
+                    for c in compounds {
+                        if c.len() == 1
+                            && let Some(item) = c.get("")
+                        {
+                            tags.push(item.clone());
+                        } else {
+                            tags.push(NbtTag::Compound(c.clone()));
+                        }
+                    }
+                    tags
+                } else {
+                    items.as_nbt_tags()
+                }
+            }
             NbtTag::IntArray(items) => items.into_iter().map(|&i| NbtTag::Byte(i as i8)).collect(),
             NbtTag::LongArray(items) => items.into_iter().map(|&i| NbtTag::Byte(i as i8)).collect(),
             _ => return Err(ReadError::custom("not a list")),

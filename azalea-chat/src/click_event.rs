@@ -7,18 +7,26 @@ pub enum ClickEvent {
     OpenUrl {
         action: StringLiteral<"open_url">,
         url: String,
+        #[codec(flatten)]
+        remaining: azalea_codec::types::Drain,
     },
     OpenFile {
         action: StringLiteral<"open_file">,
         path: String,
+        #[codec(flatten)]
+        remaining: azalea_codec::types::Drain,
     },
     RunCommand {
         action: StringLiteral<"run_command">,
         command: String,
+        #[codec(flatten)]
+        remaining: azalea_codec::types::Drain,
     },
     SuggestCommand {
         action: StringLiteral<"suggest_command">,
         command: String,
+        #[codec(flatten)]
+        remaining: azalea_codec::types::Drain,
     },
     // TODO: this uses Dialog.CODEC
     ShowDialog {
@@ -29,10 +37,14 @@ pub enum ClickEvent {
     ChangePage {
         action: StringLiteral<"change_page">,
         page: i32,
+        #[codec(flatten)]
+        remaining: azalea_codec::types::Drain,
     },
     CopyToClipboard {
         action: StringLiteral<"copy_to_clipboard">,
         value: String,
+        #[codec(flatten)]
+        remaining: azalea_codec::types::Drain,
     },
     Custom {
         action: StringLiteral<"custom">,
@@ -42,4 +54,5 @@ pub enum ClickEvent {
         #[codec(flatten)]
         remaining: azalea_codec::types::Drain,
     },
+    Unknown(azalea_codec::types::Drain),
 }

@@ -216,8 +216,6 @@ mod tests {
         let component =
             TextComponent::new("§lHello §r§1w§2o§3r§4l§5d".to_owned()).into_formatted_text();
 
-        println!("component: {component:?}");
-
         let attempt = component.to_ansi();
         let solution = format!(
             "{BOLD}{WHITE}Hello {RESET}{DARK_BLUE}w{DARK_GREEN}o{DARK_AQUA}r{DARK_RED}l{DARK_PURPLE}d{RESET}",
@@ -230,9 +228,6 @@ mod tests {
             DARK_RED = Ansi::rgb(ChatFormatting::DarkRed.color().unwrap()),
             DARK_PURPLE = Ansi::rgb(ChatFormatting::DarkPurple.color().unwrap())
         );
-
-        println!("{attempt}");
-        println!("{solution}");
 
         assert_eq!(attempt, solution);
     }

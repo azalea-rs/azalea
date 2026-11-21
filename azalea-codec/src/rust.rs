@@ -1,6 +1,6 @@
 use crate::{
-    Codec, Defaultable, Incomplete, MapCodec, Ops,
-    error::{ ReadResult, WriteResult},
+    Codec, Defaultable, Incomplete, MapCodec, MapLike, Ops,
+    error::{ReadError, ReadResult, WriteResult},
 };
 
 impl<O: Ops> Codec<O> for String {
@@ -18,6 +18,19 @@ impl<O: Ops> Codec<O> for bool {
     }
     fn codec_write(&self) -> WriteResult<O> {
         O::create_boolean(*self)
+    }
+}
+impl<O: Ops> Codec<O> for () {
+    fn codec_read(ops: &O) -> ReadResult<Self> {
+        if let Ok(map) = ops.get_map()
+            && map.into_values().is_empty()
+        {
+            return Ok(());
+        }
+        Err(ReadError::custom("not an empty map"))
+    }
+    fn codec_write(&self) -> WriteResult<O> {
+        O::empty()
     }
 }
 

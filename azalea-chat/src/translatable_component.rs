@@ -6,12 +6,12 @@ use crate::{FormattedText, base_component::BaseComponent, text_component::TextCo
 
 #[derive(Clone, Debug, PartialEq, Codec)]
 pub enum PrimitiveOrComponent {
-    Boolean(bool),
     Short(i16),
     Integer(i32),
     Long(i64),
     Float(f32),
     Double(f64),
+    Boolean(bool),
     String(String),
     FormattedText(FormattedText),
 }

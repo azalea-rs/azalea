@@ -27,4 +27,5 @@ pub enum HoverEvent {
         #[codec(flatten)]
         remaining: azalea_codec::types::Drain,
     },
+    Unknown(azalea_codec::types::Drain),
 }
