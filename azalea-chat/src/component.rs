@@ -8,7 +8,9 @@ use std::{
 #[cfg(all(feature = "azalea-buf", feature = "simdnbt"))]
 use azalea_buf::{AzBuf, BufReadError};
 use azalea_codec::Codec;
-use serde::{Deserialize, Deserializer, Serialize, de};
+use serde::Deserialize;
+#[cfg(all(feature = "azalea-buf", feature = "simdnbt"))]
+use simdnbt::owned::NbtTag;
 
 use crate::{
     base_component::BaseComponent,
@@ -48,27 +50,6 @@ impl FormattedText {
     /// Add a component as a sibling of this one
     fn append(&mut self, sibling: FormattedText) {
         self.get_base_mut().siblings.push(sibling);
-    }
-
-    /// Get the "separator" component from the json
-    fn parse_separator(
-        json: &serde_json::Value,
-    ) -> Result<Option<FormattedText>, serde_json::Error> {
-        if let Some(separator) = json.get("separator") {
-            return Ok(Some(FormattedText::deserialize(separator)?));
-        }
-        Ok(None)
-    }
-
-    #[cfg(feature = "simdnbt")]
-    fn parse_separator_nbt(nbt: &simdnbt::borrow::NbtCompound) -> Option<FormattedText> {
-        use simdnbt::FromNbtTag;
-
-        if let Some(separator) = nbt.get("separator") {
-            FormattedText::from_nbt_tag(separator)
-        } else {
-            None
-        }
     }
 
     /// Render all components into a single `String`, using your custom
@@ -284,209 +265,6 @@ impl IntoIterator for FormattedText {
     }
 }
 
-#[cfg(feature = "simdnbt")]
-impl simdnbt::FromNbtTag for FormattedText {
-    fn from_nbt_tag(tag: simdnbt::borrow::NbtTag) -> Option<Self> {
-        // if it's a string, return a text component with that string
-        if let Some(string) = tag.string() {
-            Some(FormattedText::from_nbt_string(string))
-        }
-        // if it's a compound, make it do things with { text } and stuff
-        // simdnbt::borrow::NbtTag::Compound(compound) => {
-        else if let Some(compound) = tag.compound() {
-            FormattedText::from_nbt_compound(compound)
-        }
-        // ok so it's not a compound, if it's a list deserialize every item
-        else if let Some(list) = tag.list() {
-            FormattedText::from_nbt_list(list)
-        } else {
-            Some(FormattedText::Text(TextComponent::new("".to_owned())))
-        }
-    }
-}
-
-#[cfg(feature = "simdnbt")]
-impl FormattedText {
-    fn from_nbt_string(s: &simdnbt::Mutf8Str) -> Self {
-        FormattedText::from(s)
-    }
-    fn from_nbt_list(list: simdnbt::borrow::NbtList) -> Option<FormattedText> {
-        use tracing::debug;
-
-        let mut component;
-        if let Some(compounds) = list.compounds() {
-            component = FormattedText::from_nbt_compound(compounds.first()?)?;
-            for compound in compounds.into_iter().skip(1) {
-                component.append(FormattedText::from_nbt_compound(compound)?);
-            }
-        } else if let Some(strings) = list.strings() {
-            component = FormattedText::from(*(strings.first()?));
-            for &string in strings.iter().skip(1) {
-                component.append(FormattedText::from(string));
-            }
-        } else {
-            debug!("couldn't parse {list:?} as FormattedText");
-            return None;
-        }
-        Some(component)
-    }
-
-    pub fn from_nbt_compound(compound: simdnbt::borrow::NbtCompound) -> Option<Self> {
-        use simdnbt::{Deserialize, FromNbtTag};
-        use tracing::{trace, warn};
-
-        let mut component: FormattedText;
-
-        if let Some(text) = compound.get("text") {
-            let text = text.string().unwrap_or_default().to_string();
-            component = FormattedText::Text(TextComponent::new(text));
-        } else if let Some(translate) = compound.get("translate") {
-            let translate = translate.string()?.into();
-            if let Some(with) = compound.get("with") {
-                let mut with_array = Vec::new();
-                let with_list = with.list()?;
-                if with_list.empty() {
-                } else if let Some(with) = with_list.strings() {
-                    for item in with {
-                        with_array.push(PrimitiveOrComponent::String(item.to_string()));
-                    }
-                } else if let Some(with) = with_list.ints() {
-                    for item in with {
-                        with_array.push(PrimitiveOrComponent::Integer(item));
-                    }
-                } else if let Some(with) = with_list.longs() {
-                    for item in with {
-                        with_array.push(PrimitiveOrComponent::Long(item));
-                    }
-                } else if let Some(with) = with_list.compounds() {
-                    for item in with {
-                        // if it's a string component with no styling and no
-                        // siblings, just add a string to with_array. otherwise,
-                        // add the component to the array
-                        if let Some(primitive) = item.get("") {
-                            // minecraft does this sometimes, for example
-                            // for the /give system messages
-                            if let Some(b) = primitive.byte() {
-                                // interpreted as boolean
-                                with_array.push(PrimitiveOrComponent::Boolean(b != 0));
-                            } else if let Some(s) = primitive.short() {
-                                with_array.push(PrimitiveOrComponent::Short(s));
-                            } else if let Some(i) = primitive.int() {
-                                with_array.push(PrimitiveOrComponent::Integer(i));
-                            } else if let Some(l) = primitive.long() {
-                                with_array.push(PrimitiveOrComponent::Long(l));
-                            } else if let Some(f) = primitive.float() {
-                                with_array.push(PrimitiveOrComponent::Float(f));
-                            } else if let Some(d) = primitive.double() {
-                                with_array.push(PrimitiveOrComponent::Double(d));
-                            } else if let Some(s) = primitive.string() {
-                                with_array.push(PrimitiveOrComponent::String(s.to_string()));
-                            } else {
-                                warn!(
-                                    "couldn't parse {item:?} as FormattedText because it has a disallowed primitive"
-                                );
-                                with_array.push(PrimitiveOrComponent::String("?".to_owned()));
-                            }
-                        } else if let Some(c) = FormattedText::from_nbt_compound(item) {
-                            if let FormattedText::Text(text_component) = c
-                                && text_component.base.siblings.is_empty()
-                                && text_component.base.style.is_empty()
-                            {
-                                with_array.push(PrimitiveOrComponent::String(text_component.text));
-                                continue;
-                            }
-                            with_array.push(PrimitiveOrComponent::FormattedText(
-                                FormattedText::from_nbt_compound(item)?,
-                            ));
-                        } else {
-                            warn!("couldn't parse {item:?} as FormattedText");
-                            with_array.push(PrimitiveOrComponent::String("?".to_owned()));
-                        }
-                    }
-                } else {
-                    warn!(
-                        "couldn't parse {with:?} as FormattedText because it's not a list of compounds"
-                    );
-                    return None;
-                }
-                component =
-                    FormattedText::Translatable(TranslatableComponent::new(translate, with_array));
-            } else {
-                // if it doesn't have a "with", just have the with_array be
-                // empty
-                component =
-                    FormattedText::Translatable(TranslatableComponent::new(translate, Vec::new()));
-            }
-        } else if let Some(score) = compound.compound("score") {
-            if score.get("name").is_none() || score.get("objective").is_none() {
-                trace!("A score component needs at least a name and an objective");
-                return None;
-            }
-            // TODO: implement these
-            return None;
-        } else if compound.get("selector").is_some() {
-            trace!("selector text components aren't supported");
-            return None;
-        } else if compound.get("keybind").is_some() {
-            trace!("keybind text components aren't supported");
-            return None;
-        } else if compound.get("object").is_some() {
-            trace!("object text components aren't supported");
-            return None;
-        } else if let Some(tag) = compound.get("") {
-            return FormattedText::from_nbt_tag(tag);
-        } else {
-            let _nbt = compound.get("nbt")?;
-            let _separator = FormattedText::parse_separator_nbt(&compound)?;
-
-            let _interpret = match compound.get("interpret") {
-                Some(v) => v.byte().unwrap_or_default() != 0,
-                None => false,
-            };
-            if let Some(_block) = compound.get("block") {}
-            trace!("nbt text components aren't yet supported");
-            return None;
-        }
-        if let Some(extra) = compound.get("extra") {
-            // if it's an array, deserialize every item
-            if let Some(items) = extra.list() {
-                if let Some(items) = items.compounds() {
-                    for item in items {
-                        component.append(FormattedText::from_nbt_compound(item)?);
-                    }
-                } else if let Some(items) = items.strings() {
-                    for item in items {
-                        component.append(FormattedText::from_nbt_string(item));
-                    }
-                } else if let Some(items) = items.lists() {
-                    for item in items {
-                        component.append(FormattedText::from_nbt_list(item)?);
-                    }
-                } else {
-                    warn!(
-                        "couldn't parse {items:?} as FormattedText because it's not a list of compounds or strings"
-                    );
-                }
-            } else {
-                component.append(FormattedText::from_nbt_tag(extra)?);
-            }
-        }
-
-        let base_style = Style::from_compound(compound).ok()?;
-        let new_style = &mut component.get_base_mut().style;
-        **new_style = new_style.merged_with(&base_style);
-
-        Some(component)
-    }
-}
-
-#[cfg(feature = "simdnbt")]
-impl From<&simdnbt::Mutf8Str> for FormattedText {
-    fn from(s: &simdnbt::Mutf8Str) -> Self {
-        FormattedText::Text(TextComponent::new(s.to_string()))
-    }
-}
-
 #[cfg(all(feature = "azalea-buf", feature = "simdnbt"))]
 impl AzBuf for FormattedText {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
@@ -498,18 +276,19 @@ impl AzBuf for FormattedText {
             "Reading NBT for FormattedText: {:?}",
             nbt.as_ref().map(|n| n.as_tag().to_owned())
         );
+
         match nbt {
-            Some(nbt) => FormattedText::from_nbt_tag(nbt.as_tag())
-                .ok_or(BufReadError::custom("couldn't convert nbt to chat message")),
+            Some(nbt) => FormattedText::codec_read(&nbt.as_tag().to_owned())
+                .map_err(|_| BufReadError::custom("couldn't convert nbt to chat message")),
             _ => Ok(FormattedText::default()),
         }
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        use simdnbt::Serialize;
-
-        let mut out = Vec::new();
-        simdnbt::owned::BaseNbt::write_unnamed(&(self.clone().to_compound().into()), &mut out);
-        buf.write_all(&out)
+        let nbt: NbtTag = self
+            .codec_write()
+            .map_err(|_| io::Error::other("couldn't convert to nbt"))?;
+        nbt.azalea_write(buf);
+        Ok(())
     }
 }
 

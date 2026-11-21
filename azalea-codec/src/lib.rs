@@ -41,6 +41,9 @@ pub trait MapCodec<O: Ops>: Sized + Codec<O> {
 }
 
 // https://github.com/Mojang/DataFixerUpper/blob/master/src/main/java/com/mojang/serialization/DynamicOps.java
+#[diagnostic::on_unimplemented(
+    message = "type `{Self}` is not a data format; did you mean to use `{Self}::codec_read` instead?"
+)]
 pub trait Ops: Sized + Clone {
     type List: IntoIterator<Item = Self>;
     type Map: MapLike<Self>;
@@ -165,4 +168,15 @@ impl<T> Incomplete for ReadResult<T> {
 
 pub trait Defaultable<O: Ops>: Codec<O> {
     fn is_default(&self) -> bool;
+}
+
+/// A wrapper type that allows for easier conversions between codec types.
+pub struct Wrapper<T>(pub T);
+impl<T: Clone> Wrapper<T> {
+    pub fn into_codec<O: Ops>(self) -> O
+    where
+        T: Codec<O>,
+    {
+        self.0.clone().codec_write().unwrap()
+    }
 }

@@ -1,7 +1,7 @@
 use serde_json::{Value, json};
 
 use crate::{
-    Codec, MapLike, Number, Ops,
+    Codec, MapLike, Number, Ops, Wrapper,
     error::{ReadError, ReadResult, WriteError, WriteResult},
 };
 
@@ -94,23 +94,17 @@ impl MapLike<Value> for serde_json::Map<String, Value> {
     }
 }
 
-pub struct Serde<T: Codec<Value>>(pub T);
-
-impl<T: Codec<Value>> serde::Serialize for Serde<T> {
+impl<T: Codec<Value> + Clone> serde::Serialize for Wrapper<T> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
     {
-        let value: serde_json::Value = self.0.codec_write().unwrap();
+        let value: serde_json::Value = self.0.clone().codec_write().unwrap();
         value.serialize(serializer)
     }
 }
-
-// impl<'de, T: Codec<Value>> serde::Deserialize<'de> for Serde<T> {
-//     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-//     where
-//         D: serde::Deserializer<'de>,
-//     {
-//         // let value: serde_json::Value = component.codec_write().unwrap();
-//     }
-// }
+impl<T: Clone + Codec<Value>> Wrapper<T> {
+    pub fn into_json(self) -> Value {
+        self.into_codec()
+    }
+}
