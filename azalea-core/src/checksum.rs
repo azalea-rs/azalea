@@ -1,8 +1,7 @@
-use std::{cmp::Ordering, fmt, hash::Hasher};
+use std::fmt;
 
 use azalea_buf::AzBuf;
 use azalea_codec::Codec;
-use crc32c::Crc32cHasher;
 use serde::ser;
 use thiserror::Error;
 
