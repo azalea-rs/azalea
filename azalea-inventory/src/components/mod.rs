@@ -423,7 +423,7 @@ pub struct BlockPredicate {
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 #[codec(transparent)]
 pub struct AdventureModePredicate {
-    #[codec(with = CompactListCodec)]
+    #[codec(with = CompactListCodec::<_>)]
     pub predicates: Vec<BlockPredicate>,
 }
 

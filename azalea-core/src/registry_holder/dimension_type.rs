@@ -1,7 +1,14 @@
 use std::collections::HashMap;
 
 use azalea_buf::AzBuf;
-use azalea_registry::{builtin::SoundEvent, identifier::Identifier};
+#[cfg(not(feature = "strict_registry"))]
+use azalea_codec::Codec;
+use azalea_registry::{
+    HolderSet,
+    builtin::{BlockKind, EnvironmentAttribute, SoundEvent},
+    identifier::Identifier,
+};
+use indexmap::IndexMap;
 use simdnbt::{
     Deserialize, FromNbtTag, Serialize, ToNbtTag,
     owned::{NbtCompound, NbtTag},
@@ -49,39 +56,57 @@ pub struct ChatTypeStyle {
 }
 
 /// Dimension attributes.
-#[cfg(feature = "strict_registry")]
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[simdnbt(deny_unknown_fields)]
+#[derive(Clone, Debug, Codec)]
 pub struct DimensionKindElement {
-    pub ambient_light: f32,
-    pub bed_works: bool,
-    pub coordinate_scale: f32,
-    pub effects: Identifier,
-    pub fixed_time: Option<u32>,
-    pub has_ceiling: bool,
-    pub has_raids: bool,
+    #[codec(optional)]
+    pub has_fixed_time: bool,
     pub has_skylight: bool,
-    pub height: u32,
-    pub infiniburn: Identifier,
-    pub logical_height: u32,
+    pub has_ceiling: bool,
+    pub has_ender_dragon_fight: bool,
+    pub coordinate_scale: f32,
     pub min_y: i32,
-    pub monster_spawn_block_light_limit: u32,
-    pub monster_spawn_light_level: MonsterSpawnLightLevel,
-    pub natural: bool,
-    pub piglin_safe: bool,
-    pub respawn_anchor_works: bool,
-    pub ultrawarm: Option<bool>,
+    pub height: u32,
+    pub logical_height: u32,
+    pub infiniburn: HolderSet<BlockKind, Identifier>,
+    pub ambient_light: f32,
+    #[codec(flatten)]
+    pub monster_settings: MonsterSettings,
+    #[codec(optional)]
+    pub skybox: Option<String>,
+    #[codec(optional)]
+    pub cardinal_light: Option<CardinalLighting>,
+    #[codec(optional)]
+    pub attributes: EnvironmentAttributeMap,
+    #[codec(optional)]
+    pub timelines: Option<HolderSet<azalea_registry::data::Timeline, Identifier>>,
+    pub default_clock: azalea_registry::data::WorldClock,
+
+    #[codec(flatten)]
+    pub _extra: HashMap<String, NbtTag>,
 }
 
-/// Dimension attributes.
-#[cfg(not(feature = "strict_registry"))]
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct DimensionKindElement {
-    pub height: u32,
-    pub min_y: i32,
-    pub ultrawarm: Option<bool>,
-    #[simdnbt(flatten)]
-    pub _extra: HashMap<String, NbtTag>,
+#[derive(Clone, Debug, Codec)]
+#[codec(default_snake_case_key)]
+pub enum CardinalLighting {
+    Default,
+    Nether,
+}
+#[derive(Clone, Debug, Codec, Default)]
+#[codec(transparent)]
+pub struct EnvironmentAttributeMap {
+    pub values: IndexMap<EnvironmentAttribute, EnvironmentAttributeEntry>,
+}
+azalea_codec::impl_defaultable!(EnvironmentAttributeMap, self, self.values.is_empty());
+
+/// Unimplemented.
+#[derive(Clone, Debug, Codec)]
+#[codec(allow_unknown_keys)]
+pub struct EnvironmentAttributeEntry {}
+
+#[derive(Clone, Debug, Codec)]
+pub struct MonsterSettings {
+    pub monster_spawn_light_level: u8,
+    pub monster_spawn_block_light_limit: u8,
 }
 
 /// The light level at which monsters can spawn.

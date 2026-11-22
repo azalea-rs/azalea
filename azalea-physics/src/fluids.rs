@@ -7,7 +7,7 @@ use azalea_core::{
     position::{BlockPos, Vec3},
 };
 use azalea_entity::{HasClientLoaded, LocalEntity, Physics, Position};
-use azalea_registry::builtin::BlockKind;
+use azalea_registry::builtin::{BlockKind, EnvironmentAttribute};
 use azalea_world::{World, WorldName, Worlds};
 use bevy_ecs::prelude::*;
 
@@ -38,14 +38,19 @@ pub fn update_in_water_state_and_do_fluid_pushing(
         // registry which is very inefficient, so for now we're doing
         // this instead
 
-        let is_ultrawarm = world
+        let is_fast_lava = world
             .registries
             .dimension_type
             .map
             .get(&**world_name)
-            .and_then(|i| i.ultrawarm)
+            .map(|i| {
+                i.attributes
+                    .values
+                    .get(&EnvironmentAttribute::GameplayFastLava)
+                    .is_some()
+            })
             .unwrap_or_default();
-        let lava_push_factor = if is_ultrawarm {
+        let lava_push_factor = if is_fast_lava {
             0.007
         } else {
             0.0023333333333333335

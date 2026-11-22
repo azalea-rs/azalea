@@ -1,7 +1,7 @@
 use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{
-    Attribute, Ident, Token, Type, parenthesized,
+    Attribute, Ident, Path, Token, Type, parenthesized,
     parse::{Parse, ParseStream},
 };
 
@@ -21,7 +21,7 @@ pub struct FieldAttrs {
     /// Use the given wrapper type to read and write this field.
     ///
     /// E.g. `#[codec(with = CompactListCodec)]`
-    pub with: Option<TokenStream>,
+    pub with: Option<Path>,
 }
 impl Parse for FieldAttrs {
     fn parse(input: ParseStream) -> syn::Result<Self> {
@@ -44,8 +44,8 @@ impl Parse for FieldAttrs {
                 "lenient" => attrs.lenient = true,
                 "with" => {
                     input.parse::<syn::Token![=]>()?;
-                    let with = input.parse::<syn::Type>()?;
-                    attrs.with = Some(with.to_token_stream());
+                    let with = input.parse::<syn::Path>()?;
+                    attrs.with = Some(with);
                 }
                 attr => {
                     return Err(syn::Error::new(

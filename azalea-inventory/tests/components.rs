@@ -3,7 +3,6 @@ use azalea_chat::{
     component::text::TextComponent,
     style::{Style, TextColor},
 };
-use azalea_codec::Codec;
 use azalea_core::{
     attribute_modifier_operation::AttributeModifierOperation,
     checksum::get_checksum,

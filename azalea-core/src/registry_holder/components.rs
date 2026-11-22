@@ -53,7 +53,7 @@ macro_rules! define_effect_components {
                 Ok(match kind {
                     $( EnchantmentEffectComponentKind::$x => {
                         azalea_codec::types::CompactListCodec(
-                            items.into_iter().map(|i| i.$x).collect::<Vec<ManuallyDrop<_>>>()
+                            items.into_iter().map(|i| unsafe { i.$x }).collect::<Vec<ManuallyDrop<_>>>()
                         ).codec_write(ctx)?
                     }, )*
                 })
@@ -239,41 +239,20 @@ declare_newtype_components! {
 #[derive(Clone, Debug, Codec)]
 pub struct DamageImmunity {}
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Codec)]
 pub struct CrossbowChargingSounds(pub Vec<CrossbowChargingSound>);
-impl simdnbt::FromNbtTag for CrossbowChargingSounds {
-    fn from_nbt_tag(tag: NbtTag) -> Option<Self> {
-        simdnbt::FromNbtTag::from_nbt_tag(tag).map(Self)
-    }
-}
-impl CrossbowChargingSounds {
-    pub fn from_effect_nbt_tag(nbt: EffectNbtTag) -> Result<Self, DeserializeError> {
-        let Ok(nbt) = nbt.list("CrossbowChargingSounds") else {
-            return Ok(Self(vec![simdnbt::Deserialize::from_compound(
-                nbt.compound("CrossbowChargingSounds")?,
-            )?]));
-        };
 
-        Ok(Self(
-            nbt.compounds()
-                .ok_or_else(|| {
-                    DeserializeError::MismatchedFieldType("CrossbowChargingSounds".to_owned())
-                })?
-                .into_iter()
-                .map(|c| simdnbt::Deserialize::from_compound(c))
-                .collect::<Result<_, _>>()?,
-        ))
-    }
-}
-
-#[derive(Clone, Debug, simdnbt::Deserialize)]
+#[derive(Clone, Debug, Codec)]
 pub struct CrossbowChargingSound {
+    #[codec(optional)]
     pub start: Option<SoundEvent>,
+    #[codec(optional)]
     pub mid: Option<SoundEvent>,
+    #[codec(optional)]
     pub end: Option<SoundEvent>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Codec)]
 pub struct TridentSound(pub Vec<SoundEvent>);
 impl simdnbt::FromNbtTag for TridentSound {
     fn from_nbt_tag(tag: NbtTag) -> Option<Self> {

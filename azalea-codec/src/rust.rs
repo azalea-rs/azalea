@@ -1,9 +1,9 @@
 use std::{collections::HashMap, hash::Hash, mem::ManuallyDrop};
 
 use crate::{
-    Codec, Defaultable, Incomplete, MapCodec, MapLike, Ops,
+    Codec, Defaultable, Incomplete, MapCodec, MapLike, NewOk, Ops,
     error::{ReadError, ReadResult, WriteResult},
-    impl_defaultable,
+    impl_defaultable, impl_mapcodec,
 };
 
 impl<O: Ops> Codec<O> for String {
@@ -151,6 +151,7 @@ impl<O: Ops, A: Codec<O>, B: Codec<O>> Codec<O> for (A, B) {
 }
 
 impl<O: Ops, K: Codec<O> + Eq + Hash, V: Codec<O>> Codec<O> for HashMap<K, V> {
+    type Incomplete = IncompleteHashMap<K, V>;
     fn codec_read(ops: &O) -> ReadResult<Self> {
         let map = ops.get_map()?;
         let mut items = Vec::new();
@@ -158,7 +159,7 @@ impl<O: Ops, K: Codec<O> + Eq + Hash, V: Codec<O>> Codec<O> for HashMap<K, V> {
             items.push(K::codec_read(k).and_then(|k| V::codec_read(v).map(|v| (k, v))));
         });
 
-        Ok(HashMap::from_iter(
+        Ok(Self::from_iter(
             items.into_iter().collect::<ReadResult<Box<[_]>>>()?,
         ))
     }
@@ -170,6 +171,7 @@ impl<O: Ops, K: Codec<O> + Eq + Hash, V: Codec<O>> Codec<O> for HashMap<K, V> {
         O::create_map(ctx, &map)
     }
 }
+impl_mapcodec!(HashMap<K, V>, IncompleteHashMap<K: Eq + Hash, V>, K: V);
 
 impl<O: Ops, T: Codec<O>> Codec<O> for Option<T> {
     fn codec_read(ops: &O) -> ReadResult<Self> {

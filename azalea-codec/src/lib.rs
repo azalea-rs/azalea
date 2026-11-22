@@ -26,6 +26,11 @@ pub trait Codec<O: Ops>: Sized {
 
     /// Convert from a **data format** to a **data structure**.
     fn codec_read(ops: &O) -> ReadResult<Self>;
+    // ^ this takes in a reference for user ergonomics and performance. many
+    // implementations will be calling read on the same object many times (to
+    // try different ways of deserializing it), and being required to clone the
+    // entire thing every time would be a shame.
+
     /// Convert from a **data structure** to a **data format**.
     fn codec_write(&self, ctx: O::Context) -> WriteResult<O>;
 }
@@ -92,6 +97,74 @@ macro_rules! impl_mapcodec_from {
                 incomplete: &mut <Self as $crate::Codec<O>>::Incomplete,
             ) -> $crate::error::ReadResult<()> {
                 <$other>::get_and_reset_result(&mut incomplete.0)
+            }
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! impl_mapcodec {
+    ($t:ty, $incomplete:ident $(<$($generic:ident$(: $constraint:ident $(+ $constraint2:ident)*  )?),*>)?, $k:ty : $v:ty) => {
+        pub struct $incomplete $(<$($generic),*>)? {
+            result: $crate::error::ReadResult<()>,
+            map: $t,
+        }
+        impl<O: Ops, $($($generic: Codec<O> $(+ $constraint $(+ $constraint2)*)?),*)?> MapCodec<O> for $t {
+            fn codec_read_map_item(incomplete: &mut <Self as Codec<O>>::Incomplete, k: &O, v: &O) {
+                let k = match <$k>::codec_read(k) {
+                    Ok(r) => r,
+                    Err(e) => {
+                        incomplete.result = Err(e);
+                        return;
+                    }
+                };
+                let v = match <$v>::codec_read(v) {
+                    Ok(r) => r,
+                    Err(e) => {
+                        incomplete.result = Err(e);
+                        return;
+                    }
+                };
+                incomplete.map.insert(k, v);
+            }
+            fn codec_write_to_map(
+                &self,
+                ctx: O::Context,
+                map: &mut Vec<(O, O)>,
+            ) -> $crate::error::WriteResult<()> {
+                for (k, v) in self.iter() {
+                    map.push((k.to_owned().codec_write(ctx)?, v.codec_write(ctx)?))
+                }
+                Ok(())
+            }
+            fn get_and_reset_result(
+                incomplete: &mut <Self as Codec<O>>::Incomplete,
+            ) -> $crate::error::ReadResult<()> {
+                let mut result = Ok(());
+                ::std::mem::swap(&mut incomplete.result, &mut result);
+                result
+            }
+        }
+        impl<$($($generic $(: $constraint $(+ $constraint2)*)?),*)?> Incomplete for $incomplete $(<$($generic),*>)? {
+            type Complete = $t;
+            fn new(name: &'static str) -> Self {
+                Self {
+                    result: Err(ReadError::missing_key(name)),
+                    map: Default::default(),
+                }
+            }
+            fn build(self) -> ReadResult<Self::Complete> {
+                self.result.map(|_| self.map)
+            }
+        }
+        impl<O: Ops, $($($generic: Codec<O> $(+ $constraint $(+ $constraint2)*)?),*)?> NewOk<O> for $incomplete $(<$($generic),*>)?
+            where Self: Incomplete
+        {
+            fn new_ok() -> Self {
+                Self {
+                    result: Ok(()),
+                    map: Default::default(),
+                }
             }
         }
     };

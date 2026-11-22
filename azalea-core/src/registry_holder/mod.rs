@@ -14,12 +14,15 @@ pub mod entity_effect;
 pub mod float_provider;
 pub mod value;
 
-use std::{collections::HashMap, io::Cursor, sync::LazyLock};
+use std::{collections::HashMap, sync::LazyLock};
 
+use azalea_codec::Codec;
 use azalea_registry::identifier::Identifier;
 use indexmap::IndexMap;
-use simdnbt::{DeserializeError, FromNbtTag, borrow, owned::NbtCompound};
-use thiserror::Error;
+use simdnbt::{
+    DeserializeError, FromNbtTag, borrow,
+    owned::{NbtCompound, NbtTag},
+};
 use tracing::error;
 
 /// The base of the registry.
@@ -121,31 +124,13 @@ impl Default for &'static RegistryHolder {
     }
 }
 
-fn nbt_to_serializable_type<T: simdnbt::Deserialize>(
-    value: &NbtCompound,
-) -> Result<T, NbtToSerializableTypeError> {
-    // convert the value to T
-    let mut nbt_bytes = Vec::new();
-    value.write(&mut nbt_bytes);
-    let nbt_borrow_compound = simdnbt::borrow::read_compound(&mut Cursor::new(&nbt_bytes))?;
-    T::from_compound((&nbt_borrow_compound).into()).map_err(Into::into)
-}
-
-#[derive(Debug, Error)]
-enum NbtToSerializableTypeError {
-    #[error(transparent)]
-    NbtError(#[from] simdnbt::Error),
-    #[error(transparent)]
-    DeserializeError(#[from] simdnbt::DeserializeError),
-}
-
 /// A collection of values for a certain type of registry data.
-#[derive(Clone, Debug)]
-pub struct RegistryType<T: simdnbt::Deserialize> {
+#[derive(Clone, Debug, Codec)]
+pub struct RegistryType<T: Codec<NbtTag>> {
     pub map: IndexMap<Identifier, T>,
 }
 
-impl<T: simdnbt::Deserialize> Default for RegistryType<T> {
+impl<T: Codec<NbtTag>> Default for RegistryType<T> {
     fn default() -> Self {
         Self {
             map: IndexMap::new(),
@@ -153,12 +138,12 @@ impl<T: simdnbt::Deserialize> Default for RegistryType<T> {
     }
 }
 
-impl<T: simdnbt::Deserialize> RegistryType<T> {
+impl<T: Codec<NbtTag>> RegistryType<T> {
     fn append_nbt(&mut self, id: Identifier, entries: Vec<(Identifier, Option<NbtCompound>)>) {
         let map = &mut self.map;
         for (key, value) in entries {
             if let Some(value) = value {
-                match nbt_to_serializable_type(&value) {
+                match T::codec_read(&NbtTag::from(value.clone())) {
                     Ok(value) => {
                         map.insert(key, value);
                     }
@@ -173,7 +158,7 @@ impl<T: simdnbt::Deserialize> RegistryType<T> {
     }
 }
 
-pub trait RegistryDeserializesTo: simdnbt::Deserialize {
+pub trait RegistryDeserializesTo {
     fn get_for_registry<'a>(
         registries: &'a RegistryHolder,
         registry_name: &'static str,

@@ -1,25 +1,18 @@
-use std::{collections::HashMap, str::FromStr};
+use std::collections::HashMap;
 
 use azalea_codec::{Codec, types::CompactListCodec};
 use azalea_registry::{
     Holder,
-    builtin::{
-        EnchantmentEntityEffectKind as EntityEffectKind, GameEvent, ParticleKind, SoundEvent,
-    },
+    builtin::{GameEvent, ParticleKind, SoundEvent},
     data::DamageKindKey,
     identifier::Identifier,
 };
-use simdnbt::{
-    Deserialize, DeserializeError,
-    borrow::{NbtCompound, NbtTag},
-};
-use tracing::error;
 
 use crate::{
     position::{Vec3, Vec3i},
     registry_holder::{
         block_predicate::BlockPredicate, block_state_provider::BlockStateProvider,
-        float_provider::FloatProvider, get_in_compound, value::LevelBasedValue,
+        float_provider::FloatProvider, value::LevelBasedValue,
     },
     sound::CustomSound,
 };
@@ -64,7 +57,7 @@ pub struct ApplyMobEffect {
 // azalea registries should probably be refactored first tho
 #[derive(Clone, Debug, Default, Codec)]
 pub struct HomogeneousList {
-    #[codec(with = CompactListCodec)]
+    #[codec(with = CompactListCodec::<_>)]
     pub ids: Vec<Identifier>,
 }
 
@@ -115,7 +108,7 @@ pub struct ApplyExhaustion {
 
 #[derive(Clone, Debug, Codec)]
 pub struct PlaySound {
-    #[codec(with = CompactListCodec)]
+    #[codec(with = CompactListCodec::<_>)]
     pub sound: Vec<Holder<SoundEvent, CustomSound>>,
     pub volume: FloatProvider,
     pub pitch: FloatProvider,

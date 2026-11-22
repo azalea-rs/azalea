@@ -1,5 +1,3 @@
-use std::mem;
-
 use simdnbt::{
     Mutf8String,
     owned::{NbtCompound, NbtList, NbtTag},
@@ -8,6 +6,7 @@ use simdnbt::{
 use crate::{
     Codec, Incomplete, MapCodec, MapLike, NewOk, Number, Ops,
     error::{ReadError, ReadResult, WriteError, WriteResult},
+    impl_mapcodec,
 };
 
 // NbtOps.java
@@ -236,59 +235,6 @@ impl<O: Ops> Codec<O> for NbtCompound {
         O::create_map(ctx, &map)
     }
 }
-pub struct IncompleteNbtCompound {
-    result: ReadResult<()>,
-    map: NbtCompound,
-}
-impl<O: Ops> MapCodec<O> for NbtCompound {
-    fn codec_read_map_item(incomplete: &mut <Self as Codec<O>>::Incomplete, k: &O, v: &O) {
-        let k = match Mutf8String::codec_read(k) {
-            Ok(r) => r,
-            Err(e) => {
-                incomplete.result = Err(e);
-                return;
-            }
-        };
-        let v = match NbtTag::codec_read(v) {
-            Ok(r) => r,
-            Err(e) => {
-                incomplete.result = Err(e);
-                return;
-            }
-        };
-        incomplete.map.insert(k, v);
-    }
-    fn codec_write_to_map(&self, ctx: O::Context, map: &mut Vec<(O, O)>) -> WriteResult<()> {
-        for (k, v) in self.iter() {
-            map.push((k.to_owned().codec_write(ctx)?, v.codec_write(ctx)?))
-        }
-        Ok(())
-    }
-    fn get_and_reset_result(incomplete: &mut <Self as Codec<O>>::Incomplete) -> ReadResult<()> {
-        let mut result = Ok(());
-        mem::swap(&mut incomplete.result, &mut result);
-        result
-    }
-}
-impl<O: Ops> NewOk<O> for IncompleteNbtCompound {
-    fn new_ok() -> Self {
-        Self {
-            result: Ok(()),
-            map: Default::default(),
-        }
-    }
-}
-impl Incomplete for IncompleteNbtCompound {
-    type Complete = NbtCompound;
-    fn new(name: &'static str) -> Self {
-        Self {
-            result: Err(ReadError::missing_key(name)),
-            map: Default::default(),
-        }
-    }
-    fn build(self) -> ReadResult<Self::Complete> {
-        self.result.map(|_| self.map)
-    }
-}
+impl_mapcodec!(NbtCompound, IncompleteNbtCompound, Mutf8String: NbtTag);
 
 crate::impl_defaultable!(NbtCompound);

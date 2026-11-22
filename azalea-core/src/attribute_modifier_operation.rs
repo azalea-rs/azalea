@@ -2,7 +2,6 @@ use std::str::FromStr;
 
 use azalea_buf::AzBuf;
 use azalea_codec::Codec;
-use simdnbt::{FromNbtTag, borrow::NbtTag};
 
 #[derive(AzBuf, Clone, Copy, Debug, PartialEq, Codec)]
 #[codec(default_snake_case_key)]

@@ -1,24 +1,25 @@
-use std::{any::Any, fmt::Debug, str::FromStr};
+use std::{
+    any::Any,
+    fmt::{self, Debug},
+};
 
 use azalea_codec::{Codec, MapLike};
 use azalea_registry::builtin::EnchantmentEffectComponentKind;
 use indexmap::IndexMap;
-use simdnbt::{DeserializeError, borrow::NbtCompound};
 
 use crate::registry_holder::components::{
-    EffectComponentTrait, EffectComponentUnion, EffectNbtTag, ResolvedEffectComponent,
+    EffectComponentTrait, EffectComponentUnion, ResolvedEffectComponent,
 };
 
-#[derive(Codec)]
+#[derive(Codec, Clone, Debug)]
 pub struct EnchantmentData {
     // TODO: make these two deserializable
     // pub description: TextComponent,
     // pub exclusive_set: HolderSet<Enchantment, ResourceLocation>,
-    #[codec(with = Effects)]
-    effects: IndexMap<EnchantmentEffectComponentKind, Vec<EffectComponentUnion>>,
+    pub effects: Effects,
 }
 
-impl EnchantmentData {
+impl Effects {
     pub fn get<T: EffectComponentTrait>(&self) -> Option<Vec<&T>> {
         let components = self.get_kind(T::KIND)?;
         let components_any = components
@@ -32,7 +33,7 @@ impl EnchantmentData {
         &self,
         kind: EnchantmentEffectComponentKind,
     ) -> Option<Vec<&dyn ResolvedEffectComponent>> {
-        self.effects.get(&kind).map(|c| {
+        self.0.get(&kind).map(|c| {
             c.iter()
                 .map(|c| {
                     // SAFETY: we just got the component from the map, so it
@@ -44,7 +45,7 @@ impl EnchantmentData {
     }
 }
 
-struct Effects(IndexMap<EnchantmentEffectComponentKind, Vec<EffectComponentUnion>>);
+pub struct Effects(IndexMap<EnchantmentEffectComponentKind, Vec<EffectComponentUnion>>);
 impl<O: azalea_codec::Ops> Codec<O> for Effects {
     fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
         let map = ops.get_map()?;
@@ -77,18 +78,10 @@ impl<O: azalea_codec::Ops> Codec<O> for Effects {
     }
 }
 
-impl Debug for EnchantmentData {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("EnchantmentData")
-            .field("effects", &self.effects.keys())
-            .finish()
-    }
-}
-
-impl Clone for EnchantmentData {
+impl Clone for Effects {
     fn clone(&self) -> Self {
-        let mut effects = IndexMap::with_capacity(self.effects.len());
-        for (kind, effect) in &self.effects {
+        let mut effects = IndexMap::with_capacity(self.0.len());
+        for (kind, effect) in &self.0 {
             effects.insert(
                 *kind,
                 effect
@@ -97,6 +90,11 @@ impl Clone for EnchantmentData {
                     .collect(),
             );
         }
-        EnchantmentData { effects }
+        Self(effects)
+    }
+}
+impl Debug for Effects {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_tuple("Effects").finish()
     }
 }

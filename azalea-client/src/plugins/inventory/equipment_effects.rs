@@ -170,7 +170,7 @@ fn collect_attribute_modifiers_from_item(
                 continue;
             };
 
-            let effects = enchant_definition.get::<AttributeEffect>();
+            let effects = enchant_definition.effects.get::<AttributeEffect>();
             for effect in effects.unwrap_or_default() {
                 // TODO: check if the effect definition allows the slot
 
