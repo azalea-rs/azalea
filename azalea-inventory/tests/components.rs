@@ -90,22 +90,19 @@ fn test_can_place_on_checksum() {
 #[test]
 fn test_custom_data_nbt() {
     let c = CustomData {
-        nbt: Nbt::Some(BaseNbt::new(
-            "",
-            NbtCompound::from_values(vec![
-                ("meow".into(), "mrrp".into()),
-                (
-                    "nya".into(),
-                    NbtList::Compound(vec![
-                        NbtTag::Int(1).into(),
-                        NbtTag::Int(2).into(),
-                        NbtCompound::new(),
-                        NbtCompound::from_values(vec![("data".into(), NbtTag::Byte(1))]),
-                    ])
-                    .into(),
-                ),
-            ]),
-        )),
+        nbt: NbtCompound::from_values(vec![
+            ("meow".into(), "mrrp".into()),
+            (
+                "nya".into(),
+                NbtList::Compound(vec![
+                    NbtTag::Int(1).into(),
+                    NbtTag::Int(2).into(),
+                    NbtCompound::new(),
+                    NbtCompound::from_values(vec![("data".into(), NbtTag::Byte(1))]),
+                ])
+                .into(),
+            ),
+        ]),
     };
     assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 1035780974);
 }

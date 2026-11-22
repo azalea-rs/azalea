@@ -11,7 +11,7 @@ use crate::number::Number;
 pub type ReadResult<T> = std::result::Result<T, ReadError>;
 pub type WriteResult<T> = std::result::Result<T, WriteError>;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ReadErrorKind {
     Unimplemented,
     UnknownKey(Box<str>),
@@ -60,6 +60,14 @@ impl From<Infallible> for ReadError {
         unreachable!()
     }
 }
+impl Clone for ReadError {
+    fn clone(&self) -> Self {
+        Self {
+            kind: self.kind.clone(),
+            backtrace: Backtrace::capture(),
+        }
+    }
+}
 
 impl Debug for ReadError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -76,7 +84,7 @@ impl Debug for ReadError {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum WriteErrorKind {
     Unimplemented,
     NumberTooBig(u64),
@@ -110,5 +118,13 @@ impl From<WriteErrorKind> for WriteError {
 impl From<Infallible> for WriteError {
     fn from(_: Infallible) -> Self {
         unreachable!()
+    }
+}
+impl Clone for WriteError {
+    fn clone(&self) -> Self {
+        Self {
+            kind: self.kind.clone(),
+            backtrace: Backtrace::capture(),
+        }
     }
 }

@@ -1692,6 +1692,7 @@ impl Default for ItemDamageFunction {
         }
     }
 }
+azalea_codec::impl_defaultable!(ItemDamageFunction);
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize, Codec)]
 #[serde(transparent)]
@@ -2035,7 +2036,7 @@ impl Default for ResolvableFloat {
     }
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize, Default)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Default, Serialize, Codec)]
 pub struct CookingFuel {
     pub burn_time: ResolvableInt,
     pub speed_multiplier: ResolvableFloat,
@@ -2074,7 +2075,7 @@ pub struct SignTextBack {
     pub value: SignText,
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug, Serialize, Default)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Default, Serialize, Codec)]
 pub struct SignText {
     pub messages: [FormattedText; 4],
     pub filtered_messages_for_serialization: Option<[FormattedText; 4]>,

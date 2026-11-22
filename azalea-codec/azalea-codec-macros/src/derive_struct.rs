@@ -54,7 +54,7 @@ pub fn derive_codec_for_named_fields_struct(
             Err(e) => return syn::Error::into_compile_error(e).into(),
         };
 
-        let field_name_string = attrs.rename.unwrap_or_else(|| field_name.to_string());
+        let debug_field_name_string = attrs.rename.unwrap_or_else(|| field_name.to_string());
 
         if attrs.flatten {
             incomplete_struct.extend(quote! {
@@ -63,7 +63,7 @@ pub fn derive_codec_for_named_fields_struct(
 
             // cool and normal
             incomplete_struct_new.extend(quote! {
-                #field_name: <<#field_type as ::azalea_codec::Codec<O>>::Incomplete as ::azalea_codec::NewOk<_>>::new_ok(),
+                #field_name: <<#field_type as ::azalea_codec::Codec<O>>::Incomplete as ::azalea_codec::NewOk<O>>::new_ok(),
             });
         } else {
             incomplete_struct.extend(quote! {
@@ -71,7 +71,7 @@ pub fn derive_codec_for_named_fields_struct(
             });
 
             incomplete_struct_new.extend(quote! {
-                #field_name: ::azalea_codec::Incomplete::new(#field_name_string),
+                #field_name: ::azalea_codec::Incomplete::new(#debug_field_name_string),
             });
         }
 
@@ -83,7 +83,7 @@ pub fn derive_codec_for_named_fields_struct(
             // formatted like this to more easily handle multiple flattened
             // fields
             codec_read_map_item_remaining_impl.extend(quote! {
-                <#field_type>::codec_read_map_item(&mut incomplete.#field_name, k, v);
+                <#field_type as ::azalea_codec::MapCodec<O>>::codec_read_map_item(&mut incomplete.#field_name, k, v);
                 // it's possibly fine for the flattened struct to error here
                 // without it being fatal, if we have a second flattened map
                 // that we're going to decode next. so, we reset back the error
@@ -95,13 +95,13 @@ pub fn derive_codec_for_named_fields_struct(
             });
         } else if attrs.lenient {
             codec_read_map_item_impl.extend(quote! {
-                #field_name_string => {
+                #debug_field_name_string => {
                     incomplete.#field_name = Ok(::azalea_codec::Codec::codec_read(v).unwrap_or_default());
                 }
             });
         } else {
             codec_read_map_item_impl.extend(quote! {
-                #field_name_string => {
+                #debug_field_name_string => {
                     incomplete.#field_name = <#field_type as ::azalea_codec::Codec<O>>::codec_read(v);
                 }
             });
@@ -109,13 +109,13 @@ pub fn derive_codec_for_named_fields_struct(
 
         if attrs.flatten {
             codec_write_to_map_impl.extend(quote! {
-                self.#field_name.codec_write_to_map(__codec_map)?;
+                ::azalea_codec::MapCodec::codec_write_to_map(&self.#field_name, __codec_map)?;
             });
         } else if attrs.lenient || attrs.optional {
             codec_write_to_map_impl.extend(quote! {
                 if !::azalea_codec::Defaultable::<O>::is_default(&self.#field_name) {
                     __codec_map.push((
-                        O::create_string(#field_name_string)?,
+                        O::create_string(#debug_field_name_string)?,
                         ::azalea_codec::Codec::codec_write(&self.#field_name)?,
                     ));
                 }
@@ -123,7 +123,7 @@ pub fn derive_codec_for_named_fields_struct(
         } else {
             codec_write_to_map_impl.extend(quote! {
                 __codec_map.push((
-                    O::create_string(#field_name_string)?,
+                    O::create_string(#debug_field_name_string)?,
                     ::azalea_codec::Codec::codec_write(&self.#field_name)?
                 ));
             })

@@ -19,6 +19,8 @@ pub fn derive_codec_for_enum(
     let mut codec_read_map_item_impl = quote! {};
     let mut codec_write_to_map_impl = quote! {};
     let mut get_and_reset_result_impl = quote! {};
+    let mut incomplete_struct_new = quote! {};
+    let mut incomplete_struct_build = quote! {};
 
     let enum_attrs = match attrs::parse_enum_attrs(&attrs) {
         Ok(a) => a,
@@ -81,7 +83,7 @@ pub fn derive_codec_for_enum(
         }
 
         let field_type: syn::Type;
-        let debug_field_name_string: String;
+        let mut debug_field_name_string = variant.ident.to_string();
 
         fn filter_attributes_in_fields(fields: &mut Punctuated<Field, Comma>) {
             for f in fields {
@@ -258,6 +260,14 @@ pub fn derive_codec_for_enum(
                 return Ok(());
             }
         });
+        incomplete_struct_new.extend(quote! {
+            #incomplete_variant_field_name: ::azalea_codec::Incomplete::new(#debug_field_name_string),
+        });
+        incomplete_struct_build.extend(quote! {
+            if let Ok(r) = self.#incomplete_variant_field_name.build() {
+                return Ok(Self::Complete::#variant_name(r));
+            }
+        });
 
         if variant_attrs.key.is_some() && !used_variant_key {
             panic!("unused #[codec(key = \"...\")]")
@@ -271,14 +281,22 @@ pub fn derive_codec_for_enum(
         panic!("#[codec(used_default_snake_case_key)] was set but unused");
     }
 
-    let incomplete = Ident::new(&format!("__Incomplete__{ident}"), ident.span());
+    let (incomplete, incomplete_ty) = if enum_attrs.is_map {
+        let ident = Ident::new(&format!("__Incomplete__{ident}"), ident.span());
+        (ident.to_token_stream(), quote! {#ident<O>})
+    } else {
+        (
+            quote! {},
+            quote! { ::azalea_codec::error::ReadResult<Self> },
+        )
+    };
 
-    quote! {
+    let mut out = quote! {
     #separate_variant_struct_decls
 
     #[automatically_derived]
     impl<O: ::azalea_codec::Ops> ::azalea_codec::Codec<O> for #ident {
-        type Incomplete = #incomplete<O>;
+        type Incomplete = #incomplete_ty;
         fn codec_read(__codec_ops: &O) -> ::azalea_codec::error::ReadResult<Self> {
             let mut __errors = Vec::<(&'static str, ::azalea_codec::error::ReadError)>::new();
 
@@ -294,37 +312,67 @@ pub fn derive_codec_for_enum(
         }
     }
 
-    #[doc(hidden)]
-    #[allow(nonstandard_style)]
-    pub struct #incomplete<O: ::azalea_codec::Ops> {
-        #incomplete_struct
-    }
-    #[automatically_derived]
-    impl<O: ::azalea_codec::Ops> ::azalea_codec::MapCodec<O> for #ident {
-        fn codec_read_map_item(
-            incomplete: &mut #incomplete<O>,
-            k: &O,
-            v: &O,
-        ) {
-            #codec_read_map_item_impl
-        }
-        fn codec_write_to_map(&self, __map: &mut Vec<(O, O)>) -> ::azalea_codec::error::WriteResult<()> {
-            match self {
-                #codec_write_to_map_impl
-                _ => Err(azalea_codec::error::WriteError::custom(
-                    "used #[codec(flatten)] on something that's not a map",
-                ))
+    };
+
+    if enum_attrs.is_map {
+        out.extend(quote! {
+            #[doc(hidden)]
+            #[allow(nonstandard_style)]
+            pub struct #incomplete<O: ::azalea_codec::Ops> {
+                #incomplete_struct
             }
-        }
-        fn get_and_reset_result(
-            incomplete: &mut #incomplete<O>,
-        ) -> ::azalea_codec::error::ReadResult<()> {
-            #get_and_reset_result_impl
-            Err(::azalea_codec::error::ReadError::custom(
-                "every variant failed",
-            ))
-        }
+            #[automatically_derived]
+            impl<O: ::azalea_codec::Ops> ::azalea_codec::MapCodec<O> for #ident {
+                fn codec_read_map_item(
+                    incomplete: &mut #incomplete_ty,
+                    k: &O,
+                    v: &O,
+                ) {
+                    #codec_read_map_item_impl
+                }
+                fn codec_write_to_map(&self, __map: &mut Vec<(O, O)>) -> ::azalea_codec::error::WriteResult<()> {
+                    match self {
+                        #codec_write_to_map_impl
+                        _ => Err(azalea_codec::error::WriteError::custom(
+                            "used #[codec(flatten)] on something that's not a map",
+                        ))
+                    }
+                }
+                fn get_and_reset_result(
+                    incomplete: &mut #incomplete_ty,
+                ) -> ::azalea_codec::error::ReadResult<()> {
+                    #get_and_reset_result_impl
+                    Err(::azalea_codec::error::ReadError::custom(
+                        "every variant failed",
+                    ))
+                }
+            }
+
+            #[automatically_derived]
+            impl<O: ::azalea_codec::Ops> ::azalea_codec::Incomplete for #incomplete<O> {
+                type Complete = #ident;
+                fn new(_: &str) -> Self {
+                    Self {
+                        #incomplete_struct_new
+                    }
+                }
+                fn build(self) -> ::azalea_codec::error::ReadResult<Self::Complete> {
+                    #incomplete_struct_build
+                    Err(::azalea_codec::error::ReadError::custom(
+                        "couldn't build any variant",
+                    ))
+                }
+            }
+
+            #[automatically_derived]
+            impl<O: ::azalea_codec::Ops> ::azalea_codec::NewOk<O> for #incomplete_ty {
+                fn new_ok() -> Self {
+                    <Self as ::azalea_codec::Incomplete>::new_unnamed()
+                }
+            }
+
+        })
     }
-    }
-    .into()
+
+    out.into()
 }

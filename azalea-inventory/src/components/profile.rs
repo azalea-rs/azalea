@@ -1,5 +1,3 @@
-use std::marker::PhantomContravariant;
-
 use azalea_auth::game_profile::{
     GameProfile, GameProfileProperties, SerializableProfileProperties,
 };
@@ -23,6 +21,7 @@ pub struct Profile {
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize, Codec)]
 #[serde(untagged)]
+#[codec(is_map)]
 pub enum PartialOrFullProfile {
     Partial(PartialProfile),
     Full(GameProfile),

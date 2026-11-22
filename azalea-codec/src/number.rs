@@ -1,5 +1,5 @@
 use crate::{
-    Codec, Defaultable, Ops,
+    Codec, Ops,
     error::{ReadError, WriteError},
     impl_defaultable,
 };

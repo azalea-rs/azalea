@@ -46,7 +46,11 @@ impl From<SerializableGameProfile> for GameProfile {
     }
 }
 #[cfg(feature = "azalea-codec")]
-azalea_codec::impl_codec_from!(GameProfile, SerializableGameProfile);
+mod game_profile_codec {
+    use super::*;
+    azalea_codec::impl_codec_from!(GameProfile, SerializableGameProfile);
+    azalea_codec::impl_mapcodec_from!(GameProfile, SerializableGameProfile);
+}
 
 /// The properties of the player, including their in-game skin and cape.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -82,9 +86,11 @@ impl AzBuf for GameProfileProperties {
 }
 
 #[cfg(feature = "azalea-codec")]
-azalea_codec::impl_codec_from!(GameProfileProperties, SerializableProfileProperties);
-#[cfg(feature = "azalea-codec")]
-azalea_codec::impl_defaultable!(GameProfileProperties);
+mod game_profile_properties_codec {
+    use super::*;
+    azalea_codec::impl_codec_from!(GameProfileProperties, SerializableProfileProperties);
+    azalea_codec::impl_defaultable!(GameProfileProperties);
+}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ProfilePropertyValue {

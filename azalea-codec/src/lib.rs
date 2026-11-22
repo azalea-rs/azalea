@@ -27,15 +27,65 @@ pub trait Codec<O: Ops>: Sized {
     /// Convert from a **data structure** to a **data format**.
     fn codec_write(&self) -> WriteResult<O>;
 }
+/// Implement [`Codec`] for a type that's `Into<T>` and `From<T>` for another
+/// type that's already a `Codec`.
+///
+/// If the type is a map, consider also using [`impl_mapcodec_from`].
+///
+/// ```
+/// mod game_profile_codec {
+///     use super::*;
+///     azalea_codec::impl_codec_from!(GameProfile, SerializableGameProfile);
+///     azalea_codec::impl_mapcodec_from!(GameProfile, SerializableGameProfile);
+/// }
+/// ```
 #[macro_export]
 macro_rules! impl_codec_from {
     ($this:ty, $other:ty) => {
-        impl<O: $crate::Ops> $crate::Codec<O> for $this {
-            fn codec_read(ops: &O) -> $crate::error::ReadResult<Self> {
+        impl<O: azalea_codec::Ops> azalea_codec::Codec<O> for $this {
+            type Incomplete = __Incomplete<O>;
+            fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
                 <$other>::codec_read(ops).map(Into::into)
             }
-            fn codec_write(&self) -> $crate::error::WriteResult<O> {
+            fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
                 <$other>::from(self.clone()).codec_write()
+            }
+        }
+        #[doc(hidden)]
+        #[allow(nonstandard_style)]
+        pub struct __Incomplete<O: azalea_codec::Ops>(
+            pub <$other as azalea_codec::Codec<O>>::Incomplete,
+        );
+        impl<O: azalea_codec::Ops> azalea_codec::Incomplete for __Incomplete<O> {
+            type Complete = $this;
+            fn new(name: &'static str) -> Self {
+                Self(<_>::new(name))
+            }
+            fn build(self) -> azalea_codec::error::ReadResult<Self::Complete> {
+                self.0.build().map(Into::into)
+            }
+        }
+    };
+}
+/// See [`impl_codec_from`].
+#[macro_export]
+macro_rules! impl_mapcodec_from {
+    ($this:ty, $other:ty) => {
+        impl<O: $crate::Ops> $crate::MapCodec<O> for $this {
+            fn codec_read_map_item(
+                incomplete: &mut <Self as $crate::Codec<O>>::Incomplete,
+                k: &O,
+                v: &O,
+            ) {
+                <$other>::codec_read_map_item(&mut incomplete.0, k, v);
+            }
+            fn codec_write_to_map(&self, map: &mut Vec<(O, O)>) -> $crate::error::WriteResult<()> {
+                <$other>::from(self.clone()).codec_write_to_map(map)
+            }
+            fn get_and_reset_result(
+                incomplete: &mut <Self as $crate::Codec<O>>::Incomplete,
+            ) -> $crate::error::ReadResult<()> {
+                <$other>::get_and_reset_result(&mut incomplete.0)
             }
         }
     };
@@ -48,7 +98,8 @@ pub trait MapCodec<O: Ops>: Sized + Codec<O> {
     fn codec_read_map_item(incomplete: &mut <Self as Codec<O>>::Incomplete, k: &O, v: &O);
     fn codec_write_to_map(&self, map: &mut Vec<(O, O)>) -> WriteResult<()>;
 
-    /// For normal structs, this sets `incomplete.__result = Ok(())`.
+    /// For normal structs, this sets `incomplete.__result = Ok(())` and returns
+    /// the previous value of `__result`.
     fn get_and_reset_result(incomplete: &mut <Self as Codec<O>>::Incomplete) -> ReadResult<()>;
 }
 
@@ -178,7 +229,7 @@ impl<T> Incomplete for ReadResult<T> {
     type Complete = T;
 
     fn new(name: &'static str) -> Self {
-        Err(error::ReadError::missing_key(name))
+        Err(ReadError::missing_key(name))
     }
     fn build(self) -> ReadResult<T> {
         self

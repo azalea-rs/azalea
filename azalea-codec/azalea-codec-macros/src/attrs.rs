@@ -152,6 +152,7 @@ pub fn parse_enum_variant_attrs(
 pub struct EnumAttrs {
     pub tag: Option<String>,
     pub default_snake_case_key: bool,
+    pub is_map: bool,
 }
 impl Parse for EnumAttrs {
     fn parse(input: ParseStream) -> syn::Result<Self> {
@@ -165,6 +166,7 @@ impl Parse for EnumAttrs {
                     attrs.tag = Some(v.value());
                 }
                 "default_snake_case_key" => attrs.default_snake_case_key = true,
+                "is_map" => attrs.is_map = true,
                 attr => {
                     return Err(syn::Error::new(
                         attr_ident.span(),
@@ -183,9 +185,11 @@ pub fn parse_enum_attrs(attrs: &[syn::Attribute]) -> syn::Result<EnumAttrs> {
         let EnumAttrs {
             tag,
             default_snake_case_key,
+            is_map,
         } = attr.parse_args()?;
         a.tag = tag.or(a.tag);
         a.default_snake_case_key |= default_snake_case_key;
+        a.is_map |= is_map;
     }
     Ok(a)
 }

@@ -1,5 +1,5 @@
 use azalea_buf::AzBuf;
-use azalea_codec::{Codec, types::StringLiteral};
+use azalea_codec::Codec;
 use azalea_core::codec_utils::is_default;
 use azalea_registry::{
     HolderSet,

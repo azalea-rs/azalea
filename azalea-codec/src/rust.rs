@@ -14,6 +14,17 @@ impl<O: Ops> Codec<O> for String {
         O::create_string(self)
     }
 }
+impl<O: Ops> MapCodec<O> for String {
+    fn codec_read_map_item(_incomplete: &mut <Self as Codec<O>>::Incomplete, _k: &O, _v: &O) {
+        panic!("not a map")
+    }
+    fn codec_write_to_map(&self, _map: &mut Vec<(O, O)>) -> WriteResult<()> {
+        panic!("not a map")
+    }
+    fn get_and_reset_result(_incomplete: &mut <Self as Codec<O>>::Incomplete) -> ReadResult<()> {
+        panic!("not a map")
+    }
+}
 
 impl<O: Ops> Codec<O> for bool {
     fn codec_read(ops: &O) -> ReadResult<Self> {
@@ -23,7 +34,7 @@ impl<O: Ops> Codec<O> for bool {
         O::create_boolean(*self)
     }
 }
-crate::impl_defaultable!(bool);
+impl_defaultable!(bool);
 
 impl<O: Ops> Codec<O> for () {
     fn codec_read(ops: &O) -> ReadResult<Self> {
