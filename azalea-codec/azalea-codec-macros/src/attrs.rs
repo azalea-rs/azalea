@@ -18,8 +18,8 @@ impl Parse for FieldAttrs {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let mut attrs = Self::default();
         while !input.is_empty() {
-            let attr = input.parse::<proc_macro2::Ident>()?;
-            match attr.to_string().as_str() {
+            let attr_ident = input.parse::<proc_macro2::Ident>()?;
+            match attr_ident.to_string().as_str() {
                 "rename" => {
                     input.parse::<syn::Token![=]>()?;
                     let rename = input.parse::<syn::LitStr>()?;
@@ -28,23 +28,31 @@ impl Parse for FieldAttrs {
                 "flatten" => attrs.flatten = true,
                 "optional" => attrs.optional = true,
                 "lenient" => attrs.lenient = true,
-                attr => panic!("unknown attribute '{attr}'"),
+                attr => {
+                    return Err(syn::Error::new(
+                        attr_ident.span(),
+                        format!("unknown attribute '{attr}'"),
+                    ));
+                }
             }
             let _ = input.parse::<syn::Token![,]>();
         }
         Ok(attrs)
     }
 }
-pub fn parse_field_attrs(attrs: &[syn::Attribute]) -> FieldAttrs {
+pub fn parse_field_attrs(attrs: &[syn::Attribute]) -> syn::Result<FieldAttrs> {
     let mut a = FieldAttrs::default();
     for attr in filter_codec_attrs(attrs) {
-        let n = attr.parse_args::<FieldAttrs>().expect("invalid codec attr");
-        if let Some(rename) = n.rename {
-            a.rename = Some(rename);
-        }
-        a.flatten |= n.flatten;
-        a.optional |= n.optional;
-        a.lenient |= n.lenient;
+        let FieldAttrs {
+            rename,
+            flatten,
+            optional,
+            lenient,
+        } = attr.parse_args()?;
+        a.rename = rename.or(a.rename);
+        a.flatten |= flatten;
+        a.optional |= optional;
+        a.lenient |= lenient;
     }
     if a.optional && a.lenient {
         panic!("conflicting 'optional' and 'lenient'; optional already implies lenient")
@@ -52,7 +60,7 @@ pub fn parse_field_attrs(attrs: &[syn::Attribute]) -> FieldAttrs {
     if a.flatten && a.lenient {
         panic!("conflicting 'flatten' and 'lenient'")
     }
-    a
+    Ok(a)
 }
 
 #[derive(Default, Debug)]
@@ -64,30 +72,120 @@ impl Parse for StructAttrs {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let mut attrs = Self::default();
         while !input.is_empty() {
-            let attr = input.parse::<proc_macro2::Ident>()?;
-            match attr.to_string().as_str() {
+            let attr_ident = input.parse::<proc_macro2::Ident>()?;
+            match attr_ident.to_string().as_str() {
                 "allow_unknown_keys" => attrs.allow_unknown_keys = true,
                 "transparent" => attrs.transparent = true,
-                attr => panic!("unknown attribute '{attr}'"),
+                attr => {
+                    return Err(syn::Error::new(
+                        attr_ident.span(),
+                        format!("unknown attribute '{attr}'"),
+                    ));
+                }
             }
             let _ = input.parse::<syn::Token![,]>();
         }
         Ok(attrs)
     }
 }
-pub fn parse_struct_attrs(attrs: &[syn::Attribute]) -> StructAttrs {
+pub fn parse_struct_attrs(attrs: &[syn::Attribute]) -> syn::Result<StructAttrs> {
     let mut a = StructAttrs::default();
     for attr in filter_codec_attrs(attrs) {
-        let n = attr
-            .parse_args::<StructAttrs>()
-            .expect("invalid codec attr");
-        a.allow_unknown_keys |= n.allow_unknown_keys;
-        a.transparent |= n.transparent;
+        let StructAttrs {
+            allow_unknown_keys,
+            transparent,
+        } = attr.parse_args()?;
+        a.allow_unknown_keys |= allow_unknown_keys;
+        a.transparent |= transparent;
     }
-
     if a.transparent && a.allow_unknown_keys {
         panic!("conflicting 'transparent' and 'allow_unknown_keys'")
     }
+    Ok(a)
+}
 
-    a
+#[derive(Default, Debug)]
+pub struct EnumVariantAttrs {
+    pub key: Option<String>,
+}
+impl Parse for EnumVariantAttrs {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let mut attrs = Self::default();
+        while !input.is_empty() {
+            let attr_ident = input.parse::<proc_macro2::Ident>()?;
+            match attr_ident.to_string().as_str() {
+                "key" => {
+                    input.parse::<syn::Token![=]>()?;
+                    let key = input.parse::<syn::LitStr>()?;
+                    attrs.key = Some(key.value());
+                }
+                attr => {
+                    return Err(syn::Error::new(
+                        attr_ident.span(),
+                        format!("unknown attribute '{attr}'"),
+                    ));
+                }
+            }
+            let _ = input.parse::<syn::Token![,]>();
+        }
+        Ok(attrs)
+    }
+}
+pub fn parse_enum_variant_attrs(
+    attrs: &[syn::Attribute],
+) -> (EnumVariantAttrs, Vec<syn::Attribute>) {
+    let mut a = EnumVariantAttrs::default();
+    let mut unhandled = Vec::new();
+
+    for attr in filter_codec_attrs(attrs) {
+        let Ok(EnumVariantAttrs { key }) = attr.parse_args() else {
+            unhandled.push(attr.clone());
+            continue;
+        };
+
+        a.key = key.or(a.key);
+    }
+    (a, unhandled)
+}
+
+#[derive(Default, Debug)]
+pub struct EnumAttrs {
+    pub tag: Option<String>,
+    pub default_snake_case_key: bool,
+}
+impl Parse for EnumAttrs {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let mut attrs = Self::default();
+        while !input.is_empty() {
+            let attr_ident = input.parse::<proc_macro2::Ident>()?;
+            match attr_ident.to_string().as_str() {
+                "tag" => {
+                    input.parse::<syn::Token![=]>()?;
+                    let v = input.parse::<syn::LitStr>()?;
+                    attrs.tag = Some(v.value());
+                }
+                "default_snake_case_key" => attrs.default_snake_case_key = true,
+                attr => {
+                    return Err(syn::Error::new(
+                        attr_ident.span(),
+                        format!("unknown attribute '{attr}'"),
+                    ));
+                }
+            }
+            let _ = input.parse::<syn::Token![,]>();
+        }
+        Ok(attrs)
+    }
+}
+pub fn parse_enum_attrs(attrs: &[syn::Attribute]) -> syn::Result<EnumAttrs> {
+    let mut a = EnumAttrs::default();
+    for attr in filter_codec_attrs(attrs) {
+        let EnumAttrs {
+            tag,
+            default_snake_case_key,
+        } = attr.parse_args()?;
+        a.tag = tag.or(a.tag);
+        a.default_snake_case_key |= default_snake_case_key;
+    }
+    Ok(a)
 }

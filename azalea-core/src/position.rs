@@ -12,6 +12,7 @@ use std::{
 };
 
 use azalea_buf::{AzBuf, BufReadError};
+use azalea_codec::Codec;
 use azalea_registry::identifier::Identifier;
 #[cfg(feature = "serde")]
 use serde::Serializer;
@@ -524,6 +525,15 @@ impl<'de> serde::Deserialize<'de> for BlockPos {
         Ok(BlockPos { x, y, z })
     }
 }
+impl<O: azalea_codec::Ops> Codec<O> for BlockPos {
+    fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
+        let [x, y, z] = <[i32; 3]>::codec_read(ops)?;
+        Ok(BlockPos { x, y, z })
+    }
+    fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
+        O::create_int_list(&[self.x, self.y, self.z])
+    }
+}
 
 /// An arbitrary position that's represented as 32-bit integers.
 ///
@@ -774,7 +784,7 @@ impl nohash_hasher::IsEnabled for ChunkSectionBlockPos {}
 
 /// A block pos with an attached world
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Codec)]
 pub struct GlobalPos {
     // this is actually a ResourceKey in Minecraft, but i don't think it
     // matters?

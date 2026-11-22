@@ -5,6 +5,8 @@
 // auto-generated (so you can add doc comments to the registry enums if you
 // want).
 
+extern crate self as azalea_registry;
+
 pub mod builtin;
 pub mod data;
 pub mod identifier;
@@ -17,6 +19,8 @@ use std::{
 };
 
 use azalea_buf::{AzBuf, AzBufVar, BufReadError, BufReadErrorRepr};
+use azalea_codec::Codec;
+pub use azalea_registry_macros as macros;
 #[cfg(feature = "serde")]
 use serde::Serialize;
 use simdnbt::{FromNbtTag, borrow::NbtTag};
@@ -197,6 +201,39 @@ impl<D: Registry + Serialize, Identifier: AzBuf + Serialize> Serialize
         }
     }
 }
+impl<D: Registry + Codec<O>, Identifier: AzBuf + Codec<O>, O: azalea_codec::Ops> Codec<O>
+    for HolderSet<D, Identifier>
+{
+    fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
+        if let Ok(key) = Identifier::codec_read(ops) {
+            return Ok(Self::Named {
+                key,
+                contents: vec![],
+            });
+        }
+        if let Ok(d) = D::codec_read(ops) {
+            return Ok(Self::Direct { contents: vec![d] });
+        }
+        if let Ok(contents) = Vec::<D>::codec_read(ops) {
+            return Ok(Self::Direct { contents });
+        }
+
+        Err(azalea_codec::error::ReadError::custom("invalid holderset"))
+    }
+    fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
+        match self {
+            Self::Direct { contents } => {
+                if contents.len() == 1 {
+                    contents[0].codec_write()
+                } else {
+                    contents.codec_write()
+                }
+            }
+            Self::Named { key, contents: _ } => key.codec_write(),
+        }
+    }
+}
+
 impl<D: Registry, Identifier: AzBuf> Default for HolderSet<D, Identifier> {
     fn default() -> Self {
         Self::Direct {
@@ -204,6 +241,18 @@ impl<D: Registry, Identifier: AzBuf> Default for HolderSet<D, Identifier> {
         }
     }
 }
+
+impl<O: azalea_codec::Ops, D: Registry + Codec<O>, Identifier: AzBuf + Codec<O>>
+    azalea_codec::Defaultable<O> for HolderSet<D, Identifier>
+{
+    fn is_default(&self) -> bool {
+        match self {
+            Self::Direct { contents } => contents.is_empty(),
+            _ => false,
+        }
+    }
+}
+
 impl<D: Registry, Identifier: AzBuf + From<D> + PartialEq> HolderSet<D, Identifier> {
     pub fn contains(&self, value: D) -> bool {
         match self {
@@ -291,6 +340,22 @@ impl<R: Registry + FromNbtTag, Direct: AzBuf + FromNbtTag> FromNbtTag for Holder
             return Some(Self::Reference(reference));
         };
         Direct::from_nbt_tag(tag).map(Self::Direct)
+    }
+}
+impl<O: azalea_codec::Ops, R: Registry + Codec<O>, Direct: Codec<O> + AzBuf> Codec<O>
+    for Holder<R, Direct>
+{
+    fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
+        if let Ok(reference) = R::codec_read(ops) {
+            return Ok(Self::Reference(reference));
+        };
+        Direct::codec_read(ops).map(Self::Direct)
+    }
+    fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
+        match self {
+            Self::Reference(value) => value.codec_write(),
+            Self::Direct(value) => value.codec_write(),
+        }
     }
 }
 

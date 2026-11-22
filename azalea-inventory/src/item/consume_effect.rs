@@ -1,4 +1,5 @@
 use azalea_buf::AzBuf;
+use azalea_codec::{Codec, types::StringLiteral};
 use azalea_core::codec_utils::is_default;
 use azalea_registry::{
     HolderSet,
@@ -9,22 +10,28 @@ use serde::Serialize;
 
 use crate::components::MobEffectInstance;
 
-#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize, Codec)]
 #[serde(rename_all = "snake_case", tag = "type")]
+#[codec(tag = "type")]
+#[codec(default_snake_case_key)]
 pub enum ConsumeEffect {
     ApplyEffects {
         #[serde(skip_serializing_if = "is_default")]
+        #[codec(optional)]
         effects: Vec<MobEffectInstance>,
         #[serde(skip_serializing_if = "is_default")]
+        #[codec(optional)]
         probability: f32,
     },
     RemoveEffects {
         #[serde(skip_serializing_if = "is_default")]
+        #[codec(optional)]
         effects: HolderSet<MobEffect, Identifier>,
     },
     ClearAllEffects,
     TeleportRandomly {
         #[serde(skip_serializing_if = "is_default")]
+        #[codec(optional)]
         diameter: f32,
     },
     PlaySound {

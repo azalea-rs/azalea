@@ -1,3 +1,5 @@
+use std::env;
+
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{
@@ -108,7 +110,7 @@ pub fn registry(input: TokenStream) -> TokenStream {
                 id <= #max_id
             }
         }
-        impl crate::Registry for #name {
+        impl ::azalea_registry::Registry for #name {
             fn from_u32(value: u32) -> Option<Self> {
                 if Self::is_valid_id(value) {
                     Some(unsafe { Self::from_u32_unchecked(value) })
@@ -130,7 +132,7 @@ pub fn registry(input: TokenStream) -> TokenStream {
 
             #[doc = #doc_0]
             fn try_from(id: u32) -> Result<Self, Self::Error> {
-                if let Some(value) = crate::Registry::from_u32(id) {
+                if let Some(value) = ::azalea_registry::Registry::from_u32(id) {
                     Ok(value)
                 } else {
                     Err(())
@@ -152,6 +154,19 @@ pub fn registry(input: TokenStream) -> TokenStream {
             #id => Ok(Self::#name),
         });
     }
+
+    // only include the `#[cfg(feature = "serde")]` attributes when we're using
+    // the registry! macro in azalea-registry, otherwise we want to always
+    // include the serde code.
+    let is_azalea_registry_crate = env::var("CARGO_CRATE_NAME")
+        .map(|name| name == "azalea_registry")
+        .unwrap_or_default();
+    let cfg_serde_attr = if is_azalea_registry_crate {
+        quote! { #[cfg(feature = "serde")] }
+    } else {
+        quote! {}
+    };
+
     generated.extend(quote! {
         impl #name {
             /// Convert the value to a stringified identifier, formatted like
@@ -169,9 +184,9 @@ pub fn registry(input: TokenStream) -> TokenStream {
                 write!(f, "{}", self.to_str())
             }
         }
-        impl<'a> TryFrom<&'a crate::Identifier> for #name {
+        impl<'a> TryFrom<&'a ::azalea_registry::identifier::Identifier> for #name {
             type Error = ();
-            fn try_from(ident: &'a crate::Identifier) -> Result<Self, Self::Error> {
+            fn try_from(ident: &'a ::azalea_registry::identifier::Identifier) -> Result<Self, Self::Error> {
                 if ident.namespace() != "minecraft" { return Err(()) }
                 match ident.path() {
                     #from_str_items
@@ -179,7 +194,7 @@ pub fn registry(input: TokenStream) -> TokenStream {
                 }
             }
         }
-        impl<'a> From<#name> for crate::Identifier {
+        impl<'a> From<#name> for ::azalea_registry::identifier::Identifier {
             fn from(value: #name) -> Self {
                 Self::new(value.to_str())
             }
@@ -190,11 +205,11 @@ pub fn registry(input: TokenStream) -> TokenStream {
             type Err = ();
 
             fn from_str(s: &str) -> Result<Self, Self::Err> {
-                Self::try_from(&crate::Identifier::new(s))
+                Self::try_from(&::azalea_registry::identifier::Identifier::new(s))
             }
         }
 
-        #[cfg(feature = "serde")]
+        #cfg_serde_attr
         impl serde::Serialize for #name {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
@@ -203,7 +218,7 @@ pub fn registry(input: TokenStream) -> TokenStream {
                 serializer.serialize_str(&self.to_string())
             }
         }
-        #[cfg(feature = "serde")]
+        #cfg_serde_attr
         impl<'de> serde::Deserialize<'de> for #name {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
@@ -215,7 +230,16 @@ pub fn registry(input: TokenStream) -> TokenStream {
                 ))
             }
         }
-
+        impl<O: azalea_codec::Ops> azalea_codec::Codec<O> for #name {
+            fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
+                let s = ops.get_string()?;
+                std::str::FromStr::from_str(&s)
+                    .map_err(|_| azalea_codec::error::ReadError::custom(format!("invalid variant {s}")))
+            }
+            fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
+                self.to_string().codec_write()
+            }
+        }
         impl simdnbt::FromNbtTag for #name {
             fn from_nbt_tag(tag: simdnbt::borrow::NbtTag) -> Option<Self> {
                 let v = tag.string()?;

@@ -1,5 +1,5 @@
 use crate::{
-    Codec, Ops,
+    Codec, Defaultable, Ops,
     error::{ReadError, WriteError},
 };
 
@@ -118,5 +118,11 @@ impl TryFrom<u64> for Number {
         Ok(Self::Long(
             n.try_into().map_err(|_| WriteError::number_too_big(n))?,
         ))
+    }
+}
+
+impl<O: Ops> Defaultable<O> for Number {
+    fn is_default(&self) -> bool {
+        f64::from(*self) == 0.
     }
 }

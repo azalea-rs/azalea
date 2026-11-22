@@ -32,6 +32,10 @@ macro_rules! data_registry {
                 Self { id }
             }
         }
+        impl azalea_codec::ResolvableItem for $registry {
+            fn to_resolvable_id(&self) -> u32 { self.protocol_id() }
+            fn from_resolvable_id(id: u32) -> Self { Self::new_raw(id) }
+        }
 
         #[cfg(feature = "serde")]
         impl serde::Serialize for $registry {
@@ -41,6 +45,14 @@ macro_rules! data_registry {
             {
                 // see ChecksumSerializer::serialize_newtype_variant
                 serializer.serialize_newtype_variant(concat!("minecraft:", $registry_name), self.id, "", &())
+            }
+        }
+        impl<O: azalea_codec::Ops> azalea_codec::Codec<O> for $registry {
+            fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
+                ops.get_resolvable_item::<Self>()
+            }
+            fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
+                O::create_resolvable_item(*self)
             }
         }
 
@@ -118,6 +130,15 @@ macro_rules! data_registry {
         impl simdnbt::FromNbtTag for $enum_name {
             fn from_nbt_tag(tag: simdnbt::borrow::NbtTag) -> Option<Self> {
                 simdnbt::FromNbtTag::from_nbt_tag(tag).map(Identifier::into)
+            }
+        }
+
+        impl<O: azalea_codec::Ops> azalea_codec::Codec<O> for $enum_name {
+            fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
+                Identifier::codec_read(ops).map(Self::from)
+            }
+            fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
+                Identifier::from(self.clone()).codec_write()
             }
         }
     };

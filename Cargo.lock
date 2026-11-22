@@ -420,6 +420,7 @@ version = "0.16.0+mc26.3"
 dependencies = [
  "azalea-buf",
  "azalea-chat",
+ "azalea-codec",
  "azalea-registry",
  "bevy_ecs",
  "crc32c",

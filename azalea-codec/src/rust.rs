@@ -1,3 +1,5 @@
+use std::{collections::HashMap, hash::Hash, mem::ManuallyDrop};
+
 use crate::{
     Codec, Defaultable, Incomplete, MapCodec, MapLike, Ops,
     error::{ReadError, ReadResult, WriteResult},
@@ -20,11 +22,7 @@ impl<O: Ops> Codec<O> for bool {
         O::create_boolean(*self)
     }
 }
-impl<O: Ops> Defaultable<O> for bool {
-    fn is_default(&self) -> bool {
-        !*self
-    }
-}
+crate::impl_defaultable!(bool);
 
 impl<O: Ops> Codec<O> for () {
     fn codec_read(ops: &O) -> ReadResult<Self> {
@@ -51,6 +49,7 @@ macro_rules! impl_numbers {
                     O::create_number((*self).try_into()?)
                 }
             }
+            crate::impl_defaultable!($n);
         )*
     }
 }
@@ -82,6 +81,60 @@ impl<O: Ops, T: Codec<O>> Codec<O> for Vec<T> {
 impl<T: Codec<O>, O: Ops> Defaultable<O> for Vec<T> {
     fn is_default(&self) -> bool {
         self.is_empty()
+    }
+}
+impl<const N: usize, O: Ops, T: Codec<O> + Clone> Codec<O> for [T; N] {
+    fn codec_read(ops: &O) -> ReadResult<Self> {
+        let read = Vec::<T>::codec_read(ops)?;
+        let len = read.len();
+        read.try_into().map_err(|_| {
+            ReadError::custom(format!(
+                "wrong array length, was required to be {N} but got {len}"
+            ))
+        })
+    }
+    fn codec_write(&self) -> WriteResult<O> {
+        self.to_vec().codec_write()
+    }
+}
+impl<O: Ops, A: Codec<O>, B: Codec<O>> Codec<O> for (A, B) {
+    /// Read as a list.
+    fn codec_read(ops: &O) -> ReadResult<Self> {
+        let list = Vec::<O>::codec_read(ops)?;
+        if list.len() != 2 {
+            return Err(ReadError::custom(format!(
+                "wrong array length, was required to be 2 but got {}",
+                list.len()
+            )));
+        }
+        let mut iter = list.iter();
+        Ok((
+            A::codec_read(iter.next().unwrap())?,
+            B::codec_read(iter.next().unwrap())?,
+        ))
+    }
+    /// Written as a list.
+    fn codec_write(&self) -> WriteResult<O> {
+        let list = [self.0.codec_write()?, self.1.codec_write()?];
+        list.codec_write()
+    }
+}
+
+impl<O: Ops, K: Codec<O> + Eq + Hash, V: Codec<O>> Codec<O> for HashMap<K, V> {
+    fn codec_read(ops: &O) -> ReadResult<Self> {
+        let map = ops.get_map()?;
+
+        let mut items = Vec::new();
+        map.for_each(|k, v| {
+            items.push(K::codec_read(k).and_then(|k| V::codec_read(v).map(|v| (k, v))));
+        });
+
+        Ok(HashMap::from_iter(
+            items.into_iter().collect::<ReadResult<Box<[_]>>>()?,
+        ))
+    }
+    fn codec_write(&self) -> WriteResult<O> {
+        todo!()
     }
 }
 
@@ -135,5 +188,15 @@ impl<T: Incomplete> Incomplete for Box<T> {
 impl<T: Codec<O> + Defaultable<O>, O: Ops> Defaultable<O> for Box<T> {
     fn is_default(&self) -> bool {
         (**self).is_default()
+    }
+}
+
+impl<O: Ops, T: Codec<O>> Codec<O> for ManuallyDrop<T> {
+    type Incomplete = T::Incomplete;
+    fn codec_read(ops: &O) -> ReadResult<Self> {
+        T::codec_read(ops).map(ManuallyDrop::new)
+    }
+    fn codec_write(&self) -> WriteResult<O> {
+        (**self).codec_write()
     }
 }

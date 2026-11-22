@@ -7,8 +7,12 @@ use std::{
 };
 
 use azalea_buf::{AzBuf, AzBufVar, BufReadError};
+use azalea_codec::{Codec, MapLike};
 use azalea_core::codec_utils::is_default;
-use azalea_registry::builtin::{DataComponentKind, ItemKind};
+use azalea_registry::{
+    builtin::{DataComponentKind, ItemKind},
+    identifier::Identifier,
+};
 use indexmap::IndexMap;
 use serde::{Serialize, ser::SerializeMap};
 
@@ -150,14 +154,30 @@ impl Serialize for ItemStack {
         }
     }
 }
+impl<O: azalea_codec::Ops> Codec<O> for ItemStack {
+    fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
+        if <()>::codec_read(ops).is_ok() {
+            Ok(Self::Empty)
+        } else {
+            Ok(Self::Present(ItemStackData::codec_read(ops)?))
+        }
+    }
+    fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
+        match self {
+            ItemStack::Empty => ().codec_write(),
+            ItemStack::Present(i) => i.codec_write(),
+        }
+    }
+}
 
 /// An item in an inventory, with a count and a set of data components.
 ///
 /// Usually you want [`ItemStack`] or
 /// [`ItemKind`](azalea_registry::builtin::ItemKind) instead.
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Codec)]
 pub struct ItemStackData {
     #[serde(rename = "id")]
+    #[codec(rename = "id")]
     pub kind: ItemKind,
     /// The amount of the item in this slot.
     ///
@@ -166,6 +186,7 @@ pub struct ItemStackData {
     /// The item's components that the server set to be different from the
     /// defaults.
     #[serde(rename = "components", skip_serializing_if = "is_default")]
+    #[codec(optional, rename = "components")]
     pub component_patch: DataComponentPatch,
 }
 
@@ -293,6 +314,10 @@ static EMPTY_DATA_COMPONENT_PATCH: LazyLock<DataComponentPatch> =
     LazyLock::new(DataComponentPatch::default);
 
 impl DataComponentPatch {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
     /// Returns the value of the component in the generic argument for this
     /// item.
     ///
@@ -394,8 +419,7 @@ impl AzBuf for DataComponentPatch {
             return Ok(DataComponentPatch::default());
         }
 
-        let mut components = DataComponentPatch::default();
-
+        let mut components = DataComponentPatch::new();
         for _ in 0..components_with_data_count {
             let component_kind = DataComponentKind::azalea_read(buf)?;
             let component_data = DataComponentUnion::azalea_read_as(component_kind, buf)?;
@@ -512,6 +536,71 @@ impl Serialize for DataComponentPatch {
             }
         }
         s.end()
+    }
+}
+impl<O: azalea_codec::Ops> Codec<O> for DataComponentPatch {
+    fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
+        let map = ops.get_map()?;
+        let mut patch = DataComponentPatch::new();
+
+        for (kind, value) in map.to_values() {
+            let kind = InvertableDataComponentKind::codec_read(&kind)?;
+            match kind {
+                InvertableDataComponentKind::Present(kind) => {
+                    let value = DataComponentUnion::codec_read_as(&value, kind)?;
+                    unsafe { patch.unchecked_insert_component(kind, Some(value)) };
+                }
+                InvertableDataComponentKind::Removed(kind) => unsafe {
+                    patch.unchecked_insert_component(kind, None)
+                },
+            }
+        }
+
+        Ok(patch)
+    }
+    fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
+        let mut entries = Vec::<(O, O)>::with_capacity(self.components.len());
+        for (&kind, component) in self.components.iter() {
+            if let Some(component) = component {
+                let k = InvertableDataComponentKind::Present(kind).codec_write()?;
+                let v = unsafe { component.codec_write_as::<O>(kind) }?;
+                entries.push((k, v));
+            } else {
+                let k = InvertableDataComponentKind::Removed(kind).codec_write()?;
+                let v = ().codec_write()?;
+                entries.push((k, v))
+            }
+        }
+        O::create_map(&entries)
+    }
+}
+impl<O: azalea_codec::Ops> azalea_codec::Defaultable<O> for DataComponentPatch {
+    fn is_default(&self) -> bool {
+        self.components.is_empty()
+    }
+}
+
+enum InvertableDataComponentKind {
+    Present(DataComponentKind),
+    Removed(DataComponentKind),
+}
+impl<O: azalea_codec::Ops> Codec<O> for InvertableDataComponentKind {
+    fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
+        let ident = Identifier::codec_read(ops)?;
+        if ident.namespace().starts_with('!') {
+            let ident = Identifier::new(&ident.to_string()[1..]);
+            DataComponentKind::try_from(&ident)
+                .map_err(|_| azalea_codec::error::ReadError::custom("not a DataComponentKind"))
+                .map(Self::Removed)
+        } else {
+            DataComponentKind::codec_read(ops).map(Self::Present)
+        }
+    }
+    fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
+        match self {
+            InvertableDataComponentKind::Present(k) => k.codec_write(),
+            InvertableDataComponentKind::Removed(k) => format!("!{k}").codec_write(),
+        }
     }
 }
 

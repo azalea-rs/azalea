@@ -2,21 +2,24 @@ use azalea_auth::game_profile::{
     GameProfile, GameProfileProperties, SerializableProfileProperties,
 };
 use azalea_buf::AzBuf;
+use azalea_codec::Codec;
 use azalea_core::codec_utils::*;
 use azalea_registry::identifier::Identifier;
 use serde::{Serialize, Serializer};
 use uuid::Uuid;
 
-#[derive(AzBuf, Clone, Debug, Default, PartialEq, Serialize)]
+#[derive(AzBuf, Clone, Debug, Default, PartialEq, Serialize, Codec)]
 #[doc(alias = "ResolvableProfile")]
 pub struct Profile {
     #[serde(flatten)]
+    #[codec(flatten)]
     pub unpack: Box<PartialOrFullProfile>,
     #[serde(flatten)]
+    #[codec(flatten)]
     pub skin_patch: Box<PlayerSkinPatch>,
 }
 
-#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize, Codec)]
 #[serde(untagged)]
 pub enum PartialOrFullProfile {
     Partial(PartialProfile),
@@ -28,15 +31,18 @@ impl Default for PartialOrFullProfile {
     }
 }
 
-#[derive(AzBuf, Clone, Debug, Default, PartialEq, Serialize)]
+#[derive(AzBuf, Clone, Debug, Default, PartialEq, Serialize, Codec)]
 pub struct PartialProfile {
     #[limit(16)]
     #[serde(skip_serializing_if = "is_default")]
+    #[codec(optional)]
     pub name: Option<String>,
     #[serde(skip_serializing_if = "is_default")]
+    #[codec(optional)]
     pub id: Option<Uuid>,
     #[serde(serialize_with = "serialize_properties")]
     #[serde(skip_serializing_if = "is_default")]
+    #[codec(optional)]
     pub properties: GameProfileProperties,
 }
 fn serialize_properties<S: Serializer>(
@@ -47,16 +53,20 @@ fn serialize_properties<S: Serializer>(
     serializable.serialize(serializer)
 }
 
-#[derive(AzBuf, Clone, Debug, Default, PartialEq, Serialize)]
+#[derive(AzBuf, Clone, Debug, Default, PartialEq, Serialize, Codec)]
 pub struct PlayerSkinPatch {
     #[serde(rename = "texture")]
     #[serde(skip_serializing_if = "is_default")]
+    #[codec(optional)]
     pub body: Option<ResourceTexture>,
     #[serde(skip_serializing_if = "is_default")]
+    #[codec(optional)]
     pub cape: Option<ResourceTexture>,
     #[serde(skip_serializing_if = "is_default")]
+    #[codec(optional)]
     pub elytra: Option<ResourceTexture>,
     #[serde(skip_serializing_if = "is_default")]
+    #[codec(optional)]
     pub model: Option<PlayerModelType>,
 }
 

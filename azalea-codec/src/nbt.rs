@@ -230,3 +230,4 @@ impl<O: Ops> Codec<O> for NbtCompound {
         O::create_map(&map)
     }
 }
+crate::impl_defaultable!(NbtCompound);

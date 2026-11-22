@@ -46,7 +46,7 @@ pub trait MapCodec<O: Ops>: Sized + Codec<O> {
 #[diagnostic::on_unimplemented(
     message = "type `{Self}` is not a data format; did you mean to use `{Self}::codec_read` instead?"
 )]
-pub trait Ops: Sized + Clone {
+pub trait Ops: Sized + Clone + Codec<Self> {
     type List: IntoIterator<Item = Self>;
     type Map: MapLike<Self>;
 
@@ -111,6 +111,13 @@ pub trait Ops: Sized + Clone {
     }
     fn create_long_list(v: &[i64]) -> WriteResult<Self> {
         fallback_create_list(v)
+    }
+
+    fn get_resolvable_item<I: ResolvableItem>(&self) -> ReadResult<I> {
+        Err(ReadError::unimplemented())
+    }
+    fn create_resolvable_item<I: ResolvableItem>(_i: I) -> WriteResult<Self> {
+        Err(WriteError::unimplemented())
     }
 }
 
@@ -177,6 +184,27 @@ impl<T: Default> NewOk<T> for ReadResult<T> {
     }
 }
 
+/// A trait that represents a subset of types with `Default`.
+///
+/// This is required for a `#[codec(optional)]` to work on a type. Also see
+/// [`impl_defaultable`].
 pub trait Defaultable<O: Ops>: Codec<O> {
     fn is_default(&self) -> bool;
+}
+/// Automatically implements [`Defaultable`] on the given type, allowing it to
+/// be supported by `#[codec(optional)]` fields.
+#[macro_export]
+macro_rules! impl_defaultable {
+    ($t:ty) => {
+        impl<O: $crate::Ops> $crate::Defaultable<O> for $t {
+            fn is_default(&self) -> bool {
+                self == &Self::default()
+            }
+        }
+    };
+}
+
+pub trait ResolvableItem {
+    fn to_resolvable_id(&self) -> u32;
+    fn from_resolvable_id(id: u32) -> Self;
 }

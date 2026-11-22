@@ -1,10 +1,11 @@
 mod attrs;
+mod utils;
 
 use proc_macro::TokenStream;
-use quote::quote;
+use quote::{ToTokens, quote};
 use syn::{
-    Attribute, DeriveInput, Field, FieldsNamed, FieldsUnnamed, Ident, Variant, Visibility,
-    parse_macro_input, punctuated::Punctuated, token::Comma,
+    Attribute, DeriveInput, Field, FieldsNamed, GenericParam, Generics, Ident, Variant, Visibility,
+    parse_macro_input, punctuated::Punctuated, spanned::Spanned, token::Comma,
 };
 
 #[proc_macro_derive(Codec, attributes(codec))]
@@ -14,13 +15,13 @@ pub fn derive_codec(input: TokenStream) -> TokenStream {
         data,
         vis,
         attrs,
-        ..
+        generics,
     } = parse_macro_input!(input);
 
     match data {
         syn::Data::Struct(syn::DataStruct { fields, .. }) => match fields {
             syn::Fields::Named(fields) => {
-                derive_codec_for_named_fields_struct(&vis, &attrs, &ident, fields)
+                derive_codec_for_named_fields_struct(&vis, &attrs, &ident, &generics, fields)
             }
             syn::Fields::Unnamed(fields) => {
                 assert_eq!(
@@ -28,12 +29,12 @@ pub fn derive_codec(input: TokenStream) -> TokenStream {
                     1,
                     "#[derive(Codec)] cannot be used on structs with more than one unnamed field."
                 );
-                return derive_transparent_impl(&ident, &fields.unnamed[0]);
+                derive_transparent_impl(&ident, &fields.unnamed[0])
             }
-            syn::Fields::Unit => panic!("#[derive(Codec)] cannot be used on unit structs."),
+            syn::Fields::Unit => derive_unit_struct_impl(&ident),
         },
         syn::Data::Enum(syn::DataEnum { variants, .. }) => {
-            derive_codec_for_enum(&vis, &ident, variants)
+            derive_codec_for_enum(&vis, &attrs, &ident, variants)
         }
         _ => {
             panic!("#[derive(Codec)] can only be used on structs")
@@ -45,9 +46,13 @@ fn derive_codec_for_named_fields_struct(
     vis: &Visibility,
     attrs: &[Attribute],
     ident: &Ident,
+    generics: &Generics,
     fields: FieldsNamed,
 ) -> TokenStream {
-    let attrs = attrs::parse_struct_attrs(attrs);
+    let attrs = match attrs::parse_struct_attrs(attrs) {
+        Ok(a) => a,
+        Err(e) => return syn::Error::into_compile_error(e).into(),
+    };
     if attrs.transparent {
         assert_eq!(
             fields.named.len(),
@@ -82,7 +87,10 @@ fn derive_codec_for_named_fields_struct(
         let field_name = field.ident.as_ref().expect("fields must be named");
         let field_type = &field.ty;
 
-        let attrs = attrs::parse_field_attrs(&field.attrs);
+        let attrs = match attrs::parse_field_attrs(&field.attrs) {
+            Ok(a) => a,
+            Err(e) => return syn::Error::into_compile_error(e).into(),
+        };
 
         let field_name_string = attrs.rename.unwrap_or_else(|| field_name.to_string());
 
@@ -166,15 +174,35 @@ fn derive_codec_for_named_fields_struct(
         );
     }
 
+    let generic_param_names = utils::generic_names(generics.params.iter());
+    let (_, generic_param_names_full, _) = generics.split_for_impl();
+
+    let mut generic_decls = quote! {};
+    for p in &generics.params {
+        generic_decls.extend(quote! { #p });
+        match p {
+            // append `::azalea_codec::Codec<O>` as a bound
+            GenericParam::Type(p) => {
+                if p.bounds.is_empty() {
+                    generic_decls.extend(quote! { : ::azalea_codec::Codec<O> });
+                } else {
+                    generic_decls.extend(quote! { + ::azalea_codec::Codec<O> });
+                }
+            }
+            _ => {}
+        }
+        generic_decls.extend(quote! { , });
+    }
+
     quote! {
     #[doc(hidden)]
     #[allow(nonstandard_style)]
-    #vis struct #incomplete<O: ::azalea_codec::Ops> {
+    #vis struct #incomplete<O: ::azalea_codec::Ops, #generic_decls> {
         #incomplete_struct
     }
     #[automatically_derived]
-    impl<O: ::azalea_codec::Ops> ::azalea_codec::Incomplete for #incomplete<O> {
-        type Complete = #ident;
+    impl<O: ::azalea_codec::Ops, #generic_decls> ::azalea_codec::Incomplete for #incomplete<O, #generic_param_names> {
+        type Complete = #ident #generic_param_names_full;
         fn new(_: &str) -> Self {
             Self {
                 #incomplete_struct_new
@@ -189,14 +217,14 @@ fn derive_codec_for_named_fields_struct(
         }
     }
     #[automatically_derived]
-    impl<O: ::azalea_codec::Ops> ::azalea_codec::NewOk<O> for #incomplete<O> {
+    impl<O: ::azalea_codec::Ops, #generic_decls> ::azalea_codec::NewOk<O> for #incomplete<O, #generic_param_names> {
         fn new_ok() -> Self {
             <Self as ::azalea_codec::Incomplete>::new_unnamed()
         }
     }
 
     #[automatically_derived]
-    impl<O: ::azalea_codec::Ops> ::azalea_codec::MapCodec<O> for #ident {
+    impl<O: ::azalea_codec::Ops, #generic_decls> ::azalea_codec::MapCodec<O> for #ident #generic_param_names_full {
         fn codec_read_map_item(
             incomplete: &mut <Self as ::azalea_codec::Codec<O>>::Incomplete,
             k: &O,
@@ -223,8 +251,8 @@ fn derive_codec_for_named_fields_struct(
     }
 
     #[automatically_derived]
-    impl<O: ::azalea_codec::Ops> ::azalea_codec::Codec<O> for #ident {
-        type Incomplete = #incomplete<O>;
+    impl<O: ::azalea_codec::Ops, #generic_decls> ::azalea_codec::Codec<O> for #ident #generic_param_names_full {
+        type Incomplete = #incomplete<O, #generic_param_names>;
         fn codec_read(__codec_ops: &O) -> ::azalea_codec::error::ReadResult<Self> {
             use ::azalea_codec::{Incomplete, MapCodec, MapLike};
 
@@ -277,8 +305,24 @@ fn derive_transparent_impl(ident: &Ident, field: &Field) -> TokenStream {
     }
 }
 
+fn derive_unit_struct_impl(ident: &Ident) -> TokenStream {
+    quote! {
+        impl<O: ::azalea_codec::Ops> ::azalea_codec::Codec<O> for #ident {
+        fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
+            <()>::codec_read(ops)?;
+            Ok(Self)
+        }
+        fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
+            ().codec_write()
+        }
+    }
+    }
+    .into()
+}
+
 fn derive_codec_for_enum(
     vis: &Visibility,
+    attrs: &[Attribute],
     ident: &Ident,
     variants: Punctuated<Variant, Comma>,
 ) -> TokenStream {
@@ -287,17 +331,75 @@ fn derive_codec_for_enum(
 
     let mut separate_variant_struct_decls = quote! {};
 
+    let enum_attrs = match attrs::parse_enum_attrs(&attrs) {
+        Ok(a) => a,
+        Err(e) => return syn::Error::into_compile_error(e).into(),
+    };
+    let mut used_default_snake_case_key = false;
+
     for variant in &variants {
-        assert_ne!(variant.fields.len(), 0, "enum variants must not be empty");
-
         let variant_name = &variant.ident;
+        let (variant_attrs, mut unhandled_attrs) = attrs::parse_enum_variant_attrs(&variant.attrs);
+        let mut used_variant_key = false;
 
-        let first_variant_field = variant.fields.iter().next().unwrap();
+        let mut get_variant_key = || {
+            let mut key = variant_attrs.key.clone();
+            if key.is_some() {
+                used_variant_key = true;
+            } else if enum_attrs.default_snake_case_key {
+                key = Some(utils::to_snake_case(&variant_name.to_string()));
+                used_default_snake_case_key = true;
+            }
+            key
+        };
+
+        // unit variants must have a key
+        if variant.fields.is_empty() && enum_attrs.tag.is_none() {
+            let key = get_variant_key()
+                .expect("must provide #[codec(key = \"...\")] for unit variants, or #[codec(default_snake_case_key)] must be set on the enum declaration");
+            codec_read.extend(quote! {
+                match <::azalea_codec::types::StringLiteral<#key>>::codec_read(__codec_ops) {
+                    Ok(r) => {
+                        return Ok(Self::#variant_name);
+                    }
+                    Err(e) => {
+                        __errors.push((#key, e));
+                    }
+                }
+            });
+            codec_write.extend(quote! {
+                Self::#variant_name => ::azalea_codec::Ops::create_string(#key),
+            });
+            continue;
+        }
+
+        let first_variant_field = variant.fields.iter().next();
+
+        // whether the fields in this variant are to be named, which would
+        // require us to split it into a separate struct
+        let mut is_named_enum = false;
+
+        if enum_attrs.tag.is_some() {
+            is_named_enum = true;
+        } else if let Some(first) = first_variant_field
+            && first.ident.is_some()
+        {
+            is_named_enum = true;
+        }
 
         let field_type: syn::Type;
         let field_name_string: String;
 
-        if first_variant_field.ident.is_some() {
+        fn filter_attributes_in_fields(fields: &mut Punctuated<Field, Comma>) {
+            for f in fields {
+                f.attrs = attrs::filter_codec_attrs(&f.attrs)
+                    .into_iter()
+                    .cloned()
+                    .collect();
+            }
+        }
+
+        if is_named_enum {
             // named enum
 
             // to make handling named enums easier, when making the Incomplete
@@ -306,10 +408,75 @@ fn derive_codec_for_enum(
             field_name_string = format!("Codec__{ident}__{variant_name}");
             let variant_struct_name_ident = Ident::new(&field_name_string, ident.span());
 
-            let variant_struct_contents = &variant.fields;
+            let mut field_names = Vec::new();
+            let mut construct_extracted_struct = quote! {};
+
+            let mut variant_struct_contents = variant.fields.clone();
+            // remove the attributes that aren't #[codec(...)]
+            match &mut variant_struct_contents {
+                syn::Fields::Named(f) => filter_attributes_in_fields(&mut f.named),
+                syn::Fields::Unnamed(f) => filter_attributes_in_fields(&mut f.unnamed),
+                _ => {}
+            }
+
+            let variant_struct_contents = if let Some(tag) = &enum_attrs.tag {
+                let variant_key = get_variant_key();
+                let Some(variant_key) = variant_key else {
+                    return syn::Error::new(
+                        variant.ident.span(),
+                        "when #[codec(tag = \"...\")] is set on an enum, you must either set #[codec(key = \"...\")] for all variants, or add #[codec(default_snake_case_key)] to the enum declaration"
+                    ).to_compile_error().into();
+                };
+                used_variant_key = true;
+                // if `#[codec(tag="")]` is set on the enum, then every variant
+                // struct that we make here must have a
+                // `#[codec(rename="")] __codec_tag: StringLiteral<"">`
+                // field
+
+                let fields_inner = quote! {
+                    #[codec(rename = #tag)]
+                    __codec_tag: ::azalea_codec::types::StringLiteral<#variant_key>,
+                };
+                construct_extracted_struct.extend(quote! {
+                    __codec_tag: Default::default(),
+                });
+
+                match variant_struct_contents {
+                    syn::Fields::Named(f) => {
+                        let f = &f.named;
+                        for field in f {
+                            field_names.push(field.ident.clone().unwrap());
+                        }
+                        quote! { { #fields_inner #f } }
+                    }
+                    syn::Fields::Unnamed(f) => {
+                        let f = &f.unnamed;
+                        assert_eq!(f.len(), 1);
+                        // we'll have to turn this unnamed field into a named
+                        // one to be able to fit the __codec_tag in there.
+                        field_names.push(Ident::new("value", ident.span()));
+                        quote! { {
+                            #fields_inner
+                            value: #f,
+                        } }
+                    }
+                    syn::Fields::Unit => {
+                        quote! { { #fields_inner } }
+                    }
+                }
+            } else {
+                for field in variant.fields.iter() {
+                    let field_name = field
+                        .ident
+                        .as_ref()
+                        .expect("cannot mix named and unnamed fields in Codec enums");
+                    field_names.push(field_name.clone());
+                }
+                quote! {#variant_struct_contents}
+            };
 
             let mut variant_codec_attrs = quote! {};
-            for a in attrs::filter_codec_attrs(&variant.attrs) {
+            for a in unhandled_attrs.drain(..) {
                 variant_codec_attrs.extend(quote! {#a});
             }
 
@@ -322,19 +489,14 @@ fn derive_codec_for_enum(
             });
 
             let mut comma_separated_field_names = quote! {};
-            let mut clone_fields = quote! {};
-            for field in variant_struct_contents.iter() {
-                let field_name = field
-                    .ident
-                    .as_ref()
-                    .expect("cannot mix named and unnamed fields in Codec enums");
+            for field_name in &field_names {
                 comma_separated_field_names.extend(quote! { #field_name, });
-                clone_fields.extend(quote! { #field_name: #field_name.clone(), });
+                construct_extracted_struct.extend(quote! { #field_name: #field_name.clone(), });
             }
 
             codec_read.extend(quote! {
                 match <#variant_struct_name_ident>::codec_read(__codec_ops) {
-                    Ok(#variant_struct_name_ident { #comma_separated_field_names }) => {
+                    Ok(#variant_struct_name_ident { #comma_separated_field_names .. }) => {
                         return Ok(Self::#variant_name { #comma_separated_field_names });
                     }
                     Err(e) => {
@@ -344,7 +506,7 @@ fn derive_codec_for_enum(
             });
             codec_write.extend(quote! {
                 Self::#variant_name { #comma_separated_field_names } => {
-                    #variant_struct_name_ident { #clone_fields }.codec_write()
+                    #variant_struct_name_ident { #construct_extracted_struct }.codec_write()
                 },
             });
         } else {
@@ -354,6 +516,7 @@ fn derive_codec_for_enum(
                 1,
                 "unnamed enum variants must have exactly one field"
             );
+            let first_variant_field = first_variant_field.unwrap();
             field_type = first_variant_field.ty.clone();
 
             codec_read.extend(quote! {
@@ -370,6 +533,17 @@ fn derive_codec_for_enum(
                 Self::#variant_name(v) => v.codec_write(),
             });
         }
+
+        if variant_attrs.key.is_some() && !used_variant_key {
+            panic!("unused #[codec(key = \"...\")]")
+        }
+        for attr in unhandled_attrs {
+            panic!("unknown attribute {}", attr.to_token_stream().to_string())
+        }
+    }
+
+    if enum_attrs.default_snake_case_key && !used_default_snake_case_key {
+        panic!("#[codec(used_default_snake_case_key)] was set but unused");
     }
 
     quote! {

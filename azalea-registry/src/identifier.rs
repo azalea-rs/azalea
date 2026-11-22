@@ -51,6 +51,9 @@ impl Identifier {
             inner: resource_string.into(),
         }
     }
+    pub fn new_from_parts(namespace: &str, path: &str) -> Self {
+        Self::new(format!("{namespace}:{path}"))
+    }
 
     pub fn namespace(&self) -> &str {
         if let Some(colon_index) = self.colon_index {
