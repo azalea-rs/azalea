@@ -15,7 +15,6 @@ use azalea_codec::{Codec, types::CompactListCodec};
 use azalea_core::{
     attribute_modifier_operation::AttributeModifierOperation,
     checksum::{Checksum, ChecksumOps, get_checksum},
-    codec_utils::*,
     filterable::Filterable,
     position::GlobalPos,
     registry_holder::RegistryHolder,
@@ -31,14 +30,13 @@ use azalea_registry::{
     identifier::Identifier,
 };
 pub use profile::*;
-use serde::Serialize;
 use simdnbt::owned::NbtCompound;
 use tracing::trace;
 
 use crate::{ItemStack, item::consume_effect::ConsumeEffect};
 
 pub trait DataComponentTrait:
-    Send + Sync + Any + Clone + Into<DataComponentUnion> + Codec<ChecksumOps>
+    Send + Sync + Any + Clone + Into<DataComponentUnion> + for<'a> Codec<ChecksumOps<'a>>
 {
     const KIND: DataComponentKind;
 }
@@ -98,10 +96,11 @@ macro_rules! define_data_components {
             /// `kind` must be the correct value for this union.
             pub unsafe fn codec_write_as<O: azalea_codec::Ops>(
                 &self,
+                ctx: O::Context,
                 kind: DataComponentKind,
             ) -> azalea_codec::error::WriteResult<O> {
                 match kind {
-                    $( DataComponentKind::$x => { unsafe { self.$x.codec_write() } }, )*
+                    $( DataComponentKind::$x => { unsafe { self.$x.codec_write(ctx) } }, )*
                 }
             }
             pub fn codec_read_as<O: azalea_codec::Ops>(

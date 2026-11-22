@@ -46,12 +46,12 @@ impl<O: azalea_codec::Ops> Codec<O> for TextComponent {
         Ok(TextComponent::empty_with_siblings(siblings).with_style(*r.base.style))
     }
 
-    fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
+    fn codec_write(&self, ctx: O::Context) -> azalea_codec::error::WriteResult<O> {
         TextComponentCodec {
             text: self.text.clone(),
             base: self.base.clone(),
         }
-        .codec_write()
+        .codec_write(ctx)
     }
 }
 
@@ -292,7 +292,7 @@ mod tests {
     fn test_serialize_to_json() {
         let component = TextComponent::new("Hello §aworld".to_owned()).into_formatted_text();
 
-        let value: serde_json::Value = component.codec_write().unwrap();
+        let value: serde_json::Value = component.codec_write(Default::default()).unwrap();
 
         assert_eq!(
             serde_json::to_string(&value).unwrap(),

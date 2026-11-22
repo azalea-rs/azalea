@@ -20,8 +20,8 @@ impl<O: azalea_codec::Ops> Codec<O> for TextColor {
         TextColor::parse(&ops.get_string()?)
             .ok_or_else(|| azalea_codec::error::ReadError::custom("not a color"))
     }
-    fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
-        self.serialize().codec_write()
+    fn codec_write(&self, ctx: O::Context) -> azalea_codec::error::WriteResult<O> {
+        self.serialize().codec_write(ctx)
     }
 }
 

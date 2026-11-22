@@ -26,14 +26,14 @@ impl Ops for NbtTag {
             _ => return Err(ReadError::custom("not a number")),
         })
     }
-    fn create_number(n: Number) -> WriteResult<Self> {
+    fn create_number(_ctx: Self::Context, n: Number) -> WriteResult<Self> {
         Ok(n.into())
     }
 
     fn get_boolean(&self) -> ReadResult<bool> {
         Ok(f64::from(self.get_number()?) != 0.0)
     }
-    fn create_boolean(v: bool) -> WriteResult<Self> {
+    fn create_boolean(_ctx: Self::Context, v: bool) -> WriteResult<Self> {
         Ok(NbtTag::Byte(v as i8))
     }
 
@@ -47,7 +47,7 @@ impl Ops for NbtTag {
         };
         Ok(items.into_iter())
     }
-    fn create_list(list: &[Self]) -> WriteResult<Self> {
+    fn create_list(_ctx: Self::Context, list: &[Self]) -> WriteResult<Self> {
         // this does the homogenizing for us
         Ok(NbtTag::List(NbtList::from(list.to_owned())))
     }
@@ -56,7 +56,7 @@ impl Ops for NbtTag {
             .cloned()
             .ok_or_else(|| ReadError::custom("not a map"))
     }
-    fn create_map(map: &[(Self, Self)]) -> WriteResult<Self> {
+    fn create_map(_ctx: Self::Context, map: &[(Self, Self)]) -> WriteResult<Self> {
         let mut items = Vec::with_capacity(map.len());
         for (k, v) in map {
             let Some(k) = k.string() else {
@@ -77,7 +77,7 @@ impl Ops for NbtTag {
             Err(ReadError::custom("not a string"))
         }
     }
-    fn create_string(v: &str) -> WriteResult<Self> {
+    fn create_string(_ctx: Self::Context, v: &str) -> WriteResult<Self> {
         Ok(NbtTag::String(v.into()))
     }
     fn get_byte_buffer(&self) -> ReadResult<Box<[u8]>> {
@@ -85,7 +85,7 @@ impl Ops for NbtTag {
             .map(|o| o.get_number().and_then(|n| n.try_into()))
             .collect()
     }
-    fn create_byte_list(v: &[u8]) -> WriteResult<Self> {
+    fn create_byte_list(_ctx: Self::Context, v: &[u8]) -> WriteResult<Self> {
         Ok(NbtTag::ByteArray(v.to_owned()))
     }
     fn get_int_list(&self) -> ReadResult<Box<[i32]>> {
@@ -93,7 +93,7 @@ impl Ops for NbtTag {
             .map(|o| o.get_number().and_then(|n| n.try_into()))
             .collect()
     }
-    fn create_int_list(v: &[i32]) -> WriteResult<Self> {
+    fn create_int_list(_ctx: Self::Context, v: &[i32]) -> WriteResult<Self> {
         Ok(NbtTag::IntArray(v.to_owned()))
     }
     fn get_long_list(&self) -> ReadResult<Box<[i64]>> {
@@ -102,7 +102,7 @@ impl Ops for NbtTag {
             .collect()
     }
 
-    fn create_long_list(v: &[i64]) -> WriteResult<Self> {
+    fn create_long_list(_ctx: Self::Context, v: &[i64]) -> WriteResult<Self> {
         Ok(NbtTag::LongArray(v.to_owned()))
     }
 }
@@ -158,20 +158,20 @@ impl<O: Ops> Codec<O> for NbtTag {
 
         Err(ReadError::custom("unknown type"))
     }
-    fn codec_write(&self) -> WriteResult<O> {
+    fn codec_write(&self, ctx: O::Context) -> WriteResult<O> {
         match self {
-            NbtTag::Byte(v) => v.codec_write(),
-            NbtTag::Short(v) => v.codec_write(),
-            NbtTag::Int(v) => v.codec_write(),
-            NbtTag::Long(v) => v.codec_write(),
-            NbtTag::Float(v) => v.codec_write(),
-            NbtTag::Double(v) => v.codec_write(),
-            NbtTag::ByteArray(v) => v.codec_write(),
-            NbtTag::String(v) => v.codec_write(),
-            NbtTag::List(v) => v.codec_write(),
-            NbtTag::Compound(v) => v.codec_write(),
-            NbtTag::IntArray(v) => v.codec_write(),
-            NbtTag::LongArray(v) => v.codec_write(),
+            NbtTag::Byte(v) => v.codec_write(ctx),
+            NbtTag::Short(v) => v.codec_write(ctx),
+            NbtTag::Int(v) => v.codec_write(ctx),
+            NbtTag::Long(v) => v.codec_write(ctx),
+            NbtTag::Float(v) => v.codec_write(ctx),
+            NbtTag::Double(v) => v.codec_write(ctx),
+            NbtTag::ByteArray(v) => v.codec_write(ctx),
+            NbtTag::String(v) => v.codec_write(ctx),
+            NbtTag::List(v) => v.codec_write(ctx),
+            NbtTag::Compound(v) => v.codec_write(ctx),
+            NbtTag::IntArray(v) => v.codec_write(ctx),
+            NbtTag::LongArray(v) => v.codec_write(ctx),
         }
     }
 }
@@ -180,16 +180,16 @@ impl<O: Ops> Codec<O> for Mutf8String {
     fn codec_read(ops: &O) -> ReadResult<Self> {
         Ok(String::codec_read(ops)?.into())
     }
-    fn codec_write(&self) -> WriteResult<O> {
-        self.to_string().codec_write()
+    fn codec_write(&self, ctx: O::Context) -> WriteResult<O> {
+        self.to_string().codec_write(ctx)
     }
 }
 impl<O: Ops> Codec<O> for NbtList {
     fn codec_read(ops: &O) -> ReadResult<Self> {
         Ok(Vec::<NbtTag>::codec_read(ops)?.into())
     }
-    fn codec_write(&self) -> WriteResult<O> {
-        list_as_tags(self).codec_write()
+    fn codec_write(&self, ctx: O::Context) -> WriteResult<O> {
+        list_as_tags(self).codec_write(ctx)
     }
 }
 
@@ -228,12 +228,12 @@ impl<O: Ops> Codec<O> for NbtCompound {
 
         Ok(NbtCompound::from_values(values))
     }
-    fn codec_write(&self) -> WriteResult<O> {
+    fn codec_write(&self, ctx: O::Context) -> WriteResult<O> {
         let mut map = Vec::new();
         for (k, v) in self.iter() {
-            map.push((k.to_owned().codec_write()?, v.codec_write()?))
+            map.push((k.to_owned().codec_write(ctx)?, v.codec_write(ctx)?))
         }
-        O::create_map(&map)
+        O::create_map(ctx, &map)
     }
 }
 pub struct IncompleteNbtCompound {
@@ -258,9 +258,9 @@ impl<O: Ops> MapCodec<O> for NbtCompound {
         };
         incomplete.map.insert(k, v);
     }
-    fn codec_write_to_map(&self, map: &mut Vec<(O, O)>) -> WriteResult<()> {
+    fn codec_write_to_map(&self, ctx: O::Context, map: &mut Vec<(O, O)>) -> WriteResult<()> {
         for (k, v) in self.iter() {
-            map.push((k.to_owned().codec_write()?, v.codec_write()?))
+            map.push((k.to_owned().codec_write(ctx)?, v.codec_write(ctx)?))
         }
         Ok(())
     }

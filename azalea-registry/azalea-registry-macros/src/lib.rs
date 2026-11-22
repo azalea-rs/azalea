@@ -236,8 +236,8 @@ pub fn registry(input: TokenStream) -> TokenStream {
                 std::str::FromStr::from_str(&s)
                     .map_err(|_| azalea_codec::error::ReadError::custom(format!("invalid variant {s}")))
             }
-            fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
-                self.to_string().codec_write()
+            fn codec_write(&self, ctx: O::Context) -> azalea_codec::error::WriteResult<O> {
+                self.to_string().codec_write(ctx)
             }
         }
         impl simdnbt::FromNbtTag for #name {

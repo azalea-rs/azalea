@@ -156,8 +156,8 @@ impl<O: azalea_codec::Ops> Codec<O> for Identifier {
             .parse()
             .map_err(|_| ReadError::custom("invalid identifier"))
     }
-    fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
-        self.to_string().codec_write()
+    fn codec_write(&self, ctx: O::Context) -> azalea_codec::error::WriteResult<O> {
+        self.to_string().codec_write(ctx)
     }
 }
 

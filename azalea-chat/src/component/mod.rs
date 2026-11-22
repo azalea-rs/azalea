@@ -100,21 +100,21 @@ impl<O: azalea_codec::Ops> azalea_codec::Codec<O> for FormattedText {
 
         Err(azalea_codec::error::ReadError::no_variants_matched(errors))
     }
-    fn codec_write(&self) -> ::azalea_codec::error::WriteResult<O> {
+    fn codec_write(&self, ctx: O::Context) -> ::azalea_codec::error::WriteResult<O> {
         match self {
             Self::Text(v) => {
                 // write as a string instead of map when possible
                 if v.base.is_default() {
-                    return v.text.codec_write();
+                    return v.text.codec_write(ctx);
                 }
-                v.codec_write()
+                v.codec_write(ctx)
             }
-            Self::Translatable(v) => v.codec_write(),
-            Self::Keybind(v) => v.codec_write(),
-            Self::Score(v) => v.codec_write(),
-            Self::Selector(v) => v.codec_write(),
-            Self::Nbt(v) => v.codec_write(),
-            Self::Object(v) => v.codec_write(),
+            Self::Translatable(v) => v.codec_write(ctx),
+            Self::Keybind(v) => v.codec_write(ctx),
+            Self::Score(v) => v.codec_write(ctx),
+            Self::Selector(v) => v.codec_write(ctx),
+            Self::Nbt(v) => v.codec_write(ctx),
+            Self::Object(v) => v.codec_write(ctx),
         }
     }
 }
@@ -378,7 +378,9 @@ impl AzBuf for FormattedText {
         }
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        let nbt: NbtTag = self.codec_write().map_err(io::Error::other)?;
+        let nbt: NbtTag = self
+            .codec_write(Default::default())
+            .map_err(io::Error::other)?;
         nbt.azalea_write(buf)?;
         Ok(())
     }
@@ -425,7 +427,9 @@ impl serde::Serialize for FormattedText {
     where
         S: serde::Serializer,
     {
-        let json: serde_json::Value = self.codec_write().map_err(serde::ser::Error::custom)?;
+        let json: serde_json::Value = self
+            .codec_write(Default::default())
+            .map_err(serde::ser::Error::custom)?;
         json.serialize(serializer)
     }
 }

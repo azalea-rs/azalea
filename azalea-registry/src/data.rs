@@ -52,8 +52,8 @@ macro_rules! data_registry {
             fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
                 ops.get_resolvable_item::<Self>()
             }
-            fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
-                O::create_resolvable_item(*self)
+            fn codec_write(&self, ctx: O::Context) -> azalea_codec::error::WriteResult<O> {
+                O::create_resolvable_item(ctx, *self)
             }
         }
 
@@ -138,8 +138,8 @@ macro_rules! data_registry {
             fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
                 Identifier::codec_read(ops).map(Self::from)
             }
-            fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
-                Identifier::from(self.clone()).codec_write()
+            fn codec_write(&self, ctx: O::Context) -> azalea_codec::error::WriteResult<O> {
+                Identifier::from(self.clone()).codec_write(ctx)
             }
         }
     };

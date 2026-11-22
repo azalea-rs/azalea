@@ -82,8 +82,8 @@ fn derive_transparent_impl(attrs: &[Attribute], ident: &Ident, field: &Field) ->
         fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
             #read_expr
         }
-        fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
-            ::azalea_codec::Codec::codec_write(&#write_expr)
+        fn codec_write(&self, ctx: O::Context) -> azalea_codec::error::WriteResult<O> {
+            ::azalea_codec::Codec::codec_write(&#write_expr, ctx)
         }
     }
     }
@@ -97,8 +97,8 @@ fn derive_unit_struct_impl(ident: &Ident) -> TokenStream {
             <()>::codec_read(ops)?;
             Ok(Self)
         }
-        fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
-            ::azalea_codec::Codec::codec_write(&())
+        fn codec_write(&self, ctx: O::Context) -> azalea_codec::error::WriteResult<O> {
+            ::azalea_codec::Codec::codec_write(&(), ctx)
         }
     }
     }

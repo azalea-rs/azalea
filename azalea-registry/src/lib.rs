@@ -220,16 +220,16 @@ impl<D: Registry + Codec<O>, Identifier: AzBuf + Codec<O>, O: azalea_codec::Ops>
 
         Err(azalea_codec::error::ReadError::custom("invalid holderset"))
     }
-    fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
+    fn codec_write(&self, ctx: O::Context) -> azalea_codec::error::WriteResult<O> {
         match self {
             Self::Direct { contents } => {
                 if contents.len() == 1 {
-                    contents[0].codec_write()
+                    contents[0].codec_write(ctx)
                 } else {
-                    contents.codec_write()
+                    contents.codec_write(ctx)
                 }
             }
-            Self::Named { key, contents: _ } => key.codec_write(),
+            Self::Named { key, contents: _ } => key.codec_write(ctx),
         }
     }
 }
@@ -351,10 +351,10 @@ impl<O: azalea_codec::Ops, R: Registry + Codec<O>, Direct: Codec<O> + AzBuf> Cod
         };
         Direct::codec_read(ops).map(Self::Direct)
     }
-    fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
+    fn codec_write(&self, ctx: O::Context) -> azalea_codec::error::WriteResult<O> {
         match self {
-            Self::Reference(value) => value.codec_write(),
-            Self::Direct(value) => value.codec_write(),
+            Self::Reference(value) => value.codec_write(ctx),
+            Self::Direct(value) => value.codec_write(ctx),
         }
     }
 }

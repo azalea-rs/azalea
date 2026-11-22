@@ -26,8 +26,8 @@ impl<O: Ops> Codec<O> for Number {
     fn codec_read(ops: &O) -> crate::error::ReadResult<Self> {
         ops.get_number()
     }
-    fn codec_write(&self) -> crate::error::WriteResult<O> {
-        O::create_number(*self)
+    fn codec_write(&self, ctx: O::Context) -> crate::error::WriteResult<O> {
+        O::create_number(ctx, *self)
     }
 }
 

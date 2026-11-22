@@ -11,7 +11,7 @@ impl<O: Ops> Codec<O> for uuid::Uuid {
         Uuid::parse_str(&s).map_err(|e| ReadError::custom(format!("invalid uuid: {e}")))
     }
 
-    fn codec_write(&self) -> WriteResult<O> {
-        self.to_string().codec_write()
+    fn codec_write(&self, ctx: O::Context) -> WriteResult<O> {
+        self.to_string().codec_write(ctx)
     }
 }

@@ -18,8 +18,8 @@ impl<const S: &'static str, O: Ops> Codec<O> for StringLiteral<S> {
             Err(ReadError::custom(format!("'{s}' != '{S}'")))
         }
     }
-    fn codec_write(&self) -> WriteResult<O> {
-        O::create_string(S)
+    fn codec_write(&self, ctx: O::Context) -> WriteResult<O> {
+        O::create_string(ctx, S)
     }
 }
 
@@ -30,8 +30,8 @@ impl<O: Ops> Codec<O> for Drain {
     fn codec_read(_ops: &O) -> ReadResult<Self> {
         Ok(Self)
     }
-    fn codec_write(&self) -> WriteResult<O> {
-        O::empty()
+    fn codec_write(&self, ctx: O::Context) -> WriteResult<O> {
+        O::empty(ctx)
     }
 }
 impl<O: Ops> MapCodec<O> for Drain {
@@ -41,7 +41,7 @@ impl<O: Ops> MapCodec<O> for Drain {
         _v: &O,
     ) {
     }
-    fn codec_write_to_map(&self, _map: &mut Vec<(O, O)>) -> WriteResult<()> {
+    fn codec_write_to_map(&self, _ctx: O::Context, _map: &mut Vec<(O, O)>) -> WriteResult<()> {
         Ok(())
     }
     fn get_and_reset_result(_incomplete: &mut <Self as Codec<O>>::Incomplete) -> ReadResult<()> {
@@ -60,12 +60,12 @@ impl<O: Ops, T: IntoIterator<Item = V> + FromIterator<V> + Clone, V: Codec<O>> C
         }
         Ok(Self(T::from_iter(Vec::<V>::codec_read(ops)?)))
     }
-    fn codec_write(&self) -> WriteResult<O> {
+    fn codec_write(&self, ctx: O::Context) -> WriteResult<O> {
         let v = self.0.clone().into_iter().collect::<Vec<V>>();
         if v.len() == 1 {
-            v[0].codec_write()
+            v[0].codec_write(ctx)
         } else {
-            v.codec_write()
+            v.codec_write(ctx)
         }
     }
 }

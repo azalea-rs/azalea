@@ -14,7 +14,7 @@ pub mod entity_effect;
 pub mod float_provider;
 pub mod value;
 
-use std::{collections::HashMap, io::Cursor};
+use std::{collections::HashMap, io::Cursor, sync::LazyLock};
 
 use azalea_registry::identifier::Identifier;
 use indexmap::IndexMap;
@@ -113,6 +113,13 @@ macro_rules! registry_holder {
 }
 
 registry_holder!(dimension_type, enchantment);
+
+impl Default for &'static RegistryHolder {
+    fn default() -> Self {
+        static DEFAULT: LazyLock<RegistryHolder> = LazyLock::new(RegistryHolder::default);
+        &*DEFAULT
+    }
+}
 
 fn nbt_to_serializable_type<T: simdnbt::Deserialize>(
     value: &NbtCompound,

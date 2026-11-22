@@ -1,7 +1,8 @@
-use std::fmt;
+use std::{fmt, marker::PhantomData};
 
 use azalea_buf::AzBuf;
 use azalea_codec::Codec;
+use azalea_registry::identifier::Identifier;
 use serde::ser;
 use thiserror::Error;
 
@@ -22,17 +23,31 @@ impl Checksum {
 }
 
 #[derive(Clone)]
-pub struct ChecksumOps {
+pub struct ChecksumOps<'a> {
     checksum: Checksum,
+    _unused: PhantomData<&'a ()>,
 }
-impl azalea_codec::Ops for ChecksumOps {
-    type List = Vec<ChecksumOps>;
-    type Map = Vec<(ChecksumOps, ChecksumOps)>;
-    fn empty() -> azalea_codec::error::WriteResult<Self> {
-        let checksum = Checksum(0).write(&[1]);
-        Ok(Self { checksum })
+impl<'a> ChecksumOps<'a> {
+    pub fn new(checksum: Checksum) -> Self {
+        Self {
+            checksum,
+            _unused: PhantomData,
+        }
     }
-    fn create_number(n: azalea_codec::number::Number) -> azalea_codec::error::WriteResult<Self> {
+}
+impl<'a> azalea_codec::Ops for ChecksumOps<'a> {
+    type List = Vec<ChecksumOps<'a>>;
+    type Map = Vec<(ChecksumOps<'a>, ChecksumOps<'a>)>;
+    type Context = &'a RegistryHolder;
+
+    fn empty(_ctx: Self::Context) -> azalea_codec::error::WriteResult<Self> {
+        let checksum = Checksum(0).write(&[1]);
+        Ok(Self::new(checksum))
+    }
+    fn create_number(
+        _ctx: Self::Context,
+        n: azalea_codec::number::Number,
+    ) -> azalea_codec::error::WriteResult<Self> {
         use azalea_codec::number::Number as N;
         let checksum = match n {
             N::Byte(n) => Checksum(0).write(&[6]).write(&n.to_le_bytes()),
@@ -42,13 +57,16 @@ impl azalea_codec::Ops for ChecksumOps {
             N::Float(n) => Checksum(0).write(&[10]).write(&n.to_le_bytes()),
             N::Double(n) => Checksum(0).write(&[11]).write(&n.to_le_bytes()),
         };
-        Ok(Self { checksum })
+        Ok(Self::new(checksum))
     }
-    fn create_boolean(v: bool) -> azalea_codec::error::WriteResult<Self> {
+    fn create_boolean(_ctx: Self::Context, v: bool) -> azalea_codec::error::WriteResult<Self> {
         let checksum = Checksum(0).write(&[13, v as u8]);
-        Ok(Self { checksum })
+        Ok(Self::new(checksum))
     }
-    fn create_map(map: &[(Self, Self)]) -> azalea_codec::error::WriteResult<Self> {
+    fn create_map(
+        _ctx: Self::Context,
+        map: &[(Self, Self)],
+    ) -> azalea_codec::error::WriteResult<Self> {
         let mut checksum = Checksum(0).write(&[2]);
 
         let mut map = map.to_owned();
@@ -60,65 +78,62 @@ impl azalea_codec::Ops for ChecksumOps {
                 .update(&v.checksum.0.to_le_bytes());
         }
         checksum.update(&[3]);
-        Ok(Self { checksum })
+        Ok(Self::new(checksum))
     }
-    fn create_list(list: &[Self]) -> azalea_codec::error::WriteResult<Self> {
+    fn create_list(_ctx: Self::Context, list: &[Self]) -> azalea_codec::error::WriteResult<Self> {
         let mut checksum = Checksum(0).write(&[4]);
         for i in list {
             checksum.update(&i.checksum.0.to_le_bytes());
         }
         checksum = checksum.write(&[5]);
-        Ok(Self { checksum })
+        Ok(Self::new(checksum))
     }
-    fn create_string(v: &str) -> azalea_codec::error::WriteResult<Self> {
+    fn create_string(_ctx: Self::Context, v: &str) -> azalea_codec::error::WriteResult<Self> {
         let mut checksum = Checksum(0).write(&[12]);
         let utf16 = v.encode_utf16().collect::<Box<[u16]>>();
         checksum.update(&(utf16.len() as u32).to_le_bytes());
         for c in utf16 {
             checksum.update(&c.to_le_bytes());
         }
-        Ok(Self { checksum })
+        Ok(Self::new(checksum))
     }
-    fn create_byte_list(v: &[u8]) -> azalea_codec::error::WriteResult<Self> {
+    fn create_byte_list(_ctx: Self::Context, v: &[u8]) -> azalea_codec::error::WriteResult<Self> {
         let checksum = Checksum(0).write(&[14]).write(v).write(&[15]);
-        Ok(Self { checksum })
+        Ok(Self::new(checksum))
     }
-    fn create_int_list(v: &[i32]) -> azalea_codec::error::WriteResult<Self> {
+    fn create_int_list(_ctx: Self::Context, v: &[i32]) -> azalea_codec::error::WriteResult<Self> {
         let mut checksum = Checksum(0).write(&[16]);
         for i in v {
             checksum.update(&i.to_le_bytes());
         }
         checksum.update(&[17]);
-        Ok(Self { checksum })
+        Ok(Self::new(checksum))
     }
-    fn create_long_list(v: &[i64]) -> azalea_codec::error::WriteResult<Self> {
+    fn create_long_list(_ctx: Self::Context, v: &[i64]) -> azalea_codec::error::WriteResult<Self> {
         let mut checksum = Checksum(0).write(&[18]);
         for i in v {
             checksum.update(&i.to_le_bytes());
         }
         checksum.update(&[19]);
-        Ok(Self { checksum })
+        Ok(Self::new(checksum))
     }
     fn create_resolvable_item<I: azalea_codec::ResolvableItem>(
+        ctx: Self::Context,
         i: I,
     ) -> azalea_codec::error::WriteResult<Self> {
-        // let value = self
-        //     .registries
-        //     .protocol_id_to_identifier(Identifier::from(name), variant_index)
-        //     .map(|v| v.to_string())
-        //     .unwrap_or_default();
-        // self.serialize_str(&value)?;
-        // return Ok(());
-
-        Err(azalea_codec::error::WriteError::unimplemented())
+        let value = ctx
+            .protocol_id_to_identifier(Identifier::from(I::NAME), i.to_resolvable_id())
+            .map(|v| v.to_string())
+            .unwrap_or_default();
+        Self::create_string(ctx, &value)
     }
 }
 
-impl<O: azalea_codec::Ops> Codec<O> for ChecksumOps {
+impl<'a, O: azalea_codec::Ops> Codec<O> for ChecksumOps<'a> {
     fn codec_read(_: &O) -> azalea_codec::error::ReadResult<Self> {
         unimplemented!()
     }
-    fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
+    fn codec_write(&self, _ctx: O::Context) -> azalea_codec::error::WriteResult<O> {
         unimplemented!()
     }
 }
@@ -136,9 +151,9 @@ impl ser::Error for ChecksumError {
     }
 }
 
-pub fn get_checksum<T: Codec<ChecksumOps> + ?Sized>(
+pub fn get_checksum<'a, T: Codec<ChecksumOps<'a>> + ?Sized>(
     value: &T,
-    registries: &RegistryHolder,
+    registries: &'a RegistryHolder,
 ) -> azalea_codec::error::WriteResult<Checksum> {
-    value.codec_write().map(|c| c.checksum)
+    value.codec_write(registries).map(|c| c.checksum)
 }

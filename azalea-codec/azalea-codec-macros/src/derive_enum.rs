@@ -66,7 +66,7 @@ pub fn derive_codec_for_enum(
                 }
             });
             codec_write_impl.extend(quote! {
-                Self::#variant_name => ::azalea_codec::Ops::create_string(#key),
+                Self::#variant_name => ::azalea_codec::Ops::create_string(ctx, #key),
             });
             continue;
         }
@@ -231,13 +231,14 @@ pub fn derive_codec_for_enum(
 
             codec_write_impl.extend(quote! {
                 #construct_variant => {
-                    ::azalea_codec::Codec::codec_write(&#construct_extracted_struct)
+                    ::azalea_codec::Codec::codec_write(&#construct_extracted_struct, ctx)
                 },
             });
 
             codec_write_to_map_impl.extend(quote! {
                 #construct_variant => ::azalea_codec::MapCodec::codec_write_to_map(
                     &#construct_extracted_struct,
+                    ctx,
                     __map
                 ),
             });
@@ -262,11 +263,11 @@ pub fn derive_codec_for_enum(
                 }
             });
             codec_write_impl.extend(quote! {
-                Self::#variant_name(v) => ::azalea_codec::Codec::codec_write(v),
+                Self::#variant_name(v) => ::azalea_codec::Codec::codec_write(v, ctx),
             });
 
             codec_write_to_map_impl.extend(quote! {
-                Self::#variant_name(r) => ::azalea_codec::MapCodec::codec_write_to_map(r, __map),
+                Self::#variant_name(r) => ::azalea_codec::MapCodec::codec_write_to_map(r, ctx, __map),
             });
         }
         incomplete_struct.extend(quote! {
@@ -325,7 +326,7 @@ pub fn derive_codec_for_enum(
             Err(::azalea_codec::error::ReadError::no_variants_matched(__errors))
         }
 
-        fn codec_write(&self) -> ::azalea_codec::error::WriteResult<O> {
+        fn codec_write(&self, ctx: O::Context) -> ::azalea_codec::error::WriteResult<O> {
             match self {
                 #codec_write_impl
             }
@@ -350,7 +351,7 @@ pub fn derive_codec_for_enum(
                 ) {
                     #codec_read_map_item_impl
                 }
-                fn codec_write_to_map(&self, __map: &mut Vec<(O, O)>) -> ::azalea_codec::error::WriteResult<()> {
+                fn codec_write_to_map(&self, ctx: O::Context, __map: &mut Vec<(O, O)>) -> ::azalea_codec::error::WriteResult<()> {
                     match self {
                         #codec_write_to_map_impl
                         _ => Err(azalea_codec::error::WriteError::custom(

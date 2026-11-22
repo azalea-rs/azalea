@@ -31,7 +31,7 @@ impl Ops for Value {
             _ => Err(ReadError::custom("not a number")),
         }
     }
-    fn create_number(n: Number) -> WriteResult<Self> {
+    fn create_number(_ctx: Self::Context, n: Number) -> WriteResult<Self> {
         let n = if let Ok(n) = n.try_into() {
             serde_json::Number::from_i128(n).unwrap()
         } else {
@@ -46,7 +46,7 @@ impl Ops for Value {
         };
         Ok(*v)
     }
-    fn create_boolean(v: bool) -> WriteResult<Self> {
+    fn create_boolean(_ctx: Self::Context, v: bool) -> WriteResult<Self> {
         Ok(Value::Bool(v))
     }
 
@@ -56,7 +56,7 @@ impl Ops for Value {
         };
         Ok(values.clone())
     }
-    fn create_list(list: &[Self]) -> WriteResult<Self> {
+    fn create_list(_ctx: Self::Context, list: &[Self]) -> WriteResult<Self> {
         Ok(Value::Array(list.to_owned()))
     }
 
@@ -67,7 +67,7 @@ impl Ops for Value {
         Ok(values.clone())
     }
 
-    fn create_map(map: &[(Self, Self)]) -> WriteResult<Self> {
+    fn create_map(_ctx: Self::Context, map: &[(Self, Self)]) -> WriteResult<Self> {
         let mut values = serde_json::Map::new();
         for (k, v) in map {
             let Ok(k) = k.get_string() else {
@@ -83,7 +83,7 @@ impl Ops for Value {
             .map(|s| s.to_owned())
             .ok_or_else(|| ReadError::custom("not a string"))
     }
-    fn create_string(v: &str) -> WriteResult<Self> {
+    fn create_string(_ctx: Self::Context, v: &str) -> WriteResult<Self> {
         Ok(Value::String(v.to_owned()))
     }
 }
@@ -102,12 +102,12 @@ impl<O: Ops> Codec<O> for serde_json::Map<String, Value> {
         }
         Ok(values)
     }
-    fn codec_write(&self) -> WriteResult<O> {
+    fn codec_write(&self, ctx: O::Context) -> WriteResult<O> {
         let mut map = Vec::new();
         for (k, v) in self {
-            map.push((k.codec_write()?, v.codec_write()?));
+            map.push((k.codec_write(ctx)?, v.codec_write(ctx)?));
         }
-        O::create_map(&map)
+        O::create_map(ctx, &map)
     }
 }
 impl MapLike<Value> for serde_json::Map<String, Value> {
@@ -130,7 +130,7 @@ impl<O: Ops> Codec<O> for serde_json::Number {
         }
         Err(ReadError::custom("not a number"))
     }
-    fn codec_write(&self) -> WriteResult<O> {
+    fn codec_write(&self, ctx: O::Context) -> WriteResult<O> {
         let n = if let Some(v) = self.as_i64() {
             Number::Long(v)
         } else if let Some(v) = self.as_f64() {
@@ -138,7 +138,7 @@ impl<O: Ops> Codec<O> for serde_json::Number {
         } else {
             return Err(WriteError::custom("number is too big"));
         };
-        n.codec_write()
+        n.codec_write(ctx)
     }
 }
 
@@ -161,7 +161,7 @@ impl<O: Ops> Codec<O> for Value {
         }
         Err(ReadError::custom("unknown type"))
     }
-    fn codec_write(&self) -> WriteResult<O> {
+    fn codec_write(&self, _ctx: O::Context) -> WriteResult<O> {
         todo!()
     }
 }

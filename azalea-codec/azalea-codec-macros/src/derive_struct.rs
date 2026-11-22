@@ -123,7 +123,7 @@ pub fn derive_codec_for_named_fields_struct(
 
         if attrs.flatten {
             codec_write_to_map_impl.extend(quote! {
-                ::azalea_codec::MapCodec::codec_write_to_map(&self.#field_name, __codec_map)?;
+                ::azalea_codec::MapCodec::codec_write_to_map(&self.#field_name, ctx, __codec_map)?;
             });
         } else if attrs.lenient || attrs.optional {
             let is_not_default = if let Some(compare_against) = &attrs.default {
@@ -134,16 +134,16 @@ pub fn derive_codec_for_named_fields_struct(
             codec_write_to_map_impl.extend(quote! {
                 if #is_not_default {
                     __codec_map.push((
-                        O::create_string(#field_name_string)?,
-                        ::azalea_codec::Codec::codec_write(&self.#field_name)?,
+                        O::create_string(ctx, #field_name_string)?,
+                        ::azalea_codec::Codec::codec_write(&self.#field_name, ctx)?,
                     ));
                 }
             });
         } else {
             codec_write_to_map_impl.extend(quote! {
                 __codec_map.push((
-                    O::create_string(#field_name_string)?,
-                    ::azalea_codec::Codec::codec_write(&self.#field_name)?
+                    O::create_string(ctx, #field_name_string)?,
+                    ::azalea_codec::Codec::codec_write(&self.#field_name, ctx)?
                 ));
             })
         }
@@ -219,7 +219,7 @@ pub fn derive_codec_for_named_fields_struct(
             }
         }
 
-        fn codec_write_to_map(&self, __codec_map: &mut Vec<(O, O)>) -> ::azalea_codec::error::WriteResult<()> {
+        fn codec_write_to_map(&self, ctx: O::Context, __codec_map: &mut Vec<(O, O)>) -> ::azalea_codec::error::WriteResult<()> {
             #codec_write_to_map_impl
             Ok(())
         }
@@ -244,12 +244,12 @@ pub fn derive_codec_for_named_fields_struct(
             });
             incomplete.build()
         }
-        fn codec_write(&self) -> ::azalea_codec::error::WriteResult<O> {
+        fn codec_write(&self, ctx: O::Context) -> ::azalea_codec::error::WriteResult<O> {
             use ::azalea_codec::MapCodec;
 
             let mut __codec_map = Vec::new();
-            Self::codec_write_to_map(&self, &mut __codec_map)?;
-            O::create_map(&__codec_map)
+            Self::codec_write_to_map(&self, ctx, &mut __codec_map)?;
+            O::create_map(ctx, &__codec_map)
         }
     }
     }

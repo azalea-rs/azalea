@@ -25,7 +25,7 @@ pub trait Codec<O: Ops>: Sized {
     /// Convert from a **data format** to a **data structure**.
     fn codec_read(ops: &O) -> ReadResult<Self>;
     /// Convert from a **data structure** to a **data format**.
-    fn codec_write(&self) -> WriteResult<O>;
+    fn codec_write(&self, ctx: O::Context) -> WriteResult<O>;
 }
 /// Implement [`Codec`] for a type that's `Into<T>` and `From<T>` for another
 /// type that's already a `Codec`.
@@ -47,8 +47,8 @@ macro_rules! impl_codec_from {
             fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
                 <$other>::codec_read(ops).map(Into::into)
             }
-            fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
-                <$other>::from(self.clone()).codec_write()
+            fn codec_write(&self, ctx: O::Context) -> azalea_codec::error::WriteResult<O> {
+                <$other>::from(self.clone()).codec_write(ctx)
             }
         }
         #[doc(hidden)]
@@ -79,8 +79,12 @@ macro_rules! impl_mapcodec_from {
             ) {
                 <$other>::codec_read_map_item(&mut incomplete.0, k, v);
             }
-            fn codec_write_to_map(&self, map: &mut Vec<(O, O)>) -> $crate::error::WriteResult<()> {
-                <$other>::from(self.clone()).codec_write_to_map(map)
+            fn codec_write_to_map(
+                &self,
+                ctx: O::Context,
+                map: &mut Vec<(O, O)>,
+            ) -> $crate::error::WriteResult<()> {
+                <$other>::from(self.clone()).codec_write_to_map(ctx, map)
             }
             fn get_and_reset_result(
                 incomplete: &mut <Self as $crate::Codec<O>>::Incomplete,
@@ -96,7 +100,7 @@ pub trait MapCodec<O: Ops>: Sized + Codec<O> {
     // this doesn't return a ReadResult because the errors are stored in the
     // Incomplete struct
     fn codec_read_map_item(incomplete: &mut <Self as Codec<O>>::Incomplete, k: &O, v: &O);
-    fn codec_write_to_map(&self, map: &mut Vec<(O, O)>) -> WriteResult<()>;
+    fn codec_write_to_map(&self, ctx: O::Context, map: &mut Vec<(O, O)>) -> WriteResult<()>;
 
     /// For normal structs, this sets `incomplete.__result = Ok(())` and returns
     /// the previous value of `__result`.
@@ -107,80 +111,83 @@ pub trait MapCodec<O: Ops>: Sized + Codec<O> {
 #[diagnostic::on_unimplemented(
     message = "type `{Self}` is not a data format; did you mean to use `{Self}::codec_read` instead?"
 )]
+#[allow(unused_variables)]
 pub trait Ops: Sized + Clone + Codec<Self> {
     type List: IntoIterator<Item = Self>;
     type Map: MapLike<Self>;
 
-    fn empty() -> WriteResult<Self> {
-        Self::empty_map()
+    type Context: Clone + Copy = ();
+
+    fn empty(ctx: Self::Context) -> WriteResult<Self> {
+        Self::empty_map(ctx)
     }
-    fn empty_map() -> WriteResult<Self> {
-        Self::create_map(&[])
+    fn empty_map(ctx: Self::Context) -> WriteResult<Self> {
+        Self::create_map(ctx, &[])
     }
-    fn empty_list() -> WriteResult<Self> {
-        Self::create_list(&[])
+    fn empty_list(ctx: Self::Context) -> WriteResult<Self> {
+        Self::create_list(ctx, &[])
     }
 
     fn get_number(&self) -> ReadResult<Number> {
         Err(ReadError::unimplemented())
     }
-    fn create_number(_n: Number) -> WriteResult<Self> {
+    fn create_number(ctx: Self::Context, n: Number) -> WriteResult<Self> {
         Err(WriteError::unimplemented())
     }
 
     fn get_boolean(&self) -> ReadResult<bool> {
         Err(ReadError::unimplemented())
     }
-    fn create_boolean(_v: bool) -> WriteResult<Self> {
+    fn create_boolean(ctx: Self::Context, v: bool) -> WriteResult<Self> {
         Err(WriteError::unimplemented())
     }
 
     fn get_list(&self) -> ReadResult<Self::List> {
         Err(ReadError::unimplemented())
     }
-    fn create_list(_list: &[Self]) -> WriteResult<Self> {
+    fn create_list(ctx: Self::Context, list: &[Self]) -> WriteResult<Self> {
         Err(WriteError::unimplemented())
     }
 
     fn get_map(&self) -> ReadResult<Self::Map> {
         Err(ReadError::unimplemented())
     }
-    fn create_map(_map: &[(Self, Self)]) -> WriteResult<Self> {
+    fn create_map(ctx: Self::Context, map: &[(Self, Self)]) -> WriteResult<Self> {
         Err(WriteError::unimplemented())
     }
 
     fn get_string(&self) -> ReadResult<String> {
         Err(ReadError::unimplemented())
     }
-    fn create_string(_v: &str) -> WriteResult<Self> {
+    fn create_string(ctx: Self::Context, v: &str) -> WriteResult<Self> {
         Err(WriteError::unimplemented())
     }
 
     fn get_byte_buffer(&self) -> ReadResult<Box<[u8]>> {
         fallback_get_list(self)
     }
-    fn create_byte_list(v: &[u8]) -> WriteResult<Self> {
-        fallback_create_list(v)
+    fn create_byte_list(ctx: Self::Context, v: &[u8]) -> WriteResult<Self> {
+        fallback_create_list(ctx, v)
     }
 
     fn get_int_list(&self) -> ReadResult<Box<[i32]>> {
         fallback_get_list(self)
     }
-    fn create_int_list(v: &[i32]) -> WriteResult<Self> {
-        fallback_create_list(v)
+    fn create_int_list(ctx: Self::Context, v: &[i32]) -> WriteResult<Self> {
+        fallback_create_list(ctx, v)
     }
 
     fn get_long_list(&self) -> ReadResult<Box<[i64]>> {
         fallback_get_list(self)
     }
-    fn create_long_list(v: &[i64]) -> WriteResult<Self> {
-        fallback_create_list(v)
+    fn create_long_list(ctx: Self::Context, v: &[i64]) -> WriteResult<Self> {
+        fallback_create_list(ctx, v)
     }
 
     fn get_resolvable_item<I: ResolvableItem>(&self) -> ReadResult<I> {
         Err(ReadError::unimplemented())
     }
-    fn create_resolvable_item<I: ResolvableItem>(_i: I) -> WriteResult<Self> {
+    fn create_resolvable_item<I: ResolvableItem>(ctx: Self::Context, _i: I) -> WriteResult<Self> {
         Err(WriteError::unimplemented())
     }
 }
@@ -191,10 +198,14 @@ fn fallback_get_list<O: Ops, N: TryFrom<Number, Error = ReadError>>(o: &O) -> Re
         .map(|o| o.get_number().and_then(|n| n.try_into()))
         .collect()
 }
-fn fallback_create_list<O: Ops, N: Into<Number> + Copy>(v: &[N]) -> WriteResult<O> {
+fn fallback_create_list<O: Ops, N: Into<Number> + Copy>(
+    ctx: O::Context,
+    v: &[N],
+) -> WriteResult<O> {
     O::create_list(
+        ctx,
         &v.iter()
-            .map(|&i| O::create_number(i.into()))
+            .map(|&i| O::create_number(ctx, i.into()))
             .collect::<WriteResult<Box<[O]>>>()?,
     )
 }
