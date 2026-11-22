@@ -7,6 +7,7 @@ repository.workspace = true
 
 [dependencies]
 azalea-codec-macros.workspace = true
+indexmap = { workspace = true, optional = true }
 serde = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
 simdnbt = { workspace = true, optional = true }
@@ -17,8 +18,9 @@ uuid = { workspace = true, optional = true }
 workspace = true
 
 [features]
-default = ["serde_json", "simdnbt", "uuid"]
+default = ["serde_json", "simdnbt", "uuid", "indexmap"]
 
 serde_json = ["dep:serde_json", "dep:serde"]
 simdnbt = ["dep:simdnbt"]
 uuid = ["dep:uuid"]
+indexmap = ["dep:indexmap"]

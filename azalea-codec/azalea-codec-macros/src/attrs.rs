@@ -1,10 +1,8 @@
 use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{
-    Attribute, Field, Ident, Token, Type, parenthesized,
+    Attribute, Ident, Token, Type, parenthesized,
     parse::{Parse, ParseStream},
-    punctuated::Punctuated,
-    token::Comma,
 };
 
 pub fn filter_codec_attrs(attrs: &[Attribute]) -> impl IntoIterator<Item = &Attribute> {

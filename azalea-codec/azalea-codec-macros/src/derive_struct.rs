@@ -52,7 +52,7 @@ pub fn derive_codec_for_named_fields_struct(
     let mut virtual_fields = HashSet::new();
     for (virt_attrs, virt_ident, virt_ty) in attrs.virt {
         virtual_fields.insert(virt_ident.clone());
-        fields.push_value(Field {
+        fields.push(Field {
             attrs: virt_attrs,
             vis: Visibility::Inherited,
             modifiers: Default::default(),
@@ -106,6 +106,14 @@ pub fn derive_codec_for_named_fields_struct(
             }
         }
 
+        // after making the struct, switch the field type to the one in
+        // attrs.with if necessary
+        let field_type = if let Some(with) = &attrs.with {
+            quote! { #with }
+        } else {
+            quote! { #field_type }
+        };
+
         if field_is_virtual {
             // let it error if it needs to but don't save it
             incomplete_struct_build_extra.extend(quote! {
@@ -116,6 +124,13 @@ pub fn derive_codec_for_named_fields_struct(
                 #field_name: self.#field_name.build()?.into(),
             });
         }
+
+        let read_fn = quote! { ::codec_read(v) };
+        let read_fn = if attrs.with.is_some() {
+            quote! { #read_fn.map(|i| i.0) }
+        } else {
+            read_fn
+        };
 
         if attrs.flatten {
             // formatted like this to more easily handle multiple flattened
@@ -134,7 +149,7 @@ pub fn derive_codec_for_named_fields_struct(
         } else if attrs.lenient {
             codec_read_map_item_impl.extend(quote! {
                 #field_name_string => {
-                    if let Ok(v) = ::azalea_codec::Codec::codec_read(v) {
+                    if let Ok(v) = ::azalea_codec::Codec #read_fn {
                         incomplete.#field_name = Ok(v);
                     }
                 }
@@ -142,20 +157,25 @@ pub fn derive_codec_for_named_fields_struct(
         } else {
             codec_read_map_item_impl.extend(quote! {
                 #field_name_string => {
-                    incomplete.#field_name = <#field_type as ::azalea_codec::Codec<O>>::codec_read(v);
+                    incomplete.#field_name = <#field_type as ::azalea_codec::Codec<O>> #read_fn;
                 }
             });
         }
 
         let field_ref = if field_is_virtual {
-            quote! { Default::default() }
+            quote! { <#field_type>::default() }
         } else {
             quote! { self.#field_name }
+        };
+        let field_ref = if let Some(with) = &attrs.with {
+            quote! { #with(#field_ref.clone()) }
+        } else {
+            field_ref
         };
 
         if attrs.flatten {
             codec_write_to_map_impl.extend(quote! {
-                ::azalea_codec::MapCodec::codec_write_to_map(#field_ref, ctx, __codec_map)?;
+                ::azalea_codec::MapCodec::codec_write_to_map(&#field_ref, ctx, __codec_map)?;
             });
         } else if attrs.lenient || attrs.optional {
             let is_not_default = if let Some(compare_against) = &attrs.default {

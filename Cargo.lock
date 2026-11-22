@@ -400,6 +400,7 @@ name = "azalea-codec"
 version = "0.16.0+mc26.3"
 dependencies = [
  "azalea-codec-macros",
+ "indexmap",
  "serde",
  "serde_json",
  "simdnbt",

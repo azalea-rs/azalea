@@ -1,5 +1,6 @@
 use std::{any::Any, fmt::Debug, mem::ManuallyDrop, str::FromStr};
 
+use azalea_codec::Codec;
 use azalea_registry::builtin::{EnchantmentEffectComponentKind, SoundEvent};
 use simdnbt::{
     DeserializeError,
@@ -30,13 +31,30 @@ macro_rules! define_effect_components {
                 }
             }
 
-            pub fn from_effect_nbt_tag_as(
+            pub fn codec_read_as<O: azalea_codec::Ops>(
                 kind: EnchantmentEffectComponentKind,
-                tag: EffectNbtTag,
-            ) -> Result<Self, DeserializeError> {
+                ops: &O
+            ) -> azalea_codec::error::ReadResult<Vec<Self>> {
                 Ok(match kind {
                     $( EnchantmentEffectComponentKind::$x => {
-                        Self { $x: ManuallyDrop::new(<$t>::from_effect_nbt_tag(tag)?) }
+                        azalea_codec::types::CompactListCodec::<Vec<$t>>::codec_read(ops)?.0
+                            .into_iter()
+                            .map(ManuallyDrop::new)
+                            .map(|c| Self { $x: c })
+                            .collect()
+                    }, )*
+                })
+            }
+            pub fn codec_write_as<O: azalea_codec::Ops>(
+                items: Vec<Self>,
+                kind: EnchantmentEffectComponentKind,
+                ctx: O::Context
+            ) -> azalea_codec::error::WriteResult<O> {
+                Ok(match kind {
+                    $( EnchantmentEffectComponentKind::$x => {
+                        azalea_codec::types::CompactListCodec(
+                            items.into_iter().map(|i| i.$x).collect::<Vec<ManuallyDrop<_>>>()
+                        ).codec_write(ctx)?
                     }, )*
                 })
             }
@@ -147,33 +165,14 @@ impl<'a, 'tape> EffectNbtTag<'a, 'tape> {
         }
     }
 }
-macro_rules! impl_from_effect_nbt_tag {
-    (<$g:tt : $generic_type:tt $(::$generic_type2:tt)* $(+ $generic_type3:tt)+> $ty:ident <$generic_name:ident>) => {
-        impl<$g: $generic_type$(::$generic_type2)* $(+ $generic_type3)+> $ty<$generic_name> {
-            fn from_effect_nbt_tag(nbt: crate::registry_holder::components::EffectNbtTag) -> Result<Self, DeserializeError> {
-                let nbt = nbt.compound(stringify!($ty))?;
-                simdnbt::Deserialize::from_compound(nbt)
-            }
-        }
-    };
-    ($ty:ident) => {
-        impl $ty {
-            pub fn from_effect_nbt_tag(nbt: crate::registry_holder::components::EffectNbtTag) -> Result<Self, DeserializeError> {
-                let nbt = nbt.compound(stringify!($ty))?;
-                simdnbt::Deserialize::from_compound(nbt)
-            }
-        }
-    };
-}
-pub(crate) use impl_from_effect_nbt_tag;
 
-#[derive(Clone, Debug)]
-pub struct ConditionalEffect<T: simdnbt::Deserialize + Debug + Clone> {
+#[derive(Clone, Debug, Codec)]
+pub struct ConditionalEffect<T: Debug + Clone> {
     pub effect: T,
     // pub requirements
 }
-#[derive(Clone, Debug)]
-pub struct TargetedConditionalEffect<T: simdnbt::Deserialize + Debug + Clone> {
+#[derive(Clone, Debug, Codec)]
+pub struct TargetedConditionalEffect<T: Debug + Clone> {
     pub effect: T,
     // pub enchanted
     // pub affected
@@ -190,7 +189,6 @@ impl<T: simdnbt::Deserialize + Debug + Clone> simdnbt::Deserialize for Condition
         Ok(Self { effect })
     }
 }
-impl_from_effect_nbt_tag!(<T: simdnbt::Deserialize + Debug + Clone> ConditionalEffect<T>);
 
 impl<T: simdnbt::Deserialize + Debug + Clone> simdnbt::Deserialize
     for TargetedConditionalEffect<T>
@@ -204,9 +202,8 @@ impl<T: simdnbt::Deserialize + Debug + Clone> simdnbt::Deserialize
 macro_rules! declare_newtype_components {
     ( $( $struct_name:ident: $inner_type:ty ),* $(,)? ) => {
         $(
-            #[derive(Clone, Debug, simdnbt::Deserialize)]
+            #[derive(Clone, Debug, Codec)]
             pub struct $struct_name(pub $inner_type);
-            impl_from_effect_nbt_tag!($struct_name);
         )*
     };
 }
@@ -239,9 +236,8 @@ declare_newtype_components! {
 
 }
 
-#[derive(Clone, Debug, simdnbt::Deserialize)]
+#[derive(Clone, Debug, Codec)]
 pub struct DamageImmunity {}
-impl_from_effect_nbt_tag!(DamageImmunity);
 
 #[derive(Clone, Debug)]
 pub struct CrossbowChargingSounds(pub Vec<CrossbowChargingSound>);
@@ -306,16 +302,16 @@ impl TridentSound {
     }
 }
 
-#[derive(Clone, Debug, simdnbt::Deserialize)]
+#[derive(Clone, Debug, Codec)]
+#[codec(allow_unknown_keys)]
 pub struct LocationBasedEffect {
     // TODO
 }
-impl_from_effect_nbt_tag!(LocationBasedEffect);
 
-#[derive(Clone, Debug, simdnbt::Deserialize)]
+#[derive(Clone, Debug, Codec)]
+#[codec(allow_unknown_keys)]
 pub struct PreventEquipmentDrop {}
-impl_from_effect_nbt_tag!(PreventEquipmentDrop);
 
-#[derive(Clone, Debug, simdnbt::Deserialize)]
+#[derive(Clone, Debug, Codec)]
+#[codec(allow_unknown_keys)]
 pub struct PreventArmorChange {}
-impl_from_effect_nbt_tag!(PreventArmorChange);

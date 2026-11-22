@@ -93,20 +93,40 @@ impl<O: Ops, T: Codec<O>> Codec<O> for Vec<T> {
 }
 crate::impl_defaultable!(<T: Codec<O>> for Vec<T>, self, self.is_empty());
 
+fn array_codec_read<const N: usize, O: Ops, T: Codec<O> + Clone>(ops: &O) -> ReadResult<[T; N]> {
+    let read = Vec::<T>::codec_read(ops)?;
+    let len = read.len();
+    read.try_into().map_err(|_| {
+        ReadError::custom(format!(
+            "wrong array length, was required to be {N} but got {len}"
+        ))
+    })
+}
 impl<const N: usize, O: Ops, T: Codec<O> + Clone> Codec<O> for [T; N] {
-    fn codec_read(ops: &O) -> ReadResult<Self> {
-        let read = Vec::<T>::codec_read(ops)?;
-        let len = read.len();
-        read.try_into().map_err(|_| {
-            ReadError::custom(format!(
-                "wrong array length, was required to be {N} but got {len}"
-            ))
-        })
+    default fn codec_read(ops: &O) -> ReadResult<Self> {
+        array_codec_read(ops)
     }
-    fn codec_write(&self, ctx: O::Context) -> WriteResult<O> {
+    default fn codec_write(&self, ctx: O::Context) -> WriteResult<O> {
         self.to_vec().codec_write(ctx)
     }
 }
+impl<const N: usize, O: Ops> Codec<O> for [i32; N] {
+    fn codec_read(ops: &O) -> ReadResult<Self> {
+        array_codec_read(ops)
+    }
+    fn codec_write(&self, ctx: O::Context) -> WriteResult<O> {
+        O::create_int_list(ctx, self)
+    }
+}
+impl<const N: usize, O: Ops> Codec<O> for [i64; N] {
+    fn codec_read(ops: &O) -> ReadResult<Self> {
+        array_codec_read(ops)
+    }
+    fn codec_write(&self, ctx: O::Context) -> WriteResult<O> {
+        O::create_long_list(ctx, self)
+    }
+}
+
 impl<O: Ops, A: Codec<O>, B: Codec<O>> Codec<O> for (A, B) {
     /// Read as a list.
     fn codec_read(ops: &O) -> ReadResult<Self> {
@@ -133,7 +153,6 @@ impl<O: Ops, A: Codec<O>, B: Codec<O>> Codec<O> for (A, B) {
 impl<O: Ops, K: Codec<O> + Eq + Hash, V: Codec<O>> Codec<O> for HashMap<K, V> {
     fn codec_read(ops: &O) -> ReadResult<Self> {
         let map = ops.get_map()?;
-
         let mut items = Vec::new();
         map.for_each(|k, v| {
             items.push(K::codec_read(k).and_then(|k| V::codec_read(v).map(|v| (k, v))));
@@ -143,8 +162,12 @@ impl<O: Ops, K: Codec<O> + Eq + Hash, V: Codec<O>> Codec<O> for HashMap<K, V> {
             items.into_iter().collect::<ReadResult<Box<[_]>>>()?,
         ))
     }
-    fn codec_write(&self, _ctx: O::Context) -> WriteResult<O> {
-        todo!()
+    fn codec_write(&self, ctx: O::Context) -> WriteResult<O> {
+        let mut map = Vec::new();
+        for (k, v) in self {
+            map.push((k.codec_write(ctx)?, v.codec_write(ctx)?));
+        }
+        O::create_map(ctx, &map)
     }
 }
 

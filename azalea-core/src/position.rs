@@ -309,6 +309,16 @@ macro_rules! vec3_impl {
                 (pos.x, pos.y, pos.z)
             }
         }
+
+        impl<O: azalea_codec::Ops> Codec<O> for $name {
+            fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
+                let [x, y, z] = <[$type; 3]>::codec_read(ops)?;
+                Ok(Self { x, y, z })
+            }
+            fn codec_write(&self, ctx: O::Context) -> azalea_codec::error::WriteResult<O> {
+                [self.x, self.y, self.z].codec_write(ctx)
+            }
+        }
     };
 }
 
@@ -523,15 +533,6 @@ impl<'de> serde::Deserialize<'de> for BlockPos {
     {
         let [x, y, z] = <[i32; 3]>::deserialize(deserializer)?;
         Ok(BlockPos { x, y, z })
-    }
-}
-impl<O: azalea_codec::Ops> Codec<O> for BlockPos {
-    fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
-        let [x, y, z] = <[i32; 3]>::codec_read(ops)?;
-        Ok(BlockPos { x, y, z })
-    }
-    fn codec_write(&self, ctx: O::Context) -> azalea_codec::error::WriteResult<O> {
-        O::create_int_list(ctx, &[self.x, self.y, self.z])
     }
 }
 

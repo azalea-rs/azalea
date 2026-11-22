@@ -1,9 +1,6 @@
 use azalea_codec::Codec;
 use azalea_registry::{
-    builtin::{
-        Attribute, EnchantmentLevelBasedValueKind as LevelBasedValueKind,
-        EnchantmentValueEffectKind as ValueEffectKind,
-    },
+    builtin::{Attribute, EnchantmentLevelBasedValueKind as LevelBasedValueKind},
     identifier::Identifier,
 };
 use simdnbt::{
@@ -12,11 +9,12 @@ use simdnbt::{
 };
 
 use crate::{
-    attribute_modifier_operation::AttributeModifierOperation,
-    registry_holder::{components::impl_from_effect_nbt_tag, get_in_compound},
+    attribute_modifier_operation::AttributeModifierOperation, registry_holder::get_in_compound,
 };
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Codec)]
+#[codec(tag = "type")]
+#[codec(default_snake_case_key)]
 pub enum ValueEffect {
     Set {
         value: LevelBasedValue,
@@ -39,41 +37,6 @@ pub enum ValueEffect {
     },
 }
 
-impl simdnbt::Deserialize for ValueEffect {
-    fn from_compound(nbt: NbtCompound) -> Result<Self, DeserializeError> {
-        let kind = get_in_compound(&nbt, "type")?;
-        let value = match kind {
-            ValueEffectKind::Set => {
-                let value = get_in_compound(&nbt, "value")?;
-                Self::Set { value }
-            }
-            ValueEffectKind::Add => {
-                let value = get_in_compound(&nbt, "value")?;
-                Self::Add { value }
-            }
-            ValueEffectKind::Multiply => {
-                let factor = get_in_compound(&nbt, "factor")?;
-                Self::Multiply { factor }
-            }
-            ValueEffectKind::RemoveBinomial => {
-                let chance = get_in_compound(&nbt, "chance")?;
-                Self::RemoveBinomial { chance }
-            }
-            ValueEffectKind::AllOf => {
-                let effects = get_in_compound(&nbt, "effects")?;
-                Self::AllOf { effects }
-            }
-            ValueEffectKind::Exponential => {
-                let base = get_in_compound(&nbt, "base")?;
-                let exponent = get_in_compound(&nbt, "exponent")?;
-                Self::Exponential { base, exponent }
-            }
-        };
-        Ok(value)
-    }
-}
-impl_from_effect_nbt_tag!(ValueEffect);
-
 #[derive(Clone, Debug, Codec)]
 pub struct AttributeEffect {
     pub id: Identifier,
@@ -81,7 +44,6 @@ pub struct AttributeEffect {
     pub amount: LevelBasedValue,
     pub operation: AttributeModifierOperation,
 }
-impl_from_effect_nbt_tag!(AttributeEffect);
 
 #[derive(Clone, Debug, Codec)]
 pub enum LevelBasedValue {

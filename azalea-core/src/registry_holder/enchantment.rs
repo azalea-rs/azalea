@@ -1,5 +1,6 @@
 use std::{any::Any, fmt::Debug, str::FromStr};
 
+use azalea_codec::{Codec, MapLike};
 use azalea_registry::builtin::EnchantmentEffectComponentKind;
 use indexmap::IndexMap;
 use simdnbt::{DeserializeError, borrow::NbtCompound};
@@ -8,10 +9,12 @@ use crate::registry_holder::components::{
     EffectComponentTrait, EffectComponentUnion, EffectNbtTag, ResolvedEffectComponent,
 };
 
+#[derive(Codec)]
 pub struct EnchantmentData {
     // TODO: make these two deserializable
     // pub description: TextComponent,
     // pub exclusive_set: HolderSet<Enchantment, ResourceLocation>,
+    #[codec(with = Effects)]
     effects: IndexMap<EnchantmentEffectComponentKind, Vec<EffectComponentUnion>>,
 }
 
@@ -41,53 +44,36 @@ impl EnchantmentData {
     }
 }
 
-impl simdnbt::Deserialize for EnchantmentData {
-    fn from_compound(nbt: NbtCompound) -> Result<Self, DeserializeError> {
-        let mut effects: IndexMap<EnchantmentEffectComponentKind, Vec<EffectComponentUnion>> =
-            IndexMap::new();
-
-        if let Some(effects_tag) = nbt.compound("effects") {
-            for (key, list) in effects_tag.iter() {
-                let kind = EnchantmentEffectComponentKind::from_str(&key.to_str())
-                    .map_err(|_| DeserializeError::UnknownField(key.to_string()))?;
-
-                let mut components = Vec::new();
-                if let Some(tag) = list.compound() {
-                    if !tag.is_empty() {
-                        let value = EffectComponentUnion::from_effect_nbt_tag_as(
-                            kind,
-                            EffectNbtTag::Compound(tag),
-                        )?;
-                        components.push(value);
-                    }
-                } else {
-                    let list = list.list().ok_or_else(|| {
-                        DeserializeError::MismatchedFieldType("effects".to_owned())
-                    })?;
-
-                    if let Some(tags) = list.compounds() {
-                        for tag in tags {
-                            let value = EffectComponentUnion::from_effect_nbt_tag_as(
-                                kind,
-                                EffectNbtTag::Compound(tag),
-                            )?;
-                            components.push(value);
-                        }
-                    } else {
-                        let value = EffectComponentUnion::from_effect_nbt_tag_as(
-                            kind,
-                            EffectNbtTag::List(list),
-                        )?;
-                        components.push(value);
-                    }
-                }
-
-                effects.insert(kind, components);
-            }
+struct Effects(IndexMap<EnchantmentEffectComponentKind, Vec<EffectComponentUnion>>);
+impl<O: azalea_codec::Ops> Codec<O> for Effects {
+    fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
+        let map = ops.get_map()?;
+        let mut items = Vec::new();
+        map.for_each(|k, v| {
+            items.push(
+                EnchantmentEffectComponentKind::codec_read(k)
+                    .and_then(|k| EffectComponentUnion::codec_read_as(k, v).map(|v| (k, v))),
+            );
+        });
+        Ok(Self(
+            items
+                .into_iter()
+                .collect::<azalea_codec::error::ReadResult<_>>()?,
+        ))
+    }
+    fn codec_write(&self, ctx: O::Context) -> azalea_codec::error::WriteResult<O> {
+        let mut map = Vec::new();
+        for (&k, v) in &self.0 {
+            let v = v
+                .into_iter()
+                .map(|v| unsafe { v.clone_as(k) })
+                .collect::<Vec<_>>();
+            map.push((
+                k.codec_write(ctx)?,
+                EffectComponentUnion::codec_write_as(v, k, ctx)?,
+            ));
         }
-
-        let value = Self { effects };
-        Ok(value)
+        O::create_map(ctx, &map)
     }
 }
 

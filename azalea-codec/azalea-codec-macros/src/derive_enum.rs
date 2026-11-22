@@ -75,14 +75,18 @@ pub fn derive_codec_for_enum(
 
         // whether the fields in this variant are to be named, which would
         // require us to split it into a separate struct
-        let mut is_named_enum = false;
+        let mut is_treated_as_named_enum = false;
+        let mut is_actually_named_enum = false;
 
-        if enum_attrs.tag.is_some() {
-            is_named_enum = true;
-        } else if let Some(first) = first_variant_field
+        if let Some(first) = first_variant_field
             && first.ident.is_some()
         {
-            is_named_enum = true;
+            is_treated_as_named_enum = true;
+            is_actually_named_enum = true;
+        } else if enum_attrs.tag.is_some() {
+            // rust lets us pretend that a unit enum is named
+            is_actually_named_enum = first_variant_field.is_none();
+            is_treated_as_named_enum = true;
         }
 
         let field_type: syn::Type;
@@ -108,7 +112,7 @@ pub fn derive_codec_for_enum(
             ).to_compile_error().into();
         }
 
-        if is_named_enum {
+        if is_treated_as_named_enum {
             // named enum
 
             // to make handling named enums easier, when making the Incomplete
@@ -131,6 +135,7 @@ pub fn derive_codec_for_enum(
                 syn::Fields::Unnamed(f) => filter_attributes_in_fields(&mut f.unnamed),
                 _ => {}
             }
+            let mut variant_codec_attrs = quote! {};
 
             let variant_struct_contents = if let Some(tag) = &enum_attrs.tag {
                 // if we're using a tag, modify every variant struct to include
@@ -145,16 +150,12 @@ pub fn derive_codec_for_enum(
                 };
                 used_variant_key = true;
 
-                let fields_inner;
-                if variant_attrs.fallback {
-                    fields_inner = quote! {};
-                } else {
-                    fields_inner = quote! {
-                        #[codec(rename = #tag)]
-                        __codec_tag: ::azalea_codec::types::StringLiteral<#variant_key>,
-                    };
-                    construct_extracted_struct.extend(quote! {
-                        __codec_tag: Default::default(),
+                if !variant_attrs.fallback {
+                    variant_codec_attrs.extend(quote! {
+                        #[codec(virt(
+                            #[codec(rename = #tag)]
+                            __codec_tag: ::azalea_codec::types::StringLiteral<#variant_key>
+                        ))]
                     });
                 }
 
@@ -164,7 +165,7 @@ pub fn derive_codec_for_enum(
                         for field in f {
                             field_names.push(field.ident.clone().unwrap());
                         }
-                        quote! { { #fields_inner #f } }
+                        quote! { { #f } }
                     }
                     syn::Fields::Unnamed(f) => {
                         let f = &f.unnamed;
@@ -172,13 +173,10 @@ pub fn derive_codec_for_enum(
                         // we'll have to turn this unnamed field into a named
                         // one to be able to fit the __codec_tag in there.
                         field_names.push(Ident::new("value", ident.span()));
-                        quote! { {
-                            #fields_inner
-                            value: #f,
-                        } }
+                        quote! { { value: #f, } }
                     }
                     syn::Fields::Unit => {
-                        quote! { { #fields_inner } }
+                        quote! { {} }
                     }
                 }
             } else {
@@ -192,7 +190,6 @@ pub fn derive_codec_for_enum(
                 quote! {#variant_struct_contents}
             };
 
-            let mut variant_codec_attrs = quote! {};
             for a in unhandled_attrs.drain(..) {
                 variant_codec_attrs.extend(quote! {#a});
             }
@@ -216,11 +213,15 @@ pub fn derive_codec_for_enum(
                 construct_extracted_struct.extend(quote! { #field_name: #field_name.clone(), });
             }
             let construct_extracted_struct = quote! { #field_type { #construct_extracted_struct } };
-            let construct_variant = quote! { Self::#variant_name { #comma_separated_field_names } };
+            let construct_variant = if is_actually_named_enum {
+                quote! { Self::#variant_name { #comma_separated_field_names } }
+            } else {
+                quote! { Self::#variant_name(value) }
+            };
 
             codec_read_impl.extend(quote! {
                 match <#field_type>::codec_read(__codec_ops) {
-                    Ok(#field_type { #comma_separated_field_names .. }) => {
+                    Ok(#field_type { #comma_separated_field_names }) => {
                         return Ok(#construct_variant);
                     }
                     Err(e) => {

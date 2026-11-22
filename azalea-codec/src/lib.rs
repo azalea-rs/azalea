@@ -4,6 +4,8 @@
 #![feature(adt_const_params, unsized_const_params)]
 // thiserror
 #![feature(error_generic_member_access)]
+// specialized lists
+#![feature(min_specialization)]
 
 pub use azalea_codec_macros::Codec;
 

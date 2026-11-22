@@ -1,3 +1,5 @@
+#[cfg(feature = "indexmap")]
+pub mod indexmap;
 #[cfg(feature = "serde_json")]
 pub mod serde_json;
 #[cfg(feature = "simdnbt")]
