@@ -1,3 +1,4 @@
+use azalea_codec::Codec;
 use azalea_registry::{
     builtin::{
         Attribute, EnchantmentLevelBasedValueKind as LevelBasedValueKind,
@@ -73,7 +74,7 @@ impl simdnbt::Deserialize for ValueEffect {
 }
 impl_from_effect_nbt_tag!(ValueEffect);
 
-#[derive(Clone, Debug, simdnbt::Deserialize)]
+#[derive(Clone, Debug, Codec)]
 pub struct AttributeEffect {
     pub id: Identifier,
     pub attribute: Attribute,
@@ -82,7 +83,7 @@ pub struct AttributeEffect {
 }
 impl_from_effect_nbt_tag!(AttributeEffect);
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Codec)]
 pub enum LevelBasedValue {
     Constant(f32),
     Exponent {

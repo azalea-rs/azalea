@@ -8,13 +8,11 @@ use std::{
 
 use azalea_buf::{AzBuf, AzBufVar, BufReadError};
 use azalea_codec::{Codec, MapLike};
-use azalea_core::codec_utils::is_default;
 use azalea_registry::{
     builtin::{DataComponentKind, ItemKind},
     identifier::Identifier,
 };
 use indexmap::IndexMap;
-use serde::Serialize;
 
 use crate::{
     components::{self, DataComponentUnion},
@@ -143,17 +141,6 @@ impl ItemStack {
         self
     }
 }
-impl Serialize for ItemStack {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        match self {
-            ItemStack::Empty => serializer.serialize_unit(),
-            ItemStack::Present(i) => i.serialize(serializer),
-        }
-    }
-}
 impl<O: azalea_codec::Ops> Codec<O> for ItemStack {
     fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
         if <()>::codec_read(ops).is_ok() {
@@ -174,9 +161,8 @@ impl<O: azalea_codec::Ops> Codec<O> for ItemStack {
 ///
 /// Usually you want [`ItemStack`] or
 /// [`ItemKind`](azalea_registry::builtin::ItemKind) instead.
-#[derive(Clone, Debug, PartialEq, Serialize, Codec)]
+#[derive(Clone, Debug, PartialEq, Codec)]
 pub struct ItemStackData {
-    #[serde(rename = "id")]
     #[codec(rename = "id")]
     pub kind: ItemKind,
     /// The amount of the item in this slot.
@@ -185,7 +171,6 @@ pub struct ItemStackData {
     pub count: i32,
     /// The item's components that the server set to be different from the
     /// defaults.
-    #[serde(rename = "components", skip_serializing_if = "is_default")]
     #[codec(optional, rename = "components")]
     pub component_patch: DataComponentPatch,
 }
@@ -520,15 +505,6 @@ impl PartialEq for DataComponentPatch {
     }
 }
 
-impl Serialize for DataComponentPatch {
-    fn serialize<S>(&self, _serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        // TODO: remove when azalea-codec is done
-        unimplemented!()
-    }
-}
 impl<O: azalea_codec::Ops> Codec<O> for DataComponentPatch {
     fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
         let map = ops.get_map()?;
