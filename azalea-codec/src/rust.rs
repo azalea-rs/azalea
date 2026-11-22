@@ -46,7 +46,7 @@ impl<O: Ops> Codec<O> for () {
         Err(ReadError::custom("not an empty map"))
     }
     fn codec_write(&self) -> WriteResult<O> {
-        O::empty()
+        O::empty_map()
     }
 }
 

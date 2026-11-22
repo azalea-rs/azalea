@@ -112,6 +112,9 @@ pub trait Ops: Sized + Clone + Codec<Self> {
     type Map: MapLike<Self>;
 
     fn empty() -> WriteResult<Self> {
+        Self::empty_map()
+    }
+    fn empty_map() -> WriteResult<Self> {
         Self::create_map(&[])
     }
     fn empty_list() -> WriteResult<Self> {

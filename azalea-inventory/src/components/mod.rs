@@ -11,7 +11,7 @@ use std::{
 
 use azalea_buf::{AzBuf, BufReadError};
 use azalea_chat::FormattedText;
-use azalea_codec::Codec;
+use azalea_codec::{Codec, types::CompactListCodec};
 use azalea_core::{
     attribute_modifier_operation::AttributeModifierOperation,
     checksum::{Checksum, ChecksumOps, get_checksum},
@@ -433,23 +433,20 @@ pub struct BlockPredicate {
     pub nbt: Option<NbtCompound>,
 }
 
-#[derive(AzBuf, Clone, Debug, PartialEq, Serialize, Codec)]
-#[serde(transparent)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 #[codec(transparent)]
 pub struct AdventureModePredicate {
-    #[serde(serialize_with = "flatten_array")]
+    #[codec(with = CompactListCodec)]
     pub predicates: Vec<BlockPredicate>,
 }
 
-#[derive(AzBuf, Clone, Debug, PartialEq, Serialize, Codec)]
-#[serde(transparent)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 #[codec(transparent)]
 pub struct CanPlaceOn {
     pub predicate: AdventureModePredicate,
 }
 
-#[derive(AzBuf, Clone, Debug, PartialEq, Serialize, Codec)]
-#[serde(transparent)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 #[codec(transparent)]
 pub struct CanBreak {
     pub predicate: AdventureModePredicate,
@@ -484,6 +481,7 @@ pub struct AttributeModifier {
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize, Codec)]
 pub struct AttributeModifiersEntry {
     #[serde(rename = "type")]
+    #[codec(rename = "type")]
     pub kind: Attribute,
     #[serde(flatten)]
     #[codec(flatten)]
@@ -757,6 +755,7 @@ impl Default for PotionContents {
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize, Codec)]
 pub struct SuspiciousStewEffect {
     #[serde(rename = "id")]
+    #[codec(rename = "id")]
     pub effect: MobEffect,
     #[var]
     #[serde(skip_serializing_if = "is_default")]
@@ -809,6 +808,7 @@ pub struct DebugStickState {
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize, Codec)]
 pub struct EntityData {
     #[serde(rename = "id")]
+    #[codec(rename = "id")]
     pub kind: EntityKind,
     #[serde(flatten)]
     #[codec(flatten)]
@@ -825,6 +825,7 @@ pub struct BucketEntityData {
 #[derive(AzBuf, Clone, Debug, PartialEq, Serialize, Codec)]
 pub struct BlockEntityData {
     #[serde(rename = "id")]
+    #[codec(rename = "id")]
     pub kind: EntityKind,
     #[serde(flatten)]
     #[codec(flatten)]
@@ -867,7 +868,7 @@ pub struct LodestoneTracker {
     #[codec(optional)]
     pub target: Option<GlobalPos>,
     #[serde(skip_serializing_if = "is_true")]
-    #[codec(optional = true)]
+    #[codec(optional, default = true)]
     pub tracked: bool,
 }
 
@@ -1167,10 +1168,13 @@ pub struct Equippable {
     #[codec(optional)]
     pub allowed_entities: Option<HolderSet<EntityKind, Identifier>>,
     #[serde(skip_serializing_if = "is_true")]
+    #[codec(optional, default = true)]
     pub dispensable: bool,
     #[serde(skip_serializing_if = "is_true")]
+    #[codec(optional, default = true)]
     pub swappable: bool,
     #[serde(skip_serializing_if = "is_true")]
+    #[codec(optional, default = true)]
     pub damage_on_hurt: bool,
     #[serde(skip_serializing_if = "is_default")]
     #[codec(optional)]
@@ -1956,6 +1960,7 @@ pub struct AttackAnimation {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize, Codec)]
 pub struct SwingAnimation {
     #[serde(rename = "type")]
+    #[codec(rename = "type")]
     pub kind: SwingAnimationKind,
     #[var]
     pub duration: i32,

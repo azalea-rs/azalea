@@ -5,7 +5,9 @@ mod utils;
 
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{DeriveInput, Field, Ident, parse_macro_input};
+use syn::{Attribute, DeriveInput, Field, Ident, parse_macro_input};
+
+use crate::attrs::{parse_field_attrs, parse_struct_attrs};
 
 #[proc_macro_derive(Codec, attributes(codec))]
 pub fn derive_codec(input: TokenStream) -> TokenStream {
@@ -28,7 +30,7 @@ pub fn derive_codec(input: TokenStream) -> TokenStream {
                     1,
                     "#[derive(Codec)] cannot be used on structs with more than one unnamed field."
                 );
-                derive_transparent_impl(&ident, &fields.unnamed[0])
+                derive_transparent_impl(&attrs, &ident, &fields.unnamed[0])
             }
             syn::Fields::Unit => derive_unit_struct_impl(&ident),
         },
@@ -41,34 +43,51 @@ pub fn derive_codec(input: TokenStream) -> TokenStream {
     }
 }
 
-fn derive_transparent_impl(ident: &Ident, field: &Field) -> TokenStream {
-    if let Some(field_ident) = &field.ident {
-        quote! {
-        impl<O: ::azalea_codec::Ops> ::azalea_codec::Codec<O> for #ident {
-            fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
-                Ok(Self { #field_ident: <_>::codec_read(ops)? })
-            }
+fn derive_transparent_impl(attrs: &[Attribute], ident: &Ident, field: &Field) -> TokenStream {
+    let _struct_attrs = match parse_struct_attrs(attrs) {
+        Ok(a) => a,
+        Err(e) => return e.into_compile_error().into(),
+    };
+    let field_attrs = match parse_field_attrs(&field.attrs) {
+        Ok(a) => a,
+        Err(e) => return e.into_compile_error().into(),
+    };
 
-            fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
-                ::azalea_codec::Codec::codec_write(&self.#field_ident)
-            }
-        }
-        }
-        .into()
+    let base_read_expr = if let Some(with) = &field_attrs.with {
+        quote! { #with::codec_read(ops).map(|c| c.0) }
     } else {
-        quote! {
-        impl<O: ::azalea_codec::Ops> ::azalea_codec::Codec<O> for #ident {
-            fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
-                <_>::codec_read(ops).map(Self)
-            }
+        quote! { <_>::codec_read(ops) }
+    };
 
-            fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
-                ::azalea_codec::Codec::codec_write(&self.0)
-            }
+    let read_expr;
+    let write_expr;
+    if let Some(field_ident) = &field.ident {
+        read_expr = quote! {
+            #base_read_expr.map(|#field_ident| Self { #field_ident })
+        };
+        write_expr = quote! { self.#field_ident };
+    } else {
+        read_expr = quote! { #base_read_expr.map(Self) };
+        write_expr = quote! { self.0 };
+    };
+
+    let write_expr = if let Some(with) = &field_attrs.with {
+        quote! { #with(#write_expr.clone()) }
+    } else {
+        write_expr
+    };
+
+    quote! {
+    impl<O: ::azalea_codec::Ops> ::azalea_codec::Codec<O> for #ident {
+        fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
+            #read_expr
         }
+        fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
+            ::azalea_codec::Codec::codec_write(&#write_expr)
         }
-        .into()
     }
+    }
+    .into()
 }
 
 fn derive_unit_struct_impl(ident: &Ident) -> TokenStream {

@@ -23,19 +23,6 @@ pub fn is_true(t: &bool) -> bool {
     *t
 }
 
-/// If the array has a single item, don't serialize as an array
-///
-/// ```ignore
-/// #[serde(serialize_with = "flatten_array")]
-/// ```
-pub fn flatten_array<S: Serializer, T: Serialize>(x: &Vec<T>, s: S) -> Result<S::Ok, S::Error> {
-    if x.len() == 1 {
-        x[0].serialize(s)
-    } else {
-        x.serialize(s)
-    }
-}
-
 /// Minecraft writes UUIDs as an IntArray<4>
 pub fn uuid<'a, S: Serializer>(
     uuid: impl Into<&'a Option<Uuid>>,

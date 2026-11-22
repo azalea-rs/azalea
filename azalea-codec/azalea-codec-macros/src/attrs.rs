@@ -1,3 +1,4 @@
+use quote::ToTokens;
 use syn::{
     Attribute,
     parse::{Parse, ParseStream},
@@ -12,7 +13,14 @@ pub struct FieldAttrs {
     pub rename: Option<String>,
     pub flatten: bool,
     pub optional: bool,
+    /// If this is set, then we compare against this value instead of using
+    /// Defaultable.
+    pub default: Option<proc_macro2::TokenStream>,
     pub lenient: bool,
+    /// Use the given wrapper type to read and write this field.
+    ///
+    /// E.g. `#[codec(with = CompactListCodec)]`
+    pub with: Option<proc_macro2::TokenStream>,
 }
 impl Parse for FieldAttrs {
     fn parse(input: ParseStream) -> syn::Result<Self> {
@@ -27,7 +35,17 @@ impl Parse for FieldAttrs {
                 }
                 "flatten" => attrs.flatten = true,
                 "optional" => attrs.optional = true,
+                "default" => {
+                    input.parse::<syn::Token![=]>()?;
+                    let default = input.parse::<syn::Expr>()?;
+                    attrs.default = Some(default.to_token_stream());
+                }
                 "lenient" => attrs.lenient = true,
+                "with" => {
+                    input.parse::<syn::Token![=]>()?;
+                    let with = input.parse::<syn::Type>()?;
+                    attrs.with = Some(with.to_token_stream());
+                }
                 attr => {
                     return Err(syn::Error::new(
                         attr_ident.span(),
@@ -47,12 +65,16 @@ pub fn parse_field_attrs(attrs: &[syn::Attribute]) -> syn::Result<FieldAttrs> {
             rename,
             flatten,
             optional,
+            default,
             lenient,
+            with,
         } = attr.parse_args()?;
         a.rename = rename.or(a.rename);
         a.flatten |= flatten;
         a.optional |= optional;
+        a.default = default.or(a.default);
         a.lenient |= lenient;
+        a.with = with.or(a.with);
     }
     if a.optional && a.lenient {
         panic!("conflicting 'optional' and 'lenient'; optional already implies lenient")
@@ -60,6 +82,10 @@ pub fn parse_field_attrs(attrs: &[syn::Attribute]) -> syn::Result<FieldAttrs> {
     if a.flatten && a.lenient {
         panic!("conflicting 'flatten' and 'lenient'")
     }
+    if a.default.is_some() && !a.optional && !a.lenient {
+        panic!("if 'default' is set then 'optional' or 'lenient' must be set too")
+    }
+
     Ok(a)
 }
 

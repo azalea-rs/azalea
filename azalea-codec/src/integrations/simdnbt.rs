@@ -40,26 +40,9 @@ impl Ops for NbtTag {
     fn get_list(&self) -> ReadResult<<NbtTag as Ops>::List> {
         let items: Vec<NbtTag> = match self {
             NbtTag::ByteArray(items) => items.iter().map(|&i| NbtTag::Byte(i as i8)).collect(),
-            NbtTag::List(items) => {
-                if let Some(compounds) = items.compounds() {
-                    // dehomogenize lists of compounds
-                    let mut tags = Vec::new();
-                    for c in compounds {
-                        if c.len() == 1
-                            && let Some(item) = c.get("")
-                        {
-                            tags.push(item.clone());
-                        } else {
-                            tags.push(NbtTag::Compound(c.clone()));
-                        }
-                    }
-                    tags
-                } else {
-                    items.as_nbt_tags()
-                }
-            }
-            NbtTag::IntArray(items) => items.iter().map(|&i| NbtTag::Byte(i as i8)).collect(),
-            NbtTag::LongArray(items) => items.iter().map(|&i| NbtTag::Byte(i as i8)).collect(),
+            NbtTag::List(list) => list_as_tags(list),
+            NbtTag::IntArray(items) => items.iter().map(|&i| NbtTag::Int(i as i32)).collect(),
+            NbtTag::LongArray(items) => items.iter().map(|&i| NbtTag::Long(i as i64)).collect(),
             _ => return Err(ReadError::custom("not a list")),
         };
         Ok(items.into_iter())
@@ -206,9 +189,29 @@ impl<O: Ops> Codec<O> for NbtList {
         Ok(Vec::<NbtTag>::codec_read(ops)?.into())
     }
     fn codec_write(&self) -> WriteResult<O> {
-        self.as_nbt_tags().codec_write()
+        list_as_tags(self).codec_write()
     }
 }
+
+fn list_as_tags(list: &NbtList) -> Vec<NbtTag> {
+    if let Some(compounds) = list.compounds() {
+        // dehomogenize lists of compounds
+        let mut tags = Vec::new();
+        for c in compounds {
+            if c.len() == 1
+                && let Some(item) = c.get("")
+            {
+                tags.push(item.clone());
+            } else {
+                tags.push(NbtTag::Compound(c.clone()));
+            }
+        }
+        tags
+    } else {
+        list.as_nbt_tags()
+    }
+}
+
 impl<O: Ops> Codec<O> for NbtCompound {
     type Incomplete = IncompleteNbtCompound;
     fn codec_read(ops: &O) -> ReadResult<Self> {

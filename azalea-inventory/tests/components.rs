@@ -106,6 +106,7 @@ fn test_custom_data_nbt() {
             ),
         ]),
     };
+
     assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 1035780974);
 }
 #[test]
@@ -178,9 +179,6 @@ fn test_lodestone_tracker_checksum() {
         tracked: true,
     };
 
-    let r: simdnbt::owned::NbtTag = c.codec_write().unwrap();
-    println!("{r:?}");
-
     assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 4138292505);
 }
 
@@ -200,5 +198,6 @@ fn test_pot_decorations_checksum() {
 #[test]
 fn test_glider_checksum() {
     let c = Glider;
+
     assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 3312760008);
 }

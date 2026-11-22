@@ -48,3 +48,24 @@ impl<O: Ops> MapCodec<O> for Drain {
         Ok(())
     }
 }
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct CompactListCodec<T>(pub T);
+impl<O: Ops, T: IntoIterator<Item = V> + FromIterator<V> + Clone, V: Codec<O>> Codec<O>
+    for CompactListCodec<T>
+{
+    fn codec_read(ops: &O) -> ReadResult<Self> {
+        if let Ok(v) = V::codec_read(ops) {
+            return Ok(Self(T::from_iter([v])));
+        }
+        Ok(Self(T::from_iter(Vec::<V>::codec_read(ops)?)))
+    }
+    fn codec_write(&self) -> WriteResult<O> {
+        let v = self.0.clone().into_iter().collect::<Vec<V>>();
+        if v.len() == 1 {
+            v[0].codec_write()
+        } else {
+            v.codec_write()
+        }
+    }
+}

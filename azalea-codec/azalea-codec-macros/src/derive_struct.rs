@@ -6,12 +6,12 @@ use crate::{attrs, derive_transparent_impl, utils};
 
 pub fn derive_codec_for_named_fields_struct(
     vis: &Visibility,
-    attrs: &[Attribute],
+    attrs_slice: &[Attribute],
     ident: &Ident,
     generics: &Generics,
     fields: FieldsNamed,
 ) -> TokenStream {
-    let attrs = match attrs::parse_struct_attrs(attrs) {
+    let attrs = match attrs::parse_struct_attrs(attrs_slice) {
         Ok(a) => a,
         Err(e) => return syn::Error::into_compile_error(e).into(),
     };
@@ -21,7 +21,7 @@ pub fn derive_codec_for_named_fields_struct(
             1,
             "cannot mark structs with more than one field as transparent"
         );
-        return derive_transparent_impl(ident, &fields.named[0]);
+        return derive_transparent_impl(attrs_slice, ident, &fields.named[0]);
     }
 
     let incomplete = Ident::new(&format!("__Incomplete__{ident}"), ident.span());
@@ -54,7 +54,7 @@ pub fn derive_codec_for_named_fields_struct(
             Err(e) => return syn::Error::into_compile_error(e).into(),
         };
 
-        let debug_field_name_string = attrs.rename.unwrap_or_else(|| field_name.to_string());
+        let field_name_string = attrs.rename.unwrap_or_else(|| field_name.to_string());
 
         if attrs.flatten {
             incomplete_struct.extend(quote! {
@@ -70,9 +70,21 @@ pub fn derive_codec_for_named_fields_struct(
                 #field_name: ::azalea_codec::error::ReadResult<#field_type>,
             });
 
-            incomplete_struct_new.extend(quote! {
-                #field_name: ::azalea_codec::Incomplete::new(#debug_field_name_string),
-            });
+            if attrs.optional || attrs.lenient {
+                if let Some(default) = &attrs.default {
+                    incomplete_struct_new.extend(quote! {
+                        #field_name: Ok(#default),
+                    });
+                } else {
+                    incomplete_struct_new.extend(quote! {
+                        #field_name: Ok(Default::default()),
+                    });
+                }
+            } else {
+                incomplete_struct_new.extend(quote! {
+                    #field_name: ::azalea_codec::Incomplete::new(#field_name_string),
+                });
+            }
         }
 
         incomplete_struct_build.extend(quote! {
@@ -95,13 +107,15 @@ pub fn derive_codec_for_named_fields_struct(
             });
         } else if attrs.lenient {
             codec_read_map_item_impl.extend(quote! {
-                #debug_field_name_string => {
-                    incomplete.#field_name = Ok(::azalea_codec::Codec::codec_read(v).unwrap_or_default());
+                #field_name_string => {
+                    if let Ok(v) = ::azalea_codec::Codec::codec_read(v) {
+                        incomplete.#field_name = Ok(v);
+                    }
                 }
             });
         } else {
             codec_read_map_item_impl.extend(quote! {
-                #debug_field_name_string => {
+                #field_name_string => {
                     incomplete.#field_name = <#field_type as ::azalea_codec::Codec<O>>::codec_read(v);
                 }
             });
@@ -112,10 +126,15 @@ pub fn derive_codec_for_named_fields_struct(
                 ::azalea_codec::MapCodec::codec_write_to_map(&self.#field_name, __codec_map)?;
             });
         } else if attrs.lenient || attrs.optional {
+            let is_not_default = if let Some(compare_against) = &attrs.default {
+                quote! { (self.#field_name != #compare_against) }
+            } else {
+                quote! { !::azalea_codec::Defaultable::<O>::is_default(&self.#field_name) }
+            };
             codec_write_to_map_impl.extend(quote! {
-                if !::azalea_codec::Defaultable::<O>::is_default(&self.#field_name) {
+                if #is_not_default {
                     __codec_map.push((
-                        O::create_string(#debug_field_name_string)?,
+                        O::create_string(#field_name_string)?,
                         ::azalea_codec::Codec::codec_write(&self.#field_name)?,
                     ));
                 }
@@ -123,7 +142,7 @@ pub fn derive_codec_for_named_fields_struct(
         } else {
             codec_write_to_map_impl.extend(quote! {
                 __codec_map.push((
-                    O::create_string(#debug_field_name_string)?,
+                    O::create_string(#field_name_string)?,
                     ::azalea_codec::Codec::codec_write(&self.#field_name)?
                 ));
             })
