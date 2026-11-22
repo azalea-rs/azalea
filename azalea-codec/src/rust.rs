@@ -209,3 +209,9 @@ impl<O: Ops, T: Codec<O>> Codec<O> for ManuallyDrop<T> {
         (**self).codec_write()
     }
 }
+
+impl<T: Clone> MapLike<T> for Vec<(T, T)> {
+    fn for_each(&self, mut cb: impl FnMut(&T, &T)) {
+        self.iter().for_each(|(k, v)| cb(k, v));
+    }
+}

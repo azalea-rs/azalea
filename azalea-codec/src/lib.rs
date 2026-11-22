@@ -281,6 +281,7 @@ macro_rules! impl_defaultable {
 }
 
 pub trait ResolvableItem {
+    const NAME: &'static str;
     fn to_resolvable_id(&self) -> u32;
     fn from_resolvable_id(id: u32) -> Self;
 }

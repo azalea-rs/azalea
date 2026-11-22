@@ -14,7 +14,7 @@ use azalea_chat::FormattedText;
 use azalea_codec::Codec;
 use azalea_core::{
     attribute_modifier_operation::AttributeModifierOperation,
-    checksum::{Checksum, get_checksum},
+    checksum::{Checksum, ChecksumOps, get_checksum},
     codec_utils::*,
     filterable::Filterable,
     position::GlobalPos,
@@ -31,14 +31,14 @@ use azalea_registry::{
     identifier::Identifier,
 };
 pub use profile::*;
-use serde::{Serialize, ser::SerializeMap};
+use serde::Serialize;
 use simdnbt::owned::NbtCompound;
 use tracing::trace;
 
 use crate::{ItemStack, item::consume_effect::ConsumeEffect};
 
 pub trait DataComponentTrait:
-    Send + Sync + Any + Clone + Serialize + Into<DataComponentUnion>
+    Send + Sync + Any + Clone + Into<DataComponentUnion> + Codec<ChecksumOps>
 {
     const KIND: DataComponentKind;
 }
@@ -93,18 +93,6 @@ macro_rules! define_data_components {
             $( $x: ManuallyDrop<$x>, )*
         }
         impl DataComponentUnion {
-            /// # Safety
-            ///
-            /// `kind` must be the correct value for this union.
-            pub unsafe fn serialize_entry_as<S: SerializeMap>(
-                &self,
-                serializer: &mut S,
-                kind: DataComponentKind,
-            ) -> Result<(), S::Error> {
-                match kind {
-                    $( DataComponentKind::$x => { unsafe { serializer.serialize_entry(&kind, &*self.$x) } }, )*
-                }
-            }
             /// # Safety
             ///
             /// `kind` must be the correct value for this union.
@@ -632,13 +620,11 @@ impl Food {
     }
 }
 
-#[derive(AzBuf, Clone, Debug, PartialEq, Serialize, Codec)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 pub struct ToolRule {
     pub blocks: HolderSet<BlockKind, Identifier>,
-    #[serde(skip_serializing_if = "is_default")]
     #[codec(optional)]
     pub speed: Option<f32>,
-    #[serde(skip_serializing_if = "is_default")]
     #[codec(optional)]
     pub correct_for_drops: Option<bool>,
 }
@@ -657,18 +643,14 @@ impl Default for ToolRule {
     }
 }
 
-#[derive(AzBuf, Clone, Debug, PartialEq, Serialize, Codec)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 pub struct Tool {
-    #[serde(serialize_with = "flatten_array")]
     pub rules: Vec<ToolRule>,
-    #[serde(skip_serializing_if = "is_default")]
     #[codec(optional)]
     pub default_mining_speed: f32,
     #[var]
-    #[serde(skip_serializing_if = "is_default")]
     #[codec(optional)]
     pub damage_per_block: i32,
-    #[serde(skip_serializing_if = "is_default")]
     #[codec(optional)]
     pub can_destroy_blocks_in_creative: bool,
 }
@@ -885,7 +867,7 @@ pub struct LodestoneTracker {
     #[codec(optional)]
     pub target: Option<GlobalPos>,
     #[serde(skip_serializing_if = "is_true")]
-    #[codec(optional)]
+    #[codec(optional = true)]
     pub tracked: bool,
 }
 

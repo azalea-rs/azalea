@@ -33,6 +33,7 @@ macro_rules! data_registry {
             }
         }
         impl azalea_codec::ResolvableItem for $registry {
+            const NAME: &'static str = $registry_name;
             fn to_resolvable_id(&self) -> u32 { self.protocol_id() }
             fn from_resolvable_id(id: u32) -> Self { Self::new_raw(id) }
         }

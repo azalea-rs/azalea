@@ -3,6 +3,7 @@ use azalea_chat::{
     component::text::TextComponent,
     style::{Style, TextColor},
 };
+use azalea_codec::Codec;
 use azalea_core::{
     attribute_modifier_operation::AttributeModifierOperation,
     checksum::get_checksum,
@@ -18,7 +19,7 @@ use azalea_inventory::{
     },
 };
 use azalea_registry::builtin::{Attribute, BlockKind, ItemKind};
-use simdnbt::owned::{BaseNbt, Nbt, NbtCompound, NbtList, NbtTag};
+use simdnbt::owned::{NbtCompound, NbtList, NbtTag};
 
 // note: it would be cool to make the checksums more reliably accurate somehow.
 // i'm not sure how, though :(
@@ -28,6 +29,7 @@ fn test_custom_name_checksum() {
     let c = CustomName {
         name: FormattedText::from("meow"),
     };
+
     assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 2222287064);
 }
 #[test]
@@ -175,6 +177,9 @@ fn test_lodestone_tracker_checksum() {
         }),
         tracked: true,
     };
+
+    let r: simdnbt::owned::NbtTag = c.codec_write().unwrap();
+    println!("{r:?}");
 
     assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 4138292505);
 }

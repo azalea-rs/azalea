@@ -525,17 +525,8 @@ impl Serialize for DataComponentPatch {
     where
         S: serde::Serializer,
     {
-        let mut s = serializer.serialize_map(Some(self.components.len()))?;
-        for (kind, component) in self.components.iter() {
-            if let Some(component) = component {
-                unsafe { component.serialize_entry_as(&mut s, *kind) }?;
-            } else {
-                #[derive(Serialize)]
-                struct EmptyComponent;
-                s.serialize_entry(&format!("!{kind}"), &EmptyComponent)?;
-            }
-        }
-        s.end()
+        // TODO: remove when azalea-codec is done
+        unimplemented!()
     }
 }
 impl<O: azalea_codec::Ops> Codec<O> for DataComponentPatch {
