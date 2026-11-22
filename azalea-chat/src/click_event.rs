@@ -1,4 +1,4 @@
-use azalea_codec::{Codec, types::StringLiteral};
+use azalea_codec::Codec;
 #[cfg(feature = "simdnbt")]
 use simdnbt::owned::NbtTag;
 

@@ -2,7 +2,7 @@ use azalea_auth::game_profile::{
     GameProfile, GameProfileProperties, SerializableProfileProperties,
 };
 use azalea_buf::AzBuf;
-use azalea_codec::{Codec, MapCodec};
+use azalea_codec::Codec;
 use azalea_core::codec_utils::*;
 use azalea_registry::identifier::Identifier;
 use serde::{Serialize, Serializer};

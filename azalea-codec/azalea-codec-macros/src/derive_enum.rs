@@ -1,6 +1,9 @@
 use proc_macro::TokenStream;
 use quote::{ToTokens, quote};
-use syn::{Attribute, Field, Ident, Variant, Visibility, punctuated::Punctuated, token::Comma};
+use syn::{
+    Attribute, Field, Ident, Variant, Visibility, punctuated::Punctuated, spanned::Spanned,
+    token::Comma,
+};
 
 use crate::{attrs, utils};
 
@@ -98,6 +101,13 @@ pub fn derive_codec_for_enum(
             variant_name.span(),
         );
 
+        if variant_attrs.fallback && enum_attrs.tag.is_none() {
+            return syn::Error::new(
+                variant.attrs[0].span(),
+                "#[codec(fallback)] is set, but it wouldn't do anything since the enum isn't marked `#[codec(tag = \"...\")]`.",
+            ).to_compile_error().into();
+        }
+
         if is_named_enum {
             // named enum
 
@@ -135,13 +145,18 @@ pub fn derive_codec_for_enum(
                 };
                 used_variant_key = true;
 
-                let fields_inner = quote! {
-                    #[codec(rename = #tag)]
-                    __codec_tag: ::azalea_codec::types::StringLiteral<#variant_key>,
-                };
-                construct_extracted_struct.extend(quote! {
-                    __codec_tag: Default::default(),
-                });
+                let fields_inner;
+                if variant_attrs.fallback {
+                    fields_inner = quote! {};
+                } else {
+                    fields_inner = quote! {
+                        #[codec(rename = #tag)]
+                        __codec_tag: ::azalea_codec::types::StringLiteral<#variant_key>,
+                    };
+                    construct_extracted_struct.extend(quote! {
+                        __codec_tag: Default::default(),
+                    });
+                }
 
                 match variant_struct_contents {
                     syn::Fields::Named(f) => {
@@ -180,6 +195,11 @@ pub fn derive_codec_for_enum(
             let mut variant_codec_attrs = quote! {};
             for a in unhandled_attrs.drain(..) {
                 variant_codec_attrs.extend(quote! {#a});
+            }
+            if variant_attrs.fallback {
+                variant_codec_attrs.extend(quote! {
+                    #[codec(allow_unknown_keys)]
+                });
             }
 
             separate_variant_struct_decls.extend(quote! {

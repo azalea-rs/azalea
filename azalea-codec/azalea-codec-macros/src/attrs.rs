@@ -107,6 +107,9 @@ pub fn parse_struct_attrs(attrs: &[syn::Attribute]) -> syn::Result<StructAttrs> 
 #[derive(Default, Debug)]
 pub struct EnumVariantAttrs {
     pub key: Option<String>,
+    /// Whether this variant should match regardless of key or extra fields.
+    /// Setting this implies `allow_unknown_keys`.
+    pub fallback: bool,
 }
 impl Parse for EnumVariantAttrs {
     fn parse(input: ParseStream) -> syn::Result<Self> {
@@ -119,6 +122,7 @@ impl Parse for EnumVariantAttrs {
                     let key = input.parse::<syn::LitStr>()?;
                     attrs.key = Some(key.value());
                 }
+                "fallback" => attrs.fallback = true,
                 attr => {
                     return Err(syn::Error::new(
                         attr_ident.span(),
@@ -138,13 +142,19 @@ pub fn parse_enum_variant_attrs(
     let mut unhandled = Vec::new();
 
     for attr in filter_codec_attrs(attrs) {
-        let Ok(EnumVariantAttrs { key }) = attr.parse_args() else {
+        let Ok(EnumVariantAttrs { key, fallback }) = attr.parse_args() else {
             unhandled.push(attr.clone());
             continue;
         };
 
         a.key = key.or(a.key);
+        a.fallback |= fallback;
     }
+
+    if a.key.is_some() && a.fallback {
+        panic!("conflicting 'key' and 'fallback'")
+    }
+
     (a, unhandled)
 }
 

@@ -31,7 +31,7 @@ use azalea_registry::{
     identifier::Identifier,
 };
 pub use profile::*;
-use serde::{Serialize, Serializer, ser::SerializeMap};
+use serde::{Serialize, ser::SerializeMap};
 use simdnbt::owned::NbtCompound;
 use tracing::trace;
 
