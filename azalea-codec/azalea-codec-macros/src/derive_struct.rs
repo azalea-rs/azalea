@@ -1,6 +1,8 @@
+use std::collections::HashSet;
+
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{Attribute, FieldsNamed, GenericParam, Generics, Ident, Visibility};
+use syn::{Attribute, Field, FieldsNamed, GenericParam, Generics, Ident, Visibility};
 
 use crate::{attrs, derive_transparent_impl, utils};
 
@@ -29,6 +31,7 @@ pub fn derive_codec_for_named_fields_struct(
     let mut incomplete_struct = quote! {};
     let mut incomplete_struct_new = quote! {};
     let mut incomplete_struct_build = quote! {};
+    let mut incomplete_struct_build_extra = quote! {};
 
     let mut codec_read_map_item_impl = quote! {};
     let mut codec_read_map_item_remaining_impl = quote! {};
@@ -45,9 +48,25 @@ pub fn derive_codec_for_named_fields_struct(
         __unused: Default::default(),
     });
 
-    for field in &fields.named {
+    let mut fields = fields.named.clone();
+    let mut virtual_fields = HashSet::new();
+    for (virt_attrs, virt_ident, virt_ty) in attrs.virt {
+        virtual_fields.insert(virt_ident.clone());
+        fields.push_value(Field {
+            attrs: virt_attrs,
+            vis: Visibility::Inherited,
+            modifiers: Default::default(),
+            ident: Some(virt_ident),
+            colon_token: None,
+            ty: virt_ty,
+            default: None,
+        });
+    }
+
+    for field in &fields {
         let field_name = field.ident.as_ref().expect("fields must be named");
         let field_type = &field.ty;
+        let field_is_virtual = virtual_fields.contains(field_name);
 
         let attrs = match attrs::parse_field_attrs(&field.attrs) {
             Ok(a) => a,
@@ -87,9 +106,16 @@ pub fn derive_codec_for_named_fields_struct(
             }
         }
 
-        incomplete_struct_build.extend(quote! {
-            #field_name: self.#field_name.build()?.into(),
-        });
+        if field_is_virtual {
+            // let it error if it needs to but don't save it
+            incomplete_struct_build_extra.extend(quote! {
+                self.#field_name.build()?;
+            })
+        } else {
+            incomplete_struct_build.extend(quote! {
+                #field_name: self.#field_name.build()?.into(),
+            });
+        }
 
         if attrs.flatten {
             // formatted like this to more easily handle multiple flattened
@@ -121,21 +147,27 @@ pub fn derive_codec_for_named_fields_struct(
             });
         }
 
+        let field_ref = if field_is_virtual {
+            quote! { Default::default() }
+        } else {
+            quote! { self.#field_name }
+        };
+
         if attrs.flatten {
             codec_write_to_map_impl.extend(quote! {
-                ::azalea_codec::MapCodec::codec_write_to_map(&self.#field_name, ctx, __codec_map)?;
+                ::azalea_codec::MapCodec::codec_write_to_map(#field_ref, ctx, __codec_map)?;
             });
         } else if attrs.lenient || attrs.optional {
             let is_not_default = if let Some(compare_against) = &attrs.default {
-                quote! { (self.#field_name != #compare_against) }
+                quote! { (#field_ref != #compare_against) }
             } else {
-                quote! { !::azalea_codec::Defaultable::<O>::is_default(&self.#field_name) }
+                quote! { !::azalea_codec::Defaultable::<O>::is_default(&#field_ref) }
             };
             codec_write_to_map_impl.extend(quote! {
                 if #is_not_default {
                     __codec_map.push((
                         O::create_string(ctx, #field_name_string)?,
-                        ::azalea_codec::Codec::codec_write(&self.#field_name, ctx)?,
+                        ::azalea_codec::Codec::codec_write(&#field_ref, ctx)?,
                     ));
                 }
             });
@@ -143,7 +175,7 @@ pub fn derive_codec_for_named_fields_struct(
             codec_write_to_map_impl.extend(quote! {
                 __codec_map.push((
                     O::create_string(ctx, #field_name_string)?,
-                    ::azalea_codec::Codec::codec_write(&self.#field_name, ctx)?
+                    ::azalea_codec::Codec::codec_write(&#field_ref, ctx)?
                 ));
             })
         }
@@ -191,6 +223,7 @@ pub fn derive_codec_for_named_fields_struct(
         }
         fn build(self) -> ::azalea_codec::error::ReadResult<Self::Complete> {
             self.__result?;
+            #incomplete_struct_build_extra
 
             Ok(#ident {
                 #incomplete_struct_build

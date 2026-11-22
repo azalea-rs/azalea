@@ -1,7 +1,10 @@
+use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{
-    Attribute,
+    Attribute, Field, Ident, Token, Type, parenthesized,
     parse::{Parse, ParseStream},
+    punctuated::Punctuated,
+    token::Comma,
 };
 
 pub fn filter_codec_attrs(attrs: &[Attribute]) -> impl IntoIterator<Item = &Attribute> {
@@ -15,12 +18,12 @@ pub struct FieldAttrs {
     pub optional: bool,
     /// If this is set, then we compare against this value instead of using
     /// Defaultable.
-    pub default: Option<proc_macro2::TokenStream>,
+    pub default: Option<TokenStream>,
     pub lenient: bool,
     /// Use the given wrapper type to read and write this field.
     ///
     /// E.g. `#[codec(with = CompactListCodec)]`
-    pub with: Option<proc_macro2::TokenStream>,
+    pub with: Option<TokenStream>,
 }
 impl Parse for FieldAttrs {
     fn parse(input: ParseStream) -> syn::Result<Self> {
@@ -93,6 +96,8 @@ pub fn parse_field_attrs(attrs: &[syn::Attribute]) -> syn::Result<FieldAttrs> {
 pub struct StructAttrs {
     pub allow_unknown_keys: bool,
     pub transparent: bool,
+    /// When reading, pretend as if this field were there.
+    pub virt: Vec<(Vec<Attribute>, Ident, Type)>,
 }
 impl Parse for StructAttrs {
     fn parse(input: ParseStream) -> syn::Result<Self> {
@@ -102,6 +107,15 @@ impl Parse for StructAttrs {
             match attr_ident.to_string().as_str() {
                 "allow_unknown_keys" => attrs.allow_unknown_keys = true,
                 "transparent" => attrs.transparent = true,
+                "virt" => {
+                    let content;
+                    parenthesized!(content in input);
+                    let virt_attrs = content.call(Attribute::parse_outer)?;
+                    let ident = content.parse::<Ident>()?;
+                    content.parse::<Token![:]>()?;
+                    let ty = content.parse::<Type>()?;
+                    attrs.virt.push((virt_attrs, ident, ty));
+                }
                 attr => {
                     return Err(syn::Error::new(
                         attr_ident.span(),
@@ -120,9 +134,11 @@ pub fn parse_struct_attrs(attrs: &[syn::Attribute]) -> syn::Result<StructAttrs> 
         let StructAttrs {
             allow_unknown_keys,
             transparent,
+            virt,
         } = attr.parse_args()?;
         a.allow_unknown_keys |= allow_unknown_keys;
         a.transparent |= transparent;
+        a.virt.extend(virt);
     }
     if a.transparent && a.allow_unknown_keys {
         panic!("conflicting 'transparent' and 'allow_unknown_keys'")
