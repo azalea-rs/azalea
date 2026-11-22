@@ -274,6 +274,7 @@ name = "azalea-auth"
 version = "0.16.0+mc26.3"
 dependencies = [
  "azalea-buf",
+ "azalea-codec",
  "azalea-crypto",
  "base64",
  "chrono",
@@ -403,6 +404,7 @@ dependencies = [
  "serde_json",
  "simdnbt",
  "thiserror 2.0.21",
+ "uuid",
 ]
 
 [[package]]

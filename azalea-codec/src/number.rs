@@ -1,6 +1,7 @@
 use crate::{
     Codec, Defaultable, Ops,
     error::{ReadError, WriteError},
+    impl_defaultable,
 };
 
 // a port of Java's Number abstract class
@@ -120,9 +121,4 @@ impl TryFrom<u64> for Number {
         ))
     }
 }
-
-impl<O: Ops> Defaultable<O> for Number {
-    fn is_default(&self) -> bool {
-        f64::from(*self) == 0.
-    }
-}
+impl_defaultable!(Number, self, f64::from(*self) == 0.);

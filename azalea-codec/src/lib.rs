@@ -13,10 +13,7 @@ use crate::{
 };
 
 pub mod error;
-#[cfg(feature = "serde_json")]
-pub mod json;
-#[cfg(feature = "simdnbt")]
-pub mod nbt;
+mod integrations;
 pub mod number;
 pub mod rust;
 pub mod types;
@@ -29,6 +26,19 @@ pub trait Codec<O: Ops>: Sized {
     fn codec_read(ops: &O) -> ReadResult<Self>;
     /// Convert from a **data structure** to a **data format**.
     fn codec_write(&self) -> WriteResult<O>;
+}
+#[macro_export]
+macro_rules! impl_codec_from {
+    ($this:ty, $other:ty) => {
+        impl<O: $crate::Ops> $crate::Codec<O> for $this {
+            fn codec_read(ops: &O) -> $crate::error::ReadResult<Self> {
+                <$other>::codec_read(ops).map(Into::into)
+            }
+            fn codec_write(&self) -> $crate::error::WriteResult<O> {
+                <$other>::from(self.clone()).codec_write()
+            }
+        }
+    };
 }
 
 #[diagnostic::on_unimplemented(message = "type `{Self}` is not a map that can be flattened.")]
@@ -188,6 +198,10 @@ impl<T: Default> NewOk<T> for ReadResult<T> {
 ///
 /// This is required for a `#[codec(optional)]` to work on a type. Also see
 /// [`impl_defaultable`].
+#[diagnostic::on_unimplemented(
+    message = "type `{Self}` does not support `#[codec(optional)]`.",
+    note = "consider using `azalea_codec::impl_defaultable!({Self})`."
+)]
 pub trait Defaultable<O: Ops>: Codec<O> {
     fn is_default(&self) -> bool;
 }
@@ -195,10 +209,21 @@ pub trait Defaultable<O: Ops>: Codec<O> {
 /// be supported by `#[codec(optional)]` fields.
 #[macro_export]
 macro_rules! impl_defaultable {
+    (<$($generic_name:ident$(: $generic_constraint:path)?)*> for $t:ty, $self:ident, $($check:tt)*) => {
+        impl<O: $crate::Ops, $($generic_name$(: $generic_constraint)?)*> $crate::Defaultable<O> for $t {
+            fn is_default(&$self) -> bool {
+                $($check)*
+            }
+        }
+    };
+
     ($t:ty) => {
+        $crate::impl_defaultable!($t, self, self == &Self::default());
+    };
+    ($t:ty, $self:ident, $($check:tt)*) => {
         impl<O: $crate::Ops> $crate::Defaultable<O> for $t {
-            fn is_default(&self) -> bool {
-                self == &Self::default()
+            fn is_default(&$self) -> bool {
+                $($check)*
             }
         }
     };

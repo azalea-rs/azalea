@@ -3,6 +3,7 @@ use std::{collections::HashMap, hash::Hash, mem::ManuallyDrop};
 use crate::{
     Codec, Defaultable, Incomplete, MapCodec, MapLike, Ops,
     error::{ReadError, ReadResult, WriteResult},
+    impl_defaultable,
 };
 
 impl<O: Ops> Codec<O> for String {
@@ -78,11 +79,8 @@ impl<O: Ops, T: Codec<O>> Codec<O> for Vec<T> {
         )
     }
 }
-impl<T: Codec<O>, O: Ops> Defaultable<O> for Vec<T> {
-    fn is_default(&self) -> bool {
-        self.is_empty()
-    }
-}
+crate::impl_defaultable!(<T: Codec<O>> for Vec<T>, self, self.is_empty());
+
 impl<const N: usize, O: Ops, T: Codec<O> + Clone> Codec<O> for [T; N] {
     fn codec_read(ops: &O) -> ReadResult<Self> {
         let read = Vec::<T>::codec_read(ops)?;

@@ -8,6 +8,7 @@ repository.workspace = true
 
 [dependencies]
 azalea-buf.workspace = true
+azalea-codec = { workspace = true, optional = true }
 azalea-crypto.workspace = true
 base64.workspace = true
 chrono = { workspace = true, features = ["serde"] }
@@ -30,8 +31,9 @@ env_logger.workspace = true
 tokio = { workspace = true, features = ["full"] }
 
 [features]
-default = ["online-mode"]
+default = ["online-mode", "azalea-codec"]
 online-mode = ["dep:reqwest"]
+azalea-codec = ["dep:azalea-codec"]
 
 [lints]
 workspace = true

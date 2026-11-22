@@ -1,8 +1,10 @@
+use std::marker::PhantomContravariant;
+
 use azalea_auth::game_profile::{
     GameProfile, GameProfileProperties, SerializableProfileProperties,
 };
 use azalea_buf::AzBuf;
-use azalea_codec::Codec;
+use azalea_codec::{Codec, MapCodec};
 use azalea_core::codec_utils::*;
 use azalea_registry::identifier::Identifier;
 use serde::{Serialize, Serializer};
@@ -70,16 +72,18 @@ pub struct PlayerSkinPatch {
     pub model: Option<PlayerModelType>,
 }
 
-#[derive(AzBuf, Clone, Copy, Debug, Default, PartialEq, Serialize)]
+#[derive(AzBuf, Clone, Copy, Debug, Default, PartialEq, Serialize, Codec)]
 #[serde(rename_all = "snake_case")]
+#[codec(default_snake_case_key)]
 pub enum PlayerModelType {
     #[default]
     Wide,
     Slim,
 }
 
-#[derive(AzBuf, Clone, Debug, PartialEq, Serialize)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Serialize, Codec)]
 #[serde(transparent)]
+#[codec(transparent)]
 pub struct ResourceTexture {
     pub id: Identifier,
 }

@@ -23,8 +23,7 @@ impl<const S: &'static str, O: Ops> Codec<O> for StringLiteral<S> {
     }
 }
 
-/// A codec that always matches everything, and if flattened, allows a map to
-/// ignore missing fields.
+/// A codec that always matches everything and writes nothing.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Default)]
 pub struct Drain;
 impl<O: Ops> Codec<O> for Drain {

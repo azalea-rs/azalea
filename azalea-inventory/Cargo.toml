@@ -7,10 +7,10 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
-azalea-auth.workspace = true
+azalea-auth = { workspace = true, features = ["azalea-codec"] }
 azalea-buf.workspace = true
 azalea-chat = { workspace = true, features = ["azalea-buf"] }
-azalea-codec.workspace = true
+azalea-codec = { workspace = true, features = ["uuid"] }
 azalea-core = { workspace = true, features = ["serde"] }
 azalea-inventory-macros.workspace = true
 azalea-registry = { workspace = true, features = ["serde"] }
