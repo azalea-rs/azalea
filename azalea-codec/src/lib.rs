@@ -313,7 +313,7 @@ pub trait Ops: Sized + Clone + Codec<Self> + 'static {
 pub struct Ctx<'a, O>(pub &'a dyn ResolverTrait<O>);
 impl<'a, O> Clone for Ctx<'a, O> {
     fn clone(&self) -> Self {
-        Self(self.0)
+        *self
     }
 }
 impl<'a, O> Copy for Ctx<'a, O> {}
@@ -325,6 +325,11 @@ impl<O: Ops> Ctx<'static, O> {
     /// to parse.
     pub fn new() -> Self {
         Self(&())
+    }
+}
+impl<O: Ops> Default for Ctx<'static, O> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -351,8 +356,7 @@ impl<O: Ops + Clone, V: Codec<O> + PartialEq + Clone + 'static> ResolverTrait<O>
             .ok_or_else(|| WriteError::custom("unknown resolvable item"))?
             .1
             .clone();
-        let r = value.codec_write(Ctx(self));
-        r
+        value.codec_write(Ctx(self))
     }
 }
 impl<O: Ops> ResolverTrait<O> for () {

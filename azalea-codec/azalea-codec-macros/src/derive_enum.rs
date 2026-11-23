@@ -25,7 +25,7 @@ pub fn derive_codec_for_enum(
     let mut incomplete_struct_new = quote! {};
     let mut incomplete_struct_build = quote! {};
 
-    let enum_attrs = match attrs::parse_enum_attrs(&attrs) {
+    let enum_attrs = match attrs::parse_enum_attrs(attrs) {
         Ok(a) => a,
         Err(e) => return syn::Error::into_compile_error(e).into(),
     };
@@ -294,8 +294,8 @@ pub fn derive_codec_for_enum(
         if variant_attrs.key.is_some() && !used_variant_key {
             panic!("unused #[codec(key = \"...\")]")
         }
-        for attr in unhandled_attrs {
-            panic!("unknown attribute {}", attr.to_token_stream().to_string())
+        if let Some(attr) = unhandled_attrs.first() {
+            panic!("unknown attribute {}", attr.to_token_stream())
         }
     }
 

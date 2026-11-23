@@ -2,10 +2,6 @@ use std::{any::Any, fmt::Debug, mem::ManuallyDrop};
 
 use azalea_codec::Codec;
 use azalea_registry::builtin::{EnchantmentEffectComponentKind, SoundEvent};
-use simdnbt::{
-    DeserializeError,
-    borrow::{NbtCompound, NbtList},
-};
 
 use crate::registry_holder::{
     entity_effect::EntityEffect,
@@ -134,37 +130,6 @@ pub trait EffectComponentTrait: Any {
 // this exists because EffectComponentTrait isn't dyn-compatible
 pub trait ResolvedEffectComponent: Any {}
 impl<T: EffectComponentTrait> ResolvedEffectComponent for T {}
-
-/// An alternative to `simdnbt::borrow::NbtTag` used internally when
-/// deserializing effects.
-///
-/// When deserializing effect components from the registry, we're given NBT tags
-/// in either a list of compounds or a list of lists. This means that we can't
-/// just use `from_nbt_tag`, because `borrow::NbtTag` can't be constructed on
-/// its own. To work around this, we have this `EffectNbtTag` struct that we
-/// *can* construct that we use when deserializing.
-#[derive(Clone, Copy, Debug)]
-pub enum EffectNbtTag<'a, 'tape> {
-    Compound(NbtCompound<'a, 'tape>),
-    List(NbtList<'a, 'tape>),
-}
-
-impl<'a, 'tape> EffectNbtTag<'a, 'tape> {
-    pub fn compound(self, error_name: &str) -> Result<NbtCompound<'a, 'tape>, DeserializeError> {
-        if let Self::Compound(nbt) = self {
-            Ok(nbt)
-        } else {
-            Err(DeserializeError::MismatchedFieldType(error_name.to_owned()))
-        }
-    }
-    pub fn list(self, error_name: &str) -> Result<NbtList<'a, 'tape>, DeserializeError> {
-        if let Self::List(nbt) = self {
-            Ok(nbt)
-        } else {
-            Err(DeserializeError::MismatchedFieldType(error_name.to_owned()))
-        }
-    }
-}
 
 #[derive(Clone, Debug, Codec)]
 pub struct ConditionalEffect<T: Debug + Clone> {

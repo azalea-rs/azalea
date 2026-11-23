@@ -127,7 +127,7 @@ impl azalea_codec::Ops for ChecksumOps {
     }
 }
 
-impl<'a, O: azalea_codec::Ops> Codec<O> for ChecksumOps {
+impl<O: azalea_codec::Ops> Codec<O> for ChecksumOps {
     fn codec_read(_: &O, _ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
         unimplemented!()
     }
@@ -140,9 +140,9 @@ impl<'a, O: azalea_codec::Ops> Codec<O> for ChecksumOps {
 #[error("Checksum serialization error")]
 pub struct ChecksumError;
 
-pub fn get_checksum<'a, T: Codec<ChecksumOps> + ?Sized>(
+pub fn get_checksum<T: Codec<ChecksumOps>>(
     value: &T,
-    registries: &'a RegistryHolder,
+    registries: &RegistryHolder,
 ) -> azalea_codec::error::WriteResult<Checksum> {
     value
         .codec_write(azalea_codec::Ctx(registries))

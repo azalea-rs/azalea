@@ -1,13 +1,9 @@
 use azalea_client::test_utils::prelude::*;
 use azalea_core::{identifier::Identifier, position::ChunkPos};
 use azalea_entity::metadata::Cow;
-use azalea_protocol::packets::{
-    ConnectionProtocol,
-    config::{ClientboundFinishConfiguration, ClientboundRegistryData},
-};
+use azalea_protocol::packets::{ConnectionProtocol, config::ClientboundFinishConfiguration};
 use azalea_registry::{DataRegistry, builtin::EntityKind, data::DimensionKind};
 use bevy_ecs::query::With;
-use simdnbt::owned::{NbtCompound, NbtTag};
 
 #[test]
 fn test_despawn_entities_when_changing_dimension() {

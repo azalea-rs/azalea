@@ -213,16 +213,13 @@ pub fn derive_codec_for_named_fields_struct(
     let mut generic_decls = quote! {};
     for p in &generics.params {
         generic_decls.extend(quote! { #p });
-        match p {
+        if let GenericParam::Type(p) = p {
             // append `::azalea_codec::Codec<O>` as a bound
-            GenericParam::Type(p) => {
-                if p.bounds.is_empty() {
-                    generic_decls.extend(quote! { : ::azalea_codec::Codec<O> });
-                } else {
-                    generic_decls.extend(quote! { + ::azalea_codec::Codec<O> });
-                }
+            if p.bounds.is_empty() {
+                generic_decls.extend(quote! { : ::azalea_codec::Codec<O> });
+            } else {
+                generic_decls.extend(quote! { + ::azalea_codec::Codec<O> });
             }
-            _ => {}
         }
         generic_decls.extend(quote! { , });
     }

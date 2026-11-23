@@ -8,7 +8,7 @@ repository.workspace = true
 
 [dependencies]
 azalea-buf.workspace = true
-azalea-codec.workspace = true
+azalea-codec = { workspace = true, features = ["simdnbt"] }
 azalea-core.workspace = true
 azalea-registry-macros.workspace = true
 indexmap.workspace = true

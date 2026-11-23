@@ -4,13 +4,10 @@ use azalea_client::{
 use azalea_core::{identifier::Identifier, position::ChunkPos};
 use azalea_entity::LocalEntity;
 use azalea_protocol::packets::{
-    ConnectionProtocol, Packet,
-    config::{ClientboundFinishConfiguration, ClientboundRegistryData},
-    game::ClientboundStartConfiguration,
+    ConnectionProtocol, Packet, config::ClientboundFinishConfiguration,
 };
 use azalea_registry::{DataRegistry, data::DimensionKind};
 use azalea_world::WorldName;
-use simdnbt::owned::{NbtCompound, NbtTag};
 
 #[test]
 fn test_login_to_dimension_with_same_name() {

@@ -150,7 +150,7 @@ mod registry_holder_macro {
 impl Default for &'static RegistryHolder {
     fn default() -> Self {
         static DEFAULT: LazyLock<RegistryHolder> = LazyLock::new(RegistryHolder::default);
-        &*DEFAULT
+        &DEFAULT
     }
 }
 

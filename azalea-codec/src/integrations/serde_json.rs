@@ -18,7 +18,7 @@ impl Ops for Value {
                 } else if let Some(v) = n.as_f64() {
                     Ok(Number::Double(v))
                 } else {
-                    return Err(ReadError::custom("not a valid codec number"));
+                    Err(ReadError::custom("not a valid codec number"))
                 }
             }
             Value::String(s) => {

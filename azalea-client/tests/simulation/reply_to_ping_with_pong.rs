@@ -4,19 +4,13 @@ use azalea_client::{
     packet::{config::SendConfigPacketEvent, game::SendGamePacketEvent},
     test_utils::prelude::*,
 };
-use azalea_codec::Codec;
-use azalea_core::identifier::Identifier;
 use azalea_protocol::packets::{
     ConnectionProtocol,
-    config::{
-        self, ClientboundFinishConfiguration, ClientboundRegistryData, ServerboundConfigPacket,
-    },
+    config::{self, ClientboundFinishConfiguration, ServerboundConfigPacket},
     game::{self, ServerboundGamePacket},
 };
-use azalea_registry::registry_holder::dimension_type::DimensionKindElement;
 use bevy_ecs::observer::On;
 use parking_lot::Mutex;
-use simdnbt::owned::NbtCompound;
 
 #[test]
 fn reply_to_ping_with_pong() {

@@ -354,14 +354,3 @@ impl<T: DataRegistry> Registry for T {
         self.protocol_id()
     }
 }
-
-//// A trait implemented on all [`DataRegistry`] which gives us access to their
-//// protocol ID, while being dyn-compatible.
-pub trait DataRegistryProtocolId<O: azalea_codec::Ops> {
-    fn data_registry_protocol_id(&self) -> u32;
-}
-impl<T: DataRegistry + Codec<O>, O: azalea_codec::Ops> DataRegistryProtocolId<O> for T {
-    fn data_registry_protocol_id(&self) -> u32 {
-        self.protocol_id()
-    }
-}

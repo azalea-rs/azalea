@@ -66,7 +66,7 @@ impl<O: azalea_codec::Ops> Codec<O> for Effects {
         let mut map = Vec::new();
         for (&k, v) in &self.0 {
             let v = v
-                .into_iter()
+                .iter()
                 .map(|v| unsafe { v.clone_as(k) })
                 .collect::<Vec<_>>();
             map.push((

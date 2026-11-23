@@ -2,12 +2,10 @@ use azalea_client::{InConfigState, InGameState, test_utils::prelude::*};
 use azalea_core::{identifier::Identifier, position::ChunkPos};
 use azalea_entity::LocalEntity;
 use azalea_protocol::packets::{
-    ConnectionProtocol, Packet,
-    config::{ClientboundFinishConfiguration, ClientboundRegistryData},
+    ConnectionProtocol, Packet, config::ClientboundFinishConfiguration,
 };
 use azalea_registry::{DataRegistry, data::DimensionKind};
 use azalea_world::WorldName;
-use simdnbt::owned::{NbtCompound, NbtTag};
 
 #[test]
 fn test_change_dimension_to_nether_and_back() {

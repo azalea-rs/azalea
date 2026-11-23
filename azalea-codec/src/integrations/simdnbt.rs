@@ -40,8 +40,8 @@ impl Ops for NbtTag {
         let items: Vec<NbtTag> = match self {
             NbtTag::ByteArray(items) => items.iter().map(|&i| NbtTag::Byte(i as i8)).collect(),
             NbtTag::List(list) => list_as_tags(list),
-            NbtTag::IntArray(items) => items.iter().map(|&i| NbtTag::Int(i as i32)).collect(),
-            NbtTag::LongArray(items) => items.iter().map(|&i| NbtTag::Long(i as i64)).collect(),
+            NbtTag::IntArray(items) => items.iter().map(|&i| NbtTag::Int(i)).collect(),
+            NbtTag::LongArray(items) => items.iter().map(|&i| NbtTag::Long(i)).collect(),
             _ => return Err(ReadError::custom("not a list")),
         };
         Ok(items.into_iter())
