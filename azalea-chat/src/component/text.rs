@@ -199,6 +199,8 @@ impl From<TextComponent> for FormattedText {
 
 #[cfg(test)]
 mod tests {
+    use azalea_codec::Ctx;
+
     use super::*;
     use crate::style::Ansi;
 
@@ -292,7 +294,7 @@ mod tests {
     fn test_serialize_to_json() {
         let component = TextComponent::new("Hello §aworld".to_owned()).into_formatted_text();
 
-        let value: serde_json::Value = component.codec_write(Default::default()).unwrap();
+        let value: serde_json::Value = component.codec_write(Ctx::new()).unwrap();
 
         assert_eq!(
             serde_json::to_string(&value).unwrap(),

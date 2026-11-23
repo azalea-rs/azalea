@@ -32,12 +32,19 @@ macro_rules! data_registry {
                 Self { id }
             }
         }
-        impl azalea_codec::ResolvableItem for $registry {
+        impl<O: azalea_codec::Ops> azalea_codec::ResolvableItem<O> for $registry {
             fn name(&self) -> &'static str { $registry_name }
             fn to_resolvable_id(&self) -> u32 { self.protocol_id() }
         }
-        impl azalea_codec::IntoResolvableItem for $registry {
-            fn from_resolvable_id(id: u32) -> Self { Self::new_raw(id) }
+        impl<O: azalea_codec::Ops> azalea_codec::IntoResolvableItem<O, $registry> for $registry {
+            fn codec_read_resolvable_item(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
+                let ident = <Identifier as azalea_codec::Codec<O>>::codec_read(ops, ctx)?;
+                let id = ctx.0.resolver_get_item(&ident)?;
+                Ok(Self::new_raw(id))
+            }
+            fn from_resolvable_id(id: u32) -> Self {
+                Self::new_raw(id)
+            }
         }
 
         #[cfg(feature = "serde")]
@@ -52,7 +59,7 @@ macro_rules! data_registry {
         }
         impl<O: azalea_codec::Ops> azalea_codec::Codec<O> for $registry {
             fn codec_read(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
-                ops.get_resolvable_item::<Self>(ctx)
+                ops.get_resolvable_item(ctx)
             }
             fn codec_write(&self, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::WriteResult<O> {
                 O::create_resolvable_item(ctx, self)

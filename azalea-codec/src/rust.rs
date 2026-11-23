@@ -14,23 +14,6 @@ impl<O: Ops> Codec<O> for String {
         O::create_string(ctx, self)
     }
 }
-// TODO: remove this?
-impl<O: Ops> MapCodec<O> for String {
-    fn codec_read_map_item(
-        _incomplete: &mut <Self as Codec<O>>::Incomplete,
-        _ctx: Ctx<O>,
-        _k: &O,
-        _v: &O,
-    ) {
-        panic!("not a map")
-    }
-    fn codec_write_to_map(&self, _ctx: Ctx<O>, _map: &mut Vec<(O, O)>) -> WriteResult<()> {
-        panic!("not a map")
-    }
-    fn get_and_reset_result(_incomplete: &mut <Self as Codec<O>>::Incomplete) -> ReadResult<()> {
-        panic!("not a map")
-    }
-}
 
 impl<O: Ops> Codec<O> for bool {
     fn codec_read(ops: &O, ctx: Ctx<O>) -> ReadResult<Self> {

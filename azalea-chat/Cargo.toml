@@ -14,6 +14,7 @@ azalea-buf = ["dep:azalea-buf", "simdnbt"]
 [dependencies]
 azalea-buf = { workspace = true, optional = true, features = ["serde_json"] }
 azalea-codec = { workspace = true, features = ["serde_json"] }
+azalea-core.workspace = true
 azalea-language.workspace = true
 azalea-registry.workspace = true
 serde = { workspace = true, features = ["derive"] }

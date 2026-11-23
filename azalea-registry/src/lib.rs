@@ -388,8 +388,18 @@ impl<T: DataRegistry> Registry for T {
     fn from_u32(value: u32) -> Option<Self> {
         Some(Self::new_raw(value))
     }
-
     fn to_u32(&self) -> u32 {
+        self.protocol_id()
+    }
+}
+
+//// A trait implemented on all [`DataRegistry`] which gives us access to their
+//// protocol ID, while being dyn-compatible.
+pub trait DataRegistryProtocolId<O: azalea_codec::Ops> {
+    fn data_registry_protocol_id(&self) -> u32;
+}
+impl<T: DataRegistry + Codec<O>, O: azalea_codec::Ops> DataRegistryProtocolId<O> for T {
+    fn data_registry_protocol_id(&self) -> u32 {
         self.protocol_id()
     }
 }

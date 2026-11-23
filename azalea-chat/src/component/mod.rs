@@ -18,6 +18,7 @@ use std::{
 #[cfg(all(feature = "azalea-buf", feature = "simdnbt"))]
 use azalea_buf::{AzBuf, BufReadError};
 use azalea_codec::Codec;
+use azalea_core::registry_holder::RegistryHolder;
 #[cfg(all(feature = "azalea-buf", feature = "simdnbt"))]
 use simdnbt::owned::NbtTag;
 
@@ -375,7 +376,7 @@ impl AzBuf for FormattedText {
         match nbt {
             Some(nbt) => Ok(FormattedText::codec_read(
                 &nbt.as_tag().to_owned(),
-                Default::default(),
+                azalea_codec::Ctx(&RegistryHolder::default()),
             )
             .unwrap()),
             _ => Ok(FormattedText::default()),
@@ -383,7 +384,7 @@ impl AzBuf for FormattedText {
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         let nbt: NbtTag = self
-            .codec_write(Default::default())
+            .codec_write(azalea_codec::Ctx(&RegistryHolder::default()))
             .map_err(io::Error::other)?;
         nbt.azalea_write(buf)?;
         Ok(())
@@ -432,7 +433,7 @@ impl serde::Serialize for FormattedText {
         S: serde::Serializer,
     {
         let json: serde_json::Value = self
-            .codec_write(Default::default())
+            .codec_write(azalea_codec::Ctx(&RegistryHolder::default()))
             .map_err(serde::ser::Error::custom)?;
         json.serialize(serializer)
     }
@@ -443,7 +444,8 @@ impl<'de> serde::Deserialize<'de> for FormattedText {
         D: serde::Deserializer<'de>,
     {
         let json = serde_json::Value::deserialize(deserializer)?;
-        Self::codec_read(&json, Default::default()).map_err(serde::de::Error::custom)
+        Self::codec_read(&json, azalea_codec::Ctx(&RegistryHolder::default()))
+            .map_err(serde::de::Error::custom)
     }
 }
 
@@ -460,7 +462,7 @@ mod tests {
         let j: Value =
             serde_json::from_str(r#"{"translate": "translation.test.args", "with": ["a", "b"]}"#)
                 .unwrap();
-        let component = FormattedText::codec_read(&j).unwrap();
+        let component = FormattedText::deserialize(&j).unwrap();
         assert_eq!(
             component,
             FormattedText::Translatable(TranslatableComponent::new(
@@ -477,7 +479,7 @@ mod tests {
     fn deserialize_translation_invalid_arguments() {
         let j: Value =
             serde_json::from_str(r#"{"translate": "translation.test.args", "with": {}}"#).unwrap();
-        let res = FormattedText::codec_read(&j);
+        let res = FormattedText::deserialize(&j);
         println!("{res:?}");
         assert!(res.is_err());
     }
@@ -485,7 +487,7 @@ mod tests {
     #[test]
     fn deserialize_translation_fallback() {
         let j: Value = serde_json::from_str(r#"{"translate": "translation.test.undefined", "fallback": "fallback: %s", "with": ["a"]}"#).unwrap();
-        let component = FormattedText::codec_read(&j).unwrap();
+        let component = FormattedText::deserialize(&j).unwrap();
         assert_eq!(
             component,
             FormattedText::Translatable(TranslatableComponent::with_fallback(
@@ -502,7 +504,7 @@ mod tests {
             r#"{"translate": "translation.test.undefined", "fallback": {"text": "invalid"}}"#,
         )
         .unwrap();
-        assert!(FormattedText::codec_read(&j).is_err());
+        assert!(FormattedText::deserialize(&j).is_err());
     }
     #[test]
     fn deserialize_translation_primitive_args() {
@@ -534,7 +536,7 @@ mod tests {
             "color": "green",
             "with": [{"text": "Acquire Hardware"}]
         });
-        let component = FormattedText::codec_read(&json).unwrap();
+        let component = FormattedText::deserialize(&json).unwrap();
         let ansi = component.to_ansi();
         assert!(ansi.contains("\u{1b}[38;2;85;255;85m"));
     }

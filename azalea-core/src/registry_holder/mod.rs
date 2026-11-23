@@ -14,10 +14,12 @@ pub mod entity_effect;
 pub mod float_provider;
 pub mod value;
 
-use std::{collections::HashMap, sync::LazyLock};
+use std::{any::Any, collections::HashMap, sync::LazyLock};
 
 use azalea_codec::Codec;
-use azalea_registry::identifier::Identifier;
+use azalea_registry::{
+    DataRegistry, DataRegistryProtocolId, data::DimensionKind, identifier::Identifier,
+};
 use indexmap::IndexMap;
 use simdnbt::{
     DeserializeError, FromNbtTag, borrow,
@@ -143,7 +145,10 @@ impl<T: Codec<NbtTag>> RegistryType<T> {
         let map = &mut self.map;
         for (key, value) in entries {
             if let Some(value) = value {
-                match T::codec_read(&NbtTag::from(value.clone()), Default::default()) {
+                match T::codec_read(
+                    &NbtTag::from(value.clone()),
+                    azalea_codec::Ctx(&RegistryHolder::default()),
+                ) {
                     Ok(value) => {
                         map.insert(key, value);
                     }
@@ -219,14 +224,18 @@ pub fn get_in_compound<T: FromNbtTag>(
     T::from_nbt_tag(value).ok_or(DeserializeError::MissingField)
 }
 
-impl<O: azalea_codec::Ops> azalea_codec::ResolverTrait<O> for RegistryHolder {
-    fn resolver_get_item(&self, _ops: &O) -> azalea_codec::error::ReadResult<u32> {
-        todo!()
+fn dyn_data_registry_to_protocol_id(item: &dyn Any) -> Option<u32> {
+    if let Some(item) = item.downcast_ref::<azalea_registry::data::WorldClock>() {
+        return Some(item.protocol_id());
     }
 
+    None
+}
+
+impl<O: azalea_codec::Ops> azalea_codec::ResolverTrait<O> for RegistryHolder {
     fn resolver_create_item(
         &self,
-        item: &dyn azalea_codec::ResolvableItem,
+        item: &dyn azalea_codec::ResolvableItem<O>,
     ) -> azalea_codec::error::WriteResult<O> {
         let id = item.to_resolvable_id();
         let value = self

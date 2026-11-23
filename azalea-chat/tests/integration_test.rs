@@ -83,7 +83,7 @@ fn complex_ansi_test() {
 ]"##,
     )
     .unwrap();
-    let component = FormattedText::codec_read(&j).unwrap();
+    let component = FormattedText::deserialize(&j).unwrap();
 
     let attempt = component.to_ansi();
     let solution = format!(

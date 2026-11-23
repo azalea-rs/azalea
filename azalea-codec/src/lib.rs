@@ -7,6 +7,8 @@
 // specialized lists
 #![feature(min_specialization)]
 
+use std::any::{Any, TypeId};
+
 pub use azalea_codec_macros::Codec;
 
 use crate::{
@@ -191,7 +193,7 @@ pub trait MapCodec<O: Ops>: Sized + Codec<O> {
     message = "type `{Self}` is not a data format; did you mean to use `{Self}::codec_read` instead?"
 )]
 #[allow(unused_variables)]
-pub trait Ops: Sized + Clone + Codec<Self> {
+pub trait Ops: Sized + Clone + Codec<Self> + 'static {
     type List: IntoIterator<Item = Self>;
     type Map: MapLike<Self>;
 
@@ -261,11 +263,16 @@ pub trait Ops: Sized + Clone + Codec<Self> {
         fallback_create_list(ctx, v)
     }
 
-    fn get_resolvable_item<I: IntoResolvableItem>(&self, ctx: Ctx<Self>) -> ReadResult<I> {
-        let i = ctx.0.resolver_get_item(self)?;
-        Ok(I::from_resolvable_id(i))
+    fn get_resolvable_item<
+        I: IntoResolvableItem<Self, W>,
+        W: Codec<Self> + ResolvableItem<Self>,
+    >(
+        &self,
+        ctx: Ctx<Self>,
+    ) -> ReadResult<W> {
+        I::codec_read_resolvable_item(self, ctx)
     }
-    fn create_resolvable_item(ctx: Ctx<Self>, i: &dyn ResolvableItem) -> WriteResult<Self> {
+    fn create_resolvable_item(ctx: Ctx<Self>, i: &dyn ResolvableItem<Self>) -> WriteResult<Self> {
         ctx.0.resolver_create_item(i)
     }
 }
@@ -279,26 +286,33 @@ impl<'a, O> Clone for Ctx<'a, O> {
     }
 }
 impl<'a, O> Copy for Ctx<'a, O> {}
-impl<O: Ops> Default for Ctx<'static, O> {
-    fn default() -> Self {
+impl<O: Ops> Ctx<'static, O> {
+    /// Create a new empty resolver context.
+    ///
+    /// This function is provided for convenience in tests, but is not meant to
+    /// be used in actual code, as it may result in codecs unexpectedly failing
+    /// to parse.
+    pub fn new() -> Self {
         Self(&())
     }
 }
 
-pub trait ResolverTrait<O: Ops> {
-    fn resolver_get_item(&self, ops: &O) -> ReadResult<u32>;
-    fn resolver_create_item(&self, item: &dyn ResolvableItem) -> WriteResult<O>;
+pub trait ResolverTrait<O: Ops>: Any {
+    // fn resolver_get_item(&self, item: &dyn Any) -> ReadResult<u32>;
+    fn resolver_create_item(&self, item: &dyn ResolvableItem<O>) -> WriteResult<O>;
 }
 // example implementation
 impl<O: Ops + Clone, V: Codec<O> + PartialEq + Clone + 'static> ResolverTrait<O> for Vec<(u32, V)> {
-    fn resolver_get_item(&self, ops: &O) -> ReadResult<u32> {
-        let i = V::codec_read(ops, Ctx(self))?;
-        self.iter()
-            .find(|(_, candidate)| candidate == &i)
-            .ok_or_else(|| ReadError::custom("unknown resolvable item"))
-            .map(|(i, _)| i.clone())
-    }
-    fn resolver_create_item(&self, item: &dyn ResolvableItem) -> WriteResult<O> {
+    // fn resolver_get_item(&self, item: &dyn Any) -> ReadResult<u32> {
+    //     let Some(item) = item.downcast_ref::<V>() else {
+    //         return Err(ReadError::custom("resolvable item is of wrong
+    // type"));     };
+    //     self.iter()
+    //         .find(|(_, candidate)| candidate == item)
+    //         .ok_or_else(|| ReadError::custom("unknown resolvable item"))
+    //         .map(|(i, _)| i.clone())
+    // }
+    fn resolver_create_item(&self, item: &dyn ResolvableItem<O>) -> WriteResult<O> {
         let id = item.to_resolvable_id();
         let value = self
             .iter()
@@ -311,14 +325,9 @@ impl<O: Ops + Clone, V: Codec<O> + PartialEq + Clone + 'static> ResolverTrait<O>
     }
 }
 impl<O: Ops> ResolverTrait<O> for () {
-    fn resolver_get_item(&self, _ops: &O) -> ReadResult<u32> {
-        Err(ReadError::custom(
-            "the default Ctx was passed to `Codec::codec_read`, but that codec has resolvable items",
-        ))
-    }
-    fn resolver_create_item(&self, _id: &dyn ResolvableItem) -> WriteResult<O> {
+    fn resolver_create_item(&self, _id: &dyn ResolvableItem<O>) -> WriteResult<O> {
         Err(WriteError::custom(
-            "the default Ctx was passed to `Codec::codec_write`, but that codec has resolvable items",
+            "a codec here has resolvable items, but the default Ctx was passed",
         ))
     }
 }
@@ -425,10 +434,13 @@ macro_rules! impl_defaultable {
     };
 }
 
-pub trait ResolvableItem {
+pub trait ResolvableItem<O: Ops> {
     fn name(&self) -> &'static str;
     fn to_resolvable_id(&self) -> u32;
 }
-pub trait IntoResolvableItem: ResolvableItem {
+pub trait IntoResolvableItem<O: Ops, W: Codec<O> + ResolvableItem<O>>:
+    ResolvableItem<O> + 'static
+{
+    fn codec_read_resolvable_item(ops: &O, ctx: Ctx<O>) -> ReadResult<W>;
     fn from_resolvable_id(id: u32) -> Self;
 }

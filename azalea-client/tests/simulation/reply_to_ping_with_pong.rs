@@ -5,7 +5,7 @@ use azalea_client::{
     test_utils::prelude::*,
 };
 use azalea_codec::Codec;
-use azalea_core::registry_holder::dimension_type::DimensionKindElement;
+use azalea_core::registry_holder::{RegistryHolder, dimension_type::DimensionKindElement};
 use azalea_protocol::packets::{
     ConnectionProtocol,
     config::{
@@ -52,7 +52,7 @@ fn reply_to_ping_with_pong() {
                     height: 384,
                     ..Default::default()
                 }
-                .codec_write(Default::default())
+                .codec_write(azalea_codec::Ctx(&RegistryHolder::default()))
                 .unwrap(),
             ),
         )]
