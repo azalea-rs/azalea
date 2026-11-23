@@ -21,7 +21,7 @@ crc32c = { workspace = true, optional = true }
 thiserror.workspace = true
 uuid.workspace = true
 derive_more = { workspace = true, features = ["deref", "deref_mut"] }
-azalea-codec.workspace = true
+azalea-codec = { workspace = true, features = ["indexmap"] }
 
 [features]
 bevy_ecs = ["dep:bevy_ecs"]

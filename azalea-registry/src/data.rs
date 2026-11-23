@@ -2438,6 +2438,11 @@ enum WorldClockKey {
     TheEnd => "the_end",
 }
 }
+impl Default for WorldClock {
+    fn default() -> Self {
+        Self::new_raw(0)
+    }
+}
 
 data_registry! {
 PigSoundVariant => "pig_sound_variant",

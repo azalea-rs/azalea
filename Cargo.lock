@@ -366,6 +366,7 @@ dependencies = [
  "azalea-block",
  "azalea-buf",
  "azalea-chat",
+ "azalea-codec",
  "azalea-core",
  "azalea-crypto",
  "azalea-entity",

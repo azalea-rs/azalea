@@ -4,6 +4,8 @@ use azalea_client::{
     packet::{config::SendConfigPacketEvent, game::SendGamePacketEvent},
     test_utils::prelude::*,
 };
+use azalea_codec::Codec;
+use azalea_core::registry_holder::dimension_type::DimensionKindElement;
 use azalea_protocol::packets::{
     ConnectionProtocol,
     config::{
@@ -14,7 +16,6 @@ use azalea_protocol::packets::{
 use azalea_registry::identifier::Identifier;
 use bevy_ecs::observer::On;
 use parking_lot::Mutex;
-use simdnbt::owned::{NbtCompound, NbtTag};
 
 #[test]
 fn reply_to_ping_with_pong() {
@@ -45,10 +46,15 @@ fn reply_to_ping_with_pong() {
         registry_id: Identifier::new("minecraft:dimension_type"),
         entries: vec![(
             Identifier::new("minecraft:overworld"),
-            Some(NbtTag::from(NbtCompound::from_values(vec![
-                ("height".into(), NbtTag::Int(384)),
-                ("min_y".into(), NbtTag::Int(-64)),
-            ]))),
+            Some(
+                DimensionKindElement {
+                    min_y: -64,
+                    height: 384,
+                    ..Default::default()
+                }
+                .codec_write(Default::default())
+                .unwrap(),
+            ),
         )]
         .into_iter()
         .collect(),

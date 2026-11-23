@@ -9,10 +9,7 @@ use azalea_registry::{
     identifier::Identifier,
 };
 use indexmap::IndexMap;
-use simdnbt::{
-    Deserialize, FromNbtTag, Serialize, ToNbtTag,
-    owned::{NbtCompound, NbtTag},
-};
+use simdnbt::{Deserialize, FromNbtTag, Serialize, ToNbtTag, owned::NbtTag};
 
 use crate::codec_utils::*;
 
@@ -56,7 +53,7 @@ pub struct ChatTypeStyle {
 }
 
 /// Dimension attributes.
-#[derive(Clone, Debug, Codec)]
+#[derive(Clone, Debug, Codec, Default)]
 pub struct DimensionKindElement {
     #[codec(optional)]
     pub has_fixed_time: bool,
@@ -103,68 +100,16 @@ azalea_codec::impl_defaultable!(EnvironmentAttributeMap, self, self.values.is_em
 #[codec(allow_unknown_keys)]
 pub struct EnvironmentAttributeEntry {}
 
-#[derive(Clone, Debug, Codec)]
+#[derive(Clone, Debug, Codec, Default)]
 pub struct MonsterSettings {
-    pub monster_spawn_light_level: u8,
+    pub monster_spawn_light_level: IntProvider,
     pub monster_spawn_block_light_limit: u8,
 }
 
-/// The light level at which monsters can spawn.
-///
-/// This can be either a single minimum value, or a formula with a min and
-/// max.
-#[derive(Clone, Debug)]
-// #[serde(untagged)]
-pub enum MonsterSpawnLightLevel {
-    /// A simple minimum value.
-    Simple(u32),
-    /// A complex value with a type, minimum, and maximum.
-    /// Vanilla minecraft only uses one type, "minecraft:uniform".
-    Complex {
-        kind: Identifier,
-        value: MonsterSpawnLightLevelValues,
-    },
-}
-
-impl FromNbtTag for MonsterSpawnLightLevel {
-    fn from_nbt_tag(tag: simdnbt::borrow::NbtTag) -> Option<Self> {
-        if let Some(value) = tag.int() {
-            Some(Self::Simple(value as u32))
-        } else if let Some(value) = tag.compound() {
-            let kind = Identifier::from_nbt_tag(value.get("type")?)?;
-            let value = MonsterSpawnLightLevelValues::from_nbt_tag(value.get("value")?)?;
-            Some(Self::Complex { kind, value })
-        } else {
-            None
-        }
-    }
-}
-
-impl ToNbtTag for MonsterSpawnLightLevel {
-    fn to_nbt_tag(self) -> simdnbt::owned::NbtTag {
-        match self {
-            Self::Simple(value) => value.to_nbt_tag(),
-            Self::Complex { kind, value } => {
-                let mut compound = NbtCompound::new();
-                compound.insert("type", kind.to_nbt_tag());
-                compound.insert("value", value.to_nbt_tag());
-                simdnbt::owned::NbtTag::Compound(compound)
-            }
-        }
-    }
-}
-
-/// The min and max light levels at which monsters can spawn.
-///
-/// Values are inclusive.
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
-#[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
-pub struct MonsterSpawnLightLevelValues {
-    #[simdnbt(rename = "min_inclusive")]
-    pub min: u32,
-    #[simdnbt(rename = "max_inclusive")]
-    pub max: u32,
-}
+/// Unimplemented.
+#[derive(Clone, Debug, Codec, Default)]
+#[codec(allow_unknown_keys)]
+pub struct IntProvider {}
 
 /// Biome attributes.
 #[derive(Clone, Debug, Deserialize, Serialize)]

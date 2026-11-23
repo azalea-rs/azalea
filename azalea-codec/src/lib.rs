@@ -7,6 +7,8 @@
 // specialized lists
 #![feature(min_specialization)]
 
+use std::collections::HashMap;
+
 pub use azalea_codec_macros::Codec;
 
 use crate::{
@@ -191,7 +193,8 @@ pub trait Ops: Sized + Clone + Codec<Self> {
     type List: IntoIterator<Item = Self>;
     type Map: MapLike<Self>;
 
-    type Context: Clone + Copy = ();
+    type Resolvable = ();
+    type Context: Clone + Copy + GenericResolver<Self, Self::Resolvable> = ();
 
     fn empty(ctx: Self::Context) -> WriteResult<Self> {
         Self::empty_map(ctx)
@@ -259,11 +262,46 @@ pub trait Ops: Sized + Clone + Codec<Self> {
         fallback_create_list(ctx, v)
     }
 
-    fn get_resolvable_item<I: ResolvableItem>(&self) -> ReadResult<I> {
-        Err(ReadError::unimplemented())
+    fn ctx(&self) -> Self::Context;
+    fn get_resolvable_item(&self) -> ReadResult<Self::Resolvable> {
+        self.ctx().resolver_get_item(self)
     }
-    fn create_resolvable_item<I: ResolvableItem>(ctx: Self::Context, _i: I) -> WriteResult<Self> {
-        Err(WriteError::unimplemented())
+    fn create_resolvable_item(ctx: Self::Context, i: Self::Resolvable) -> WriteResult<Self> {
+        ctx.resolver_create_item(ctx, i)
+    }
+}
+
+pub trait GenericResolver<O: Ops, I> {
+    fn resolver_get_item(&self, ops: &O) -> ReadResult<I>;
+    fn resolver_create_item(&self, ctx: O::Context, item: I) -> WriteResult<O>;
+}
+// example implementation
+impl<O: Ops + Clone, I: ResolvableItem + Clone, V: Codec<O> + PartialEq> GenericResolver<O, I>
+    for Vec<(I, V)>
+{
+    fn resolver_get_item(&self, ops: &O) -> ReadResult<I> {
+        let i = V::codec_read(ops)?;
+        self.iter()
+            .find(|(_, candidate)| candidate == &i)
+            .ok_or_else(|| ReadError::custom("unknown resolvable item"))
+            .map(|(i, _)| i.clone())
+    }
+    fn resolver_create_item(&self, ctx: O::Context, item: I) -> WriteResult<O> {
+        let id = item.to_resolvable_id();
+        let value = &self
+            .iter()
+            .find(|(candidate, _)| candidate.to_resolvable_id() == id)
+            .ok_or_else(|| WriteError::custom("unknown resolvable item"))?
+            .1;
+        value.codec_write(ctx)
+    }
+}
+impl<O, I> GenericResolver<O, I> for () {
+    fn resolver_get_item(&self, ops: &O) -> ReadResult<I> {
+        unimplemented!()
+    }
+    fn resolver_create_item(&self, ctx: <O as Ops>::Context, item: I) -> WriteResult<O> {
+        unimplemented!()
     }
 }
 
