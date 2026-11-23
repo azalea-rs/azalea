@@ -145,11 +145,13 @@ pub fn registry(input: TokenStream) -> TokenStream {
     for item in &input.items {
         let name = &item.name;
         let id = &item.id;
+        let namespaced_id = format!("minecraft:{id}");
+
         to_str_items.extend(quote! {
-            Self::#name => concat!("minecraft:", #id),
+            Self::#name => #namespaced_id,
         });
         from_str_items.extend(quote! {
-            #id => Ok(Self::#name),
+            #id | #namespaced_id => Self::#name,
         });
     }
 
@@ -163,6 +165,14 @@ pub fn registry(input: TokenStream) -> TokenStream {
                 }
             }
         }
+        const impl ::azalea_codec::types::ConstFromStr for #name {
+            fn const_from_str(s: &'static str) -> Self {
+                match s {
+                    #from_str_items
+                    _ => panic!("not a valid string for this registry")
+                }
+            }
+        }
         impl std::fmt::Display for #name {
             /// Convert the value to a stringified identifier, formatted like
             /// `"minecraft:air"`.
@@ -173,11 +183,10 @@ pub fn registry(input: TokenStream) -> TokenStream {
         impl<'a> TryFrom<&'a ::azalea_core::identifier::Identifier> for #name {
             type Error = ();
             fn try_from(ident: &'a ::azalea_core::identifier::Identifier) -> Result<Self, Self::Error> {
-                if ident.namespace() != "minecraft" { return Err(()) }
-                match ident.path() {
+                Ok(match ident.as_ref().1 {
                     #from_str_items
                     _ => return Err(()),
-                }
+                })
             }
         }
         impl<'a> From<#name> for ::azalea_core::identifier::Identifier {

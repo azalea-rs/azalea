@@ -6,6 +6,8 @@
 #![feature(error_generic_member_access)]
 // specialized lists
 #![feature(min_specialization)]
+// ConstFromStr, used for compile-time validation of `#[codec(tag_as = ...)]` tags
+#![feature(const_trait_impl)]
 
 use std::any::Any;
 

@@ -98,6 +98,15 @@ impl Identifier {
             Self::Static(s) => s.path(),
         }
     }
+
+    /// Returns the identifier as it is stored, with a boolean indicating
+    /// whether or not there's a namespace present.
+    pub fn as_ref(&self) -> (bool, &str) {
+        match self {
+            Identifier::Owned { colon_index, inner } => (colon_index.is_some(), inner),
+            Identifier::Static(identifier_ref) => (true, identifier_ref.0),
+        }
+    }
 }
 impl<'a> IdentifierRef<'a> {
     pub const fn new(s: &'a str) -> Self {

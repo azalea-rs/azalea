@@ -4,10 +4,10 @@ use azalea_core::{
 };
 use azalea_registry::builtin::Attribute;
 
-use crate::builtin::EnchantmentLevelBasedValueKind;
+use crate::builtin::{EnchantmentLevelBasedValueKind, EnchantmentValueEffectKind};
 
 #[derive(Clone, Debug, PartialEq, Codec)]
-#[codec(tag = "type")]
+#[codec(tag = "type", tag_as = EnchantmentValueEffectKind)]
 #[codec(default_snake_case_key)]
 pub enum ValueEffect {
     Set {
@@ -40,10 +40,15 @@ pub struct AttributeEffect {
 }
 
 #[derive(Clone, Debug, PartialEq, Codec)]
-#[codec(tag = "type", tag_as = Identifier)]
-#[codec(default_snake_case_key)]
 pub enum LevelBasedValue {
     Constant(f32),
+    Dispatch(DispatchLevelBasedValue),
+}
+
+#[derive(Clone, Debug, PartialEq, Codec)]
+#[codec(tag = "type", tag_as = EnchantmentLevelBasedValueKind)]
+#[codec(default_snake_case_key)]
+pub enum DispatchLevelBasedValue {
     Exponent {
         base: Box<LevelBasedValue>,
         power: Box<LevelBasedValue>,
@@ -72,17 +77,24 @@ pub enum LevelBasedValue {
 impl LevelBasedValue {
     pub fn calculate(&self, n: i32) -> f32 {
         match self {
-            LevelBasedValue::Constant(v) => *v,
-            LevelBasedValue::Exponent { base, power } => {
+            Self::Constant(v) => *v,
+            Self::Dispatch(v) => v.calculate(n),
+        }
+    }
+}
+impl DispatchLevelBasedValue {
+    pub fn calculate(&self, n: i32) -> f32 {
+        match self {
+            Self::Exponent { base, power } => {
                 (base.calculate(n) as f64).powf(power.calculate(n) as f64) as f32
             }
-            LevelBasedValue::Linear {
+            Self::Linear {
                 base,
                 per_level_above_first,
             } => *base + *per_level_above_first * ((n - 1) as f32),
-            LevelBasedValue::LevelsSquared { added } => (n * n) as f32 + *added,
-            LevelBasedValue::Clamped { value, min, max } => value.calculate(n).clamp(*min, *max),
-            LevelBasedValue::Fraction {
+            Self::LevelsSquared { added } => (n * n) as f32 + *added,
+            Self::Clamped { value, min, max } => value.calculate(n).clamp(*min, *max),
+            Self::Fraction {
                 numerator,
                 denominator,
             } => {
@@ -93,7 +105,7 @@ impl LevelBasedValue {
                     numerator.calculate(n) / value
                 }
             }
-            LevelBasedValue::Lookup { values, fallback } => values
+            Self::Lookup { values, fallback } => values
                 .get((n - 1) as usize)
                 .copied()
                 .unwrap_or_else(|| fallback.calculate(n)),
