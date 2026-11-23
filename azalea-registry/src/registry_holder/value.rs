@@ -2,9 +2,8 @@ use azalea_codec::Codec;
 use azalea_core::{
     attribute_modifier_operation::AttributeModifierOperation, identifier::Identifier,
 };
-use azalea_registry::builtin::Attribute;
 
-use crate::builtin::{EnchantmentLevelBasedValueKind, EnchantmentValueEffectKind};
+use crate::builtin::{Attribute, EnchantmentLevelBasedValueKind, EnchantmentValueEffectKind};
 
 #[derive(Clone, Debug, PartialEq, Codec)]
 #[codec(tag = "type", tag_as = EnchantmentValueEffectKind)]

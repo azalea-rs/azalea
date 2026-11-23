@@ -6,7 +6,7 @@ use std::{
 };
 
 use azalea_buf::{AzBuf, AzBufVar, BufReadError, BufReadErrorRepr};
-use azalea_registry::builtin::BlockKind;
+use azalea_registry_builtin::builtin::BlockKind;
 
 use crate::BlockTrait;
 

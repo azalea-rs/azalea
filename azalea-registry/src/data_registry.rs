@@ -1,11 +1,11 @@
 use azalea_core::identifier::Identifier;
-use azalea_registry::{
-    DataRegistry, DataRegistryKey, DataRegistryKeyRef,
-    data::{self},
-};
 use simdnbt::owned::NbtCompound;
 
-use crate::registry_holder::{RegistryDeserializesTo, RegistryHolder};
+use crate::{
+    DataRegistry, DataRegistryKey, DataRegistryKeyRef,
+    data::{self},
+    registry_holder::{RegistryDeserializesTo, RegistryHolder},
+};
 
 pub trait DataRegistryWithKey: DataRegistry {
     fn key<'s, 'a: 's>(

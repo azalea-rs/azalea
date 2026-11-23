@@ -9,7 +9,7 @@ repository.workspace = true
 [dependencies]
 azalea-block-macros.workspace = true
 azalea-buf.workspace = true
-azalea-registry.workspace = true
+azalea-registry-builtin.workspace = true
 
 [dev-dependencies]
 criterion.workspace = true

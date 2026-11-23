@@ -2,11 +2,13 @@ use std::{any::Any, fmt::Debug, mem::ManuallyDrop};
 
 use azalea_codec::Codec;
 use azalea_core::identifier::Identifier;
-use azalea_registry::builtin::{EnchantmentEffectComponentKind, SoundEvent};
 
-use crate::registry_holder::{
-    entity_effect::EntityEffect,
-    value::{AttributeEffect, ValueEffect},
+use crate::{
+    builtin::{EnchantmentEffectComponentKind, SoundEvent},
+    registry_holder::{
+        entity_effect::EntityEffect,
+        value::{AttributeEffect, ValueEffect},
+    },
 };
 
 #[macro_export]

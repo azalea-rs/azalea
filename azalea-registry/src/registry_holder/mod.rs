@@ -12,6 +12,7 @@ pub mod dimension_type;
 pub mod enchantment;
 pub mod entity_effect;
 pub mod float_provider;
+pub mod particle;
 pub mod value;
 
 use std::{collections::HashMap, sync::LazyLock};

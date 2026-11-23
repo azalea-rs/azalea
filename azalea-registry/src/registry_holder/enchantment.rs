@@ -5,11 +5,11 @@ use std::{
 
 use azalea_chat::FormattedText;
 use azalea_codec::{Codec, MapLike};
-use azalea_registry::builtin::EnchantmentEffectComponentKind;
 use indexmap::IndexMap;
 
 use crate::{
     HolderSet,
+    builtin::EnchantmentEffectComponentKind,
     data::Enchantment,
     registry_holder::components::{
         EffectComponentTrait, EffectComponentUnion, ResolvedEffectComponent,

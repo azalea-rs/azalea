@@ -6,19 +6,10 @@ use azalea_core::{
     position::{Vec3, Vec3i},
     sound::CustomSound,
 };
-use azalea_registry::{
-    Holder,
-    builtin::{GameEvent, ParticleKind, SoundEvent},
-    data::DamageKindKey,
-};
 
 use crate::{
-    HolderSet,
-    builtin::{BlockKind, EntityKind, MobEffect},
-    data::DamageKind,
-    registry_holder::{
-        block_predicate::BlockPredicate, block_state_provider::BlockStateProvider,
-        float_provider::FloatProvider, value::LevelBasedValue,
+    Holder, HolderSet, builtin::{BlockKind, EntityKind, GameEvent, MobEffect, ParticleKind, SoundEvent}, data::{DamageKind, DamageKindKey}, registry_holder::{
+        block_predicate::BlockPredicate, block_state_provider::BlockStateProvider, float_provider::FloatProvider, particle::Particle, value::LevelBasedValue,
     },
 };
 

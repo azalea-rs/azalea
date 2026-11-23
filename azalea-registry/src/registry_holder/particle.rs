@@ -2,7 +2,7 @@ use azalea_block::BlockState;
 use azalea_buf::AzBuf;
 use azalea_core::{color::RgbColor, entity_id::MinecraftEntityId, position::BlockPos};
 use azalea_inventory::ItemStack;
-use azalea_registry::builtin::ParticleKind;
+use crate::builtin::ParticleKind;
 
 // the order of this enum must be kept in sync with ParticleKind, otherwise
 // we get errors parsing particles.

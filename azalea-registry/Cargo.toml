@@ -12,9 +12,11 @@ azalea-chat.workspace = true
 azalea-codec = { workspace = true, features = ["simdnbt"] }
 azalea-core.workspace = true
 azalea-registry-macros.workspace = true
+azalea-registry-builtin.workspace = true
 indexmap.workspace = true
 simdnbt.workspace = true
 tracing.workspace = true
+azalea-block.workspace = true
 
 [lints]
 workspace = true

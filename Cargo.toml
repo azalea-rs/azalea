@@ -109,6 +109,7 @@ azalea-protocol-macros = { path = "azalea-protocol/azalea-protocol-macros", vers
 azalea-protocol = { path = "azalea-protocol", version = "0.16.0", default-features = false }
 azalea-registry-macros = { path = "azalea-registry/azalea-registry-macros", version = "0.16.0", default-features = false }
 azalea-registry = { path = "azalea-registry", version = "0.16.0", default-features = false }
+azalea-registry-builtin = { path = "azalea-registry/azalea-registry-builtin", version = "0.16.0", default-features = false }
 azalea-world = { path = "azalea-world", version = "0.16.0", default-features = false }
 
 [workspace.lints.clippy]

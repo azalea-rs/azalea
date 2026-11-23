@@ -3,12 +3,13 @@ use std::collections::HashMap;
 use azalea_buf::AzBuf;
 use azalea_codec::Codec;
 use azalea_core::identifier::Identifier;
-use azalea_registry::{
+use indexmap::IndexMap;
+use simdnbt::owned::NbtTag;
+
+use crate::{
     HolderSet,
     builtin::{BlockKind, EnvironmentAttribute, SoundEvent},
 };
-use indexmap::IndexMap;
-use simdnbt::owned::NbtTag;
 
 #[derive(Clone, Debug, Codec)]
 pub struct TrimMaterialElement {
@@ -68,8 +69,8 @@ pub struct DimensionKindElement {
     #[codec(optional)]
     pub attributes: EnvironmentAttributeMap,
     #[codec(optional)]
-    pub timelines: Option<HolderSet<azalea_registry::data::Timeline>>,
-    pub default_clock: azalea_registry::data::WorldClock,
+    pub timelines: Option<HolderSet<crate::data::Timeline>>,
+    pub default_clock: crate::data::WorldClock,
 
     #[codec(flatten)]
     pub _extra: HashMap<String, NbtTag>,
