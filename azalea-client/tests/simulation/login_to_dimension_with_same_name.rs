@@ -1,14 +1,14 @@
 use azalea_client::{
     InConfigState, InGameState, local_player::WorldHolder, test_utils::prelude::*,
 };
-use azalea_core::position::ChunkPos;
+use azalea_core::{identifier::Identifier, position::ChunkPos};
 use azalea_entity::LocalEntity;
 use azalea_protocol::packets::{
     ConnectionProtocol, Packet,
     config::{ClientboundFinishConfiguration, ClientboundRegistryData},
     game::ClientboundStartConfiguration,
 };
-use azalea_registry::{DataRegistry, data::DimensionKind, identifier::Identifier};
+use azalea_registry::{DataRegistry, data::DimensionKind};
 use azalea_world::WorldName;
 use simdnbt::owned::{NbtCompound, NbtTag};
 
@@ -35,18 +35,7 @@ fn generic_test_login_to_dimension_with_same_name(using_respawn: bool) {
     assert!(simulation.has_component::<InConfigState>());
     assert!(!simulation.has_component::<InGameState>());
 
-    simulation.receive_packet(ClientboundRegistryData {
-        registry_id: Identifier::new("minecraft:dimension_type"),
-        entries: vec![(
-            Identifier::new("minecraft:overworld"),
-            Some(NbtTag::from(NbtCompound::from_values(vec![
-                ("height".into(), NbtTag::Int(384)),
-                ("min_y".into(), NbtTag::Int(-64)),
-            ]))),
-        )]
-        .into_iter()
-        .collect(),
-    });
+    receive_default_registries(&mut simulation);
     simulation.tick();
     simulation.receive_packet(ClientboundFinishConfiguration);
     simulation.tick();
@@ -82,19 +71,7 @@ fn generic_test_login_to_dimension_with_same_name(using_respawn: bool) {
     // OVERWORLD 2
     //
 
-    simulation.receive_packet(ClientboundStartConfiguration);
-    simulation.receive_packet(ClientboundRegistryData {
-        registry_id: Identifier::new("minecraft:dimension_type"),
-        entries: vec![(
-            Identifier::new("minecraft:overworld"),
-            Some(NbtTag::from(NbtCompound::from_values(vec![
-                ("height".into(), NbtTag::Int(256)),
-                ("min_y".into(), NbtTag::Int(0)),
-            ]))),
-        )]
-        .into_iter()
-        .collect(),
-    });
+    receive_default_registries(&mut simulation);
     simulation.receive_packet(ClientboundFinishConfiguration);
     simulation.receive_packet(make_basic_login_or_respawn_packet(
         DimensionKind::new_raw(0),

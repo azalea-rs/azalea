@@ -1,4 +1,5 @@
 use azalea_client::test_utils::prelude::*;
+use azalea_core::identifier::Identifier;
 use azalea_entity::Attributes;
 use azalea_inventory::{ItemStack, components::Enchantments};
 use azalea_protocol::packets::{
@@ -6,7 +7,7 @@ use azalea_protocol::packets::{
     config::{ClientboundFinishConfiguration, ClientboundRegistryData},
     game::ClientboundContainerSetSlot,
 };
-use azalea_registry::{Registry, builtin::ItemKind, data::Enchantment, identifier::Identifier};
+use azalea_registry::{Registry, builtin::ItemKind, data::Enchantment};
 use simdnbt::owned::{NbtCompound, NbtTag};
 
 #[test]

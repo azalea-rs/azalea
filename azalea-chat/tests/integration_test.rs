@@ -2,7 +2,6 @@ use azalea_chat::{
     FormattedText,
     style::{Ansi, ChatFormatting, TextColor},
 };
-use azalea_codec::Codec;
 use serde::Deserialize;
 use serde_json::Value;
 

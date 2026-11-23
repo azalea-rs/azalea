@@ -1,4 +1,4 @@
-use std::{fmt, marker::PhantomData};
+use std::fmt;
 
 use azalea_buf::AzBuf;
 use azalea_codec::Codec;

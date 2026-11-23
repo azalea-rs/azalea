@@ -1,13 +1,11 @@
 use azalea_client::test_utils::prelude::*;
-use azalea_core::position::ChunkPos;
+use azalea_core::{identifier::Identifier, position::ChunkPos};
 use azalea_entity::metadata::Cow;
 use azalea_protocol::packets::{
     ConnectionProtocol,
     config::{ClientboundFinishConfiguration, ClientboundRegistryData},
 };
-use azalea_registry::{
-    DataRegistry, builtin::EntityKind, data::DimensionKind, identifier::Identifier,
-};
+use azalea_registry::{DataRegistry, builtin::EntityKind, data::DimensionKind};
 use bevy_ecs::query::With;
 use simdnbt::owned::{NbtCompound, NbtTag};
 
@@ -16,27 +14,7 @@ fn test_despawn_entities_when_changing_dimension() {
     let _lock = init();
 
     let mut simulation = Simulation::new(ConnectionProtocol::Configuration);
-    simulation.receive_packet(ClientboundRegistryData {
-        registry_id: Identifier::new("minecraft:dimension_type"),
-        entries: vec![
-            (
-                Identifier::new("minecraft:overworld"),
-                Some(NbtTag::from(NbtCompound::from_values(vec![
-                    ("height".into(), NbtTag::Int(384)),
-                    ("min_y".into(), NbtTag::Int(-64)),
-                ]))),
-            ),
-            (
-                Identifier::new("minecraft:nether"),
-                Some(NbtTag::from(NbtCompound::from_values(vec![
-                    ("height".into(), NbtTag::Int(256)),
-                    ("min_y".into(), NbtTag::Int(0)),
-                ]))),
-            ),
-        ]
-        .into_iter()
-        .collect(),
-    });
+    receive_default_registries(&mut simulation);
     simulation.tick();
     simulation.receive_packet(ClientboundFinishConfiguration);
     simulation.tick();

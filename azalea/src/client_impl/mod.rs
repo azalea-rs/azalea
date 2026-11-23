@@ -13,7 +13,7 @@ use azalea_client::{
     start_ecs_runner,
     tick_counter::TicksConnected,
 };
-use azalea_core::entity_id::MinecraftEntityId;
+use azalea_core::{entity_id::MinecraftEntityId, identifier::Identifier};
 use azalea_entity::indexing::{EntityIdIndex, EntityUuidIndex};
 use azalea_protocol::{
     address::{ResolvableAddr, ResolvedAddr},
@@ -24,7 +24,6 @@ use azalea_protocol::{
 use azalea_registry::{
     DataRegistryKeyRef,
     data_registry::{DataRegistryWithKey, ResolvableDataRegistry},
-    identifier::Identifier,
     registry_holder::RegistryHolder,
 };
 use azalea_world::{PartialWorld, World, WorldName};

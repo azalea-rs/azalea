@@ -3,10 +3,12 @@ use std::{any, collections::VecDeque, fmt::Debug, sync::Arc};
 use azalea_auth::game_profile::GameProfile;
 use azalea_block::BlockState;
 use azalea_buf::AzBuf;
+use azalea_codec::Codec;
 use azalea_core::{
     delta::LpVec3,
     entity_id::MinecraftEntityId,
     game_type::{GameMode, OptionalGameType},
+    identifier::Identifier,
     position::{BlockPos, ChunkPos, Vec3},
     tick::GameTick,
 };
@@ -29,8 +31,7 @@ use azalea_registry::{
     DataRegistry,
     builtin::EntityKind,
     data::{Biome, DimensionKind},
-    identifier::Identifier,
-    registry_holder::RegistryHolder,
+    registry_holder::{RegistryHolder, dimension_type::DimensionKindElement},
 };
 use azalea_world::{Chunk, Section, World, palette::PalettedContainer};
 use bevy_app::App;
@@ -41,7 +42,7 @@ use bevy_ecs::{
     schedule::SingleThreadedExecutor,
 };
 use parking_lot::{Mutex, RwLock};
-use simdnbt::owned::{NbtCompound, NbtTag};
+use simdnbt::owned::NbtCompound;
 use uuid::Uuid;
 
 use crate::{
@@ -84,22 +85,7 @@ impl Simulation {
         match conn_protocol {
             ConnectionProtocol::Configuration => {}
             ConnectionProtocol::Game => {
-                simulation.receive_packet(ClientboundRegistryData {
-                    registry_id: Identifier::new("minecraft:dimension_type"),
-                    entries: vec![(
-                        Identifier::new("minecraft:overworld"),
-                        Some(
-                            NbtCompound::from_values(vec![
-                                ("height".into(), NbtTag::Int(384)),
-                                ("min_y".into(), NbtTag::Int(-64)),
-                            ])
-                            .into(),
-                        ),
-                    )]
-                    .into_iter()
-                    .collect(),
-                });
-
+                receive_default_registries(&mut simulation);
                 simulation.receive_packet(ClientboundFinishConfiguration);
                 simulation.tick();
             }
@@ -196,9 +182,9 @@ impl Simulation {
         let world_holder = self.component::<WorldHolder>();
         world_holder.shared.clone()
     }
-    pub fn with_registry_holder<R>(&mut self, f: impl FnOnce(&mut RegistryHolder) -> R) -> R {
+    pub fn with_registry_holder<R>(&mut self, f: impl FnOnce(&RegistryHolder) -> R) -> R {
         let world = self.world();
-        let registries = &mut world.write().registries;
+        let registries = &world.read().registries;
         f(registries)
     }
 
@@ -439,4 +425,53 @@ pub fn make_basic_add_entity(
         data: 0,
         movement: LpVec3::Zero,
     }
+}
+
+pub fn receive_default_registries(simulation: &mut Simulation) {
+    simulation.receive_packet(ClientboundRegistryData {
+        registry_id: "world_clock".into(),
+        entries: vec![("overworld".into(), Some(NbtCompound::default().into()))]
+            .into_iter()
+            .collect(),
+    });
+    simulation.update();
+
+    let fake_dimension = simulation.with_registry_holder(|r| {
+        DimensionKindElement {
+            min_y: 123,
+            height: 456,
+            ..Default::default()
+        }
+        .codec_write(azalea_codec::Ctx(r))
+        .unwrap()
+    });
+    let overworld = simulation.with_registry_holder(|r| {
+        DimensionKindElement {
+            min_y: -64,
+            height: 384,
+            ..Default::default()
+        }
+        .codec_write(azalea_codec::Ctx(r))
+        .unwrap()
+    });
+    let nether = simulation.with_registry_holder(|r| {
+        DimensionKindElement {
+            min_y: 0,
+            height: 256,
+            ..Default::default()
+        }
+        .codec_write(azalea_codec::Ctx(r))
+        .unwrap()
+    });
+    simulation.receive_packet(ClientboundRegistryData {
+        registry_id: Identifier::new("dimension_type"),
+        entries: vec![
+            ("azalea:fake_dimension".into(), Some(fake_dimension)),
+            ("overworld".into(), Some(overworld)),
+            ("nether".into(), Some(nether)),
+        ]
+        .into_iter()
+        .collect(),
+    });
+    simulation.update();
 }

@@ -52,10 +52,10 @@ macro_rules! data_registry {
                 };
                 let ident = <Identifier as azalea_codec::Codec<O>>::codec_read(ops, ctx)?;
                 let id = registry_holder
-                    .identifier_to_protocol_id(Self::NAME, ident)
+                    .identifier_to_protocol_id(Self::NAME, ident.clone())
                     .ok_or_else(|| {
                         azalea_codec::error::ReadError::custom(format!(
-                            "got a resolvable {}, which isn't in our registry",
+                            "got a resolvable {} with value {ident}, which isn't in our registry",
                             Self::NAME
                         ))
                     })?;
@@ -66,16 +66,6 @@ macro_rules! data_registry {
             }
         }
 
-        #[cfg(feature = "serde")]
-        impl serde::Serialize for $registry {
-            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-            where
-                S: serde::Serializer,
-            {
-                // see ChecksumSerializer::serialize_newtype_variant
-                serializer.serialize_newtype_variant(concat!("minecraft:", $registry_name), self.id, "", &())
-            }
-        }
         impl<O: azalea_codec::Ops> azalea_codec::Codec<O> for $registry {
             fn codec_read(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
                 ops.get_resolvable_item::<Self>(ctx)

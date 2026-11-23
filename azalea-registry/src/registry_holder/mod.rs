@@ -14,11 +14,10 @@ pub mod entity_effect;
 pub mod float_provider;
 pub mod value;
 
-use std::{any::Any, collections::HashMap, sync::LazyLock};
+use std::{collections::HashMap, sync::LazyLock};
 
 use azalea_codec::Codec;
 use azalea_core::identifier::Identifier;
-use azalea_registry::{DataRegistry, DataRegistryProtocolId, data::DimensionKind};
 use indexmap::IndexMap;
 use simdnbt::{
     DeserializeError, FromNbtTag, borrow,
@@ -44,6 +43,7 @@ pub struct RegistryHolder {
     /// Attributes about the dimension.
     pub dimension_type: RegistryType<dimension_type::DimensionKindElement>,
     pub enchantment: RegistryType<enchantment::EnchantmentData>,
+    pub world_clock: RegistryType<()>,
 
     /// Registries that we haven't implemented deserializable types for.
     ///
@@ -51,7 +51,7 @@ pub struct RegistryHolder {
     /// nicer structs.
     pub extra: HashMap<Identifier, RegistryType<NbtCompound>>,
 }
-registry_holder_macro::registry_holder!(dimension_type, enchantment);
+registry_holder_macro::registry_holder!(dimension_type, enchantment, world_clock);
 
 // declared like this so we can use the macro before this block :>
 mod registry_holder_macro {
@@ -64,12 +64,13 @@ mod registry_holder_macro {
                     id: Identifier,
                     entries: Vec<(Identifier, Option<NbtCompound>)>,
                 ) {
+                    let registry_holder = self.clone();
 
                     if id.namespace() == "minecraft" {
                         match id.path() {
                             $(
                                 stringify!($registry) => {
-                                    return self.$registry.append_nbt(id, entries);
+                                    return self.$registry.append_nbt(id, entries, &registry_holder);
                                 }
                             )*
                             _ => {}
@@ -79,7 +80,7 @@ mod registry_holder_macro {
                     self.extra
                         .entry(id.clone())
                         .or_default()
-                        .append_nbt(id, entries);
+                        .append_nbt(id, entries, &registry_holder);
                 }
 
                 pub fn extend(&mut self, other: RegistryHolder) {
@@ -171,14 +172,20 @@ impl<T: Codec<NbtTag>> Default for RegistryType<T> {
 }
 
 impl<T: Codec<NbtTag>> RegistryType<T> {
-    fn append_nbt(&mut self, id: Identifier, entries: Vec<(Identifier, Option<NbtCompound>)>) {
+    fn append_nbt(
+        &mut self,
+        id: Identifier,
+        entries: Vec<(Identifier, Option<NbtCompound>)>,
+        registry_holder: &RegistryHolder,
+    ) {
         let map = &mut self.map;
         for (key, value) in entries {
             if let Some(value) = value {
-                match T::codec_read(
+                let parsed = T::codec_read(
                     &NbtTag::from(value.clone()),
-                    azalea_codec::Ctx(&RegistryHolder::default()),
-                ) {
+                    azalea_codec::Ctx(registry_holder),
+                );
+                match parsed {
                     Ok(value) => {
                         map.insert(key, value);
                     }
@@ -260,10 +267,15 @@ impl<O: azalea_codec::Ops> azalea_codec::ResolverTrait<O> for RegistryHolder {
         item: &dyn azalea_codec::ResolvableItem<O>,
     ) -> azalea_codec::error::WriteResult<O> {
         let id = item.to_resolvable_id();
-        let value = self
+        let Some(value) = self
             .protocol_id_to_identifier(Identifier::from(item.name()), id)
             .map(|v| v.to_string())
-            .unwrap_or_default();
+        else {
+            return Err(azalea_codec::error::WriteError::custom(format!(
+                "tried to encode invalid item id {id} for {}",
+                item.name()
+            )));
+        };
         value.codec_write(azalea_codec::Ctx(self))
     }
 }
