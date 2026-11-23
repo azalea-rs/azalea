@@ -24,6 +24,8 @@ pub mod types;
 
 // for macros
 #[doc(hidden)]
+pub use serde;
+#[doc(hidden)]
 pub use serde_json;
 
 #[diagnostic::on_unimplemented(message = "type `{Self}` does not implement `azalea_codec::Codec`.")]
@@ -179,25 +181,25 @@ macro_rules! impl_mapcodec {
 #[macro_export]
 macro_rules! impl_serde {
     ($t:ident, $default_ctx:expr) => {
-        impl serde::Serialize for $t {
+        impl $crate::serde::Serialize for $t {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
-                S: serde::Serializer,
+                S: $crate::serde::Serializer,
             {
                 let json: $crate::serde_json::Value = self
-                    .codec_write(azalea_codec::Ctx(&$default_ctx))
-                    .map_err(serde::ser::Error::custom)?;
+                    .codec_write($crate::Ctx(&$default_ctx))
+                    .map_err($crate::serde::ser::Error::custom)?;
                 json.serialize(serializer)
             }
         }
-        impl<'de> serde::Deserialize<'de> for $t {
+        impl<'de> $crate::serde::Deserialize<'de> for $t {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
-                D: serde::Deserializer<'de>,
+                D: $crate::serde::Deserializer<'de>,
             {
                 let json = $crate::serde_json::Value::deserialize(deserializer)?;
-                Self::codec_read(&json, azalea_codec::Ctx(&$default_ctx))
-                    .map_err(serde::de::Error::custom)
+                Self::codec_read(&json, $crate::Ctx(&$default_ctx))
+                    .map_err($crate::serde::de::Error::custom)
             }
         }
     };

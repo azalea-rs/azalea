@@ -12,13 +12,8 @@ azalea-codec.workspace = true
 azalea-core.workspace = true
 azalea-registry-macros.workspace = true
 indexmap.workspace = true
-serde = { workspace = true, optional = true, features = ["derive"] }
 simdnbt.workspace = true
 tracing.workspace = true
-
-[features]
-serde = ["azalea-registry-macros/serde", "dep:serde", "azalea-codec/serde_json"]
-default = ["serde"]
 
 [lints]
 workspace = true

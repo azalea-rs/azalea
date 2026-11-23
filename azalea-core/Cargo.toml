@@ -9,7 +9,6 @@ repository.workspace = true
 [dependencies]
 azalea-buf.workspace = true
 bevy_ecs = { workspace = true, optional = true }
-serde = { workspace = true, optional = true }
 nohash-hasher.workspace = true
 num-traits.workspace = true
 simdnbt.workspace = true
@@ -22,7 +21,7 @@ azalea-codec = { workspace = true, features = ["indexmap", "serde_json"] }
 
 [features]
 bevy_ecs = ["dep:bevy_ecs"]
-serde = ["dep:serde"]
+serde = []
 strict_registry = []
 
 [lints]

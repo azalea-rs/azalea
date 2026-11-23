@@ -13,18 +13,14 @@ rand.workspace = true
 [dependencies]
 azalea-block.workspace = true
 azalea-buf.workspace = true
-azalea-core = { workspace = true, features = ["serde", "bevy_ecs"] }
+azalea-core = { workspace = true, features = ["bevy_ecs"] }
 azalea-registry.workspace = true
 bevy_ecs.workspace = true
 derive_more = { workspace = true, features = ["deref", "deref_mut"] }
 nohash-hasher.workspace = true
 parking_lot.workspace = true
 rustc-hash.workspace = true
-serde = { workspace = true, optional = true }
 tracing.workspace = true
-
-[features]
-serde = ["dep:serde"]
 
 [[bench]]
 name = "chunks"
