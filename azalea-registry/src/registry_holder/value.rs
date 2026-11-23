@@ -40,7 +40,7 @@ pub struct AttributeEffect {
 }
 
 #[derive(Clone, Debug, PartialEq, Codec)]
-#[codec(tag = "type", tag_as = EnchantmentLevelBasedValueKind)]
+#[codec(tag = "type", tag_as = Identifier)]
 #[codec(default_snake_case_key)]
 pub enum LevelBasedValue {
     Constant(f32),

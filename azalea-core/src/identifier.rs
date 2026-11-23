@@ -17,14 +17,32 @@ use azalea_codec::{Codec, error::ReadError};
 ///
 /// This was formerly called a `ResourceLocation`.
 #[doc(alias = "ResourceLocation")]
-#[derive(Clone, Default, Eq)]
-pub struct Identifier {
-    // empty namespaces aren't allowed so NonZero is fine.
-    colon_index: Option<NonZeroUsize>,
-    inner: Box<str>,
+#[derive(Clone, Eq)]
+pub enum Identifier {
+    Owned {
+        // empty namespaces aren't allowed, so NonZero is fine
+        colon_index: Option<NonZeroUsize>,
+        inner: Box<str>,
+    },
+    Static(IdentifierRef<'static>),
 }
-
 const _: () = assert!(size_of::<Identifier>() == 24);
+#[derive(Clone, Copy, Eq, PartialEq, Debug)]
+pub struct IdentifierRef<'a>(
+    // this string is required to be include a namespace
+    &'a str,
+);
+
+impl Default for Identifier {
+    fn default() -> Self {
+        Self::Static(Default::default())
+    }
+}
+impl Default for IdentifierRef<'static> {
+    fn default() -> Self {
+        Self("minecraft:")
+    }
+}
 
 static DEFAULT_NAMESPACE: &str = "minecraft";
 // static REALMS_NAMESPACE: &str = "realms";
@@ -43,7 +61,7 @@ impl Identifier {
             None
         };
 
-        Self {
+        Self::Owned {
             colon_index,
             inner: resource_string.into(),
         }
@@ -51,22 +69,65 @@ impl Identifier {
     pub fn new_from_parts(namespace: &str, path: &str) -> Self {
         Self::new(format!("{namespace}:{path}"))
     }
+    pub const fn const_new(s: &'static str) -> Self {
+        Self::Static(IdentifierRef::new(s))
+    }
 
     pub fn namespace(&self) -> &str {
-        if let Some(colon_index) = self.colon_index {
-            &self.inner[0..colon_index.get()]
-        } else {
-            DEFAULT_NAMESPACE
+        match self {
+            Self::Owned {
+                colon_index: Some(colon_index),
+                inner,
+            } => &inner[..colon_index.get()],
+            Self::Owned {
+                colon_index: None, ..
+            } => DEFAULT_NAMESPACE,
+            Self::Static(s) => s.namespace(),
         }
     }
     pub fn path(&self) -> &str {
-        if let Some(colon_index) = self.colon_index {
-            &self.inner[(colon_index.get() + 1)..]
-        } else {
-            &self.inner
+        match self {
+            Self::Owned {
+                colon_index: Some(colon_index),
+                inner,
+            } => &inner[(colon_index.get() + 1)..],
+            Self::Owned {
+                colon_index: None,
+                inner,
+            } => &inner,
+            Self::Static(s) => s.path(),
         }
     }
 }
+impl<'a> IdentifierRef<'a> {
+    pub const fn new(s: &'a str) -> Self {
+        let s = Self(s);
+        // validate that it contains a colon
+        s.colon_index();
+        s
+    }
+    pub fn namespace(self) -> &'a str {
+        str::from_utf8(&self.0.as_bytes()[..self.colon_index()]).unwrap()
+    }
+    pub fn path(self) -> &'a str {
+        str::from_utf8(&self.0.as_bytes()[(self.colon_index() + 1)..]).unwrap()
+    }
+    pub const fn colon_index(self) -> usize {
+        let bytes = self.0.as_bytes();
+        assert!(bytes.is_ascii(), "static identifiers must be valid ascii");
+
+        // namespace isn't allowed to be the first character
+        let mut idx = 1;
+        while idx < bytes.len() {
+            if bytes[idx] == b':' {
+                return idx;
+            }
+            idx += 1;
+        }
+        panic!("static identifiers must contain a namespace.");
+    }
+}
+
 impl PartialEq for Identifier {
     fn eq(&self, other: &Self) -> bool {
         self.namespace() == other.namespace() && self.path() == other.path()
@@ -84,13 +145,26 @@ impl Hash for Identifier {
 
 impl Display for Identifier {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.colon_index.is_some() {
-            write!(f, "{}", self.inner)
-        } else {
-            write!(f, "{DEFAULT_NAMESPACE}:{}", self.inner)
+        match self {
+            Self::Owned {
+                colon_index: None,
+                inner,
+            } => {
+                write!(f, "{DEFAULT_NAMESPACE}:{inner}")
+            }
+            Self::Owned { inner, .. } => {
+                write!(f, "{inner}")
+            }
+            Self::Static(s) => Display::fmt(s, f),
         }
     }
 }
+impl Display for IdentifierRef<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        Display::fmt(self.0, f)
+    }
+}
+
 impl Debug for Identifier {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{self}")
