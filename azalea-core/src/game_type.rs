@@ -55,12 +55,14 @@ impl GameMode {
         )
     }
 
-    /// The translation key for the short translatable display name for the
-    /// gamemode, like "Survival".
+    /// The translation key for the short display name for the gamemode, like
+    /// "Survival".
     ///
     /// ```
+    /// # use azalea_core::game_type::GameMode;
+    /// # use azalea_chat::component::translatable::TranslatableComponent;
     /// assert_eq!(
-    ///     TranslatableComponent::new(GameMode::Survival.short_name_key()).to_string(),
+    ///     TranslatableComponent::new(GameMode::Survival.short_name_key(), vec![]).to_string(),
     ///     "Survival"
     /// );
     /// ```
@@ -68,11 +70,13 @@ impl GameMode {
         format!("selectWorld.gameMode.{}", self.name())
     }
 
-    /// The translation key for the long translatable display name for the
-    /// gamemode, like "Survival Mode".
+    /// The translation key for the long display name for the gamemode, like
+    /// "Survival Mode".
     /// ```
+    /// # use azalea_core::game_type::GameMode;
+    /// # use azalea_chat::component::translatable::TranslatableComponent;
     /// assert_eq!(
-    ///     TranslatableComponent::new(GameMode::Survival.short_name_key()).to_string(),
+    ///     TranslatableComponent::new(GameMode::Survival.long_name_key(), vec![]).to_string(),
     ///     "Survival Mode"
     /// );
     /// ```

@@ -94,7 +94,7 @@ impl Identifier {
             Self::Owned {
                 colon_index: None,
                 inner,
-            } => &inner,
+            } => inner,
             Self::Static(s) => s.path(),
         }
     }

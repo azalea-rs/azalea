@@ -443,6 +443,43 @@ pub fn make_basic_add_entity(
 }
 
 pub fn receive_default_registries(simulation: &mut Simulation) {
+    receive_default_registries_with_dimensions(
+        simulation,
+        vec![
+            (
+                // put this one here to ensure that we aren't hardcoding
+                // dimension id 0 anywhere
+                "azalea:fake_dimension",
+                DimensionKindElement {
+                    min_y: 123,
+                    height: 456,
+                    ..Default::default()
+                },
+            ),
+            (
+                "overworld",
+                DimensionKindElement {
+                    min_y: -64,
+                    height: 384,
+                    ..Default::default()
+                },
+            ),
+            (
+                "the_nether",
+                DimensionKindElement {
+                    min_y: 0,
+                    height: 256,
+                    ..Default::default()
+                },
+            ),
+        ],
+    )
+}
+
+pub fn receive_default_registries_with_dimensions(
+    simulation: &mut Simulation,
+    dimensions: Vec<(&'static str, DimensionKindElement)>,
+) {
     simulation.receive_packet(ClientboundRegistryData {
         registry_id: "world_clock".into(),
         entries: vec![("overworld".into(), Some(NbtCompound::default().into()))]
@@ -451,44 +488,15 @@ pub fn receive_default_registries(simulation: &mut Simulation) {
     });
     simulation.update();
 
-    let fake_dimension = simulation.with_registry_holder(|r| {
-        DimensionKindElement {
-            min_y: 123,
-            height: 456,
-            ..Default::default()
-        }
-        .codec_write(azalea_codec::Ctx(r))
-        .unwrap()
-    });
-    let overworld = simulation.with_registry_holder(|r| {
-        DimensionKindElement {
-            min_y: -64,
-            height: 384,
-            ..Default::default()
-        }
-        .codec_write(azalea_codec::Ctx(r))
-        .unwrap()
-    });
-    let nether = simulation.with_registry_holder(|r| {
-        DimensionKindElement {
-            min_y: 0,
-            height: 256,
-            ..Default::default()
-        }
-        .codec_write(azalea_codec::Ctx(r))
-        .unwrap()
-    });
+    let mut dimension_entries = Vec::new();
+    for (name, element) in dimensions {
+        let tag =
+            simulation.with_registry_holder(|r| element.codec_write(azalea_codec::Ctx(r)).unwrap());
+        dimension_entries.push((name.into(), Some(tag)));
+    }
     simulation.receive_packet(ClientboundRegistryData {
         registry_id: Identifier::new("dimension_type"),
-        entries: vec![
-            // put this one here to ensure that we aren't hardcoding dimension
-            // id 0 anywhere
-            ("azalea:fake_dimension".into(), Some(fake_dimension)),
-            ("overworld".into(), Some(overworld)),
-            ("the_nether".into(), Some(nether)),
-        ]
-        .into_iter()
-        .collect(),
+        entries: dimension_entries,
     });
     simulation.update();
 }

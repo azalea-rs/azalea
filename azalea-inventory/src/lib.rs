@@ -1,5 +1,7 @@
 #![doc = include_str!("../README.md")]
 #![feature(min_specialization)]
+// `registry!` macro, used for `azalea_codec::types::ConstFromStr` impls
+#![feature(const_trait_impl, const_cmp)]
 
 pub mod checksum;
 pub mod components;

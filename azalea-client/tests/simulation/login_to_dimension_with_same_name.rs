@@ -5,8 +5,9 @@ use azalea_core::{identifier::Identifier, position::ChunkPos};
 use azalea_entity::LocalEntity;
 use azalea_protocol::packets::{
     ConnectionProtocol, Packet, config::ClientboundFinishConfiguration,
+    game::ClientboundStartConfiguration,
 };
-use azalea_registry::data::DimensionKindKey;
+use azalea_registry::{data::DimensionKindKey, registry_holder::dimension_type::DimensionKindElement};
 use azalea_world::WorldName;
 
 #[test]
@@ -69,7 +70,18 @@ fn generic_test_login_to_dimension_with_same_name(using_respawn: bool) {
     // OVERWORLD 2
     //
 
-    receive_default_registries(&mut simulation);
+    simulation.receive_packet(ClientboundStartConfiguration);
+    receive_default_registries_with_dimensions(
+        &mut simulation,
+        vec![(
+            "overworld",
+            DimensionKindElement {
+                min_y: 0,
+                height: 256,
+                ..Default::default()
+            },
+        )],
+    );
     simulation.receive_packet(ClientboundFinishConfiguration);
     simulation.receive_packet(make_basic_login_or_respawn_packet(
         DimensionKindKey::Overworld,

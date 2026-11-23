@@ -1,7 +1,6 @@
 #![doc = include_str!("../README.md")]
 // used for `azalea_codec::types::ConstFromStr` impls
-#![feature(const_trait_impl)]
-#![feature(const_cmp)]
+#![feature(const_trait_impl, const_cmp)]
 
 // The contents of the macros below are generated in
 // codegen/lib/code/registry.py, though the rest of the file isn't

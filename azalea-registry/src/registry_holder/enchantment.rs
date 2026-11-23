@@ -9,7 +9,9 @@ use azalea_registry::builtin::EnchantmentEffectComponentKind;
 use indexmap::IndexMap;
 
 use crate::{
-    HolderSet, data::Enchantment, registry_holder::components::{
+    HolderSet,
+    data::Enchantment,
+    registry_holder::components::{
         EffectComponentTrait, EffectComponentUnion, ResolvedEffectComponent,
     },
 };
@@ -23,6 +25,9 @@ pub struct EnchantmentData {
     #[codec(optional)]
     pub effects: Effects,
 }
+/// Container for the effects in [`EnchantmentData`].
+#[derive(Default)]
+pub struct Effects(IndexMap<EnchantmentEffectComponentKind, Vec<EffectComponentUnion>>);
 
 impl Effects {
     pub fn get<T: EffectComponentTrait>(&self) -> Option<Vec<&T>> {
@@ -50,8 +55,6 @@ impl Effects {
     }
 }
 
-#[derive(Default)]
-pub struct Effects(IndexMap<EnchantmentEffectComponentKind, Vec<EffectComponentUnion>>);
 impl<O: azalea_codec::Ops> Codec<O> for Effects {
     fn codec_read(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
         let map = ops.get_map(ctx)?;
