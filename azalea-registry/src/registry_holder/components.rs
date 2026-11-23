@@ -1,6 +1,7 @@
 use std::{any::Any, fmt::Debug, mem::ManuallyDrop};
 
 use azalea_codec::Codec;
+use azalea_core::identifier::Identifier;
 use azalea_registry::builtin::{EnchantmentEffectComponentKind, SoundEvent};
 
 use crate::registry_holder::{
@@ -148,11 +149,24 @@ pub struct ConditionalEffect<T: Debug + Clone + PartialEq> {
 }
 #[derive(Clone, Debug, PartialEq, Codec)]
 pub struct TargetedConditionalEffect<T: Debug + Clone + PartialEq> {
+    pub enchanted: EnchantmentTarget,
+    pub affected: EnchantmentTarget,
     pub effect: T,
-    // pub enchanted
-    // pub affected
-    // pub requirements
+    #[codec(optional)]
+    pub requirements: LootItemCondition,
 }
+#[derive(Clone, Debug, PartialEq, Codec)]
+#[codec(default_snake_case_key)]
+pub enum EnchantmentTarget {
+    Attacker,
+    DamagingEntity,
+    Victim,
+}
+
+// TODO: this should be the predicate registry, why isn't it being codegen'd?
+#[derive(Clone, Debug, PartialEq, Default, Codec)]
+pub struct LootItemCondition(pub Identifier);
+azalea_codec::impl_defaultable!(LootItemCondition);
 
 // makes for cleaner-looking types
 type ConditionalValueEffect = ConditionalEffect<ValueEffect>;

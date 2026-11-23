@@ -15,6 +15,7 @@ use azalea_registry::{
 use crate::{
     HolderSet,
     builtin::{BlockKind, EntityKind, MobEffect},
+    data::DamageKind,
     registry_holder::{
         block_predicate::BlockPredicate, block_state_provider::BlockStateProvider,
         float_provider::FloatProvider, value::LevelBasedValue,
@@ -73,16 +74,22 @@ pub struct DamageEntity {
 #[derive(Clone, Debug, PartialEq, Codec)]
 pub struct Explode {
     #[codec(optional)]
-    pub attribute_to_user: Option<bool>,
+    pub attribute_to_user: bool,
     #[codec(rename = "damage_type")]
     #[codec(optional)]
-    pub damage_kind: Option<DamageKindKey>,
+    pub damage_kind: Option<DamageKind>,
     #[codec(optional)]
-    pub knockback_multiplier: Option<LevelBasedValue>,
+    pub knockback_multiplier: LevelBasedValue,
     #[codec(optional)]
     pub immune_blocks: HolderSet<BlockKind>,
     #[codec(optional)]
-    pub offset: Option<Vec3>,
+    pub offset: Vec3,
+    pub radius: LevelBasedValue,
+    #[codec(optional)]
+    pub create_fire: bool,
+    pub block_interaction: ExplosionInteraction,
+    #[codec(optional)]
+    pub small_particle: ParticleKindCodec,
 }
 
 #[derive(Clone, Debug, PartialEq, Codec)]
@@ -150,7 +157,7 @@ pub struct SetBlockProperties {
 
 #[derive(Clone, Debug, PartialEq, Codec)]
 pub struct SpawnParticles {
-    pub particle: ParticleKindCodec,
+    pub particle: Particle,
     pub horizontal_position: SpawnParticlesPosition,
     pub vertical_position: SpawnParticlesPosition,
     pub horizontal_velocity: SpawnParticlesVelocity,
