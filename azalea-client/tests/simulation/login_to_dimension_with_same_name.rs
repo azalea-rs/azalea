@@ -6,7 +6,7 @@ use azalea_entity::LocalEntity;
 use azalea_protocol::packets::{
     ConnectionProtocol, Packet, config::ClientboundFinishConfiguration,
 };
-use azalea_registry::{DataRegistry, data::DimensionKind};
+use azalea_registry::data::DimensionKindKey;
 use azalea_world::WorldName;
 
 #[test]
@@ -19,12 +19,12 @@ fn test_login_to_dimension_with_same_name() {
 
 fn generic_test_login_to_dimension_with_same_name(using_respawn: bool) {
     let make_basic_login_or_respawn_packet = if using_respawn {
-        |dimension: DimensionKind, world_name: Identifier| {
-            make_basic_respawn_packet(dimension, world_name).into_variant()
+        |dimension: DimensionKindKey, world_name: Identifier, simulation: &Simulation| {
+            make_basic_respawn_packet(dimension, world_name, simulation).into_variant()
         }
     } else {
-        |dimension: DimensionKind, world_name: Identifier| {
-            make_basic_login_packet(dimension, world_name).into_variant()
+        |dimension: DimensionKindKey, world_name: Identifier, simulation: &Simulation| {
+            make_basic_login_packet(dimension, world_name, simulation).into_variant()
         }
     };
 
@@ -46,8 +46,9 @@ fn generic_test_login_to_dimension_with_same_name(using_respawn: bool) {
     //
 
     simulation.receive_packet(make_basic_login_packet(
-        DimensionKind::new_raw(0), // overworld
+        DimensionKindKey::Overworld,
         Identifier::new("azalea:overworld"),
+        &simulation,
     ));
     simulation.tick();
 
@@ -71,8 +72,9 @@ fn generic_test_login_to_dimension_with_same_name(using_respawn: bool) {
     receive_default_registries(&mut simulation);
     simulation.receive_packet(ClientboundFinishConfiguration);
     simulation.receive_packet(make_basic_login_or_respawn_packet(
-        DimensionKind::new_raw(0),
+        DimensionKindKey::Overworld,
         Identifier::new("azalea:overworld"),
+        &simulation,
     ));
     simulation.tick();
 

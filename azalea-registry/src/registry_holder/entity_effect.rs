@@ -12,12 +12,16 @@ use azalea_registry::{
     data::DamageKindKey,
 };
 
-use crate::registry_holder::{
-    block_predicate::BlockPredicate, block_state_provider::BlockStateProvider,
-    float_provider::FloatProvider, value::LevelBasedValue,
+use crate::{
+    HolderSet,
+    builtin::{BlockKind, EntityKind, MobEffect},
+    registry_holder::{
+        block_predicate::BlockPredicate, block_state_provider::BlockStateProvider,
+        float_provider::FloatProvider, value::LevelBasedValue,
+    },
 };
 
-#[derive(Clone, Debug, Codec)]
+#[derive(Clone, Debug, PartialEq, Codec)]
 #[codec(tag = "type")]
 #[codec(default_snake_case_key)]
 pub enum EntityEffect {
@@ -38,35 +42,27 @@ pub enum EntityEffect {
     SummonEntity(SummonEntity),
 }
 
-#[derive(Clone, Debug, Codec)]
+#[derive(Clone, Debug, PartialEq, Codec)]
 pub struct AllOf {
     pub effects: Vec<EntityEffect>,
 }
 
-#[derive(Clone, Debug, Codec)]
+#[derive(Clone, Debug, PartialEq, Codec)]
 pub struct ApplyMobEffect {
     /// IDs of mob effects.
-    pub to_apply: HomogeneousList,
+    pub to_apply: HolderSet<MobEffect>,
     pub min_duration: LevelBasedValue,
     pub max_duration: LevelBasedValue,
     pub min_amplifier: LevelBasedValue,
     pub max_amplifier: LevelBasedValue,
 }
 
-// TODO: in vanilla this is just a HolderSetCodec using a RegistryFixedCodec,
-// azalea registries should probably be refactored first tho
-#[derive(Clone, Debug, Default, Codec)]
-pub struct HomogeneousList {
-    #[codec(with = CompactListCodec::<_>)]
-    pub ids: Vec<Identifier>,
-}
-
-#[derive(Clone, Debug, Codec)]
+#[derive(Clone, Debug, PartialEq, Codec)]
 pub struct ChangeItemDamage {
     pub amount: LevelBasedValue,
 }
 
-#[derive(Clone, Debug, Codec)]
+#[derive(Clone, Debug, PartialEq, Codec)]
 pub struct DamageEntity {
     pub min_damage: LevelBasedValue,
     pub max_damage: LevelBasedValue,
@@ -74,7 +70,7 @@ pub struct DamageEntity {
     pub damage_kind: DamageKindKey,
 }
 
-#[derive(Clone, Debug, Codec)]
+#[derive(Clone, Debug, PartialEq, Codec)]
 pub struct Explode {
     #[codec(optional)]
     pub attribute_to_user: Option<bool>,
@@ -84,29 +80,29 @@ pub struct Explode {
     #[codec(optional)]
     pub knockback_multiplier: Option<LevelBasedValue>,
     #[codec(optional)]
-    pub immune_blocks: Option<HomogeneousList>,
+    pub immune_blocks: HolderSet<BlockKind>,
     #[codec(optional)]
     pub offset: Option<Vec3>,
 }
 
-#[derive(Clone, Debug, Codec)]
+#[derive(Clone, Debug, PartialEq, Codec)]
 pub struct Ignite {
     pub duration: LevelBasedValue,
 }
 
-#[derive(Clone, Debug, Codec)]
+#[derive(Clone, Debug, PartialEq, Codec)]
 pub struct ApplyEntityImpulse {
     pub direction: Vec3,
     pub coordinate_scale: Vec3,
     pub magnitude: LevelBasedValue,
 }
 
-#[derive(Clone, Debug, Codec)]
+#[derive(Clone, Debug, PartialEq, Codec)]
 pub struct ApplyExhaustion {
     pub amount: LevelBasedValue,
 }
 
-#[derive(Clone, Debug, Codec)]
+#[derive(Clone, Debug, PartialEq, Codec)]
 pub struct PlaySound {
     #[codec(with = CompactListCodec::<_>)]
     pub sound: Vec<Holder<SoundEvent, CustomSound>>,
@@ -114,36 +110,36 @@ pub struct PlaySound {
     pub pitch: FloatProvider,
 }
 
-#[derive(Clone, Debug, Codec)]
+#[derive(Clone, Debug, PartialEq, Codec)]
 pub struct ReplaceBlock {
     #[codec(optional)]
-    pub offset: Option<Vec3i>,
+    pub offset: Vec3i,
     #[codec(optional)]
-    pub predicate: Option<BlockPredicate>,
+    pub predicate: BlockPredicate,
     pub block_state: BlockStateProvider,
     #[codec(optional)]
     pub trigger_game_event: Option<GameEvent>,
 }
 
-#[derive(Clone, Debug, Codec)]
+#[derive(Clone, Debug, PartialEq, Codec)]
 pub struct ReplaceDisk {
     pub radius: LevelBasedValue,
     pub height: LevelBasedValue,
     #[codec(optional)]
-    pub offset: Option<Vec3i>,
+    pub offset: Vec3i,
     #[codec(optional)]
-    pub predicate: Option<BlockPredicate>,
+    pub predicate: BlockPredicate,
     pub block_state: BlockStateProvider,
     #[codec(optional)]
     pub trigger_game_event: Option<GameEvent>,
 }
 
-#[derive(Clone, Debug, Codec)]
+#[derive(Clone, Debug, PartialEq, Codec)]
 pub struct RunFunction {
     pub function: Identifier,
 }
 
-#[derive(Clone, Debug, Codec)]
+#[derive(Clone, Debug, PartialEq, Codec)]
 pub struct SetBlockProperties {
     pub properties: HashMap<String, String>,
     #[codec(optional)]
@@ -152,7 +148,7 @@ pub struct SetBlockProperties {
     pub trigger_game_event: Option<GameEvent>,
 }
 
-#[derive(Clone, Debug, Codec)]
+#[derive(Clone, Debug, PartialEq, Codec)]
 pub struct SpawnParticles {
     pub particle: ParticleKindCodec,
     pub horizontal_position: SpawnParticlesPosition,
@@ -162,13 +158,13 @@ pub struct SpawnParticles {
     pub speed: Option<FloatProvider>,
 }
 
-#[derive(Clone, Debug, Codec)]
+#[derive(Clone, Debug, PartialEq, Codec)]
 pub struct ParticleKindCodec {
     #[codec(rename = "type")]
     pub kind: ParticleKind,
 }
 
-#[derive(Clone, Debug, Codec)]
+#[derive(Clone, Debug, PartialEq, Codec)]
 pub struct SpawnParticlesPosition {
     #[codec(rename = "type")]
     pub kind: Identifier,
@@ -178,16 +174,16 @@ pub struct SpawnParticlesPosition {
     pub scale: Option<f32>,
 }
 
-#[derive(Clone, Debug, Codec)]
+#[derive(Clone, Debug, PartialEq, Codec)]
 pub struct SpawnParticlesVelocity {
     pub movement_scale: Option<f32>,
     #[codec(optional)]
     pub base: Option<FloatProvider>,
 }
 
-#[derive(Clone, Debug, Codec)]
+#[derive(Clone, Debug, PartialEq, Codec)]
 pub struct SummonEntity {
-    pub entity: HomogeneousList,
+    pub entity: HolderSet<EntityKind>,
     #[codec(optional)]
     pub join_team: Option<bool>,
 }

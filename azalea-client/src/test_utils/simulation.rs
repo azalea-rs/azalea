@@ -30,7 +30,7 @@ use azalea_protocol::{
 use azalea_registry::{
     DataRegistry,
     builtin::EntityKind,
-    data::{Biome, DimensionKind},
+    data::{Biome, DimensionKind, DimensionKindKey},
     registry_holder::{RegistryHolder, dimension_type::DimensionKindElement},
 };
 use azalea_world::{Chunk, Section, World, palette::PalettedContainer};
@@ -182,7 +182,7 @@ impl Simulation {
         let world_holder = self.component::<WorldHolder>();
         world_holder.shared.clone()
     }
-    pub fn with_registry_holder<R>(&mut self, f: impl FnOnce(&RegistryHolder) -> R) -> R {
+    pub fn with_registry_holder<R>(&self, f: impl FnOnce(&RegistryHolder) -> R) -> R {
         let world = self.world();
         let registries = &world.read().registries;
         f(registries)
@@ -322,16 +322,18 @@ fn tick_app(app: &mut App) {
     app.world_mut().run_schedule(GameTick);
 }
 
-pub fn default_login_packet() -> ClientboundLogin {
+pub fn default_login_packet(simulation: &Simulation) -> ClientboundLogin {
     make_basic_login_packet(
-        DimensionKind::new_raw(0), // overworld
+        DimensionKindKey::Overworld,
         Identifier::new("minecraft:overworld"),
+        simulation,
     )
 }
 
 pub fn make_basic_login_packet(
-    dimension_type: DimensionKind,
+    dimension_type: DimensionKindKey,
     dimension: Identifier,
+    simulation: &Simulation,
 ) -> ClientboundLogin {
     ClientboundLogin {
         player_id: MinecraftEntityId(0),
@@ -344,7 +346,13 @@ pub fn make_basic_login_packet(
         show_death_screen: true,
         do_limited_crafting: false,
         common: CommonPlayerSpawnInfo {
-            dimension_type,
+            dimension_type: simulation.with_registry_holder(|registry| {
+                DimensionKind::new_raw(
+                    registry
+                        .identifier_to_protocol_id("dimension_type", dimension_type.into())
+                        .unwrap(),
+                )
+            }),
             dimension,
             seed: 0,
             game_type: GameMode::Survival,
@@ -361,12 +369,19 @@ pub fn make_basic_login_packet(
 }
 
 pub fn make_basic_respawn_packet(
-    dimension_type: DimensionKind,
+    dimension_type: DimensionKindKey,
     dimension: Identifier,
+    simulation: &Simulation,
 ) -> ClientboundRespawn {
     ClientboundRespawn {
         common: CommonPlayerSpawnInfo {
-            dimension_type,
+            dimension_type: simulation.with_registry_holder(|registry| {
+                DimensionKind::new_raw(
+                    registry
+                        .identifier_to_protocol_id("dimension_type", dimension_type.into())
+                        .unwrap(),
+                )
+            }),
             dimension,
             seed: 0,
             game_type: GameMode::Survival,
@@ -466,9 +481,11 @@ pub fn receive_default_registries(simulation: &mut Simulation) {
     simulation.receive_packet(ClientboundRegistryData {
         registry_id: Identifier::new("dimension_type"),
         entries: vec![
+            // put this one here to ensure that we aren't hardcoding dimension
+            // id 0 anywhere
             ("azalea:fake_dimension".into(), Some(fake_dimension)),
             ("overworld".into(), Some(overworld)),
-            ("nether".into(), Some(nether)),
+            ("the_nether".into(), Some(nether)),
         ]
         .into_iter()
         .collect(),

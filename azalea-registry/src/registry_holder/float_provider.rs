@@ -1,6 +1,6 @@
 use azalea_codec::{Codec, types::StringLiteral};
 
-#[derive(Clone, Debug, Codec)]
+#[derive(Clone, Debug, PartialEq, Codec)]
 pub enum FloatProvider {
     Constant(f32),
     #[codec(virt(

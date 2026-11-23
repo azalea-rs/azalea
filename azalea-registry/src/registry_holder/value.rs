@@ -4,7 +4,9 @@ use azalea_core::{
 };
 use azalea_registry::builtin::Attribute;
 
-#[derive(Clone, Debug, Codec)]
+use crate::builtin::EnchantmentLevelBasedValueKind;
+
+#[derive(Clone, Debug, PartialEq, Codec)]
 #[codec(tag = "type")]
 #[codec(default_snake_case_key)]
 pub enum ValueEffect {
@@ -29,7 +31,7 @@ pub enum ValueEffect {
     },
 }
 
-#[derive(Clone, Debug, Codec)]
+#[derive(Clone, Debug, PartialEq, Codec)]
 pub struct AttributeEffect {
     pub id: Identifier,
     pub attribute: Attribute,
@@ -37,7 +39,9 @@ pub struct AttributeEffect {
     pub operation: AttributeModifierOperation,
 }
 
-#[derive(Clone, Debug, Codec)]
+#[derive(Clone, Debug, PartialEq, Codec)]
+#[codec(tag = "type", tag_as = EnchantmentLevelBasedValueKind)]
+#[codec(default_snake_case_key)]
 pub enum LevelBasedValue {
     Constant(f32),
     Exponent {

@@ -128,16 +128,26 @@ pub trait EffectComponentTrait: Any {
 }
 
 // this exists because EffectComponentTrait isn't dyn-compatible
-pub trait ResolvedEffectComponent: Any {}
-impl<T: EffectComponentTrait> ResolvedEffectComponent for T {}
+pub trait ResolvedEffectComponent: Any {
+    fn component_eq(&self, other: &dyn ResolvedEffectComponent) -> bool;
+}
+impl<T: EffectComponentTrait + PartialEq> ResolvedEffectComponent for T {
+    fn component_eq(&self, other: &dyn ResolvedEffectComponent) -> bool {
+        let other = other as &dyn Any;
+        let Some(other) = other.downcast_ref::<T>() else {
+            return false;
+        };
+        self.eq(other)
+    }
+}
 
-#[derive(Clone, Debug, Codec)]
-pub struct ConditionalEffect<T: Debug + Clone> {
+#[derive(Clone, Debug, PartialEq, Codec)]
+pub struct ConditionalEffect<T: Debug + Clone + PartialEq> {
     pub effect: T,
     // pub requirements
 }
-#[derive(Clone, Debug, Codec)]
-pub struct TargetedConditionalEffect<T: Debug + Clone> {
+#[derive(Clone, Debug, PartialEq, Codec)]
+pub struct TargetedConditionalEffect<T: Debug + Clone + PartialEq> {
     pub effect: T,
     // pub enchanted
     // pub affected
@@ -151,7 +161,7 @@ type ConditionalEntityEffect = ConditionalEffect<EntityEffect>;
 macro_rules! declare_newtype_components {
     ( $( $struct_name:ident: $inner_type:ty ),* $(,)? ) => {
         $(
-            #[derive(Clone, Debug, Codec)]
+            #[derive(Clone, Debug, PartialEq, Codec)]
             pub struct $struct_name(pub $inner_type);
         )*
     };
@@ -185,13 +195,13 @@ declare_newtype_components! {
 
 }
 
-#[derive(Clone, Debug, Codec)]
+#[derive(Clone, Debug, PartialEq, Codec)]
 pub struct DamageImmunity {}
 
-#[derive(Clone, Debug, Codec)]
+#[derive(Clone, Debug, PartialEq, Codec)]
 pub struct CrossbowChargingSounds(pub Vec<CrossbowChargingSound>);
 
-#[derive(Clone, Debug, Codec)]
+#[derive(Clone, Debug, PartialEq, Codec)]
 pub struct CrossbowChargingSound {
     #[codec(optional)]
     pub start: Option<SoundEvent>,
@@ -201,19 +211,19 @@ pub struct CrossbowChargingSound {
     pub end: Option<SoundEvent>,
 }
 
-#[derive(Clone, Debug, Codec)]
+#[derive(Clone, Debug, PartialEq, Codec)]
 pub struct TridentSound(pub Vec<SoundEvent>);
 
-#[derive(Clone, Debug, Codec)]
+#[derive(Clone, Debug, PartialEq, Codec)]
 #[codec(allow_unknown_keys)]
 pub struct LocationBasedEffect {
     // TODO
 }
 
-#[derive(Clone, Debug, Codec)]
+#[derive(Clone, Debug, PartialEq, Codec)]
 #[codec(allow_unknown_keys)]
 pub struct PreventEquipmentDrop {}
 
-#[derive(Clone, Debug, Codec)]
+#[derive(Clone, Debug, PartialEq, Codec)]
 #[codec(allow_unknown_keys)]
 pub struct PreventArmorChange {}

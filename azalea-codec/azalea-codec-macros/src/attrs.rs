@@ -201,6 +201,12 @@ pub fn parse_enum_variant_attrs(
 #[derive(Default, Debug)]
 pub struct EnumAttrs {
     pub tag: Option<String>,
+    /// Encode the tag as a separate type which has `From<str> + ToString +
+    /// Codec<O>`.
+    ///
+    /// This is equivalent to adding `#[codec(virt(FromLiteral<tag, tag_as>))]`
+    /// on your variants.
+    pub tag_as: Option<Type>,
     pub default_snake_case_key: bool,
     pub is_map: bool,
 }
@@ -214,6 +220,11 @@ impl Parse for EnumAttrs {
                     input.parse::<syn::Token![=]>()?;
                     let v = input.parse::<syn::LitStr>()?;
                     attrs.tag = Some(v.value());
+                }
+                "tag_as" => {
+                    input.parse::<syn::Token![=]>()?;
+                    let v = input.parse::<syn::Type>()?;
+                    attrs.tag_as = Some(v);
                 }
                 "default_snake_case_key" => attrs.default_snake_case_key = true,
                 "is_map" => attrs.is_map = true,
@@ -234,10 +245,12 @@ pub fn parse_enum_attrs(attrs: &[syn::Attribute]) -> syn::Result<EnumAttrs> {
     for attr in filter_codec_attrs(attrs) {
         let EnumAttrs {
             tag,
+            tag_as,
             default_snake_case_key,
             is_map,
         } = attr.parse_args()?;
         a.tag = tag.or(a.tag);
+        a.tag_as = tag_as.or(a.tag_as);
         a.default_snake_case_key |= default_snake_case_key;
         a.is_map |= is_map;
     }

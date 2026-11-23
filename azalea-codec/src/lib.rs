@@ -339,15 +339,6 @@ pub trait ResolverTrait<O: Ops>: Any {
 }
 // example implementation
 impl<O: Ops + Clone, V: Codec<O> + PartialEq + Clone + 'static> ResolverTrait<O> for Vec<(u32, V)> {
-    // fn resolver_get_item(&self, item: &dyn Any) -> ReadResult<u32> {
-    //     let Some(item) = item.downcast_ref::<V>() else {
-    //         return Err(ReadError::custom("resolvable item is of wrong
-    // type"));     };
-    //     self.iter()
-    //         .find(|(_, candidate)| candidate == item)
-    //         .ok_or_else(|| ReadError::custom("unknown resolvable item"))
-    //         .map(|(i, _)| i.clone())
-    // }
     fn resolver_create_item(&self, item: &dyn ResolvableItem<O>) -> WriteResult<O> {
         let id = item.to_resolvable_id();
         let value = self

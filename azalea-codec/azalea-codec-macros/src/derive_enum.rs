@@ -31,12 +31,14 @@ pub fn derive_codec_for_enum(
     };
     let mut used_default_snake_case_key = false;
 
+    let mut used_variant_key_anywhere = false;
+
     for variant in &variants {
         let variant_name = &variant.ident;
         let (variant_attrs, mut unhandled_attrs) = attrs::parse_enum_variant_attrs(&variant.attrs);
         let mut used_variant_key = false;
 
-        let mut get_variant_key = || {
+        let mut get_variant_key_type = || {
             let mut key = variant_attrs.key.clone();
             if key.is_some() {
                 used_variant_key = true;
@@ -44,29 +46,34 @@ pub fn derive_codec_for_enum(
                 key = Some(utils::to_snake_case(&variant_name.to_string()));
                 used_default_snake_case_key = true;
             }
-            key
+
+            if let Some(tag_as) = &enum_attrs.tag_as {
+                key.map(|key| quote! { ::azalea_codec::types::FromLiteral<#key, #tag_as> })
+            } else {
+                key.map(|key| quote! { ::azalea_codec::types::StringLiteral<#key> })
+            }
         };
 
         // unit variants are to be parsed as string literals
         if variant.fields.is_empty() && enum_attrs.tag.is_none() {
-            let Some(key) = get_variant_key() else {
+            let Some(key_type) = get_variant_key_type() else {
                 return syn::Error::new(
                     variant.ident.span(),
                     "must provide #[codec(key = \"...\")] for unit variants, or #[codec(default_snake_case_key)] must be set on the enum declaration",
                 ).to_compile_error().into();
             };
             codec_read_impl.extend(quote! {
-                match <::azalea_codec::types::StringLiteral<#key>>::codec_read(__codec_ops, ctx) {
+                match <#key_type>::codec_read(__codec_ops, ctx) {
                     Ok(r) => {
                         return Ok(Self::#variant_name);
                     }
                     Err(e) => {
-                        __errors.push((#key, e));
+                        __errors.push((stringify!(#variant_name), e));
                     }
                 }
             });
             codec_write_impl.extend(quote! {
-                Self::#variant_name => ::azalea_codec::Ops::create_string(ctx, #key),
+                Self::#variant_name => ::azalea_codec::Codec::codec_write(&<#key_type>::default(), ctx),
             });
             continue;
         }
@@ -141,8 +148,8 @@ pub fn derive_codec_for_enum(
                 // if we're using a tag, modify every variant struct to include
                 // a __codec_tag string literal field
 
-                let variant_key = get_variant_key();
-                let Some(variant_key) = variant_key else {
+                let key_type = get_variant_key_type();
+                let Some(key_type) = key_type else {
                     return syn::Error::new(
                         variant.ident.span(),
                         "when #[codec(tag = \"...\")] is set on an enum, you must either set #[codec(key = \"...\")] for all variants, or add #[codec(default_snake_case_key)] to the enum declaration"
@@ -154,7 +161,7 @@ pub fn derive_codec_for_enum(
                     variant_codec_attrs.extend(quote! {
                         #[codec(virt(
                             #[codec(rename = #tag)]
-                            __codec_tag: ::azalea_codec::types::StringLiteral<#variant_key>
+                            __codec_tag: #key_type
                         ))]
                     });
                 }
@@ -294,13 +301,17 @@ pub fn derive_codec_for_enum(
         if variant_attrs.key.is_some() && !used_variant_key {
             panic!("unused #[codec(key = \"...\")]")
         }
+        used_variant_key_anywhere |= used_variant_key;
         if let Some(attr) = unhandled_attrs.first() {
             panic!("unknown attribute {}", attr.to_token_stream())
         }
     }
 
     if enum_attrs.default_snake_case_key && !used_default_snake_case_key {
-        panic!("#[codec(used_default_snake_case_key)] was set but unused");
+        panic!("unused #[codec(used_default_snake_case_key)]");
+    }
+    if enum_attrs.tag_as.is_some() && !used_variant_key_anywhere {
+        panic!("unused #[codec(tag_as = ...)]");
     }
 
     let (incomplete, incomplete_ty) = if enum_attrs.is_map {

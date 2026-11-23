@@ -321,6 +321,8 @@ macro_rules! vec3_impl {
                 [self.x, self.y, self.z].codec_write(ctx)
             }
         }
+
+        azalea_codec::impl_defaultable!($name);
         #[cfg(feature = "serde")]
         azalea_codec::impl_serde!($name, ());
     };

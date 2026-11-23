@@ -3,19 +3,24 @@ use std::{
     fmt::{self, Debug},
 };
 
+use azalea_chat::FormattedText;
 use azalea_codec::{Codec, MapLike};
 use azalea_registry::builtin::EnchantmentEffectComponentKind;
 use indexmap::IndexMap;
 
-use crate::registry_holder::components::{
-    EffectComponentTrait, EffectComponentUnion, ResolvedEffectComponent,
+use crate::{
+    HolderSet, data::Enchantment, registry_holder::components::{
+        EffectComponentTrait, EffectComponentUnion, ResolvedEffectComponent,
+    },
 };
 
 #[derive(Codec, Clone, Debug)]
+#[codec(allow_unknown_keys)]
 pub struct EnchantmentData {
-    // TODO: make these two deserializable
-    // pub description: TextComponent,
-    // pub exclusive_set: HolderSet<Enchantment, ResourceLocation>,
+    pub description: FormattedText,
+    #[codec(optional)]
+    pub exclusive_set: HolderSet<Enchantment>,
+    #[codec(optional)]
     pub effects: Effects,
 }
 
@@ -45,6 +50,7 @@ impl Effects {
     }
 }
 
+#[derive(Default)]
 pub struct Effects(IndexMap<EnchantmentEffectComponentKind, Vec<EffectComponentUnion>>);
 impl<O: azalea_codec::Ops> Codec<O> for Effects {
     fn codec_read(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
@@ -78,6 +84,8 @@ impl<O: azalea_codec::Ops> Codec<O> for Effects {
     }
 }
 
+azalea_codec::impl_defaultable!(Effects);
+
 impl Clone for Effects {
     fn clone(&self) -> Self {
         let mut effects = IndexMap::with_capacity(self.0.len());
@@ -91,6 +99,28 @@ impl Clone for Effects {
             );
         }
         Self(effects)
+    }
+}
+impl PartialEq for Effects {
+    fn eq(&self, other: &Self) -> bool {
+        if self.0.len() != other.0.len() {
+            return false;
+        }
+        for ((a_kind, a_effect), (b_kind, b_effect)) in self.0.iter().zip(other.0.iter()) {
+            if a_kind != b_kind {
+                return false;
+            }
+            if a_effect.len() != b_effect.len() {
+                return false;
+            }
+            for (a_e, b_e) in a_effect.iter().zip(b_effect.iter()) {
+                if !unsafe { a_e.as_kind(*a_kind) }.component_eq(unsafe { b_e.as_kind(*b_kind) }) {
+                    return false;
+                }
+            }
+        }
+
+        true
     }
 }
 impl Debug for Effects {

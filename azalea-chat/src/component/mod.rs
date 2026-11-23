@@ -18,7 +18,6 @@ use std::{
 #[cfg(all(feature = "azalea-buf", feature = "simdnbt"))]
 use azalea_buf::{AzBuf, BufReadError};
 use azalea_codec::Codec;
-use azalea_registry::registry_holder::RegistryHolder;
 #[cfg(all(feature = "azalea-buf", feature = "simdnbt"))]
 use simdnbt::owned::NbtTag;
 
@@ -376,7 +375,7 @@ impl AzBuf for FormattedText {
         match nbt {
             Some(nbt) => Ok(FormattedText::codec_read(
                 &nbt.as_tag().to_owned(),
-                azalea_codec::Ctx(&RegistryHolder::default()),
+                azalea_codec::Ctx(&()),
             )
             .unwrap()),
             _ => Ok(FormattedText::default()),
@@ -384,7 +383,7 @@ impl AzBuf for FormattedText {
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         let nbt: NbtTag = self
-            .codec_write(azalea_codec::Ctx(&RegistryHolder::default()))
+            .codec_write(azalea_codec::Ctx(&()))
             .map_err(io::Error::other)?;
         nbt.azalea_write(buf)?;
         Ok(())
@@ -427,7 +426,7 @@ impl Default for FormattedText {
     }
 }
 
-azalea_codec::impl_serde!(FormattedText, RegistryHolder::default());
+azalea_codec::impl_serde!(FormattedText, ());
 
 #[cfg(test)]
 mod tests {

@@ -1,3 +1,5 @@
+use std::marker::PhantomData;
+
 use crate::{
     Codec, Ctx, MapCodec, Ops,
     error::{ReadError, ReadResult, WriteResult},
@@ -20,6 +22,39 @@ impl<const S: &'static str, O: Ops> Codec<O> for StringLiteral<S> {
     }
     fn codec_write(&self, ctx: Ctx<O>) -> WriteResult<O> {
         O::create_string(ctx, S)
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct FromLiteral<const S: &'static str, T> {
+    _unused: PhantomData<T>,
+}
+impl<const S: &'static str, T> Default for FromLiteral<S, T> {
+    fn default() -> Self {
+        Self {
+            _unused: Default::default(),
+        }
+    }
+}
+impl<const S: &'static str, T: From<&'static str> + ToString + Codec<O> + PartialEq, O: Ops>
+    Codec<O> for FromLiteral<S, T>
+{
+    fn codec_read(ops: &O, ctx: Ctx<O>) -> ReadResult<Self> {
+        let attempt = T::codec_read(ops, ctx)?;
+        let solution = T::from(S);
+        if attempt == solution {
+            Ok(Self::default())
+        } else {
+            Err(ReadError::custom(format!(
+                "mismatching FromLiteral, {} != {}",
+                attempt.to_string(),
+                solution.to_string()
+            )))
+        }
+    }
+    fn codec_write(&self, ctx: Ctx<O>) -> WriteResult<O> {
+        let ident = T::from(S);
+        ident.codec_write(ctx)
     }
 }
 
@@ -56,10 +91,18 @@ impl<O: Ops, T: IntoIterator<Item = V> + FromIterator<V> + Clone, V: Codec<O>> C
     for CompactListCodec<T>
 {
     fn codec_read(ops: &O, ctx: Ctx<O>) -> ReadResult<Self> {
-        if let Ok(v) = V::codec_read(ops, ctx) {
-            return Ok(Self(T::from_iter([v])));
+        let mut errors = Vec::new();
+        match V::codec_read(ops, ctx) {
+            Ok(v) => {
+                return Ok(Self(T::from_iter([v])));
+            }
+            Err(e) => errors.push(("V", e)),
         }
-        Ok(Self(T::from_iter(Vec::<V>::codec_read(ops, ctx)?)))
+        match Vec::<V>::codec_read(ops, ctx) {
+            Ok(v) => return Ok(Self(T::from_iter(v))),
+            Err(e) => errors.push(("Vec<V>", e)),
+        }
+        Err(ReadError::no_variants_matched(errors))
     }
     fn codec_write(&self, ctx: Ctx<O>) -> WriteResult<O> {
         let v = self.0.clone().into_iter().collect::<Vec<V>>();

@@ -9,7 +9,7 @@ fn counter_increments_and_resets_on_disconnect() {
     simulation.tick();
 
     assert!(!simulation.has_component::<TicksConnected>());
-    simulation.receive_packet(default_login_packet());
+    simulation.receive_packet(default_login_packet(&simulation));
     simulation.tick();
 
     assert!(simulation.has_component::<TicksConnected>());

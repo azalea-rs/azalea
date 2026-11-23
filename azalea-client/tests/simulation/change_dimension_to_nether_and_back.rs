@@ -4,7 +4,7 @@ use azalea_entity::LocalEntity;
 use azalea_protocol::packets::{
     ConnectionProtocol, Packet, config::ClientboundFinishConfiguration,
 };
-use azalea_registry::{DataRegistry, data::DimensionKind};
+use azalea_registry::data::DimensionKindKey;
 use azalea_world::WorldName;
 
 #[test]
@@ -16,17 +16,18 @@ fn test_change_dimension_to_nether_and_back() {
 }
 
 fn generic_test_change_dimension_to_nether_and_back(using_respawn: bool) {
+    let mut simulation = Simulation::new(ConnectionProtocol::Configuration);
+
     let make_basic_login_or_respawn_packet = if using_respawn {
-        |dimension: DimensionKind, world_name: Identifier| {
-            make_basic_respawn_packet(dimension, world_name).into_variant()
+        |dimension: DimensionKindKey, world_name: Identifier, simulation: &Simulation| {
+            make_basic_respawn_packet(dimension, world_name, &simulation).into_variant()
         }
     } else {
-        |dimension: DimensionKind, world_name: Identifier| {
-            make_basic_login_packet(dimension, world_name).into_variant()
+        |dimension: DimensionKindKey, world_name: Identifier, simulation: &Simulation| {
+            make_basic_login_packet(dimension, world_name, &simulation).into_variant()
         }
     };
 
-    let mut simulation = Simulation::new(ConnectionProtocol::Configuration);
     assert!(simulation.has_component::<InConfigState>());
     assert!(!simulation.has_component::<InGameState>());
 
@@ -44,8 +45,9 @@ fn generic_test_change_dimension_to_nether_and_back(using_respawn: bool) {
     //
 
     simulation.receive_packet(make_basic_login_packet(
-        DimensionKind::new_raw(1), // overworld
+        DimensionKindKey::Overworld,
         Identifier::new("azalea:a"),
+        &simulation,
     ));
     simulation.tick();
 
@@ -67,8 +69,9 @@ fn generic_test_change_dimension_to_nether_and_back(using_respawn: bool) {
     //
 
     simulation.receive_packet(make_basic_login_or_respawn_packet(
-        DimensionKind::new_raw(2), // nether
+        DimensionKindKey::TheNether,
         Identifier::new("azalea:b"),
+        &simulation,
     ));
     simulation.tick();
 
@@ -89,8 +92,9 @@ fn generic_test_change_dimension_to_nether_and_back(using_respawn: bool) {
         .chunk(ChunkPos::new(0, 0))
         .expect("chunk should exist");
     simulation.receive_packet(make_basic_login_or_respawn_packet(
-        DimensionKind::new_raw(2), // nether
+        DimensionKindKey::TheNether,
         Identifier::new("minecraft:nether"),
+        &simulation,
     ));
     simulation.tick();
 
@@ -99,8 +103,9 @@ fn generic_test_change_dimension_to_nether_and_back(using_respawn: bool) {
     //
 
     simulation.receive_packet(make_basic_login_packet(
-        DimensionKind::new_raw(1), // overworld
+        DimensionKindKey::Overworld,
         Identifier::new("azalea:a"),
+        &simulation,
     ));
     simulation.tick();
 

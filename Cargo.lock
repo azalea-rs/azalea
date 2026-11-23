@@ -352,7 +352,6 @@ dependencies = [
  "azalea-codec",
  "azalea-core",
  "azalea-language",
- "azalea-registry",
  "serde",
  "serde_json",
  "simdnbt",
@@ -591,6 +590,7 @@ name = "azalea-registry"
 version = "0.16.0+mc26.3"
 dependencies = [
  "azalea-buf",
+ "azalea-chat",
  "azalea-codec",
  "azalea-core",
  "azalea-registry-macros",
