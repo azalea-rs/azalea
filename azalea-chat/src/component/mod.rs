@@ -18,7 +18,7 @@ use std::{
 #[cfg(all(feature = "azalea-buf", feature = "simdnbt"))]
 use azalea_buf::{AzBuf, BufReadError};
 use azalea_codec::Codec;
-use azalea_core::registry_holder::RegistryHolder;
+use azalea_registry::registry_holder::RegistryHolder;
 #[cfg(all(feature = "azalea-buf", feature = "simdnbt"))]
 use simdnbt::owned::NbtTag;
 

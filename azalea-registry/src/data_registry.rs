@@ -1,7 +1,7 @@
+use azalea_core::identifier::Identifier;
 use azalea_registry::{
     DataRegistry, DataRegistryKey, DataRegistryKeyRef,
     data::{self},
-    identifier::Identifier,
 };
 use simdnbt::owned::NbtCompound;
 

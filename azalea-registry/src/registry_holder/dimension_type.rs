@@ -3,15 +3,13 @@ use std::collections::HashMap;
 use azalea_buf::AzBuf;
 #[cfg(not(feature = "strict_registry"))]
 use azalea_codec::Codec;
+use azalea_core::identifier::Identifier;
 use azalea_registry::{
     HolderSet,
     builtin::{BlockKind, EnvironmentAttribute, SoundEvent},
-    identifier::Identifier,
 };
 use indexmap::IndexMap;
 use simdnbt::{Deserialize, FromNbtTag, Serialize, ToNbtTag, owned::NbtTag};
-
-use crate::codec_utils::*;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
@@ -64,7 +62,7 @@ pub struct DimensionKindElement {
     pub min_y: i32,
     pub height: u32,
     pub logical_height: u32,
-    pub infiniburn: HolderSet<BlockKind, Identifier>,
+    pub infiniburn: HolderSet<BlockKind>,
     pub ambient_light: f32,
     #[codec(flatten)]
     pub monster_settings: MonsterSettings,
@@ -75,7 +73,7 @@ pub struct DimensionKindElement {
     #[codec(optional)]
     pub attributes: EnvironmentAttributeMap,
     #[codec(optional)]
-    pub timelines: Option<HolderSet<azalea_registry::data::Timeline, Identifier>>,
+    pub timelines: Option<HolderSet<azalea_registry::data::Timeline>>,
     pub default_clock: azalea_registry::data::WorldClock,
 
     #[codec(flatten)]
@@ -216,15 +214,21 @@ pub struct TrimPatternElement {
 }
 
 #[derive(
-    Debug, Clone, serde::Serialize, simdnbt::Serialize, simdnbt::Deserialize, AzBuf, PartialEq,
+    Debug,
+    Clone,
+    serde::Serialize,
+    simdnbt::Serialize,
+    simdnbt::Deserialize,
+    AzBuf,
+    PartialEq,
+    Codec,
 )]
-#[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
 pub struct DamageTypeElement {
     pub message_id: String,
     pub scaling: String,
     pub exhaustion: f32,
-    #[serde(skip_serializing_if = "is_default")]
+    #[codec(optional)]
     pub effects: Option<String>,
-    #[serde(skip_serializing_if = "is_default")]
+    #[codec(optional)]
     pub death_message_type: Option<String>,
 }

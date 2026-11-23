@@ -1,8 +1,8 @@
 use std::io::{self, Cursor, Write};
 
 use azalea_buf::AzBuf;
+use azalea_core::identifier::Identifier;
 use azalea_protocol_macros::ServerboundGamePacket;
-use azalea_registry::identifier::Identifier;
 
 use crate::packets::BufReadError;
 

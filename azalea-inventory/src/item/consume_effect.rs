@@ -1,9 +1,9 @@
 use azalea_buf::AzBuf;
 use azalea_codec::Codec;
+use azalea_core::identifier::Identifier;
 use azalea_registry::{
     HolderSet,
     builtin::{ConsumeEffectKind, MobEffect, SoundEvent},
-    identifier::Identifier,
 };
 
 use crate::components::MobEffectInstance;
@@ -20,7 +20,7 @@ pub enum ConsumeEffect {
     },
     RemoveEffects {
         #[codec(optional)]
-        effects: HolderSet<MobEffect, Identifier>,
+        effects: HolderSet<MobEffect>,
     },
     ClearAllEffects,
     TeleportRandomly {

@@ -4,9 +4,11 @@
 
 use std::collections::{HashMap, hash_map};
 
-use azalea_core::attribute_modifier_operation::AttributeModifierOperation;
+use azalea_core::{
+    attribute_modifier_operation::AttributeModifierOperation, identifier::Identifier,
+};
 use azalea_inventory::components::AttributeModifier;
-use azalea_registry::{builtin::Attribute, identifier::Identifier};
+use azalea_registry::builtin::Attribute;
 use thiserror::Error;
 
 /// The current attribute values for an entity.

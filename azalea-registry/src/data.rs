@@ -4,8 +4,9 @@
 //! These registries are sent to us by the server on join.
 
 use azalea_buf::AzBuf;
+use azalea_core::identifier::Identifier;
 
-use crate::{DataRegistry, identifier::Identifier};
+use crate::DataRegistry;
 
 macro_rules! data_registry {
     (
@@ -37,9 +38,26 @@ macro_rules! data_registry {
             fn to_resolvable_id(&self) -> u32 { self.protocol_id() }
         }
         impl<O: azalea_codec::Ops> azalea_codec::IntoResolvableItem<O, $registry> for $registry {
-            fn codec_read_resolvable_item(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
+            fn codec_read_resolvable_item(
+                ops: &O,
+                ctx: azalea_codec::Ctx<O>,
+            ) -> azalea_codec::error::ReadResult<Self> {
+                let Some(registry_holder) =
+                    (ctx.0 as &dyn std::any::Any).downcast_ref::<crate::registry_holder::RegistryHolder>()
+                else {
+                    return Err(azalea_codec::error::ReadError::custom(
+                        "passed a Ctx that's not RegistryHolder",
+                    ));
+                };
                 let ident = <Identifier as azalea_codec::Codec<O>>::codec_read(ops, ctx)?;
-                let id = ctx.0.resolver_get_item(&ident)?;
+                let id = registry_holder
+                    .identifier_to_protocol_id(Self::NAME, ident)
+                    .ok_or_else(|| {
+                        azalea_codec::error::ReadError::custom(format!(
+                            "got a resolvable {}, which isn't in our registry",
+                            Self::NAME
+                        ))
+                    })?;
                 Ok(Self::new_raw(id))
             }
             fn from_resolvable_id(id: u32) -> Self {
@@ -59,7 +77,7 @@ macro_rules! data_registry {
         }
         impl<O: azalea_codec::Ops> azalea_codec::Codec<O> for $registry {
             fn codec_read(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
-                ops.get_resolvable_item(ctx)
+                ops.get_resolvable_item::<Self, Self>(ctx)
             }
             fn codec_write(&self, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::WriteResult<O> {
                 O::create_resolvable_item(ctx, self)

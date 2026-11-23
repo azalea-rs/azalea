@@ -5,11 +5,11 @@ use azalea_chat::{
 };
 use azalea_core::{
     attribute_modifier_operation::AttributeModifierOperation,
-    checksum::get_checksum,
     position::{BlockPos, GlobalPos},
 };
 use azalea_inventory::{
     ItemStack,
+    checksum::get_checksum,
     components::{
         AdventureModePredicate, AttributeModifier, AttributeModifierDisplay, AttributeModifiers,
         AttributeModifiersEntry, BlockPredicate, CanPlaceOn, ChargedProjectiles, CustomData,

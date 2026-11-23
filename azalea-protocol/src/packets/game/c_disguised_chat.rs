@@ -3,8 +3,8 @@ use azalea_chat::{
     FormattedText,
     component::translatable::{PrimitiveOrComponent, TranslatableComponent},
 };
-use azalea_core::registry_holder::RegistryHolder;
 use azalea_protocol_macros::ClientboundGamePacket;
+use azalea_registry::registry_holder::RegistryHolder;
 
 use super::c_player_chat::ChatTypeBound;
 use crate::packets::game::c_player_chat::GUESSED_DEFAULT_REGISTRIES_FOR_CHAT;

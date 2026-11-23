@@ -3,12 +3,12 @@
 
 use std::collections::HashMap;
 
+use azalea_core::identifier::Identifier;
 use azalea_protocol::packets::{
     config,
     game::{self},
     login,
 };
-use azalea_registry::identifier::Identifier;
 use bevy_app::{App, Plugin};
 use bevy_ecs::{
     component::Component,

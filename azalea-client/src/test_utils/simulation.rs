@@ -30,6 +30,7 @@ use azalea_registry::{
     builtin::EntityKind,
     data::{Biome, DimensionKind},
     identifier::Identifier,
+    registry_holder::RegistryHolder,
 };
 use azalea_world::{Chunk, Section, World, palette::PalettedContainer};
 use bevy_app::App;
@@ -189,6 +190,16 @@ impl Simulation {
             .shared
             .read()
             .get_block_state(pos)
+    }
+
+    pub fn world(&self) -> Arc<RwLock<World>> {
+        let world_holder = self.component::<WorldHolder>();
+        world_holder.shared.clone()
+    }
+    pub fn with_registry_holder<R>(&mut self, f: impl FnOnce(&mut RegistryHolder) -> R) -> R {
+        let world = self.world();
+        let registries = &mut world.write().registries;
+        f(registries)
     }
 
     pub fn disconnect(&mut self) {

@@ -426,9 +426,7 @@ dependencies = [
  "azalea-buf",
  "azalea-chat",
  "azalea-codec",
- "azalea-registry",
  "bevy_ecs",
- "crc32c",
  "derive_more",
  "indexmap",
  "nohash-hasher",
@@ -498,10 +496,12 @@ dependencies = [
  "azalea-core",
  "azalea-inventory-macros",
  "azalea-registry",
+ "crc32c",
  "indexmap",
  "serde",
  "serde_json",
  "simdnbt",
+ "thiserror 2.0.21",
  "tracing",
  "uuid",
 ]
@@ -595,9 +595,12 @@ version = "0.16.0+mc26.3"
 dependencies = [
  "azalea-buf",
  "azalea-codec",
+ "azalea-core",
  "azalea-registry-macros",
+ "indexmap",
  "serde",
  "simdnbt",
+ "tracing",
 ]
 
 [[package]]

@@ -1,16 +1,14 @@
 use azalea_codec::Codec;
-use azalea_registry::{
-    builtin::{Attribute, EnchantmentLevelBasedValueKind as LevelBasedValueKind},
-    identifier::Identifier,
+use azalea_core::{
+    attribute_modifier_operation::AttributeModifierOperation, identifier::Identifier,
 };
+use azalea_registry::builtin::{Attribute, EnchantmentLevelBasedValueKind as LevelBasedValueKind};
 use simdnbt::{
     DeserializeError, FromNbtTag,
     borrow::{NbtCompound, NbtTag},
 };
 
-use crate::{
-    attribute_modifier_operation::AttributeModifierOperation, registry_holder::get_in_compound,
-};
+use crate::registry_holder::get_in_compound;
 
 #[derive(Clone, Debug, Codec)]
 #[codec(tag = "type")]

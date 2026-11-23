@@ -13,12 +13,8 @@ use azalea_buf::{AzBuf, BufReadError};
 use azalea_chat::FormattedText;
 use azalea_codec::{Codec, types::CompactListCodec};
 use azalea_core::{
-    attribute_modifier_operation::AttributeModifierOperation,
-    checksum::{Checksum, ChecksumOps, get_checksum},
-    filterable::Filterable,
-    position::GlobalPos,
-    registry_holder::RegistryHolder,
-    sound::CustomSound,
+    attribute_modifier_operation::AttributeModifierOperation, filterable::Filterable,
+    identifier::Identifier, position::GlobalPos, sound::CustomSound,
 };
 use azalea_registry::{
     Holder, HolderSet,
@@ -27,16 +23,20 @@ use azalea_registry::{
         SoundEvent, VillagerKind,
     },
     data::{self, BannerPatternKind, DamageKind, Enchantment, TrimMaterial, TrimPattern},
-    identifier::Identifier,
+    registry_holder::RegistryHolder,
 };
 pub use profile::*;
 use simdnbt::owned::NbtCompound;
 use tracing::trace;
 
-use crate::{ItemStack, item::consume_effect::ConsumeEffect};
+use crate::{
+    ItemStack,
+    checksum::{Checksum, ChecksumOps, get_checksum},
+    item::consume_effect::ConsumeEffect,
+};
 
 pub trait DataComponentTrait:
-    Send + Sync + Any + Clone + Into<DataComponentUnion> + for<'a> Codec<ChecksumOps<'a>>
+    Send + Sync + Any + Clone + Into<DataComponentUnion> + Codec<ChecksumOps>
 {
     const KIND: DataComponentKind;
 }
@@ -414,7 +414,7 @@ pub struct BlockStatePropertyMatcher {
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 pub struct BlockPredicate {
     #[codec(optional)]
-    pub blocks: Option<HolderSet<BlockKind, Identifier>>,
+    pub blocks: Option<HolderSet<BlockKind>>,
     #[codec(optional)]
     pub properties: Option<Vec<BlockStatePropertyMatcher>>,
     #[codec(optional)]
@@ -593,7 +593,7 @@ impl Food {
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 pub struct ToolRule {
-    pub blocks: HolderSet<BlockKind, Identifier>,
+    pub blocks: HolderSet<BlockKind>,
     #[codec(optional)]
     pub speed: Option<f32>,
     #[codec(optional)]
@@ -1056,7 +1056,7 @@ pub struct Enchantable {
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 pub struct Repairable {
-    pub items: HolderSet<ItemKind, Identifier>,
+    pub items: HolderSet<ItemKind>,
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
@@ -1067,7 +1067,7 @@ pub struct ItemModel {
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 pub struct DamageResistant {
-    pub types: HolderSet<DamageKind, Identifier>,
+    pub types: HolderSet<DamageKind>,
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
@@ -1080,7 +1080,7 @@ pub struct Equippable {
     #[codec(optional)]
     pub camera_overlay: Option<Identifier>,
     #[codec(optional)]
-    pub allowed_entities: Option<HolderSet<EntityKind, Identifier>>,
+    pub allowed_entities: Option<HolderSet<EntityKind>>,
     #[codec(optional, default = true)]
     pub dispensable: bool,
     #[codec(optional, default = true)]
@@ -1481,7 +1481,7 @@ pub struct BlocksAttacks {
     #[codec(optional)]
     pub item_damage: ItemDamageFunction,
     #[codec(optional)]
-    pub bypassed_by: Option<HolderSet<DamageKind, Identifier>>,
+    pub bypassed_by: Option<HolderSet<DamageKind>>,
     #[codec(optional)]
     pub block_sound: Option<azalea_registry::Holder<SoundEvent, CustomSound>>,
     #[codec(optional)]
@@ -1517,7 +1517,7 @@ pub struct DamageReduction {
     #[codec(optional, default = 90.)]
     pub horizontal_blocking_angle: f32,
     #[codec(optional)]
-    pub kind: Option<HolderSet<DamageKind, Identifier>>,
+    pub kind: Option<HolderSet<DamageKind>>,
     pub base: f32,
     pub factor: f32,
 }
@@ -1566,7 +1566,7 @@ pub struct AssetInfo {
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 #[codec(transparent)]
 pub struct ProvidesBannerPatterns {
-    pub key: HolderSet<BannerPatternKind, Identifier>,
+    pub key: HolderSet<BannerPatternKind>,
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
@@ -1882,7 +1882,7 @@ pub struct BrewingFuel {
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Codec)]
 pub struct MobVisibility {
-    pub targeting_entity_types: HolderSet<EntityKind, Identifier>,
+    pub targeting_entity_types: HolderSet<EntityKind>,
     pub visibility: f32,
 }
 

@@ -229,7 +229,7 @@ use crate::{
         "probability": "f32",
     }
     enum_and_struct_fields["ConsumeEffect::RemoveEffects"] = {
-        "effects": "HolderSet<MobEffect, Identifier>",
+        "effects": "HolderSet<MobEffect>",
     }
     enum_and_struct_fields["ConsumeEffect::ClearAllEffects"] = {}
     enum_and_struct_fields["ConsumeEffect::TeleportRandomly"] = {

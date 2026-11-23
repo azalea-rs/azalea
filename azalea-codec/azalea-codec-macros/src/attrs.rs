@@ -9,7 +9,7 @@ pub fn filter_codec_attrs(attrs: &[Attribute]) -> impl IntoIterator<Item = &Attr
     attrs.iter().filter(|attr| attr.path().is_ident("codec"))
 }
 
-#[derive(Default, Debug)]
+#[derive(Default)]
 pub struct FieldAttrs {
     pub rename: Option<String>,
     pub flatten: bool,
@@ -90,7 +90,7 @@ pub fn parse_field_attrs(attrs: &[syn::Attribute]) -> syn::Result<FieldAttrs> {
     Ok(a)
 }
 
-#[derive(Default, Debug)]
+#[derive(Default)]
 pub struct StructAttrs {
     pub allow_unknown_keys: bool,
     pub transparent: bool,

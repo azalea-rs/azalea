@@ -1,11 +1,14 @@
 use azalea_buf::AzBuf;
 use azalea_core::{
-    data_registry::ResolvableDataRegistry,
     game_type::{GameMode, OptionalGameType},
+    identifier::Identifier,
     position::GlobalPos,
+};
+use azalea_registry::{
+    data::DimensionKind,
+    data_registry::ResolvableDataRegistry,
     registry_holder::{RegistryHolder, dimension_type::DimensionKindElement},
 };
-use azalea_registry::{data::DimensionKind, identifier::Identifier};
 use tracing::error;
 
 #[derive(AzBuf, Clone, Debug, PartialEq)]

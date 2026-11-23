@@ -7,7 +7,7 @@
 // specialized lists
 #![feature(min_specialization)]
 
-use std::any::{Any, TypeId};
+use std::any::Any;
 
 pub use azalea_codec_macros::Codec;
 
@@ -41,7 +41,7 @@ pub trait Codec<O: Ops>: Sized {
 ///
 /// If the type is a map, consider also using [`impl_mapcodec_from`].
 ///
-/// ```
+/// ```ignore
 /// mod game_profile_codec {
 ///     use super::*;
 ///     azalea_codec::impl_codec_from!(GameProfile, SerializableGameProfile);

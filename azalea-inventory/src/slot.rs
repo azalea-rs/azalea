@@ -8,10 +8,8 @@ use std::{
 
 use azalea_buf::{AzBuf, AzBufVar, BufReadError};
 use azalea_codec::{Codec, MapLike};
-use azalea_registry::{
-    builtin::{DataComponentKind, ItemKind},
-    identifier::Identifier,
-};
+use azalea_core::identifier::Identifier;
+use azalea_registry::builtin::{DataComponentKind, ItemKind};
 use indexmap::IndexMap;
 
 use crate::{

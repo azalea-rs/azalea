@@ -1,9 +1,8 @@
 use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzBuf, BufReadError};
-use azalea_core::{color::RgbColor, position::Vec3i};
+use azalea_core::{color::RgbColor, identifier::Identifier, position::Vec3i};
 use azalea_protocol_macros::ClientboundGamePacket;
-use azalea_registry::identifier::Identifier;
 use uuid::Uuid;
 
 #[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]

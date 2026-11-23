@@ -184,9 +184,9 @@ pub fn registry(input: TokenStream) -> TokenStream {
                 write!(f, "{}", self.to_str())
             }
         }
-        impl<'a> TryFrom<&'a ::azalea_registry::identifier::Identifier> for #name {
+        impl<'a> TryFrom<&'a ::azalea_core::identifier::Identifier> for #name {
             type Error = ();
-            fn try_from(ident: &'a ::azalea_registry::identifier::Identifier) -> Result<Self, Self::Error> {
+            fn try_from(ident: &'a ::azalea_core::identifier::Identifier) -> Result<Self, Self::Error> {
                 if ident.namespace() != "minecraft" { return Err(()) }
                 match ident.path() {
                     #from_str_items
@@ -194,7 +194,7 @@ pub fn registry(input: TokenStream) -> TokenStream {
                 }
             }
         }
-        impl<'a> From<#name> for ::azalea_registry::identifier::Identifier {
+        impl<'a> From<#name> for ::azalea_core::identifier::Identifier {
             fn from(value: #name) -> Self {
                 Self::new(value.to_str())
             }
@@ -205,7 +205,7 @@ pub fn registry(input: TokenStream) -> TokenStream {
             type Err = ();
 
             fn from_str(s: &str) -> Result<Self, Self::Err> {
-                Self::try_from(&::azalea_registry::identifier::Identifier::new(s))
+                Self::try_from(&::azalea_core::identifier::Identifier::new(s))
             }
         }
 

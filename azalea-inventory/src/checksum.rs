@@ -2,10 +2,9 @@ use std::{fmt, marker::PhantomData};
 
 use azalea_buf::AzBuf;
 use azalea_codec::Codec;
+use azalea_registry::registry_holder::RegistryHolder;
 use serde::ser;
 use thiserror::Error;
-
-use crate::registry_holder::RegistryHolder;
 
 #[derive(AzBuf, Clone, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Checksum(pub u32);
@@ -22,21 +21,17 @@ impl Checksum {
 }
 
 #[derive(Clone)]
-pub struct ChecksumOps<'a> {
+pub struct ChecksumOps {
     checksum: Checksum,
-    _unused: PhantomData<&'a ()>,
 }
-impl<'a> ChecksumOps<'a> {
+impl ChecksumOps {
     pub fn new(checksum: Checksum) -> Self {
-        Self {
-            checksum,
-            _unused: PhantomData,
-        }
+        Self { checksum }
     }
 }
-impl<'a> azalea_codec::Ops for ChecksumOps<'a> {
-    type List = Vec<ChecksumOps<'a>>;
-    type Map = Vec<(ChecksumOps<'a>, ChecksumOps<'a>)>;
+impl azalea_codec::Ops for ChecksumOps {
+    type List = Vec<ChecksumOps>;
+    type Map = Vec<(ChecksumOps, ChecksumOps)>;
 
     fn empty(_ctx: azalea_codec::Ctx<Self>) -> azalea_codec::error::WriteResult<Self> {
         let checksum = Checksum(0).write(&[1]);
@@ -135,7 +130,7 @@ impl<'a> azalea_codec::Ops for ChecksumOps<'a> {
     }
 }
 
-impl<'a, O: azalea_codec::Ops> Codec<O> for ChecksumOps<'a> {
+impl<'a, O: azalea_codec::Ops> Codec<O> for ChecksumOps {
     fn codec_read(_: &O, _ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
         unimplemented!()
     }
@@ -157,7 +152,7 @@ impl ser::Error for ChecksumError {
     }
 }
 
-pub fn get_checksum<'a, T: Codec<ChecksumOps<'a>> + ?Sized>(
+pub fn get_checksum<'a, T: Codec<ChecksumOps> + ?Sized>(
     value: &T,
     registries: &'a RegistryHolder,
 ) -> azalea_codec::error::WriteResult<Checksum> {

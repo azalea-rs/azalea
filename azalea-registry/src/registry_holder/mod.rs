@@ -17,9 +17,8 @@ pub mod value;
 use std::{any::Any, collections::HashMap, sync::LazyLock};
 
 use azalea_codec::Codec;
-use azalea_registry::{
-    DataRegistry, DataRegistryProtocolId, data::DimensionKind, identifier::Identifier,
-};
+use azalea_core::identifier::Identifier;
+use azalea_registry::{DataRegistry, DataRegistryProtocolId, data::DimensionKind};
 use indexmap::IndexMap;
 use simdnbt::{
     DeserializeError, FromNbtTag, borrow,
@@ -44,7 +43,6 @@ pub struct RegistryHolder {
 
     /// Attributes about the dimension.
     pub dimension_type: RegistryType<dimension_type::DimensionKindElement>,
-
     pub enchantment: RegistryType<enchantment::EnchantmentData>,
 
     /// Registries that we haven't implemented deserializable types for.
@@ -53,71 +51,103 @@ pub struct RegistryHolder {
     /// nicer structs.
     pub extra: HashMap<Identifier, RegistryType<NbtCompound>>,
 }
+registry_holder_macro::registry_holder!(dimension_type, enchantment);
 
-macro_rules! registry_holder {
-    ($($registry:ident),* $(,)?) => {
-        impl RegistryHolder {
-            pub fn append(
-                &mut self,
-                id: Identifier,
-                entries: Vec<(Identifier, Option<NbtCompound>)>,
-            ) {
+// declared like this so we can use the macro before this block :>
+mod registry_holder_macro {
+    #[macro_export]
+    macro_rules! registry_holder {
+        ($($registry:ident),* $(,)?) => {
+            impl RegistryHolder {
+                pub fn append(
+                    &mut self,
+                    id: Identifier,
+                    entries: Vec<(Identifier, Option<NbtCompound>)>,
+                ) {
 
-                if id.namespace() == "minecraft" {
-                    match id.path() {
-                        $(
-                            stringify!($registry) => {
-                                return self.$registry.append_nbt(id, entries);
-                            }
-                        )*
-                        _ => {}
+                    if id.namespace() == "minecraft" {
+                        match id.path() {
+                            $(
+                                stringify!($registry) => {
+                                    return self.$registry.append_nbt(id, entries);
+                                }
+                            )*
+                            _ => {}
+                        }
                     }
+
+                    self.extra
+                        .entry(id.clone())
+                        .or_default()
+                        .append_nbt(id, entries);
                 }
 
-                self.extra
-                    .entry(id.clone())
-                    .or_default()
-                    .append_nbt(id, entries);
-            }
-
-            pub fn extend(&mut self, other: RegistryHolder) {
-                $(
-                    self.$registry = other.$registry;
-                )*
-                self.extra.extend(other.extra);
-            }
-
-            /// Convert a protocol ID for a registry key (like the protocol_id for
-            /// something that implements `DataRegistry`) and convert it to its string
-            /// name.
-            pub fn protocol_id_to_identifier(
-                &self,
-                registry: Identifier,
-                protocol_id: u32,
-            ) -> Option<&Identifier> {
-                let index = protocol_id as usize;
-
-                if registry.namespace() == "minecraft" {
-                    match registry.path() {
-                        $(
-                            stringify!($registry) => {
-                                return self.$registry.map.get_index(index).map(|(k, _)| k);
-                            }
-                        )*
-                        _ => {}
-                    }
+                pub fn extend(&mut self, other: RegistryHolder) {
+                    $(
+                        self.$registry = other.$registry;
+                    )*
+                    self.extra.extend(other.extra);
                 }
 
-                self.extra
-                    .get(&registry)
-                    .and_then(|r| r.map.get_index(index))
-                    .map(|(k, _)| k)
+                /// Convert a protocol ID for a registry key (like the protocol_id for
+                /// something that implements `DataRegistry`) and convert it to its string
+                /// name.
+                pub fn protocol_id_to_identifier(
+                    &self,
+                    registry: Identifier,
+                    protocol_id: u32,
+                ) -> Option<&Identifier> {
+                    let index = protocol_id as usize;
+
+                    if registry.namespace() == "minecraft" {
+                        match registry.path() {
+                            $(
+                                stringify!($registry) => {
+                                    return self.$registry.map.get_index(index).map(|(k, _)| k);
+                                }
+                            )*
+                            _ => {}
+                        }
+                    }
+
+                    self.extra
+                        .get(&registry)
+                        .and_then(|r| r.map.get_index(index))
+                        .map(|(k, _)| k)
+                }
+
+                pub fn identifier_to_protocol_id(
+                    &self,
+                    registry: &'static str,
+                    ident: Identifier,
+                ) -> Option<u32> {
+                    let registry = Identifier::from(registry);
+                    if registry.namespace() == "minecraft" {
+                        match registry.path() {
+                            $(
+                                stringify!($registry) => {
+                                    return self
+                                        .$registry
+                                        .map
+                                        .get_index_of(&ident)
+                                        .map(|i| i as u32);
+                                }
+                            )*
+                            _ => {}
+                        }
+                    }
+
+                    self.extra
+                        .get(&registry)
+                        .and_then(|r| r.map.get_index_of(&ident))
+                        .map(|i| i as u32)
+                }
             }
-        }
-    };
+        };
+    }
+
+    pub use registry_holder;
 }
-
-registry_holder!(dimension_type, enchantment);
 
 impl Default for &'static RegistryHolder {
     fn default() -> Self {
@@ -222,14 +252,6 @@ pub fn get_in_compound<T: FromNbtTag>(
 ) -> Result<T, DeserializeError> {
     let value = compound.get(key).ok_or(DeserializeError::MissingField)?;
     T::from_nbt_tag(value).ok_or(DeserializeError::MissingField)
-}
-
-fn dyn_data_registry_to_protocol_id(item: &dyn Any) -> Option<u32> {
-    if let Some(item) = item.downcast_ref::<azalea_registry::data::WorldClock>() {
-        return Some(item.protocol_id());
-    }
-
-    None
 }
 
 impl<O: azalea_codec::Ops> azalea_codec::ResolverTrait<O> for RegistryHolder {

@@ -9,7 +9,8 @@ extern crate self as azalea_registry;
 
 pub mod builtin;
 pub mod data;
-pub mod identifier;
+pub mod data_registry;
+pub mod registry_holder;
 pub mod tags;
 
 use std::{
@@ -20,12 +21,17 @@ use std::{
 
 use azalea_buf::{AzBuf, AzBufVar, BufReadError, BufReadErrorRepr};
 use azalea_codec::Codec;
+use azalea_core::identifier::Identifier;
 pub use azalea_registry_macros as macros;
 #[cfg(feature = "serde")]
 use serde::Serialize;
 use simdnbt::{FromNbtTag, borrow::NbtTag};
 
-use crate::identifier::Identifier;
+#[doc(hidden)]
+pub mod identifier {
+    #[deprecated]
+    pub type Identifier = azalea_core::identifier::Identifier;
+}
 
 // TODO: remove this next update
 macro_rules! define_deprecated_builtin {
@@ -122,7 +128,7 @@ impl<D: Registry, C: AzBuf> AzBuf for CustomRegistry<D, C> {
 }
 
 #[derive(Clone, PartialEq)]
-pub enum HolderSet<D: Registry, Identifier: AzBuf> {
+pub enum HolderSet<D: Registry> {
     Direct {
         contents: Vec<D>,
     },
@@ -131,7 +137,7 @@ pub enum HolderSet<D: Registry, Identifier: AzBuf> {
         contents: Vec<Identifier>,
     },
 }
-impl<D: Registry, Identifier: AzBuf> AzBuf for HolderSet<D, Identifier> {
+impl<D: Registry> AzBuf for HolderSet<D> {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let size = i32::azalea_read_var(buf)?.wrapping_sub(1);
         if size == -1 {
@@ -164,7 +170,7 @@ impl<D: Registry, Identifier: AzBuf> AzBuf for HolderSet<D, Identifier> {
         Ok(())
     }
 }
-impl<D: Registry + Debug, Identifier: AzBuf + Debug> Debug for HolderSet<D, Identifier> {
+impl<D: Registry + Debug> Debug for HolderSet<D> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Direct { contents } => f.debug_list().entries(contents).finish(),
@@ -176,15 +182,13 @@ impl<D: Registry + Debug, Identifier: AzBuf + Debug> Debug for HolderSet<D, Iden
         }
     }
 }
-impl<D: Registry, Identifier: AzBuf> From<Vec<D>> for HolderSet<D, Identifier> {
+impl<D: Registry> From<Vec<D>> for HolderSet<D> {
     fn from(contents: Vec<D>) -> Self {
         Self::Direct { contents }
     }
 }
 #[cfg(feature = "serde")]
-impl<D: Registry + Serialize, Identifier: AzBuf + Serialize> Serialize
-    for HolderSet<D, Identifier>
-{
+impl<D: Registry + Serialize> Serialize for HolderSet<D> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -201,9 +205,7 @@ impl<D: Registry + Serialize, Identifier: AzBuf + Serialize> Serialize
         }
     }
 }
-impl<D: Registry + Codec<O>, Identifier: AzBuf + Codec<O>, O: azalea_codec::Ops> Codec<O>
-    for HolderSet<D, Identifier>
-{
+impl<D: Registry + Codec<O>, O: azalea_codec::Ops> Codec<O> for HolderSet<D> {
     fn codec_read(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
         if let Ok(key) = Identifier::codec_read(ops, ctx) {
             return Ok(Self::Named {
@@ -234,7 +236,7 @@ impl<D: Registry + Codec<O>, Identifier: AzBuf + Codec<O>, O: azalea_codec::Ops>
     }
 }
 
-impl<D: Registry, Identifier: AzBuf> Default for HolderSet<D, Identifier> {
+impl<D: Registry> Default for HolderSet<D> {
     fn default() -> Self {
         Self::Direct {
             contents: Vec::new(),
@@ -242,9 +244,7 @@ impl<D: Registry, Identifier: AzBuf> Default for HolderSet<D, Identifier> {
     }
 }
 
-impl<O: azalea_codec::Ops, D: Registry + Codec<O>, Identifier: AzBuf + Codec<O>>
-    azalea_codec::Defaultable<O> for HolderSet<D, Identifier>
-{
+impl<O: azalea_codec::Ops, D: Registry + Codec<O>> azalea_codec::Defaultable<O> for HolderSet<D> {
     fn is_default(&self) -> bool {
         match self {
             Self::Direct { contents } => contents.is_empty(),
@@ -253,7 +253,10 @@ impl<O: azalea_codec::Ops, D: Registry + Codec<O>, Identifier: AzBuf + Codec<O>>
     }
 }
 
-impl<D: Registry, Identifier: AzBuf + From<D> + PartialEq> HolderSet<D, Identifier> {
+impl<D: Registry> HolderSet<D>
+where
+    Identifier: From<D>,
+{
     pub fn contains(&self, value: D) -> bool {
         match self {
             HolderSet::Direct { contents } => contents.contains(&value),

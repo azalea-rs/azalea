@@ -5,7 +5,7 @@ use azalea_client::{
     test_utils::prelude::*,
 };
 use azalea_codec::Codec;
-use azalea_core::registry_holder::{RegistryHolder, dimension_type::DimensionKindElement};
+use azalea_core::identifier::Identifier;
 use azalea_protocol::packets::{
     ConnectionProtocol,
     config::{
@@ -13,7 +13,7 @@ use azalea_protocol::packets::{
     },
     game::{self, ServerboundGamePacket},
 };
-use azalea_registry::identifier::Identifier;
+use azalea_registry::registry_holder::{RegistryHolder, dimension_type::DimensionKindElement};
 use bevy_ecs::observer::On;
 use parking_lot::Mutex;
 
@@ -42,22 +42,21 @@ fn reply_to_ping_with_pong() {
 
     // move into game state and test ClientboundPing there
 
+    let dimension_kind = simulation.with_registry_holder(|r| {
+        DimensionKindElement {
+            min_y: -64,
+            height: 384,
+            ..Default::default()
+        }
+        .codec_write(azalea_codec::Ctx(r))
+        .unwrap()
+    });
+
     simulation.receive_packet(ClientboundRegistryData {
         registry_id: Identifier::new("minecraft:dimension_type"),
-        entries: vec![(
-            Identifier::new("minecraft:overworld"),
-            Some(
-                DimensionKindElement {
-                    min_y: -64,
-                    height: 384,
-                    ..Default::default()
-                }
-                .codec_write(azalea_codec::Ctx(&RegistryHolder::default()))
-                .unwrap(),
-            ),
-        )]
-        .into_iter()
-        .collect(),
+        entries: vec![(Identifier::new("minecraft:overworld"), Some(dimension_kind))]
+            .into_iter()
+            .collect(),
     });
 
     simulation.receive_packet(ClientboundFinishConfiguration);

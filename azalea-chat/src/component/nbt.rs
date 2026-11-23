@@ -1,5 +1,5 @@
 use azalea_codec::{Codec, types::StringLiteral};
-use azalea_registry::identifier::Identifier;
+use azalea_core::identifier::Identifier;
 
 use crate::{
     FormattedText,

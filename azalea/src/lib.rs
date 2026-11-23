@@ -48,7 +48,7 @@ pub use azalea_protocol as protocol;
 pub use azalea_registry as registry;
 #[doc(hidden)]
 #[deprecated(note = "renamed to `Identifier`.")]
-pub type ResourceLocation = azalea_registry::identifier::Identifier;
+pub type ResourceLocation = azalea_core::identifier::Identifier;
 
 // TODO: replace this mod with the commented line below
 // pub use azalea_chat as chat;
@@ -58,7 +58,7 @@ pub mod chat {
     pub type ChatPacket = azalea_client::client_chat::ChatPacket;
 }
 
-pub use azalea_registry::identifier::Identifier;
+pub use azalea_core::identifier::Identifier;
 pub use azalea_world as world;
 pub use bevy_app as app;
 pub use bevy_ecs as ecs;

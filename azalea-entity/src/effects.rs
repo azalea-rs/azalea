@@ -4,12 +4,12 @@ use std::{
 };
 
 use azalea_buf::{AzBuf, BufReadError};
-use azalea_core::{attribute_modifier_operation::AttributeModifierOperation, bitset::FixedBitSet};
-use azalea_inventory::components::AttributeModifier;
-use azalea_registry::{
-    builtin::{Attribute, MobEffect},
+use azalea_core::{
+    attribute_modifier_operation::AttributeModifierOperation, bitset::FixedBitSet,
     identifier::Identifier,
 };
+use azalea_inventory::components::AttributeModifier;
+use azalea_registry::builtin::{Attribute, MobEffect};
 
 /// Data about an active mob effect.
 #[derive(AzBuf, Clone, Debug, Default, PartialEq)]

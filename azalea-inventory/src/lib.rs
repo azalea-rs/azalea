@@ -1,11 +1,13 @@
 #![doc = include_str!("../README.md")]
 #![feature(min_specialization)]
 
+pub mod checksum;
 pub mod components;
 pub mod default_components;
 pub mod item;
 pub mod operations;
 mod slot;
+pub mod tier;
 
 use std::ops::{Deref, DerefMut, RangeInclusive};
 

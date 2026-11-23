@@ -1,20 +1,20 @@
 use std::collections::HashMap;
 
 use azalea_codec::{Codec, types::CompactListCodec};
+use azalea_core::{
+    identifier::Identifier,
+    position::{Vec3, Vec3i},
+    sound::CustomSound,
+};
 use azalea_registry::{
     Holder,
     builtin::{GameEvent, ParticleKind, SoundEvent},
     data::DamageKindKey,
-    identifier::Identifier,
 };
 
-use crate::{
-    position::{Vec3, Vec3i},
-    registry_holder::{
-        block_predicate::BlockPredicate, block_state_provider::BlockStateProvider,
-        float_provider::FloatProvider, value::LevelBasedValue,
-    },
-    sound::CustomSound,
+use crate::registry_holder::{
+    block_predicate::BlockPredicate, block_state_provider::BlockStateProvider,
+    float_provider::FloatProvider, value::LevelBasedValue,
 };
 
 #[derive(Clone, Debug, Codec)]
