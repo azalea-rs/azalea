@@ -37,7 +37,8 @@ macro_rules! data_registry {
             fn name(&self) -> &'static str { $registry_name }
             fn to_resolvable_id(&self) -> u32 { self.protocol_id() }
         }
-        impl<O: azalea_codec::Ops> azalea_codec::IntoResolvableItem<O, $registry> for $registry {
+        impl<O: azalea_codec::Ops> azalea_codec::IntoResolvableItem<O> for $registry {
+            type Resolvable = $registry;
             fn codec_read_resolvable_item(
                 ops: &O,
                 ctx: azalea_codec::Ctx<O>,
@@ -77,7 +78,7 @@ macro_rules! data_registry {
         }
         impl<O: azalea_codec::Ops> azalea_codec::Codec<O> for $registry {
             fn codec_read(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
-                ops.get_resolvable_item::<Self, Self>(ctx)
+                ops.get_resolvable_item::<Self>(ctx)
             }
             fn codec_write(&self, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::WriteResult<O> {
                 O::create_resolvable_item(ctx, self)

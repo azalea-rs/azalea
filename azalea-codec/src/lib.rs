@@ -263,13 +263,10 @@ pub trait Ops: Sized + Clone + Codec<Self> + 'static {
         fallback_create_list(ctx, v)
     }
 
-    fn get_resolvable_item<
-        I: IntoResolvableItem<Self, W>,
-        W: Codec<Self> + ResolvableItem<Self>,
-    >(
+    fn get_resolvable_item<I: IntoResolvableItem<Self>>(
         &self,
         ctx: Ctx<Self>,
-    ) -> ReadResult<W> {
+    ) -> ReadResult<I::Resolvable> {
         I::codec_read_resolvable_item(self, ctx)
     }
     fn create_resolvable_item(ctx: Ctx<Self>, i: &dyn ResolvableItem<Self>) -> WriteResult<Self> {
@@ -438,9 +435,8 @@ pub trait ResolvableItem<O: Ops> {
     fn name(&self) -> &'static str;
     fn to_resolvable_id(&self) -> u32;
 }
-pub trait IntoResolvableItem<O: Ops, W: Codec<O> + ResolvableItem<O>>:
-    ResolvableItem<O> + 'static
-{
-    fn codec_read_resolvable_item(ops: &O, ctx: Ctx<O>) -> ReadResult<W>;
+pub trait IntoResolvableItem<O: Ops>: ResolvableItem<O> + 'static {
+    type Resolvable: Codec<O> + ResolvableItem<O>;
+    fn codec_read_resolvable_item(ops: &O, ctx: Ctx<O>) -> ReadResult<Self::Resolvable>;
     fn from_resolvable_id(id: u32) -> Self;
 }
