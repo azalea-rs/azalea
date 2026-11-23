@@ -311,11 +311,17 @@ macro_rules! vec3_impl {
         }
 
         impl<O: azalea_codec::Ops> Codec<O> for $name {
-            fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
-                let [x, y, z] = <[$type; 3]>::codec_read(ops)?;
+            fn codec_read(
+                ops: &O,
+                ctx: azalea_codec::Ctx<O>,
+            ) -> azalea_codec::error::ReadResult<Self> {
+                let [x, y, z] = <[$type; 3]>::codec_read(ops, ctx)?;
                 Ok(Self { x, y, z })
             }
-            fn codec_write(&self, ctx: O::Context) -> azalea_codec::error::WriteResult<O> {
+            fn codec_write(
+                &self,
+                ctx: azalea_codec::Ctx<O>,
+            ) -> azalea_codec::error::WriteResult<O> {
                 [self.x, self.y, self.z].codec_write(ctx)
             }
         }

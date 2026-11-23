@@ -204,23 +204,23 @@ impl<D: Registry + Serialize, Identifier: AzBuf + Serialize> Serialize
 impl<D: Registry + Codec<O>, Identifier: AzBuf + Codec<O>, O: azalea_codec::Ops> Codec<O>
     for HolderSet<D, Identifier>
 {
-    fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
-        if let Ok(key) = Identifier::codec_read(ops) {
+    fn codec_read(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
+        if let Ok(key) = Identifier::codec_read(ops, ctx) {
             return Ok(Self::Named {
                 key,
                 contents: vec![],
             });
         }
-        if let Ok(d) = D::codec_read(ops) {
+        if let Ok(d) = D::codec_read(ops, ctx) {
             return Ok(Self::Direct { contents: vec![d] });
         }
-        if let Ok(contents) = Vec::<D>::codec_read(ops) {
+        if let Ok(contents) = Vec::<D>::codec_read(ops, ctx) {
             return Ok(Self::Direct { contents });
         }
 
         Err(azalea_codec::error::ReadError::custom("invalid holderset"))
     }
-    fn codec_write(&self, ctx: O::Context) -> azalea_codec::error::WriteResult<O> {
+    fn codec_write(&self, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::WriteResult<O> {
         match self {
             Self::Direct { contents } => {
                 if contents.len() == 1 {
@@ -345,13 +345,13 @@ impl<R: Registry + FromNbtTag, Direct: AzBuf + FromNbtTag> FromNbtTag for Holder
 impl<O: azalea_codec::Ops, R: Registry + Codec<O>, Direct: Codec<O> + AzBuf> Codec<O>
     for Holder<R, Direct>
 {
-    fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
-        if let Ok(reference) = R::codec_read(ops) {
+    fn codec_read(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
+        if let Ok(reference) = R::codec_read(ops, ctx) {
             return Ok(Self::Reference(reference));
         };
-        Direct::codec_read(ops).map(Self::Direct)
+        Direct::codec_read(ops, ctx).map(Self::Direct)
     }
-    fn codec_write(&self, ctx: O::Context) -> azalea_codec::error::WriteResult<O> {
+    fn codec_write(&self, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::WriteResult<O> {
         match self {
             Self::Reference(value) => value.codec_write(ctx),
             Self::Direct(value) => value.codec_write(ctx),

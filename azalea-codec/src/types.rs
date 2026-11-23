@@ -1,5 +1,5 @@
 use crate::{
-    Codec, MapCodec, Ops,
+    Codec, Ctx, MapCodec, Ops,
     error::{ReadError, ReadResult, WriteResult},
 };
 
@@ -10,15 +10,15 @@ use crate::{
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Default)]
 pub struct StringLiteral<const S: &'static str>;
 impl<const S: &'static str, O: Ops> Codec<O> for StringLiteral<S> {
-    fn codec_read(ops: &O) -> ReadResult<Self> {
-        let s = ops.get_string()?;
+    fn codec_read(ops: &O, ctx: Ctx<O>) -> ReadResult<Self> {
+        let s = ops.get_string(ctx)?;
         if s == S {
             Ok(Self)
         } else {
             Err(ReadError::custom(format!("'{s}' != '{S}'")))
         }
     }
-    fn codec_write(&self, ctx: O::Context) -> WriteResult<O> {
+    fn codec_write(&self, ctx: Ctx<O>) -> WriteResult<O> {
         O::create_string(ctx, S)
     }
 }
@@ -27,21 +27,22 @@ impl<const S: &'static str, O: Ops> Codec<O> for StringLiteral<S> {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Default)]
 pub struct Drain;
 impl<O: Ops> Codec<O> for Drain {
-    fn codec_read(_ops: &O) -> ReadResult<Self> {
+    fn codec_read(_ops: &O, _ctx: Ctx<O>) -> ReadResult<Self> {
         Ok(Self)
     }
-    fn codec_write(&self, ctx: O::Context) -> WriteResult<O> {
+    fn codec_write(&self, ctx: Ctx<O>) -> WriteResult<O> {
         O::empty(ctx)
     }
 }
 impl<O: Ops> MapCodec<O> for Drain {
     fn codec_read_map_item(
         _incomplete: &mut <Self as crate::Codec<O>>::Incomplete,
+        _ctx: Ctx<O>,
         _k: &O,
         _v: &O,
     ) {
     }
-    fn codec_write_to_map(&self, _ctx: O::Context, _map: &mut Vec<(O, O)>) -> WriteResult<()> {
+    fn codec_write_to_map(&self, _ctx: Ctx<O>, _map: &mut Vec<(O, O)>) -> WriteResult<()> {
         Ok(())
     }
     fn get_and_reset_result(_incomplete: &mut <Self as Codec<O>>::Incomplete) -> ReadResult<()> {
@@ -54,13 +55,13 @@ pub struct CompactListCodec<T>(pub T);
 impl<O: Ops, T: IntoIterator<Item = V> + FromIterator<V> + Clone, V: Codec<O>> Codec<O>
     for CompactListCodec<T>
 {
-    fn codec_read(ops: &O) -> ReadResult<Self> {
-        if let Ok(v) = V::codec_read(ops) {
+    fn codec_read(ops: &O, ctx: Ctx<O>) -> ReadResult<Self> {
+        if let Ok(v) = V::codec_read(ops, ctx) {
             return Ok(Self(T::from_iter([v])));
         }
-        Ok(Self(T::from_iter(Vec::<V>::codec_read(ops)?)))
+        Ok(Self(T::from_iter(Vec::<V>::codec_read(ops, ctx)?)))
     }
-    fn codec_write(&self, ctx: O::Context) -> WriteResult<O> {
+    fn codec_write(&self, ctx: Ctx<O>) -> WriteResult<O> {
         let v = self.0.clone().into_iter().collect::<Vec<V>>();
         if v.len() == 1 {
             v[0].codec_write(ctx)

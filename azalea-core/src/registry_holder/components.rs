@@ -33,11 +33,12 @@ macro_rules! define_effect_components {
 
             pub fn codec_read_as<O: azalea_codec::Ops>(
                 kind: EnchantmentEffectComponentKind,
-                ops: &O
+                ops: &O,
+                ctx: azalea_codec::Ctx<O>,
             ) -> azalea_codec::error::ReadResult<Vec<Self>> {
                 Ok(match kind {
                     $( EnchantmentEffectComponentKind::$x => {
-                        azalea_codec::types::CompactListCodec::<Vec<$t>>::codec_read(ops)?.0
+                        azalea_codec::types::CompactListCodec::<Vec<$t>>::codec_read(ops, ctx)?.0
                             .into_iter()
                             .map(ManuallyDrop::new)
                             .map(|c| Self { $x: c })
@@ -48,7 +49,7 @@ macro_rules! define_effect_components {
             pub fn codec_write_as<O: azalea_codec::Ops>(
                 items: Vec<Self>,
                 kind: EnchantmentEffectComponentKind,
-                ctx: O::Context
+                ctx: azalea_codec::Ctx<O>,
             ) -> azalea_codec::error::WriteResult<O> {
                 Ok(match kind {
                     $( EnchantmentEffectComponentKind::$x => {

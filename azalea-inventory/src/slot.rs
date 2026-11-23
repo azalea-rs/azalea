@@ -142,14 +142,14 @@ impl ItemStack {
     }
 }
 impl<O: azalea_codec::Ops> Codec<O> for ItemStack {
-    fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
-        if <()>::codec_read(ops).is_ok() {
+    fn codec_read(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
+        if <()>::codec_read(ops, ctx).is_ok() {
             Ok(Self::Empty)
         } else {
-            Ok(Self::Present(ItemStackData::codec_read(ops)?))
+            Ok(Self::Present(ItemStackData::codec_read(ops, ctx)?))
         }
     }
-    fn codec_write(&self, ctx: O::Context) -> azalea_codec::error::WriteResult<O> {
+    fn codec_write(&self, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::WriteResult<O> {
         match self {
             ItemStack::Empty => ().codec_write(ctx),
             ItemStack::Present(i) => i.codec_write(ctx),
@@ -506,15 +506,15 @@ impl PartialEq for DataComponentPatch {
 }
 
 impl<O: azalea_codec::Ops> Codec<O> for DataComponentPatch {
-    fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
-        let map = ops.get_map()?;
+    fn codec_read(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
+        let map = ops.get_map(ctx)?;
         let mut patch = DataComponentPatch::new();
 
         for (kind, value) in map.to_values() {
-            let kind = InvertableDataComponentKind::codec_read(&kind)?;
+            let kind = InvertableDataComponentKind::codec_read(&kind, ctx)?;
             match kind {
                 InvertableDataComponentKind::Present(kind) => {
-                    let value = DataComponentUnion::codec_read_as(&value, kind)?;
+                    let value = DataComponentUnion::codec_read_as(&value, kind, ctx)?;
                     unsafe { patch.unchecked_insert_component(kind, Some(value)) };
                 }
                 InvertableDataComponentKind::Removed(kind) => unsafe {
@@ -525,7 +525,7 @@ impl<O: azalea_codec::Ops> Codec<O> for DataComponentPatch {
 
         Ok(patch)
     }
-    fn codec_write(&self, ctx: O::Context) -> azalea_codec::error::WriteResult<O> {
+    fn codec_write(&self, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::WriteResult<O> {
         let mut entries = Vec::<(O, O)>::with_capacity(self.components.len());
         for (&kind, component) in self.components.iter() {
             if let Some(component) = component {
@@ -552,18 +552,18 @@ enum InvertableDataComponentKind {
     Removed(DataComponentKind),
 }
 impl<O: azalea_codec::Ops> Codec<O> for InvertableDataComponentKind {
-    fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
-        let ident = Identifier::codec_read(ops)?;
+    fn codec_read(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
+        let ident = Identifier::codec_read(ops, ctx)?;
         if ident.namespace().starts_with('!') {
             let ident = Identifier::new(&ident.to_string()[1..]);
             DataComponentKind::try_from(&ident)
                 .map_err(|_| azalea_codec::error::ReadError::custom("not a DataComponentKind"))
                 .map(Self::Removed)
         } else {
-            DataComponentKind::codec_read(ops).map(Self::Present)
+            DataComponentKind::codec_read(ops, ctx).map(Self::Present)
         }
     }
-    fn codec_write(&self, ctx: O::Context) -> azalea_codec::error::WriteResult<O> {
+    fn codec_write(&self, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::WriteResult<O> {
         match self {
             InvertableDataComponentKind::Present(k) => k.codec_write(ctx),
             InvertableDataComponentKind::Removed(k) => format!("!{k}").codec_write(ctx),

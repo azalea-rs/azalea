@@ -143,7 +143,7 @@ impl<T: Codec<NbtTag>> RegistryType<T> {
         let map = &mut self.map;
         for (key, value) in entries {
             if let Some(value) = value {
-                match T::codec_read(&NbtTag::from(value.clone())) {
+                match T::codec_read(&NbtTag::from(value.clone()), Default::default()) {
                     Ok(value) => {
                         map.insert(key, value);
                     }
@@ -217,4 +217,22 @@ pub fn get_in_compound<T: FromNbtTag>(
 ) -> Result<T, DeserializeError> {
     let value = compound.get(key).ok_or(DeserializeError::MissingField)?;
     T::from_nbt_tag(value).ok_or(DeserializeError::MissingField)
+}
+
+impl<O: azalea_codec::Ops> azalea_codec::ResolverTrait<O> for RegistryHolder {
+    fn resolver_get_item(&self, _ops: &O) -> azalea_codec::error::ReadResult<u32> {
+        todo!()
+    }
+
+    fn resolver_create_item(
+        &self,
+        item: &dyn azalea_codec::ResolvableItem,
+    ) -> azalea_codec::error::WriteResult<O> {
+        let id = item.to_resolvable_id();
+        let value = self
+            .protocol_id_to_identifier(Identifier::from(item.name()), id)
+            .map(|v| v.to_string())
+            .unwrap_or_default();
+        value.codec_write(azalea_codec::Ctx(self))
+    }
 }

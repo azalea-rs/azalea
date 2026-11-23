@@ -7,8 +7,6 @@
 // specialized lists
 #![feature(min_specialization)]
 
-use std::collections::HashMap;
-
 pub use azalea_codec_macros::Codec;
 
 use crate::{
@@ -27,14 +25,14 @@ pub trait Codec<O: Ops>: Sized {
     type Incomplete = ReadResult<Self>;
 
     /// Convert from a **data format** to a **data structure**.
-    fn codec_read(ops: &O) -> ReadResult<Self>;
+    fn codec_read(ops: &O, ctx: Ctx<O>) -> ReadResult<Self>;
     // ^ this takes in a reference for user ergonomics and performance. many
     // implementations will be calling read on the same object many times (to
     // try different ways of deserializing it), and being required to clone the
     // entire thing every time would be a shame.
 
     /// Convert from a **data structure** to a **data format**.
-    fn codec_write(&self, ctx: O::Context) -> WriteResult<O>;
+    fn codec_write(&self, ctx: Ctx<O>) -> WriteResult<O>;
 }
 /// Implement [`Codec`] for a type that's `Into<T>` and `From<T>` for another
 /// type that's already a `Codec`.
@@ -51,26 +49,24 @@ pub trait Codec<O: Ops>: Sized {
 #[macro_export]
 macro_rules! impl_codec_from {
     ($this:ty, $other:ty) => {
-        impl<O: azalea_codec::Ops> azalea_codec::Codec<O> for $this {
+        impl<O: $crate::Ops> $crate::Codec<O> for $this {
             type Incomplete = __Incomplete<O>;
-            fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
-                <$other>::codec_read(ops).map(Into::into)
+            fn codec_read(ops: &O, ctx: $crate::Ctx<O>) -> $crate::error::ReadResult<Self> {
+                <$other>::codec_read(ops, ctx).map(Into::into)
             }
-            fn codec_write(&self, ctx: O::Context) -> azalea_codec::error::WriteResult<O> {
+            fn codec_write(&self, ctx: $crate::Ctx<O>) -> $crate::error::WriteResult<O> {
                 <$other>::from(self.clone()).codec_write(ctx)
             }
         }
         #[doc(hidden)]
         #[allow(nonstandard_style)]
-        pub struct __Incomplete<O: azalea_codec::Ops>(
-            pub <$other as azalea_codec::Codec<O>>::Incomplete,
-        );
-        impl<O: azalea_codec::Ops> azalea_codec::Incomplete for __Incomplete<O> {
+        pub struct __Incomplete<O: $crate::Ops>(pub <$other as $crate::Codec<O>>::Incomplete);
+        impl<O: $crate::Ops> $crate::Incomplete for __Incomplete<O> {
             type Complete = $this;
             fn new(name: &'static str) -> Self {
                 Self(<_>::new(name))
             }
-            fn build(self) -> azalea_codec::error::ReadResult<Self::Complete> {
+            fn build(self) -> $crate::error::ReadResult<Self::Complete> {
                 self.0.build().map(Into::into)
             }
         }
@@ -83,14 +79,15 @@ macro_rules! impl_mapcodec_from {
         impl<O: $crate::Ops> $crate::MapCodec<O> for $this {
             fn codec_read_map_item(
                 incomplete: &mut <Self as $crate::Codec<O>>::Incomplete,
+                ctx: $crate::Ctx<O>,
                 k: &O,
                 v: &O,
             ) {
-                <$other>::codec_read_map_item(&mut incomplete.0, k, v);
+                <$other>::codec_read_map_item(&mut incomplete.0, ctx, k, v);
             }
             fn codec_write_to_map(
                 &self,
-                ctx: O::Context,
+                ctx: $crate::Ctx<O>,
                 map: &mut Vec<(O, O)>,
             ) -> $crate::error::WriteResult<()> {
                 <$other>::from(self.clone()).codec_write_to_map(ctx, map)
@@ -111,16 +108,16 @@ macro_rules! impl_mapcodec {
             result: $crate::error::ReadResult<()>,
             map: $t,
         }
-        impl<O: Ops, $($($generic: Codec<O> $(+ $constraint $(+ $constraint2)*)?),*)?> MapCodec<O> for $t {
-            fn codec_read_map_item(incomplete: &mut <Self as Codec<O>>::Incomplete, k: &O, v: &O) {
-                let k = match <$k>::codec_read(k) {
+        impl<O: Ops, $($($generic: Codec<O> $(+ $constraint $(+ $constraint2)*)?),*)?> $crate::MapCodec<O> for $t {
+            fn codec_read_map_item(incomplete: &mut <Self as Codec<O>>::Incomplete, ctx: $crate::Ctx<O>, k: &O, v: &O) {
+                let k = match <$k>::codec_read(k, ctx) {
                     Ok(r) => r,
                     Err(e) => {
                         incomplete.result = Err(e);
                         return;
                     }
                 };
-                let v = match <$v>::codec_read(v) {
+                let v = match <$v>::codec_read(v, ctx) {
                     Ok(r) => r,
                     Err(e) => {
                         incomplete.result = Err(e);
@@ -131,11 +128,11 @@ macro_rules! impl_mapcodec {
             }
             fn codec_write_to_map(
                 &self,
-                ctx: O::Context,
+                ctx: $crate::Ctx<O>,
                 map: &mut Vec<(O, O)>,
             ) -> $crate::error::WriteResult<()> {
                 for (k, v) in self.iter() {
-                    map.push((k.to_owned().codec_write(ctx)?, v.codec_write(ctx)?))
+                    map.push((k.to_owned().codec_write(ctx.clone())?, v.codec_write(ctx.clone())?))
                 }
                 Ok(())
             }
@@ -176,8 +173,13 @@ macro_rules! impl_mapcodec {
 pub trait MapCodec<O: Ops>: Sized + Codec<O> {
     // this doesn't return a ReadResult because the errors are stored in the
     // Incomplete struct
-    fn codec_read_map_item(incomplete: &mut <Self as Codec<O>>::Incomplete, k: &O, v: &O);
-    fn codec_write_to_map(&self, ctx: O::Context, map: &mut Vec<(O, O)>) -> WriteResult<()>;
+    fn codec_read_map_item(
+        incomplete: &mut <Self as Codec<O>>::Incomplete,
+        ctx: Ctx<O>,
+        k: &O,
+        v: &O,
+    );
+    fn codec_write_to_map(&self, ctx: Ctx<O>, map: &mut Vec<(O, O)>) -> WriteResult<()>;
 
     /// For normal structs, this sets `incomplete.__result = Ok(())` and returns
     /// the previous value of `__result`.
@@ -193,128 +195,144 @@ pub trait Ops: Sized + Clone + Codec<Self> {
     type List: IntoIterator<Item = Self>;
     type Map: MapLike<Self>;
 
-    type Resolvable = ();
-    type Context: Clone + Copy + GenericResolver<Self, Self::Resolvable> = ();
-
-    fn empty(ctx: Self::Context) -> WriteResult<Self> {
+    fn empty(ctx: Ctx<Self>) -> WriteResult<Self> {
         Self::empty_map(ctx)
     }
-    fn empty_map(ctx: Self::Context) -> WriteResult<Self> {
+    fn empty_map(ctx: Ctx<Self>) -> WriteResult<Self> {
         Self::create_map(ctx, &[])
     }
-    fn empty_list(ctx: Self::Context) -> WriteResult<Self> {
+    fn empty_list(ctx: Ctx<Self>) -> WriteResult<Self> {
         Self::create_list(ctx, &[])
     }
 
-    fn get_number(&self) -> ReadResult<Number> {
+    fn get_number(&self, ctx: Ctx<Self>) -> ReadResult<Number> {
         Err(ReadError::unimplemented())
     }
-    fn create_number(ctx: Self::Context, n: Number) -> WriteResult<Self> {
+    fn create_number(ctx: Ctx<Self>, n: Number) -> WriteResult<Self> {
         Err(WriteError::unimplemented())
     }
 
-    fn get_boolean(&self) -> ReadResult<bool> {
+    fn get_boolean(&self, ctx: Ctx<Self>) -> ReadResult<bool> {
         Err(ReadError::unimplemented())
     }
-    fn create_boolean(ctx: Self::Context, v: bool) -> WriteResult<Self> {
+    fn create_boolean(ctx: Ctx<Self>, v: bool) -> WriteResult<Self> {
         Err(WriteError::unimplemented())
     }
 
-    fn get_list(&self) -> ReadResult<Self::List> {
+    fn get_list(&self, ctx: Ctx<Self>) -> ReadResult<Self::List> {
         Err(ReadError::unimplemented())
     }
-    fn create_list(ctx: Self::Context, list: &[Self]) -> WriteResult<Self> {
+    fn create_list(ctx: Ctx<Self>, list: &[Self]) -> WriteResult<Self> {
         Err(WriteError::unimplemented())
     }
 
-    fn get_map(&self) -> ReadResult<Self::Map> {
+    fn get_map(&self, ctx: Ctx<Self>) -> ReadResult<Self::Map> {
         Err(ReadError::unimplemented())
     }
-    fn create_map(ctx: Self::Context, map: &[(Self, Self)]) -> WriteResult<Self> {
+    fn create_map(ctx: Ctx<Self>, map: &[(Self, Self)]) -> WriteResult<Self> {
         Err(WriteError::unimplemented())
     }
 
-    fn get_string(&self) -> ReadResult<String> {
+    fn get_string(&self, ctx: Ctx<Self>) -> ReadResult<String> {
         Err(ReadError::unimplemented())
     }
-    fn create_string(ctx: Self::Context, v: &str) -> WriteResult<Self> {
+    fn create_string(ctx: Ctx<Self>, v: &str) -> WriteResult<Self> {
         Err(WriteError::unimplemented())
     }
 
-    fn get_byte_buffer(&self) -> ReadResult<Box<[u8]>> {
-        fallback_get_list(self)
+    fn get_byte_buffer(&self, ctx: Ctx<Self>) -> ReadResult<Box<[u8]>> {
+        fallback_get_list(self, ctx)
     }
-    fn create_byte_list(ctx: Self::Context, v: &[u8]) -> WriteResult<Self> {
+    fn create_byte_list(ctx: Ctx<Self>, v: &[u8]) -> WriteResult<Self> {
         fallback_create_list(ctx, v)
     }
 
-    fn get_int_list(&self) -> ReadResult<Box<[i32]>> {
-        fallback_get_list(self)
+    fn get_int_list(&self, ctx: Ctx<Self>) -> ReadResult<Box<[i32]>> {
+        fallback_get_list(self, ctx)
     }
-    fn create_int_list(ctx: Self::Context, v: &[i32]) -> WriteResult<Self> {
+    fn create_int_list(ctx: Ctx<Self>, v: &[i32]) -> WriteResult<Self> {
         fallback_create_list(ctx, v)
     }
 
-    fn get_long_list(&self) -> ReadResult<Box<[i64]>> {
-        fallback_get_list(self)
+    fn get_long_list(&self, ctx: Ctx<Self>) -> ReadResult<Box<[i64]>> {
+        fallback_get_list(self, ctx)
     }
-    fn create_long_list(ctx: Self::Context, v: &[i64]) -> WriteResult<Self> {
+    fn create_long_list(ctx: Ctx<Self>, v: &[i64]) -> WriteResult<Self> {
         fallback_create_list(ctx, v)
     }
 
-    fn ctx(&self) -> Self::Context;
-    fn get_resolvable_item(&self) -> ReadResult<Self::Resolvable> {
-        self.ctx().resolver_get_item(self)
+    fn get_resolvable_item<I: IntoResolvableItem>(&self, ctx: Ctx<Self>) -> ReadResult<I> {
+        let i = ctx.0.resolver_get_item(self)?;
+        Ok(I::from_resolvable_id(i))
     }
-    fn create_resolvable_item(ctx: Self::Context, i: Self::Resolvable) -> WriteResult<Self> {
-        ctx.resolver_create_item(ctx, i)
+    fn create_resolvable_item(ctx: Ctx<Self>, i: &dyn ResolvableItem) -> WriteResult<Self> {
+        ctx.0.resolver_create_item(i)
     }
 }
 
-pub trait GenericResolver<O: Ops, I> {
-    fn resolver_get_item(&self, ops: &O) -> ReadResult<I>;
-    fn resolver_create_item(&self, ctx: O::Context, item: I) -> WriteResult<O>;
+/// A type that contains information which allows certain types, like
+/// server-side registries, to be resolved.
+pub struct Ctx<'a, O>(pub &'a dyn ResolverTrait<O>);
+impl<'a, O> Clone for Ctx<'a, O> {
+    fn clone(&self) -> Self {
+        Self(self.0)
+    }
+}
+impl<'a, O> Copy for Ctx<'a, O> {}
+impl<O: Ops> Default for Ctx<'static, O> {
+    fn default() -> Self {
+        Self(&())
+    }
+}
+
+pub trait ResolverTrait<O: Ops> {
+    fn resolver_get_item(&self, ops: &O) -> ReadResult<u32>;
+    fn resolver_create_item(&self, item: &dyn ResolvableItem) -> WriteResult<O>;
 }
 // example implementation
-impl<O: Ops + Clone, I: ResolvableItem + Clone, V: Codec<O> + PartialEq> GenericResolver<O, I>
-    for Vec<(I, V)>
-{
-    fn resolver_get_item(&self, ops: &O) -> ReadResult<I> {
-        let i = V::codec_read(ops)?;
+impl<O: Ops + Clone, V: Codec<O> + PartialEq + Clone + 'static> ResolverTrait<O> for Vec<(u32, V)> {
+    fn resolver_get_item(&self, ops: &O) -> ReadResult<u32> {
+        let i = V::codec_read(ops, Ctx(self))?;
         self.iter()
             .find(|(_, candidate)| candidate == &i)
             .ok_or_else(|| ReadError::custom("unknown resolvable item"))
             .map(|(i, _)| i.clone())
     }
-    fn resolver_create_item(&self, ctx: O::Context, item: I) -> WriteResult<O> {
+    fn resolver_create_item(&self, item: &dyn ResolvableItem) -> WriteResult<O> {
         let id = item.to_resolvable_id();
-        let value = &self
+        let value = self
             .iter()
-            .find(|(candidate, _)| candidate.to_resolvable_id() == id)
+            .find(|(candidate, _)| candidate == &id)
             .ok_or_else(|| WriteError::custom("unknown resolvable item"))?
-            .1;
-        value.codec_write(ctx)
+            .1
+            .clone();
+        let r = value.codec_write(Ctx(self));
+        r
     }
 }
-impl<O, I> GenericResolver<O, I> for () {
-    fn resolver_get_item(&self, ops: &O) -> ReadResult<I> {
-        unimplemented!()
+impl<O: Ops> ResolverTrait<O> for () {
+    fn resolver_get_item(&self, _ops: &O) -> ReadResult<u32> {
+        Err(ReadError::custom(
+            "the default Ctx was passed to `Codec::codec_read`, but that codec has resolvable items",
+        ))
     }
-    fn resolver_create_item(&self, ctx: <O as Ops>::Context, item: I) -> WriteResult<O> {
-        unimplemented!()
+    fn resolver_create_item(&self, _id: &dyn ResolvableItem) -> WriteResult<O> {
+        Err(WriteError::custom(
+            "the default Ctx was passed to `Codec::codec_write`, but that codec has resolvable items",
+        ))
     }
 }
 
-fn fallback_get_list<O: Ops, N: TryFrom<Number, Error = ReadError>>(o: &O) -> ReadResult<Box<[N]>> {
-    o.get_list()?
+fn fallback_get_list<O: Ops, N: TryFrom<Number, Error = ReadError>>(
+    o: &O,
+    ctx: Ctx<O>,
+) -> ReadResult<Box<[N]>> {
+    o.get_list(ctx)?
         .into_iter()
-        .map(|o| o.get_number().and_then(|n| n.try_into()))
+        .map(|o| o.get_number(ctx).and_then(|n| n.try_into()))
         .collect()
 }
-fn fallback_create_list<O: Ops, N: Into<Number> + Copy>(
-    ctx: O::Context,
-    v: &[N],
-) -> WriteResult<O> {
+fn fallback_create_list<O: Ops, N: Into<Number> + Copy>(ctx: Ctx<O>, v: &[N]) -> WriteResult<O> {
     O::create_list(
         ctx,
         &v.iter()
@@ -408,7 +426,9 @@ macro_rules! impl_defaultable {
 }
 
 pub trait ResolvableItem {
-    const NAME: &'static str;
+    fn name(&self) -> &'static str;
     fn to_resolvable_id(&self) -> u32;
+}
+pub trait IntoResolvableItem: ResolvableItem {
     fn from_resolvable_id(id: u32) -> Self;
 }

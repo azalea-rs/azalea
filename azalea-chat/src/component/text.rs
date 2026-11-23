@@ -25,8 +25,8 @@ struct TextComponentCodec {
     base: BaseComponent,
 }
 impl<O: azalea_codec::Ops> Codec<O> for TextComponent {
-    fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
-        let r = TextComponentCodec::codec_read(ops)?;
+    fn codec_read(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
+        let r = TextComponentCodec::codec_read(ops, ctx)?;
 
         // make sure it goes through the constructor so legacy formatting is
         // handled
@@ -46,7 +46,7 @@ impl<O: azalea_codec::Ops> Codec<O> for TextComponent {
         Ok(TextComponent::empty_with_siblings(siblings).with_style(*r.base.style))
     }
 
-    fn codec_write(&self, ctx: O::Context) -> azalea_codec::error::WriteResult<O> {
+    fn codec_write(&self, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::WriteResult<O> {
         TextComponentCodec {
             text: self.text.clone(),
             base: self.base.clone(),

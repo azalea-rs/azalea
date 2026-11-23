@@ -125,7 +125,7 @@ pub fn derive_codec_for_named_fields_struct(
             });
         }
 
-        let read_fn = quote! { ::codec_read(v) };
+        let read_fn = quote! { ::codec_read(v, ctx) };
         let read_fn = if attrs.with.is_some() {
             quote! { #read_fn.map(|i| i.0) }
         } else {
@@ -136,7 +136,7 @@ pub fn derive_codec_for_named_fields_struct(
             // formatted like this to more easily handle multiple flattened
             // fields
             codec_read_map_item_remaining_impl.extend(quote! {
-                <#field_type as ::azalea_codec::MapCodec<O>>::codec_read_map_item(&mut incomplete.#field_name, k, v);
+                <#field_type as ::azalea_codec::MapCodec<O>>::codec_read_map_item(&mut incomplete.#field_name, ctx, k, v);
                 // it's possibly fine for the flattened struct to error here
                 // without it being fatal, if we have a second flattened map
                 // that we're going to decode next. so, we reset back the error
@@ -261,10 +261,11 @@ pub fn derive_codec_for_named_fields_struct(
     impl<O: ::azalea_codec::Ops, #generic_decls> ::azalea_codec::MapCodec<O> for #ident #generic_param_names_full {
         fn codec_read_map_item(
             incomplete: &mut <Self as ::azalea_codec::Codec<O>>::Incomplete,
+            ctx: ::azalea_codec::Ctx<O>,
             k: &O,
             v: &O,
         ) {
-            match k.get_string().unwrap_or_default().as_str() {
+            match k.get_string(ctx).unwrap_or_default().as_str() {
                 #codec_read_map_item_impl
                 name => {
                     #codec_read_map_item_remaining_impl
@@ -272,7 +273,7 @@ pub fn derive_codec_for_named_fields_struct(
             }
         }
 
-        fn codec_write_to_map(&self, ctx: O::Context, __codec_map: &mut Vec<(O, O)>) -> ::azalea_codec::error::WriteResult<()> {
+        fn codec_write_to_map(&self, ctx: ::azalea_codec::Ctx<O>, __codec_map: &mut Vec<(O, O)>) -> ::azalea_codec::error::WriteResult<()> {
             #codec_write_to_map_impl
             Ok(())
         }
@@ -287,17 +288,17 @@ pub fn derive_codec_for_named_fields_struct(
     #[automatically_derived]
     impl<O: ::azalea_codec::Ops, #generic_decls> ::azalea_codec::Codec<O> for #ident #generic_param_names_full {
         type Incomplete = #incomplete<O, #generic_param_names>;
-        fn codec_read(__codec_ops: &O) -> ::azalea_codec::error::ReadResult<Self> {
+        fn codec_read(__codec_ops: &O, ctx: ::azalea_codec::Ctx<O>) -> ::azalea_codec::error::ReadResult<Self> {
             use ::azalea_codec::{Incomplete, MapCodec, MapLike};
 
-            let __codec_map = __codec_ops.get_map()?;
+            let __codec_map = __codec_ops.get_map(ctx)?;
             let mut incomplete = Self::Incomplete::new_unnamed();
             __codec_map.for_each(|k, v| {
-                Self::codec_read_map_item(&mut incomplete, k, v);
+                Self::codec_read_map_item(&mut incomplete, ctx, k, v);
             });
             incomplete.build()
         }
-        fn codec_write(&self, ctx: O::Context) -> ::azalea_codec::error::WriteResult<O> {
+        fn codec_write(&self, ctx: ::azalea_codec::Ctx<O>) -> ::azalea_codec::error::WriteResult<O> {
             use ::azalea_codec::MapCodec;
 
             let mut __codec_map = Vec::new();

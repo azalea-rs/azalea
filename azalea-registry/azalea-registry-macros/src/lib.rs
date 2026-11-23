@@ -231,12 +231,12 @@ pub fn registry(input: TokenStream) -> TokenStream {
             }
         }
         impl<O: azalea_codec::Ops> azalea_codec::Codec<O> for #name {
-            fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
-                let s = ops.get_string()?;
+            fn codec_read(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
+                let s = ops.get_string(ctx)?;
                 std::str::FromStr::from_str(&s)
                     .map_err(|_| azalea_codec::error::ReadError::custom(format!("invalid variant {s}")))
             }
-            fn codec_write(&self, ctx: O::Context) -> azalea_codec::error::WriteResult<O> {
+            fn codec_write(&self, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::WriteResult<O> {
                 self.to_string().codec_write(ctx)
             }
         }

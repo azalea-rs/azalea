@@ -96,7 +96,7 @@ macro_rules! define_data_components {
             /// `kind` must be the correct value for this union.
             pub unsafe fn codec_write_as<O: azalea_codec::Ops>(
                 &self,
-                ctx: O::Context,
+                ctx: azalea_codec::Ctx<O>,
                 kind: DataComponentKind,
             ) -> azalea_codec::error::WriteResult<O> {
                 match kind {
@@ -106,9 +106,10 @@ macro_rules! define_data_components {
             pub fn codec_read_as<O: azalea_codec::Ops>(
                 ops: &O,
                 kind: DataComponentKind,
+                ctx: azalea_codec::Ctx<O>,
             ) -> azalea_codec::error::ReadResult<Self> {
                 match kind {
-                    $( DataComponentKind::$x => { Ok(Self { $x: <_>::codec_read(ops)? }) }, )*
+                    $( DataComponentKind::$x => { Ok(Self { $x: <_>::codec_read(ops, ctx)? }) }, )*
                 }
             }
             /// # Safety

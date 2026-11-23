@@ -151,12 +151,12 @@ impl<'de> Deserialize<'de> for Identifier {
 }
 
 impl<O: azalea_codec::Ops> Codec<O> for Identifier {
-    fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
-        ops.get_string()?
+    fn codec_read(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
+        ops.get_string(ctx)?
             .parse()
             .map_err(|_| ReadError::custom("invalid identifier"))
     }
-    fn codec_write(&self, ctx: O::Context) -> azalea_codec::error::WriteResult<O> {
+    fn codec_write(&self, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::WriteResult<O> {
         self.to_string().codec_write(ctx)
     }
 }

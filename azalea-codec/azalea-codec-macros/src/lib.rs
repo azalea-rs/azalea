@@ -54,9 +54,9 @@ fn derive_transparent_impl(attrs: &[Attribute], ident: &Ident, field: &Field) ->
     };
 
     let base_read_expr = if let Some(with) = &field_attrs.with {
-        quote! { #with::codec_read(ops).map(|c| c.0) }
+        quote! { #with::codec_read(ops, ctx).map(|c| c.0) }
     } else {
-        quote! { <_>::codec_read(ops) }
+        quote! { <_>::codec_read(ops, ctx) }
     };
 
     let read_expr;
@@ -79,10 +79,10 @@ fn derive_transparent_impl(attrs: &[Attribute], ident: &Ident, field: &Field) ->
 
     quote! {
     impl<O: ::azalea_codec::Ops> ::azalea_codec::Codec<O> for #ident {
-        fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
+        fn codec_read(ops: &O, ctx: ::azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
             #read_expr
         }
-        fn codec_write(&self, ctx: O::Context) -> azalea_codec::error::WriteResult<O> {
+        fn codec_write(&self, ctx: ::azalea_codec::Ctx<O>) -> azalea_codec::error::WriteResult<O> {
             ::azalea_codec::Codec::codec_write(&#write_expr, ctx)
         }
     }
@@ -93,11 +93,11 @@ fn derive_transparent_impl(attrs: &[Attribute], ident: &Ident, field: &Field) ->
 fn derive_unit_struct_impl(ident: &Ident) -> TokenStream {
     quote! {
         impl<O: ::azalea_codec::Ops> ::azalea_codec::Codec<O> for #ident {
-        fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
-            <()>::codec_read(ops)?;
+        fn codec_read(ops: &O, ctx: ::azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
+            <()>::codec_read(ops, ctx)?;
             Ok(Self)
         }
-        fn codec_write(&self, ctx: O::Context) -> azalea_codec::error::WriteResult<O> {
+        fn codec_write(&self, ctx: ::azalea_codec::Ctx<O>) -> azalea_codec::error::WriteResult<O> {
             ::azalea_codec::Codec::codec_write(&(), ctx)
         }
     }

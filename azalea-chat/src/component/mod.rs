@@ -44,9 +44,9 @@ pub enum FormattedText {
 
 impl<O: azalea_codec::Ops> azalea_codec::Codec<O> for FormattedText {
     type Incomplete = azalea_codec::error::ReadResult<Self>;
-    fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
+    fn codec_read(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
         let mut errors = Vec::new();
-        match String::codec_read(ops) {
+        match String::codec_read(ops, ctx) {
             Ok(r) => {
                 return Ok(Self::Text(TextComponent::new(r)));
             }
@@ -54,7 +54,7 @@ impl<O: azalea_codec::Ops> azalea_codec::Codec<O> for FormattedText {
                 errors.push(("String", e));
             }
         }
-        match TextComponent::codec_read(ops) {
+        match TextComponent::codec_read(ops, ctx) {
             Ok(r) => {
                 return Ok(Self::Text(r));
             }
@@ -62,7 +62,7 @@ impl<O: azalea_codec::Ops> azalea_codec::Codec<O> for FormattedText {
                 errors.push(("TextComponent", e));
             }
         }
-        match TranslatableComponent::codec_read(ops) {
+        match TranslatableComponent::codec_read(ops, ctx) {
             Ok(r) => {
                 return Ok(Self::Translatable(r));
             }
@@ -71,7 +71,7 @@ impl<O: azalea_codec::Ops> azalea_codec::Codec<O> for FormattedText {
             }
         }
 
-        match Vec::<FormattedText>::codec_read(ops) {
+        match Vec::<FormattedText>::codec_read(ops, ctx) {
             Ok(r) => {
                 let num_components = r.len();
                 let mut iter = r.into_iter();
@@ -100,7 +100,7 @@ impl<O: azalea_codec::Ops> azalea_codec::Codec<O> for FormattedText {
 
         Err(azalea_codec::error::ReadError::no_variants_matched(errors))
     }
-    fn codec_write(&self, ctx: O::Context) -> ::azalea_codec::error::WriteResult<O> {
+    fn codec_write(&self, ctx: azalea_codec::Ctx<O>) -> ::azalea_codec::error::WriteResult<O> {
         match self {
             Self::Text(v) => {
                 // write as a string instead of map when possible
@@ -373,7 +373,11 @@ impl AzBuf for FormattedText {
         );
 
         match nbt {
-            Some(nbt) => Ok(FormattedText::codec_read(&nbt.as_tag().to_owned()).unwrap()),
+            Some(nbt) => Ok(FormattedText::codec_read(
+                &nbt.as_tag().to_owned(),
+                Default::default(),
+            )
+            .unwrap()),
             _ => Ok(FormattedText::default()),
         }
     }
@@ -439,7 +443,7 @@ impl<'de> serde::Deserialize<'de> for FormattedText {
         D: serde::Deserializer<'de>,
     {
         let json = serde_json::Value::deserialize(deserializer)?;
-        Self::codec_read(&json).map_err(serde::de::Error::custom)
+        Self::codec_read(&json, Default::default()).map_err(serde::de::Error::custom)
     }
 }
 

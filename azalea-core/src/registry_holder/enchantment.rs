@@ -47,13 +47,13 @@ impl Effects {
 
 pub struct Effects(IndexMap<EnchantmentEffectComponentKind, Vec<EffectComponentUnion>>);
 impl<O: azalea_codec::Ops> Codec<O> for Effects {
-    fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
-        let map = ops.get_map()?;
+    fn codec_read(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
+        let map = ops.get_map(ctx)?;
         let mut items = Vec::new();
         map.for_each(|k, v| {
             items.push(
-                EnchantmentEffectComponentKind::codec_read(k)
-                    .and_then(|k| EffectComponentUnion::codec_read_as(k, v).map(|v| (k, v))),
+                EnchantmentEffectComponentKind::codec_read(k, ctx)
+                    .and_then(|k| EffectComponentUnion::codec_read_as(k, v, ctx).map(|v| (k, v))),
             );
         });
         Ok(Self(
@@ -62,7 +62,7 @@ impl<O: azalea_codec::Ops> Codec<O> for Effects {
                 .collect::<azalea_codec::error::ReadResult<_>>()?,
         ))
     }
-    fn codec_write(&self, ctx: O::Context) -> azalea_codec::error::WriteResult<O> {
+    fn codec_write(&self, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::WriteResult<O> {
         let mut map = Vec::new();
         for (&k, v) in &self.0 {
             let v = v
