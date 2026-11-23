@@ -2,13 +2,7 @@ use azalea_codec::Codec;
 use azalea_core::{
     attribute_modifier_operation::AttributeModifierOperation, identifier::Identifier,
 };
-use azalea_registry::builtin::{Attribute, EnchantmentLevelBasedValueKind as LevelBasedValueKind};
-use simdnbt::{
-    DeserializeError, FromNbtTag,
-    borrow::{NbtCompound, NbtTag},
-};
-
-use crate::registry_holder::get_in_compound;
+use azalea_registry::builtin::Attribute;
 
 #[derive(Clone, Debug, Codec)]
 #[codec(tag = "type")]
@@ -106,65 +100,5 @@ impl LevelBasedValue {
 impl Default for LevelBasedValue {
     fn default() -> Self {
         Self::Constant(0.)
-    }
-}
-
-impl FromNbtTag for LevelBasedValue {
-    fn from_nbt_tag(tag: NbtTag) -> Option<Self> {
-        if let Some(f) = tag.float() {
-            return Some(Self::Constant(f));
-        }
-        if let Some(c) = tag.compound() {
-            return Self::from_compound(c).ok();
-        }
-        None
-    }
-}
-impl LevelBasedValue {
-    fn from_compound(nbt: NbtCompound) -> Result<Self, DeserializeError> {
-        let kind = get_in_compound(&nbt, "type")?;
-        let value = match kind {
-            LevelBasedValueKind::Exponent => {
-                let base = Box::new(get_in_compound(&nbt, "base")?);
-                let power = Box::new(get_in_compound(&nbt, "power")?);
-                return Ok(Self::Exponent { base, power });
-            }
-            LevelBasedValueKind::Linear => {
-                let base = get_in_compound(&nbt, "base")?;
-                let per_level_above_first = get_in_compound(&nbt, "per_level_above_first")?;
-                Self::Linear {
-                    base,
-                    per_level_above_first,
-                }
-            }
-            LevelBasedValueKind::LevelsSquared => {
-                let added = get_in_compound(&nbt, "added")?;
-                Self::LevelsSquared { added }
-            }
-            LevelBasedValueKind::Clamped => {
-                let value = Box::new(get_in_compound(&nbt, "value")?);
-                let min = get_in_compound(&nbt, "min")?;
-                let max = get_in_compound(&nbt, "max")?;
-                Self::Clamped { value, min, max }
-            }
-            LevelBasedValueKind::Fraction => {
-                let numerator = Box::new(get_in_compound(&nbt, "numerator")?);
-                let denominator = Box::new(get_in_compound(&nbt, "denominator")?);
-                Self::Fraction {
-                    numerator,
-                    denominator,
-                }
-            }
-            LevelBasedValueKind::Lookup => {
-                let values = nbt
-                    .list("values")
-                    .ok_or(DeserializeError::MissingField)?
-                    .floats()
-                    .ok_or(DeserializeError::MissingField)?;
-                let fallback = Box::new(get_in_compound(&nbt, "fallback")?);
-                Self::Lookup { values, fallback }
-            }
-        };
-        Ok(value)
     }
 }

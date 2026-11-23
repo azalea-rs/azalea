@@ -6,8 +6,6 @@
 pub mod aabb;
 pub mod attribute_modifier_operation;
 pub mod bitset;
-#[cfg(feature = "serde")]
-pub mod codec_utils;
 pub mod color;
 pub mod cursor3d;
 pub mod delta;

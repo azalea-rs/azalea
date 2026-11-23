@@ -155,18 +155,6 @@ pub fn registry(input: TokenStream) -> TokenStream {
         });
     }
 
-    // only include the `#[cfg(feature = "serde")]` attributes when we're using
-    // the registry! macro in azalea-registry, otherwise we want to always
-    // include the serde code.
-    let is_azalea_registry_crate = env::var("CARGO_CRATE_NAME")
-        .map(|name| name == "azalea_registry")
-        .unwrap_or_default();
-    let cfg_serde_attr = if is_azalea_registry_crate {
-        quote! { #[cfg(feature = "serde")] }
-    } else {
-        quote! {}
-    };
-
     generated.extend(quote! {
         impl #name {
             /// Convert the value to a stringified identifier, formatted like
@@ -209,27 +197,6 @@ pub fn registry(input: TokenStream) -> TokenStream {
             }
         }
 
-        #cfg_serde_attr
-        impl serde::Serialize for #name {
-            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-            where
-                S: serde::Serializer,
-            {
-                serializer.serialize_str(&self.to_string())
-            }
-        }
-        #cfg_serde_attr
-        impl<'de> serde::Deserialize<'de> for #name {
-            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-            where
-                D: serde::Deserializer<'de>,
-            {
-                let s = String::deserialize(deserializer)?;
-                s.parse().map_err(|_| serde::de::Error::custom(
-                    format!("{s:?} is not a valid {name}", s = s, name = stringify!(#name))
-                ))
-            }
-        }
         impl<O: azalea_codec::Ops> azalea_codec::Codec<O> for #name {
             fn codec_read(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
                 let s = ops.get_string(ctx)?;
@@ -238,17 +205,6 @@ pub fn registry(input: TokenStream) -> TokenStream {
             }
             fn codec_write(&self, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::WriteResult<O> {
                 self.to_string().codec_write(ctx)
-            }
-        }
-        impl simdnbt::FromNbtTag for #name {
-            fn from_nbt_tag(tag: simdnbt::borrow::NbtTag) -> Option<Self> {
-                let v = tag.string()?;
-                std::str::FromStr::from_str(&v.to_str()).ok()
-            }
-        }
-        impl simdnbt::ToNbtTag for #name {
-            fn to_nbt_tag(self) -> simdnbt::owned::NbtTag {
-                simdnbt::owned::NbtTag::String(self.to_string().into())
             }
         }
     });

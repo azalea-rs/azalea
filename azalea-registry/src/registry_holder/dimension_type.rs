@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 use azalea_buf::AzBuf;
-#[cfg(not(feature = "strict_registry"))]
 use azalea_codec::Codec;
 use azalea_core::identifier::Identifier;
 use azalea_registry::{
@@ -9,10 +8,9 @@ use azalea_registry::{
     builtin::{BlockKind, EnvironmentAttribute, SoundEvent},
 };
 use indexmap::IndexMap;
-use simdnbt::{Deserialize, FromNbtTag, Serialize, ToNbtTag, owned::NbtTag};
+use simdnbt::owned::NbtTag;
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
+#[derive(Clone, Debug, Codec)]
 pub struct TrimMaterialElement {
     pub asset_name: String,
     pub ingredient: Identifier,
@@ -22,16 +20,14 @@ pub struct TrimMaterialElement {
 }
 
 /// Data about a kind of chat message
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
+#[derive(Clone, Debug, Codec)]
 pub struct ChatTypeElement {
     pub chat: ChatTypeData,
     pub narration: ChatTypeData,
 }
 
 /// Data about a chat message.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
+#[derive(Clone, Debug, Codec)]
 pub struct ChatTypeData {
     pub translation_key: String,
     pub parameters: Vec<String>,
@@ -39,8 +35,7 @@ pub struct ChatTypeData {
 }
 
 /// The style of a chat message.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
+#[derive(Clone, Debug, Codec)]
 pub struct ChatTypeStyle {
     pub color: Option<String>,
     pub bold: Option<bool>,
@@ -110,8 +105,7 @@ pub struct MonsterSettings {
 pub struct IntProvider {}
 
 /// Biome attributes.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
+#[derive(Clone, Debug, Codec)]
 pub struct WorldTypeElement {
     pub has_precipitation: bool,
     pub temperature: f32,
@@ -120,39 +114,11 @@ pub struct WorldTypeElement {
     pub effects: BiomeEffects,
 }
 
-/// The precipitation of a biome.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum BiomePrecipitation {
-    None,
-    Rain,
-    Snow,
-}
-impl FromNbtTag for BiomePrecipitation {
-    fn from_nbt_tag(tag: simdnbt::borrow::NbtTag) -> Option<Self> {
-        match tag.string()?.to_str().as_ref() {
-            "none" => Some(Self::None),
-            "rain" => Some(Self::Rain),
-            "snow" => Some(Self::Snow),
-            _ => None,
-        }
-    }
-}
-impl ToNbtTag for BiomePrecipitation {
-    fn to_nbt_tag(self) -> NbtTag {
-        match self {
-            Self::None => NbtTag::String("none".into()),
-            Self::Rain => NbtTag::String("rain".into()),
-            Self::Snow => NbtTag::String("snow".into()),
-        }
-    }
-}
-
 /// The effects of a biome.
 ///
 /// This includes the sky, fog, water, and grass color,
 /// as well as music and other sound effects.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
+#[derive(Clone, Debug, Codec)]
 pub struct BiomeEffects {
     pub sky_color: u32,
     pub fog_color: u32,
@@ -171,8 +137,7 @@ pub struct BiomeEffects {
 /// The music of the biome.
 ///
 /// Some biomes have unique music that only play when inside them.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
+#[derive(Clone, Debug, Codec)]
 pub struct BiomeMusic {
     pub replace_current_music: bool,
     pub max_delay: u32,
@@ -180,8 +145,7 @@ pub struct BiomeMusic {
     pub sound: SoundEvent,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
+#[derive(Clone, Debug, Codec)]
 pub struct BiomeMoodSound {
     pub tick_delay: u32,
     pub block_search_extent: u32,
@@ -189,8 +153,7 @@ pub struct BiomeMoodSound {
     pub sound: SoundEvent,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
+#[derive(Clone, Debug, Codec)]
 pub struct AdditionsSound {
     pub tick_chance: f32,
     pub sound: SoundEvent,
@@ -199,30 +162,19 @@ pub struct AdditionsSound {
 /// Biome particles.
 ///
 /// Some biomes have particles that spawn in the air.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
+#[derive(Clone, Debug, Codec)]
 pub struct BiomeParticle {
     pub probability: f32,
     pub options: HashMap<String, String>,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
+#[derive(Clone, Debug, Codec)]
 pub struct TrimPatternElement {
-    #[simdnbt(flatten)]
+    #[codec(flatten)]
     pub pattern: HashMap<String, String>,
 }
 
-#[derive(
-    Debug,
-    Clone,
-    serde::Serialize,
-    simdnbt::Serialize,
-    simdnbt::Deserialize,
-    AzBuf,
-    PartialEq,
-    Codec,
-)]
+#[derive(Debug, Clone, AzBuf, PartialEq, Codec)]
 pub struct DamageTypeElement {
     pub message_id: String,
     pub scaling: String,

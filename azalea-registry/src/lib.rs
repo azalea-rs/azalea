@@ -23,9 +23,6 @@ use azalea_buf::{AzBuf, AzBufVar, BufReadError, BufReadErrorRepr};
 use azalea_codec::Codec;
 use azalea_core::identifier::Identifier;
 pub use azalea_registry_macros as macros;
-#[cfg(feature = "serde")]
-use serde::Serialize;
-use simdnbt::{FromNbtTag, borrow::NbtTag};
 
 #[doc(hidden)]
 pub mod identifier {
@@ -187,24 +184,6 @@ impl<D: Registry> From<Vec<D>> for HolderSet<D> {
         Self::Direct { contents }
     }
 }
-#[cfg(feature = "serde")]
-impl<D: Registry + Serialize> Serialize for HolderSet<D> {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        match self {
-            Self::Direct { contents } => {
-                if contents.len() == 1 {
-                    contents[0].serialize(serializer)
-                } else {
-                    contents.serialize(serializer)
-                }
-            }
-            Self::Named { key, contents: _ } => key.serialize(serializer),
-        }
-    }
-}
 impl<D: Registry + Codec<O>, O: azalea_codec::Ops> Codec<O> for HolderSet<D> {
     fn codec_read(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
         if let Ok(key) = Identifier::codec_read(ops, ctx) {
@@ -324,27 +303,7 @@ impl<R: Registry + Default, Direct: AzBuf> Default for Holder<R, Direct> {
         Self::Reference(R::default())
     }
 }
-#[cfg(feature = "serde")]
-impl<R: Registry + Serialize, Direct: AzBuf + Serialize> Serialize for Holder<R, Direct> {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        match self {
-            Self::Reference(value) => value.serialize(serializer),
-            Self::Direct(value) => value.serialize(serializer),
-        }
-    }
-}
 
-impl<R: Registry + FromNbtTag, Direct: AzBuf + FromNbtTag> FromNbtTag for Holder<R, Direct> {
-    fn from_nbt_tag(tag: NbtTag) -> Option<Self> {
-        if let Some(reference) = R::from_nbt_tag(tag) {
-            return Some(Self::Reference(reference));
-        };
-        Direct::from_nbt_tag(tag).map(Self::Direct)
-    }
-}
 impl<O: azalea_codec::Ops, R: Registry + Codec<O>, Direct: Codec<O> + AzBuf> Codec<O>
     for Holder<R, Direct>
 {

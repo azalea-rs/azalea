@@ -1,9 +1,6 @@
-use std::fmt;
-
 use azalea_buf::AzBuf;
 use azalea_codec::Codec;
 use azalea_registry::registry_holder::RegistryHolder;
-use serde::ser;
 use thiserror::Error;
 
 #[derive(AzBuf, Clone, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
@@ -142,15 +139,6 @@ impl<'a, O: azalea_codec::Ops> Codec<O> for ChecksumOps {
 #[derive(Debug, Error)]
 #[error("Checksum serialization error")]
 pub struct ChecksumError;
-impl ser::Error for ChecksumError {
-    fn custom<T>(msg: T) -> Self
-    where
-        T: fmt::Display,
-    {
-        eprintln!("Serialization error: {msg}");
-        ChecksumError
-    }
-}
 
 pub fn get_checksum<'a, T: Codec<ChecksumOps> + ?Sized>(
     value: &T,

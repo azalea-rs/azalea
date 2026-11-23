@@ -27,7 +27,6 @@ use derive_more::{Deref, DerefMut};
 /// `#[var]` attribute.
 ///
 /// [`Entity`]: bevy_ecs::entity::Entity
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[cfg_attr(feature = "bevy_ecs", derive(bevy_ecs::component::Component))]
 #[derive(Clone, Copy, Debug, Default, Deref, DerefMut, Eq, PartialEq)]
 pub struct MinecraftEntityId(pub i32);

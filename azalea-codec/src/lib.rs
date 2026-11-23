@@ -22,6 +22,10 @@ pub mod number;
 pub mod rust;
 pub mod types;
 
+// for macros
+#[doc(hidden)]
+pub use serde_json;
+
 #[diagnostic::on_unimplemented(message = "type `{Self}` does not implement `azalea_codec::Codec`.")]
 pub trait Codec<O: Ops>: Sized {
     type Incomplete = ReadResult<Self>;
@@ -166,6 +170,34 @@ macro_rules! impl_mapcodec {
                     result: Ok(()),
                     map: Default::default(),
                 }
+            }
+        }
+    };
+}
+
+#[cfg(feature = "serde_json")]
+#[macro_export]
+macro_rules! impl_serde {
+    ($t:ident, $default_ctx:expr) => {
+        impl serde::Serialize for $t {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: serde::Serializer,
+            {
+                let json: $crate::serde_json::Value = self
+                    .codec_write(azalea_codec::Ctx(&$default_ctx))
+                    .map_err(serde::ser::Error::custom)?;
+                json.serialize(serializer)
+            }
+        }
+        impl<'de> serde::Deserialize<'de> for $t {
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                let json = $crate::serde_json::Value::deserialize(deserializer)?;
+                Self::codec_read(&json, azalea_codec::Ctx(&$default_ctx))
+                    .map_err(serde::de::Error::custom)
             }
         }
     };

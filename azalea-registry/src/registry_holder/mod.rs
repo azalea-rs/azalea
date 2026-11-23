@@ -19,10 +19,7 @@ use std::{collections::HashMap, sync::LazyLock};
 use azalea_codec::Codec;
 use azalea_core::identifier::Identifier;
 use indexmap::IndexMap;
-use simdnbt::{
-    DeserializeError, FromNbtTag, borrow,
-    owned::{NbtCompound, NbtTag},
-};
+use simdnbt::owned::{NbtCompound, NbtTag};
 use tracing::error;
 
 /// The base of the registry.
@@ -251,14 +248,6 @@ impl RegistryDeserializesTo for enchantment::EnchantmentData {
         }
         registries.enchantment.map.get_index(protocol_id as usize)
     }
-}
-
-pub fn get_in_compound<T: FromNbtTag>(
-    compound: &borrow::NbtCompound,
-    key: &str,
-) -> Result<T, DeserializeError> {
-    let value = compound.get(key).ok_or(DeserializeError::MissingField)?;
-    T::from_nbt_tag(value).ok_or(DeserializeError::MissingField)
 }
 
 impl<O: azalea_codec::Ops> azalea_codec::ResolverTrait<O> for RegistryHolder {

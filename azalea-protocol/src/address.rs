@@ -115,32 +115,6 @@ impl Display for ServerAddr {
     }
 }
 
-/// Serde deserialization for ServerAddress.
-///
-/// This is useful if you're storing the server address in a config file.
-impl<'de> serde::Deserialize<'de> for ServerAddr {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        let string = String::deserialize(deserializer)?;
-        ServerAddr::from_str(string.as_str())
-            .map_err(|_| serde::de::Error::custom("failed to parse address"))
-    }
-}
-
-/// Serde serialization for ServerAddress.
-///
-/// This uses the Display impl, so it will serialize to a string.
-impl serde::Serialize for ServerAddr {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        serializer.serialize_str(&self.to_string())
-    }
-}
-
 /// An address that may be used to connect to a Minecraft server.
 #[derive(Clone, Debug)]
 pub struct ResolvedAddr {

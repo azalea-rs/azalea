@@ -146,11 +146,6 @@ macro_rules! data_registry {
                 crate::DataRegistryKeyRef::into_ident(registry)
             }
         }
-        impl simdnbt::FromNbtTag for $enum_name {
-            fn from_nbt_tag(tag: simdnbt::borrow::NbtTag) -> Option<Self> {
-                simdnbt::FromNbtTag::from_nbt_tag(tag).map(Identifier::into)
-            }
-        }
 
         impl<O: azalea_codec::Ops> azalea_codec::Codec<O> for $enum_name {
             fn codec_read(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {

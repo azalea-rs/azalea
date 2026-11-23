@@ -1,15 +1,14 @@
-use std::{any::Any, fmt::Debug, mem::ManuallyDrop, str::FromStr};
+use std::{any::Any, fmt::Debug, mem::ManuallyDrop};
 
 use azalea_codec::Codec;
 use azalea_registry::builtin::{EnchantmentEffectComponentKind, SoundEvent};
 use simdnbt::{
     DeserializeError,
-    borrow::{NbtCompound, NbtList, NbtTag},
+    borrow::{NbtCompound, NbtList},
 };
 
 use crate::registry_holder::{
     entity_effect::EntityEffect,
-    get_in_compound,
     value::{AttributeEffect, ValueEffect},
 };
 
@@ -184,22 +183,6 @@ pub struct TargetedConditionalEffect<T: Debug + Clone> {
 type ConditionalValueEffect = ConditionalEffect<ValueEffect>;
 type ConditionalEntityEffect = ConditionalEffect<EntityEffect>;
 
-impl<T: simdnbt::Deserialize + Debug + Clone> simdnbt::Deserialize for ConditionalEffect<T> {
-    fn from_compound(nbt: NbtCompound) -> Result<Self, DeserializeError> {
-        let effect = get_in_compound(&nbt, "effect")?;
-        Ok(Self { effect })
-    }
-}
-
-impl<T: simdnbt::Deserialize + Debug + Clone> simdnbt::Deserialize
-    for TargetedConditionalEffect<T>
-{
-    fn from_compound(nbt: NbtCompound) -> Result<Self, DeserializeError> {
-        let effect = get_in_compound(&nbt, "effect")?;
-        Ok(Self { effect })
-    }
-}
-
 macro_rules! declare_newtype_components {
     ( $( $struct_name:ident: $inner_type:ty ),* $(,)? ) => {
         $(
@@ -255,32 +238,6 @@ pub struct CrossbowChargingSound {
 
 #[derive(Clone, Debug, Codec)]
 pub struct TridentSound(pub Vec<SoundEvent>);
-impl simdnbt::FromNbtTag for TridentSound {
-    fn from_nbt_tag(tag: NbtTag) -> Option<Self> {
-        let sounds = tag.list()?.strings()?;
-
-        sounds
-            .iter()
-            .map(|s| SoundEvent::from_str(&s.to_str()).ok())
-            .collect::<Option<Vec<_>>>()
-            .map(Self)
-    }
-}
-impl TridentSound {
-    pub fn from_effect_nbt_tag(nbt: EffectNbtTag) -> Result<Self, DeserializeError> {
-        let sounds = nbt
-            .list("TridentSound")?
-            .strings()
-            .ok_or_else(|| DeserializeError::MismatchedFieldType("TridentSound".to_owned()))?;
-
-        sounds
-            .iter()
-            .map(|s| SoundEvent::from_str(&s.to_str()).ok())
-            .collect::<Option<Vec<_>>>()
-            .ok_or_else(|| DeserializeError::MismatchedFieldType("TridentSound".to_owned()))
-            .map(Self)
-    }
-}
 
 #[derive(Clone, Debug, Codec)]
 #[codec(allow_unknown_keys)]

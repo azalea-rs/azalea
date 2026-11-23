@@ -18,7 +18,7 @@ indexmap.workspace = true
 thiserror.workspace = true
 uuid.workspace = true
 derive_more = { workspace = true, features = ["deref", "deref_mut"] }
-azalea-codec = { workspace = true, features = ["indexmap"] }
+azalea-codec = { workspace = true, features = ["indexmap", "serde_json"] }
 
 [features]
 bevy_ecs = ["dep:bevy_ecs"]

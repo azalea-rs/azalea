@@ -10,9 +10,6 @@ use std::{
 
 use azalea_buf::{AzBuf, BufReadError};
 use azalea_codec::{Codec, error::ReadError};
-#[cfg(feature = "serde")]
-use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
-use simdnbt::{FromNbtTag, ToNbtTag, owned::NbtTag};
 
 /// An identifier, like `minecraft:stone` or `brigadier:number`.
 ///
@@ -122,34 +119,6 @@ impl AzBuf for Identifier {
     }
 }
 
-#[cfg(feature = "serde")]
-impl Serialize for Identifier {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        serializer.serialize_str(&self.to_string())
-    }
-}
-
-#[cfg(feature = "serde")]
-impl<'de> Deserialize<'de> for Identifier {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let s = String::deserialize(deserializer)?;
-        if s.contains(':') {
-            Ok(Identifier::new(&s))
-        } else {
-            Err(de::Error::invalid_value(
-                de::Unexpected::Str(&s),
-                &"a valid Identifier",
-            ))
-        }
-    }
-}
-
 impl<O: azalea_codec::Ops> Codec<O> for Identifier {
     fn codec_read(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
         ops.get_string(ctx)?
@@ -158,18 +127,6 @@ impl<O: azalea_codec::Ops> Codec<O> for Identifier {
     }
     fn codec_write(&self, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::WriteResult<O> {
         self.to_string().codec_write(ctx)
-    }
-}
-
-impl FromNbtTag for Identifier {
-    fn from_nbt_tag(tag: simdnbt::borrow::NbtTag) -> Option<Self> {
-        tag.string().and_then(|s| s.to_str().parse().ok())
-    }
-}
-
-impl ToNbtTag for Identifier {
-    fn to_nbt_tag(self) -> NbtTag {
-        NbtTag::String(self.to_string().into())
     }
 }
 
