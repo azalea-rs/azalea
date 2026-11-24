@@ -2,6 +2,8 @@
 pub mod indexmap;
 #[cfg(feature = "serde_json")]
 pub mod serde_json;
+#[cfg(feature = "simd-json")]
+pub mod simd_json;
 #[cfg(feature = "simdnbt")]
 pub mod simdnbt;
 #[cfg(feature = "uuid")]

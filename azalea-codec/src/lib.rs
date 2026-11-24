@@ -39,6 +39,9 @@ pub use serde;
 #[cfg(feature = "serde_json")]
 #[doc(hidden)]
 pub use serde_json;
+#[cfg(feature = "simd-json")]
+#[doc(hidden)]
+pub use simd_json;
 
 /// A data structure that can be written and read.
 ///
@@ -193,16 +196,16 @@ macro_rules! impl_mapcodec {
     };
 }
 
-#[cfg(feature = "serde_json")]
+#[doc(hidden)]
 #[macro_export]
-macro_rules! impl_serde {
-    ($t:ident, $default_ctx:expr) => {
+macro_rules! internal_impl_serde_with {
+    ($t:ident, $default_ctx:expr, $value_ty:ty) => {
         impl $crate::serde::Serialize for $t {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
                 S: $crate::serde::Serializer,
             {
-                let json: $crate::serde_json::Value = self
+                let json: $value_ty = self
                     .codec_write($crate::Ctx(&$default_ctx))
                     .map_err($crate::serde::ser::Error::custom)?;
                 json.serialize(serializer)
@@ -213,11 +216,26 @@ macro_rules! impl_serde {
             where
                 D: $crate::serde::Deserializer<'de>,
             {
-                let json = $crate::serde_json::Value::deserialize(deserializer)?;
+                let json = <$value_ty>::deserialize(deserializer)?;
                 Self::codec_read(&json, $crate::Ctx(&$default_ctx))
                     .map_err($crate::serde::de::Error::custom)
             }
         }
+    };
+}
+
+#[cfg(all(feature = "serde_json", not(feature = "simd-json")))]
+#[macro_export]
+macro_rules! impl_serde {
+    ($t:ident, $default_ctx:expr) => {
+        azalea_codec::internal_impl_serde_with!($t, $default_ctx, $crate::serde_json::Value);
+    };
+}
+#[cfg(feature = "simd-json")]
+#[macro_export]
+macro_rules! impl_serde {
+    ($t:ident, $default_ctx:expr) => {
+        azalea_codec::internal_impl_serde_with!($t, $default_ctx, $crate::simd_json::owned::Value);
     };
 }
 

@@ -10,6 +10,7 @@ azalea-codec-macros.workspace = true
 indexmap = { workspace = true, optional = true }
 serde = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
+simd-json = { workspace = true, optional = true }
 simdnbt = { workspace = true, optional = true }
 thiserror.workspace = true
 uuid = { workspace = true, optional = true }
@@ -24,3 +25,4 @@ serde_json = ["dep:serde_json", "dep:serde"]
 simdnbt = ["dep:simdnbt"]
 uuid = ["dep:uuid"]
 indexmap = ["dep:indexmap"]
+simd-json = ["dep:simd-json"]
