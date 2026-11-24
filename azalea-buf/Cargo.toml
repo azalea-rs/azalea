@@ -12,6 +12,7 @@ azalea-codec.workspace = true
 byteorder.workspace = true
 indexmap.workspace = true
 serde_json = { workspace = true, optional = true }
+simd-json = { workspace = true, optional = true }
 simdnbt.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
@@ -19,6 +20,7 @@ uuid.workspace = true
 
 [features]
 serde_json = ["dep:serde_json"]
+simd-json = ["dep:simd-json"]
 
 [lints]
 workspace = true

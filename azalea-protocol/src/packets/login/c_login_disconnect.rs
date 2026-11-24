@@ -15,7 +15,8 @@ impl AzBuf for ClientboundLoginDisconnect {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let string = String::azalea_read(buf)?;
         trace!("Got disconnect packet with string: {string:?}");
-        let json = match serde_json::from_str::<serde_json::Value>(string.as_str()) {
+        let mut string = string.into_bytes();
+        let json = match simd_json::from_slice::<simd_json::OwnedValue>(&mut string) {
             Ok(json) => json,
             Err(err) => {
                 return Err(BufReadError::custom(format!(
@@ -28,7 +29,7 @@ impl AzBuf for ClientboundLoginDisconnect {
         Ok(ClientboundLoginDisconnect { reason })
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        let json: serde_json::Value = self.reason.codec_write(Default::default())?;
+        let json: simd_json::OwnedValue = self.reason.codec_write(Default::default())?;
         let string = serde_json::to_string(&json)?;
         string.azalea_write(buf)
     }

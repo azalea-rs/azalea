@@ -79,9 +79,15 @@ pub enum BufReadErrorRepr {
     Custom(String),
     #[cfg(feature = "serde_json")]
     #[error("{source}")]
-    Deserialization {
+    SerdeJson {
         #[from]
         source: serde_json::Error,
+    },
+    #[cfg(feature = "simd-json")]
+    #[error("{source}")]
+    SimdJson {
+        #[from]
+        source: simd_json::Error,
     },
     #[error("{source}")]
     Nbt {
@@ -123,10 +129,12 @@ macro_rules! buf_read_error_from_impl {
     };
 }
 buf_read_error_from_impl!(io::Error);
-#[cfg(feature = "serde_json")]
-buf_read_error_from_impl!(serde_json::Error);
 buf_read_error_from_impl!(simdnbt::Error);
 buf_read_error_from_impl!(azalea_codec::error::ReadError);
+#[cfg(feature = "serde_json")]
+buf_read_error_from_impl!(serde_json::Error);
+#[cfg(feature = "simd-json")]
+buf_read_error_from_impl!(simd_json::Error);
 
 pub(crate) fn read_bytes<'a>(
     buf: &'a mut Cursor<&[u8]>,
@@ -147,7 +155,7 @@ pub(crate) fn read_bytes<'a>(
     Ok(data)
 }
 
-pub(crate) fn read_utf_with_len<'a>(
+pub(crate) fn read_utf8_with_len<'a>(
     buf: &'a mut Cursor<&[u8]>,
     max_length: u32,
 ) -> Result<&'a str, BufReadError> {

@@ -46,13 +46,14 @@ pub struct ClientboundStatusResponse {
 impl AzBuf for ClientboundStatusResponse {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let string = String::azalea_read(buf)?;
-        let json = serde_json::from_str::<serde_json::Value>(string.as_str())?;
+        let mut string = string.into_bytes();
+        let json = simd_json::from_slice::<serde_json::Value>(&mut string)?;
 
         Ok(Self::codec_read(&json, Default::default())?)
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        let json: serde_json::Value = Self::codec_write(self, Default::default()).unwrap();
-        let string = serde_json::to_string(&json)?;
+        let json: simd_json::OwnedValue = Self::codec_write(self, Default::default()).unwrap();
+        let string = simd_json::to_string(&json)?;
         string.azalea_write(buf)
     }
 }

@@ -9,7 +9,7 @@ use indexmap::IndexMap;
 
 use crate::{
     AzBuf, AzBufLimited, AzBufVar, BufReadError, BufReadErrorRepr, MAX_STRING_LENGTH,
-    UnsizedByteArray, read_bytes, read_utf_with_len, write_utf_with_len,
+    UnsizedByteArray, read_bytes, read_utf8_with_len, write_utf_with_len,
 };
 
 impl AzBuf for UnsizedByteArray {
@@ -162,7 +162,7 @@ impl AzBuf for Box<[u8]> {
 
 impl AzBuf for String {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        read_utf_with_len(buf, MAX_STRING_LENGTH).map(Into::into)
+        read_utf8_with_len(buf, MAX_STRING_LENGTH).map(Into::into)
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         write_utf_with_len(buf, self, MAX_STRING_LENGTH)
@@ -170,13 +170,13 @@ impl AzBuf for String {
 }
 impl AzBufLimited for String {
     fn azalea_read_limited(buf: &mut Cursor<&[u8]>, limit: u32) -> Result<Self, BufReadError> {
-        read_utf_with_len(buf, limit).map(Into::into)
+        read_utf8_with_len(buf, limit).map(Into::into)
     }
 }
 
 impl AzBuf for Box<str> {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        read_utf_with_len(buf, MAX_STRING_LENGTH).map(Into::into)
+        read_utf8_with_len(buf, MAX_STRING_LENGTH).map(Into::into)
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         write_utf_with_len(buf, self, MAX_STRING_LENGTH)
