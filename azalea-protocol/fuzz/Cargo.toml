@@ -9,7 +9,9 @@ cargo-fuzz = true
 
 [dependencies]
 libfuzzer-sys = "0.4"
-azalea-protocol = { path = "..", default-features = false }
+azalea-protocol.workspace = true
+azalea-registry.workspace = true
+azalea-buf.workspace = true
 
 [[bin]]
 name = "clientbound_config"
@@ -70,6 +72,13 @@ bench = false
 [[bin]]
 name = "serverbound_status"
 path = "fuzz_targets/serverbound_status.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "itemstack"
+path = "fuzz_targets/itemstack.rs"
 test = false
 doc = false
 bench = false

@@ -491,7 +491,9 @@ dependencies = [
 name = "azalea-fuzz"
 version = "0.0.0"
 dependencies = [
+ "azalea-buf",
  "azalea-protocol",
+ "azalea-registry",
  "libfuzzer-sys",
 ]
 
