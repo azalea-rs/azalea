@@ -1,6 +1,6 @@
 [package]
 name = "azalea-language"
-description = "Translate Minecraft strings from their id."
+description = "Translate Minecraft strings from their ID."
 version.workspace = true
 edition.workspace = true
 license.workspace = true

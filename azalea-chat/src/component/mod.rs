@@ -41,80 +41,64 @@ pub enum FormattedText {
     Nbt(NbtComponent),
     Object(ObjectComponent),
 }
+azalea_codec::impl_codec_from!(FormattedText, FormattedTextCodec);
 
-impl<O: azalea_codec::Ops> azalea_codec::Codec<O> for FormattedText {
-    type Incomplete = azalea_codec::error::ReadResult<Self>;
-    fn codec_read(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
-        let mut errors = Vec::new();
-        match String::codec_read(ops, ctx) {
-            Ok(r) => {
-                return Ok(Self::Text(TextComponent::new(r)));
-            }
-            Err(e) => {
-                errors.push(("String", e));
-            }
-        }
-        match TextComponent::codec_read(ops, ctx) {
-            Ok(r) => {
-                return Ok(Self::Text(r));
-            }
-            Err(e) => {
-                errors.push(("TextComponent", e));
-            }
-        }
-        match TranslatableComponent::codec_read(ops, ctx) {
-            Ok(r) => {
-                return Ok(Self::Translatable(r));
-            }
-            Err(e) => {
-                errors.push(("TranslatableComponent", e));
-            }
-        }
-
-        match Vec::<FormattedText>::codec_read(ops, ctx) {
-            Ok(r) => {
-                let num_components = r.len();
-                let mut iter = r.into_iter();
-                let Some(mut first) = iter.next() else {
+#[derive(Codec)]
+enum FormattedTextCodec {
+    List(#[codec(with = CompactListCodec::<_>)] Vec<FormattedTextCodec>),
+    Text(TextComponent),
+    Translatable(TranslatableComponent),
+    Keybind(KeybindComponent),
+    Score(ScoreComponent),
+    Selector(SelectorComponent),
+    Nbt(NbtComponent),
+    Object(ObjectComponent),
+}
+impl From<FormattedTextCodec> for FormattedText {
+    fn from(c: FormattedTextCodec) -> Self {
+        type C = FormattedTextCodec;
+        match c {
+            C::List(c) => {
+                let num_components = c.len();
+                let mut iter = c.into_iter().map(|c| c.into());
+                let Some(first) = iter.next() else {
                     // an empty array is parsed as an empty string component
-                    return Ok(Self::default());
+                    return Self::default();
                 };
                 if num_components == 1 {
                     // putting a single component in a list just unwraps it
-                    return Ok(first);
+                    return first;
                 }
 
                 let style = first.get_base().style.clone();
                 // put them all as siblings of an empty component, but copying
                 // the style of the first component
-                first = TextComponent::empty_with_siblings(vec![first])
+                return TextComponent::empty_with_siblings(vec![first])
                     .with_additional_siblings(iter)
                     .with_style(*style)
                     .into();
-                return Ok(first);
             }
-            Err(e) => {
-                errors.push(("Vec<TextComponent>", e));
-            }
+            C::Text(c) => Self::Text(c),
+            C::Translatable(c) => Self::Translatable(c),
+            C::Keybind(c) => Self::Keybind(c),
+            C::Score(c) => Self::Score(c),
+            C::Selector(c) => Self::Selector(c),
+            C::Nbt(c) => Self::Nbt(c),
+            C::Object(c) => Self::Object(c),
         }
-
-        Err(azalea_codec::error::ReadError::no_variants_matched(errors))
     }
-    fn codec_write(&self, ctx: azalea_codec::Ctx<O>) -> ::azalea_codec::error::WriteResult<O> {
-        match self {
-            Self::Text(v) => {
-                // write as a string instead of map when possible
-                if v.base.is_default() {
-                    return v.text.codec_write(ctx);
-                }
-                v.codec_write(ctx)
-            }
-            Self::Translatable(v) => v.codec_write(ctx),
-            Self::Keybind(v) => v.codec_write(ctx),
-            Self::Score(v) => v.codec_write(ctx),
-            Self::Selector(v) => v.codec_write(ctx),
-            Self::Nbt(v) => v.codec_write(ctx),
-            Self::Object(v) => v.codec_write(ctx),
+}
+impl From<FormattedText> for FormattedTextCodec {
+    fn from(c: FormattedText) -> Self {
+        type C = FormattedText;
+        match c {
+            C::Text(c) => Self::Text(c),
+            C::Translatable(c) => Self::Translatable(c),
+            C::Keybind(c) => Self::Keybind(c),
+            C::Score(c) => Self::Score(c),
+            C::Selector(c) => Self::Selector(c),
+            C::Nbt(c) => Self::Nbt(c),
+            C::Object(c) => Self::Object(c),
         }
     }
 }
@@ -418,6 +402,7 @@ impl Default for FormattedText {
 }
 
 azalea_codec::impl_serde!(FormattedText, ());
+azalea_codec::impl_defaultable!(FormattedText);
 
 #[cfg(test)]
 mod tests {

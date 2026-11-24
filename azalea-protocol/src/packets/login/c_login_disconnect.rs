@@ -2,8 +2,8 @@ use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzBuf, BufReadError};
 use azalea_chat::FormattedText;
+use azalea_codec::Codec;
 use azalea_protocol_macros::ClientboundLoginPacket;
-use serde::{Deserialize, Serialize};
 use tracing::trace;
 
 #[derive(ClientboundLoginPacket, Clone, Debug, PartialEq)]
@@ -12,28 +12,24 @@ pub struct ClientboundLoginDisconnect {
 }
 
 impl AzBuf for ClientboundLoginDisconnect {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<ClientboundLoginDisconnect, BufReadError> {
-        let disconnect_string = String::azalea_read(buf)?;
-        trace!("Got disconnect packet with string: {disconnect_string:?}");
-        let disconnect_json =
-            match serde_json::from_str::<serde_json::Value>(disconnect_string.as_str()) {
-                Ok(json) => json,
-                Err(err) => {
-                    return Err(BufReadError::custom(format!(
-                        "Failed to deserialize disconnect JSON {disconnect_string:?}: {err}"
-                    )));
-                }
-            };
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let string = String::azalea_read(buf)?;
+        trace!("Got disconnect packet with string: {string:?}");
+        let json = match serde_json::from_str::<serde_json::Value>(string.as_str()) {
+            Ok(json) => json,
+            Err(err) => {
+                return Err(BufReadError::custom(format!(
+                    "Failed to deserialize disconnect JSON {string:?}: {err}"
+                )));
+            }
+        };
 
-        Ok(ClientboundLoginDisconnect {
-            reason: FormattedText::deserialize(disconnect_json)?,
-        })
+        let reason = FormattedText::codec_read(&json, Default::default())?;
+        Ok(ClientboundLoginDisconnect { reason })
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        let status_string = FormattedText::serialize(&self.reason, serde_json::value::Serializer)
-            .unwrap()
-            .to_string();
-        status_string.azalea_write(buf)?;
-        Ok(())
+        let json: serde_json::Value = self.reason.codec_write(Default::default())?;
+        let string = serde_json::to_string(&json)?;
+        string.azalea_write(buf)
     }
 }

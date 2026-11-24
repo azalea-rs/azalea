@@ -26,7 +26,14 @@ struct TextComponentCodec {
 }
 impl<O: azalea_codec::Ops> Codec<O> for TextComponent {
     fn codec_read(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
-        let r = TextComponentCodec::codec_read(ops, ctx)?;
+        let r = if let Ok(text) = String::codec_read(ops, ctx) {
+            TextComponentCodec {
+                text,
+                base: Default::default(),
+            }
+        } else {
+            TextComponentCodec::codec_read(ops, ctx)?
+        };
 
         // make sure it goes through the constructor so legacy formatting is
         // handled
@@ -47,6 +54,10 @@ impl<O: azalea_codec::Ops> Codec<O> for TextComponent {
     }
 
     fn codec_write(&self, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::WriteResult<O> {
+        if self.base.is_default() {
+            return self.text.codec_write(ctx);
+        }
+
         TextComponentCodec {
             text: self.text.clone(),
             base: self.base.clone(),

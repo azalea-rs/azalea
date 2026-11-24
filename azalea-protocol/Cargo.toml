@@ -33,8 +33,6 @@ bevy_ecs = { workspace = true, optional = true }
 flate2.workspace = true
 futures.workspace = true
 futures-lite.workspace = true
-# futures-util.workspace = true
-serde = { workspace = true, features = ["serde_derive"] }
 serde_json.workspace = true
 simdnbt.workspace = true
 socks5-impl = { workspace = true, features = ["client"] }
@@ -46,6 +44,7 @@ hickory-resolver = { workspace = true, features = ["tokio", "system-config"] }
 uuid.workspace = true
 indexmap.workspace = true
 reqwest = { workspace = true, optional = true, features = ["socks"] }
+azalea-codec.workspace = true
 
 [features]
 default = ["online-mode", "connecting"]

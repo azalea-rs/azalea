@@ -2,6 +2,7 @@ use std::{
     backtrace::{Backtrace, BacktraceStatus},
     convert::Infallible,
     fmt::Debug,
+    io,
 };
 
 use thiserror::Error;
@@ -125,6 +126,11 @@ impl Debug for ReadError {
         Ok(())
     }
 }
+impl From<ReadError> for io::Error {
+    fn from(error: ReadError) -> Self {
+        io::Error::other(error)
+    }
+}
 
 #[derive(Debug, Clone)]
 pub enum WriteErrorKind {
@@ -168,5 +174,10 @@ impl Clone for WriteError {
             kind: self.kind.clone(),
             backtrace: Backtrace::capture(),
         }
+    }
+}
+impl From<WriteError> for io::Error {
+    fn from(error: WriteError) -> Self {
+        io::Error::other(error)
     }
 }

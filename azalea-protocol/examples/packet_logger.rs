@@ -66,15 +66,17 @@ const ACCOUNT: &str = "example@example.com";
 const PROXY_DESC: &str = "An Azalea Minecraft Proxy";
 // String must be formatted like "data:image/png;base64,<data>"
 static PROXY_FAVICON: LazyLock<Option<String>> = LazyLock::new(|| None);
-static PROXY_VERSION: LazyLock<Version> = LazyLock::new(|| Version {
-    name: VERSION_NAME.to_string(),
-    protocol: PROTOCOL_VERSION,
+static PROXY_VERSION: LazyLock<Option<Version>> = LazyLock::new(|| {
+    Some(Version {
+        name: VERSION_NAME.to_string(),
+        protocol: PROTOCOL_VERSION,
+    })
 });
-const PROXY_PLAYERS: Players = Players {
+const PROXY_PLAYERS: Option<Players> = Some(Players {
     max: 1,
     online: 0,
     sample: Vec::new(),
-};
+});
 const PROXY_SECURE_CHAT: Option<bool> = Some(false);
 
 #[tokio::main]
@@ -139,6 +141,7 @@ async fn handle_connection(stream: TcpStream) -> eyre::Result<()> {
                                 players: PROXY_PLAYERS.clone(),
                                 version: PROXY_VERSION.clone(),
                                 enforces_secure_chat: PROXY_SECURE_CHAT,
+                                contact: None,
                             })
                             .await?;
                         }

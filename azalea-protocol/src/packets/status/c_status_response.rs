@@ -2,57 +2,57 @@ use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzBuf, BufReadError};
 use azalea_chat::FormattedText;
+use azalea_codec::Codec;
 use azalea_protocol_macros::ClientboundStatusPacket;
-use serde::{Deserialize, Serialize};
-use serde_json::value::Serializer;
 
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Codec)]
 pub struct Version {
     pub name: String,
     pub protocol: i32,
 }
 
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Codec)]
 pub struct SamplePlayer {
     pub id: String,
     pub name: String,
 }
 
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Codec)]
 pub struct Players {
     pub max: i32,
     pub online: i32,
-    #[serde(default)]
+    #[codec(lenient)]
     pub sample: Vec<SamplePlayer>,
 }
 
-// the entire packet is just json, which is why it has deserialize
-#[derive(ClientboundStatusPacket, Clone, Debug, Deserialize, PartialEq, Serialize)]
+// the entire packet is just json, which is why it has Codec
+#[derive(ClientboundStatusPacket, Clone, Debug, PartialEq, Codec)]
 pub struct ClientboundStatusResponse {
+    #[codec(lenient)]
     pub description: FormattedText,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[codec(lenient)]
     pub favicon: Option<String>,
-    pub players: Players,
-    pub version: Version,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "enforcesSecureChat")]
+    #[codec(lenient)]
+    pub players: Option<Players>,
+    #[codec(lenient)]
+    pub version: Option<Version>,
+    #[codec(lenient)]
+    #[codec(rename = "enforcesSecureChat")]
     pub enforces_secure_chat: Option<bool>,
+    #[codec(lenient)]
+    pub contact: Option<String>,
 }
 
 impl AzBuf for ClientboundStatusResponse {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<ClientboundStatusResponse, BufReadError> {
-        let status_string = String::azalea_read(buf)?;
-        let status_json: serde_json::Value = serde_json::from_str(status_string.as_str())?;
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let string = String::azalea_read(buf)?;
+        let json = serde_json::from_str::<serde_json::Value>(string.as_str())?;
 
-        Ok(ClientboundStatusResponse::deserialize(status_json)?)
+        Ok(Self::codec_read(&json, Default::default())?)
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        let status_string = ClientboundStatusResponse::serialize(self, Serializer)
-            .unwrap()
-            .to_string();
-        status_string.azalea_write(buf)?;
-        Ok(())
+        let json: serde_json::Value = Self::codec_write(self, Default::default()).unwrap();
+        let string = serde_json::to_string(&json)?;
+        string.azalea_write(buf)
     }
 }
