@@ -1,6 +1,6 @@
 [package]
 name = "azalea-protocol-macros"
-description = "Macros internally used in azalea-protocol."
+description = "Macros used internally by azalea-protocol."
 version.workspace = true
 edition.workspace = true
 license.workspace = true

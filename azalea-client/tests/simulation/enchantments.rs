@@ -1,12 +1,17 @@
 use azalea_client::test_utils::prelude::*;
+use azalea_core::identifier::Identifier;
 use azalea_entity::Attributes;
-use azalea_inventory::{ItemStack, components::Enchantments};
 use azalea_protocol::packets::{
     ConnectionProtocol,
     config::{ClientboundFinishConfiguration, ClientboundRegistryData},
     game::ClientboundContainerSetSlot,
 };
-use azalea_registry::{Registry, builtin::ItemKind, data::Enchantment, identifier::Identifier};
+use azalea_registry::{
+    Registry,
+    builtin::ItemKind,
+    data::Enchantment,
+    item::{ItemStack, components::Enchantments},
+};
 use simdnbt::owned::{NbtCompound, NbtTag};
 
 #[test]
@@ -14,18 +19,7 @@ fn test_enchantments() {
     let _lock = init();
 
     let mut s = Simulation::new(ConnectionProtocol::Configuration);
-    s.receive_packet(ClientboundRegistryData {
-        registry_id: Identifier::new("minecraft:dimension_type"),
-        entries: vec![(
-            Identifier::new("minecraft:overworld"),
-            Some(NbtTag::from(NbtCompound::from_values(vec![
-                ("height".into(), NbtTag::Int(384)),
-                ("min_y".into(), NbtTag::Int(-64)),
-            ]))),
-        )]
-        .into_iter()
-        .collect(),
-    });
+    receive_default_registries(&mut s);
     // actual registry data copied from vanilla
     s.receive_packet(ClientboundRegistryData {
         registry_id: Identifier::new("minecraft:enchantment"),
@@ -78,7 +72,7 @@ fn test_enchantments() {
     s.tick();
     s.receive_packet(ClientboundFinishConfiguration);
     s.tick();
-    s.receive_packet(default_login_packet());
+    s.receive_packet(default_login_packet(&s));
     s.tick();
 
     fn efficiency(simulation: &mut Simulation) -> f64 {

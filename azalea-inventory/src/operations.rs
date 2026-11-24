@@ -1,16 +1,16 @@
 use std::ops::RangeInclusive;
 
 use azalea_buf::AzBuf;
+use azalea_registry::item::{ItemStack, ItemStackData, MaxStackSizeExt};
 
 use crate::{
     AnvilMenuLocation, BeaconMenuLocation, BlastFurnaceMenuLocation, BrewingStandMenuLocation,
     CartographyTableMenuLocation, Crafter3x3MenuLocation, CraftingMenuLocation,
     EnchantmentMenuLocation, FurnaceMenuLocation, Generic3x3MenuLocation, Generic9x1MenuLocation,
     Generic9x2MenuLocation, Generic9x3MenuLocation, Generic9x4MenuLocation, Generic9x5MenuLocation,
-    Generic9x6MenuLocation, GrindstoneMenuLocation, HopperMenuLocation, ItemStack, ItemStackData,
-    LecternMenuLocation, LoomMenuLocation, Menu, MenuLocation, MerchantMenuLocation, Player,
-    PlayerMenuLocation, ShulkerBoxMenuLocation, SmithingMenuLocation, SmokerMenuLocation,
-    StonecutterMenuLocation, item::MaxStackSizeExt,
+    Generic9x6MenuLocation, GrindstoneMenuLocation, HopperMenuLocation, LecternMenuLocation,
+    LoomMenuLocation, Menu, MenuLocation, MerchantMenuLocation, Player, PlayerMenuLocation,
+    ShulkerBoxMenuLocation, SmithingMenuLocation, SmokerMenuLocation, StonecutterMenuLocation,
 };
 
 /// A type of click in a Minecraft inventory.

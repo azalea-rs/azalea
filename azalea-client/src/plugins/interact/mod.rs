@@ -20,7 +20,6 @@ use azalea_entity::{
     indexing::EntityIdIndex,
     inventory::Inventory,
 };
-use azalea_inventory::{ItemStack, ItemStackData, components};
 use azalea_physics::{
     PhysicsSystems, client_movement::ClientMovementState,
     collision::entity_collisions::update_last_bounding_box,
@@ -29,6 +28,7 @@ use azalea_protocol::packets::game::{
     ServerboundInteract, ServerboundPunch, ServerboundUseItem, s_interact::InteractionHand,
     s_use_item_on::ServerboundUseItemOn,
 };
+use azalea_registry::item::{ItemStack, ItemStackData, components};
 use azalea_world::World;
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
@@ -37,8 +37,8 @@ use tracing::warn;
 use super::mining::Mining;
 use crate::{
     attack::handle_attack_event,
+    client_inventory::InventorySystems,
     interact::pick::{HitResultComponent, update_hit_result_component},
-    inventory::InventorySystems,
     local_player::PermissionLevel,
     movement::MoveEventsSystems,
     packet::game::SendGamePacketEvent,

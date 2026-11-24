@@ -40,6 +40,7 @@ uuid.workspace = true
 # TODO: this is here to make bevy show system names in conflict warnings.
 # in bevy 0.18, we should be able to just enable the debug feature on bevy_ecs instead.
 bevy_utils = { workspace = true, features = ["debug"] }
+azalea-codec.workspace = true
 
 [dev-dependencies]
 eyre.workspace = true

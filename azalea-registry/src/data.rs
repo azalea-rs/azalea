@@ -4,18 +4,23 @@
 //! These registries are sent to us by the server on join.
 
 use azalea_buf::AzBuf;
+use azalea_core::identifier::Identifier;
 
-use crate::{DataRegistry, identifier::Identifier};
+use crate::DataRegistry;
 
 macro_rules! data_registry {
     (
+        $(#[$struct_attrs:meta])*
         $registry:ident => $registry_name:expr,
-        $(#[$doc:meta])*
+        $(#[$enum_attrs:meta])*
         enum $enum_name:ident {
-            $($variant:ident => $variant_name:expr),* $(,)?
+            $(
+                $(#[$variant_attrs:meta])*
+                $variant:ident => $variant_name:expr
+            ),* $(,)?
         }
     ) => {
-        $(#[$doc])*
+        $(#[$struct_attrs])*
         #[derive(AzBuf, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
         pub struct $registry {
             #[var]
@@ -32,21 +37,55 @@ macro_rules! data_registry {
                 Self { id }
             }
         }
-
-        #[cfg(feature = "serde")]
-        impl serde::Serialize for $registry {
-            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-            where
-                S: serde::Serializer,
-            {
-                // see ChecksumSerializer::serialize_newtype_variant
-                serializer.serialize_newtype_variant(concat!("minecraft:", $registry_name), self.id, "", &())
+        impl<O: azalea_codec::Ops> azalea_codec::ResolvableItem<O> for $registry {
+            fn name(&self) -> &'static str { $registry_name }
+            fn to_resolvable_id(&self) -> u32 { self.protocol_id() }
+        }
+        impl<O: azalea_codec::Ops> azalea_codec::IntoResolvableItem<O> for $registry {
+            type Resolvable = $registry;
+            fn codec_read_resolvable_item(
+                ops: &O,
+                ctx: azalea_codec::Ctx<O>,
+            ) -> azalea_codec::error::ReadResult<Self> {
+                let Some(registry_holder) =
+                    (ctx.0 as &dyn std::any::Any).downcast_ref::<crate::registry_holder::RegistryHolder>()
+                else {
+                    return Err(azalea_codec::error::ReadError::custom(
+                        "passed a Ctx that's not RegistryHolder",
+                    ));
+                };
+                let ident = <Identifier as azalea_codec::Codec<O>>::codec_read(ops, ctx)?;
+                let id = registry_holder
+                    .identifier_to_protocol_id(Self::NAME, ident.clone())
+                    .ok_or_else(|| {
+                        azalea_codec::error::ReadError::custom(format!(
+                            "got a resolvable {} with value {ident}, which isn't in our registry",
+                            Self::NAME
+                        ))
+                    })?;
+                Ok(Self::new_raw(id))
+            }
+            fn from_resolvable_id(id: u32) -> Self {
+                Self::new_raw(id)
             }
         }
 
+        impl<O: azalea_codec::Ops> azalea_codec::Codec<O> for $registry {
+            fn codec_read(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
+                ops.get_resolvable_item::<Self>(ctx)
+            }
+            fn codec_write(&self, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::WriteResult<O> {
+                O::create_resolvable_item(ctx, self)
+            }
+        }
+
+        $(#[$enum_attrs])*
         #[derive(Clone, Debug, Eq, Hash, PartialEq)]
         pub enum $enum_name<Other = Identifier> {
-            $($variant),*,
+            $(
+                $(#[$variant_attrs])*
+                $variant
+            ),*,
             Other(Other)
         }
         impl $enum_name {
@@ -115,9 +154,13 @@ macro_rules! data_registry {
                 crate::DataRegistryKeyRef::into_ident(registry)
             }
         }
-        impl simdnbt::FromNbtTag for $enum_name {
-            fn from_nbt_tag(tag: simdnbt::borrow::NbtTag) -> Option<Self> {
-                simdnbt::FromNbtTag::from_nbt_tag(tag).map(Identifier::into)
+
+        impl<O: azalea_codec::Ops> azalea_codec::Codec<O> for $enum_name {
+            fn codec_read(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
+                Identifier::codec_read(ops, ctx).map(Self::from)
+            }
+            fn codec_write(&self, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::WriteResult<O> {
+                Identifier::from(self.clone()).codec_write(ctx)
             }
         }
     };
@@ -2333,11 +2376,11 @@ enum RecipeKey {
 }
 
 data_registry! {
-Biome => "worldgen/biome",
 /// An opaque biome identifier.
 ///
 /// You'll probably want to resolve this into its name before using it, by
 /// using `Client::with_resolved_registry` or a similar function.
+Biome => "worldgen/biome",
 enum BiomeKey {
     Badlands => "badlands",
     BambooJungle => "bamboo_jungle",
@@ -2411,7 +2454,9 @@ enum BiomeKey {
 
 data_registry! {
 WorldClock => "world_clock",
+#[derive(Default)]
 enum WorldClockKey {
+    #[default]
     Overworld => "overworld",
     TheEnd => "the_end",
 }

@@ -6,12 +6,14 @@ use std::{
 };
 
 use azalea_buf::{AzBuf, BufReadError};
-use azalea_inventory::{
-    DataComponentPatch, ItemStack, ItemStackData,
-    components::{self, DataComponentUnion},
-};
 use azalea_protocol_macros::ClientboundGamePacket;
-use azalea_registry::builtin::{DataComponentKind, ItemKind};
+use azalea_registry::{
+    builtin::{DataComponentKind, ItemKind},
+    item::{
+        ItemStack, ItemStackData,
+        components::{self, DataComponentUnion, patch::DataComponentPatch},
+    },
+};
 
 #[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundMerchantOffers {
@@ -56,16 +58,16 @@ impl ItemCost {
         let mut component_patch = DataComponentPatch::default();
         for component in self.components.expected {
             let component = ManuallyDrop::new(component);
-            // SAFETY: DataComponentUnion does not run any destructors unless it's dropped
-            // through drop_as, so since TypedDataComponent is now ManuallyDrop, the value
-            // will stay in memory.
+            // SAFETY: DataComponentUnion does not run any destructors unless
+            // it's dropped through drop_as, so since TypedDataComponent is now
+            // ManuallyDrop, the value will stay in memory.
             let value = unsafe { std::ptr::read(&component.value) };
             unsafe {
                 component_patch.unchecked_insert_component(component.kind, Some(value));
             }
         }
-        // TODO: add a fast way to iterate over default components, and insert the ones
-        // that aren't present as None
+        // TODO: add a fast way to iterate over default components, and insert
+        // the ones that aren't present as None
 
         ItemStackData {
             kind: self.item,
@@ -97,8 +99,8 @@ impl TypedDataComponent {
         &self.value
     }
     pub fn as_dyn(&self) -> &dyn components::EncodableDataComponent {
-        // SAFETY: the kind is correct because we got it from azalea_read_as, and the
-        // kind isn't mutable
+        // SAFETY: the kind is correct because we got it from azalea_read_as,
+        // and the kind isn't mutable
         unsafe { self.value.as_kind(self.kind) }
     }
     pub fn get<T: components::DataComponentTrait>(&self) -> Option<&T> {

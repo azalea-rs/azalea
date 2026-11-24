@@ -4,7 +4,7 @@ use std::{
     sync::LazyLock,
 };
 
-use azalea_registry::{builtin::BlockKind, tags::RegistryTag};
+use azalea_registry_builtin::{builtin::BlockKind, tags::RegistryTag};
 
 use crate::{BlockState, block_state::BlockStateIntegerRepr};
 

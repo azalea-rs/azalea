@@ -33,11 +33,11 @@ use crate::{
     block_update::QueuedServerBlockUpdates,
     chunks,
     client_chat::{ChatPacket, ChatReceivedEvent},
+    client_inventory::{ClientsideCloseContainerEvent, MenuOpenedEvent, SetContainerContentEvent},
     connection::RawConnection,
     cookies::{RequestCookieEvent, StoreCookieEvent},
     disconnect::DisconnectEvent,
     interact::BlockStatePredictionHandler,
-    inventory::{ClientsideCloseContainerEvent, MenuOpenedEvent, SetContainerContentEvent},
     local_player::{Experience, Hunger, PreviousGameMode, TabList, TabListResource, WorldHolder},
     movement::{KnockbackData, KnockbackEvent},
     packet::{

@@ -206,11 +206,14 @@ use azalea_core::{
     direction::Direction,
     position::{BlockPos, Vec3f32},
 };
-use azalea_inventory::{
-    ItemStack,
-    components::{self, DyeColor},
+use azalea_registry::{
+    DataRegistry,
+    builtin::EntityKind,
+    item::{
+        ItemStack,
+        components::{self, DyeColor},
+    },
 };
-use azalea_registry::{DataRegistry, builtin::EntityKind};
 use bevy_ecs::{bundle::Bundle, component::Component};
 use derive_more::{Deref, DerefMut};
 use thiserror::Error;
@@ -220,7 +223,7 @@ use super::{
     ArmadilloStateKind, CopperGolemStateKind, EntityDataItem, EntityDataValue, OptionalUnsignedInt,
     Pose, Quaternion, Rotations, SnifferStateKind, VillagerData, WeatheringCopperStateKind,
 };
-use crate::{HumanoidArm, particle::Particle};
+use crate::{EntityParticle, HumanoidArm};
 
 #[derive(Error, Debug)]
 pub enum UpdateMetadataError {
@@ -610,6 +613,9 @@ pub struct Radius(pub f32);
 /// A metadata field for [AreaEffectCloud].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Waiting(pub bool);
+/// A metadata field for [AreaEffectCloud].
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
+pub struct Particle(pub EntityParticle);
 /// The marker component for entities of type `minecraft:area_effect_cloud`.
 ///
 /// # Metadata
@@ -620,6 +626,7 @@ pub struct Waiting(pub bool);
 ///
 /// - [Radius]
 /// - [Waiting]
+/// - [Particle]
 ///
 /// # Parents
 ///
@@ -653,7 +660,11 @@ impl AreaEffectCloud {
                 ));
             }
             10 => {
-                entity.insert(d.value.into_particle().map_err(|v| e(v, d.index, ""))?);
+                entity.insert(Particle(
+                    d.value
+                        .into_particle()
+                        .map_err(|v| e(v, d.index, "Particle"))?,
+                ));
             }
             _ => {}
         }
@@ -679,7 +690,7 @@ impl Default for AreaEffectCloudMetadataBundle {
             parent: Default::default(),
             radius: Radius(3.0),
             waiting: Waiting(false),
-            particle: Particle::default(),
+            particle: Particle(Default::default()),
         }
     }
 }
@@ -3138,7 +3149,7 @@ pub struct AbstractLivingUsingItem(pub bool);
 pub struct Health(pub f32);
 /// A metadata field for [AbstractLiving].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct EffectParticles(pub Box<[Particle]>);
+pub struct EffectParticles(pub Box<[EntityParticle]>);
 /// A metadata field for [AbstractLiving].
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct EffectAmbience(pub bool);

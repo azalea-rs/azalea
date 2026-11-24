@@ -4,10 +4,12 @@ use azalea_entity::{
     ActiveEffects, Attributes, FluidOnEyes, Physics, PlayerAbilities, Position,
     inventory::Inventory, mining::get_mine_progress,
 };
-use azalea_inventory::ItemStack;
 use azalea_physics::{PhysicsSystems, collision::BlockWithShape};
 use azalea_protocol::packets::game::s_player_action::{self, ServerboundPlayerAction};
-use azalea_registry::builtin::{BlockKind, ItemKind};
+use azalea_registry::{
+    builtin::{BlockKind, ItemKind},
+    item::ItemStack,
+};
 use azalea_world::{WorldName, Worlds};
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
@@ -15,11 +17,11 @@ use derive_more::{Deref, DerefMut};
 use tracing::{debug, trace, warn};
 
 use crate::{
+    client_inventory::InventorySystems,
     interact::{
         BlockStatePredictionHandler, SwingArmEvent, can_use_game_master_blocks,
         check_is_interaction_restricted, pick::HitResultComponent,
     },
-    inventory::InventorySystems,
     local_player::{PermissionLevel, WorldHolder},
     movement::MoveEventsSystems,
     packet::game::SendGamePacketEvent,

@@ -1,10 +1,9 @@
 use azalea_buf::AzBuf;
-use azalea_inventory::ItemStack;
 use azalea_registry::{
     HolderSet,
     builtin::{DataComponentKind, ItemKind},
     data::TrimPattern,
-    identifier::Identifier,
+    item::ItemStack,
 };
 
 /// [`azalea_registry::builtin::RecipeDisplay`]
@@ -60,7 +59,7 @@ pub struct SmithingRecipeDisplay {
 
 #[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct Ingredient {
-    pub allowed: HolderSet<ItemKind, Identifier>,
+    pub allowed: HolderSet<ItemKind>,
 }
 
 /// [`azalea_registry::builtin::SlotDisplay`]
@@ -104,7 +103,7 @@ pub struct DyedSlotDemo {
 }
 #[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct TagSlotDisplay {
-    pub tag: HolderSet<azalea_registry::builtin::ItemKind, Identifier>,
+    pub tag: HolderSet<ItemKind>,
 }
 #[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct SmithingTrimDemoSlotDisplay {

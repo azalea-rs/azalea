@@ -274,6 +274,7 @@ name = "azalea-auth"
 version = "0.16.0+mc26.3"
 dependencies = [
  "azalea-buf",
+ "azalea-codec",
  "azalea-crypto",
  "base64",
  "chrono",
@@ -295,7 +296,7 @@ version = "0.16.0+mc26.3"
 dependencies = [
  "azalea-block-macros",
  "azalea-buf",
- "azalea-registry",
+ "azalea-registry-builtin",
  "criterion",
  "rand 0.10.4",
 ]
@@ -348,12 +349,12 @@ name = "azalea-chat"
 version = "0.16.0+mc26.3"
 dependencies = [
  "azalea-buf",
+ "azalea-codec",
+ "azalea-core",
  "azalea-language",
- "azalea-registry",
  "serde",
  "serde_json",
  "simdnbt",
- "tracing",
 ]
 
 [[package]]
@@ -365,6 +366,7 @@ dependencies = [
  "azalea-block",
  "azalea-buf",
  "azalea-chat",
+ "azalea-codec",
  "azalea-core",
  "azalea-crypto",
  "azalea-entity",
@@ -395,19 +397,39 @@ dependencies = [
 ]
 
 [[package]]
+name = "azalea-codec"
+version = "0.16.0+mc26.3"
+dependencies = [
+ "azalea-codec-macros",
+ "indexmap",
+ "serde",
+ "serde_json",
+ "simdnbt",
+ "thiserror 2.0.21",
+ "uuid",
+]
+
+[[package]]
+name = "azalea-codec-macros"
+version = "0.16.0+mc26.3"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 3.0.10",
+]
+
+[[package]]
 name = "azalea-core"
 version = "0.16.0+mc26.3"
 dependencies = [
  "azalea-buf",
  "azalea-chat",
- "azalea-registry",
+ "azalea-codec",
  "bevy_ecs",
- "crc32c",
  "derive_more",
  "indexmap",
  "nohash-hasher",
  "num-traits",
- "serde",
  "simdnbt",
  "thiserror 2.0.21",
  "tracing",
@@ -468,12 +490,14 @@ dependencies = [
  "azalea-auth",
  "azalea-buf",
  "azalea-chat",
+ "azalea-codec",
  "azalea-core",
  "azalea-inventory-macros",
  "azalea-registry",
+ "crc32c",
  "indexmap",
- "serde",
  "simdnbt",
+ "thiserror 2.0.21",
  "tracing",
  "uuid",
 ]
@@ -565,10 +589,30 @@ dependencies = [
 name = "azalea-registry"
 version = "0.16.0+mc26.3"
 dependencies = [
+ "azalea-auth",
+ "azalea-block",
  "azalea-buf",
+ "azalea-chat",
+ "azalea-codec",
+ "azalea-core",
+ "azalea-registry-builtin",
  "azalea-registry-macros",
- "serde",
+ "crc32c",
+ "indexmap",
  "simdnbt",
+ "thiserror 2.0.21",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "azalea-registry-builtin"
+version = "0.16.0+mc26.3"
+dependencies = [
+ "azalea-buf",
+ "azalea-codec",
+ "azalea-core",
+ "azalea-registry-macros",
 ]
 
 [[package]]
@@ -594,7 +638,6 @@ dependencies = [
  "parking_lot 0.13.0",
  "rand 0.10.4",
  "rustc-hash 2.1.3",
- "serde",
  "tracing",
 ]
 
@@ -3348,6 +3391,8 @@ version = "1.0.154"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e7e9cc8b1b85264074fbcc02a88680c4096b1e47df8f739dceb03bf482f04bd6"
 dependencies = [
+ "foldhash 0.2.0",
+ "indexmap",
  "itoa",
  "memchr",
  "serde",

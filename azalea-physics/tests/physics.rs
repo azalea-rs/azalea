@@ -7,12 +7,14 @@ use azalea_block::{
 use azalea_core::{
     entity_id::MinecraftEntityId,
     position::{BlockPos, ChunkPos, Vec3},
-    registry_holder::RegistryHolder,
     tick::GameTick,
 };
 use azalea_entity::{EntityBundle, EntityPlugin, HasClientLoaded, LocalEntity, Physics, Position};
 use azalea_physics::PhysicsPlugin;
-use azalea_registry::builtin::{BlockKind, EntityKind};
+use azalea_registry::{
+    builtin::{BlockKind, EntityKind},
+    registry_holder::RegistryHolder,
+};
 use azalea_world::{Chunk, PartialWorld, World, WorldName, Worlds};
 use bevy_app::App;
 use parking_lot::RwLock;

@@ -23,6 +23,37 @@ fn basic_ansi_test() {
 }
 
 #[test]
+fn running_styles() {
+    let j: Value = serde_json::from_str(r#"[{"text":"a","color":"red"},"b"]"#).unwrap();
+    let component = FormattedText::deserialize(&j).unwrap();
+    assert_eq!(
+        component.to_ansi(),
+        format!(
+            "{red}ab{reset}",
+            red = Ansi::rgb(ChatFormatting::Red.color().unwrap()),
+            reset = Ansi::RESET
+        )
+    );
+}
+
+#[test]
+fn running_styles2() {
+    let j: Value =
+        serde_json::from_str(r#"[{"text":"","extra":[{"text":"a","color":"red"}]},{"text":"b"}]"#)
+            .unwrap();
+    let component = FormattedText::deserialize(&j).unwrap();
+    assert_eq!(
+        component.to_ansi(),
+        format!(
+            "{red}a{white}b{reset}",
+            red = Ansi::rgb(ChatFormatting::Red.color().unwrap()),
+            white = Ansi::rgb(ChatFormatting::White.color().unwrap()),
+            reset = Ansi::RESET
+        )
+    );
+}
+
+#[test]
 fn complex_ansi_test() {
     let j: Value = serde_json::from_str(
         r##"[
@@ -53,20 +84,20 @@ fn complex_ansi_test() {
     .unwrap();
     let component = FormattedText::deserialize(&j).unwrap();
 
-    assert_eq!(
-        component.to_ansi(),
-        format!(
-            "{bold}{italic}{underlined}{red}hello{reset}{bold}{italic}{red} {reset}{italic}{underlined}{strikethrough}{abcdef}world{reset}{bold}{underlined}{obfuscated}{red} asdf{reset}{bold}{italic}{underlined}{red}!{reset}",
-            bold = Ansi::BOLD,
-            italic = Ansi::ITALIC,
-            underlined = Ansi::UNDERLINED,
-            red = Ansi::rgb(ChatFormatting::Red.color().unwrap()),
-            reset = Ansi::RESET,
-            strikethrough = Ansi::STRIKETHROUGH,
-            obfuscated = Ansi::OBFUSCATED,
-            abcdef = Ansi::rgb(TextColor::parse("#abcdef").unwrap().value),
-        )
+    let attempt = component.to_ansi();
+    let solution = format!(
+        "{bold}{italic}{underlined}{red}hello{reset}{bold}{italic}{red} {reset}{italic}{underlined}{strikethrough}{abcdef}world{reset}{bold}{underlined}{obfuscated}{red} asdf{reset}{bold}{italic}{underlined}{red}!{reset}",
+        bold = Ansi::BOLD,
+        italic = Ansi::ITALIC,
+        underlined = Ansi::UNDERLINED,
+        red = Ansi::rgb(ChatFormatting::Red.color().unwrap()),
+        reset = Ansi::RESET,
+        strikethrough = Ansi::STRIKETHROUGH,
+        obfuscated = Ansi::OBFUSCATED,
+        abcdef = Ansi::rgb(TextColor::parse("#abcdef").unwrap().value),
     );
+
+    assert_eq!(attempt, solution);
 }
 
 #[test]

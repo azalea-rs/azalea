@@ -12,12 +12,9 @@ use std::{
 };
 
 use azalea_buf::{AzBuf, BufReadError};
-use azalea_registry::identifier::Identifier;
-#[cfg(feature = "serde")]
-use serde::Serializer;
-use simdnbt::borrow::NbtTag;
+use azalea_codec::Codec;
 
-use crate::{direction::Direction, math};
+use crate::{direction::Direction, identifier::Identifier, math};
 
 macro_rules! vec3_impl {
     ($name:ident, $type:ty) => {
@@ -308,13 +305,32 @@ macro_rules! vec3_impl {
                 (pos.x, pos.y, pos.z)
             }
         }
+
+        impl<O: azalea_codec::Ops> Codec<O> for $name {
+            fn codec_read(
+                ops: &O,
+                ctx: azalea_codec::Ctx<O>,
+            ) -> azalea_codec::error::ReadResult<Self> {
+                let [x, y, z] = <[$type; 3]>::codec_read(ops, ctx)?;
+                Ok(Self { x, y, z })
+            }
+            fn codec_write(
+                &self,
+                ctx: azalea_codec::Ctx<O>,
+            ) -> azalea_codec::error::WriteResult<O> {
+                [self.x, self.y, self.z].codec_write(ctx)
+            }
+        }
+
+        azalea_codec::impl_defaultable!($name);
+        #[cfg(feature = "serde")]
+        azalea_codec::impl_serde!($name, ());
     };
 }
 
 /// Used to represent an exact position in the world where an entity could be.
 ///
 /// For blocks, [`BlockPos`] is used instead.
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(AzBuf, Clone, Copy, Debug, Default, PartialEq)]
 pub struct Vec3 {
     pub x: f64,
@@ -322,21 +338,6 @@ pub struct Vec3 {
     pub z: f64,
 }
 vec3_impl!(Vec3, f64);
-impl simdnbt::FromNbtTag for Vec3 {
-    fn from_nbt_tag(tag: NbtTag) -> Option<Self> {
-        let pos = tag.list()?;
-        if let Some(pos) = pos.doubles() {
-            let [x, y, z] = <[f64; 3]>::try_from(pos).ok()?;
-            Some(Self { x, y, z })
-        } else if let Some(pos) = pos.floats() {
-            // used on hypixel
-            let [x, y, z] = <[f32; 3]>::try_from(pos).ok()?.map(|f| f as f64);
-            Some(Self { x, y, z })
-        } else {
-            None
-        }
-    }
-}
 
 impl Vec3 {
     /// Get the distance of this vector to the origin by doing
@@ -423,6 +424,7 @@ impl From<Vec3> for Vec3f32 {
         }
     }
 }
+vec3_impl!(Vec3f32, f32);
 
 /// The coordinates of a block in the world.
 ///
@@ -502,28 +504,6 @@ impl BlockPos {
         (self - other).length()
     }
 }
-#[cfg(feature = "serde")]
-impl serde::Serialize for BlockPos {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        // makes sure it gets serialized correctly for the checksum
-
-        use crate::codec_utils::IntArray;
-        IntArray([self.x, self.y, self.z]).serialize(serializer)
-    }
-}
-#[cfg(feature = "serde")]
-impl<'de> serde::Deserialize<'de> for BlockPos {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        let [x, y, z] = <[i32; 3]>::deserialize(deserializer)?;
-        Ok(BlockPos { x, y, z })
-    }
-}
 
 /// An arbitrary position that's represented as 32-bit integers.
 ///
@@ -539,13 +519,6 @@ pub struct Vec3i {
     pub z: i32,
 }
 vec3_impl!(Vec3i, i32);
-impl simdnbt::FromNbtTag for Vec3i {
-    fn from_nbt_tag(tag: NbtTag) -> Option<Self> {
-        let pos = tag.list()?.ints()?;
-        let [x, y, z] = <[i32; 3]>::try_from(pos).ok()?;
-        Some(Self { x, y, z })
-    }
-}
 
 /// Chunk coordinates are used to represent where a chunk is in the world.
 ///
@@ -773,14 +746,15 @@ impl From<ChunkSectionBlockPos> for u16 {
 impl nohash_hasher::IsEnabled for ChunkSectionBlockPos {}
 
 /// A block pos with an attached world
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Codec)]
 pub struct GlobalPos {
     // this is actually a ResourceKey in Minecraft, but i don't think it
     // matters?
     pub dimension: Identifier,
     pub pos: BlockPos,
 }
+#[cfg(feature = "serde")]
+azalea_codec::impl_serde!(GlobalPos, ());
 
 impl From<&BlockPos> for ChunkPos {
     #[inline]
@@ -939,7 +913,6 @@ impl Display for ChunkPos {
 }
 
 /// A 2D vector.
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(AzBuf, Clone, Copy, Debug, Default, PartialEq)]
 pub struct Vec2 {
     pub x: f32,

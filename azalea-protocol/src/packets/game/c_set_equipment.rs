@@ -2,8 +2,8 @@ use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzBuf, BufReadError, BufReadErrorRepr};
 use azalea_core::entity_id::MinecraftEntityId;
-use azalea_inventory::{ItemStack, components::EquipmentSlot};
 use azalea_protocol_macros::ClientboundGamePacket;
+use azalea_registry::item::{ItemStack, components::EquipmentSlot};
 
 #[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundSetEquipment {

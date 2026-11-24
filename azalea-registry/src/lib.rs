@@ -1,14 +1,14 @@
 #![doc = include_str!("../README.md")]
+// used by default_for_item in components
+#![feature(min_specialization)]
+// used by the `registry!` macro
+#![feature(const_trait_impl, const_cmp)]
 
-// The contents of the macros below are generated in
-// codegen/lib/code/registry.py, though the rest of the file isn't
-// auto-generated (so you can add doc comments to the registry enums if you
-// want).
-
-pub mod builtin;
+pub use azalea_registry_builtin::*;
 pub mod data;
-pub mod identifier;
-pub mod tags;
+pub mod data_registry;
+pub mod item;
+pub mod registry_holder;
 
 use std::{
     fmt::{self, Debug},
@@ -17,51 +17,9 @@ use std::{
 };
 
 use azalea_buf::{AzBuf, AzBufVar, BufReadError, BufReadErrorRepr};
-#[cfg(feature = "serde")]
-use serde::Serialize;
-use simdnbt::{FromNbtTag, borrow::NbtTag};
-
-use crate::identifier::Identifier;
-
-// TODO: remove this next update
-macro_rules! define_deprecated_builtin {
-    ($($r:ident) *) => {
-        $(
-            #[doc(hidden)]
-            #[deprecated = concat!("moved to `azalea_registry::builtin::", stringify!($r), "`")]
-            pub type $r = builtin::$r;
-        )*
-    };
-}
-define_deprecated_builtin!(Activity Attribute BlockEntityKind BlockPredicateKind ChunkStatus CommandArgumentKind CustomStat EntityKind FloatProviderKind Fluid GameEvent HeightProviderKind IntProviderKind LootConditionKind LootFunctionKind LootNbtProviderKind LootPoolEntryKind LootScoreProviderKind MemoryModuleKind MobEffect ParticleKind PointOfInterestKind PosRuleTest PositionSourceKind Potion RecipeSerializer RecipeKind RuleTest SensorKind SoundEvent StatKind VillagerProfession VillagerKind WorldgenBiomeSource WorldgenBlockStateProviderKind WorldgenChunkGenerator WorldgenDensityFunctionKind WorldgenFeatureSizeKind WorldgenFoliagePlacerKind WorldgenPlacementModifierKind WorldgenRootPlacerKind WorldgenStructurePiece WorldgenStructurePlacement WorldgenStructurePoolElement WorldgenStructureProcessor WorldgenStructureKind WorldgenTreeDecoratorKind WorldgenTrunkPlacerKind RuleBlockEntityModifier CreativeModeTab MenuKind WorldgenPoolAliasBinding TriggerKind NumberFormatKind DataComponentKind EntitySubPredicateKind MapDecorationKind EnchantmentEffectComponentKind EnchantmentEntityEffectKind EnchantmentLevelBasedValueKind EnchantmentLocationBasedEffectKind EnchantmentProviderKind EnchantmentValueEffectKind ConsumeEffectKind RecipeBookCategory RecipeDisplay SlotDisplay TicketKind TestEnvironmentDefinitionKind TestFunction TestInstanceKind DataComponentPredicateKind SpawnConditionKind DialogBodyKind DialogKind InputControlKind DialogActionKind DebugSubscription IncomingRpcMethods OutgoingRpcMethods AttributeKind EnvironmentAttribute GameRule PermissionCheckKind PermissionKind SlotSourceKind);
-macro_rules! define_deprecated_data {
-    ($($r:ident) *) => {
-        $(
-            #[doc(hidden)]
-            #[deprecated = concat!("moved to `azalea_registry::data::", stringify!($r), "`")]
-            pub type $r = data::$r;
-        )*
-    };
-}
-define_deprecated_data!(Enchantment DamageKind Dialog WolfSoundVariant CowVariant ChickenVariant FrogVariant CatVariant PigVariant PaintingVariant WolfVariant ZombieNautilusVariant Biome);
-
-#[doc(hidden)]
-#[deprecated = "renamed to `azalea_registry::builtin::ItemKind`"]
-pub type Item = builtin::ItemKind;
-#[doc(hidden)]
-#[deprecated = "renamed to `azalea_registry::builtin::BlockKind`"]
-pub type Block = builtin::BlockKind;
-#[doc(hidden)]
-#[deprecated = "renamed to `azalea_registry::data::DimensionKind`"]
-pub type DimensionType = data::DimensionKind;
-
-pub trait Registry: AzBuf + PartialEq + PartialOrd + Ord + Copy + Hash
-where
-    Self: Sized,
-{
-    fn from_u32(value: u32) -> Option<Self>;
-    fn to_u32(&self) -> u32;
-}
+use azalea_codec::Codec;
+use azalea_core::identifier::Identifier;
+pub use azalea_registry_macros as macros;
 
 /// A registry that might not be present.
 ///
@@ -118,7 +76,7 @@ impl<D: Registry, C: AzBuf> AzBuf for CustomRegistry<D, C> {
 }
 
 #[derive(Clone, PartialEq)]
-pub enum HolderSet<D: Registry, Identifier: AzBuf> {
+pub enum HolderSet<D> {
     Direct {
         contents: Vec<D>,
     },
@@ -127,7 +85,7 @@ pub enum HolderSet<D: Registry, Identifier: AzBuf> {
         contents: Vec<Identifier>,
     },
 }
-impl<D: Registry, Identifier: AzBuf> AzBuf for HolderSet<D, Identifier> {
+impl<D: AzBuf> AzBuf for HolderSet<D> {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let size = i32::azalea_read_var(buf)?.wrapping_sub(1);
         if size == -1 {
@@ -160,7 +118,7 @@ impl<D: Registry, Identifier: AzBuf> AzBuf for HolderSet<D, Identifier> {
         Ok(())
     }
 }
-impl<D: Registry + Debug, Identifier: AzBuf + Debug> Debug for HolderSet<D, Identifier> {
+impl<D: Debug> Debug for HolderSet<D> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Direct { contents } => f.debug_list().entries(contents).finish(),
@@ -172,39 +130,63 @@ impl<D: Registry + Debug, Identifier: AzBuf + Debug> Debug for HolderSet<D, Iden
         }
     }
 }
-impl<D: Registry, Identifier: AzBuf> From<Vec<D>> for HolderSet<D, Identifier> {
+impl<D> From<Vec<D>> for HolderSet<D> {
     fn from(contents: Vec<D>) -> Self {
         Self::Direct { contents }
     }
 }
-#[cfg(feature = "serde")]
-impl<D: Registry + Serialize, Identifier: AzBuf + Serialize> Serialize
-    for HolderSet<D, Identifier>
-{
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
+impl<D: Codec<O>, O: azalea_codec::Ops> Codec<O> for HolderSet<D> {
+    fn codec_read(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
+        if let Ok(key) = Identifier::codec_read(ops, ctx) {
+            return Ok(Self::Named {
+                key,
+                contents: vec![],
+            });
+        }
+        if let Ok(d) = D::codec_read(ops, ctx) {
+            return Ok(Self::Direct { contents: vec![d] });
+        }
+        if let Ok(contents) = Vec::<D>::codec_read(ops, ctx) {
+            return Ok(Self::Direct { contents });
+        }
+
+        Err(azalea_codec::error::ReadError::custom("invalid holderset"))
+    }
+    fn codec_write(&self, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::WriteResult<O> {
         match self {
             Self::Direct { contents } => {
                 if contents.len() == 1 {
-                    contents[0].serialize(serializer)
+                    contents[0].codec_write(ctx)
                 } else {
-                    contents.serialize(serializer)
+                    contents.codec_write(ctx)
                 }
             }
-            Self::Named { key, contents: _ } => key.serialize(serializer),
+            Self::Named { key, contents: _ } => key.codec_write(ctx),
         }
     }
 }
-impl<D: Registry, Identifier: AzBuf> Default for HolderSet<D, Identifier> {
+
+impl<D: Registry> Default for HolderSet<D> {
     fn default() -> Self {
         Self::Direct {
             contents: Vec::new(),
         }
     }
 }
-impl<D: Registry, Identifier: AzBuf + From<D> + PartialEq> HolderSet<D, Identifier> {
+
+impl<O: azalea_codec::Ops, D: Registry + Codec<O>> azalea_codec::Defaultable<O> for HolderSet<D> {
+    fn is_default(&self) -> bool {
+        match self {
+            Self::Direct { contents } => contents.is_empty(),
+            _ => false,
+        }
+    }
+}
+
+impl<D: Registry> HolderSet<D>
+where
+    Identifier: From<D>,
+{
     pub fn contains(&self, value: D) -> bool {
         match self {
             HolderSet::Direct { contents } => contents.contains(&value),
@@ -272,59 +254,20 @@ impl<R: Registry + Default, Direct: AzBuf> Default for Holder<R, Direct> {
         Self::Reference(R::default())
     }
 }
-#[cfg(feature = "serde")]
-impl<R: Registry + Serialize, Direct: AzBuf + Serialize> Serialize for Holder<R, Direct> {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        match self {
-            Self::Reference(value) => value.serialize(serializer),
-            Self::Direct(value) => value.serialize(serializer),
-        }
-    }
-}
 
-impl<R: Registry + FromNbtTag, Direct: AzBuf + FromNbtTag> FromNbtTag for Holder<R, Direct> {
-    fn from_nbt_tag(tag: NbtTag) -> Option<Self> {
-        if let Some(reference) = R::from_nbt_tag(tag) {
-            return Some(Self::Reference(reference));
+impl<O: azalea_codec::Ops, R: Registry + Codec<O>, Direct: Codec<O> + AzBuf> Codec<O>
+    for Holder<R, Direct>
+{
+    fn codec_read(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
+        if let Ok(reference) = R::codec_read(ops, ctx) {
+            return Ok(Self::Reference(reference));
         };
-        Direct::from_nbt_tag(tag).map(Self::Direct)
+        Direct::codec_read(ops, ctx).map(Self::Direct)
     }
-}
-
-/// A registry which has its values decided by the server in the
-/// `ClientboundRegistryData` packet.
-///
-/// These can be resolved into their actual values with
-/// `ResolvableDataRegistry` from azalea-core.
-pub trait DataRegistry: AzBuf + PartialEq + PartialOrd + Ord + Copy + Hash {
-    const NAME: &'static str;
-    type Key: DataRegistryKey;
-
-    fn protocol_id(&self) -> u32;
-    fn new_raw(id: u32) -> Self;
-}
-pub trait DataRegistryKey {
-    type Borrow<'a>: DataRegistryKeyRef<'a>;
-
-    fn from_ident(ident: Identifier) -> Self;
-    fn into_ident(self) -> Identifier;
-}
-pub trait DataRegistryKeyRef<'a> {
-    type Owned: DataRegistryKey;
-
-    fn to_owned(self) -> Self::Owned;
-    fn from_ident(ident: &'a Identifier) -> Self;
-    fn into_ident(self) -> Identifier;
-}
-impl<T: DataRegistry> Registry for T {
-    fn from_u32(value: u32) -> Option<Self> {
-        Some(Self::new_raw(value))
-    }
-
-    fn to_u32(&self) -> u32 {
-        self.protocol_id()
+    fn codec_write(&self, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::WriteResult<O> {
+        match self {
+            Self::Reference(value) => value.codec_write(ctx),
+            Self::Direct(value) => value.codec_write(ctx),
+        }
     }
 }

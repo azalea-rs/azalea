@@ -6,19 +6,16 @@ use std::{
 use azalea_buf::{AzBuf, AzBufVar, BufReadError};
 use azalea_chat::{
     FormattedText,
-    translatable_component::{PrimitiveOrComponent, TranslatableComponent},
+    component::translatable::{PrimitiveOrComponent, TranslatableComponent},
 };
-use azalea_core::{
-    bitset::JavaBitSet,
-    data_registry::DataRegistryWithKey,
-    registry_holder::{RegistryHolder, RegistryType},
-};
+use azalea_core::{bitset::JavaBitSet, identifier::Identifier};
 use azalea_crypto::signing::MessageSignature;
 use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_registry::{
     DataRegistryKey, Holder,
     data::{ChatKind, ChatKindKey},
-    identifier::Identifier,
+    data_registry::DataRegistryWithKey,
+    registry_holder::{RegistryHolder, RegistryType},
 };
 use simdnbt::owned::NbtCompound;
 use uuid::Uuid;

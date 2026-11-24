@@ -2,7 +2,7 @@ use azalea_client::{
     InConfigState,
     chunks::handle_chunk_batch_finished_event,
     client_information::send_client_information,
-    inventory::InventorySystems,
+    client_inventory::InventorySystems,
     packet::{
         config::SendConfigPacketEvent,
         death_event_on_0_health,

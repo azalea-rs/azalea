@@ -1,7 +1,6 @@
 use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzBuf, AzBufVar, BufReadError, BufReadErrorRepr};
-use azalea_chat::translatable_component::TranslatableComponent;
 use tracing::debug;
 
 /// A Minecraft gamemode, like survival or creative.
@@ -56,15 +55,33 @@ impl GameMode {
         )
     }
 
-    /// The short translatable display name for the gamemode, like "Survival".
-    pub fn short_name(&self) -> TranslatableComponent {
-        TranslatableComponent::new(format!("selectWorld.gameMode.{}", self.name()), vec![])
+    /// The translation key for the short display name for the gamemode, like
+    /// "Survival".
+    ///
+    /// ```
+    /// # use azalea_core::game_type::GameMode;
+    /// # use azalea_chat::component::translatable::TranslatableComponent;
+    /// assert_eq!(
+    ///     TranslatableComponent::new(GameMode::Survival.short_name_key(), vec![]).to_string(),
+    ///     "Survival"
+    /// );
+    /// ```
+    pub fn short_name_key(&self) -> String {
+        format!("selectWorld.gameMode.{}", self.name())
     }
 
-    /// The long translatable display name for the gamemode, like "Survival
-    /// Mode".
-    pub fn long_name(&self) -> TranslatableComponent {
-        TranslatableComponent::new(format!("gameMode.{}", self.name()), vec![])
+    /// The translation key for the long display name for the gamemode, like
+    /// "Survival Mode".
+    /// ```
+    /// # use azalea_core::game_type::GameMode;
+    /// # use azalea_chat::component::translatable::TranslatableComponent;
+    /// assert_eq!(
+    ///     TranslatableComponent::new(GameMode::Survival.long_name_key(), vec![]).to_string(),
+    ///     "Survival Mode"
+    /// );
+    /// ```
+    pub fn long_name_key(&self) -> String {
+        format!("gameMode.{}", self.name())
     }
 
     pub fn from_name(name: &str) -> GameMode {

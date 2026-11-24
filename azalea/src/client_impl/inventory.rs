@@ -1,4 +1,4 @@
-use azalea_client::inventory::SetSelectedHotbarSlotEvent;
+use azalea_client::client_inventory::SetSelectedHotbarSlotEvent;
 use azalea_entity::inventory::Inventory;
 use azalea_inventory::Menu;
 

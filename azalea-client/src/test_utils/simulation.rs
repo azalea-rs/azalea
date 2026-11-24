@@ -3,10 +3,12 @@ use std::{any, collections::VecDeque, fmt::Debug, sync::Arc};
 use azalea_auth::game_profile::GameProfile;
 use azalea_block::BlockState;
 use azalea_buf::AzBuf;
+use azalea_codec::Codec;
 use azalea_core::{
     delta::LpVec3,
     entity_id::MinecraftEntityId,
     game_type::{GameMode, OptionalGameType},
+    identifier::Identifier,
     position::{BlockPos, ChunkPos, Vec3},
     tick::GameTick,
 };
@@ -28,8 +30,8 @@ use azalea_protocol::{
 use azalea_registry::{
     DataRegistry,
     builtin::EntityKind,
-    data::{Biome, DimensionKind},
-    identifier::Identifier,
+    data::{Biome, DimensionKind, DimensionKindKey},
+    registry_holder::{RegistryHolder, dimension_type::DimensionKindElement},
 };
 use azalea_world::{Chunk, Section, World, palette::PalettedContainer};
 use bevy_app::App;
@@ -40,7 +42,7 @@ use bevy_ecs::{
     schedule::SingleThreadedExecutor,
 };
 use parking_lot::{Mutex, RwLock};
-use simdnbt::owned::{NbtCompound, NbtTag};
+use simdnbt::owned::NbtCompound;
 use uuid::Uuid;
 
 use crate::{
@@ -83,22 +85,7 @@ impl Simulation {
         match conn_protocol {
             ConnectionProtocol::Configuration => {}
             ConnectionProtocol::Game => {
-                simulation.receive_packet(ClientboundRegistryData {
-                    registry_id: Identifier::new("minecraft:dimension_type"),
-                    entries: vec![(
-                        Identifier::new("minecraft:overworld"),
-                        Some(
-                            NbtCompound::from_values(vec![
-                                ("height".into(), NbtTag::Int(384)),
-                                ("min_y".into(), NbtTag::Int(-64)),
-                            ])
-                            .into(),
-                        ),
-                    )]
-                    .into_iter()
-                    .collect(),
-                });
-
+                receive_default_registries(&mut simulation);
                 simulation.receive_packet(ClientboundFinishConfiguration);
                 simulation.tick();
             }
@@ -189,6 +176,16 @@ impl Simulation {
             .shared
             .read()
             .get_block_state(pos)
+    }
+
+    pub fn world(&self) -> Arc<RwLock<World>> {
+        let world_holder = self.component::<WorldHolder>();
+        world_holder.shared.clone()
+    }
+    pub fn with_registry_holder<R>(&self, f: impl FnOnce(&RegistryHolder) -> R) -> R {
+        let world = self.world();
+        let registries = &world.read().registries;
+        f(registries)
     }
 
     pub fn disconnect(&mut self) {
@@ -325,16 +322,18 @@ fn tick_app(app: &mut App) {
     app.world_mut().run_schedule(GameTick);
 }
 
-pub fn default_login_packet() -> ClientboundLogin {
+pub fn default_login_packet(simulation: &Simulation) -> ClientboundLogin {
     make_basic_login_packet(
-        DimensionKind::new_raw(0), // overworld
+        DimensionKindKey::Overworld,
         Identifier::new("minecraft:overworld"),
+        simulation,
     )
 }
 
 pub fn make_basic_login_packet(
-    dimension_type: DimensionKind,
+    dimension_type: DimensionKindKey,
     dimension: Identifier,
+    simulation: &Simulation,
 ) -> ClientboundLogin {
     ClientboundLogin {
         player_id: MinecraftEntityId(0),
@@ -347,7 +346,13 @@ pub fn make_basic_login_packet(
         show_death_screen: true,
         do_limited_crafting: false,
         common: CommonPlayerSpawnInfo {
-            dimension_type,
+            dimension_type: simulation.with_registry_holder(|registry| {
+                DimensionKind::new_raw(
+                    registry
+                        .identifier_to_protocol_id("dimension_type", dimension_type.into())
+                        .unwrap(),
+                )
+            }),
             dimension,
             seed: 0,
             game_type: GameMode::Survival,
@@ -364,12 +369,19 @@ pub fn make_basic_login_packet(
 }
 
 pub fn make_basic_respawn_packet(
-    dimension_type: DimensionKind,
+    dimension_type: DimensionKindKey,
     dimension: Identifier,
+    simulation: &Simulation,
 ) -> ClientboundRespawn {
     ClientboundRespawn {
         common: CommonPlayerSpawnInfo {
-            dimension_type,
+            dimension_type: simulation.with_registry_holder(|registry| {
+                DimensionKind::new_raw(
+                    registry
+                        .identifier_to_protocol_id("dimension_type", dimension_type.into())
+                        .unwrap(),
+                )
+            }),
             dimension,
             seed: 0,
             game_type: GameMode::Survival,
@@ -428,4 +440,63 @@ pub fn make_basic_add_entity(
         data: 0,
         movement: LpVec3::Zero,
     }
+}
+
+pub fn receive_default_registries(simulation: &mut Simulation) {
+    receive_default_registries_with_dimensions(
+        simulation,
+        vec![
+            (
+                // put this one here to ensure that we aren't hardcoding
+                // dimension id 0 anywhere
+                "azalea:fake_dimension",
+                DimensionKindElement {
+                    min_y: 123,
+                    height: 456,
+                    ..Default::default()
+                },
+            ),
+            (
+                "overworld",
+                DimensionKindElement {
+                    min_y: -64,
+                    height: 384,
+                    ..Default::default()
+                },
+            ),
+            (
+                "the_nether",
+                DimensionKindElement {
+                    min_y: 0,
+                    height: 256,
+                    ..Default::default()
+                },
+            ),
+        ],
+    )
+}
+
+pub fn receive_default_registries_with_dimensions(
+    simulation: &mut Simulation,
+    dimensions: Vec<(&'static str, DimensionKindElement)>,
+) {
+    simulation.receive_packet(ClientboundRegistryData {
+        registry_id: "world_clock".into(),
+        entries: vec![("overworld".into(), Some(NbtCompound::default().into()))]
+            .into_iter()
+            .collect(),
+    });
+    simulation.update();
+
+    let mut dimension_entries = Vec::new();
+    for (name, element) in dimensions {
+        let tag =
+            simulation.with_registry_holder(|r| element.codec_write(azalea_codec::Ctx(r)).unwrap());
+        dimension_entries.push((name.into(), Some(tag)));
+    }
+    simulation.receive_packet(ClientboundRegistryData {
+        registry_id: Identifier::new("dimension_type"),
+        entries: dimension_entries,
+    });
+    simulation.update();
 }

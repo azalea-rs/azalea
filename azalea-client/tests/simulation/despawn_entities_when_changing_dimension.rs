@@ -1,42 +1,16 @@
 use azalea_client::test_utils::prelude::*;
-use azalea_core::position::ChunkPos;
+use azalea_core::{identifier::Identifier, position::ChunkPos};
 use azalea_entity::metadata::Cow;
-use azalea_protocol::packets::{
-    ConnectionProtocol,
-    config::{ClientboundFinishConfiguration, ClientboundRegistryData},
-};
-use azalea_registry::{
-    DataRegistry, builtin::EntityKind, data::DimensionKind, identifier::Identifier,
-};
+use azalea_protocol::packets::{ConnectionProtocol, config::ClientboundFinishConfiguration};
+use azalea_registry::{builtin::EntityKind, data::DimensionKindKey};
 use bevy_ecs::query::With;
-use simdnbt::owned::{NbtCompound, NbtTag};
 
 #[test]
 fn test_despawn_entities_when_changing_dimension() {
     let _lock = init();
 
     let mut simulation = Simulation::new(ConnectionProtocol::Configuration);
-    simulation.receive_packet(ClientboundRegistryData {
-        registry_id: Identifier::new("minecraft:dimension_type"),
-        entries: vec![
-            (
-                Identifier::new("minecraft:overworld"),
-                Some(NbtTag::from(NbtCompound::from_values(vec![
-                    ("height".into(), NbtTag::Int(384)),
-                    ("min_y".into(), NbtTag::Int(-64)),
-                ]))),
-            ),
-            (
-                Identifier::new("minecraft:nether"),
-                Some(NbtTag::from(NbtCompound::from_values(vec![
-                    ("height".into(), NbtTag::Int(256)),
-                    ("min_y".into(), NbtTag::Int(0)),
-                ]))),
-            ),
-        ]
-        .into_iter()
-        .collect(),
-    });
+    receive_default_registries(&mut simulation);
     simulation.tick();
     simulation.receive_packet(ClientboundFinishConfiguration);
     simulation.tick();
@@ -46,8 +20,9 @@ fn test_despawn_entities_when_changing_dimension() {
     //
 
     simulation.receive_packet(make_basic_login_packet(
-        DimensionKind::new_raw(0), // overworld
+        DimensionKindKey::Overworld,
         Identifier::new("azalea:a"),
+        &simulation,
     ));
     simulation.tick();
 
@@ -66,8 +41,9 @@ fn test_despawn_entities_when_changing_dimension() {
     //
 
     simulation.receive_packet(make_basic_respawn_packet(
-        DimensionKind::new_raw(1), // nether
+        DimensionKindKey::TheNether,
         Identifier::new("azalea:b"),
+        &simulation,
     ));
     simulation.tick();
 

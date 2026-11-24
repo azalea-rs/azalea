@@ -1,24 +1,26 @@
 use azalea_chat::{
     FormattedText,
+    component::text::TextComponent,
     style::{Style, TextColor},
-    text_component::TextComponent,
 };
 use azalea_core::{
     attribute_modifier_operation::AttributeModifierOperation,
-    checksum::get_checksum,
     position::{BlockPos, GlobalPos},
 };
-use azalea_inventory::{
-    ItemStack,
-    components::{
-        AdventureModePredicate, AttributeModifier, AttributeModifierDisplay, AttributeModifiers,
-        AttributeModifiersEntry, BlockPredicate, CanPlaceOn, ChargedProjectiles, CustomData,
-        CustomName, EquipmentSlotGroup, Glider, JukeboxPlayable, LodestoneTracker, Lore,
-        PotDecorations, Rarity,
+use azalea_registry::{
+    builtin::{Attribute, BlockKind, ItemKind},
+    item::{
+        ItemStack,
+        checksum::get_checksum,
+        components::{
+            AdventureModePredicate, AttributeModifier, AttributeModifierDisplay,
+            AttributeModifiers, AttributeModifiersEntry, BlockPredicate, CanPlaceOn,
+            ChargedProjectiles, CustomData, CustomName, EquipmentSlotGroup, Glider,
+            JukeboxPlayable, LodestoneTracker, Lore, PotDecorations, Rarity,
+        },
     },
 };
-use azalea_registry::builtin::{Attribute, BlockKind, ItemKind};
-use simdnbt::owned::{BaseNbt, Nbt, NbtCompound, NbtList, NbtTag};
+use simdnbt::owned::{NbtCompound, NbtList, NbtTag};
 
 // note: it would be cool to make the checksums more reliably accurate somehow.
 // i'm not sure how, though :(
@@ -28,6 +30,7 @@ fn test_custom_name_checksum() {
     let c = CustomName {
         name: FormattedText::from("meow"),
     };
+
     assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 2222287064);
 }
 #[test]
@@ -90,23 +93,21 @@ fn test_can_place_on_checksum() {
 #[test]
 fn test_custom_data_nbt() {
     let c = CustomData {
-        nbt: Nbt::Some(BaseNbt::new(
-            "",
-            NbtCompound::from_values(vec![
-                ("meow".into(), "mrrp".into()),
-                (
-                    "nya".into(),
-                    NbtList::Compound(vec![
-                        NbtTag::Int(1).into(),
-                        NbtTag::Int(2).into(),
-                        NbtCompound::new(),
-                        NbtCompound::from_values(vec![("data".into(), NbtTag::Byte(1))]),
-                    ])
-                    .into(),
-                ),
-            ]),
-        )),
+        nbt: NbtCompound::from_values(vec![
+            ("meow".into(), "mrrp".into()),
+            (
+                "nya".into(),
+                NbtList::Compound(vec![
+                    NbtTag::Int(1).into(),
+                    NbtTag::Int(2).into(),
+                    NbtCompound::new(),
+                    NbtCompound::from_values(vec![("data".into(), NbtTag::Byte(1))]),
+                ])
+                .into(),
+            ),
+        ]),
     };
+
     assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 1035780974);
 }
 #[test]
@@ -198,5 +199,6 @@ fn test_pot_decorations_checksum() {
 #[test]
 fn test_glider_checksum() {
     let c = Glider;
+
     assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 3312760008);
 }

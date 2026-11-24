@@ -38,7 +38,9 @@ use std::{
 };
 
 use astar::Edge;
-use azalea_client::{StartWalkEvent, inventory::InventorySystems, movement::MoveEventsSystems};
+use azalea_client::{
+    StartWalkEvent, client_inventory::InventorySystems, movement::MoveEventsSystems,
+};
 use azalea_core::{
     position::{BlockPos, Vec3},
     tick::GameTick,

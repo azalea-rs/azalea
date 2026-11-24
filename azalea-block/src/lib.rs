@@ -9,7 +9,7 @@ mod range;
 use core::fmt::Debug;
 use std::{any::Any, collections::HashMap, str::FromStr};
 
-use azalea_registry::builtin::BlockKind;
+use azalea_registry_builtin::builtin::BlockKind;
 pub use behavior::BlockBehavior;
 // re-exported for convenience
 pub use block_state::BlockState;

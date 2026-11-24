@@ -1,4 +1,4 @@
-use azalea_registry::builtin::BlockKind;
+use azalea_registry_builtin::builtin::BlockKind;
 
 use crate::block_state::{BlockState, BlockStateIntegerRepr};
 

@@ -1,6 +1,6 @@
 use azalea_buf::AzBuf;
+use azalea_core::identifier::Identifier;
 use azalea_protocol_macros::ClientboundConfigPacket;
-use azalea_registry::identifier::Identifier;
 use simdnbt::owned::NbtTag;
 
 #[derive(AzBuf, ClientboundConfigPacket, Clone, Debug, PartialEq)]

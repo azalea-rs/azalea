@@ -1,7 +1,7 @@
 use azalea_buf::AzBuf;
 use azalea_core::entity_id::MinecraftEntityId;
-use azalea_inventory::components::SwingAnimation;
 use azalea_protocol_macros::ClientboundGamePacket;
+use azalea_registry::item::components::SwingAnimation;
 
 use crate::packets::game::s_interact::InteractionHand;
 

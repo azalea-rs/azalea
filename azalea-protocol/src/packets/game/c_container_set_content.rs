@@ -1,6 +1,6 @@
 use azalea_buf::AzBuf;
-use azalea_inventory::ItemStack;
 use azalea_protocol_macros::ClientboundGamePacket;
+use azalea_registry::item::ItemStack;
 
 #[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundContainerSetContent {

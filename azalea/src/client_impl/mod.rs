@@ -13,10 +13,7 @@ use azalea_client::{
     start_ecs_runner,
     tick_counter::TicksConnected,
 };
-use azalea_core::{
-    data_registry::{DataRegistryWithKey, ResolvableDataRegistry},
-    entity_id::MinecraftEntityId,
-};
+use azalea_core::{entity_id::MinecraftEntityId, identifier::Identifier};
 use azalea_entity::indexing::{EntityIdIndex, EntityUuidIndex};
 use azalea_protocol::{
     address::{ResolvableAddr, ResolvedAddr},
@@ -24,7 +21,11 @@ use azalea_protocol::{
     packets::{Packet, game::ServerboundGamePacket},
     resolve::ResolveError,
 };
-use azalea_registry::{DataRegistryKeyRef, identifier::Identifier};
+use azalea_registry::{
+    DataRegistryKeyRef,
+    data_registry::{DataRegistryWithKey, ResolvableDataRegistry},
+    registry_holder::RegistryHolder,
+};
 use azalea_world::{PartialWorld, World, WorldName};
 use bevy_app::{App, AppExit};
 use bevy_ecs::{entity::Entity, resource::Resource, world::Mut};
@@ -503,12 +504,7 @@ impl Client {
     /// Note that the player's world will be locked during this time, which may
     /// result in a deadlock if you try to access the world again while
     /// in the function.
-    ///
-    /// [`RegistryHolder`]: azalea_core::registry_holder::RegistryHolder
-    pub fn with_registry_holder<R>(
-        &self,
-        f: impl FnOnce(&azalea_core::registry_holder::RegistryHolder) -> R,
-    ) -> AzaleaResult<R> {
+    pub fn with_registry_holder<R>(&self, f: impl FnOnce(&RegistryHolder) -> R) -> AzaleaResult<R> {
         let world = self.world()?;
         let registries = &world.read().registries;
         Ok(f(registries))

@@ -1,6 +1,6 @@
 use azalea_buf::AzBuf;
+use azalea_core::identifier::Identifier;
 use azalea_protocol_macros::ServerboundGamePacket;
-use azalea_registry::identifier::Identifier;
 
 #[derive(Clone, Debug, AzBuf, PartialEq, ServerboundGamePacket)]
 pub struct ServerboundSetGameRule {

@@ -45,6 +45,12 @@ impl From<SerializableGameProfile> for GameProfile {
         }
     }
 }
+#[cfg(feature = "azalea-codec")]
+mod game_profile_codec {
+    use super::*;
+    azalea_codec::impl_codec_from!(GameProfile, SerializableGameProfile);
+    azalea_codec::impl_mapcodec_from!(GameProfile, SerializableGameProfile);
+}
 
 /// The properties of the player, including their in-game skin and cape.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -79,6 +85,13 @@ impl AzBuf for GameProfileProperties {
     }
 }
 
+#[cfg(feature = "azalea-codec")]
+mod game_profile_properties_codec {
+    use super::*;
+    azalea_codec::impl_codec_from!(GameProfileProperties, SerializableProfileProperties);
+    azalea_codec::impl_defaultable!(GameProfileProperties);
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ProfilePropertyValue {
     pub value: String,
@@ -98,15 +111,19 @@ impl AzBuf for ProfilePropertyValue {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(feature = "azalea-codec", derive(azalea_codec::Codec))]
 pub struct SerializableGameProfile {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "azalea-codec", codec(optional))]
     pub id: Option<Uuid>,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "azalea-codec", codec(optional))]
     pub name: Option<String>,
     #[serde(default)]
     #[serde(skip_serializing_if = "SerializableProfileProperties::is_empty")]
+    #[cfg_attr(feature = "azalea-codec", codec(optional))]
     pub properties: SerializableProfileProperties,
 }
 
@@ -121,6 +138,7 @@ impl From<GameProfile> for SerializableGameProfile {
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[cfg_attr(feature = "azalea-codec", derive(azalea_codec::Codec))]
 #[serde(transparent)]
 pub struct SerializableProfileProperties {
     pub list: Vec<SerializableProfilePropertyValue>,
@@ -130,12 +148,17 @@ impl SerializableProfileProperties {
         self.list.is_empty()
     }
 }
+#[cfg(feature = "azalea-codec")]
+azalea_codec::impl_defaultable!(SerializableProfileProperties, self, self.is_empty());
+
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(feature = "azalea-codec", derive(azalea_codec::Codec))]
 pub struct SerializableProfilePropertyValue {
     pub name: String,
     pub value: String,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "azalea-codec", codec(optional))]
     pub signature: Option<String>,
 }
 

@@ -8,24 +8,24 @@ repository.workspace = true
 
 [dependencies]
 azalea-buf.workspace = true
-azalea-registry.workspace = true
 bevy_ecs = { workspace = true, optional = true }
-serde = { workspace = true, optional = true }
 nohash-hasher.workspace = true
 num-traits.workspace = true
 simdnbt.workspace = true
 tracing.workspace = true
-azalea-chat = { workspace = true, features = ["simdnbt"] }
 indexmap.workspace = true
-crc32c = { workspace = true, optional = true }
 thiserror.workspace = true
 uuid.workspace = true
 derive_more = { workspace = true, features = ["deref", "deref_mut"] }
+azalea-codec = { workspace = true, features = ["indexmap", "serde_json"] }
 
 [features]
 bevy_ecs = ["dep:bevy_ecs"]
-serde = ["dep:serde", "azalea-registry/serde", "dep:crc32c"]
+serde = []
 strict_registry = []
 
 [lints]
 workspace = true
+
+[dev-dependencies]
+azalea-chat.workspace = true

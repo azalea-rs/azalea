@@ -108,7 +108,7 @@ pub fn registry(input: TokenStream) -> TokenStream {
                 id <= #max_id
             }
         }
-        impl crate::Registry for #name {
+        impl azalea_registry_builtin::Registry for #name {
             fn from_u32(value: u32) -> Option<Self> {
                 if Self::is_valid_id(value) {
                     Some(unsafe { Self::from_u32_unchecked(value) })
@@ -130,7 +130,7 @@ pub fn registry(input: TokenStream) -> TokenStream {
 
             #[doc = #doc_0]
             fn try_from(id: u32) -> Result<Self, Self::Error> {
-                if let Some(value) = crate::Registry::from_u32(id) {
+                if let Some(value) = azalea_registry_builtin::Registry::from_u32(id) {
                     Ok(value)
                 } else {
                     Err(())
@@ -145,13 +145,16 @@ pub fn registry(input: TokenStream) -> TokenStream {
     for item in &input.items {
         let name = &item.name;
         let id = &item.id;
+        let namespaced_id = format!("minecraft:{id}");
+
         to_str_items.extend(quote! {
-            Self::#name => concat!("minecraft:", #id),
+            Self::#name => #namespaced_id,
         });
         from_str_items.extend(quote! {
-            #id => Ok(Self::#name),
+            #id | #namespaced_id => Self::#name,
         });
     }
+
     generated.extend(quote! {
         impl #name {
             /// Convert the value to a stringified identifier, formatted like
@@ -162,6 +165,14 @@ pub fn registry(input: TokenStream) -> TokenStream {
                 }
             }
         }
+        const impl ::azalea_codec::types::ConstFromStr for #name {
+            fn const_from_str(s: &'static str) -> Self {
+                match s {
+                    #from_str_items
+                    _ => panic!("not a valid string for this registry")
+                }
+            }
+        }
         impl std::fmt::Display for #name {
             /// Convert the value to a stringified identifier, formatted like
             /// `"minecraft:air"`.
@@ -169,17 +180,16 @@ pub fn registry(input: TokenStream) -> TokenStream {
                 write!(f, "{}", self.to_str())
             }
         }
-        impl<'a> TryFrom<&'a crate::Identifier> for #name {
+        impl<'a> TryFrom<&'a ::azalea_core::identifier::Identifier> for #name {
             type Error = ();
-            fn try_from(ident: &'a crate::Identifier) -> Result<Self, Self::Error> {
-                if ident.namespace() != "minecraft" { return Err(()) }
-                match ident.path() {
+            fn try_from(ident: &'a ::azalea_core::identifier::Identifier) -> Result<Self, Self::Error> {
+                Ok(match ident.as_ref().1 {
                     #from_str_items
                     _ => return Err(()),
-                }
+                })
             }
         }
-        impl<'a> From<#name> for crate::Identifier {
+        impl<'a> From<#name> for ::azalea_core::identifier::Identifier {
             fn from(value: #name) -> Self {
                 Self::new(value.to_str())
             }
@@ -190,41 +200,18 @@ pub fn registry(input: TokenStream) -> TokenStream {
             type Err = ();
 
             fn from_str(s: &str) -> Result<Self, Self::Err> {
-                Self::try_from(&crate::Identifier::new(s))
+                Self::try_from(&::azalea_core::identifier::Identifier::new(s))
             }
         }
 
-        #[cfg(feature = "serde")]
-        impl serde::Serialize for #name {
-            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-            where
-                S: serde::Serializer,
-            {
-                serializer.serialize_str(&self.to_string())
+        impl<O: azalea_codec::Ops> azalea_codec::Codec<O> for #name {
+            fn codec_read(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
+                let s = ops.get_string(ctx)?;
+                std::str::FromStr::from_str(&s)
+                    .map_err(|_| azalea_codec::error::ReadError::custom(format!("invalid variant {s}")))
             }
-        }
-        #[cfg(feature = "serde")]
-        impl<'de> serde::Deserialize<'de> for #name {
-            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-            where
-                D: serde::Deserializer<'de>,
-            {
-                let s = String::deserialize(deserializer)?;
-                s.parse().map_err(|_| serde::de::Error::custom(
-                    format!("{s:?} is not a valid {name}", s = s, name = stringify!(#name))
-                ))
-            }
-        }
-
-        impl simdnbt::FromNbtTag for #name {
-            fn from_nbt_tag(tag: simdnbt::borrow::NbtTag) -> Option<Self> {
-                let v = tag.string()?;
-                std::str::FromStr::from_str(&v.to_str()).ok()
-            }
-        }
-        impl simdnbt::ToNbtTag for #name {
-            fn to_nbt_tag(self) -> simdnbt::owned::NbtTag {
-                simdnbt::owned::NbtTag::String(self.to_string().into())
+            fn codec_write(&self, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::WriteResult<O> {
+                self.to_string().codec_write(ctx)
             }
         }
     });

@@ -1,16 +1,16 @@
 use azalea_client::{
     InConfigState, InGameState, local_player::WorldHolder, test_utils::prelude::*,
 };
-use azalea_core::position::ChunkPos;
+use azalea_core::{identifier::Identifier, position::ChunkPos};
 use azalea_entity::LocalEntity;
 use azalea_protocol::packets::{
-    ConnectionProtocol, Packet,
-    config::{ClientboundFinishConfiguration, ClientboundRegistryData},
+    ConnectionProtocol, Packet, config::ClientboundFinishConfiguration,
     game::ClientboundStartConfiguration,
 };
-use azalea_registry::{DataRegistry, data::DimensionKind, identifier::Identifier};
+use azalea_registry::{
+    data::DimensionKindKey, registry_holder::dimension_type::DimensionKindElement,
+};
 use azalea_world::WorldName;
-use simdnbt::owned::{NbtCompound, NbtTag};
 
 #[test]
 fn test_login_to_dimension_with_same_name() {
@@ -22,12 +22,12 @@ fn test_login_to_dimension_with_same_name() {
 
 fn generic_test_login_to_dimension_with_same_name(using_respawn: bool) {
     let make_basic_login_or_respawn_packet = if using_respawn {
-        |dimension: DimensionKind, world_name: Identifier| {
-            make_basic_respawn_packet(dimension, world_name).into_variant()
+        |dimension: DimensionKindKey, world_name: Identifier, simulation: &Simulation| {
+            make_basic_respawn_packet(dimension, world_name, simulation).into_variant()
         }
     } else {
-        |dimension: DimensionKind, world_name: Identifier| {
-            make_basic_login_packet(dimension, world_name).into_variant()
+        |dimension: DimensionKindKey, world_name: Identifier, simulation: &Simulation| {
+            make_basic_login_packet(dimension, world_name, simulation).into_variant()
         }
     };
 
@@ -35,18 +35,7 @@ fn generic_test_login_to_dimension_with_same_name(using_respawn: bool) {
     assert!(simulation.has_component::<InConfigState>());
     assert!(!simulation.has_component::<InGameState>());
 
-    simulation.receive_packet(ClientboundRegistryData {
-        registry_id: Identifier::new("minecraft:dimension_type"),
-        entries: vec![(
-            Identifier::new("minecraft:overworld"),
-            Some(NbtTag::from(NbtCompound::from_values(vec![
-                ("height".into(), NbtTag::Int(384)),
-                ("min_y".into(), NbtTag::Int(-64)),
-            ]))),
-        )]
-        .into_iter()
-        .collect(),
-    });
+    receive_default_registries(&mut simulation);
     simulation.tick();
     simulation.receive_packet(ClientboundFinishConfiguration);
     simulation.tick();
@@ -60,8 +49,9 @@ fn generic_test_login_to_dimension_with_same_name(using_respawn: bool) {
     //
 
     simulation.receive_packet(make_basic_login_packet(
-        DimensionKind::new_raw(0), // overworld
+        DimensionKindKey::Overworld,
         Identifier::new("azalea:overworld"),
+        &simulation,
     ));
     simulation.tick();
 
@@ -83,22 +73,22 @@ fn generic_test_login_to_dimension_with_same_name(using_respawn: bool) {
     //
 
     simulation.receive_packet(ClientboundStartConfiguration);
-    simulation.receive_packet(ClientboundRegistryData {
-        registry_id: Identifier::new("minecraft:dimension_type"),
-        entries: vec![(
-            Identifier::new("minecraft:overworld"),
-            Some(NbtTag::from(NbtCompound::from_values(vec![
-                ("height".into(), NbtTag::Int(256)),
-                ("min_y".into(), NbtTag::Int(0)),
-            ]))),
-        )]
-        .into_iter()
-        .collect(),
-    });
+    receive_default_registries_with_dimensions(
+        &mut simulation,
+        vec![(
+            "overworld",
+            DimensionKindElement {
+                min_y: 0,
+                height: 256,
+                ..Default::default()
+            },
+        )],
+    );
     simulation.receive_packet(ClientboundFinishConfiguration);
     simulation.receive_packet(make_basic_login_or_respawn_packet(
-        DimensionKind::new_raw(0),
+        DimensionKindKey::Overworld,
         Identifier::new("azalea:overworld"),
+        &simulation,
     ));
     simulation.tick();
 

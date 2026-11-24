@@ -65,6 +65,8 @@ mod tests {
         ];
         let packet = ClientboundSystemChat::azalea_read(&mut Cursor::new(&bytes)).unwrap();
 
+        println!("content: {:?}", packet.content);
+
         assert_eq!(
             packet.content.to_ansi(),
             "\u{1b}[38;2;85;255;85mmatscan\u{1b}[38;2;255;255;255m: meow\u{1b}[m"

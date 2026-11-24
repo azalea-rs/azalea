@@ -4,12 +4,13 @@ use std::{
 };
 
 use azalea_buf::{AzBuf, AzBufLimited, AzBufVar};
+use azalea_codec::Codec;
 
 /// Used for written books.
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[derive(Codec)]
 pub struct Filterable<T> {
     pub raw: T,
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    #[codec(optional)]
     pub filtered: Option<T>,
 }
 

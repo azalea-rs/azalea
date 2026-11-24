@@ -14,7 +14,7 @@ fn test_close_open_container() {
 
     let mut simulation = Simulation::new(ConnectionProtocol::Game);
 
-    simulation.receive_packet(default_login_packet());
+    simulation.receive_packet(default_login_packet(&simulation));
     simulation.tick();
     // receive a chunk so the player is "loaded" now
     simulation.receive_packet(ClientboundSetChunkCacheCenter { x: 1, z: 23 });

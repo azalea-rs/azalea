@@ -15,15 +15,20 @@ pub fn to_camel_case(snake_case: &str) -> String {
     }
     camel_case
 }
-pub fn to_snake_case(camel_case: &str) -> String {
-    let mut snake_case = String::new();
-    for c in camel_case.chars() {
+pub fn to_snake_case(s: &str) -> String {
+    let mut result = String::new();
+    let mut prev_was_uppercase = true;
+    for c in s.chars() {
         if c.is_ascii_uppercase() {
-            snake_case.push('_');
-            snake_case.push(c.to_ascii_lowercase());
+            if !prev_was_uppercase {
+                result.push('_');
+            }
+            result.push(c.to_ascii_lowercase());
+            prev_was_uppercase = true;
         } else {
-            snake_case.push(c);
+            result.push(c);
+            prev_was_uppercase = false;
         }
     }
-    snake_case
+    result
 }

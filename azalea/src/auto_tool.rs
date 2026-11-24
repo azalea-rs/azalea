@@ -1,8 +1,11 @@
 use azalea_block::{BlockState, fluid_state::FluidKind};
 use azalea_core::position::BlockPos;
 use azalea_entity::{ActiveEffects, Attributes, FluidOnEyes, Physics, inventory::Inventory};
-use azalea_inventory::{ItemStack, Menu, components};
-use azalea_registry::builtin::{BlockKind, EntityKind};
+use azalea_inventory::Menu;
+use azalea_registry::{
+    builtin::{BlockKind, EntityKind},
+    item::{ItemStack, components},
+};
 
 use crate::{Client, client_impl::error::AzaleaResult};
 

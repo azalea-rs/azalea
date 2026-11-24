@@ -621,7 +621,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
 
         pub mod blocks {
             use super::*;
-            use azalea_registry::builtin::BlockKind;
+            use azalea_registry_builtin::builtin::BlockKind;
 
             #block_structs
 

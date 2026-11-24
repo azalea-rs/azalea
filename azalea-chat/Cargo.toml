@@ -8,18 +8,17 @@ repository.workspace = true
 
 [features]
 default = []
-simdnbt = ["dep:simdnbt"]
+simdnbt = ["dep:simdnbt", "azalea-codec/simdnbt"]
 azalea-buf = ["dep:azalea-buf", "simdnbt"]
-numbers = ["dep:azalea-registry", "dep:simdnbt"]
 
 [dependencies]
 azalea-buf = { workspace = true, optional = true, features = ["serde_json"] }
+azalea-codec = { workspace = true, features = ["serde_json"] }
+azalea-core.workspace = true
 azalea-language.workspace = true
-azalea-registry = { workspace = true, optional = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 simdnbt = { workspace = true, optional = true }
-tracing.workspace = true
 
 [lints]
 workspace = true

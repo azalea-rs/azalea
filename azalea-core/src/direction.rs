@@ -2,7 +2,6 @@ use azalea_buf::AzBuf;
 
 use crate::position::{BlockPos, Vec3, Vec3i};
 
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[derive(Clone, Copy, Debug, AzBuf, Default, Eq, PartialEq)]
 pub enum Direction {
     #[default]
@@ -90,7 +89,6 @@ impl Direction {
 ///
 /// Note that azalea_block has a similar enum named `FacingCardinal` that is
 /// used for block states.
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(AzBuf, Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum CardinalDirection {
     North,

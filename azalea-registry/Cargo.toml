@@ -8,13 +8,19 @@ repository.workspace = true
 
 [dependencies]
 azalea-buf.workspace = true
+azalea-chat = { workspace = true, features = ["azalea-buf"] }
+azalea-codec = { workspace = true, features = ["simdnbt", "uuid"] }
+azalea-core.workspace = true
 azalea-registry-macros.workspace = true
-serde = { workspace = true, optional = true, features = ["derive"] }
+azalea-registry-builtin.workspace = true
+indexmap.workspace = true
 simdnbt.workspace = true
-
-[features]
-serde = ["azalea-registry-macros/serde", "dep:serde"]
-default = ["serde"]
+tracing.workspace = true
+azalea-block.workspace = true
+azalea-auth = { workspace = true, features = ["azalea-codec"] }
+uuid.workspace = true
+thiserror.workspace = true
+crc32c.workspace = true
 
 [lints]
 workspace = true

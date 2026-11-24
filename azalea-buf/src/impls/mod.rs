@@ -88,11 +88,6 @@ pub enum BufReadErrorRepr {
         #[from]
         source: simdnbt::Error,
     },
-    #[error("{source}")]
-    DeserializeNbt {
-        #[from]
-        source: simdnbt::DeserializeError,
-    },
 }
 
 // the only reason this is separated into a different type is for the backtrace
@@ -126,7 +121,6 @@ buf_read_error_from_impl!(io::Error);
 #[cfg(feature = "serde_json")]
 buf_read_error_from_impl!(serde_json::Error);
 buf_read_error_from_impl!(simdnbt::Error);
-buf_read_error_from_impl!(simdnbt::DeserializeError);
 
 pub(crate) fn read_bytes<'a>(
     buf: &'a mut Cursor<&[u8]>,

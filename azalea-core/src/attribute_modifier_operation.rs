@@ -1,11 +1,10 @@
 use std::str::FromStr;
 
 use azalea_buf::AzBuf;
-use simdnbt::{FromNbtTag, borrow::NbtTag};
+use azalea_codec::Codec;
 
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[derive(AzBuf, Clone, Copy, Debug, PartialEq)]
-#[cfg_attr(feature = "serde", serde(rename_all = "snake_case"))]
+#[derive(AzBuf, Clone, Copy, Debug, PartialEq, Codec)]
+#[codec(default_snake_case_key)]
 pub enum AttributeModifierOperation {
     AddValue,
     AddMultipliedBase,
@@ -23,11 +22,5 @@ impl FromStr for AttributeModifierOperation {
             _ => return Err(()),
         };
         Ok(value)
-    }
-}
-impl FromNbtTag for AttributeModifierOperation {
-    fn from_nbt_tag(tag: NbtTag) -> Option<Self> {
-        let v = tag.string()?;
-        Self::from_str(&v.to_str()).ok()
     }
 }

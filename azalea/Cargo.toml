@@ -18,7 +18,7 @@ azalea-brigadier.workspace = true
 azalea-buf.workspace = true
 azalea-chat.workspace = true
 azalea-client.workspace = true
-azalea-core.workspace = true
+azalea-core = { workspace = true, features = ["serde"] }
 azalea-entity.workspace = true
 azalea-inventory.workspace = true
 azalea-physics.workspace = true
@@ -56,7 +56,7 @@ bevy_log.workspace = true
 default = ["log", "serde", "packet-event", "online-mode"]
 # enables bevy_log::LogPlugin by default
 log = ["azalea-client/log"]
-serde = ["dep:serde", "azalea-registry/serde", "azalea-world/serde"]
+serde = ["dep:serde"]
 packet-event = ["azalea-client/packet-event"]
 online-mode = ["azalea-client/online-mode"]
 

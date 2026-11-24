@@ -6,15 +6,11 @@ use azalea_client::{
 };
 use azalea_protocol::packets::{
     ConnectionProtocol,
-    config::{
-        self, ClientboundFinishConfiguration, ClientboundRegistryData, ServerboundConfigPacket,
-    },
+    config::{self, ClientboundFinishConfiguration, ServerboundConfigPacket},
     game::{self, ServerboundGamePacket},
 };
-use azalea_registry::identifier::Identifier;
 use bevy_ecs::observer::On;
 use parking_lot::Mutex;
-use simdnbt::owned::{NbtCompound, NbtTag};
 
 #[test]
 fn reply_to_ping_with_pong() {
@@ -39,21 +35,8 @@ fn reply_to_ping_with_pong() {
     simulation.tick();
     assert_eq!(*reply_count.lock(), 1);
 
+    receive_default_registries(&mut simulation);
     // move into game state and test ClientboundPing there
-
-    simulation.receive_packet(ClientboundRegistryData {
-        registry_id: Identifier::new("minecraft:dimension_type"),
-        entries: vec![(
-            Identifier::new("minecraft:overworld"),
-            Some(NbtTag::from(NbtCompound::from_values(vec![
-                ("height".into(), NbtTag::Int(384)),
-                ("min_y".into(), NbtTag::Int(-64)),
-            ]))),
-        )]
-        .into_iter()
-        .collect(),
-    });
-
     simulation.receive_packet(ClientboundFinishConfiguration);
     simulation.tick();
 

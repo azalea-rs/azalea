@@ -4,11 +4,8 @@ use std::{
 };
 
 use azalea_block::{BlockState, fluid_state::FluidState};
-use azalea_core::{
-    position::{BlockPos, ChunkPos},
-    registry_holder::RegistryHolder,
-};
-use azalea_registry::data::Biome;
+use azalea_core::position::{BlockPos, ChunkPos};
+use azalea_registry::{data::Biome, registry_holder::RegistryHolder};
 use bevy_ecs::entity::Entity;
 use nohash_hasher::IntMap;
 

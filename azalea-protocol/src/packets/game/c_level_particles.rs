@@ -1,7 +1,7 @@
 use azalea_buf::AzBuf;
 use azalea_core::position::Vec3;
-use azalea_entity::particle::Particle;
 use azalea_protocol_macros::ClientboundGamePacket;
+use azalea_registry::registry_holder::particle::Particle;
 
 #[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundLevelParticles {

@@ -6,7 +6,7 @@ use azalea_core::{
     math::EPSILON,
     position::{BlockPos, ChunkBlockPos, ChunkPos, ChunkSectionBlockPos, ChunkSectionPos, Vec3},
 };
-use azalea_inventory::ItemStack;
+use azalea_registry::item::ItemStack;
 use azalea_world::{Chunk, World};
 use bevy_ecs::entity::Entity;
 use parking_lot::RwLock;
