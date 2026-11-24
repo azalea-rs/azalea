@@ -87,7 +87,7 @@ macro_rules! define_data_components {
         /// `DataComponentKind` to be passed in. Passing the wrong `DataComponentKind` will result
         /// in undefined behavior. Also, all of the values are `ManuallyDrop`.
         ///
-        /// [`DataComponentPatch`]: crate::DataComponentPatch
+        /// [`DataComponentPatch`]: crate::item::components::patch::DataComponentPatch
         #[allow(non_snake_case)]
         pub union DataComponentUnion {
             $( $x: ManuallyDrop<$x>, )*

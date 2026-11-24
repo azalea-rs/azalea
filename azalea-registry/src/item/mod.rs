@@ -34,7 +34,7 @@ pub trait MaxStackSizeExt {
     /// This is a signed integer to be consistent with the `count` field of
     /// [`ItemStackData`].
     ///
-    /// [`ItemStackData`]: crate::ItemStackData
+    /// [`ItemStackData`]: crate::item::ItemStackData
     fn max_stack_size(&self) -> i32;
 
     /// Whether this item can be stacked with other items.
@@ -180,8 +180,7 @@ impl ItemStack {
 
 /// An item in an inventory, with a count and a set of data components.
 ///
-/// Usually you want [`ItemStack`] or
-/// [`ItemKind`](azalea_registry::builtin::ItemKind) instead.
+/// Usually you want [`ItemStack`] or [`ItemKind`] instead.
 #[derive(Clone, Debug, PartialEq, Codec)]
 pub struct ItemStackData {
     #[codec(rename = "id")]

@@ -1,7 +1,7 @@
 //! All built-in registries.
 //!
 //! This is different from data-driven registries, which are defined in
-//! [`azalea_registry::data`](crate::data).
+//! `azalea_registry::data`.
 
 use azalea_registry_macros::registry;
 
