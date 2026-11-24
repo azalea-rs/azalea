@@ -248,13 +248,13 @@ impl ItemStackData {
 }
 
 impl AzBuf for ItemStack {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let count = i32::azalea_read_var(buf)?;
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let count = i32::azalea_read_var(ctx, buf)?;
         if count <= 0 {
             Ok(ItemStack::Empty)
         } else {
-            let kind = ItemKind::azalea_read(buf)?;
-            let component_patch = DataComponentPatch::azalea_read(buf)?;
+            let kind = ItemKind::azalea_read(ctx, buf)?;
+            let component_patch = DataComponentPatch::azalea_read(ctx, buf)?;
             Ok(ItemStack::from(ItemStackData {
                 count,
                 kind,

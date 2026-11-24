@@ -16,15 +16,18 @@ pub enum NumberFormat {
 }
 
 impl AzBuf for NumberFormat {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
-        let kind = NumberFormatKind::azalea_read(buf)?;
+    fn azalea_read(
+        ctx: azalea_buf::Ctx,
+        buf: &mut Cursor<&[u8]>,
+    ) -> Result<Self, azalea_buf::BufReadError> {
+        let kind = NumberFormatKind::azalea_read(ctx, buf)?;
         match kind {
             NumberFormatKind::Blank => Ok(NumberFormat::Blank),
             NumberFormatKind::Styled => Ok(NumberFormat::Styled {
                 style: simdnbt::owned::read(buf)?,
             }),
             NumberFormatKind::Fixed => Ok(NumberFormat::Fixed {
-                value: FormattedText::azalea_read(buf)?,
+                value: FormattedText::azalea_read(ctx, buf)?,
             }),
         }
     }

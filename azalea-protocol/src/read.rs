@@ -82,14 +82,17 @@ pub enum FrameSplitterError {
     ConnectionClosed,
 }
 
-/// Read a length, then read that amount of bytes from the `Cursor<Vec<u8>>`. If
-/// there's not enough data, `None` is returned.
+/// Read a length, then read that amount of bytes from the `Cursor<Vec<u8>>`.
+///
+/// If there's not enough data, `None` is returned.
 fn parse_frame(buffer: &mut Cursor<Vec<u8>>) -> Result<Box<[u8]>, FrameSplitterError> {
     // copy the buffer first and read from the copy, then once we make sure
     // the packet is all good we read it fully
     let mut buffer_copy = Cursor::new(&buffer.get_ref()[buffer.position() as usize..]);
-    // Packet Length
-    let length = match u32::azalea_read_var(&mut buffer_copy) {
+
+    let ctx = azalea_buf::Ctx::default();
+
+    let length = match u32::azalea_read_var(ctx, &mut buffer_copy) {
         Ok(length) => length as usize,
         Err(err) => match err.source {
             BufReadErrorRepr::Io { source } => return Err(FrameSplitterError::Io { source }),
@@ -151,10 +154,11 @@ fn frame_splitter(buffer: &mut Cursor<Vec<u8>>) -> Result<Option<Box<[u8]>>, Fra
 pub fn deserialize_packet<P: ProtocolPacket + Debug>(
     stream: &mut Cursor<&[u8]>,
 ) -> Result<P, Box<ReadPacketError>> {
-    // Packet ID
-    let packet_id =
-        u32::azalea_read_var(stream).map_err(|e| ReadPacketError::ReadPacketId { source: e })?;
-    P::read(packet_id, stream)
+    let ctx = azalea_buf::Ctx::default();
+
+    let packet_id = u32::azalea_read_var(ctx, stream)
+        .map_err(|e| ReadPacketError::ReadPacketId { source: e })?;
+    P::read(packet_id, ctx, stream)
 }
 
 // this is always true in multiplayer, false in singleplayer
@@ -191,9 +195,10 @@ pub fn compression_decoder(
     stream: &mut Cursor<&[u8]>,
     compression_threshold: u32,
 ) -> Result<Box<[u8]>, DecompressionError> {
-    // Data Length
-    let n = u32::azalea_read_var(stream)?;
-    if n == 0 {
+    let ctx = azalea_buf::Ctx::default();
+
+    let data_length = u32::azalea_read_var(ctx, stream)?;
+    if data_length == 0 {
         // no data size, no compression
         let buf = stream.get_ref()[stream.position() as usize..]
             .to_vec()
@@ -203,15 +208,15 @@ pub fn compression_decoder(
     }
 
     if VALIDATE_DECOMPRESSED {
-        if n < compression_threshold {
+        if data_length < compression_threshold {
             return Err(DecompressionError::BelowCompressionThreshold {
-                size: n,
+                size: data_length,
                 threshold: compression_threshold,
             });
         }
-        if n > MAXIMUM_UNCOMPRESSED_LENGTH {
+        if data_length > MAXIMUM_UNCOMPRESSED_LENGTH {
             return Err(DecompressionError::AboveCompressionThreshold {
-                size: n,
+                size: data_length,
                 maximum: MAXIMUM_UNCOMPRESSED_LENGTH,
             });
         }
@@ -219,7 +224,7 @@ pub fn compression_decoder(
 
     // VALIDATE_DECOMPRESSED should always be true, so the max they can make us
     // allocate here is 2mb
-    let mut decoded_buf = vec![0; n as usize];
+    let mut decoded_buf = vec![0; data_length as usize];
 
     let mut decoder = ZlibDecoder::new(stream);
     decoder.read_exact(&mut decoded_buf)?;
@@ -451,7 +456,9 @@ mod tests {
     }
     #[test]
     fn fuzzed_6() {
+        let ctx = azalea_buf::Ctx::default();
         // memory leak in simdnbt
-        let _ = simdnbt::owned::Nbt::azalea_read(&mut Cursor::new([10, 10, 0, 0, 0].as_slice()));
+        let _ =
+            simdnbt::owned::Nbt::azalea_read(ctx, &mut Cursor::new([10, 10, 0, 0, 0].as_slice()));
     }
 }

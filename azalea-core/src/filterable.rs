@@ -15,9 +15,12 @@ pub struct Filterable<T> {
 }
 
 impl<T: AzBuf> AzBuf for Filterable<T> {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
-        let raw = AzBuf::azalea_read(buf)?;
-        let filtered = AzBuf::azalea_read(buf)?;
+    fn azalea_read(
+        ctx: azalea_buf::Ctx,
+        buf: &mut Cursor<&[u8]>,
+    ) -> Result<Self, azalea_buf::BufReadError> {
+        let raw = AzBuf::azalea_read(ctx, buf)?;
+        let filtered = AzBuf::azalea_read(ctx, buf)?;
         Ok(Self { raw, filtered })
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
@@ -28,18 +31,22 @@ impl<T: AzBuf> AzBuf for Filterable<T> {
 }
 impl<T: AzBufLimited> AzBufLimited for Filterable<T> {
     fn azalea_read_limited(
+        ctx: azalea_buf::Ctx,
         buf: &mut Cursor<&[u8]>,
         limit: u32,
     ) -> Result<Self, azalea_buf::BufReadError> {
-        let raw = AzBufLimited::azalea_read_limited(buf, limit)?;
-        let filtered = AzBufLimited::azalea_read_limited(buf, limit)?;
+        let raw = AzBufLimited::azalea_read_limited(ctx, buf, limit)?;
+        let filtered = AzBufLimited::azalea_read_limited(ctx, buf, limit)?;
         Ok(Self { raw, filtered })
     }
 }
 impl<T: AzBufVar> AzBufVar for Filterable<T> {
-    fn azalea_read_var(buf: &mut Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
-        let raw = AzBufVar::azalea_read_var(buf)?;
-        let filtered = AzBufVar::azalea_read_var(buf)?;
+    fn azalea_read_var(
+        ctx: azalea_buf::Ctx,
+        buf: &mut Cursor<&[u8]>,
+    ) -> Result<Self, azalea_buf::BufReadError> {
+        let raw = AzBufVar::azalea_read_var(ctx, buf)?;
+        let filtered = AzBufVar::azalea_read_var(ctx, buf)?;
         Ok(Self { raw, filtered })
     }
     fn azalea_write_var(&self, buf: &mut impl Write) -> io::Result<()> {

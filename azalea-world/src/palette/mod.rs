@@ -62,22 +62,23 @@ impl<S: PalletedContainerKind> Palette<S> {
 impl PaletteKind {
     pub fn read<S: PalletedContainerKind>(
         &self,
+        ctx: azalea_buf::Ctx,
         buf: &mut Cursor<&[u8]>,
     ) -> Result<Palette<S>, BufReadError> {
         Ok(match self {
             // since they're read as varints it's actually fine to just use
             // BlockStateIntegerRepr instead of the correct type (u32)
-            PaletteKind::SingleValue => {
-                Palette::SingleValue(S::try_from(u32::azalea_read_var(buf)?).unwrap_or_default())
-            }
+            PaletteKind::SingleValue => Palette::SingleValue(
+                S::try_from(u32::azalea_read_var(ctx, buf)?).unwrap_or_default(),
+            ),
             PaletteKind::Linear => Palette::Linear(
-                Vec::<u32>::azalea_read_var(buf)?
+                Vec::<u32>::azalea_read_var(ctx, buf)?
                     .into_iter()
                     .map(|v| S::try_from(v).unwrap_or_default())
                     .collect(),
             ),
             PaletteKind::Hashmap => Palette::Hashmap(
-                Vec::<u32>::azalea_read_var(buf)?
+                Vec::<u32>::azalea_read_var(ctx, buf)?
                     .into_iter()
                     .map(|v| S::try_from(v).unwrap_or_default())
                     .collect(),

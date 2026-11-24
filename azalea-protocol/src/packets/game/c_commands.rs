@@ -46,15 +46,15 @@ impl<T: PartialEq> PartialEq for BrigadierNumber<T> {
 }
 
 impl<T: AzBuf> AzBuf for BrigadierNumber<T> {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let flags = FixedBitSet::<2>::azalea_read(buf)?;
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let flags = FixedBitSet::<2>::azalea_read(ctx, buf)?;
         let min = if flags.index(0) {
-            Some(T::azalea_read(buf)?)
+            Some(T::azalea_read(ctx, buf)?)
         } else {
             None
         };
         let max = if flags.index(1) {
-            Some(T::azalea_read(buf)?)
+            Some(T::azalea_read(ctx, buf)?)
         } else {
             None
         };
@@ -159,8 +159,8 @@ pub struct EntityParser {
     pub players_only: bool,
 }
 impl AzBuf for EntityParser {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let flags = FixedBitSet::<2>::azalea_read(buf)?;
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let flags = FixedBitSet::<2>::azalea_read(ctx, buf)?;
         Ok(EntityParser {
             single: flags.index(0),
             players_only: flags.index(1),
@@ -181,8 +181,8 @@ impl AzBuf for EntityParser {
 
 // TODO: BrigadierNodeStub should have more stuff
 impl AzBuf for BrigadierNodeStub {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let flags = FixedBitSet::<8>::azalea_read(buf)?;
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let flags = FixedBitSet::<8>::azalea_read(ctx, buf)?;
         if flags.index(6) || flags.index(7) {
             warn!(
                 "The flags from a Brigadier node are over 63. This is a bug, BrigadierParser probably needs updating.",
@@ -195,19 +195,19 @@ impl AzBuf for BrigadierNodeStub {
         let has_suggestions_type = flags.index(4);
         let is_restricted = flags.index(5);
 
-        let children = Vec::<u32>::azalea_read_var(buf)?;
+        let children = Vec::<u32>::azalea_read_var(ctx, buf)?;
         let redirect_node = if has_redirect {
-            Some(u32::azalea_read_var(buf)?)
+            Some(u32::azalea_read_var(ctx, buf)?)
         } else {
             None
         };
 
         // argument node
         if node_type == 2 {
-            let name = String::azalea_read(buf)?;
-            let parser = BrigadierParser::azalea_read(buf)?;
+            let name = String::azalea_read(ctx, buf)?;
+            let parser = BrigadierParser::azalea_read(ctx, buf)?;
             let suggestions_type = if has_suggestions_type {
-                Some(Identifier::azalea_read(buf)?)
+                Some(Identifier::azalea_read(ctx, buf)?)
             } else {
                 None
             };
@@ -225,7 +225,7 @@ impl AzBuf for BrigadierNodeStub {
         }
         // literal node
         else if node_type == 1 {
-            let name = String::azalea_read(buf)?;
+            let name = String::azalea_read(ctx, buf)?;
             Ok(BrigadierNodeStub {
                 is_executable,
                 children,
@@ -342,7 +342,8 @@ mod tests {
         let mut buf = Vec::new();
         data.azalea_write(&mut buf).unwrap();
         let mut data_cursor: Cursor<&[u8]> = Cursor::new(&buf);
-        let read_data = BrigadierNodeStub::azalea_read(&mut data_cursor).unwrap();
+        let read_data =
+            BrigadierNodeStub::azalea_read(Default::default(), &mut data_cursor).unwrap();
         assert_eq!(data, read_data);
     }
 
@@ -360,7 +361,8 @@ mod tests {
         let mut buf = Vec::new();
         data.azalea_write(&mut buf).unwrap();
         let mut data_cursor: Cursor<&[u8]> = Cursor::new(&buf);
-        let read_data = BrigadierNodeStub::azalea_read(&mut data_cursor).unwrap();
+        let read_data =
+            BrigadierNodeStub::azalea_read(Default::default(), &mut data_cursor).unwrap();
         assert_eq!(data, read_data);
     }
 
@@ -380,7 +382,8 @@ mod tests {
         let mut buf = Vec::new();
         data.azalea_write(&mut buf).unwrap();
         let mut data_cursor: Cursor<&[u8]> = Cursor::new(&buf);
-        let read_data = BrigadierNodeStub::azalea_read(&mut data_cursor).unwrap();
+        let read_data =
+            BrigadierNodeStub::azalea_read(Default::default(), &mut data_cursor).unwrap();
         assert_eq!(data, read_data);
     }
 }

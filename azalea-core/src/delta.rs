@@ -92,15 +92,15 @@ pub enum LpVec3 {
 }
 
 impl AzBuf for LpVec3 {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let a = u8::azalea_read(buf)?;
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let a = u8::azalea_read(ctx, buf)?;
         if a == 0 {
             return Ok(LpVec3::Zero);
         }
-        let b = u8::azalea_read(buf)?;
-        let c = u32::azalea_read(buf)?;
+        let b = u8::azalea_read(ctx, buf)?;
+        let c = u32::azalea_read(ctx, buf)?;
         if a & 4 == 4 {
-            let d = u32::azalea_read_var(buf)?;
+            let d = u32::azalea_read_var(ctx, buf)?;
             Ok(LpVec3::Extended { a, b, c, d })
         } else {
             Ok(LpVec3::Normal { a, b, c })
@@ -256,7 +256,8 @@ mod tests {
             let v: LpVec3 = LpVec3::from(v);
             let mut first_buf = Vec::new();
             v.azalea_write(&mut first_buf).unwrap();
-            let decoded = LpVec3::azalea_read(&mut Cursor::new(&first_buf)).unwrap();
+            let decoded =
+                LpVec3::azalea_read(Default::default(), &mut Cursor::new(&first_buf)).unwrap();
             assert_eq!(v, decoded);
 
             let mut second_buf = Vec::new();

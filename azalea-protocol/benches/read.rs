@@ -28,7 +28,10 @@ fn benchmark(c: &mut Criterion) {
         .azalea_write(&mut buf)
         .unwrap();
         b.iter(|| {
-            black_box(ClientboundWaypoint::azalea_read(&mut Cursor::new(&buf)).unwrap());
+            black_box(
+                ClientboundWaypoint::azalea_read(Default::default(), &mut Cursor::new(&buf))
+                    .unwrap(),
+            );
         });
     });
 }

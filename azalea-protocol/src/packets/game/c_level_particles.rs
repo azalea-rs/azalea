@@ -44,7 +44,7 @@ mod tests {
         #[rustfmt::skip]
         let contents = [21, 255, 128, 0, 128, 63, 128, 0, 0, 1, 1, 192, 56, 174, 132, 32, 0, 0, 0, 64, 80, 245, 194, 128, 0, 0, 0, 192, 14, 21, 162, 192, 0, 0, 0, 63, 0, 128, 129, 0, 0, 0, 0, 63, 0, 128, 129, 63, 128, 0, 0, 63, 128, 0, 0, 63, 128, 0, 0, 0, 0];
         let mut buf: Cursor<&[u8]> = Cursor::new(contents.as_slice());
-        let packet = ClientboundLevelParticles::azalea_read(&mut buf).unwrap();
+        let packet = ClientboundLevelParticles::azalea_read(Default::default(), &mut buf).unwrap();
         println!("{packet:?}");
 
         assert_eq!(buf.position(), contents.len() as u64);

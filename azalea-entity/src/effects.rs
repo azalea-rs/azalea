@@ -35,8 +35,8 @@ pub struct MobEffectFlags {
 }
 
 impl AzBuf for MobEffectFlags {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let bitset = FixedBitSet::<8>::azalea_read(buf)?;
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let bitset = FixedBitSet::<8>::azalea_read(ctx, buf)?;
         let ambient = bitset.index(0);
         let show_particles = bitset.index(1);
         let show_icon = bitset.index(2);

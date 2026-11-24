@@ -26,15 +26,15 @@ pub enum Operation {
 }
 
 impl AzBuf for Operation {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let operation_id = u32::azalea_read_var(buf)?;
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let operation_id = u32::azalea_read_var(ctx, buf)?;
         Ok(match operation_id {
-            0 => Operation::Add(AddOperation::azalea_read(buf)?),
+            0 => Operation::Add(AddOperation::azalea_read(ctx, buf)?),
             1 => Operation::Remove,
-            2 => Operation::UpdateProgress(f32::azalea_read(buf)?),
-            3 => Operation::UpdateName(FormattedText::azalea_read(buf)?),
-            4 => Operation::UpdateStyle(Style::azalea_read(buf)?),
-            5 => Operation::UpdateProperties(Properties::azalea_read(buf)?),
+            2 => Operation::UpdateProgress(f32::azalea_read(ctx, buf)?),
+            3 => Operation::UpdateName(FormattedText::azalea_read(ctx, buf)?),
+            4 => Operation::UpdateStyle(Style::azalea_read(ctx, buf)?),
+            5 => Operation::UpdateProperties(Properties::azalea_read(ctx, buf)?),
             _ => {
                 return Err(BufReadErrorRepr::UnexpectedEnumVariant {
                     id: operation_id as i32,
@@ -115,8 +115,8 @@ pub struct Properties {
 }
 
 impl AzBuf for Properties {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let set = FixedBitSet::<3>::azalea_read(buf)?;
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let set = FixedBitSet::<3>::azalea_read(ctx, buf)?;
         Ok(Self {
             darken_screen: set.index(0),
             play_music: set.index(1),

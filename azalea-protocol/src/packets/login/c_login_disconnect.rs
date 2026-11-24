@@ -12,8 +12,8 @@ pub struct ClientboundLoginDisconnect {
 }
 
 impl AzBuf for ClientboundLoginDisconnect {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let string = String::azalea_read(buf)?;
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let string = String::azalea_read(ctx, buf)?;
         trace!("Got disconnect packet with string: {string:?}");
         let mut string = string.into_bytes();
         let json = match simd_json::from_slice::<simd_json::OwnedValue>(&mut string) {

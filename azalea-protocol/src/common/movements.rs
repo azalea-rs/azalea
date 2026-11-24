@@ -92,9 +92,9 @@ fn apply_change<T: Add<Output = T>>(base: T, condition: bool, change: T) -> T {
 }
 
 impl AzBuf for RelativeMovements {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         // yes minecraft seriously wastes that many bits, smh
-        let set = u32::azalea_read(buf)?;
+        let set = u32::azalea_read(ctx, buf)?;
         let set = FixedBitSet::<32>::new_with_data(set.swap_bytes().to_be_bytes());
         Ok(RelativeMovements {
             x: set.index(0),
@@ -136,8 +136,8 @@ pub struct MoveFlags {
     pub horizontal_collision: bool,
 }
 impl AzBuf for MoveFlags {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let bitset = FixedBitSet::<8>::azalea_read(buf)?;
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let bitset = FixedBitSet::<8>::azalea_read(ctx, buf)?;
         let on_ground = bitset.index(0);
         let horizontal_collision = bitset.index(1);
         Ok(Self {

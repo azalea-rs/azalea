@@ -26,7 +26,7 @@ mod tests {
             111, 99, 105, 116, 97, 98,
         ];
         let mut buf = Cursor::new(contents.as_slice());
-        let packet = ClientboundServerLinks::azalea_read(&mut buf).unwrap();
+        let packet = ClientboundServerLinks::azalea_read(Default::default(), &mut buf).unwrap();
         println!("{packet:?}");
 
         assert_eq!(buf.position(), contents.len() as u64);

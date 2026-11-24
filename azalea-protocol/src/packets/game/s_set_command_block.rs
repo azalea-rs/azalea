@@ -23,12 +23,12 @@ pub enum Mode {
 }
 
 impl AzBuf for ServerboundSetCommandBlock {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let pos = BlockPos::azalea_read(buf)?;
-        let command = String::azalea_read(buf)?;
-        let mode = Mode::azalea_read(buf)?;
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let pos = BlockPos::azalea_read(ctx, buf)?;
+        let command = String::azalea_read(ctx, buf)?;
+        let mode = Mode::azalea_read(ctx, buf)?;
 
-        let set = FixedBitSet::<3>::azalea_read(buf)?;
+        let set = FixedBitSet::<3>::azalea_read(ctx, buf)?;
         Ok(Self {
             pos,
             command,

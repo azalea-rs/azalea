@@ -46,7 +46,7 @@ mod tests {
             63, 128, 0, 0, 71, 94, 219, 133, 200, 13, 150, 31,
         ];
         let mut buf = Cursor::new(contents.as_slice());
-        let packet = ClientboundSound::azalea_read(&mut buf).unwrap();
+        let packet = ClientboundSound::azalea_read(Default::default(), &mut buf).unwrap();
         println!("{packet:?}");
 
         assert_eq!(buf.position(), contents.len() as u64);

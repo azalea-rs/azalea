@@ -28,7 +28,8 @@ mod tests {
             0, 0, 0, 0, 0, 0, 0, 1, 196, 6, 0, 0, 0,
         ];
         let mut buf = Cursor::new(contents.as_slice());
-        let packet = ClientboundContainerSetContent::azalea_read(&mut buf).unwrap();
+        let packet =
+            ClientboundContainerSetContent::azalea_read(Default::default(), &mut buf).unwrap();
         println!("{packet:?}");
 
         assert_eq!(buf.position(), contents.len() as u64);

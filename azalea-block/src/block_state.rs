@@ -142,8 +142,8 @@ impl From<BlockState> for u32 {
 }
 
 impl AzBuf for BlockState {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let state_id = u32::azalea_read_var(buf)?;
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let state_id = u32::azalea_read_var(ctx, buf)?;
         Self::try_from(state_id).map_err(|_| {
             BufReadErrorRepr::UnexpectedEnumVariant {
                 id: state_id as i32,

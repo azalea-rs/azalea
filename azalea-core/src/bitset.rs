@@ -248,10 +248,10 @@ impl<const N: usize> FixedBitSet<N> {
 }
 
 impl<const N: usize> AzBuf for FixedBitSet<N> {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let mut data = [0; _];
         for item in data.iter_mut() {
-            *item = u8::azalea_read(buf)?;
+            *item = u8::azalea_read(ctx, buf)?;
         }
         Ok(FixedBitSet { data })
     }
@@ -268,8 +268,11 @@ impl AzBufVar for FixedBitSet<32>
 where
     [u8; 8]: Sized,
 {
-    fn azalea_read_var(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let data = u32::azalea_read_var(buf)?;
+    fn azalea_read_var(
+        ctx: azalea_buf::Ctx,
+        buf: &mut Cursor<&[u8]>,
+    ) -> Result<Self, BufReadError> {
+        let data = u32::azalea_read_var(ctx, buf)?;
         Ok(Self {
             data: data.to_be_bytes(),
         })

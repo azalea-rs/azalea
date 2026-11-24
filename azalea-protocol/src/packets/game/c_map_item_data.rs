@@ -29,13 +29,16 @@ pub struct MapDecoration {
 pub struct OptionalMapPatch(pub Option<MapPatch>);
 
 impl AzBuf for OptionalMapPatch {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
+    fn azalea_read(
+        ctx: azalea_buf::Ctx,
+        buf: &mut Cursor<&[u8]>,
+    ) -> Result<Self, azalea_buf::BufReadError> {
         let pos = buf.position();
-        Ok(Self(if u8::azalea_read(buf)? == 0 {
+        Ok(Self(if u8::azalea_read(ctx, buf)? == 0 {
             None
         } else {
             buf.set_position(pos);
-            Some(MapPatch::azalea_read(buf)?)
+            Some(MapPatch::azalea_read(ctx, buf)?)
         }))
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {

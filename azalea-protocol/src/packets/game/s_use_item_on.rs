@@ -36,12 +36,12 @@ pub struct BlockHit {
 }
 
 impl AzBuf for BlockHit {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let block_pos = BlockPos::azalea_read(buf)?;
-        let direction = Direction::azalea_read(buf)?;
-        let cursor = Vec3f32::azalea_read(buf)?;
-        let inside = bool::azalea_read(buf)?;
-        let world_border = bool::azalea_read(buf)?;
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let block_pos = BlockPos::azalea_read(ctx, buf)?;
+        let direction = Direction::azalea_read(ctx, buf)?;
+        let cursor = Vec3f32::azalea_read(ctx, buf)?;
+        let inside = bool::azalea_read(ctx, buf)?;
+        let world_border = bool::azalea_read(ctx, buf)?;
         Ok(Self {
             block_pos,
             direction,

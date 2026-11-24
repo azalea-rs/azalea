@@ -95,8 +95,11 @@ impl Default for ModelCustomization {
 }
 
 impl AzBuf for ModelCustomization {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
-        let set = FixedBitSet::<7>::azalea_read(buf)?;
+    fn azalea_read(
+        ctx: azalea_buf::Ctx,
+        buf: &mut Cursor<&[u8]>,
+    ) -> Result<Self, azalea_buf::BufReadError> {
+        let set = FixedBitSet::<7>::azalea_read(ctx, buf)?;
         Ok(Self {
             cape: set.index(0),
             jacket: set.index(1),
@@ -150,7 +153,8 @@ mod tests {
             data.azalea_write(&mut buf).unwrap();
             let mut data_cursor: Cursor<&[u8]> = Cursor::new(&buf);
 
-            let read_data = ClientInformation::azalea_read(&mut data_cursor).unwrap();
+            let read_data =
+                ClientInformation::azalea_read(Default::default(), &mut data_cursor).unwrap();
             assert_eq!(read_data, data);
         }
 
@@ -177,7 +181,8 @@ mod tests {
         data.azalea_write(&mut buf).unwrap();
         let mut data_cursor: Cursor<&[u8]> = Cursor::new(&buf);
 
-        let read_data = ClientInformation::azalea_read(&mut data_cursor).unwrap();
+        let read_data =
+            ClientInformation::azalea_read(Default::default(), &mut data_cursor).unwrap();
         assert_eq!(read_data, data);
     }
 }

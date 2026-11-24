@@ -348,7 +348,7 @@ impl IntoIterator for FormattedText {
 
 #[cfg(all(feature = "azalea-buf", feature = "simdnbt"))]
 impl AzBuf for FormattedText {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+    fn azalea_read(_ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let Some(nbt) = simdnbt::borrow::read_optional_tag(buf)? else {
             return Ok(FormattedText::default());
         };

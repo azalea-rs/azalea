@@ -132,13 +132,14 @@ macro_rules! define_data_components {
             }
             pub fn azalea_read_as(
                 kind: DataComponentKind,
+                ctx: azalea_buf::Ctx,
                 buf: &mut Cursor<&[u8]>,
             ) -> Result<Self, BufReadError> {
                 trace!("Reading data component {kind}");
 
                 Ok(match kind {
                     $( DataComponentKind::$x => {
-                        let v = $x::azalea_read(buf)?;
+                        let v = $x::azalea_read(ctx, buf)?;
                         Self { $x: ManuallyDrop::new(v) }
                     }, )*
                 })

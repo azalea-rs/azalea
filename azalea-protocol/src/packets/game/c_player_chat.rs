@@ -178,10 +178,10 @@ impl ChatTypeBound {
 }
 
 impl AzBuf for PackedMessageSignature {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let id = u32::azalea_read_var(buf)?;
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let id = u32::azalea_read_var(ctx, buf)?;
         if id == 0 {
-            let full_signature = MessageSignature::azalea_read(buf)?;
+            let full_signature = MessageSignature::azalea_read(ctx, buf)?;
 
             Ok(PackedMessageSignature::Signature(Box::new(full_signature)))
         } else {

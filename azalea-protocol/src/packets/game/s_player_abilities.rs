@@ -12,8 +12,8 @@ pub struct ServerboundPlayerAbilities {
 }
 
 impl AzBuf for ServerboundPlayerAbilities {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let set = FixedBitSet::<2>::azalea_read(buf)?;
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let set = FixedBitSet::<2>::azalea_read(ctx, buf)?;
         Ok(Self {
             is_flying: set.index(1),
         })

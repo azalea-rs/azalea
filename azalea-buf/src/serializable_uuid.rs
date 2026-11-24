@@ -35,12 +35,12 @@ impl SerializableUuid for Uuid {
 }
 
 impl AzBuf for Uuid {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+    fn azalea_read(ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(Uuid::from_int_array([
-            u32::azalea_read(buf)?,
-            u32::azalea_read(buf)?,
-            u32::azalea_read(buf)?,
-            u32::azalea_read(buf)?,
+            u32::azalea_read(ctx, buf)?,
+            u32::azalea_read(ctx, buf)?,
+            u32::azalea_read(ctx, buf)?,
+            u32::azalea_read(ctx, buf)?,
         ]))
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
@@ -79,7 +79,7 @@ mod tests {
         u.azalea_write(&mut buf).unwrap();
         println!("{buf:?}");
         assert_eq!(buf.len(), 16);
-        let u2 = Uuid::azalea_read(&mut Cursor::new(&buf)).unwrap();
+        let u2 = Uuid::azalea_read(Default::default(), &mut Cursor::new(&buf)).unwrap();
         assert_eq!(u, u2);
     }
 }

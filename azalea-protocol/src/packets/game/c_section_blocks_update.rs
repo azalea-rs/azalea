@@ -18,8 +18,8 @@ pub struct BlockStateWithPosition {
 }
 
 impl AzBuf for BlockStateWithPosition {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let data = u64::azalea_read_var(buf)?;
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let data = u64::azalea_read_var(ctx, buf)?;
         let position_part = data & 4095;
         let state = (data >> 12) as u32;
         let state = BlockState::try_from(state)

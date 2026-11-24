@@ -22,8 +22,8 @@ pub struct PlayerAbilitiesFlags {
 }
 
 impl AzBuf for PlayerAbilitiesFlags {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let set = FixedBitSet::<4>::azalea_read(buf)?;
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let set = FixedBitSet::<4>::azalea_read(ctx, buf)?;
         Ok(PlayerAbilitiesFlags {
             invulnerable: set.index(0),
             flying: set.index(1),

@@ -13,8 +13,11 @@ pub struct ClientboundMoveEntityPos {
     pub delta: c_move_entity_pos_rot::VecDelta,
 }
 impl AzBuf for ClientboundMoveEntityPos {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
-        let p = c_move_entity_pos_rot::read_move_entity_packet(buf, false)?;
+    fn azalea_read(
+        ctx: azalea_buf::Ctx,
+        buf: &mut Cursor<&[u8]>,
+    ) -> Result<Self, azalea_buf::BufReadError> {
+        let p = c_move_entity_pos_rot::read_move_entity_packet(ctx, buf, false)?;
         Ok(Self {
             entity_id: p.entity_id,
             delta: p.delta,

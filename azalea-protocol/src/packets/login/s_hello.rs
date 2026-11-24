@@ -25,7 +25,8 @@ mod tests {
         };
         let mut buf: Vec<u8> = Vec::new();
         packet.azalea_write(&mut buf).unwrap();
-        let packet2 = ServerboundHello::azalea_read(&mut Cursor::new(&buf)).unwrap();
+        let packet2 =
+            ServerboundHello::azalea_read(Default::default(), &mut Cursor::new(&buf)).unwrap();
         assert_eq!(packet, packet2);
     }
 }

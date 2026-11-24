@@ -8,8 +8,8 @@ use simdnbt::owned::NbtCompound;
 pub struct OptionalNbtCompound(pub Option<NbtCompound>);
 
 impl AzBuf for OptionalNbtCompound {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let tag_type = u8::azalea_read(buf)?;
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let tag_type = u8::azalea_read(ctx, buf)?;
         match tag_type {
             10 => Ok(Self(Some(
                 simdnbt::owned::read_compound(buf).map_err(simdnbt::Error::from)?,

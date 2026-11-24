@@ -24,7 +24,7 @@ mod tests {
         #[rustfmt::skip]
         let contents = [173, 179, 148, 8, 10, 17, 1, 28, 38, 124, 175, 198, 255];
         let mut buf = Cursor::new(contents.as_slice());
-        let _packet = ClientboundSetEntityData::azalea_read(&mut buf).unwrap();
+        let _packet = ClientboundSetEntityData::azalea_read(Default::default(), &mut buf).unwrap();
 
         assert_eq!(buf.position(), contents.len() as u64);
     }

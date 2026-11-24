@@ -47,9 +47,9 @@ impl AzBuf for WaypointIcon {
         color.azalea_write(buf)?;
         Ok(())
     }
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let style = Identifier::azalea_read(buf)?;
-        let color = Option::<CompactRgbColor>::azalea_read(buf)?;
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let style = Identifier::azalea_read(ctx, buf)?;
+        let color = Option::<CompactRgbColor>::azalea_read(ctx, buf)?;
         let color = color.map(|c| RgbColor::new(c.r, c.g, c.b));
 
         Ok(Self { style, color })

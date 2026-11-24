@@ -128,6 +128,7 @@ impl PartialChunkStorage {
         }
 
         let chunk = Chunk::read_with_dimension_height(
+            azalea_buf::Ctx::default(),
             data,
             chunk_storage.height(),
             chunk_storage.min_y(),

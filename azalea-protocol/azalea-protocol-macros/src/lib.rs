@@ -41,11 +41,12 @@ fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> Toke
             }
 
             pub fn read(
+                ctx: ::azalea_buf::Ctx,
                 buf: &mut std::io::Cursor<&[u8]>,
             ) -> Result<#state, azalea_buf::BufReadError> {
                 #read_tracing_span
-                use azalea_buf::AzBuf;
-                Ok(crate::packets::Packet::into_variant(Self::azalea_read(buf)?))
+                use ::azalea_buf::AzBuf;
+                Ok(crate::packets::Packet::into_variant(Self::azalea_read(ctx, buf)?))
             }
 
         }
@@ -248,8 +249,8 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
             directional_read_match_contents.extend(quote! {
             #id => {
                 // separated into a separate function to reduce stack space
-                fn parse(buf: &mut std::io::Cursor<&[u8]>) -> Result<#directional_state_name, Box<crate::read::ReadPacketError>> {
-                    let data = #module_name::#struct_name::read(buf).map_err(|e| crate::read::ReadPacketError::Parse {
+                fn parse(ctx: azalea_buf::Ctx, buf: &mut std::io::Cursor<&[u8]>) -> Result<#directional_state_name, Box<crate::read::ReadPacketError>> {
+                    let data = #module_name::#struct_name::read(ctx, buf).map_err(|e| crate::read::ReadPacketError::Parse {
                         source: e,
                         packet_id: #id,
                         packet_name: #packet_name_litstr.to_string(),
@@ -315,16 +316,17 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
                 /// Read a packet by its ID, `ConnectionProtocol`, and flow.
                 fn read(
                     id: u32,
+                    ctx: ::azalea_buf::Ctx,
                     buf: &mut std::io::Cursor<&[u8]>,
                 ) -> Result<#directional_state_name, Box<crate::read::ReadPacketError>>
                 where
                     Self: Sized,
                 {
-                    let parse_fn: fn(buf: &mut std::io::Cursor<&[u8]>) -> Result<#directional_state_name, Box<crate::read::ReadPacketError>> = match id {
+                    let parse_fn: fn(ctx: azalea_buf::Ctx, buf: &mut std::io::Cursor<&[u8]>) -> Result<#directional_state_name, Box<crate::read::ReadPacketError>> = match id {
                         #directional_read_match_contents
                         _ => return Err(Box::new(crate::read::ReadPacketError::UnknownPacketId { state_name: #state_name_litstr.to_string(), id })),
                     };
-                    parse_fn(buf)
+                    parse_fn(ctx, buf)
                 }
             }
 

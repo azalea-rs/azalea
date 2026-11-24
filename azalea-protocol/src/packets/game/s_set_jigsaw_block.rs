@@ -27,8 +27,8 @@ pub enum JointType {
 }
 
 impl AzBuf for JointType {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let name = String::azalea_read(buf)?;
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let name = String::azalea_read(ctx, buf)?;
         match name.as_str() {
             "rollable" => Ok(JointType::Rollable),
             "aligned" => Ok(JointType::Aligned),

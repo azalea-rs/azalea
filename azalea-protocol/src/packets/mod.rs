@@ -51,7 +51,11 @@ where
     fn name(&self) -> &'static str;
 
     /// Read a packet by its ID, `ConnectionProtocol`, and flow.
-    fn read(id: u32, buf: &mut Cursor<&[u8]>) -> Result<Self, Box<ReadPacketError>>;
+    fn read(
+        id: u32,
+        ctx: azalea_buf::Ctx,
+        buf: &mut Cursor<&[u8]>,
+    ) -> Result<Self, Box<ReadPacketError>>;
 
     fn write(&self, buf: &mut impl Write) -> io::Result<()>;
 }
@@ -90,8 +94,8 @@ impl From<ClientIntention> for ConnectionProtocol {
 }
 
 impl AzBuf for ClientIntention {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let id = i32::azalea_read_var(buf)?;
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let id = i32::azalea_read_var(ctx, buf)?;
         id.try_into()
             .map_err(|_| BufReadErrorRepr::UnexpectedEnumVariant { id }.into())
     }

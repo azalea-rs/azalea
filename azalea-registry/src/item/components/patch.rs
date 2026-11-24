@@ -125,9 +125,9 @@ impl Drop for DataComponentPatch {
 }
 
 impl AzBuf for DataComponentPatch {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let components_with_data_count = u32::azalea_read_var(buf)?;
-        let components_without_data_count = u32::azalea_read_var(buf)?;
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let components_with_data_count = u32::azalea_read_var(ctx, buf)?;
+        let components_without_data_count = u32::azalea_read_var(ctx, buf)?;
 
         if components_without_data_count == 0 && components_with_data_count == 0 {
             return Ok(DataComponentPatch::default());
@@ -135,15 +135,15 @@ impl AzBuf for DataComponentPatch {
 
         let mut components = DataComponentPatch::new();
         for _ in 0..components_with_data_count {
-            let component_kind = DataComponentKind::azalea_read(buf)?;
-            let component_data = DataComponentUnion::azalea_read_as(component_kind, buf)?;
+            let component_kind = DataComponentKind::azalea_read(ctx, buf)?;
+            let component_data = DataComponentUnion::azalea_read_as(component_kind, ctx, buf)?;
             // SAFETY: it must be of the correct type because we just read using
             // azalea_read_as
             unsafe { components.unchecked_insert_component(component_kind, Some(component_data)) };
         }
 
         for _ in 0..components_without_data_count {
-            let component_kind = DataComponentKind::azalea_read(buf)?;
+            let component_kind = DataComponentKind::azalea_read(ctx, buf)?;
             // SAFETY: the value is None so the kind doesn't matter anyways
             unsafe { components.unchecked_insert_component(component_kind, None) };
         }

@@ -72,6 +72,7 @@ impl Default for Chunk {
 
 impl Chunk {
     pub fn read_with_dimension_height(
+        ctx: azalea_buf::Ctx,
         buf: &mut Cursor<&[u8]>,
         dimension_height: u32,
         min_y: i32,
@@ -80,7 +81,7 @@ impl Chunk {
         let section_count = dimension_height / SECTION_HEIGHT;
         let mut sections = Vec::with_capacity(section_count as usize);
         for _ in 0..section_count {
-            let section = Section::azalea_read(buf)?;
+            let section = Section::azalea_read(ctx, buf)?;
             sections.push(section);
         }
         let sections = sections.into_boxed_slice();
@@ -182,9 +183,9 @@ pub fn get_block_state_from_sections(
 }
 
 impl AzBuf for Section {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let block_count = u16::azalea_read(buf)?;
-        let fluid_count = u16::azalea_read(buf)?;
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let block_count = u16::azalea_read(ctx, buf)?;
+        let fluid_count = u16::azalea_read(ctx, buf)?;
 
         // this is commented out because the vanilla server is wrong
         // TODO: ^ this comment was written ages ago. needs more investigation.
@@ -193,7 +194,7 @@ impl AzBuf for Section {
         //     "A section has more blocks than what should be possible. This is
         // a bug!" );
 
-        let states = PalettedContainer::<BlockState>::read(buf)?;
+        let states = PalettedContainer::<BlockState>::read(ctx, buf)?;
 
         for i in 0..states.storage.size() {
             if !BlockState::is_valid_state(states.storage.get(i) as BlockStateIntegerRepr) {
@@ -204,7 +205,7 @@ impl AzBuf for Section {
             }
         }
 
-        let biomes = PalettedContainer::<Biome>::read(buf)?;
+        let biomes = PalettedContainer::<Biome>::read(ctx, buf)?;
         Ok(Section {
             block_count,
             fluid_count,
@@ -307,7 +308,7 @@ mod tests {
         section.azalea_write(&mut buf).unwrap();
 
         let mut cur = Cursor::new(buf.as_slice());
-        let deserialized_section = Section::azalea_read(&mut cur).unwrap();
+        let deserialized_section = Section::azalea_read(Default::default(), &mut cur).unwrap();
         assert_eq!(cur.position(), buf.len() as u64);
 
         assert_eq!(section, deserialized_section);

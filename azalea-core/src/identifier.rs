@@ -193,8 +193,8 @@ impl From<&str> for Identifier {
 }
 
 impl AzBuf for Identifier {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let location_string = String::azalea_read(buf)?;
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let location_string = String::azalea_read(ctx, buf)?;
         Ok(Identifier::new(&location_string))
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
@@ -252,7 +252,7 @@ mod tests {
         let mut buf = Cursor::new(&buf[..]);
 
         assert_eq!(
-            Identifier::azalea_read(&mut buf).unwrap(),
+            Identifier::azalea_read(Default::default(), &mut buf).unwrap(),
             Identifier::new("minecraft:dirt")
         );
     }

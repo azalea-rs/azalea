@@ -13,15 +13,15 @@ pub struct ClientboundStopSound {
 }
 
 impl AzBuf for ClientboundStopSound {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let set = FixedBitSet::<2>::azalea_read(buf)?;
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let set = FixedBitSet::<2>::azalea_read(ctx, buf)?;
         let source = if set.index(0) {
-            Some(SoundSource::azalea_read(buf)?)
+            Some(SoundSource::azalea_read(ctx, buf)?)
         } else {
             None
         };
         let name = if set.index(1) {
-            Some(Identifier::azalea_read(buf)?)
+            Some(Identifier::azalea_read(ctx, buf)?)
         } else {
             None
         };

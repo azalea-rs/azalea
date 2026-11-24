@@ -11,12 +11,14 @@ use std::{
 use thiserror::Error;
 use tracing::warn;
 
+use crate::Ctx;
+
 /// A trait that's implemented on types that are used by the Minecraft protocol.
 pub trait AzBuf
 where
     Self: Sized,
 {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError>;
+    fn azalea_read(ctx: Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError>;
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()>;
 }
 
@@ -27,7 +29,7 @@ pub trait AzBufVar
 where
     Self: Sized,
 {
-    fn azalea_read_var(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError>;
+    fn azalea_read_var(ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError>;
     fn azalea_write_var(&self, buf: &mut impl Write) -> io::Result<()>;
 }
 
@@ -42,7 +44,11 @@ pub trait AzBufLimited
 where
     Self: Sized,
 {
-    fn azalea_read_limited(buf: &mut Cursor<&[u8]>, limit: u32) -> Result<Self, BufReadError>;
+    fn azalea_read_limited(
+        ctx: crate::Ctx,
+        buf: &mut Cursor<&[u8]>,
+        limit: u32,
+    ) -> Result<Self, BufReadError>;
 }
 
 #[derive(Debug, Error)]
@@ -75,6 +81,8 @@ pub enum BufReadErrorRepr {
         attempted_read: usize,
         actual_read: usize,
     },
+    #[error("The recursion depth limit was exceeded")]
+    DepthLimitExceeded,
     #[error("{0}")]
     Custom(String),
     #[cfg(feature = "serde_json")]
@@ -156,10 +164,11 @@ pub(crate) fn read_bytes<'a>(
 }
 
 pub(crate) fn read_utf8_with_len<'a>(
+    ctx: crate::Ctx,
     buf: &'a mut Cursor<&[u8]>,
     max_length: u32,
 ) -> Result<&'a str, BufReadError> {
-    let length = u32::azalea_read_var(buf)?;
+    let length = u32::azalea_read_var(ctx, buf)?;
     // multiply the max by 4 because this length is for unicode codepoints
     if length > max_length * 4 {
         warn!("string length {length} exceeds max length {max_length}");

@@ -13,7 +13,7 @@ use crate::{
 };
 
 impl AzBuf for UnsizedByteArray {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+    fn azalea_read(_ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         // read to end of the buffer
         let data = buf.get_ref()[buf.position() as usize..].to_vec();
         buf.set_position((buf.position()) + data.len() as u64);
@@ -27,11 +27,11 @@ impl AzBuf for UnsizedByteArray {
 macro_rules! impl_for_map_type {
     ($ty: ident) => {
         impl<K: AzBuf + Eq + Hash, V: AzBuf> AzBuf for $ty<K, V> {
-            fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-                let length = i32::azalea_read_var(buf)? as usize;
+            fn azalea_read(ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+                let length = i32::azalea_read_var(ctx, buf)? as usize;
                 let mut contents = Self::with_capacity(usize::min(length, 65536));
                 for _ in 0..length {
-                    contents.insert(K::azalea_read(buf)?, V::azalea_read(buf)?);
+                    contents.insert(K::azalea_read(ctx, buf)?, V::azalea_read(ctx, buf)?);
                 }
                 Ok(contents)
             }
@@ -46,11 +46,14 @@ macro_rules! impl_for_map_type {
             }
         }
         impl<K: AzBuf + Eq + Hash, V: AzBufVar> AzBufVar for $ty<K, V> {
-            fn azalea_read_var(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-                let length = i32::azalea_read_var(buf)? as usize;
+            fn azalea_read_var(
+                ctx: crate::Ctx,
+                buf: &mut Cursor<&[u8]>,
+            ) -> Result<Self, BufReadError> {
+                let length = i32::azalea_read_var(ctx, buf)? as usize;
                 let mut contents = Self::with_capacity(usize::min(length, 65536));
                 for _ in 0..length {
-                    contents.insert(K::azalea_read(buf)?, V::azalea_read_var(buf)?);
+                    contents.insert(K::azalea_read(ctx, buf)?, V::azalea_read_var(ctx, buf)?);
                 }
                 Ok(contents)
             }
@@ -73,12 +76,15 @@ impl_for_map_type!(IndexMap);
 macro_rules! impl_for_list_type {
     ($ty: ty) => {
         impl<T: AzBuf> AzBuf for $ty {
-            default fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-                let length = u32::azalea_read_var(buf)? as usize;
+            default fn azalea_read(
+                ctx: crate::Ctx,
+                buf: &mut Cursor<&[u8]>,
+            ) -> Result<Self, BufReadError> {
+                let length = u32::azalea_read_var(ctx, buf)? as usize;
                 // we limit the capacity to not get exploited into allocating a bunch
                 let mut contents = Vec::with_capacity(usize::min(length, 65536));
                 for _ in 0..length {
-                    contents.push(T::azalea_read(buf)?);
+                    contents.push(T::azalea_read(ctx, buf)?);
                 }
                 Ok(contents.into())
             }
@@ -91,11 +97,14 @@ macro_rules! impl_for_list_type {
             }
         }
         impl<T: AzBufVar> AzBufVar for $ty {
-            fn azalea_read_var(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-                let length = i32::azalea_read_var(buf)? as usize;
+            fn azalea_read_var(
+                ctx: $crate::Ctx,
+                buf: &mut Cursor<&[u8]>,
+            ) -> Result<Self, BufReadError> {
+                let length = i32::azalea_read_var(ctx, buf)? as usize;
                 let mut contents = Vec::with_capacity(usize::min(length, 65536));
                 for _ in 0..length {
-                    contents.push(T::azalea_read_var(buf)?);
+                    contents.push(T::azalea_read_var(ctx, buf)?);
                 }
                 Ok(contents.into())
             }
@@ -109,10 +118,11 @@ macro_rules! impl_for_list_type {
         }
         impl<T: AzBuf> AzBufLimited for $ty {
             fn azalea_read_limited(
+                ctx: $crate::Ctx,
                 buf: &mut Cursor<&[u8]>,
                 limit: u32,
             ) -> Result<Self, BufReadError> {
-                let length = u32::azalea_read_var(buf)?;
+                let length = u32::azalea_read_var(ctx, buf)?;
                 if length > limit {
                     return Err(BufReadErrorRepr::VecLengthTooLong {
                         length: length as u32,
@@ -123,7 +133,7 @@ macro_rules! impl_for_list_type {
 
                 let mut contents = Vec::with_capacity(u32::min(length, 65536) as usize);
                 for _ in 0..length {
-                    contents.push(T::azalea_read(buf)?);
+                    contents.push(T::azalea_read(ctx, buf)?);
                 }
                 Ok(contents.into())
             }
@@ -139,8 +149,8 @@ impl_for_list_type!(Box<[T]>);
 // better to do `Arc<Box<[T]>>`.
 
 impl AzBuf for Vec<u8> {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let length = i32::azalea_read_var(buf)? as usize;
+    fn azalea_read(ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let length = i32::azalea_read_var(ctx, buf)? as usize;
         read_bytes(buf, length).map(|b| b.to_vec())
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
@@ -150,8 +160,8 @@ impl AzBuf for Vec<u8> {
 }
 
 impl AzBuf for Box<[u8]> {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let length = i32::azalea_read_var(buf)? as usize;
+    fn azalea_read(ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let length = i32::azalea_read_var(ctx, buf)? as usize;
         read_bytes(buf, length).map(Box::from)
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
@@ -161,22 +171,26 @@ impl AzBuf for Box<[u8]> {
 }
 
 impl AzBuf for String {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        read_utf8_with_len(buf, MAX_STRING_LENGTH).map(Into::into)
+    fn azalea_read(ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        read_utf8_with_len(ctx, buf, MAX_STRING_LENGTH).map(Into::into)
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         write_utf_with_len(buf, self, MAX_STRING_LENGTH)
     }
 }
 impl AzBufLimited for String {
-    fn azalea_read_limited(buf: &mut Cursor<&[u8]>, limit: u32) -> Result<Self, BufReadError> {
-        read_utf8_with_len(buf, limit).map(Into::into)
+    fn azalea_read_limited(
+        ctx: crate::Ctx,
+        buf: &mut Cursor<&[u8]>,
+        limit: u32,
+    ) -> Result<Self, BufReadError> {
+        read_utf8_with_len(ctx, buf, limit).map(Into::into)
     }
 }
 
 impl AzBuf for Box<str> {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        read_utf8_with_len(buf, MAX_STRING_LENGTH).map(Into::into)
+    fn azalea_read(ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        read_utf8_with_len(ctx, buf, MAX_STRING_LENGTH).map(Into::into)
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         write_utf_with_len(buf, self, MAX_STRING_LENGTH)
@@ -184,16 +198,20 @@ impl AzBuf for Box<str> {
 }
 
 impl AzBufLimited for Box<str> {
-    fn azalea_read_limited(buf: &mut Cursor<&[u8]>, limit: u32) -> Result<Self, BufReadError> {
-        String::azalea_read_limited(buf, limit).map(Into::into)
+    fn azalea_read_limited(
+        ctx: crate::Ctx,
+        buf: &mut Cursor<&[u8]>,
+        limit: u32,
+    ) -> Result<Self, BufReadError> {
+        String::azalea_read_limited(ctx, buf, limit).map(Into::into)
     }
 }
 
 impl<T: AzBuf> AzBuf for Option<T> {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let present = bool::azalea_read(buf)?;
+    fn azalea_read(ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let present = bool::azalea_read(ctx, buf)?;
         Ok(if present {
-            Some(T::azalea_read(buf)?)
+            Some(T::azalea_read(ctx, buf)?)
         } else {
             None
         })
@@ -210,10 +228,10 @@ impl<T: AzBuf> AzBuf for Option<T> {
 }
 
 impl<T: AzBufVar> AzBufVar for Option<T> {
-    fn azalea_read_var(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let present = bool::azalea_read(buf)?;
+    fn azalea_read_var(ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let present = bool::azalea_read(ctx, buf)?;
         Ok(if present {
-            Some(T::azalea_read_var(buf)?)
+            Some(T::azalea_read_var(ctx, buf)?)
         } else {
             None
         })
@@ -229,10 +247,14 @@ impl<T: AzBufVar> AzBufVar for Option<T> {
     }
 }
 impl<T: AzBufLimited> AzBufLimited for Option<T> {
-    fn azalea_read_limited(buf: &mut Cursor<&[u8]>, limit: u32) -> Result<Self, BufReadError> {
-        let present = bool::azalea_read(buf)?;
+    fn azalea_read_limited(
+        ctx: crate::Ctx,
+        buf: &mut Cursor<&[u8]>,
+        limit: u32,
+    ) -> Result<Self, BufReadError> {
+        let present = bool::azalea_read(ctx, buf)?;
         Ok(if present {
-            Some(T::azalea_read_limited(buf, limit)?)
+            Some(T::azalea_read_limited(ctx, buf, limit)?)
         } else {
             None
         })
@@ -240,10 +262,10 @@ impl<T: AzBufLimited> AzBufLimited for Option<T> {
 }
 
 impl<T: AzBuf, const N: usize> AzBuf for [T; N] {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+    fn azalea_read(ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let mut contents = Vec::with_capacity(N);
         for _ in 0..N {
-            contents.push(T::azalea_read(buf)?);
+            contents.push(T::azalea_read(ctx, buf)?);
         }
         Ok(contents
             .try_into()
@@ -258,7 +280,7 @@ impl<T: AzBuf, const N: usize> AzBuf for [T; N] {
 }
 
 impl AzBuf for simdnbt::owned::NbtTag {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+    fn azalea_read(_ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(simdnbt::owned::read_tag(buf).map_err(simdnbt::Error::from)?)
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
@@ -269,7 +291,7 @@ impl AzBuf for simdnbt::owned::NbtTag {
 }
 
 impl AzBuf for simdnbt::owned::NbtCompound {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+    fn azalea_read(_ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         match simdnbt::owned::read_tag(buf).map_err(simdnbt::Error::from)? {
             simdnbt::owned::NbtTag::Compound(compound) => Ok(compound),
             _ => Err(BufReadError::custom("Expected compound tag")),
@@ -283,7 +305,7 @@ impl AzBuf for simdnbt::owned::NbtCompound {
 }
 
 impl AzBuf for simdnbt::owned::Nbt {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+    fn azalea_read(_ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(simdnbt::owned::read_unnamed(buf)?)
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
@@ -297,8 +319,8 @@ impl<T> AzBuf for Box<T>
 where
     T: AzBuf,
 {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        T::azalea_read(buf).map(Box::new)
+    fn azalea_read(ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        T::azalea_read(ctx, buf).map(Box::new)
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         T::azalea_write(&**self, buf)
@@ -306,9 +328,9 @@ where
 }
 
 impl<A: AzBuf, B: AzBuf> AzBuf for (A, B) {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let a = A::azalea_read(buf)?;
-        let b = B::azalea_read(buf)?;
+    fn azalea_read(ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let a = A::azalea_read(ctx, buf)?;
+        let b = B::azalea_read(ctx, buf)?;
         Ok((a, b))
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
@@ -318,8 +340,8 @@ impl<A: AzBuf, B: AzBuf> AzBuf for (A, B) {
 }
 
 impl<T: AzBuf> AzBuf for Arc<T> {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        Ok(Arc::new(T::azalea_read(buf)?))
+    fn azalea_read(ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        Ok(Arc::new(T::azalea_read(ctx, buf)?))
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         T::azalea_write(&**self, buf)

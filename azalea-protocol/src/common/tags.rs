@@ -17,15 +17,15 @@ pub struct Tags {
 }
 
 impl AzBuf for TagMap {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let length = u32::azalea_read_var(buf)? as usize;
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let length = u32::azalea_read_var(ctx, buf)? as usize;
         let mut data = IndexMap::new();
         for _ in 0..length {
-            let tag_type = Identifier::azalea_read(buf)?;
-            let tags_count = i32::azalea_read_var(buf)? as usize;
+            let tag_type = Identifier::azalea_read(ctx, buf)?;
+            let tags_count = i32::azalea_read_var(ctx, buf)? as usize;
             let mut tags_vec = Vec::new();
             for _ in 0..tags_count {
-                let tags = Tags::azalea_read(buf)?;
+                let tags = Tags::azalea_read(ctx, buf)?;
                 tags_vec.push(tags);
             }
             data.insert(tag_type, tags_vec);
@@ -42,9 +42,9 @@ impl AzBuf for TagMap {
     }
 }
 impl AzBuf for Tags {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let name = Identifier::azalea_read(buf)?;
-        let elements = Vec::<i32>::azalea_read_var(buf)?;
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let name = Identifier::azalea_read(ctx, buf)?;
+        let elements = Vec::<i32>::azalea_read_var(ctx, buf)?;
         Ok(Tags { name, elements })
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {

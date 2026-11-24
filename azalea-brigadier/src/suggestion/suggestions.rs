@@ -78,20 +78,20 @@ impl Suggestions {
 
 #[cfg(feature = "azalea-buf")]
 impl AzBuf for Suggestions {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         #[derive(AzBuf)]
         struct StandaloneSuggestion {
             pub text: String,
             pub tooltip: Option<FormattedText>,
         }
 
-        let start = u32::azalea_read_var(buf)? as usize;
-        let length = u32::azalea_read_var(buf)? as usize;
+        let start = u32::azalea_read_var(ctx, buf)? as usize;
+        let length = u32::azalea_read_var(ctx, buf)? as usize;
         let range = StringRange::between(start, start + length);
 
         // the range of a Suggestion depends on the Suggestions containing it,
         // so we can't just `impl AzBuf for Suggestion`
-        let mut suggestions = Vec::<StandaloneSuggestion>::azalea_read(buf)?
+        let mut suggestions = Vec::<StandaloneSuggestion>::azalea_read(ctx, buf)?
             .into_iter()
             .map(|s| Suggestion {
                 value: SuggestionValue::Text(s.text),

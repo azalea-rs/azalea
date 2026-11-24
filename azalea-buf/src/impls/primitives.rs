@@ -6,7 +6,7 @@ use tracing::warn;
 use crate::{AzBuf, AzBufVar, BufReadError, BufReadErrorRepr};
 
 impl AzBuf for () {
-    fn azalea_read(_buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+    fn azalea_read(_ctx: crate::Ctx, _buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(())
     }
     fn azalea_write(&self, _buf: &mut impl Write) -> io::Result<()> {
@@ -15,7 +15,7 @@ impl AzBuf for () {
 }
 
 impl AzBuf for i32 {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+    fn azalea_read(_ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(buf.read_i32::<BE>()?)
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
@@ -25,7 +25,7 @@ impl AzBuf for i32 {
 
 impl AzBufVar for i32 {
     /// Read a single varint from the reader and return the value
-    fn azalea_read_var(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+    fn azalea_read_var(_ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         // fast varint impl based on https://github.com/luojia65/mc-varint/blob/master/src/lib.rs#L67
         let mut buffer = [0];
         let mut ans = 0;
@@ -58,7 +58,7 @@ impl AzBufVar for i32 {
 }
 
 impl AzBufVar for i64 {
-    fn azalea_read_var(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+    fn azalea_read_var(_ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let mut buffer = [0];
         let mut ans = 0;
         for i in 0..10 {
@@ -91,8 +91,8 @@ impl AzBufVar for i64 {
 }
 
 impl AzBufVar for u64 {
-    fn azalea_read_var(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        i64::azalea_read_var(buf).map(|i| i as u64)
+    fn azalea_read_var(ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        i64::azalea_read_var(ctx, buf).map(|i| i as u64)
     }
     fn azalea_write_var(&self, buf: &mut impl Write) -> io::Result<()> {
         i64::azalea_write_var(&(*self as i64), buf)
@@ -100,8 +100,8 @@ impl AzBufVar for u64 {
 }
 
 impl AzBuf for u32 {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        Ok(i32::azalea_read(buf)? as u32)
+    fn azalea_read(ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        Ok(i32::azalea_read(ctx, buf)? as u32)
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         i32::azalea_write(&(*self as i32), buf)
@@ -109,8 +109,8 @@ impl AzBuf for u32 {
 }
 
 impl AzBufVar for u32 {
-    fn azalea_read_var(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        Ok(i32::azalea_read_var(buf)? as u32)
+    fn azalea_read_var(ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        Ok(i32::azalea_read_var(ctx, buf)? as u32)
     }
     fn azalea_write_var(&self, buf: &mut impl Write) -> io::Result<()> {
         i32::azalea_write_var(&(*self as i32), buf)
@@ -118,8 +118,8 @@ impl AzBufVar for u32 {
 }
 
 impl AzBuf for u16 {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        i16::azalea_read(buf).map(|i| i as u16)
+    fn azalea_read(ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        i16::azalea_read(ctx, buf).map(|i| i as u16)
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         i16::azalea_write(&(*self as i16), buf)
@@ -127,7 +127,7 @@ impl AzBuf for u16 {
 }
 
 impl AzBuf for i16 {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+    fn azalea_read(_ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(buf.read_i16::<BE>()?)
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
@@ -136,8 +136,8 @@ impl AzBuf for i16 {
 }
 
 impl AzBufVar for u16 {
-    fn azalea_read_var(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        Ok(i32::azalea_read_var(buf)? as u16)
+    fn azalea_read_var(ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        Ok(i32::azalea_read_var(ctx, buf)? as u16)
     }
     fn azalea_write_var(&self, buf: &mut impl Write) -> io::Result<()> {
         i32::azalea_write_var(&(*self as i32), buf)
@@ -145,7 +145,7 @@ impl AzBufVar for u16 {
 }
 
 impl AzBuf for i64 {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+    fn azalea_read(_ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(buf.read_i64::<BE>()?)
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
@@ -154,8 +154,8 @@ impl AzBuf for i64 {
 }
 
 impl AzBuf for u64 {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        i64::azalea_read(buf).map(|i| i as u64)
+    fn azalea_read(ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        i64::azalea_read(ctx, buf).map(|i| i as u64)
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         buf.write_u64::<BE>(*self)
@@ -163,8 +163,8 @@ impl AzBuf for u64 {
 }
 
 impl AzBuf for bool {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let byte = u8::azalea_read(buf)?;
+    fn azalea_read(ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let byte = u8::azalea_read(ctx, buf)?;
         if byte > 1 {
             warn!("Boolean value was not 0 or 1, but {byte}");
         }
@@ -177,7 +177,7 @@ impl AzBuf for bool {
 }
 
 impl AzBuf for u8 {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+    fn azalea_read(_ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(buf.read_u8()?)
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
@@ -186,8 +186,8 @@ impl AzBuf for u8 {
 }
 
 impl AzBuf for i8 {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        u8::azalea_read(buf).map(|i| i as i8)
+    fn azalea_read(ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        u8::azalea_read(ctx, buf).map(|i| i as i8)
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         (*self as u8).azalea_write(buf)
@@ -195,7 +195,7 @@ impl AzBuf for i8 {
 }
 
 impl AzBuf for f32 {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+    fn azalea_read(_ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(buf.read_f32::<BE>()?)
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
@@ -204,7 +204,7 @@ impl AzBuf for f32 {
 }
 
 impl AzBuf for f64 {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+    fn azalea_read(_ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(buf.read_f64::<BE>()?)
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {

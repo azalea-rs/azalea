@@ -115,8 +115,8 @@ impl GameMode {
 }
 
 impl AzBuf for GameMode {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let id = u32::azalea_read_var(buf)?;
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let id = u32::azalea_read_var(ctx, buf)?;
         let id = id.try_into().unwrap_or_else(|_| {
             debug!("Unknown game mode id {id}, defaulting to survival");
             0
@@ -149,8 +149,8 @@ impl From<OptionalGameType> for Option<GameMode> {
 }
 
 impl AzBuf for OptionalGameType {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let id = i8::azalea_read(buf)?;
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let id = i8::azalea_read(ctx, buf)?;
         GameMode::from_optional_id(id)
             .ok_or(BufReadErrorRepr::UnexpectedEnumVariant { id: id as i32 }.into())
     }

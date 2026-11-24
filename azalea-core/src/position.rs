@@ -574,8 +574,8 @@ impl From<u64> for ChunkPos {
     }
 }
 impl AzBuf for ChunkPos {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let long = u64::azalea_read(buf)?;
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let long = u64::azalea_read(ctx, buf)?;
         Ok(ChunkPos::from(long))
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
@@ -981,8 +981,8 @@ const Z_OFFSET: u64 = PACKED_Y_LENGTH;
 const X_OFFSET: u64 = PACKED_Y_LENGTH + PACKED_Z_LENGTH;
 
 impl AzBuf for BlockPos {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let val = i64::azalea_read(buf)?;
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let val = i64::azalea_read(ctx, buf)?;
         let x = (val << (64 - X_OFFSET - PACKED_X_LENGTH) >> (64 - PACKED_X_LENGTH)) as i32;
         let y = (val << (64 - PACKED_Y_LENGTH) >> (64 - PACKED_Y_LENGTH)) as i32;
         let z = (val << (64 - Z_OFFSET - PACKED_Z_LENGTH) >> (64 - PACKED_Z_LENGTH)) as i32;
@@ -998,10 +998,10 @@ impl AzBuf for BlockPos {
 }
 
 impl AzBuf for GlobalPos {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(GlobalPos {
-            dimension: Identifier::azalea_read(buf)?,
-            pos: BlockPos::azalea_read(buf)?,
+            dimension: Identifier::azalea_read(ctx, buf)?,
+            pos: BlockPos::azalea_read(ctx, buf)?,
         })
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
@@ -1013,8 +1013,8 @@ impl AzBuf for GlobalPos {
 }
 
 impl AzBuf for ChunkSectionPos {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let long = i64::azalea_read(buf)?;
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let long = i64::azalea_read(ctx, buf)?;
         Ok(ChunkSectionPos {
             x: (long >> 42) as i32,
             y: (long << 44 >> 44) as i32,
@@ -1120,7 +1120,7 @@ mod tests {
         let mut buf = Vec::new();
         13743895338965u64.azalea_write(&mut buf).unwrap();
         let mut buf = Cursor::new(&buf[..]);
-        let block_pos = BlockPos::azalea_read(&mut buf).unwrap();
+        let block_pos = BlockPos::azalea_read(Default::default(), &mut buf).unwrap();
         assert_eq!(block_pos, BlockPos::new(49, -43, -3));
     }
 
@@ -1138,7 +1138,7 @@ mod tests {
         let mut buf = Vec::new();
         ChunkPos::new(2, -1).azalea_write(&mut buf).unwrap();
         let mut buf = Cursor::new(&buf[..]);
-        let chunk_pos = ChunkPos::from(u64::azalea_read(&mut buf).unwrap());
+        let chunk_pos = ChunkPos::from(u64::azalea_read(Default::default(), &mut buf).unwrap());
         assert_eq!(chunk_pos, ChunkPos::new(2, -1));
     }
 }

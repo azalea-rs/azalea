@@ -36,19 +36,22 @@ pub enum Method {
 }
 
 impl AzBuf for Method {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
-        let kind = MethodKind::azalea_read(buf)?;
+    fn azalea_read(
+        ctx: azalea_buf::Ctx,
+        buf: &mut Cursor<&[u8]>,
+    ) -> Result<Self, azalea_buf::BufReadError> {
+        let kind = MethodKind::azalea_read(ctx, buf)?;
         match kind {
             MethodKind::Add => Ok(Method::Add {
-                display_name: FormattedText::azalea_read(buf)?,
-                render_type: ObjectiveCriteria::azalea_read(buf)?,
-                number_format: Option::<NumberFormat>::azalea_read(buf)?,
+                display_name: FormattedText::azalea_read(ctx, buf)?,
+                render_type: ObjectiveCriteria::azalea_read(ctx, buf)?,
+                number_format: Option::<NumberFormat>::azalea_read(ctx, buf)?,
             }),
             MethodKind::Remove => Ok(Method::Remove),
             MethodKind::Change => Ok(Method::Change {
-                display_name: FormattedText::azalea_read(buf)?,
-                render_type: ObjectiveCriteria::azalea_read(buf)?,
-                number_format: Option::<NumberFormat>::azalea_read(buf)?,
+                display_name: FormattedText::azalea_read(ctx, buf)?,
+                render_type: ObjectiveCriteria::azalea_read(ctx, buf)?,
+                number_format: Option::<NumberFormat>::azalea_read(ctx, buf)?,
             }),
         }
     }

@@ -18,18 +18,18 @@ pub struct EquipmentSlots {
 }
 
 impl AzBuf for EquipmentSlots {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let mut slots = vec![];
 
         loop {
-            let equipment_byte = u8::azalea_read(buf)?;
+            let equipment_byte = u8::azalea_read(ctx, buf)?;
             let equipment_slot =
                 EquipmentSlot::from_byte(equipment_byte & 127).ok_or_else(|| {
                     BufReadErrorRepr::UnexpectedEnumVariant {
                         id: equipment_byte.into(),
                     }
                 })?;
-            let item = ItemStack::azalea_read(buf)?;
+            let item = ItemStack::azalea_read(ctx, buf)?;
             slots.push((equipment_slot, item));
             if equipment_byte & 128 == 0 {
                 break;
@@ -65,7 +65,7 @@ mod tests {
     fn test_read_lifesteal_net_set_equipment() {
         let contents = [1, 128, 0, 129, 0, 130, 0, 131, 0, 132, 0, 133, 0, 7, 0];
         let mut buf = Cursor::new(contents.as_slice());
-        let packet = ClientboundSetEquipment::azalea_read(&mut buf).unwrap();
+        let packet = ClientboundSetEquipment::azalea_read(Default::default(), &mut buf).unwrap();
         println!("{packet:?}");
 
         assert_eq!(buf.position(), contents.len() as u64);

@@ -44,8 +44,8 @@ pub struct ClientboundStatusResponse {
 }
 
 impl AzBuf for ClientboundStatusResponse {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let string = String::azalea_read(buf)?;
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let string = String::azalea_read(ctx, buf)?;
         let mut string = string.into_bytes();
         let json = simd_json::from_slice::<serde_json::Value>(&mut string)?;
 

@@ -58,9 +58,12 @@ pub struct GameProfileProperties {
     pub map: IndexMap<String, ProfilePropertyValue>,
 }
 impl AzBuf for GameProfileProperties {
-    fn azalea_read(buf: &mut io::Cursor<&[u8]>) -> Result<Self, BufReadError> {
+    fn azalea_read(
+        ctx: azalea_buf::Ctx,
+        buf: &mut io::Cursor<&[u8]>,
+    ) -> Result<Self, BufReadError> {
         let mut properties = IndexMap::new();
-        let properties_len = u32::azalea_read_var(buf)?;
+        let properties_len = u32::azalea_read_var(ctx, buf)?;
         if properties_len > 16 {
             return Err(BufReadErrorRepr::VecLengthTooLong {
                 length: properties_len,
@@ -69,8 +72,8 @@ impl AzBuf for GameProfileProperties {
             .into());
         }
         for _ in 0..properties_len {
-            let key = String::azalea_read_limited(buf, 16)?;
-            let value = ProfilePropertyValue::azalea_read(buf)?;
+            let key = String::azalea_read_limited(ctx, buf, 16)?;
+            let value = ProfilePropertyValue::azalea_read(ctx, buf)?;
             properties.insert(key, value);
         }
         Ok(GameProfileProperties { map: properties })
@@ -98,9 +101,12 @@ pub struct ProfilePropertyValue {
     pub signature: Option<String>,
 }
 impl AzBuf for ProfilePropertyValue {
-    fn azalea_read(buf: &mut io::Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let value = String::azalea_read_limited(buf, 32767)?;
-        let signature = Option::<String>::azalea_read_limited(buf, 1024)?;
+    fn azalea_read(
+        ctx: azalea_buf::Ctx,
+        buf: &mut io::Cursor<&[u8]>,
+    ) -> Result<Self, BufReadError> {
+        let value = String::azalea_read_limited(ctx, buf, 32767)?;
+        let signature = Option::<String>::azalea_read_limited(ctx, buf, 1024)?;
         Ok(ProfilePropertyValue { value, signature })
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {

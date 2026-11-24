@@ -41,16 +41,19 @@ impl nohash_hasher::IsEnabled for MinecraftEntityId {}
 // we can't have the default be #[var] because mojang doesn't use varints for
 // entities sometimes :(
 impl AzBuf for MinecraftEntityId {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        i32::azalea_read(buf).map(MinecraftEntityId)
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        i32::azalea_read(ctx, buf).map(MinecraftEntityId)
     }
     fn azalea_write(&self, buf: &mut impl io::Write) -> io::Result<()> {
         i32::azalea_write(&self.0, buf)
     }
 }
 impl AzBufVar for MinecraftEntityId {
-    fn azalea_read_var(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        i32::azalea_read_var(buf).map(MinecraftEntityId)
+    fn azalea_read_var(
+        ctx: azalea_buf::Ctx,
+        buf: &mut Cursor<&[u8]>,
+    ) -> Result<Self, BufReadError> {
+        i32::azalea_read_var(ctx, buf).map(MinecraftEntityId)
     }
     fn azalea_write_var(&self, buf: &mut impl io::Write) -> io::Result<()> {
         i32::azalea_write_var(&self.0, buf)
@@ -79,8 +82,11 @@ impl From<u32> for MinecraftEntityId {
 #[derive(Clone, Debug, PartialEq)]
 pub struct OptionalEntityId(pub Option<MinecraftEntityId>);
 impl AzBuf for OptionalEntityId {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
-        match i32::azalea_read_var(buf)? {
+    fn azalea_read(
+        ctx: azalea_buf::Ctx,
+        buf: &mut Cursor<&[u8]>,
+    ) -> Result<Self, azalea_buf::BufReadError> {
+        match i32::azalea_read_var(ctx, buf)? {
             0 => Ok(OptionalEntityId(None)),
             id => Ok(OptionalEntityId(Some(MinecraftEntityId(id - 1)))),
         }

@@ -16,8 +16,11 @@ pub struct ClientboundMoveEntityPosRot {
     pub properties: Properties,
 }
 impl AzBuf for ClientboundMoveEntityPosRot {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
-        read_move_entity_packet(buf, true)
+    fn azalea_read(
+        ctx: azalea_buf::Ctx,
+        buf: &mut Cursor<&[u8]>,
+    ) -> Result<Self, azalea_buf::BufReadError> {
+        read_move_entity_packet(ctx, buf, true)
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         write_move_entity_packet(buf, self, true)
@@ -25,16 +28,17 @@ impl AzBuf for ClientboundMoveEntityPosRot {
 }
 
 pub fn read_move_entity_packet(
+    ctx: azalea_buf::Ctx,
     buf: &mut Cursor<&[u8]>,
     include_look_direction: bool,
 ) -> Result<ClientboundMoveEntityPosRot, BufReadError> {
-    let entity_id = MinecraftEntityId::azalea_read_var(buf)?;
-    let properties = Properties::azalea_read(buf)?;
+    let entity_id = MinecraftEntityId::azalea_read_var(ctx, buf)?;
+    let properties = Properties::azalea_read(ctx, buf)?;
 
-    let delta = VecDelta::read_with_steps(buf, properties.step_count())?;
+    let delta = VecDelta::read_with_steps(ctx, buf, properties.step_count())?;
 
     let look_direction = if include_look_direction {
-        CompactLookDirection::azalea_read(buf)?
+        CompactLookDirection::azalea_read(ctx, buf)?
     } else {
         Default::default()
     };
@@ -75,16 +79,17 @@ pub struct DeltaStep {
 }
 impl VecDelta {
     pub fn read_with_steps(
+        ctx: azalea_buf::Ctx,
         buf: &mut Cursor<&[u8]>,
         step_count: i32,
     ) -> Result<Self, azalea_buf::BufReadError> {
         if step_count <= 0 {
-            return Ok(Self::Linear(PositionDelta8::azalea_read(buf)?));
+            return Ok(Self::Linear(PositionDelta8::azalea_read(ctx, buf)?));
         }
 
         let mut steps = Vec::new();
         for _ in 0..step_count {
-            steps.push(DeltaStep::azalea_read(buf)?);
+            steps.push(DeltaStep::azalea_read(ctx, buf)?);
         }
         Ok(Self::Stepped(steps))
     }

@@ -39,19 +39,22 @@ pub struct DisplayInfo {
 }
 
 impl AzBuf for DisplayInfo {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
-        let title = AzBuf::azalea_read(buf)?;
-        let description = AzBuf::azalea_read(buf)?;
-        let icon = AzBuf::azalea_read(buf)?;
-        let frame = AzBuf::azalea_read(buf)?;
+    fn azalea_read(
+        ctx: azalea_buf::Ctx,
+        buf: &mut Cursor<&[u8]>,
+    ) -> Result<Self, azalea_buf::BufReadError> {
+        let title = AzBuf::azalea_read(ctx, buf)?;
+        let description = AzBuf::azalea_read(ctx, buf)?;
+        let icon = AzBuf::azalea_read(ctx, buf)?;
+        let frame = AzBuf::azalea_read(ctx, buf)?;
 
-        let data = u32::azalea_read(buf)?;
+        let data = u32::azalea_read(ctx, buf)?;
         let has_background = (data & 0b1) != 0;
         let show_toast = (data & 0b10) != 0;
         let hidden = (data & 0b100) != 0;
 
         let background = if has_background {
-            Some(Identifier::azalea_read(buf)?)
+            Some(Identifier::azalea_read(ctx, buf)?)
         } else {
             None
         };
@@ -175,7 +178,8 @@ mod tests {
         packet.azalea_write(&mut data).unwrap();
         let mut buf: Cursor<&[u8]> = Cursor::new(&data);
 
-        let read_packet = ClientboundUpdateAdvancements::azalea_read(&mut buf).unwrap();
+        let read_packet =
+            ClientboundUpdateAdvancements::azalea_read(Default::default(), &mut buf).unwrap();
         assert_eq!(packet.should_reset, read_packet.should_reset);
         assert_eq!(packet.removed, read_packet.removed);
 

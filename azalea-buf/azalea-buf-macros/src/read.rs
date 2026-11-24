@@ -10,7 +10,7 @@ pub fn create_fn_azalea_read(data: &Data) -> proc_macro2::TokenStream {
                 let (read_fields, read_field_names) = read_named_fields(named);
 
                 quote! {
-                    fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> std::result::Result<Self, azalea_buf::BufReadError> {
+                    fn azalea_read(ctx: ::azalea_buf::Ctx, buf: &mut std::io::Cursor<&[u8]>) -> std::result::Result<Self, azalea_buf::BufReadError> {
                         #(#read_fields)*
                         Ok(Self {
                             #(#read_field_names),*
@@ -20,7 +20,7 @@ pub fn create_fn_azalea_read(data: &Data) -> proc_macro2::TokenStream {
             }
             syn::Fields::Unit => {
                 quote! {
-                    fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> std::result::Result<Self, azalea_buf::BufReadError> {
+                    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut std::io::Cursor<&[u8]>) -> std::result::Result<Self, azalea_buf::BufReadError> {
                         Ok(Self)
                     }
                 }
@@ -29,7 +29,7 @@ pub fn create_fn_azalea_read(data: &Data) -> proc_macro2::TokenStream {
                 let read_fields = read_unnamed_fields(&fields.unnamed);
 
                 quote! {
-                    fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> std::result::Result<Self, azalea_buf::BufReadError> {
+                    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut std::io::Cursor<&[u8]>) -> std::result::Result<Self, azalea_buf::BufReadError> {
                         Ok(Self(
                             #(#read_fields),*
                         ))
@@ -98,15 +98,15 @@ pub fn create_fn_azalea_read(data: &Data) -> proc_macro2::TokenStream {
 
                             if is_variable_length {
                                 reader_code.extend(quote! {
-                                    Self::#variant_name(azalea_buf::AzBufVar::azalea_read_var(buf)?),
+                                    Self::#variant_name(azalea_buf::AzBufVar::azalea_read_var(ctx.inc_depth()?, buf)?),
                                 });
                             } else if let Some(limit) = limit {
                                 reader_code.extend(quote! {
-                                    Self::#variant_name(azalea_buf::AzBufLimited::azalea_read_limited(buf, #limit)?),
+                                    Self::#variant_name(azalea_buf::AzBufLimited::azalea_read_limited(ctx.inc_depth()?, buf, #limit)?),
                                 });
                             } else {
                                 reader_code.extend(quote! {
-                                    Self::#variant_name(azalea_buf::AzBuf::azalea_read(buf)?),
+                                    Self::#variant_name(azalea_buf::AzBuf::azalea_read(ctx.inc_depth()?, buf)?),
                                 });
                             }
                         }
@@ -131,8 +131,8 @@ pub fn create_fn_azalea_read(data: &Data) -> proc_macro2::TokenStream {
             let first_reader = first_reader.expect("There should be at least one variant");
 
             quote! {
-                fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> std::result::Result<Self, azalea_buf::BufReadError> {
-                    let id = azalea_buf::AzBufVar::azalea_read_var(buf)?;
+                fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut std::io::Cursor<&[u8]>) -> std::result::Result<Self, azalea_buf::BufReadError> {
+                    let id = azalea_buf::AzBufVar::azalea_read_var(ctx.inc_depth()?, buf)?;
 
                     match id {
                         #match_contents
@@ -233,15 +233,15 @@ fn get_reader_call(f: &Field) -> proc_macro2::TokenStream {
         syn::Type::Path(_) | syn::Type::Array(_) => {
             if is_variable_length {
                 quote! {
-                    azalea_buf::AzBufVar::azalea_read_var(buf)?
+                    azalea_buf::AzBufVar::azalea_read_var(ctx.inc_depth()?, buf)?
                 }
             } else if let Some(limit) = limit {
                 quote! {
-                    azalea_buf::AzBufLimited::azalea_read_limited(buf, #limit)?
+                    azalea_buf::AzBufLimited::azalea_read_limited(ctx.inc_depth()?, buf, #limit)?
                 }
             } else {
                 quote! {
-                    azalea_buf::AzBuf::azalea_read(buf)?
+                    azalea_buf::AzBuf::azalea_read(ctx.inc_depth()?, buf)?
                 }
             }
         }

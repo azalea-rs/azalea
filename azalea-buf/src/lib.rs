@@ -18,6 +18,20 @@ pub use serializable_uuid::*;
 const MAX_STRING_LENGTH: u32 = 32767;
 // const MAX_COMPONENT_STRING_LENGTH: u32 = 262144;
 
+#[derive(Default, Clone, Copy)]
+pub struct Ctx {
+    depth: u32,
+}
+impl Ctx {
+    pub fn inc_depth(mut self) -> Result<Self, BufReadError> {
+        self.depth += 1;
+        if self.depth > 255 {
+            return Err(BufReadErrorRepr::DepthLimitExceeded.into());
+        }
+        Ok(self)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::{collections::HashMap, io::Cursor};
@@ -30,12 +44,14 @@ mod tests {
         let mut buf = Vec::new();
         data.azalea_write(&mut buf).unwrap();
 
+        let ctx = Ctx::default();
+
         let mut cursor = Cursor::new(buf.as_slice());
-        assert_eq!(Box::<[u8]>::azalea_read(&mut cursor).unwrap(), data);
+        assert_eq!(Box::<[u8]>::azalea_read(ctx, &mut cursor).unwrap(), data);
         assert_eq!(cursor.position(), buf.len() as u64);
 
         let truncated = &buf[..buf.len() - 1];
-        assert!(Box::<[u8]>::azalea_read(&mut Cursor::new(truncated)).is_err());
+        assert!(Box::<[u8]>::azalea_read(ctx, &mut Cursor::new(truncated)).is_err());
     }
 
     #[test]
@@ -88,66 +104,91 @@ mod tests {
     #[test]
     fn test_read_varint() {
         // let buf = &mut &vec![0][..];
-        // assert_eq!(i32::azalea_read_var(buf).unwrap(), 0);
+        // assert_eq!(i32::azalea_read_var(ctx, buf).unwrap(), 0);
         let buf = vec![0];
-        assert_eq!(i32::azalea_read_var(&mut Cursor::new(&buf)).unwrap(), 0);
+        let ctx = Ctx::default();
+        assert_eq!(
+            i32::azalea_read_var(ctx, &mut Cursor::new(&buf)).unwrap(),
+            0
+        );
 
         // let buf = &mut &vec![1][..];
-        // assert_eq!(i32::azalea_read_var(buf).unwrap(), 1);
+        // assert_eq!(i32::azalea_read_var(ctx, buf).unwrap(), 1);
         let buf = vec![1];
-        assert_eq!(i32::azalea_read_var(&mut Cursor::new(&buf)).unwrap(), 1);
+        assert_eq!(
+            i32::azalea_read_var(ctx, &mut Cursor::new(&buf)).unwrap(),
+            1
+        );
 
         // let buf = &mut &vec![2][..];
-        // assert_eq!(i32::azalea_read_var(buf).unwrap(), 2);
+        // assert_eq!(i32::azalea_read_var(ctx, buf).unwrap(), 2);
         let buf = vec![2];
-        assert_eq!(i32::azalea_read_var(&mut Cursor::new(&buf)).unwrap(), 2);
+        assert_eq!(
+            i32::azalea_read_var(ctx, &mut Cursor::new(&buf)).unwrap(),
+            2
+        );
 
         // let buf = &mut &vec![127][..];
-        // assert_eq!(i32::azalea_read_var(buf).unwrap(), 127);
+        // assert_eq!(i32::azalea_read_var(ctx, buf).unwrap(), 127);
         let buf = vec![127];
-        assert_eq!(i32::azalea_read_var(&mut Cursor::new(&buf)).unwrap(), 127);
+        assert_eq!(
+            i32::azalea_read_var(ctx, &mut Cursor::new(&buf)).unwrap(),
+            127
+        );
 
         // let buf = &mut &vec![128, 1][..];
-        // assert_eq!(i32::azalea_read_var(buf).unwrap(), 128);
+        // assert_eq!(i32::azalea_read_var(ctx, buf).unwrap(), 128);
         let buf = vec![128, 1];
-        assert_eq!(i32::azalea_read_var(&mut Cursor::new(&buf)).unwrap(), 128);
+        assert_eq!(
+            i32::azalea_read_var(ctx, &mut Cursor::new(&buf)).unwrap(),
+            128
+        );
 
         // let buf = &mut &vec![255, 1][..];
-        // assert_eq!(i32::azalea_read_var(buf).unwrap(), 255);
+        // assert_eq!(i32::azalea_read_var(ctx, buf).unwrap(), 255);
         let buf = vec![255, 1];
-        assert_eq!(i32::azalea_read_var(&mut Cursor::new(&buf)).unwrap(), 255);
+        assert_eq!(
+            i32::azalea_read_var(ctx, &mut Cursor::new(&buf)).unwrap(),
+            255
+        );
 
         // let buf = &mut &vec![221, 199, 1][..];
-        // assert_eq!(i32::azalea_read_var(buf).unwrap(), 25565);
+        // assert_eq!(i32::azalea_read_var(ctx, buf).unwrap(), 25565);
         let buf = vec![221, 199, 1];
-        assert_eq!(i32::azalea_read_var(&mut Cursor::new(&buf)).unwrap(), 25565);
+        assert_eq!(
+            i32::azalea_read_var(ctx, &mut Cursor::new(&buf)).unwrap(),
+            25565
+        );
 
         // let buf = &mut &vec![255, 255, 127][..];
-        // assert_eq!(i32::azalea_read_var(buf).unwrap(), 2097151);
+        // assert_eq!(i32::azalea_read_var(ctx, buf).unwrap(), 2097151);
         let buf = vec![255, 255, 127];
         assert_eq!(
-            i32::azalea_read_var(&mut Cursor::new(&buf)).unwrap(),
+            i32::azalea_read_var(ctx, &mut Cursor::new(&buf)).unwrap(),
             2097151
         );
 
         // let buf = &mut &vec![255, 255, 255, 255, 7][..];
-        // assert_eq!(i32::azalea_read_var(buf).unwrap(), 2147483647);
+        // assert_eq!(i32::azalea_read_var(ctx, buf).unwrap(), 2147483647);
         let buf = vec![255, 255, 255, 255, 7];
         assert_eq!(
-            i32::azalea_read_var(&mut Cursor::new(&buf)).unwrap(),
+            i32::azalea_read_var(ctx, &mut Cursor::new(&buf)).unwrap(),
             2147483647
         );
 
         // let buf = &mut &vec![255, 255, 255, 255, 15][..];
-        // assert_eq!(i32::azalea_read_var(buf).unwrap(), -1);
+        // assert_eq!(i32::azalea_read_var(ctx, buf).unwrap(), -1);
         let buf = vec![255, 255, 255, 255, 15];
-        assert_eq!(i32::azalea_read_var(&mut Cursor::new(&buf)).unwrap(), -1);
+        assert_eq!(
+            i32::azalea_read_var(ctx, &mut Cursor::new(&buf)).unwrap(),
+            -1
+        );
 
         // let buf = &mut &vec![128, 128, 128, 128, 8][..];
-        // assert_eq!(i32::azalea_read_var(buf).unwrap(), -2147483648);
+        // assert_eq!(i32::azalea_read_var(ctx, buf).unwrap(), -2147483648);
         let buf = vec![128, 128, 128, 128, 8];
         assert_eq!(
-            i32::azalea_read_var(&mut Cursor::new(&buf)).unwrap(),
+            i32::azalea_read_var(ctx, &mut Cursor::new(&buf)).unwrap(),
             -2147483648
         );
     }
@@ -155,7 +196,10 @@ mod tests {
     #[test]
     fn test_read_varint_longer() {
         let buf = vec![138, 56, 0, 135, 56, 123];
-        assert_eq!(i32::azalea_read_var(&mut Cursor::new(&buf)).unwrap(), 7178);
+        assert_eq!(
+            i32::azalea_read_var(Default::default(), &mut Cursor::new(&buf)).unwrap(),
+            7178
+        );
     }
 
     #[test]
@@ -182,7 +226,8 @@ mod tests {
 
         dbg!(&buf);
 
-        let result = Vec::<String>::azalea_read(&mut Cursor::new(&buf)).unwrap();
+        let result =
+            Vec::<String>::azalea_read(Default::default(), &mut Cursor::new(&buf)).unwrap();
         assert_eq!(result, original_vec);
     }
 
@@ -191,7 +236,8 @@ mod tests {
         let mut buf = Vec::new();
         vec![1, 2, 3].azalea_write_var(&mut buf).unwrap();
 
-        let result = Vec::<i32>::azalea_read_var(&mut Cursor::new(&buf)).unwrap();
+        let result =
+            Vec::<i32>::azalea_read_var(Default::default(), &mut Cursor::new(&buf)).unwrap();
         assert_eq!(result, vec![1, 2, 3]);
     }
 
@@ -205,7 +251,9 @@ mod tests {
         let mut buf = Vec::new();
         original_map.azalea_write_var(&mut buf).unwrap();
 
-        let result = HashMap::<String, i32>::azalea_read_var(&mut Cursor::new(&buf)).unwrap();
+        let result =
+            HashMap::<String, i32>::azalea_read_var(Default::default(), &mut Cursor::new(&buf))
+                .unwrap();
 
         assert_eq!(result, original_map);
     }
@@ -215,6 +263,9 @@ mod tests {
         let mut buf: Vec<u8> = Vec::new();
         123456u64.azalea_write(&mut buf).unwrap();
 
-        assert_eq!(u64::azalea_read(&mut Cursor::new(&buf)).unwrap(), 123456);
+        assert_eq!(
+            u64::azalea_read(Default::default(), &mut Cursor::new(&buf)).unwrap(),
+            123456
+        );
     }
 }

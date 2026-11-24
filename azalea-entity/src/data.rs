@@ -36,14 +36,14 @@ pub struct EntityDataItem {
 }
 
 impl AzBuf for EntityMetadataItems {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let mut metadata = Vec::new();
         loop {
-            let id = u8::azalea_read(buf)?;
+            let id = u8::azalea_read(ctx, buf)?;
             if id == 0xff {
                 break;
             }
-            let value = EntityDataValue::azalea_read(buf)?;
+            let value = EntityDataValue::azalea_read(ctx, buf)?;
             trace!("{value:?}");
             metadata.push(EntityDataItem { index: id, value });
         }
@@ -135,8 +135,8 @@ pub enum ArmadilloStateKind {
 }
 
 impl AzBuf for OptionalUnsignedInt {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let val = u32::azalea_read_var(buf)?;
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let val = u32::azalea_read_var(ctx, buf)?;
         Ok(OptionalUnsignedInt(if val == 0 {
             None
         } else {

@@ -116,10 +116,10 @@ impl<S: PalletedContainerKind> PalettedContainer<S> {
         }
     }
 
-    pub fn read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let bits_per_entry = u8::azalea_read(buf)?;
+    pub fn read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let bits_per_entry = u8::azalea_read(ctx, buf)?;
         let palette_type = S::bits_per_entry_to_palette_kind(bits_per_entry);
-        let palette = palette_type.read(buf)?;
+        let palette = palette_type.read(ctx, buf)?;
         let size = S::size();
 
         let mut storage = match BitStorage::new(
@@ -141,7 +141,7 @@ impl<S: PalletedContainerKind> PalettedContainer<S> {
 
         // now read the data
         for i in 0..storage.data.len() {
-            storage.data[i] = u64::azalea_read(buf)?;
+            storage.data[i] = u64::azalea_read(ctx, buf)?;
         }
 
         Ok(PalettedContainer {

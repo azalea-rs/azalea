@@ -110,9 +110,9 @@ impl TypedDataComponent {
     }
 }
 impl AzBuf for TypedDataComponent {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let kind = DataComponentKind::azalea_read(buf)?;
-        let value = DataComponentUnion::azalea_read_as(kind, buf)?;
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let kind = DataComponentKind::azalea_read(ctx, buf)?;
+        let value = DataComponentUnion::azalea_read_as(kind, ctx, buf)?;
         Ok(Self { kind, value })
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {

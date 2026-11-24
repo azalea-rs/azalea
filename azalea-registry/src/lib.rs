@@ -28,8 +28,8 @@ pub use azalea_registry_macros as macros;
 pub struct OptionalRegistry<T: Registry>(pub Option<T>);
 
 impl<T: Registry> AzBuf for OptionalRegistry<T> {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        Ok(OptionalRegistry(match u32::azalea_read_var(buf)? {
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        Ok(OptionalRegistry(match u32::azalea_read_var(ctx, buf)? {
             0 => None,
             value => Some(
                 T::from_u32(value - 1)
@@ -53,12 +53,12 @@ pub enum CustomRegistry<D: Registry, C: AzBuf> {
 }
 
 impl<D: Registry, C: AzBuf> AzBuf for CustomRegistry<D, C> {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let direct_registry = OptionalRegistry::<D>::azalea_read(buf)?;
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let direct_registry = OptionalRegistry::<D>::azalea_read(ctx, buf)?;
         if let Some(direct_registry) = direct_registry.0 {
             return Ok(CustomRegistry::Direct(direct_registry));
         }
-        Ok(CustomRegistry::Custom(C::azalea_read(buf)?))
+        Ok(CustomRegistry::Custom(C::azalea_read(ctx, buf)?))
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         match self {
@@ -86,10 +86,10 @@ pub enum HolderSet<D> {
     },
 }
 impl<D: AzBuf> AzBuf for HolderSet<D> {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let size = i32::azalea_read_var(buf)?.wrapping_sub(1);
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let size = i32::azalea_read_var(ctx, buf)?.wrapping_sub(1);
         if size == -1 {
-            let key = Identifier::azalea_read(buf)?;
+            let key = Identifier::azalea_read(ctx, buf)?;
             Ok(Self::Named {
                 key,
                 contents: Vec::new(),
@@ -97,7 +97,7 @@ impl<D: AzBuf> AzBuf for HolderSet<D> {
         } else {
             let mut contents = Vec::new();
             for _ in 0..size {
-                contents.push(D::azalea_read(buf)?);
+                contents.push(D::azalea_read(ctx, buf)?);
             }
             Ok(Self::Direct { contents })
         }
@@ -202,10 +202,10 @@ pub enum Holder<R: Registry, Direct: AzBuf> {
     Direct(Direct),
 }
 impl<R: Registry, Direct: AzBuf> AzBuf for Holder<R, Direct> {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let id = u32::azalea_read_var(buf)?;
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let id = u32::azalea_read_var(ctx, buf)?;
         if id == 0 {
-            Ok(Self::Direct(Direct::azalea_read(buf)?))
+            Ok(Self::Direct(Direct::azalea_read(ctx, buf)?))
         } else {
             let id = id - 1;
             let Some(value) = R::from_u32(id) else {

@@ -19,10 +19,10 @@ pub enum Action {
 }
 
 impl AzBuf for ServerboundSeenAdvancements {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let action = Action::azalea_read(buf)?;
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let action = Action::azalea_read(ctx, buf)?;
         let tab = if action == Action::OpenedTab {
-            Some(Identifier::azalea_read(buf)?)
+            Some(Identifier::azalea_read(ctx, buf)?)
         } else {
             None
         };
