@@ -1,7 +1,6 @@
 //! A showcase of some of what azalea-codec can do.
 
 use azalea_codec::Codec;
-use serde_json::json;
 
 #[derive(Codec, PartialEq, Clone, Debug)]
 enum FormattedText {
@@ -35,7 +34,7 @@ struct Style {
 
 fn main() {
     // Reading JSON
-    let json = json!({
+    let json = serde_json::json!({
         "text": "Hello, ",
         "extra": [{
             "translate": "entity.minecraft.cat",

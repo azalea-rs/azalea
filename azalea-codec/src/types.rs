@@ -39,19 +39,21 @@ impl<const S: &'static str, T> Default for FromLiteral<S, T> {
         }
     }
 }
-impl<const S: &'static str, T: const ConstFromStr + ToString + Codec<O> + PartialEq, O: Ops>
-    Codec<O> for FromLiteral<S, T>
+impl<const S: &'static str, T: const ConstFromStr + Codec<O> + PartialEq, O: Ops> Codec<O>
+    for FromLiteral<S, T>
 {
     fn codec_read(ops: &O, ctx: Ctx<O>) -> ReadResult<Self> {
         let attempt = T::codec_read(ops, ctx)?;
         let solution = const { T::const_from_str(S) };
         if attempt == solution {
             Ok(Self::default())
+        } else if let Ok(attempt_as_string) = String::codec_read(ops, ctx) {
+            Err(ReadError::custom(format!(
+                "mismatching FromLiteral, '{attempt_as_string}' does not match '{S}'"
+            )))
         } else {
             Err(ReadError::custom(format!(
-                "mismatching FromLiteral, {} != {}",
-                attempt.to_string(),
-                solution.to_string()
+                "mismatching FromLiteral, does not match {S}"
             )))
         }
     }

@@ -12,6 +12,7 @@ azalea-buf.workspace = true
 azalea-registry-builtin.workspace = true
 
 [dev-dependencies]
+azalea-registry.workspace = true
 criterion.workspace = true
 rand.workspace = true
 

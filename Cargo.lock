@@ -296,6 +296,7 @@ version = "0.16.0+mc26.3"
 dependencies = [
  "azalea-block-macros",
  "azalea-buf",
+ "azalea-registry",
  "azalea-registry-builtin",
  "criterion",
  "rand 0.10.4",

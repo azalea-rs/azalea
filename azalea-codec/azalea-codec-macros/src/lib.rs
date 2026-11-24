@@ -33,11 +33,12 @@ use crate::attrs::{parse_field_attrs, parse_struct_attrs};
 /// You can also use structs with a single item to pass-through to another type,
 /// like so:
 /// ```
+/// # use azalea_codec::Codec;
 /// #[derive(Codec)]
-/// struct SameThing(Thing);
+/// struct Thing(String);
 /// #[derive(Codec)]
-/// #[codec(transparent)] // this attribute is required since the fields are named
-/// struct SameSameThing {
+/// #[codec(transparent)] // this attribute is required since the field is named
+/// struct SameThing {
 ///     thing: Thing,
 /// }
 /// ```
@@ -107,27 +108,29 @@ use crate::attrs::{parse_field_attrs, parse_struct_attrs};
 /// too. Your keys are validated against that `const_from_str` at build-time, by
 /// the way.
 /// ```
-/// #![feature(const_trait_impl)]
+/// #![feature(const_trait_impl, const_cmp)]
 /// # use azalea_codec::Codec;
+/// # use serde_json::json;
 /// # use std::fmt::{self, Display};
 /// use azalea_codec::types::ConstFromStr;
-/// #[derive(Codec)]
+/// #[derive(Codec, Debug, PartialEq)]
 /// #[codec(tag = "type", tag_as = Key)]
 /// #[codec(default_snake_case_key)]
 /// enum Thing {
 ///     A { value: i32 },
 ///     B { value: String },
 /// }
-/// #[derive(Codec)]
+/// #[derive(Codec, PartialEq)]
+/// #[codec(default_snake_case_key)]
 /// enum Key {
 ///     First,
 ///     Second,
 /// }
 /// const impl ConstFromStr for Key {
 ///     fn const_from_str(s: &'static str) -> Self {
-///         if s == "first" { Self::First }
-///         if s == "second" { Self::Second }
-///         panic!();
+///         if s == "a" { Self::First }
+///         else if s == "b" { Self::Second }
+///         else { panic!() }
 ///     }
 /// }
 /// assert_eq!(
@@ -146,6 +149,7 @@ use crate::attrs::{parse_field_attrs, parse_struct_attrs};
 /// Named variants are treated exactly the same as structs, and support all of
 /// their `#[codec(...)]` attributes.
 /// ```
+/// # use azalea_codec::Codec;
 /// #[derive(Codec)]
 /// #[codec(tag = "id", default_snake_case_key)]
 /// enum Thing {
@@ -153,7 +157,7 @@ use crate::attrs::{parse_field_attrs, parse_struct_attrs};
 ///     A { value: i32 },
 ///     B {
 ///         #[codec(lenient)]
-///         value: String,
+///         value: Option<String>,
 ///     },
 /// }
 /// ```
