@@ -10,13 +10,17 @@ use crate::DataRegistry;
 
 macro_rules! data_registry {
     (
+        $(#[$struct_attrs:meta])*
         $registry:ident => $registry_name:expr,
-        $(#[$doc:meta])*
+        $(#[$enum_attrs:meta])*
         enum $enum_name:ident {
-            $($variant:ident => $variant_name:expr),* $(,)?
+            $(
+                $(#[$variant_attrs:meta])*
+                $variant:ident => $variant_name:expr
+            ),* $(,)?
         }
     ) => {
-        $(#[$doc])*
+        $(#[$struct_attrs])*
         #[derive(AzBuf, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
         pub struct $registry {
             #[var]
@@ -75,9 +79,13 @@ macro_rules! data_registry {
             }
         }
 
+        $(#[$enum_attrs])*
         #[derive(Clone, Debug, Eq, Hash, PartialEq)]
         pub enum $enum_name<Other = Identifier> {
-            $($variant),*,
+            $(
+                $(#[$variant_attrs])*
+                $variant
+            ),*,
             Other(Other)
         }
         impl $enum_name {
@@ -2368,11 +2376,11 @@ enum RecipeKey {
 }
 
 data_registry! {
-Biome => "worldgen/biome",
 /// An opaque biome identifier.
 ///
 /// You'll probably want to resolve this into its name before using it, by
 /// using `Client::with_resolved_registry` or a similar function.
+Biome => "worldgen/biome",
 enum BiomeKey {
     Badlands => "badlands",
     BambooJungle => "bamboo_jungle",
@@ -2446,15 +2454,12 @@ enum BiomeKey {
 
 data_registry! {
 WorldClock => "world_clock",
+#[derive(Default)]
 enum WorldClockKey {
+    #[default]
     Overworld => "overworld",
     TheEnd => "the_end",
 }
-}
-impl Default for WorldClockKey {
-    fn default() -> Self {
-        Self::Overworld
-    }
 }
 
 data_registry! {

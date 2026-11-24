@@ -1,4 +1,4 @@
-use azalea_codec::{Codec, types::StringLiteral};
+use azalea_codec::Codec;
 use azalea_core::identifier::Identifier;
 
 use crate::{
@@ -22,18 +22,17 @@ pub struct NbtComponent {
 }
 
 #[derive(Clone, Debug, PartialEq, Codec)]
+#[codec(tag = "source")]
+#[codec(default_snake_case_key)]
 pub enum DataSource {
     Entity {
-        source: StringLiteral<"entity">,
         // TODO: EntitySelector.COMPILABLE_CODEC
         entity: String,
     },
     Block {
-        source: StringLiteral<"entity">,
         block: BlockPosArgument,
     },
     Storage {
-        source: StringLiteral<"entity">,
         storage: Identifier,
     },
 }

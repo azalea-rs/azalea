@@ -1,7 +1,4 @@
-use azalea_codec::{
-    Codec,
-    types::{Drain, StringLiteral},
-};
+use azalea_codec::{Codec, types::Drain};
 use azalea_core::identifier::Identifier;
 
 use crate::{
@@ -20,15 +17,15 @@ pub struct ObjectComponent {
 }
 
 #[derive(Clone, Debug, PartialEq, Codec)]
+#[codec(tag = "object")]
+#[codec(default_snake_case_key)]
 pub enum ObjectInfo {
     Atlas {
-        object: StringLiteral<"atlas">,
         #[codec(optional)]
         atlas: Option<Identifier>,
         sprite: Identifier,
     },
     Player {
-        object: StringLiteral<"player">,
         // TODO
         // player: Profile, (from azalea_inventory)
         player: Drain,

@@ -140,8 +140,7 @@ impl TextComponent {
         let text = text.into();
         // if it contains a §, format it
         if text.contains(LEGACY_FORMATTING_CODE_SYMBOL) {
-            let r = legacy_color_code_to_text_component(&text);
-            r
+            legacy_color_code_to_text_component(&text)
         } else {
             Self {
                 base: BaseComponent::new(),
