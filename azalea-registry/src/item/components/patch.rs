@@ -300,7 +300,6 @@ impl<O: azalea_codec::Ops> Codec<O> for InvertableDataComponentKind {
 mod tests {
     use azalea_registry_builtin::builtin::ItemKind;
 
-    use super::*;
     use crate::item::{ItemStack, components::MapId};
 
     #[test]

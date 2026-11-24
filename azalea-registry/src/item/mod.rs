@@ -306,3 +306,11 @@ impl From<(ItemKind, i32)> for ItemStackData {
         ItemStackData::new(item.0, item.1)
     }
 }
+
+#[derive(Clone, Debug, PartialEq, AzBuf)]
+pub struct ItemStackTemplate {
+    pub kind: ItemKind,
+    #[var]
+    pub count: i32,
+    pub component_patch: DataComponentPatch,
+}

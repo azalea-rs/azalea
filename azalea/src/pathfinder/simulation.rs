@@ -68,7 +68,7 @@ fn create_simulation_world(chunks: ChunkStorage) -> (App, Arc<RwLock<World>>) {
         crate::bot::BotPlugin,
         azalea_client::task_pool::TaskPoolPlugin::default(),
         // for mining
-        azalea_client::inventory::InventoryPlugin,
+        azalea_client::client_inventory::InventoryPlugin,
         azalea_client::mining::MiningPlugin,
         azalea_client::interact::InteractPlugin,
         azalea_client::loading::PlayerLoadedPlugin,

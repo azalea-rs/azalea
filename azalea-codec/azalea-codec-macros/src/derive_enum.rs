@@ -197,7 +197,7 @@ You must do one of the following:
                         // we'll have to turn this unnamed field into a named
                         // one to be able to fit the __codec_tag in there.
                         field_names.push(Ident::new("value", ident.span()));
-                        quote! { { value: #f, } }
+                        quote! { { #[codec(flatten)] value: #f, } }
                     }
                     syn::Fields::Unit => {
                         quote! { {} }

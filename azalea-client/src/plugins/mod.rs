@@ -8,11 +8,11 @@ pub mod chat_signing;
 pub mod chunks;
 pub mod client_chat;
 pub mod client_information;
+pub mod client_inventory;
 pub mod connection;
 pub mod cookies;
 pub mod disconnect;
 pub mod interact;
-pub mod inventory;
 pub mod join;
 pub mod loading;
 pub mod login;
@@ -40,7 +40,7 @@ impl PluginGroup for DefaultPlugins {
             .add(azalea_entity::EntityPlugin)
             .add(azalea_physics::PhysicsPlugin)
             .add(task_pool::TaskPoolPlugin::default())
-            .add(inventory::InventoryPlugin)
+            .add(client_inventory::InventoryPlugin)
             .add(client_chat::ChatPlugin)
             .add(disconnect::DisconnectPlugin)
             .add(movement::MovementPlugin)

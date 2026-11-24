@@ -1,9 +1,10 @@
 use std::{any::Any, fmt::Debug, mem::ManuallyDrop};
 
 use azalea_codec::Codec;
-use azalea_core::identifier::Identifier;
+use azalea_registry_builtin::builtin::LootConditionKind;
 
 use crate::{
+    HolderSet,
     builtin::{EnchantmentEffectComponentKind, SoundEvent},
     registry_holder::{
         entity_effect::EntityEffect,
@@ -147,7 +148,8 @@ impl<T: EffectComponentTrait + PartialEq> ResolvedEffectComponent for T {
 #[derive(Clone, Debug, PartialEq, Codec)]
 pub struct ConditionalEffect<T: Debug + Clone + PartialEq> {
     pub effect: T,
-    // pub requirements
+    #[codec(optional)]
+    pub requirements: Option<LootItemCondition>,
 }
 #[derive(Clone, Debug, PartialEq, Codec)]
 pub struct TargetedConditionalEffect<T: Debug + Clone + PartialEq> {
@@ -155,8 +157,16 @@ pub struct TargetedConditionalEffect<T: Debug + Clone + PartialEq> {
     pub affected: EnchantmentTarget,
     pub effect: T,
     #[codec(optional)]
-    pub requirements: LootItemCondition,
+    pub requirements: Option<LootItemCondition>,
 }
+#[derive(Clone, Debug, PartialEq, Codec)]
+pub struct EquipmentDropsEffect<T: Debug + Clone + PartialEq> {
+    pub enchanted: NonDamageEnchantmentTarget,
+    pub effect: T,
+    #[codec(optional)]
+    pub requirements: Option<LootItemCondition>,
+}
+
 #[derive(Clone, Debug, PartialEq, Codec)]
 #[codec(default_snake_case_key)]
 pub enum EnchantmentTarget {
@@ -164,11 +174,63 @@ pub enum EnchantmentTarget {
     DamagingEntity,
     Victim,
 }
+#[derive(Clone, Debug, PartialEq, Codec)]
+#[codec(default_snake_case_key)]
+pub enum NonDamageEnchantmentTarget {
+    Attacker,
+    Victim,
+}
 
-// TODO: this should be the predicate registry, why isn't it being codegen'd?
-#[derive(Clone, Debug, PartialEq, Default, Codec)]
-pub struct LootItemCondition(pub Identifier);
-azalea_codec::impl_defaultable!(LootItemCondition);
+#[derive(Clone, Debug, PartialEq, Codec)]
+#[codec(tag = "type", tag_as = LootConditionKind)]
+#[codec(default_snake_case_key)]
+pub enum LootItemCondition {
+    Inverted {
+        term: Box<LootItemCondition>,
+    },
+    AnyOf {
+        terms: HolderSet<LootItemCondition>,
+    },
+    AllOf {
+        terms: HolderSet<LootItemCondition>,
+    },
+    // TODO: implement the rest
+    #[codec(allow_unknown_keys)]
+    RandomChance,
+    #[codec(allow_unknown_keys)]
+    RandomChanceWithEnchantedBonus,
+    #[codec(allow_unknown_keys)]
+    EntityProperties,
+    #[codec(allow_unknown_keys)]
+    KilledByPlayer,
+    #[codec(allow_unknown_keys)]
+    EntityScores,
+    #[codec(allow_unknown_keys)]
+    MatchBlock,
+    #[codec(allow_unknown_keys)]
+    MatchTool,
+    #[codec(allow_unknown_keys)]
+    TableBonus,
+    #[codec(allow_unknown_keys)]
+    SurvivesExplosion,
+    #[codec(allow_unknown_keys)]
+    DamageSourceProperties,
+    #[codec(allow_unknown_keys)]
+    LocationCheck,
+    #[codec(allow_unknown_keys)]
+    WeatherCheck,
+    #[codec(allow_unknown_keys)]
+    TimeCheck,
+    #[codec(allow_unknown_keys)]
+    IntValueCheck,
+    #[codec(allow_unknown_keys)]
+    FloatValueCheck,
+    #[codec(allow_unknown_keys)]
+    EnchantmentActiveCheck,
+    #[codec(allow_unknown_keys)]
+    EnvironmentAttributeCheck,
+}
+// azalea_codec::impl_defaultable!(LootItemCondition);
 
 // makes for cleaner-looking types
 type ConditionalValueEffect = ConditionalEffect<ValueEffect>;
@@ -193,7 +255,7 @@ declare_newtype_components! {
     PostPiercingAttack: ConditionalEffect<EntityEffect>,
     HitBlock: ConditionalEntityEffect,
     ItemDamage: ConditionalValueEffect,
-    EquipmentDrops: ConditionalValueEffect,
+    EquipmentDrops: EquipmentDropsEffect<ValueEffect>,
     Tick: ConditionalEntityEffect,
     AmmoUse: ConditionalValueEffect,
     ProjectilePiercing: ConditionalValueEffect,

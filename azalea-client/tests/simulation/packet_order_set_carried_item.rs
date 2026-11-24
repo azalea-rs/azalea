@@ -1,5 +1,6 @@
 use azalea_client::{
-    inventory::SetSelectedHotbarSlotEvent, mining::StartMiningBlockEvent, test_utils::prelude::*,
+    client_inventory::SetSelectedHotbarSlotEvent, mining::StartMiningBlockEvent,
+    test_utils::prelude::*,
 };
 use azalea_core::{
     direction::Direction,

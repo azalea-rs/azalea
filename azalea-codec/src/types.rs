@@ -1,4 +1,7 @@
-use std::marker::PhantomData;
+use std::{
+    any::{self, Any},
+    marker::PhantomData,
+};
 
 use crate::{
     Codec, Ctx, Interchangeable, MapCodec, Ops,
@@ -93,7 +96,7 @@ impl<O: Ops> MapCodec<O> for Drain {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct CompactListCodec<T>(pub T);
-impl<O: Ops, T: IntoIterator<Item = V> + FromIterator<V> + Clone, V: Codec<O>> Codec<O>
+impl<O: Ops, T: IntoIterator<Item = V> + FromIterator<V> + Clone, V: Codec<O> + Any> Codec<O>
     for CompactListCodec<T>
 {
     fn codec_read(ops: &O, ctx: Ctx<O>) -> ReadResult<Self> {
@@ -102,11 +105,11 @@ impl<O: Ops, T: IntoIterator<Item = V> + FromIterator<V> + Clone, V: Codec<O>> C
             Ok(v) => {
                 return Ok(Self(T::from_iter([v])));
             }
-            Err(e) => errors.push(("V", e)),
+            Err(e) => errors.push((any::type_name::<V>(), e)),
         }
         match Vec::<V>::codec_read(ops, ctx) {
             Ok(v) => return Ok(Self(T::from_iter(v))),
-            Err(e) => errors.push(("Vec<V>", e)),
+            Err(e) => errors.push((any::type_name::<Vec<V>>(), e)),
         }
         Err(ReadError::no_variants_matched(errors))
     }

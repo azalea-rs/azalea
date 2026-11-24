@@ -17,11 +17,11 @@ use derive_more::{Deref, DerefMut};
 use tracing::{debug, trace, warn};
 
 use crate::{
+    client_inventory::InventorySystems,
     interact::{
         BlockStatePredictionHandler, SwingArmEvent, can_use_game_master_blocks,
         check_is_interaction_restricted, pick::HitResultComponent,
     },
-    inventory::InventorySystems,
     local_player::{PermissionLevel, WorldHolder},
     movement::MoveEventsSystems,
     packet::game::SendGamePacketEvent,

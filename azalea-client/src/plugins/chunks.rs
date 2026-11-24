@@ -17,8 +17,8 @@ use bevy_ecs::prelude::*;
 use tracing::{error, trace};
 
 use crate::{
-    inventory::InventorySystems, local_player::WorldHolder, packet::game::SendGamePacketEvent,
-    respawn::perform_respawn,
+    client_inventory::InventorySystems, local_player::WorldHolder,
+    packet::game::SendGamePacketEvent, respawn::perform_respawn,
 };
 
 pub struct ChunksPlugin;

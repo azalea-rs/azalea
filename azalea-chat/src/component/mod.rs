@@ -365,21 +365,12 @@ impl IntoIterator for FormattedText {
 #[cfg(all(feature = "azalea-buf", feature = "simdnbt"))]
 impl AzBuf for FormattedText {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let nbt = simdnbt::borrow::read_optional_tag(buf)?;
+        let Some(nbt) = simdnbt::borrow::read_optional_tag(buf)? else {
+            return Ok(FormattedText::default());
+        };
 
-        println!(
-            "Reading NBT for FormattedText: {:?}",
-            nbt.as_ref().map(|n| n.as_tag().to_owned())
-        );
-
-        match nbt {
-            Some(nbt) => Ok(FormattedText::codec_read(
-                &nbt.as_tag().to_owned(),
-                azalea_codec::Ctx(&()),
-            )
-            .unwrap()),
-            _ => Ok(FormattedText::default()),
-        }
+        FormattedText::codec_read(&nbt.as_tag().to_owned(), azalea_codec::Ctx(&()))
+            .map_err(|e| BufReadError::custom(e.to_string()))
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         let nbt: NbtTag = self
@@ -459,7 +450,6 @@ mod tests {
         let j: Value =
             serde_json::from_str(r#"{"translate": "translation.test.args", "with": {}}"#).unwrap();
         let res = FormattedText::deserialize(&j);
-        println!("{res:?}");
         assert!(res.is_err());
     }
 

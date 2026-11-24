@@ -10,7 +10,7 @@ use std::{
 use azalea_block::BlockState;
 use azalea_client::{
     ClientMovementState, SprintDirection, StartSprintEvent, StartWalkEvent, WalkDirection,
-    inventory::SetSelectedHotbarSlotEvent, mining::StartMiningBlockEvent,
+    client_inventory::SetSelectedHotbarSlotEvent, mining::StartMiningBlockEvent,
 };
 use azalea_core::position::{BlockPos, Vec3};
 use azalea_inventory::Menu;

@@ -7,7 +7,7 @@ use azalea_buf::AzBuf;
 use azalea_chat::FormattedText;
 use azalea_core::identifier::Identifier;
 use azalea_protocol_macros::ClientboundGamePacket;
-use azalea_registry::item::ItemStack;
+use azalea_registry::item::ItemStackTemplate;
 use indexmap::IndexMap;
 
 #[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
@@ -31,13 +31,11 @@ pub struct Advancement {
 pub struct DisplayInfo {
     pub title: FormattedText,
     pub description: FormattedText,
-    pub icon: ItemStack,
+    pub icon: ItemStackTemplate,
     pub frame: FrameType,
     pub show_toast: bool,
     pub hidden: bool,
     pub background: Option<Identifier>,
-    pub x: f32,
-    pub y: f32,
 }
 
 impl AzBuf for DisplayInfo {
@@ -57,8 +55,6 @@ impl AzBuf for DisplayInfo {
         } else {
             None
         };
-        let x = AzBuf::azalea_read(buf)?;
-        let y = AzBuf::azalea_read(buf)?;
         Ok(DisplayInfo {
             title,
             description,
@@ -67,8 +63,6 @@ impl AzBuf for DisplayInfo {
             show_toast,
             hidden,
             background,
-            x,
-            y,
         })
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
@@ -92,8 +86,6 @@ impl AzBuf for DisplayInfo {
         if let Some(background) = &self.background {
             background.azalea_write(buf)?;
         }
-        self.x.azalea_write(buf)?;
-        self.y.azalea_write(buf)?;
         Ok(())
     }
 }
@@ -127,6 +119,7 @@ pub struct AdvancementHolder {
 #[cfg(test)]
 mod tests {
     use azalea_buf::AzBuf;
+    use azalea_registry::builtin::ItemKind;
 
     use super::*;
 
@@ -142,13 +135,15 @@ mod tests {
                         display: Some(Box::new(DisplayInfo {
                             title: FormattedText::from("title".to_owned()),
                             description: FormattedText::from("description".to_owned()),
-                            icon: ItemStack::Empty,
+                            icon: ItemStackTemplate {
+                                kind: ItemKind::Stone.into(),
+                                count: 1,
+                                component_patch: Default::default(),
+                            },
                             frame: FrameType::Task,
                             show_toast: true,
                             hidden: false,
                             background: None,
-                            x: 0.0,
-                            y: 0.0,
                         })),
                         requirements: Vec::new(),
                         sends_telemetry_event: false,

@@ -2451,9 +2451,9 @@ enum WorldClockKey {
     TheEnd => "the_end",
 }
 }
-impl Default for WorldClock {
+impl Default for WorldClockKey {
     fn default() -> Self {
-        Self::new_raw(0)
+        Self::Overworld
     }
 }
 

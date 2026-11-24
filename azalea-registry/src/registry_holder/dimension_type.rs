@@ -70,7 +70,8 @@ pub struct DimensionKindElement {
     pub attributes: EnvironmentAttributeMap,
     #[codec(optional)]
     pub timelines: Option<HolderSet<crate::data::Timeline>>,
-    pub default_clock: crate::data::WorldClock,
+    #[codec(optional)]
+    pub default_clock: Option<crate::data::WorldClockKey>,
 
     #[codec(flatten)]
     pub _extra: HashMap<String, NbtTag>,
@@ -91,8 +92,8 @@ azalea_codec::impl_defaultable!(EnvironmentAttributeMap, self, self.values.is_em
 
 /// Unimplemented.
 #[derive(Clone, Debug, Codec)]
-#[codec(allow_unknown_keys)]
-pub struct EnvironmentAttributeEntry {}
+#[codec(transparent)]
+pub struct EnvironmentAttributeEntry(azalea_codec::types::Drain);
 
 #[derive(Clone, Debug, Codec, Default)]
 pub struct MonsterSettings {
@@ -102,8 +103,8 @@ pub struct MonsterSettings {
 
 /// Unimplemented.
 #[derive(Clone, Debug, Codec, Default)]
-#[codec(allow_unknown_keys)]
-pub struct IntProvider {}
+#[codec(transparent)]
+pub struct IntProvider(azalea_codec::types::Drain);
 
 /// Biome attributes.
 #[derive(Clone, Debug, Codec)]

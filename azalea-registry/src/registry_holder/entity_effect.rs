@@ -6,6 +6,7 @@ use azalea_core::{
     position::{Vec3, Vec3i},
     sound::CustomSound,
 };
+use azalea_registry_builtin::builtin::EnchantmentEntityEffectKind;
 
 use crate::{
     Holder, HolderSet,
@@ -18,7 +19,7 @@ use crate::{
 };
 
 #[derive(Clone, Debug, PartialEq, Codec)]
-#[codec(tag = "type")]
+#[codec(tag = "type", tag_as=EnchantmentEntityEffectKind)]
 #[codec(default_snake_case_key)]
 pub enum EntityEffect {
     AllOf(AllOf),
@@ -182,6 +183,7 @@ pub struct SpawnParticles {
     pub vertical_position: SpawnParticlesPosition,
     pub horizontal_velocity: SpawnParticlesVelocity,
     pub vertical_velocity: SpawnParticlesVelocity,
+    #[codec(optional)]
     pub speed: Option<FloatProvider>,
 }
 
@@ -197,9 +199,10 @@ pub struct SpawnParticlesPosition {
 
 #[derive(Clone, Debug, PartialEq, Codec)]
 pub struct SpawnParticlesVelocity {
-    pub movement_scale: Option<f32>,
     #[codec(optional)]
-    pub base: Option<FloatProvider>,
+    pub movement_scale: f32,
+    #[codec(optional)]
+    pub base: FloatProvider,
 }
 
 #[derive(Clone, Debug, PartialEq, Codec)]

@@ -37,8 +37,8 @@ use tracing::warn;
 use super::mining::Mining;
 use crate::{
     attack::handle_attack_event,
+    client_inventory::InventorySystems,
     interact::pick::{HitResultComponent, update_hit_result_component},
-    inventory::InventorySystems,
     local_player::PermissionLevel,
     movement::MoveEventsSystems,
     packet::game::SendGamePacketEvent,

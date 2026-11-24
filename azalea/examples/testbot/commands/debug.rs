@@ -6,7 +6,6 @@ use azalea::{
     BlockPos,
     brigadier::prelude::*,
     chunks::ReceiveChunkEvent,
-    inventory,
     packet::game,
     pathfinder::{
         ExecutingPath, Pathfinder, custom_state::CustomPathfinderStateRef, mining::MiningCache,
@@ -15,7 +14,8 @@ use azalea::{
 };
 use azalea_core::hit_result::HitResult;
 use azalea_entity::metadata;
-use azalea_inventory::{Menu, components::MaxStackSize};
+use azalea_inventory::Menu;
+use azalea_registry::item::components::MaxStackSize;
 use azalea_world::{Worlds, chunk::storage::WeakChunkStorage};
 use bevy_app::AppExit;
 use bevy_ecs::{message::Messages, query::With, world::EntityRef};
@@ -225,8 +225,9 @@ pub fn register(commands: &mut Dispatcher) {
 
         let mut edges = Vec::new();
         let cached_world = CachedWorld::new(source.bot.world()?, position);
-        let mining_cache =
-            MiningCache::new(Some(Box::new(Menu::Player(inventory::Player::default()))));
+        let mining_cache = MiningCache::new(Some(Box::new(Menu::Player(
+            azalea_inventory::Player::default(),
+        ))));
         let custom_state = CustomPathfinderStateRef::default();
 
         azalea::pathfinder::moves::default_move(

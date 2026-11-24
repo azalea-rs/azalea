@@ -2,12 +2,15 @@ use std::{fmt, fmt::Debug};
 
 use azalea_chat::FormattedText;
 use azalea_client::{
-    inventory::{CloseContainerEvent, ContainerClickEvent},
+    client_inventory::{CloseContainerEvent, ContainerClickEvent},
     packet::game::ReceiveGamePacketEvent,
 };
 use azalea_core::position::BlockPos;
 use azalea_entity::inventory::Inventory;
-use azalea_inventory::{Menu, operations::{ClickOperation, PickupClick, QuickMoveClick}};
+use azalea_inventory::{
+    Menu,
+    operations::{ClickOperation, PickupClick, QuickMoveClick},
+};
 use azalea_physics::collision::BlockWithShape;
 use azalea_protocol::packets::game::ClientboundGamePacket;
 use azalea_registry::item::ItemStack;

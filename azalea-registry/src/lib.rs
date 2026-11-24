@@ -76,7 +76,7 @@ impl<D: Registry, C: AzBuf> AzBuf for CustomRegistry<D, C> {
 }
 
 #[derive(Clone, PartialEq)]
-pub enum HolderSet<D: Registry> {
+pub enum HolderSet<D> {
     Direct {
         contents: Vec<D>,
     },
@@ -85,7 +85,7 @@ pub enum HolderSet<D: Registry> {
         contents: Vec<Identifier>,
     },
 }
-impl<D: Registry> AzBuf for HolderSet<D> {
+impl<D: AzBuf> AzBuf for HolderSet<D> {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let size = i32::azalea_read_var(buf)?.wrapping_sub(1);
         if size == -1 {
@@ -118,7 +118,7 @@ impl<D: Registry> AzBuf for HolderSet<D> {
         Ok(())
     }
 }
-impl<D: Registry + Debug> Debug for HolderSet<D> {
+impl<D: Debug> Debug for HolderSet<D> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Direct { contents } => f.debug_list().entries(contents).finish(),
@@ -130,12 +130,12 @@ impl<D: Registry + Debug> Debug for HolderSet<D> {
         }
     }
 }
-impl<D: Registry> From<Vec<D>> for HolderSet<D> {
+impl<D> From<Vec<D>> for HolderSet<D> {
     fn from(contents: Vec<D>) -> Self {
         Self::Direct { contents }
     }
 }
-impl<D: Registry + Codec<O>, O: azalea_codec::Ops> Codec<O> for HolderSet<D> {
+impl<D: Codec<O>, O: azalea_codec::Ops> Codec<O> for HolderSet<D> {
     fn codec_read(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
         if let Ok(key) = Identifier::codec_read(ops, ctx) {
             return Ok(Self::Named {

@@ -141,7 +141,6 @@ impl TextComponent {
         // if it contains a §, format it
         if text.contains(LEGACY_FORMATTING_CODE_SYMBOL) {
             let r = legacy_color_code_to_text_component(&text);
-            println!("created from legacy: {r:?}");
             r
         } else {
             Self {
