@@ -16,3 +16,7 @@ syn.workspace = true
 
 [lints]
 workspace = true
+
+[dev-dependencies]
+azalea-codec = { workspace = true, features = ["serde_json"] }
+serde_json.workspace = true

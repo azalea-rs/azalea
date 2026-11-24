@@ -131,6 +131,8 @@ pub fn derive_codec_for_named_fields_struct(
         } else {
             read_fn
         };
+        // update the error to help with debugging
+        let read_fn = quote! { #read_fn.map_err(|e| e.while_reading_key(#field_name_string)) };
 
         if attrs.flatten {
             // formatted like this to more easily handle multiple flattened

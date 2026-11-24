@@ -413,8 +413,10 @@ dependencies = [
 name = "azalea-codec-macros"
 version = "0.16.0+mc26.3"
 dependencies = [
+ "azalea-codec",
  "proc-macro2",
  "quote",
+ "serde_json",
  "syn 3.0.10",
 ]
 

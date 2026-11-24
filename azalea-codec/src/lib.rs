@@ -1,4 +1,11 @@
 #![doc = include_str!("../README.md")]
+//! ## Example
+//!
+//! ```rust
+#![doc = include_str!("../examples/showcase.rs")]
+//! ```
+
+// used for Codec::Incomplete
 #![feature(associated_type_defaults)]
 // needed for StringLiteral
 #![allow(incomplete_features)]
@@ -26,11 +33,17 @@ pub mod rust;
 pub mod types;
 
 // for macros
+#[cfg(feature = "serde_json")]
 #[doc(hidden)]
 pub use serde;
+#[cfg(feature = "serde_json")]
 #[doc(hidden)]
 pub use serde_json;
 
+/// A data structure that can be written and read.
+///
+/// When possible, you should prefer to use the
+/// [`Codec`](azalea_codec_macros::Codec) derive macro.
 #[diagnostic::on_unimplemented(message = "type `{Self}` does not implement `azalea_codec::Codec`.")]
 pub trait Codec<O: Ops>: Sized {
     type Incomplete = ReadResult<Self>;
@@ -225,12 +238,14 @@ pub trait MapCodec<O: Ops>: Sized + Codec<O> {
     fn get_and_reset_result(incomplete: &mut <Self as Codec<O>>::Incomplete) -> ReadResult<()>;
 }
 
-// https://github.com/Mojang/DataFixerUpper/blob/master/src/main/java/com/mojang/serialization/DynamicOps.java
+/// A data serialization format.
 #[diagnostic::on_unimplemented(
     message = "type `{Self}` is not a data format; did you mean to use `{Self}::codec_read` instead?"
 )]
 #[allow(unused_variables)]
 pub trait Ops: Sized + Clone + Codec<Self> + 'static {
+    // https://github.com/Mojang/DataFixerUpper/blob/master/src/main/java/com/mojang/serialization/DynamicOps.java
+
     type List: IntoIterator<Item = Self>;
     type Map: MapLike<Self>;
 
@@ -388,13 +403,6 @@ pub trait MapLike<T: Clone>: Sized {
             values.push((k.clone(), v.clone()));
         });
         values.into_boxed_slice()
-    }
-}
-
-pub struct NoMap;
-impl<T: Clone> MapLike<T> for NoMap {
-    fn for_each(&self, _: impl FnMut(&T, &T)) {
-        unimplemented!()
     }
 }
 

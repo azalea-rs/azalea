@@ -23,7 +23,7 @@ let block_state: BlockState = azalea_block::blocks::CobblestoneWall {
 
 ```
 # use azalea_block::BlockState;
-# use azalea_registry_builtin::builtin::BlockKind;
+# use azalea_registry::builtin::BlockKind;
 let block_state: BlockState = BlockKind::Jukebox.into();
 ```
 
@@ -34,18 +34,18 @@ If for some reason you don't want `BlockTrait`, set `default-features = false`.
 
 ```
 # use azalea_block::{BlockTrait, BlockState};
-# let block_state = BlockState::from(azalea_registry_builtin::builtin::BlockKind::Jukebox);
+# let block_state = BlockState::from(azalea_registry::builtin::BlockKind::Jukebox);
 let block = block_state.to_trait();
 ```
 
 ```
 # use azalea_block::{BlockTrait, BlockState};
-# let block_state: BlockState = azalea_registry_builtin::builtin::BlockKind::Jukebox.into();
+# let block_state: BlockState = azalea_registry::builtin::BlockKind::Jukebox.into();
 if let Some(jukebox) = block_state.downcast_ref::<azalea_block::blocks::Jukebox>() {
     // ...
 }
 ```
 
-## `azalea_registry_builtin::builtin::BlockKind`
+## `azalea_registry::builtin::BlockKind`
 
 This one isn't from the `azalea-block` crate, but it's still very relevant. It's an enum that contains every block type as a variant _without_ containing any state data (unlike `BlockState` and `BlockTrait`). Converting this into any other block type will use the default state for that block.

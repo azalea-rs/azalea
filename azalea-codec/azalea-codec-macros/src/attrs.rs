@@ -230,7 +230,7 @@ pub fn parse_enum_variant_attrs(
     (a, unhandled)
 }
 
-#[derive(Default, Debug)]
+#[derive(Default)]
 pub struct EnumAttrs {
     pub tag: Option<String>,
     /// Encode the tag as a separate type which has `From<str> + ToString +

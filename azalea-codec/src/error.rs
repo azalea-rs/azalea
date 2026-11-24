@@ -17,6 +17,7 @@ pub enum ReadErrorKind {
     UnknownKey(Box<str>),
     MissingKey(&'static str),
     NoVariantsMatched(Box<[(&'static str, ReadError)]>),
+    WhileReadingKey(&'static str, Box<ReadErrorKind>),
     NumberTooBig(Number),
     Custom(Box<str>),
 }
@@ -46,6 +47,25 @@ impl ReadError {
     pub fn custom(message: impl Into<Box<str>>) -> Self {
         ReadErrorKind::Custom(message.into()).into()
     }
+
+    pub fn while_reading_key(mut self, key: &'static str) -> Self {
+        self.kind = ReadErrorKind::WhileReadingKey(key, Box::new(self.kind));
+        self
+    }
+}
+impl ReadErrorKind {
+    fn relevance(&self) -> usize {
+        match self {
+            ReadErrorKind::NoVariantsMatched(items) => items
+                .iter()
+                .map(|i| i.1.kind.relevance() + 1)
+                .max()
+                .unwrap_or_default(),
+            ReadErrorKind::WhileReadingKey(_, e) => e.relevance() + 1,
+            ReadErrorKind::MissingKey(_) => 1,
+            _ => 10,
+        }
+    }
 }
 impl From<ReadErrorKind> for ReadError {
     fn from(kind: ReadErrorKind) -> Self {
@@ -71,16 +91,38 @@ impl Clone for ReadError {
 
 impl Debug for ReadError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("ReadError")
-            .field("kind", &self.kind)
-            .finish()
-            .and_then(|_| {
-                if self.backtrace.status() == BacktraceStatus::Captured {
-                    f.write_str(&format!("\n\x1b[90m{}\x1b[m", self.backtrace))
-                } else {
-                    f.write_str("")
+        let mut pretty = Vec::new();
+        let mut cur_kind = self.kind.clone();
+        loop {
+            cur_kind = match cur_kind {
+                ReadErrorKind::NoVariantsMatched(items) => {
+                    let most_relevant_item = items
+                        .iter()
+                        // rev to make sure we get the first one if there's a tie
+                        .rev()
+                        .max_by_key(|i| i.1.kind.relevance())
+                        .unwrap()
+                        .clone();
+                    pretty.push(most_relevant_item.0.to_string());
+                    most_relevant_item.1.kind
                 }
-            })
+                ReadErrorKind::WhileReadingKey(k, e) => {
+                    pretty.push(k.to_string());
+                    *e
+                }
+                k => {
+                    pretty.push(format!("{k:?}"));
+                    break;
+                }
+            };
+        }
+
+        f.write_str("azalea_codec::error::ReadError: ")?;
+        f.write_str(&pretty.join(" -> "))?;
+        if self.backtrace.status() == BacktraceStatus::Captured {
+            f.write_str(&format!("\n\x1b[90m{}\x1b[m", self.backtrace))?;
+        }
+        Ok(())
     }
 }
 

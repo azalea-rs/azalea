@@ -11,6 +11,152 @@ use syn::{Attribute, DeriveInput, Field, Ident, parse_macro_input};
 
 use crate::attrs::{parse_field_attrs, parse_struct_attrs};
 
+/// Automatically implement the `Codec` trait for arbitrary structs or enums.
+///
+/// ## Structs
+///
+/// Structs are typically represented as maps.
+/// ```
+/// # use azalea_codec::Codec;
+/// # use serde_json::json;
+/// #[derive(Codec, Debug, PartialEq)]
+/// struct Thing {
+///     meow: String,
+///     woof: i32,
+/// }
+/// assert_eq!(
+///     Thing::codec_read(&json!({"meow": "!!!", "woof": 100}), Default::default()).unwrap(),
+///     Thing { meow: "!!!".into(), woof: 100 }
+/// );
+/// ```
+///
+/// You can also use structs with a single item to pass-through to another type,
+/// like so:
+/// ```
+/// #[derive(Codec)]
+/// struct SameThing(Thing);
+/// #[derive(Codec)]
+/// #[codec(transparent)] // this attribute is required since the fields are named
+/// struct SameSameThing {
+///     thing: Thing,
+/// }
+/// ```
+///
+/// TODO: it's 4am i'm tired i can finish writing this later
+///
+/// ## Enums
+///
+/// When `Codec` is derived on an enum, reading will attempt each variant
+/// sequentially until one matches.
+/// ```
+/// # use azalea_codec::Codec;
+/// #[derive(Codec)]
+/// enum Thing {
+///     A(i32),
+///     B(String),
+/// }
+/// ```
+///
+/// You can easily represent enums that are serialized as strings with
+/// #[codec(key = "...")].
+/// ```
+/// # use azalea_codec::Codec;
+/// #[derive(Codec)]
+/// enum Thing {
+///     #[codec(key = "first")]
+///     A,
+///     #[codec(key = "second")]
+///     B,
+/// }
+/// ```
+///
+/// On occasion, you may want keys in variants that are maps.
+/// ```
+/// # use azalea_codec::Codec;
+/// # use serde_json::json;
+/// #[derive(Codec, Debug, PartialEq)]
+/// #[codec(tag = "type")]
+/// enum Thing {
+///     #[codec(key = "first")]
+///     A { value: i32 },
+///     #[codec(key = "second")]
+///     B { value: String },
+/// }
+/// assert_eq!(
+///     Thing::codec_read(&json!({"type": "first", "value": 1}), Default::default()).unwrap(),
+///     Thing::A { value:1 }
+/// );
+/// ```
+///
+/// You may not want to manually write keys for every variant if their key
+/// should be obvious from the variant name. For this, there is
+/// `#[codec(default_snake_case_key)]`
+///
+/// ```
+/// # use azalea_codec::Codec;
+/// #[derive(Codec, Debug, PartialEq)]
+/// #[codec(tag = "type")]
+/// #[codec(default_snake_case_key)]
+/// enum Thing {
+///     A { value: i32 },
+///     B { value: String },
+/// }
+/// ```
+///
+/// If the key should be read as a different static `Codec`, this is supported
+/// too. Your keys are validated against that `const_from_str` at build-time, by
+/// the way.
+/// ```
+/// #![feature(const_trait_impl)]
+/// # use azalea_codec::Codec;
+/// # use std::fmt::{self, Display};
+/// use azalea_codec::types::ConstFromStr;
+/// #[derive(Codec)]
+/// #[codec(tag = "type", tag_as = Key)]
+/// #[codec(default_snake_case_key)]
+/// enum Thing {
+///     A { value: i32 },
+///     B { value: String },
+/// }
+/// #[derive(Codec)]
+/// enum Key {
+///     First,
+///     Second,
+/// }
+/// const impl ConstFromStr for Key {
+///     fn const_from_str(s: &'static str) -> Self {
+///         if s == "first" { Self::First }
+///         if s == "second" { Self::Second }
+///         panic!();
+///     }
+/// }
+/// assert_eq!(
+///     Thing::codec_read(&json!({"type": "first", "value": 1}), Default::default()).unwrap(),
+///     Thing::A { value: 1 }
+/// );
+/// assert_eq!(
+///     Thing::codec_read(&json!({"type": "second", "value": ""}), Default::default()).unwrap(),
+///     Thing::B { value: "".to_string() }
+/// );
+/// ```
+///
+/// Sadly, implementing `ConstFromStr` requires enabling a Nightly-only feature:
+/// [`const_trait_impl`](https://doc.rust-lang.org/beta/unstable-book/language-features/const-trait-impl.html).
+///
+/// Named variants are treated exactly the same as structs, and support all of
+/// their `#[codec(...)]` attributes.
+/// ```
+/// #[derive(Codec)]
+/// #[codec(tag = "id", default_snake_case_key)]
+/// enum Thing {
+///     #[codec(allow_unknown_keys)]
+///     A { value: i32 },
+///     B {
+///         #[codec(lenient)]
+///         value: String,
+///     },
+/// }
+/// ```
 #[proc_macro_derive(Codec, attributes(codec))]
 pub fn derive_codec(input: TokenStream) -> TokenStream {
     let DeriveInput {
@@ -40,7 +186,7 @@ pub fn derive_codec(input: TokenStream) -> TokenStream {
             derive_enum::derive_codec_for_enum(&vis, &attrs, &ident, variants)
         }
         _ => {
-            panic!("#[derive(Codec)] can only be used on structs")
+            panic!("#[derive(Codec)] can only be used on structs and enums")
         }
     }
 }
