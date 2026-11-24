@@ -36,8 +36,10 @@ impl DataComponentPatch {
     /// item.
     ///
     /// ```
-    /// # use azalea_inventory::{ItemStackData, DataComponentPatch, components};
-    /// # use azalea_registry::builtin::ItemKind;
+    /// # use azalea_registry::{
+    /// #     builtin::ItemKind,
+    /// #     item::{ItemStackData, components, components::patch::DataComponentPatch},
+    /// # };
     /// # fn example(item: &ItemStackData) -> Option<()> {
     /// let item_nutrition = item.component_patch.get::<components::Food>()?.nutrition;
     /// # Some(())
@@ -66,8 +68,10 @@ impl DataComponentPatch {
     /// this item.
     ///
     /// ```
-    /// # use azalea_inventory::{ItemStackData, DataComponentPatch, components};
-    /// # use azalea_registry::builtin::ItemKind;
+    /// # use azalea_registry::{
+    /// #     builtin::ItemKind,
+    /// #     item::{ItemStackData, components, components::patch::DataComponentPatch},
+    /// # };
     /// # let item = ItemStackData::from(ItemKind::Stone);
     /// let is_edible = item.component_patch.has::<components::Food>();
     /// # assert!(!is_edible);

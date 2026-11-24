@@ -223,8 +223,7 @@ impl ItemStackData {
     /// Whether this item is the same as another item, ignoring the count.
     ///
     /// ```
-    /// # use azalea_inventory::ItemStackData;
-    /// # use azalea_registry::builtin::ItemKind;
+    /// # use azalea_registry::{builtin::ItemKind, item::ItemStackData};
     /// let mut a = ItemStackData::from(ItemKind::Stone);
     /// let mut b = ItemStackData::new(ItemKind::Stone, 2);
     /// assert!(a.is_same_item_and_components(&b));

@@ -5700,10 +5700,11 @@ registry! {
 /// You might find it useful in some cases to check for categories of items
 /// with [`azalea_registry::tags::items`](crate::tags::items), like this
 ///
-/// ```
-/// let item = azalea_registry::Item::OakLog;
+/// ```ignore
+/// let item = azalea_registry::builtin::Item::OakLog;
 /// let is_log = azalea_registry::tags::items::LOGS.contains(&item);
 /// assert!(is_log);
+/// ```
 enum ItemKind {
     Air => "air",
     Stone => "stone",
