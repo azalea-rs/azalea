@@ -1,3 +1,4 @@
+#![doc = include_str!("../README.md")]
 #![feature(associated_type_defaults)]
 // needed for StringLiteral
 #![allow(incomplete_features)]
