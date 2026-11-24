@@ -148,6 +148,7 @@ impl SerializableProfileProperties {
         self.list.is_empty()
     }
 }
+#[cfg(feature = "azalea-codec")]
 azalea_codec::impl_defaultable!(SerializableProfileProperties, self, self.is_empty());
 
 #[derive(Clone, Debug, Deserialize, Serialize)]

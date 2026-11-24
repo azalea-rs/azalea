@@ -1,8 +1,13 @@
 #![doc = include_str!("../README.md")]
+// used by default_for_item in components
+#![feature(min_specialization)]
+// used by the `registry!` macro
+#![feature(const_trait_impl, const_cmp)]
 
 pub use azalea_registry_builtin::*;
 pub mod data;
 pub mod data_registry;
+pub mod item;
 pub mod registry_holder;
 
 use std::{
@@ -15,44 +20,6 @@ use azalea_buf::{AzBuf, AzBufVar, BufReadError, BufReadErrorRepr};
 use azalea_codec::Codec;
 use azalea_core::identifier::Identifier;
 pub use azalea_registry_macros as macros;
-
-#[doc(hidden)]
-pub mod identifier {
-    #[deprecated]
-    pub type Identifier = azalea_core::identifier::Identifier;
-}
-
-// TODO: remove this next update
-macro_rules! define_deprecated_builtin {
-    ($($r:ident) *) => {
-        $(
-            #[doc(hidden)]
-            #[deprecated = concat!("moved to `azalea_registry::builtin::", stringify!($r), "`")]
-            pub type $r = builtin::$r;
-        )*
-    };
-}
-define_deprecated_builtin!(Activity Attribute BlockEntityKind BlockPredicateKind ChunkStatus CommandArgumentKind CustomStat EntityKind FloatProviderKind Fluid GameEvent HeightProviderKind IntProviderKind LootConditionKind LootFunctionKind LootNbtProviderKind LootPoolEntryKind LootScoreProviderKind MemoryModuleKind MobEffect ParticleKind PointOfInterestKind PosRuleTest PositionSourceKind Potion RecipeSerializer RecipeKind RuleTest SensorKind SoundEvent StatKind VillagerProfession VillagerKind WorldgenBiomeSource WorldgenBlockStateProviderKind WorldgenChunkGenerator WorldgenDensityFunctionKind WorldgenFeatureSizeKind WorldgenFoliagePlacerKind WorldgenPlacementModifierKind WorldgenRootPlacerKind WorldgenStructurePiece WorldgenStructurePlacement WorldgenStructurePoolElement WorldgenStructureProcessor WorldgenStructureKind WorldgenTreeDecoratorKind WorldgenTrunkPlacerKind RuleBlockEntityModifier CreativeModeTab MenuKind WorldgenPoolAliasBinding TriggerKind NumberFormatKind DataComponentKind EntitySubPredicateKind MapDecorationKind EnchantmentEffectComponentKind EnchantmentEntityEffectKind EnchantmentLevelBasedValueKind EnchantmentLocationBasedEffectKind EnchantmentProviderKind EnchantmentValueEffectKind ConsumeEffectKind RecipeBookCategory RecipeDisplay SlotDisplay TicketKind TestEnvironmentDefinitionKind TestFunction TestInstanceKind DataComponentPredicateKind SpawnConditionKind DialogBodyKind DialogKind InputControlKind DialogActionKind DebugSubscription IncomingRpcMethods OutgoingRpcMethods AttributeKind EnvironmentAttribute GameRule PermissionCheckKind PermissionKind SlotSourceKind);
-macro_rules! define_deprecated_data {
-    ($($r:ident) *) => {
-        $(
-            #[doc(hidden)]
-            #[deprecated = concat!("moved to `azalea_registry::data::", stringify!($r), "`")]
-            pub type $r = data::$r;
-        )*
-    };
-}
-define_deprecated_data!(Enchantment DamageKind Dialog WolfSoundVariant CowVariant ChickenVariant FrogVariant CatVariant PigVariant PaintingVariant WolfVariant ZombieNautilusVariant Biome);
-
-#[doc(hidden)]
-#[deprecated = "renamed to `azalea_registry::builtin::ItemKind`"]
-pub type Item = builtin::ItemKind;
-#[doc(hidden)]
-#[deprecated = "renamed to `azalea_registry::builtin::BlockKind`"]
-pub type Block = builtin::BlockKind;
-#[doc(hidden)]
-#[deprecated = "renamed to `azalea_registry::data::DimensionKind`"]
-pub type DimensionType = data::DimensionKind;
 
 /// A registry that might not be present.
 ///

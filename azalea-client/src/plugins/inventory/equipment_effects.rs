@@ -4,12 +4,13 @@ use std::collections::HashMap;
 
 use azalea_core::identifier::Identifier;
 use azalea_entity::{Attributes, inventory::Inventory};
-use azalea_inventory::{
-    ItemStack,
-    components::{self, AttributeModifier, EquipmentSlot},
-};
 use azalea_registry::{
-    data_registry::ResolvableDataRegistry, registry_holder::value::AttributeEffect,
+    data_registry::ResolvableDataRegistry,
+    item::{
+        ItemStack,
+        components::{self, AttributeModifier, EquipmentSlot},
+    },
+    registry_holder::value::AttributeEffect,
 };
 use bevy_ecs::{
     component::Component,

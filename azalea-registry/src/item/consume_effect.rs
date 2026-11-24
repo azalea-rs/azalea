@@ -1,11 +1,11 @@
 use azalea_buf::AzBuf;
 use azalea_codec::Codec;
-use azalea_registry::{
+
+use crate::{
     HolderSet,
     builtin::{ConsumeEffectKind, MobEffect, SoundEvent},
+    item::components::MobEffectInstance,
 };
-
-use crate::components::MobEffectInstance;
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 #[codec(tag = "type")]

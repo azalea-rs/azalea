@@ -1,3 +1,5 @@
+use std::assert_matches;
+
 use proc_macro::TokenStream;
 use quote::{ToTokens, quote};
 use syn::{
@@ -31,11 +33,20 @@ pub fn derive_codec_for_enum(
     };
     let mut used_default_snake_case_key = false;
 
-    let mut used_variant_key_anywhere = false;
+    let mut used_variant_key_anywhere: bool = false;
 
     for variant in &variants {
         let variant_name = &variant.ident;
         let (variant_attrs, mut unhandled_attrs) = attrs::parse_enum_variant_attrs(&variant.attrs);
+
+        if variant_attrs.skip {
+            let panic_message = format!("writing {ident}::{variant_name} is not allowed");
+            codec_write_impl.extend(quote! {
+                Self::#variant_name { .. } => return Err(::azalea_codec::error::WriteError::custom(#panic_message)),
+            });
+            continue;
+        }
+
         let mut used_variant_key = false;
 
         let mut get_variant_key_type = || {
@@ -55,16 +66,22 @@ pub fn derive_codec_for_enum(
         };
 
         // unit variants are to be parsed as string literals
-        if variant.fields.is_empty() && enum_attrs.tag.is_none() {
+        if variant.fields.is_empty() && enum_attrs.tag.is_none() && !variant_attrs.unit {
             let Some(key_type) = get_variant_key_type() else {
                 return syn::Error::new(
                     variant.ident.span(),
-                    "must provide #[codec(key = \"...\")] for unit variants, or #[codec(default_snake_case_key)] must be set on the enum declaration",
-                ).to_compile_error().into();
+                    "Got a unit variant without a key.
+You must do one of the following:
+- Add #[codec(key = \"...\")] to this unit variant.
+- To set default keys for all fields, add #[codec(default_snake_case_key)] to the enum declaration.
+- Otherwise, if this variant was deliberately meant to match on an empty map, use #[codec(unit)].",
+                )
+                .to_compile_error()
+                .into();
             };
             codec_read_impl.extend(quote! {
                 match <#key_type>::codec_read(__codec_ops, ctx) {
-                    Ok(r) => {
+                    Ok(v) => {
                         return Ok(Self::#variant_name);
                     }
                     Err(e) => {
@@ -252,18 +269,39 @@ pub fn derive_codec_for_enum(
             });
         } else {
             // unnamed enum
-            assert_eq!(
+            assert_matches!(
                 variant.fields.len(),
-                1,
+                // 0 is only possible when using #[codec(unit)]
+                0 | 1,
                 "unnamed enum variants must have exactly one field"
             );
-            let first_variant_field = first_variant_field.unwrap();
-            field_type = first_variant_field.ty.clone();
+            if let Some(first_variant_field) = first_variant_field {
+                field_type = first_variant_field.ty.clone();
+            } else {
+                field_type = syn::Type::Tuple(syn::TypeTuple {
+                    attrs: Default::default(),
+                    paren_token: Default::default(),
+                    elems: Default::default(),
+                });
+            }
+
+            let construct_variant;
+            let value_ident;
+            let value_ref;
+            if variant_attrs.unit {
+                value_ident = quote! { () };
+                value_ref = quote! { &() };
+                construct_variant = quote! { Self::#variant_name };
+            } else {
+                value_ident = quote! { v };
+                value_ref = quote! { v };
+                construct_variant = quote! { Self::#variant_name(#value_ident) };
+            };
 
             codec_read_impl.extend(quote! {
                 match <#field_type>::codec_read(__codec_ops, ctx) {
-                    Ok(r) => {
-                        return Ok(Self::#variant_name(r));
+                    Ok(#value_ident) => {
+                        return Ok(#construct_variant);
                     }
                     Err(e) => {
                         __errors.push((stringify!(#field_type), e));
@@ -271,11 +309,11 @@ pub fn derive_codec_for_enum(
                 }
             });
             codec_write_impl.extend(quote! {
-                Self::#variant_name(v) => ::azalea_codec::Codec::codec_write(v, ctx),
+                #construct_variant => ::azalea_codec::Codec::codec_write(#value_ref, ctx),
             });
 
             codec_write_to_map_impl.extend(quote! {
-                Self::#variant_name(r) => ::azalea_codec::MapCodec::codec_write_to_map(r, ctx, __map),
+                #construct_variant => ::azalea_codec::MapCodec::codec_write_to_map(#value_ref, ctx, __map),
             });
         }
         incomplete_struct.extend(quote! {
@@ -293,8 +331,8 @@ pub fn derive_codec_for_enum(
             #incomplete_variant_field_name: ::azalea_codec::Incomplete::new(#debug_field_name_string),
         });
         incomplete_struct_build.extend(quote! {
-            if let Ok(r) = self.#incomplete_variant_field_name.build() {
-                return Ok(Self::Complete::#variant_name(r));
+            if let Ok(v) = self.#incomplete_variant_field_name.build() {
+                return Ok(Self::Complete::#variant_name(v));
             }
         });
 

@@ -1,15 +1,18 @@
 use azalea_block::BlockState;
 use azalea_buf::AzBuf;
+use azalea_codec::Codec;
 use azalea_core::{color::RgbColor, entity_id::MinecraftEntityId, position::BlockPos};
-use azalea_inventory::ItemStack;
-use crate::builtin::ParticleKind;
+use azalea_registry_builtin::builtin::BlockKind;
+
+use crate::{builtin::ParticleKind, item::ItemStack};
 
 // the order of this enum must be kept in sync with ParticleKind, otherwise
 // we get errors parsing particles.
 
 /// A [`ParticleKind`] with data potentially attached to it.
-#[cfg_attr(feature = "bevy_ecs", derive(bevy_ecs::component::Component))]
-#[derive(AzBuf, Clone, Debug, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
+#[codec(tag = "type")]
+#[codec(default_snake_case_key)]
 pub enum Particle {
     AngryVillager,
     Block(BlockParticle),
@@ -290,18 +293,19 @@ impl Default for Particle {
     }
 }
 
-#[derive(AzBuf, Clone, Debug, Default, PartialEq)]
+#[derive(AzBuf, Clone, Debug, Default, PartialEq, Codec)]
 pub struct BlockParticle {
+    #[codec(with = BlockKind)]
     pub block_state: BlockState,
 }
-#[derive(AzBuf, Clone, Debug, Default, PartialEq)]
+#[derive(AzBuf, Clone, Debug, Default, PartialEq, Codec)]
 pub struct DustParticle {
     pub color: RgbColor,
     /// The scale, will be clamped between 0.01 and 4.
     pub scale: f32,
 }
 
-#[derive(AzBuf, Clone, Debug, Default, PartialEq)]
+#[derive(AzBuf, Clone, Debug, Default, PartialEq, Codec)]
 pub struct DustColorTransitionParticle {
     pub from: RgbColor,
     pub to: RgbColor,
@@ -309,26 +313,27 @@ pub struct DustColorTransitionParticle {
     pub scale: f32,
 }
 
-#[derive(AzBuf, Clone, Debug, Default, PartialEq)]
+#[derive(AzBuf, Clone, Debug, Default, PartialEq, Codec)]
 pub struct ColorParticle {
     pub color: RgbColor,
 }
 
-#[derive(AzBuf, Clone, Debug, Default, PartialEq)]
+#[derive(AzBuf, Clone, Debug, Default, PartialEq, Codec)]
 pub struct ItemParticle {
     pub item: ItemStack,
 }
 
-#[derive(AzBuf, Clone, Debug, Default, PartialEq)]
+#[derive(AzBuf, Clone, Debug, Default, PartialEq, Codec)]
 pub struct VibrationParticle {
     pub position: PositionSource,
     #[var]
     pub ticks: u32,
 }
 
-#[derive(AzBuf, Clone, Debug, PartialEq)]
+#[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 pub enum PositionSource {
     Block(BlockPos),
+    #[codec(skip)]
     Entity {
         #[var]
         id: MinecraftEntityId,
@@ -342,24 +347,24 @@ impl Default for PositionSource {
     }
 }
 
-#[derive(AzBuf, Clone, Debug, Default, PartialEq)]
+#[derive(AzBuf, Clone, Debug, Default, PartialEq, Codec)]
 pub struct SculkChargeParticle {
     pub roll: f32,
 }
 
-#[derive(AzBuf, Clone, Debug, Default, PartialEq)]
+#[derive(AzBuf, Clone, Debug, Default, PartialEq, Codec)]
 pub struct ShriekParticle {
     /// The time in ticks before the particle is displayed.
     #[var]
     pub delay: i32,
 }
 
-#[derive(AzBuf, Clone, Debug, Default, PartialEq)]
+#[derive(AzBuf, Clone, Debug, Default, PartialEq, Codec)]
 pub struct GeyserParticle {
     pub water_blocks: i32,
 }
 
-#[derive(AzBuf, Clone, Debug, Default, PartialEq)]
+#[derive(AzBuf, Clone, Debug, Default, PartialEq, Codec)]
 pub struct GeyserBaseParticle {
     pub water_blocks: i32,
     pub burst_impulse_base: f32,

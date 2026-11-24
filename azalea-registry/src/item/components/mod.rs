@@ -1,3 +1,4 @@
+pub mod patch;
 mod profile;
 
 use core::f64;
@@ -16,23 +17,24 @@ use azalea_core::{
     attribute_modifier_operation::AttributeModifierOperation, filterable::Filterable,
     identifier::Identifier, position::GlobalPos, sound::CustomSound,
 };
-use azalea_registry::{
+use azalea_registry_macros::registry;
+pub use profile::*;
+use simdnbt::owned::NbtCompound;
+use tracing::trace;
+
+use crate::{
     Holder, HolderSet,
     builtin::{
         Attribute, BlockKind, DataComponentKind, EntityKind, ItemKind, MobEffect, Potion,
         SoundEvent, VillagerKind,
     },
     data::{self, BannerPatternKind, DamageKind, Enchantment, TrimMaterial, TrimPattern},
+    item::{
+        ItemStack,
+        checksum::{Checksum, ChecksumOps, get_checksum},
+        consume_effect::ConsumeEffect,
+    },
     registry_holder::RegistryHolder,
-};
-pub use profile::*;
-use simdnbt::owned::NbtCompound;
-use tracing::trace;
-
-use crate::{
-    ItemStack,
-    checksum::{Checksum, ChecksumOps, get_checksum},
-    item::consume_effect::ConsumeEffect,
 };
 
 pub trait DataComponentTrait:
@@ -202,7 +204,7 @@ macro_rules! define_data_components {
 // if this is causing a compile-time error, look at DataComponents.java in the
 // decompiled vanilla code to see how to implement new components
 
-// note that this statement is updated by genitemcomponents.py
+// note that this statement is updated by gendatacomponents.py
 define_data_components!(
     CustomData,
     MaxStackSize,
@@ -786,7 +788,7 @@ pub struct BlockEntityData {
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 #[codec(transparent)]
 pub struct Instrument {
-    pub value: Holder<azalea_registry::data::Instrument, InstrumentData>,
+    pub value: Holder<crate::data::Instrument, InstrumentData>,
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
@@ -961,7 +963,7 @@ pub struct ContainerLoot {
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 #[codec(transparent)]
 pub struct JukeboxPlayable {
-    pub value: Holder<azalea_registry::data::JukeboxSong, JukeboxSongData>,
+    pub value: Holder<crate::data::JukeboxSong, JukeboxSongData>,
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
@@ -979,8 +981,8 @@ pub struct Consumable {
     pub consume_seconds: f32,
     #[codec(optional)]
     pub animation: ItemUseAnimation,
-    #[codec(optional, default = azalea_registry::Holder::Reference(SoundEvent::EntityGenericEat))]
-    pub sound: azalea_registry::Holder<SoundEvent, CustomSound>,
+    #[codec(optional, default = crate::Holder::Reference(SoundEvent::EntityGenericEat))]
+    pub sound: crate::Holder<SoundEvent, CustomSound>,
     #[codec(optional)]
     pub has_consume_particles: bool,
     #[codec(optional)]
@@ -992,7 +994,7 @@ impl Consumable {
         Self {
             consume_seconds: 1.6,
             animation: ItemUseAnimation::Eat,
-            sound: azalea_registry::Holder::Reference(SoundEvent::EntityGenericEat),
+            sound: crate::Holder::Reference(SoundEvent::EntityGenericEat),
             has_consume_particles: true,
             on_consume_effects: Vec::new(),
         }
@@ -1247,7 +1249,7 @@ pub struct FoxVariant {
     pub variant: FoxVariantKind,
 }
 
-azalea_registry::macros::registry! {
+registry! {
 #[derive(Default)]
 enum FoxVariantKind {
     #[default]
@@ -1269,7 +1271,7 @@ pub enum SalmonSize {
 pub struct ParrotVariant {
     pub variant: ParrotVariantKind,
 }
-azalea_registry::macros::registry! {
+registry! {
 enum ParrotVariantKind {
     RedBlue => "red_blue",
     Blue => "blue",
@@ -1313,7 +1315,7 @@ pub struct TropicalFishPatternColor {
 pub struct MooshroomVariant {
     pub variant: MooshroomVariantKind,
 }
-azalea_registry::macros::registry! {
+registry! {
 #[derive(Default)]
 enum MooshroomVariantKind {
     #[default]
@@ -1327,7 +1329,7 @@ enum MooshroomVariantKind {
 pub struct RabbitVariant {
     pub variant: RabbitVariantKind,
 }
-azalea_registry::macros::registry! {
+registry! {
 #[derive(Default)]
 enum RabbitVariantKind {
     #[default]
@@ -1358,7 +1360,7 @@ pub struct FrogVariant {
 pub struct HorseVariant {
     pub variant: HorseVariantKind,
 }
-azalea_registry::macros::registry! {
+registry! {
 #[derive(Default)]
 enum HorseVariantKind {
     #[default]
@@ -1396,7 +1398,7 @@ pub struct PaintingVariantData {
 pub struct LlamaVariant {
     pub variant: LlamaVariantKind,
 }
-azalea_registry::macros::registry! {
+registry! {
 #[derive(Default)]
 enum LlamaVariantKind {
     #[default]
@@ -1412,7 +1414,7 @@ enum LlamaVariantKind {
 pub struct AxolotlVariant {
     pub variant: AxolotlVariantKind,
 }
-azalea_registry::macros::registry! {
+registry! {
 #[derive(Default)]
 enum AxolotlVariantKind {
     #[default]
@@ -1483,9 +1485,9 @@ pub struct BlocksAttacks {
     #[codec(optional)]
     pub bypassed_by: Option<HolderSet<DamageKind>>,
     #[codec(optional)]
-    pub block_sound: Option<azalea_registry::Holder<SoundEvent, CustomSound>>,
+    pub block_sound: Option<crate::Holder<SoundEvent, CustomSound>>,
     #[codec(optional)]
-    pub disabled_sound: Option<azalea_registry::Holder<SoundEvent, CustomSound>>,
+    pub disabled_sound: Option<crate::Holder<SoundEvent, CustomSound>>,
 }
 
 impl BlocksAttacks {
@@ -1541,7 +1543,7 @@ azalea_codec::impl_defaultable!(ItemDamageFunction);
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 #[codec(transparent)]
 pub struct ProvidesTrimMaterial {
-    pub value: Holder<azalea_registry::data::TrimMaterial, DirectTrimMaterial>,
+    pub value: Holder<crate::data::TrimMaterial, DirectTrimMaterial>,
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
@@ -1572,31 +1574,31 @@ pub struct ProvidesBannerPatterns {
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 #[codec(transparent)]
 pub struct BreakSound {
-    pub sound: azalea_registry::Holder<SoundEvent, CustomSound>,
+    pub sound: crate::Holder<SoundEvent, CustomSound>,
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 #[codec(transparent)]
 pub struct WolfSoundVariant {
-    pub variant: azalea_registry::data::WolfSoundVariant,
+    pub variant: crate::data::WolfSoundVariant,
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 #[codec(transparent)]
 pub struct CowVariant {
-    pub variant: azalea_registry::data::CowVariant,
+    pub variant: crate::data::CowVariant,
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 #[codec(transparent)]
 pub struct ChickenVariant {
-    pub data: azalea_registry::data::ChickenVariant,
+    pub data: crate::data::ChickenVariant,
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 #[codec(transparent)]
 pub struct ZombieNautilusVariant {
-    pub value: azalea_registry::data::ZombieNautilusVariant,
+    pub value: crate::data::ZombieNautilusVariant,
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
@@ -1629,7 +1631,7 @@ pub struct MinimumAttackCharge {
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 #[codec(transparent)]
 pub struct DamageType {
-    pub value: azalea_registry::data::DamageKind,
+    pub value: crate::data::DamageKind,
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
@@ -1755,25 +1757,25 @@ pub struct Dye {
 #[derive(Clone, PartialEq, AzBuf, Debug, Codec)]
 #[codec(transparent)]
 pub struct PigSoundVariant {
-    pub value: azalea_registry::data::PigSoundVariant,
+    pub value: crate::data::PigSoundVariant,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Codec)]
 #[codec(transparent)]
 pub struct CowSoundVariant {
-    pub value: azalea_registry::data::CowSoundVariant,
+    pub value: crate::data::CowSoundVariant,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Codec)]
 #[codec(transparent)]
 pub struct ChickenSoundVariant {
-    pub value: azalea_registry::data::ChickenSoundVariant,
+    pub value: crate::data::ChickenSoundVariant,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Codec)]
 #[codec(transparent)]
 pub struct CatSoundVariant {
-    pub value: azalea_registry::data::CatSoundVariant,
+    pub value: crate::data::CatSoundVariant,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Codec)]
@@ -1784,12 +1786,12 @@ pub struct SulfurCubeContent {
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Codec)]
 pub struct BlockTransformer {
-    pub value: azalea_registry::data::BlockTransformer,
+    pub value: crate::data::BlockTransformer,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Codec)]
 pub struct ProvidesPotteryPattern {
-    pub value: azalea_registry::data::DecoratedPotPattern,
+    pub value: crate::data::DecoratedPotPattern,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Codec)]

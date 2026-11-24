@@ -8,8 +8,12 @@ use azalea_core::{
 };
 
 use crate::{
-    Holder, HolderSet, builtin::{BlockKind, EntityKind, GameEvent, MobEffect, ParticleKind, SoundEvent}, data::{DamageKind, DamageKindKey}, registry_holder::{
-        block_predicate::BlockPredicate, block_state_provider::BlockStateProvider, float_provider::FloatProvider, particle::Particle, value::LevelBasedValue,
+    Holder, HolderSet,
+    builtin::{BlockKind, EntityKind, GameEvent, MobEffect, SoundEvent},
+    data::{DamageKind, DamageKindKey},
+    registry_holder::{
+        block_predicate::BlockPredicate, block_state_provider::BlockStateProvider,
+        float_provider::FloatProvider, particle::Particle, value::LevelBasedValue,
     },
 };
 
@@ -70,7 +74,7 @@ pub struct Explode {
     #[codec(optional)]
     pub damage_kind: Option<DamageKind>,
     #[codec(optional)]
-    pub knockback_multiplier: LevelBasedValue,
+    pub knockback_multiplier: Option<LevelBasedValue>,
     #[codec(optional)]
     pub immune_blocks: HolderSet<BlockKind>,
     #[codec(optional)]
@@ -80,7 +84,32 @@ pub struct Explode {
     pub create_fire: bool,
     pub block_interaction: ExplosionInteraction,
     #[codec(optional)]
-    pub small_particle: ParticleKindCodec,
+    pub small_particle: Option<Particle>,
+    #[codec(optional)]
+    pub large_particle: Option<Particle>,
+    #[codec(optional)]
+    pub block_particles: Vec<ExplosionParticleInfo>,
+    #[codec(optional)]
+    pub sound: Option<SoundEvent>,
+}
+
+#[derive(Clone, Debug, PartialEq, Codec)]
+#[codec(default_snake_case_key)]
+pub enum ExplosionInteraction {
+    None,
+    Block,
+    Mob,
+    Tnt,
+    Trigger,
+}
+
+#[derive(Clone, Debug, PartialEq, Codec)]
+pub struct ExplosionParticleInfo {
+    pub particle: Particle,
+    #[codec(optional, default = 1.0)]
+    pub scaling: f32,
+    #[codec(optional, default = 1.0)]
+    pub speed: f32,
 }
 
 #[derive(Clone, Debug, PartialEq, Codec)]
@@ -154,12 +183,6 @@ pub struct SpawnParticles {
     pub horizontal_velocity: SpawnParticlesVelocity,
     pub vertical_velocity: SpawnParticlesVelocity,
     pub speed: Option<FloatProvider>,
-}
-
-#[derive(Clone, Debug, PartialEq, Codec)]
-pub struct ParticleKindCodec {
-    #[codec(rename = "type")]
-    pub kind: ParticleKind,
 }
 
 #[derive(Clone, Debug, PartialEq, Codec)]

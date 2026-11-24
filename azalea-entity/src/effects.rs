@@ -8,8 +8,10 @@ use azalea_core::{
     attribute_modifier_operation::AttributeModifierOperation, bitset::FixedBitSet,
     identifier::Identifier,
 };
-use azalea_inventory::components::AttributeModifier;
-use azalea_registry::builtin::{Attribute, MobEffect};
+use azalea_registry::{
+    builtin::{Attribute, MobEffect},
+    item::components::AttributeModifier,
+};
 
 /// Data about an active mob effect.
 #[derive(AzBuf, Clone, Debug, Default, PartialEq)]

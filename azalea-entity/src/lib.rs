@@ -9,10 +9,15 @@ pub mod inventory;
 #[cfg(feature = "bevy_ecs")]
 pub mod metadata;
 pub mod mining;
-pub mod particle;
 #[cfg(feature = "bevy_ecs")]
 mod plugin;
 pub mod vec_delta_codec;
+
+#[doc(hidden)]
+pub mod particle {
+    #[deprecated = "moved to `azalea_registry::registry_holder::particle::Particle`."]
+    pub type Particle = azalea_registry::registry_holder::particle::Particle;
+}
 
 use std::{
     f64::consts::PI,

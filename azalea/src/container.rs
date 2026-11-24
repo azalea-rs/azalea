@@ -7,12 +7,10 @@ use azalea_client::{
 };
 use azalea_core::position::BlockPos;
 use azalea_entity::inventory::Inventory;
-use azalea_inventory::{
-    ItemStack, Menu,
-    operations::{ClickOperation, PickupClick, QuickMoveClick},
-};
+use azalea_inventory::{Menu, operations::{ClickOperation, PickupClick, QuickMoveClick}};
 use azalea_physics::collision::BlockWithShape;
 use azalea_protocol::packets::game::ClientboundGamePacket;
+use azalea_registry::item::ItemStack;
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::{component::Component, prelude::MessageReader, system::Commands};
 use derive_more::Deref;

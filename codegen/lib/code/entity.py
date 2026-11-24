@@ -124,11 +124,14 @@ use azalea_core::{
     direction::Direction,
     position::{BlockPos, Vec3f32},
 };
-use azalea_inventory::{
-    ItemStack,
-    components::{self, DyeColor},
+use azalea_registry::{
+    DataRegistry,
+    builtin::EntityKind,
+    item::{
+        ItemStack,
+        components::{self, DyeColor},
+    },
 };
-use azalea_registry::{DataRegistry, builtin::EntityKind};
 use bevy_ecs::{bundle::Bundle, component::Component};
 use derive_more::{Deref, DerefMut};
 use thiserror::Error;
@@ -138,7 +141,7 @@ use super::{
     ArmadilloStateKind, CopperGolemStateKind, EntityDataItem, EntityDataValue, OptionalUnsignedInt,
     Pose, Quaternion, Rotations, SnifferStateKind, VillagerData, WeatheringCopperStateKind,
 };
-use crate::{HumanoidArm, particle::Particle};
+use crate::{HumanoidArm, EntityParticle};
 
 #[derive(Error, Debug)]
 pub enum UpdateMetadataError {
@@ -161,7 +164,7 @@ fn e(v: EntityDataValue, id: u8, struct_name: &str) -> UpdateMetadataError {
 """)
 
     # types that are only ever used in one entity
-    single_use_imported_types = {"particle", "pose"}
+    single_use_imported_types = {"pose"}
 
     added_metadata_fields = set()
 

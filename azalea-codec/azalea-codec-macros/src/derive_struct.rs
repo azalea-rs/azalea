@@ -127,7 +127,7 @@ pub fn derive_codec_for_named_fields_struct(
 
         let read_fn = quote! { ::codec_read(v, ctx) };
         let read_fn = if attrs.with.is_some() {
-            quote! { #read_fn.map(|i| i.0) }
+            quote! { #read_fn.map(::azalea_codec::Interchangeable::interchangeable_from) }
         } else {
             read_fn
         };
@@ -168,7 +168,7 @@ pub fn derive_codec_for_named_fields_struct(
             quote! { self.#field_name }
         };
         let field_ref = if let Some(with) = &attrs.with {
-            quote! { #with(#field_ref.clone()) }
+            quote! { <_ as ::azalea_codec::Interchangeable<#with>>::interchangeable_into(#field_ref.clone()) }
         } else {
             field_ref
         };

@@ -2,14 +2,14 @@ use std::{cmp, collections::HashSet};
 
 use azalea_chat::FormattedText;
 use azalea_inventory::{
-    ItemStack, ItemStackData, Menu,
-    components::EquipmentSlot,
+    Menu,
     item::MaxStackSizeExt,
     operations::{
         ClickOperation, CloneClick, PickupAllClick, PickupClick, QuickCraftKind, QuickCraftStatus,
         QuickCraftStatusKind, QuickMoveClick, ThrowClick,
     },
 };
+use azalea_registry::item::{ItemStack, ItemStackData, components::EquipmentSlot};
 
 use crate::PlayerAbilities;
 

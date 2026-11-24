@@ -1,8 +1,6 @@
 pub mod generated;
 
-use azalea_registry::builtin::ItemKind;
-
-use crate::components::DataComponentTrait;
+use crate::{builtin::ItemKind, item::components::DataComponentTrait};
 
 /// A trait for data components that some [`ItemKind`]s may have a default value
 /// for.

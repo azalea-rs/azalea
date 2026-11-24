@@ -7,17 +7,19 @@ use azalea_core::{
     attribute_modifier_operation::AttributeModifierOperation,
     position::{BlockPos, GlobalPos},
 };
-use azalea_inventory::{
-    ItemStack,
-    checksum::get_checksum,
-    components::{
-        AdventureModePredicate, AttributeModifier, AttributeModifierDisplay, AttributeModifiers,
-        AttributeModifiersEntry, BlockPredicate, CanPlaceOn, ChargedProjectiles, CustomData,
-        CustomName, EquipmentSlotGroup, Glider, JukeboxPlayable, LodestoneTracker, Lore,
-        PotDecorations, Rarity,
+use azalea_registry::{
+    builtin::{Attribute, BlockKind, ItemKind},
+    item::{
+        ItemStack,
+        checksum::get_checksum,
+        components::{
+            AdventureModePredicate, AttributeModifier, AttributeModifierDisplay,
+            AttributeModifiers, AttributeModifiersEntry, BlockPredicate, CanPlaceOn,
+            ChargedProjectiles, CustomData, CustomName, EquipmentSlotGroup, Glider,
+            JukeboxPlayable, LodestoneTracker, Lore, PotDecorations, Rarity,
+        },
     },
 };
-use azalea_registry::builtin::{Attribute, BlockKind, ItemKind};
 use simdnbt::owned::{NbtCompound, NbtList, NbtTag};
 
 // note: it would be cool to make the checksums more reliably accurate somehow.

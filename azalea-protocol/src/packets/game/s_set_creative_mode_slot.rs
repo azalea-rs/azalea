@@ -1,6 +1,6 @@
 use azalea_buf::AzBuf;
-use azalea_inventory::ItemStack;
 use azalea_protocol_macros::ServerboundGamePacket;
+use azalea_registry::item::ItemStack;
 
 #[derive(AzBuf, Clone, Debug, PartialEq, ServerboundGamePacket)]
 pub struct ServerboundSetCreativeModeSlot {

@@ -17,6 +17,10 @@ indexmap.workspace = true
 simdnbt.workspace = true
 tracing.workspace = true
 azalea-block.workspace = true
+azalea-auth.workspace = true
+uuid.workspace = true
+thiserror.workspace = true
+crc32c.workspace = true
 
 [lints]
 workspace = true

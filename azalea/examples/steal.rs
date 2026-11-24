@@ -3,8 +3,10 @@
 use std::sync::Arc;
 
 use azalea::{BlockPos, pathfinder::goals::RadiusGoal, prelude::*};
-use azalea_inventory::ItemStack;
-use azalea_registry::builtin::{BlockKind, ItemKind};
+use azalea_registry::{
+    builtin::{BlockKind, ItemKind},
+    item::ItemStack,
+};
 use parking_lot::Mutex;
 
 #[tokio::main]

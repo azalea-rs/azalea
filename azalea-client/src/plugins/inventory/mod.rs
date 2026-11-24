@@ -3,14 +3,13 @@ pub mod equipment_effects;
 use azalea_chat::FormattedText;
 use azalea_core::tick::GameTick;
 use azalea_entity::{PlayerAbilities, inventory::Inventory as Inv};
-use azalea_inventory::operations::ClickOperation;
-pub use azalea_inventory::*;
+use azalea_inventory::{Menu, operations::ClickOperation};
 use azalea_protocol::packets::game::{
     s_container_click::{HashedStack, ServerboundContainerClick},
     s_container_close::ServerboundContainerClose,
     s_set_carried_item::ServerboundSetCarriedItem,
 };
-use azalea_registry::builtin::MenuKind;
+use azalea_registry::{builtin::MenuKind, item::ItemStack};
 use azalea_world::{WorldName, Worlds};
 use bevy_app::{App, Plugin};
 use bevy_ecs::prelude::*;

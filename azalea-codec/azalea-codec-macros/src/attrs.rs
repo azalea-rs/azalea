@@ -93,6 +93,10 @@ pub fn parse_field_attrs(attrs: &[syn::Attribute]) -> syn::Result<FieldAttrs> {
 #[derive(Default)]
 pub struct StructAttrs {
     pub allow_unknown_keys: bool,
+    /// Indicates that the type passes through to the inner type.
+    ///
+    /// As a special case, this can be applied on an unit struct variant to have
+    /// it be parsed as an empty map.
     pub transparent: bool,
     /// When reading, pretend as if this field were there.
     pub virt: Vec<(Vec<Attribute>, Ident, Type)>,
@@ -148,8 +152,16 @@ pub fn parse_struct_attrs(attrs: &[syn::Attribute]) -> syn::Result<StructAttrs> 
 pub struct EnumVariantAttrs {
     pub key: Option<String>,
     /// Whether this variant should match regardless of key or extra fields.
+    ///
     /// Setting this implies `allow_unknown_keys`.
     pub fallback: bool,
+    /// Whether this variant is intentionally empty and should match when we get
+    /// an empty map.
+    pub unit: bool,
+    /// Whether to pretend that this variant doesn't exist.
+    ///
+    /// Attempting to write this variant will return an error.
+    pub skip: bool,
 }
 impl Parse for EnumVariantAttrs {
     fn parse(input: ParseStream) -> syn::Result<Self> {
@@ -163,6 +175,8 @@ impl Parse for EnumVariantAttrs {
                     attrs.key = Some(key.value());
                 }
                 "fallback" => attrs.fallback = true,
+                "unit" => attrs.unit = true,
+                "skip" => attrs.skip = true,
                 attr => {
                     return Err(syn::Error::new(
                         attr_ident.span(),
@@ -182,17 +196,35 @@ pub fn parse_enum_variant_attrs(
     let mut unhandled = Vec::new();
 
     for attr in filter_codec_attrs(attrs) {
-        let Ok(EnumVariantAttrs { key, fallback }) = attr.parse_args() else {
+        let Ok(EnumVariantAttrs {
+            key,
+            fallback,
+            unit,
+            skip,
+        }) = attr.parse_args()
+        else {
             unhandled.push(attr.clone());
             continue;
         };
 
         a.key = key.or(a.key);
         a.fallback |= fallback;
+        a.unit |= unit;
+        a.skip |= skip;
     }
 
     if a.key.is_some() && a.fallback {
         panic!("conflicting 'key' and 'fallback'")
+    }
+    if a.key.is_some() && a.unit {
+        panic!("conflicting 'key' and 'unit'")
+    }
+    if a.fallback && a.unit {
+        panic!("conflicting 'fallback' and 'unit'")
+    }
+
+    if a.skip && (a.fallback || a.unit || a.key.is_some()) {
+        panic!("skipped field must not have other attributes")
     }
 
     (a, unhandled)

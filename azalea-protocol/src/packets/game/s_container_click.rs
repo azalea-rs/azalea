@@ -1,9 +1,8 @@
 use azalea_buf::AzBuf;
-use azalea_inventory::{ItemStack, checksum::Checksum, operations::ClickType};
+use azalea_inventory::operations::ClickType;
 use azalea_protocol_macros::ServerboundGamePacket;
 use azalea_registry::{
-    builtin::{DataComponentKind, ItemKind},
-    registry_holder::RegistryHolder,
+    builtin::{DataComponentKind, ItemKind}, item::{ItemStack, checksum::Checksum}, registry_holder::RegistryHolder,
 };
 use indexmap::IndexMap;
 

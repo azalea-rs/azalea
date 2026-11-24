@@ -1,6 +1,8 @@
 use azalea_block::{BlockBehavior, BlockTrait};
-use azalea_inventory::{ItemStack, components::Tool};
-use azalea_registry::builtin::{BlockKind, MobEffect};
+use azalea_registry::{
+    builtin::{BlockKind, MobEffect},
+    item::{ItemStack, components::Tool},
+};
 
 use crate::{ActiveEffects, Attributes, FluidOnEyes, Physics};
 

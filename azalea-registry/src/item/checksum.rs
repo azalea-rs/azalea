@@ -1,7 +1,8 @@
 use azalea_buf::AzBuf;
 use azalea_codec::Codec;
-use azalea_registry::registry_holder::RegistryHolder;
 use thiserror::Error;
+
+use crate::registry_holder::RegistryHolder;
 
 #[derive(AzBuf, Clone, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Checksum(pub u32);

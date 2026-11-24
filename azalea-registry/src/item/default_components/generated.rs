@@ -7,15 +7,15 @@ use std::collections::HashMap;
 
 use azalea_chat::component::translatable::TranslatableComponent;
 use azalea_core::attribute_modifier_operation::AttributeModifierOperation;
-use azalea_registry::{
-    DataRegistry, HolderSet,
-    builtin::{Attribute, BlockKind, EntityKind, ItemKind, MobEffect, SoundEvent},
-};
 use simdnbt::owned::NbtCompound;
 
 use crate::{
-    ItemStack, components::*, default_components::DefaultableComponent,
-    item::consume_effect::ConsumeEffect,
+    DataRegistry, HolderSet,
+    builtin::{Attribute, BlockKind, EntityKind, ItemKind, MobEffect, SoundEvent},
+    item::{
+        ItemStack, components::*, consume_effect::ConsumeEffect,
+        default_components::DefaultableComponent,
+    },
 };
 
 impl DefaultableComponent for AttackAnimation {
@@ -2210,27 +2210,27 @@ impl DefaultableComponent for BlockState {
 impl DefaultableComponent for BlockTransformer {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::CopperAxe => azalea_registry::data::BlockTransformer::new_raw(0),
-            ItemKind::CopperHoe => azalea_registry::data::BlockTransformer::new_raw(0),
-            ItemKind::CopperShovel => azalea_registry::data::BlockTransformer::new_raw(0),
-            ItemKind::DiamondAxe => azalea_registry::data::BlockTransformer::new_raw(0),
-            ItemKind::DiamondHoe => azalea_registry::data::BlockTransformer::new_raw(0),
-            ItemKind::DiamondShovel => azalea_registry::data::BlockTransformer::new_raw(0),
-            ItemKind::GoldenAxe => azalea_registry::data::BlockTransformer::new_raw(0),
-            ItemKind::GoldenHoe => azalea_registry::data::BlockTransformer::new_raw(0),
-            ItemKind::GoldenShovel => azalea_registry::data::BlockTransformer::new_raw(0),
-            ItemKind::IronAxe => azalea_registry::data::BlockTransformer::new_raw(0),
-            ItemKind::IronHoe => azalea_registry::data::BlockTransformer::new_raw(0),
-            ItemKind::IronShovel => azalea_registry::data::BlockTransformer::new_raw(0),
-            ItemKind::NetheriteAxe => azalea_registry::data::BlockTransformer::new_raw(0),
-            ItemKind::NetheriteHoe => azalea_registry::data::BlockTransformer::new_raw(0),
-            ItemKind::NetheriteShovel => azalea_registry::data::BlockTransformer::new_raw(0),
-            ItemKind::StoneAxe => azalea_registry::data::BlockTransformer::new_raw(0),
-            ItemKind::StoneHoe => azalea_registry::data::BlockTransformer::new_raw(0),
-            ItemKind::StoneShovel => azalea_registry::data::BlockTransformer::new_raw(0),
-            ItemKind::WoodenAxe => azalea_registry::data::BlockTransformer::new_raw(0),
-            ItemKind::WoodenHoe => azalea_registry::data::BlockTransformer::new_raw(0),
-            ItemKind::WoodenShovel => azalea_registry::data::BlockTransformer::new_raw(0),
+            ItemKind::CopperAxe => crate::data::BlockTransformer::new_raw(0),
+            ItemKind::CopperHoe => crate::data::BlockTransformer::new_raw(0),
+            ItemKind::CopperShovel => crate::data::BlockTransformer::new_raw(0),
+            ItemKind::DiamondAxe => crate::data::BlockTransformer::new_raw(0),
+            ItemKind::DiamondHoe => crate::data::BlockTransformer::new_raw(0),
+            ItemKind::DiamondShovel => crate::data::BlockTransformer::new_raw(0),
+            ItemKind::GoldenAxe => crate::data::BlockTransformer::new_raw(0),
+            ItemKind::GoldenHoe => crate::data::BlockTransformer::new_raw(0),
+            ItemKind::GoldenShovel => crate::data::BlockTransformer::new_raw(0),
+            ItemKind::IronAxe => crate::data::BlockTransformer::new_raw(0),
+            ItemKind::IronHoe => crate::data::BlockTransformer::new_raw(0),
+            ItemKind::IronShovel => crate::data::BlockTransformer::new_raw(0),
+            ItemKind::NetheriteAxe => crate::data::BlockTransformer::new_raw(0),
+            ItemKind::NetheriteHoe => crate::data::BlockTransformer::new_raw(0),
+            ItemKind::NetheriteShovel => crate::data::BlockTransformer::new_raw(0),
+            ItemKind::StoneAxe => crate::data::BlockTransformer::new_raw(0),
+            ItemKind::StoneHoe => crate::data::BlockTransformer::new_raw(0),
+            ItemKind::StoneShovel => crate::data::BlockTransformer::new_raw(0),
+            ItemKind::WoodenAxe => crate::data::BlockTransformer::new_raw(0),
+            ItemKind::WoodenHoe => crate::data::BlockTransformer::new_raw(0),
+            ItemKind::WoodenShovel => crate::data::BlockTransformer::new_raw(0),
             _ => return None,
         };
         Some(BlockTransformer { value: value })
@@ -2241,13 +2241,9 @@ impl DefaultableComponent for BlocksAttacks {
         let value = match item {
             ItemKind::Shield => BlocksAttacks {
                 block_delay_seconds: 0.25,
-                block_sound: Some(azalea_registry::Holder::Reference(
-                    SoundEvent::ItemShieldBlock,
-                )),
+                block_sound: Some(crate::Holder::Reference(SoundEvent::ItemShieldBlock)),
                 bypassed_by: Some(HolderSet::Direct { contents: vec![] }),
-                disabled_sound: Some(azalea_registry::Holder::Reference(
-                    SoundEvent::ItemShieldBreak,
-                )),
+                disabled_sound: Some(crate::Holder::Reference(SoundEvent::ItemShieldBreak)),
                 item_damage: ItemDamageFunction {
                     base: 1.0,
                     factor: 1.0,
@@ -2263,11 +2259,9 @@ impl DefaultableComponent for BlocksAttacks {
 impl DefaultableComponent for BreakSound {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::Shield => azalea_registry::Holder::Reference(SoundEvent::ItemShieldBreak),
-            ItemKind::WolfArmor => {
-                azalea_registry::Holder::Reference(SoundEvent::ItemWolfArmorBreak)
-            }
-            _ => azalea_registry::Holder::Reference(SoundEvent::EntityItemBreak),
+            ItemKind::Shield => crate::Holder::Reference(SoundEvent::ItemShieldBreak),
+            ItemKind::WolfArmor => crate::Holder::Reference(SoundEvent::ItemWolfArmorBreak),
+            _ => crate::Holder::Reference(SoundEvent::EntityItemBreak),
         };
         Some(BreakSound { sound: value })
     }
@@ -2340,9 +2334,9 @@ impl DefaultableComponent for ChargedProjectiles {
 impl DefaultableComponent for ChickenVariant {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::BlueEgg => azalea_registry::data::ChickenVariant::new_raw(0),
-            ItemKind::BrownEgg => azalea_registry::data::ChickenVariant::new_raw(0),
-            ItemKind::Egg => azalea_registry::data::ChickenVariant::new_raw(0),
+            ItemKind::BlueEgg => crate::data::ChickenVariant::new_raw(0),
+            ItemKind::BrownEgg => crate::data::ChickenVariant::new_raw(0),
+            ItemKind::Egg => crate::data::ChickenVariant::new_raw(0),
             _ => return None,
         };
         Some(ChickenVariant { data: value })
@@ -2841,14 +2835,14 @@ impl DefaultableComponent for Consumable {
                         contents: vec![MobEffect::Poison],
                     },
                 }],
-                sound: azalea_registry::Holder::Reference(SoundEvent::ItemHoneyBottleDrink),
+                sound: crate::Holder::Reference(SoundEvent::ItemHoneyBottleDrink),
             },
             ItemKind::MelonSlice => Consumable::new(),
             ItemKind::MilkBucket => Consumable {
                 animation: ItemUseAnimation::Drink,
                 has_consume_particles: false,
                 on_consume_effects: vec![ConsumeEffect::ClearAllEffects {}],
-                sound: azalea_registry::Holder::Reference(SoundEvent::EntityGenericDrink),
+                sound: crate::Holder::Reference(SoundEvent::EntityGenericDrink),
                 ..Consumable::new()
             },
             ItemKind::MushroomStew => Consumable::new(),
@@ -2859,7 +2853,7 @@ impl DefaultableComponent for Consumable {
                 on_consume_effects: vec![ConsumeEffect::PlaySound {
                     sound: SoundEvent::ItemOminousBottleDispose,
                 }],
-                sound: azalea_registry::Holder::Reference(SoundEvent::EntityGenericDrink),
+                sound: crate::Holder::Reference(SoundEvent::EntityGenericDrink),
                 ..Consumable::new()
             },
             ItemKind::PoisonousPotato => Consumable {
@@ -2881,7 +2875,7 @@ impl DefaultableComponent for Consumable {
             ItemKind::Potion => Consumable {
                 animation: ItemUseAnimation::Drink,
                 has_consume_particles: false,
-                sound: azalea_registry::Holder::Reference(SoundEvent::EntityGenericDrink),
+                sound: crate::Holder::Reference(SoundEvent::EntityGenericDrink),
                 ..Consumable::new()
             },
             ItemKind::Pufferfish => Consumable {
@@ -5939,13 +5933,13 @@ impl DefaultableComponent for DamageResistant {
 impl DefaultableComponent for DamageType {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::CopperSpear => azalea_registry::data::DamageKind::new_raw(0),
-            ItemKind::DiamondSpear => azalea_registry::data::DamageKind::new_raw(0),
-            ItemKind::GoldenSpear => azalea_registry::data::DamageKind::new_raw(0),
-            ItemKind::IronSpear => azalea_registry::data::DamageKind::new_raw(0),
-            ItemKind::NetheriteSpear => azalea_registry::data::DamageKind::new_raw(0),
-            ItemKind::StoneSpear => azalea_registry::data::DamageKind::new_raw(0),
-            ItemKind::WoodenSpear => azalea_registry::data::DamageKind::new_raw(0),
+            ItemKind::CopperSpear => crate::data::DamageKind::new_raw(0),
+            ItemKind::DiamondSpear => crate::data::DamageKind::new_raw(0),
+            ItemKind::GoldenSpear => crate::data::DamageKind::new_raw(0),
+            ItemKind::IronSpear => crate::data::DamageKind::new_raw(0),
+            ItemKind::NetheriteSpear => crate::data::DamageKind::new_raw(0),
+            ItemKind::StoneSpear => crate::data::DamageKind::new_raw(0),
+            ItemKind::WoodenSpear => crate::data::DamageKind::new_raw(0),
             _ => return None,
         };
         Some(DamageType { value: value })
@@ -6250,7 +6244,7 @@ impl DefaultableComponent for Equippable {
             },
             ItemKind::BlackHarness => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                    contents: crate::tags::entities::CAN_EQUIP_HARNESS
                         .clone()
                         .into_iter()
                         .collect(),
@@ -6276,7 +6270,7 @@ impl DefaultableComponent for Equippable {
             },
             ItemKind::BlueHarness => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                    contents: crate::tags::entities::CAN_EQUIP_HARNESS
                         .clone()
                         .into_iter()
                         .collect(),
@@ -6302,7 +6296,7 @@ impl DefaultableComponent for Equippable {
             },
             ItemKind::BrownHarness => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                    contents: crate::tags::entities::CAN_EQUIP_HARNESS
                         .clone()
                         .into_iter()
                         .collect(),
@@ -6365,7 +6359,7 @@ impl DefaultableComponent for Equippable {
             },
             ItemKind::CopperHorseArmor => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_WEAR_HORSE_ARMOR
+                    contents: crate::tags::entities::CAN_WEAR_HORSE_ARMOR
                         .clone()
                         .into_iter()
                         .collect(),
@@ -6386,7 +6380,7 @@ impl DefaultableComponent for Equippable {
             },
             ItemKind::CopperNautilusArmor => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_WEAR_NAUTILUS_ARMOR
+                    contents: crate::tags::entities::CAN_WEAR_NAUTILUS_ARMOR
                         .clone()
                         .into_iter()
                         .collect(),
@@ -6418,7 +6412,7 @@ impl DefaultableComponent for Equippable {
             },
             ItemKind::CyanHarness => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                    contents: crate::tags::entities::CAN_EQUIP_HARNESS
                         .clone()
                         .into_iter()
                         .collect(),
@@ -6451,7 +6445,7 @@ impl DefaultableComponent for Equippable {
             },
             ItemKind::DiamondHorseArmor => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_WEAR_HORSE_ARMOR
+                    contents: crate::tags::entities::CAN_WEAR_HORSE_ARMOR
                         .clone()
                         .into_iter()
                         .collect(),
@@ -6472,7 +6466,7 @@ impl DefaultableComponent for Equippable {
             },
             ItemKind::DiamondNautilusArmor => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_WEAR_NAUTILUS_ARMOR
+                    contents: crate::tags::entities::CAN_WEAR_NAUTILUS_ARMOR
                         .clone()
                         .into_iter()
                         .collect(),
@@ -6518,7 +6512,7 @@ impl DefaultableComponent for Equippable {
             },
             ItemKind::GoldenHorseArmor => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_WEAR_HORSE_ARMOR
+                    contents: crate::tags::entities::CAN_WEAR_HORSE_ARMOR
                         .clone()
                         .into_iter()
                         .collect(),
@@ -6539,7 +6533,7 @@ impl DefaultableComponent for Equippable {
             },
             ItemKind::GoldenNautilusArmor => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_WEAR_NAUTILUS_ARMOR
+                    contents: crate::tags::entities::CAN_WEAR_NAUTILUS_ARMOR
                         .clone()
                         .into_iter()
                         .collect(),
@@ -6566,7 +6560,7 @@ impl DefaultableComponent for Equippable {
             },
             ItemKind::GrayHarness => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                    contents: crate::tags::entities::CAN_EQUIP_HARNESS
                         .clone()
                         .into_iter()
                         .collect(),
@@ -6592,7 +6586,7 @@ impl DefaultableComponent for Equippable {
             },
             ItemKind::GreenHarness => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                    contents: crate::tags::entities::CAN_EQUIP_HARNESS
                         .clone()
                         .into_iter()
                         .collect(),
@@ -6625,7 +6619,7 @@ impl DefaultableComponent for Equippable {
             },
             ItemKind::IronHorseArmor => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_WEAR_HORSE_ARMOR
+                    contents: crate::tags::entities::CAN_WEAR_HORSE_ARMOR
                         .clone()
                         .into_iter()
                         .collect(),
@@ -6646,7 +6640,7 @@ impl DefaultableComponent for Equippable {
             },
             ItemKind::IronNautilusArmor => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_WEAR_NAUTILUS_ARMOR
+                    contents: crate::tags::entities::CAN_WEAR_NAUTILUS_ARMOR
                         .clone()
                         .into_iter()
                         .collect(),
@@ -6680,7 +6674,7 @@ impl DefaultableComponent for Equippable {
             },
             ItemKind::LeatherHorseArmor => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_WEAR_HORSE_ARMOR
+                    contents: crate::tags::entities::CAN_WEAR_HORSE_ARMOR
                         .clone()
                         .into_iter()
                         .collect(),
@@ -6712,7 +6706,7 @@ impl DefaultableComponent for Equippable {
             },
             ItemKind::LightBlueHarness => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                    contents: crate::tags::entities::CAN_EQUIP_HARNESS
                         .clone()
                         .into_iter()
                         .collect(),
@@ -6738,7 +6732,7 @@ impl DefaultableComponent for Equippable {
             },
             ItemKind::LightGrayHarness => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                    contents: crate::tags::entities::CAN_EQUIP_HARNESS
                         .clone()
                         .into_iter()
                         .collect(),
@@ -6764,7 +6758,7 @@ impl DefaultableComponent for Equippable {
             },
             ItemKind::LimeHarness => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                    contents: crate::tags::entities::CAN_EQUIP_HARNESS
                         .clone()
                         .into_iter()
                         .collect(),
@@ -6790,7 +6784,7 @@ impl DefaultableComponent for Equippable {
             },
             ItemKind::MagentaHarness => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                    contents: crate::tags::entities::CAN_EQUIP_HARNESS
                         .clone()
                         .into_iter()
                         .collect(),
@@ -6823,7 +6817,7 @@ impl DefaultableComponent for Equippable {
             },
             ItemKind::NetheriteHorseArmor => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_WEAR_HORSE_ARMOR
+                    contents: crate::tags::entities::CAN_WEAR_HORSE_ARMOR
                         .clone()
                         .into_iter()
                         .collect(),
@@ -6844,7 +6838,7 @@ impl DefaultableComponent for Equippable {
             },
             ItemKind::NetheriteNautilusArmor => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_WEAR_NAUTILUS_ARMOR
+                    contents: crate::tags::entities::CAN_WEAR_NAUTILUS_ARMOR
                         .clone()
                         .into_iter()
                         .collect(),
@@ -6871,7 +6865,7 @@ impl DefaultableComponent for Equippable {
             },
             ItemKind::OrangeHarness => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                    contents: crate::tags::entities::CAN_EQUIP_HARNESS
                         .clone()
                         .into_iter()
                         .collect(),
@@ -6902,7 +6896,7 @@ impl DefaultableComponent for Equippable {
             },
             ItemKind::PinkHarness => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                    contents: crate::tags::entities::CAN_EQUIP_HARNESS
                         .clone()
                         .into_iter()
                         .collect(),
@@ -6933,7 +6927,7 @@ impl DefaultableComponent for Equippable {
             },
             ItemKind::PurpleHarness => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                    contents: crate::tags::entities::CAN_EQUIP_HARNESS
                         .clone()
                         .into_iter()
                         .collect(),
@@ -6959,7 +6953,7 @@ impl DefaultableComponent for Equippable {
             },
             ItemKind::RedHarness => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                    contents: crate::tags::entities::CAN_EQUIP_HARNESS
                         .clone()
                         .into_iter()
                         .collect(),
@@ -6974,7 +6968,7 @@ impl DefaultableComponent for Equippable {
             },
             ItemKind::Saddle => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_SADDLE
+                    contents: crate::tags::entities::CAN_EQUIP_SADDLE
                         .clone()
                         .into_iter()
                         .collect(),
@@ -7016,7 +7010,7 @@ impl DefaultableComponent for Equippable {
             },
             ItemKind::WhiteHarness => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                    contents: crate::tags::entities::CAN_EQUIP_HARNESS
                         .clone()
                         .into_iter()
                         .collect(),
@@ -7058,7 +7052,7 @@ impl DefaultableComponent for Equippable {
             },
             ItemKind::YellowHarness => Equippable {
                 allowed_entities: Some(HolderSet::Direct {
-                    contents: azalea_registry::tags::entities::CAN_EQUIP_HARNESS
+                    contents: crate::tags::entities::CAN_EQUIP_HARNESS
                         .clone()
                         .into_iter()
                         .collect(),
@@ -7333,9 +7327,7 @@ impl DefaultableComponent for Glider {
 impl DefaultableComponent for Instrument {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::GoatHorn => {
-                azalea_registry::Holder::Reference(azalea_registry::data::Instrument::new_raw(0))
-            }
+            ItemKind::GoatHorn => crate::Holder::Reference(crate::data::Instrument::new_raw(0)),
             _ => return None,
         };
         Some(Instrument { value: value })
@@ -7371,71 +7363,65 @@ impl DefaultableComponent for ItemName {
 impl DefaultableComponent for JukeboxPlayable {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::MusicDisc11 => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDisc13 => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
-            ItemKind::MusicDisc5 => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
-            }
+            ItemKind::MusicDisc11 => crate::Holder::Reference(crate::data::JukeboxSong::new_raw(0)),
+            ItemKind::MusicDisc13 => crate::Holder::Reference(crate::data::JukeboxSong::new_raw(0)),
+            ItemKind::MusicDisc5 => crate::Holder::Reference(crate::data::JukeboxSong::new_raw(0)),
             ItemKind::MusicDiscBlocks => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+                crate::Holder::Reference(crate::data::JukeboxSong::new_raw(0))
             }
             ItemKind::MusicDiscBounce => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+                crate::Holder::Reference(crate::data::JukeboxSong::new_raw(0))
             }
             ItemKind::MusicDiscCat => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+                crate::Holder::Reference(crate::data::JukeboxSong::new_raw(0))
             }
             ItemKind::MusicDiscChirp => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+                crate::Holder::Reference(crate::data::JukeboxSong::new_raw(0))
             }
             ItemKind::MusicDiscCreator => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+                crate::Holder::Reference(crate::data::JukeboxSong::new_raw(0))
             }
             ItemKind::MusicDiscCreatorMusicBox => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+                crate::Holder::Reference(crate::data::JukeboxSong::new_raw(0))
             }
             ItemKind::MusicDiscFar => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+                crate::Holder::Reference(crate::data::JukeboxSong::new_raw(0))
             }
             ItemKind::MusicDiscLavaChicken => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+                crate::Holder::Reference(crate::data::JukeboxSong::new_raw(0))
             }
             ItemKind::MusicDiscMall => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+                crate::Holder::Reference(crate::data::JukeboxSong::new_raw(0))
             }
             ItemKind::MusicDiscMellohi => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+                crate::Holder::Reference(crate::data::JukeboxSong::new_raw(0))
             }
             ItemKind::MusicDiscOtherside => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+                crate::Holder::Reference(crate::data::JukeboxSong::new_raw(0))
             }
             ItemKind::MusicDiscPigstep => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+                crate::Holder::Reference(crate::data::JukeboxSong::new_raw(0))
             }
             ItemKind::MusicDiscPrecipice => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+                crate::Holder::Reference(crate::data::JukeboxSong::new_raw(0))
             }
             ItemKind::MusicDiscRelic => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+                crate::Holder::Reference(crate::data::JukeboxSong::new_raw(0))
             }
             ItemKind::MusicDiscStal => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+                crate::Holder::Reference(crate::data::JukeboxSong::new_raw(0))
             }
             ItemKind::MusicDiscStrad => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+                crate::Holder::Reference(crate::data::JukeboxSong::new_raw(0))
             }
             ItemKind::MusicDiscTears => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+                crate::Holder::Reference(crate::data::JukeboxSong::new_raw(0))
             }
             ItemKind::MusicDiscWait => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+                crate::Holder::Reference(crate::data::JukeboxSong::new_raw(0))
             }
             ItemKind::MusicDiscWard => {
-                azalea_registry::Holder::Reference(azalea_registry::data::JukeboxSong::new_raw(0))
+                crate::Holder::Reference(crate::data::JukeboxSong::new_raw(0))
             }
             _ => return None,
         };
@@ -7459,13 +7445,13 @@ impl DefaultableComponent for KineticWeapon {
                     ..KineticWeaponCondition::new()
                 }),
                 forward_movement: 0.38,
-                hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
+                hit_sound: Some(crate::Holder::Reference(SoundEvent::ItemSpearHit)),
                 knockback_conditions: Some(KineticWeaponCondition {
                     max_duration_ticks: 165,
                     min_speed: 5.1,
                     ..KineticWeaponCondition::new()
                 }),
-                sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearUse)),
+                sound: Some(crate::Holder::Reference(SoundEvent::ItemSpearUse)),
                 ..KineticWeapon::new()
             },
             ItemKind::DiamondSpear => KineticWeapon {
@@ -7482,13 +7468,13 @@ impl DefaultableComponent for KineticWeapon {
                     ..KineticWeaponCondition::new()
                 }),
                 forward_movement: 0.38,
-                hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
+                hit_sound: Some(crate::Holder::Reference(SoundEvent::ItemSpearHit)),
                 knockback_conditions: Some(KineticWeaponCondition {
                     max_duration_ticks: 130,
                     min_speed: 5.1,
                     ..KineticWeaponCondition::new()
                 }),
-                sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearUse)),
+                sound: Some(crate::Holder::Reference(SoundEvent::ItemSpearUse)),
                 ..KineticWeapon::new()
             },
             ItemKind::GoldenSpear => KineticWeapon {
@@ -7505,13 +7491,13 @@ impl DefaultableComponent for KineticWeapon {
                     ..KineticWeaponCondition::new()
                 }),
                 forward_movement: 0.38,
-                hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
+                hit_sound: Some(crate::Holder::Reference(SoundEvent::ItemSpearHit)),
                 knockback_conditions: Some(KineticWeaponCondition {
                     max_duration_ticks: 170,
                     min_speed: 5.1,
                     ..KineticWeaponCondition::new()
                 }),
-                sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearUse)),
+                sound: Some(crate::Holder::Reference(SoundEvent::ItemSpearUse)),
                 ..KineticWeapon::new()
             },
             ItemKind::IronSpear => KineticWeapon {
@@ -7528,13 +7514,13 @@ impl DefaultableComponent for KineticWeapon {
                     ..KineticWeaponCondition::new()
                 }),
                 forward_movement: 0.38,
-                hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
+                hit_sound: Some(crate::Holder::Reference(SoundEvent::ItemSpearHit)),
                 knockback_conditions: Some(KineticWeaponCondition {
                     max_duration_ticks: 135,
                     min_speed: 5.1,
                     ..KineticWeaponCondition::new()
                 }),
-                sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearUse)),
+                sound: Some(crate::Holder::Reference(SoundEvent::ItemSpearUse)),
                 ..KineticWeapon::new()
             },
             ItemKind::NetheriteSpear => KineticWeapon {
@@ -7551,13 +7537,13 @@ impl DefaultableComponent for KineticWeapon {
                     ..KineticWeaponCondition::new()
                 }),
                 forward_movement: 0.38,
-                hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
+                hit_sound: Some(crate::Holder::Reference(SoundEvent::ItemSpearHit)),
                 knockback_conditions: Some(KineticWeaponCondition {
                     max_duration_ticks: 110,
                     min_speed: 5.1,
                     ..KineticWeaponCondition::new()
                 }),
-                sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearUse)),
+                sound: Some(crate::Holder::Reference(SoundEvent::ItemSpearUse)),
                 ..KineticWeapon::new()
             },
             ItemKind::StoneSpear => KineticWeapon {
@@ -7574,13 +7560,13 @@ impl DefaultableComponent for KineticWeapon {
                     ..KineticWeaponCondition::new()
                 }),
                 forward_movement: 0.38,
-                hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
+                hit_sound: Some(crate::Holder::Reference(SoundEvent::ItemSpearHit)),
                 knockback_conditions: Some(KineticWeaponCondition {
                     max_duration_ticks: 180,
                     min_speed: 5.1,
                     ..KineticWeaponCondition::new()
                 }),
-                sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearUse)),
+                sound: Some(crate::Holder::Reference(SoundEvent::ItemSpearUse)),
                 ..KineticWeapon::new()
             },
             ItemKind::WoodenSpear => KineticWeapon {
@@ -7597,17 +7583,13 @@ impl DefaultableComponent for KineticWeapon {
                     ..KineticWeaponCondition::new()
                 }),
                 forward_movement: 0.38,
-                hit_sound: Some(azalea_registry::Holder::Reference(
-                    SoundEvent::ItemSpearWoodHit,
-                )),
+                hit_sound: Some(crate::Holder::Reference(SoundEvent::ItemSpearWoodHit)),
                 knockback_conditions: Some(KineticWeaponCondition {
                     max_duration_ticks: 200,
                     min_speed: 5.1,
                     ..KineticWeaponCondition::new()
                 }),
-                sound: Some(azalea_registry::Holder::Reference(
-                    SoundEvent::ItemSpearWoodUse,
-                )),
+                sound: Some(crate::Holder::Reference(SoundEvent::ItemSpearWoodUse)),
                 ..KineticWeapon::new()
             },
             _ => return None,
@@ -7805,54 +7787,38 @@ impl DefaultableComponent for PiercingWeapon {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
             ItemKind::CopperSpear => PiercingWeapon {
-                hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
-                sound: Some(azalea_registry::Holder::Reference(
-                    SoundEvent::ItemSpearAttack,
-                )),
+                hit_sound: Some(crate::Holder::Reference(SoundEvent::ItemSpearHit)),
+                sound: Some(crate::Holder::Reference(SoundEvent::ItemSpearAttack)),
                 ..PiercingWeapon::new()
             },
             ItemKind::DiamondSpear => PiercingWeapon {
-                hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
-                sound: Some(azalea_registry::Holder::Reference(
-                    SoundEvent::ItemSpearAttack,
-                )),
+                hit_sound: Some(crate::Holder::Reference(SoundEvent::ItemSpearHit)),
+                sound: Some(crate::Holder::Reference(SoundEvent::ItemSpearAttack)),
                 ..PiercingWeapon::new()
             },
             ItemKind::GoldenSpear => PiercingWeapon {
-                hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
-                sound: Some(azalea_registry::Holder::Reference(
-                    SoundEvent::ItemSpearAttack,
-                )),
+                hit_sound: Some(crate::Holder::Reference(SoundEvent::ItemSpearHit)),
+                sound: Some(crate::Holder::Reference(SoundEvent::ItemSpearAttack)),
                 ..PiercingWeapon::new()
             },
             ItemKind::IronSpear => PiercingWeapon {
-                hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
-                sound: Some(azalea_registry::Holder::Reference(
-                    SoundEvent::ItemSpearAttack,
-                )),
+                hit_sound: Some(crate::Holder::Reference(SoundEvent::ItemSpearHit)),
+                sound: Some(crate::Holder::Reference(SoundEvent::ItemSpearAttack)),
                 ..PiercingWeapon::new()
             },
             ItemKind::NetheriteSpear => PiercingWeapon {
-                hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
-                sound: Some(azalea_registry::Holder::Reference(
-                    SoundEvent::ItemSpearAttack,
-                )),
+                hit_sound: Some(crate::Holder::Reference(SoundEvent::ItemSpearHit)),
+                sound: Some(crate::Holder::Reference(SoundEvent::ItemSpearAttack)),
                 ..PiercingWeapon::new()
             },
             ItemKind::StoneSpear => PiercingWeapon {
-                hit_sound: Some(azalea_registry::Holder::Reference(SoundEvent::ItemSpearHit)),
-                sound: Some(azalea_registry::Holder::Reference(
-                    SoundEvent::ItemSpearAttack,
-                )),
+                hit_sound: Some(crate::Holder::Reference(SoundEvent::ItemSpearHit)),
+                sound: Some(crate::Holder::Reference(SoundEvent::ItemSpearAttack)),
                 ..PiercingWeapon::new()
             },
             ItemKind::WoodenSpear => PiercingWeapon {
-                hit_sound: Some(azalea_registry::Holder::Reference(
-                    SoundEvent::ItemSpearWoodHit,
-                )),
-                sound: Some(azalea_registry::Holder::Reference(
-                    SoundEvent::ItemSpearWoodAttack,
-                )),
+                hit_sound: Some(crate::Holder::Reference(SoundEvent::ItemSpearWoodHit)),
+                sound: Some(crate::Holder::Reference(SoundEvent::ItemSpearWoodAttack)),
                 ..PiercingWeapon::new()
             },
             _ => return None,
@@ -7917,33 +7883,29 @@ impl DefaultableComponent for ProvidesBannerPatterns {
 impl DefaultableComponent for ProvidesPotteryPattern {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
-            ItemKind::AnglerPotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
-            ItemKind::ArcherPotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
-            ItemKind::ArmsUpPotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
-            ItemKind::BladePotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
-            ItemKind::BrewerPotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
-            ItemKind::BurnPotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
-            ItemKind::DangerPotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
-            ItemKind::ExplorerPotterySherd => {
-                azalea_registry::data::DecoratedPotPattern::new_raw(0)
-            }
-            ItemKind::FlowPotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
-            ItemKind::FriendPotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
-            ItemKind::GusterPotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
-            ItemKind::HeartPotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
-            ItemKind::HeartbreakPotterySherd => {
-                azalea_registry::data::DecoratedPotPattern::new_raw(0)
-            }
-            ItemKind::HowlPotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
-            ItemKind::MinerPotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
-            ItemKind::MournerPotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
-            ItemKind::PlentyPotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
-            ItemKind::PrizePotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
-            ItemKind::ScrapePotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
-            ItemKind::SheafPotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
-            ItemKind::ShelterPotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
-            ItemKind::SkullPotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
-            ItemKind::SnortPotterySherd => azalea_registry::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::AnglerPotterySherd => crate::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::ArcherPotterySherd => crate::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::ArmsUpPotterySherd => crate::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::BladePotterySherd => crate::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::BrewerPotterySherd => crate::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::BurnPotterySherd => crate::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::DangerPotterySherd => crate::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::ExplorerPotterySherd => crate::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::FlowPotterySherd => crate::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::FriendPotterySherd => crate::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::GusterPotterySherd => crate::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::HeartPotterySherd => crate::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::HeartbreakPotterySherd => crate::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::HowlPotterySherd => crate::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::MinerPotterySherd => crate::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::MournerPotterySherd => crate::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::PlentyPotterySherd => crate::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::PrizePotterySherd => crate::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::ScrapePotterySherd => crate::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::SheafPotterySherd => crate::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::ShelterPotterySherd => crate::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::SkullPotterySherd => crate::data::DecoratedPotPattern::new_raw(0),
+            ItemKind::SnortPotterySherd => crate::data::DecoratedPotPattern::new_raw(0),
             _ => return None,
         };
         Some(ProvidesPotteryPattern { value: value })
@@ -7953,38 +7915,24 @@ impl DefaultableComponent for ProvidesTrimMaterial {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
             ItemKind::AmethystShard => {
-                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
+                crate::Holder::Reference(crate::data::TrimMaterial::new_raw(0))
             }
             ItemKind::CopperIngot => {
-                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
+                crate::Holder::Reference(crate::data::TrimMaterial::new_raw(0))
             }
-            ItemKind::Diamond => {
-                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
-            }
-            ItemKind::Emerald => {
-                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
-            }
-            ItemKind::GoldIngot => {
-                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
-            }
-            ItemKind::IronIngot => {
-                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
-            }
+            ItemKind::Diamond => crate::Holder::Reference(crate::data::TrimMaterial::new_raw(0)),
+            ItemKind::Emerald => crate::Holder::Reference(crate::data::TrimMaterial::new_raw(0)),
+            ItemKind::GoldIngot => crate::Holder::Reference(crate::data::TrimMaterial::new_raw(0)),
+            ItemKind::IronIngot => crate::Holder::Reference(crate::data::TrimMaterial::new_raw(0)),
             ItemKind::LapisLazuli => {
-                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
+                crate::Holder::Reference(crate::data::TrimMaterial::new_raw(0))
             }
             ItemKind::NetheriteIngot => {
-                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
+                crate::Holder::Reference(crate::data::TrimMaterial::new_raw(0))
             }
-            ItemKind::Quartz => {
-                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
-            }
-            ItemKind::Redstone => {
-                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
-            }
-            ItemKind::ResinBrick => {
-                azalea_registry::Holder::Reference(azalea_registry::data::TrimMaterial::new_raw(0))
-            }
+            ItemKind::Quartz => crate::Holder::Reference(crate::data::TrimMaterial::new_raw(0)),
+            ItemKind::Redstone => crate::Holder::Reference(crate::data::TrimMaterial::new_raw(0)),
+            ItemKind::ResinBrick => crate::Holder::Reference(crate::data::TrimMaterial::new_raw(0)),
             _ => return None,
         };
         Some(ProvidesTrimMaterial { value: value })
@@ -8131,145 +8079,145 @@ impl DefaultableComponent for Repairable {
     fn default_for_item(item: ItemKind) -> Option<Self> {
         let value = match item {
             ItemKind::ChainmailBoots => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_CHAIN_ARMOR
+                contents: crate::tags::items::REPAIRS_CHAIN_ARMOR
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::ChainmailChestplate => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_CHAIN_ARMOR
+                contents: crate::tags::items::REPAIRS_CHAIN_ARMOR
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::ChainmailHelmet => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_CHAIN_ARMOR
+                contents: crate::tags::items::REPAIRS_CHAIN_ARMOR
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::ChainmailLeggings => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_CHAIN_ARMOR
+                contents: crate::tags::items::REPAIRS_CHAIN_ARMOR
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::CopperAxe => HolderSet::Direct {
-                contents: azalea_registry::tags::items::COPPER_TOOL_MATERIALS
+                contents: crate::tags::items::COPPER_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::CopperBoots => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_COPPER_ARMOR
+                contents: crate::tags::items::REPAIRS_COPPER_ARMOR
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::CopperChestplate => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_COPPER_ARMOR
+                contents: crate::tags::items::REPAIRS_COPPER_ARMOR
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::CopperHelmet => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_COPPER_ARMOR
+                contents: crate::tags::items::REPAIRS_COPPER_ARMOR
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::CopperHoe => HolderSet::Direct {
-                contents: azalea_registry::tags::items::COPPER_TOOL_MATERIALS
+                contents: crate::tags::items::COPPER_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::CopperLeggings => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_COPPER_ARMOR
+                contents: crate::tags::items::REPAIRS_COPPER_ARMOR
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::CopperPickaxe => HolderSet::Direct {
-                contents: azalea_registry::tags::items::COPPER_TOOL_MATERIALS
+                contents: crate::tags::items::COPPER_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::CopperShovel => HolderSet::Direct {
-                contents: azalea_registry::tags::items::COPPER_TOOL_MATERIALS
+                contents: crate::tags::items::COPPER_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::CopperSpear => HolderSet::Direct {
-                contents: azalea_registry::tags::items::COPPER_TOOL_MATERIALS
+                contents: crate::tags::items::COPPER_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::CopperSword => HolderSet::Direct {
-                contents: azalea_registry::tags::items::COPPER_TOOL_MATERIALS
+                contents: crate::tags::items::COPPER_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::DiamondAxe => HolderSet::Direct {
-                contents: azalea_registry::tags::items::DIAMOND_TOOL_MATERIALS
+                contents: crate::tags::items::DIAMOND_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::DiamondBoots => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_DIAMOND_ARMOR
+                contents: crate::tags::items::REPAIRS_DIAMOND_ARMOR
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::DiamondChestplate => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_DIAMOND_ARMOR
+                contents: crate::tags::items::REPAIRS_DIAMOND_ARMOR
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::DiamondHelmet => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_DIAMOND_ARMOR
+                contents: crate::tags::items::REPAIRS_DIAMOND_ARMOR
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::DiamondHoe => HolderSet::Direct {
-                contents: azalea_registry::tags::items::DIAMOND_TOOL_MATERIALS
+                contents: crate::tags::items::DIAMOND_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::DiamondLeggings => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_DIAMOND_ARMOR
+                contents: crate::tags::items::REPAIRS_DIAMOND_ARMOR
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::DiamondPickaxe => HolderSet::Direct {
-                contents: azalea_registry::tags::items::DIAMOND_TOOL_MATERIALS
+                contents: crate::tags::items::DIAMOND_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::DiamondShovel => HolderSet::Direct {
-                contents: azalea_registry::tags::items::DIAMOND_TOOL_MATERIALS
+                contents: crate::tags::items::DIAMOND_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::DiamondSpear => HolderSet::Direct {
-                contents: azalea_registry::tags::items::DIAMOND_TOOL_MATERIALS
+                contents: crate::tags::items::DIAMOND_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::DiamondSword => HolderSet::Direct {
-                contents: azalea_registry::tags::items::DIAMOND_TOOL_MATERIALS
+                contents: crate::tags::items::DIAMOND_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
@@ -8278,145 +8226,145 @@ impl DefaultableComponent for Repairable {
                 contents: vec![ItemKind::PhantomMembrane],
             },
             ItemKind::GoldenAxe => HolderSet::Direct {
-                contents: azalea_registry::tags::items::GOLD_TOOL_MATERIALS
+                contents: crate::tags::items::GOLD_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::GoldenBoots => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_GOLD_ARMOR
+                contents: crate::tags::items::REPAIRS_GOLD_ARMOR
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::GoldenChestplate => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_GOLD_ARMOR
+                contents: crate::tags::items::REPAIRS_GOLD_ARMOR
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::GoldenHelmet => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_GOLD_ARMOR
+                contents: crate::tags::items::REPAIRS_GOLD_ARMOR
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::GoldenHoe => HolderSet::Direct {
-                contents: azalea_registry::tags::items::GOLD_TOOL_MATERIALS
+                contents: crate::tags::items::GOLD_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::GoldenLeggings => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_GOLD_ARMOR
+                contents: crate::tags::items::REPAIRS_GOLD_ARMOR
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::GoldenPickaxe => HolderSet::Direct {
-                contents: azalea_registry::tags::items::GOLD_TOOL_MATERIALS
+                contents: crate::tags::items::GOLD_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::GoldenShovel => HolderSet::Direct {
-                contents: azalea_registry::tags::items::GOLD_TOOL_MATERIALS
+                contents: crate::tags::items::GOLD_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::GoldenSpear => HolderSet::Direct {
-                contents: azalea_registry::tags::items::GOLD_TOOL_MATERIALS
+                contents: crate::tags::items::GOLD_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::GoldenSword => HolderSet::Direct {
-                contents: azalea_registry::tags::items::GOLD_TOOL_MATERIALS
+                contents: crate::tags::items::GOLD_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::IronAxe => HolderSet::Direct {
-                contents: azalea_registry::tags::items::IRON_TOOL_MATERIALS
+                contents: crate::tags::items::IRON_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::IronBoots => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_IRON_ARMOR
+                contents: crate::tags::items::REPAIRS_IRON_ARMOR
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::IronChestplate => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_IRON_ARMOR
+                contents: crate::tags::items::REPAIRS_IRON_ARMOR
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::IronHelmet => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_IRON_ARMOR
+                contents: crate::tags::items::REPAIRS_IRON_ARMOR
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::IronHoe => HolderSet::Direct {
-                contents: azalea_registry::tags::items::IRON_TOOL_MATERIALS
+                contents: crate::tags::items::IRON_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::IronLeggings => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_IRON_ARMOR
+                contents: crate::tags::items::REPAIRS_IRON_ARMOR
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::IronPickaxe => HolderSet::Direct {
-                contents: azalea_registry::tags::items::IRON_TOOL_MATERIALS
+                contents: crate::tags::items::IRON_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::IronShovel => HolderSet::Direct {
-                contents: azalea_registry::tags::items::IRON_TOOL_MATERIALS
+                contents: crate::tags::items::IRON_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::IronSpear => HolderSet::Direct {
-                contents: azalea_registry::tags::items::IRON_TOOL_MATERIALS
+                contents: crate::tags::items::IRON_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::IronSword => HolderSet::Direct {
-                contents: azalea_registry::tags::items::IRON_TOOL_MATERIALS
+                contents: crate::tags::items::IRON_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::LeatherBoots => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_LEATHER_ARMOR
+                contents: crate::tags::items::REPAIRS_LEATHER_ARMOR
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::LeatherChestplate => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_LEATHER_ARMOR
+                contents: crate::tags::items::REPAIRS_LEATHER_ARMOR
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::LeatherHelmet => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_LEATHER_ARMOR
+                contents: crate::tags::items::REPAIRS_LEATHER_ARMOR
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::LeatherLeggings => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_LEATHER_ARMOR
+                contents: crate::tags::items::REPAIRS_LEATHER_ARMOR
                     .clone()
                     .into_iter()
                     .collect(),
@@ -8425,151 +8373,151 @@ impl DefaultableComponent for Repairable {
                 contents: vec![ItemKind::BreezeRod],
             },
             ItemKind::NetheriteAxe => HolderSet::Direct {
-                contents: azalea_registry::tags::items::NETHERITE_TOOL_MATERIALS
+                contents: crate::tags::items::NETHERITE_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::NetheriteBoots => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_NETHERITE_ARMOR
+                contents: crate::tags::items::REPAIRS_NETHERITE_ARMOR
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::NetheriteChestplate => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_NETHERITE_ARMOR
+                contents: crate::tags::items::REPAIRS_NETHERITE_ARMOR
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::NetheriteHelmet => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_NETHERITE_ARMOR
+                contents: crate::tags::items::REPAIRS_NETHERITE_ARMOR
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::NetheriteHoe => HolderSet::Direct {
-                contents: azalea_registry::tags::items::NETHERITE_TOOL_MATERIALS
+                contents: crate::tags::items::NETHERITE_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::NetheriteLeggings => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_NETHERITE_ARMOR
+                contents: crate::tags::items::REPAIRS_NETHERITE_ARMOR
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::NetheritePickaxe => HolderSet::Direct {
-                contents: azalea_registry::tags::items::NETHERITE_TOOL_MATERIALS
+                contents: crate::tags::items::NETHERITE_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::NetheriteShovel => HolderSet::Direct {
-                contents: azalea_registry::tags::items::NETHERITE_TOOL_MATERIALS
+                contents: crate::tags::items::NETHERITE_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::NetheriteSpear => HolderSet::Direct {
-                contents: azalea_registry::tags::items::NETHERITE_TOOL_MATERIALS
+                contents: crate::tags::items::NETHERITE_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::NetheriteSword => HolderSet::Direct {
-                contents: azalea_registry::tags::items::NETHERITE_TOOL_MATERIALS
+                contents: crate::tags::items::NETHERITE_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::Shield => HolderSet::Direct {
-                contents: azalea_registry::tags::items::WOODEN_TOOL_MATERIALS
+                contents: crate::tags::items::WOODEN_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::StoneAxe => HolderSet::Direct {
-                contents: azalea_registry::tags::items::STONE_TOOL_MATERIALS
+                contents: crate::tags::items::STONE_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::StoneHoe => HolderSet::Direct {
-                contents: azalea_registry::tags::items::STONE_TOOL_MATERIALS
+                contents: crate::tags::items::STONE_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::StonePickaxe => HolderSet::Direct {
-                contents: azalea_registry::tags::items::STONE_TOOL_MATERIALS
+                contents: crate::tags::items::STONE_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::StoneShovel => HolderSet::Direct {
-                contents: azalea_registry::tags::items::STONE_TOOL_MATERIALS
+                contents: crate::tags::items::STONE_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::StoneSpear => HolderSet::Direct {
-                contents: azalea_registry::tags::items::STONE_TOOL_MATERIALS
+                contents: crate::tags::items::STONE_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::StoneSword => HolderSet::Direct {
-                contents: azalea_registry::tags::items::STONE_TOOL_MATERIALS
+                contents: crate::tags::items::STONE_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::TurtleHelmet => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_TURTLE_HELMET
+                contents: crate::tags::items::REPAIRS_TURTLE_HELMET
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::WolfArmor => HolderSet::Direct {
-                contents: azalea_registry::tags::items::REPAIRS_WOLF_ARMOR
+                contents: crate::tags::items::REPAIRS_WOLF_ARMOR
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::WoodenAxe => HolderSet::Direct {
-                contents: azalea_registry::tags::items::WOODEN_TOOL_MATERIALS
+                contents: crate::tags::items::WOODEN_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::WoodenHoe => HolderSet::Direct {
-                contents: azalea_registry::tags::items::WOODEN_TOOL_MATERIALS
+                contents: crate::tags::items::WOODEN_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::WoodenPickaxe => HolderSet::Direct {
-                contents: azalea_registry::tags::items::WOODEN_TOOL_MATERIALS
+                contents: crate::tags::items::WOODEN_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::WoodenShovel => HolderSet::Direct {
-                contents: azalea_registry::tags::items::WOODEN_TOOL_MATERIALS
+                contents: crate::tags::items::WOODEN_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::WoodenSpear => HolderSet::Direct {
-                contents: azalea_registry::tags::items::WOODEN_TOOL_MATERIALS
+                contents: crate::tags::items::WOODEN_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
             },
             ItemKind::WoodenSword => HolderSet::Direct {
-                contents: azalea_registry::tags::items::WOODEN_TOOL_MATERIALS
+                contents: crate::tags::items::WOODEN_TOOL_MATERIALS
                     .clone()
                     .into_iter()
                     .collect(),
@@ -9194,7 +9142,7 @@ impl DefaultableComponent for Tool {
                 rules: vec![
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_COPPER_TOOL
+                            contents: crate::tags::blocks::INCORRECT_FOR_COPPER_TOOL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9204,7 +9152,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_AXE
+                            contents: crate::tags::blocks::MINEABLE_AXE
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9219,7 +9167,7 @@ impl DefaultableComponent for Tool {
                 rules: vec![
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_COPPER_TOOL
+                            contents: crate::tags::blocks::INCORRECT_FOR_COPPER_TOOL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9229,7 +9177,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_HOE
+                            contents: crate::tags::blocks::MINEABLE_HOE
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9244,7 +9192,7 @@ impl DefaultableComponent for Tool {
                 rules: vec![
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_COPPER_TOOL
+                            contents: crate::tags::blocks::INCORRECT_FOR_COPPER_TOOL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9254,7 +9202,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_PICKAXE
+                            contents: crate::tags::blocks::MINEABLE_PICKAXE
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9269,7 +9217,7 @@ impl DefaultableComponent for Tool {
                 rules: vec![
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_COPPER_TOOL
+                            contents: crate::tags::blocks::INCORRECT_FOR_COPPER_TOOL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9279,7 +9227,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_SHOVEL
+                            contents: crate::tags::blocks::MINEABLE_SHOVEL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9303,7 +9251,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::SWORD_INSTANTLY_MINES
+                            contents: crate::tags::blocks::SWORD_INSTANTLY_MINES
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9313,7 +9261,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::SWORD_EFFICIENT
+                            contents: crate::tags::blocks::SWORD_EFFICIENT
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9328,7 +9276,7 @@ impl DefaultableComponent for Tool {
                 rules: vec![
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_DIAMOND_TOOL
+                            contents: crate::tags::blocks::INCORRECT_FOR_DIAMOND_TOOL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9338,7 +9286,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_AXE
+                            contents: crate::tags::blocks::MINEABLE_AXE
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9353,7 +9301,7 @@ impl DefaultableComponent for Tool {
                 rules: vec![
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_DIAMOND_TOOL
+                            contents: crate::tags::blocks::INCORRECT_FOR_DIAMOND_TOOL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9363,7 +9311,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_HOE
+                            contents: crate::tags::blocks::MINEABLE_HOE
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9378,7 +9326,7 @@ impl DefaultableComponent for Tool {
                 rules: vec![
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_DIAMOND_TOOL
+                            contents: crate::tags::blocks::INCORRECT_FOR_DIAMOND_TOOL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9388,7 +9336,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_PICKAXE
+                            contents: crate::tags::blocks::MINEABLE_PICKAXE
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9403,7 +9351,7 @@ impl DefaultableComponent for Tool {
                 rules: vec![
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_DIAMOND_TOOL
+                            contents: crate::tags::blocks::INCORRECT_FOR_DIAMOND_TOOL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9413,7 +9361,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_SHOVEL
+                            contents: crate::tags::blocks::MINEABLE_SHOVEL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9437,7 +9385,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::SWORD_INSTANTLY_MINES
+                            contents: crate::tags::blocks::SWORD_INSTANTLY_MINES
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9447,7 +9395,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::SWORD_EFFICIENT
+                            contents: crate::tags::blocks::SWORD_EFFICIENT
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9462,7 +9410,7 @@ impl DefaultableComponent for Tool {
                 rules: vec![
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_GOLD_TOOL
+                            contents: crate::tags::blocks::INCORRECT_FOR_GOLD_TOOL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9472,7 +9420,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_AXE
+                            contents: crate::tags::blocks::MINEABLE_AXE
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9487,7 +9435,7 @@ impl DefaultableComponent for Tool {
                 rules: vec![
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_GOLD_TOOL
+                            contents: crate::tags::blocks::INCORRECT_FOR_GOLD_TOOL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9497,7 +9445,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_HOE
+                            contents: crate::tags::blocks::MINEABLE_HOE
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9512,7 +9460,7 @@ impl DefaultableComponent for Tool {
                 rules: vec![
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_GOLD_TOOL
+                            contents: crate::tags::blocks::INCORRECT_FOR_GOLD_TOOL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9522,7 +9470,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_PICKAXE
+                            contents: crate::tags::blocks::MINEABLE_PICKAXE
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9537,7 +9485,7 @@ impl DefaultableComponent for Tool {
                 rules: vec![
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_GOLD_TOOL
+                            contents: crate::tags::blocks::INCORRECT_FOR_GOLD_TOOL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9547,7 +9495,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_SHOVEL
+                            contents: crate::tags::blocks::MINEABLE_SHOVEL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9571,7 +9519,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::SWORD_INSTANTLY_MINES
+                            contents: crate::tags::blocks::SWORD_INSTANTLY_MINES
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9581,7 +9529,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::SWORD_EFFICIENT
+                            contents: crate::tags::blocks::SWORD_EFFICIENT
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9596,7 +9544,7 @@ impl DefaultableComponent for Tool {
                 rules: vec![
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_IRON_TOOL
+                            contents: crate::tags::blocks::INCORRECT_FOR_IRON_TOOL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9606,7 +9554,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_AXE
+                            contents: crate::tags::blocks::MINEABLE_AXE
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9621,7 +9569,7 @@ impl DefaultableComponent for Tool {
                 rules: vec![
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_IRON_TOOL
+                            contents: crate::tags::blocks::INCORRECT_FOR_IRON_TOOL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9631,7 +9579,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_HOE
+                            contents: crate::tags::blocks::MINEABLE_HOE
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9646,7 +9594,7 @@ impl DefaultableComponent for Tool {
                 rules: vec![
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_IRON_TOOL
+                            contents: crate::tags::blocks::INCORRECT_FOR_IRON_TOOL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9656,7 +9604,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_PICKAXE
+                            contents: crate::tags::blocks::MINEABLE_PICKAXE
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9671,7 +9619,7 @@ impl DefaultableComponent for Tool {
                 rules: vec![
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_IRON_TOOL
+                            contents: crate::tags::blocks::INCORRECT_FOR_IRON_TOOL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9681,7 +9629,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_SHOVEL
+                            contents: crate::tags::blocks::MINEABLE_SHOVEL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9705,7 +9653,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::SWORD_INSTANTLY_MINES
+                            contents: crate::tags::blocks::SWORD_INSTANTLY_MINES
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9715,7 +9663,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::SWORD_EFFICIENT
+                            contents: crate::tags::blocks::SWORD_EFFICIENT
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9736,7 +9684,7 @@ impl DefaultableComponent for Tool {
                 rules: vec![
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_NETHERITE_TOOL
+                            contents: crate::tags::blocks::INCORRECT_FOR_NETHERITE_TOOL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9746,7 +9694,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_AXE
+                            contents: crate::tags::blocks::MINEABLE_AXE
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9761,7 +9709,7 @@ impl DefaultableComponent for Tool {
                 rules: vec![
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_NETHERITE_TOOL
+                            contents: crate::tags::blocks::INCORRECT_FOR_NETHERITE_TOOL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9771,7 +9719,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_HOE
+                            contents: crate::tags::blocks::MINEABLE_HOE
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9786,7 +9734,7 @@ impl DefaultableComponent for Tool {
                 rules: vec![
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_NETHERITE_TOOL
+                            contents: crate::tags::blocks::INCORRECT_FOR_NETHERITE_TOOL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9796,7 +9744,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_PICKAXE
+                            contents: crate::tags::blocks::MINEABLE_PICKAXE
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9811,7 +9759,7 @@ impl DefaultableComponent for Tool {
                 rules: vec![
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_NETHERITE_TOOL
+                            contents: crate::tags::blocks::INCORRECT_FOR_NETHERITE_TOOL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9821,7 +9769,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_SHOVEL
+                            contents: crate::tags::blocks::MINEABLE_SHOVEL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9845,7 +9793,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::SWORD_INSTANTLY_MINES
+                            contents: crate::tags::blocks::SWORD_INSTANTLY_MINES
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9855,7 +9803,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::SWORD_EFFICIENT
+                            contents: crate::tags::blocks::SWORD_EFFICIENT
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9877,7 +9825,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::SHEARS_EXTREME_BREAKING_SPEED
+                            contents: crate::tags::blocks::SHEARS_EXTREME_BREAKING_SPEED
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9887,7 +9835,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::SHEARS_MAJOR_BREAKING_SPEED
+                            contents: crate::tags::blocks::SHEARS_MAJOR_BREAKING_SPEED
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9897,7 +9845,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::SHEARS_MINOR_BREAKING_SPEED
+                            contents: crate::tags::blocks::SHEARS_MINOR_BREAKING_SPEED
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9912,7 +9860,7 @@ impl DefaultableComponent for Tool {
                 rules: vec![
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_STONE_TOOL
+                            contents: crate::tags::blocks::INCORRECT_FOR_STONE_TOOL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9922,7 +9870,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_AXE
+                            contents: crate::tags::blocks::MINEABLE_AXE
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9937,7 +9885,7 @@ impl DefaultableComponent for Tool {
                 rules: vec![
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_STONE_TOOL
+                            contents: crate::tags::blocks::INCORRECT_FOR_STONE_TOOL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9947,7 +9895,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_HOE
+                            contents: crate::tags::blocks::MINEABLE_HOE
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9962,7 +9910,7 @@ impl DefaultableComponent for Tool {
                 rules: vec![
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_STONE_TOOL
+                            contents: crate::tags::blocks::INCORRECT_FOR_STONE_TOOL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9972,7 +9920,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_PICKAXE
+                            contents: crate::tags::blocks::MINEABLE_PICKAXE
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9987,7 +9935,7 @@ impl DefaultableComponent for Tool {
                 rules: vec![
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_STONE_TOOL
+                            contents: crate::tags::blocks::INCORRECT_FOR_STONE_TOOL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -9997,7 +9945,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_SHOVEL
+                            contents: crate::tags::blocks::MINEABLE_SHOVEL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -10021,7 +9969,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::SWORD_INSTANTLY_MINES
+                            contents: crate::tags::blocks::SWORD_INSTANTLY_MINES
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -10031,7 +9979,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::SWORD_EFFICIENT
+                            contents: crate::tags::blocks::SWORD_EFFICIENT
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -10052,7 +10000,7 @@ impl DefaultableComponent for Tool {
                 rules: vec![
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_WOODEN_TOOL
+                            contents: crate::tags::blocks::INCORRECT_FOR_WOODEN_TOOL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -10062,7 +10010,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_AXE
+                            contents: crate::tags::blocks::MINEABLE_AXE
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -10077,7 +10025,7 @@ impl DefaultableComponent for Tool {
                 rules: vec![
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_WOODEN_TOOL
+                            contents: crate::tags::blocks::INCORRECT_FOR_WOODEN_TOOL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -10087,7 +10035,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_HOE
+                            contents: crate::tags::blocks::MINEABLE_HOE
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -10102,7 +10050,7 @@ impl DefaultableComponent for Tool {
                 rules: vec![
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_WOODEN_TOOL
+                            contents: crate::tags::blocks::INCORRECT_FOR_WOODEN_TOOL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -10112,7 +10060,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_PICKAXE
+                            contents: crate::tags::blocks::MINEABLE_PICKAXE
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -10127,7 +10075,7 @@ impl DefaultableComponent for Tool {
                 rules: vec![
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::INCORRECT_FOR_WOODEN_TOOL
+                            contents: crate::tags::blocks::INCORRECT_FOR_WOODEN_TOOL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -10137,7 +10085,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::MINEABLE_SHOVEL
+                            contents: crate::tags::blocks::MINEABLE_SHOVEL
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -10161,7 +10109,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::SWORD_INSTANTLY_MINES
+                            contents: crate::tags::blocks::SWORD_INSTANTLY_MINES
                                 .clone()
                                 .into_iter()
                                 .collect(),
@@ -10171,7 +10119,7 @@ impl DefaultableComponent for Tool {
                     },
                     ToolRule {
                         blocks: HolderSet::Direct {
-                            contents: azalea_registry::tags::blocks::SWORD_EFFICIENT
+                            contents: crate::tags::blocks::SWORD_EFFICIENT
                                 .clone()
                                 .into_iter()
                                 .collect(),

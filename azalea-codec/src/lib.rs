@@ -471,3 +471,22 @@ pub trait IntoResolvableItem<O: Ops>: ResolvableItem<O> + 'static {
     fn codec_read_resolvable_item(ops: &O, ctx: Ctx<O>) -> ReadResult<Self::Resolvable>;
     fn from_resolvable_id(id: u32) -> Self;
 }
+
+// this trait exists because often Rust won't let us impl `From<T> + Into<T>`
+// for certain wrapper types.
+pub trait Interchangeable<T> {
+    fn interchangeable_into(self) -> T;
+    fn interchangeable_from(other: T) -> Self;
+}
+impl<A, B> Interchangeable<A> for B
+where
+    A: From<B>,
+    B: From<A>,
+{
+    fn interchangeable_into(self) -> A {
+        self.into()
+    }
+    fn interchangeable_from(other: A) -> Self {
+        other.into()
+    }
+}

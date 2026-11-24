@@ -4,10 +4,6 @@ use azalea_core::{
     position::{ChunkPos, Vec3},
 };
 use azalea_entity::{Jumping, LookDirection, MobEffectData, metadata::FallFlying};
-use azalea_inventory::{
-    ItemStack,
-    components::{Damage, MaxDamage},
-};
 use azalea_protocol::{
     common::movements::{PositionMoveRotation, RelativeMovements},
     packets::{
@@ -18,7 +14,13 @@ use azalea_protocol::{
         },
     },
 };
-use azalea_registry::builtin::{ItemKind, MobEffect};
+use azalea_registry::{
+    builtin::{ItemKind, MobEffect},
+    item::{
+        ItemStack,
+        components::{Damage, MaxDamage},
+    },
+};
 
 const CHEST_SLOT: u16 = 6;
 fn airborne_simulation() -> Simulation {

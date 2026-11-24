@@ -1,7 +1,7 @@
 use std::marker::PhantomData;
 
 use crate::{
-    Codec, Ctx, MapCodec, Ops,
+    Codec, Ctx, Interchangeable, MapCodec, Ops,
     error::{ReadError, ReadResult, WriteResult},
 };
 
@@ -117,5 +117,14 @@ impl<O: Ops, T: IntoIterator<Item = V> + FromIterator<V> + Clone, V: Codec<O>> C
         } else {
             v.codec_write(ctx)
         }
+    }
+}
+
+impl<T> Interchangeable<CompactListCodec<Vec<T>>> for Vec<T> {
+    fn interchangeable_into(self) -> CompactListCodec<Vec<T>> {
+        CompactListCodec(self)
+    }
+    fn interchangeable_from(other: CompactListCodec<Vec<T>>) -> Self {
+        other.0
     }
 }

@@ -13,10 +13,6 @@ use azalea_entity::{
     metadata::{self, FallFlying, Sprinting},
     update_bounding_box,
 };
-use azalea_inventory::{
-    ItemStack,
-    components::{self, EquipmentSlot},
-};
 use azalea_physics::{
     PhysicsSystems, ai_step,
     client_movement::{ClientMovementState, SprintDirection, WalkDirection},
@@ -36,7 +32,13 @@ use azalea_protocol::{
         },
     },
 };
-use azalea_registry::builtin::{EntityKind, MobEffect};
+use azalea_registry::{
+    builtin::{EntityKind, MobEffect},
+    item::{
+        ItemStack,
+        components::{self, EquipmentSlot},
+    },
+};
 use azalea_world::World;
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;

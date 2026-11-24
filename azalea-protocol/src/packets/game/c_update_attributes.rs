@@ -1,8 +1,7 @@
 use azalea_buf::AzBuf;
 use azalea_core::entity_id::MinecraftEntityId;
-use azalea_inventory::components::AttributeModifier;
 use azalea_protocol_macros::ClientboundGamePacket;
-use azalea_registry::builtin::Attribute;
+use azalea_registry::{builtin::Attribute, item::components::AttributeModifier};
 
 #[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundUpdateAttributes {

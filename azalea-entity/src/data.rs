@@ -11,17 +11,18 @@ use azalea_core::{
     direction::Direction,
     position::{BlockPos, GlobalPos, Vec3f32},
 };
-use azalea_inventory::{
-    ItemStack,
-    components::{self, DyeColor},
+use azalea_registry::{
+    builtin::{VillagerKind, VillagerProfession},
+    item::{
+        ItemStack,
+        components::{self, DyeColor},
+    },
+    registry_holder::particle::Particle,
 };
-use azalea_registry::builtin::{VillagerKind, VillagerProfession};
 use derive_more::Deref;
 use enum_as_inner::EnumAsInner;
 use tracing::trace;
 use uuid::Uuid;
-
-use crate::particle::Particle;
 
 #[derive(Clone, Debug, Deref, PartialEq)]
 pub struct EntityMetadataItems(pub Vec<EntityDataItem>);
@@ -79,8 +80,8 @@ pub enum EntityDataValue {
     BlockState(azalea_block::BlockState),
     /// If this is air, that means it's absent,
     OptionalBlockState(azalea_block::BlockState),
-    Particle(Particle),
-    Particles(Box<[Particle]>),
+    Particle(EntityParticle),
+    Particles(Box<[EntityParticle]>),
     VillagerData(VillagerData),
     // 0 for absent; 1 + actual value otherwise. Used for entity IDs.
     OptionalUnsignedInt(OptionalUnsignedInt),
@@ -226,3 +227,5 @@ pub enum HumanoidArm {
     #[default]
     Right = 1,
 }
+#[derive(AzBuf, Clone, Debug, Default, PartialEq)]
+pub struct EntityParticle(pub Particle);

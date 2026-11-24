@@ -7,7 +7,9 @@ use azalea_protocol::packets::{
     ConnectionProtocol, Packet, config::ClientboundFinishConfiguration,
     game::ClientboundStartConfiguration,
 };
-use azalea_registry::{data::DimensionKindKey, registry_holder::dimension_type::DimensionKindElement};
+use azalea_registry::{
+    data::DimensionKindKey, registry_holder::dimension_type::DimensionKindElement,
+};
 use azalea_world::WorldName;
 
 #[test]

@@ -589,6 +589,7 @@ dependencies = [
 name = "azalea-registry"
 version = "0.16.0+mc26.3"
 dependencies = [
+ "azalea-auth",
  "azalea-block",
  "azalea-buf",
  "azalea-chat",
@@ -596,9 +597,12 @@ dependencies = [
  "azalea-core",
  "azalea-registry-builtin",
  "azalea-registry-macros",
+ "crc32c",
  "indexmap",
  "simdnbt",
+ "thiserror 2.0.21",
  "tracing",
+ "uuid",
 ]
 
 [[package]]

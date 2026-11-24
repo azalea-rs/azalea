@@ -424,6 +424,7 @@ impl From<Vec3> for Vec3f32 {
         }
     }
 }
+vec3_impl!(Vec3f32, f32);
 
 /// The coordinates of a block in the world.
 ///

@@ -1,9 +1,9 @@
 use azalea_buf::AzBuf;
-use azalea_inventory::ItemStack;
 use azalea_registry::{
     HolderSet,
     builtin::{DataComponentKind, ItemKind},
     data::TrimPattern,
+    item::ItemStack,
 };
 
 /// [`azalea_registry::builtin::RecipeDisplay`]
