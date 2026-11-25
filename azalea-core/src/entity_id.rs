@@ -86,14 +86,15 @@ impl AzBuf for OptionalEntityId {
         ctx: azalea_buf::Ctx,
         buf: &mut Cursor<&[u8]>,
     ) -> Result<Self, azalea_buf::BufReadError> {
-        match i32::azalea_read_var(ctx, buf)? {
-            0 => Ok(OptionalEntityId(None)),
-            id => Ok(OptionalEntityId(Some(MinecraftEntityId(id - 1)))),
-        }
+        let id = match i32::azalea_read_var(ctx, buf)? {
+            0 => None,
+            id => Some(MinecraftEntityId(id.wrapping_sub(1))),
+        };
+        Ok(OptionalEntityId(id))
     }
     fn azalea_write(&self, buf: &mut impl io::Write) -> io::Result<()> {
         match self.0 {
-            Some(id) => (id.0 + 1).azalea_write_var(buf),
+            Some(id) => id.0.wrapping_add(1).azalea_write_var(buf),
             None => 0u32.azalea_write_var(buf),
         }
     }

@@ -13,11 +13,11 @@ cargo install cargo-fuzz
 
 cargo fuzz run clientbound_game -s none -- -rss_limit_mb=4096 -malloc_limit_mb=1024
 # other valid targets:
-# {clientbound,serverbound}_{config,game,handshake,login,status}
+# - {clientbound,serverbound}_{config,game,handshake,login,status}
+# - itemstack
 
 # the `-s none` is there for increased performance, but at the cost of catching
 # less bugs. feel free to remove it.
 
 # also see https://appsec.guide/docs/fuzzing/rust/cargo-fuzz/
 ```
-

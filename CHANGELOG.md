@@ -47,6 +47,7 @@ is breaking anyways, semantic versioning is not followed.
 - Incorrect protocol implementation for `set_objective`. (@patyhank)
 - Codecs, such as chat and registries, are now parsed more consistently.
 - `find_blocks` would sometimes miss blocks.
+- Fix several DoS vectors related to parsing packets.
 
 ## [0.16.0+mc26.1] - 2026-03-27
 
