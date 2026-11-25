@@ -1,9 +1,9 @@
 use std::env;
 
 use quote::{ToTokens, quote};
-use syn::{Data, Field, FieldsNamed, Ident, punctuated::Punctuated, token::Comma};
+use syn::{Attribute, Data, Field, FieldsNamed, Ident, Type, punctuated::Punctuated, token::Comma};
 
-pub fn create_fn_azalea_read(data: &Data) -> proc_macro2::TokenStream {
+pub fn create_fn_azalea_read(data: &Data, attrs: &[Attribute]) -> proc_macro2::TokenStream {
     match data {
         syn::Data::Struct(syn::DataStruct { fields, .. }) => match fields {
             syn::Fields::Named(FieldsNamed { named, .. }) => {
@@ -42,11 +42,28 @@ pub fn create_fn_azalea_read(data: &Data) -> proc_macro2::TokenStream {
             let mut variant_discrim: u32 = 0;
             let mut first = true;
             let mut first_reader = None;
+
+            let mut could_be_a_transmute = true;
+
+            let mut is_repr_u32 = false;
+            for attr in attrs {
+                if attr.path().is_ident("repr")
+                    && let Ok(list) = attr.meta.require_list()
+                {
+                    if let Ok(ty) = list.parse_args::<Type>() {
+                        if ty.to_token_stream().to_string() == "u32" {
+                            is_repr_u32 = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
             for variant in variants {
                 let variant_name = &variant.ident;
                 match &variant.discriminant.as_ref() {
                     Some(d) => {
-                        variant_discrim = match &d.1 {
+                        let parsed_variant_discrim = match &d.1 {
                             syn::Expr::Lit(e) => match &e.lit {
                                 syn::Lit::Int(i) => i.base10_parse().unwrap(),
                                 _ => panic!("Error parsing enum discriminant as int (is {e:?})"),
@@ -57,7 +74,12 @@ pub fn create_fn_azalea_read(data: &Data) -> proc_macro2::TokenStream {
                             _ => {
                                 panic!("Error parsing enum discriminant as literal (is {:?})", d.1)
                             }
+                        };
+                        let previous_plus_one = if first { 0 } else { variant_discrim + 1 };
+                        if parsed_variant_discrim != previous_plus_one {
+                            could_be_a_transmute = false;
                         }
+                        variant_discrim = parsed_variant_discrim;
                     }
                     None => {
                         if !first {
@@ -65,18 +87,21 @@ pub fn create_fn_azalea_read(data: &Data) -> proc_macro2::TokenStream {
                         }
                     }
                 }
-                let reader = match &variant.fields {
+                let reader;
+                match &variant.fields {
                     syn::Fields::Named(f) => {
+                        could_be_a_transmute = false;
                         let (read_fields, read_field_names) = read_named_fields(&f.named);
 
-                        quote! {
+                        reader = quote! {
                             #(#read_fields)*
                             Ok(Self::#variant_name {
                                 #(#read_field_names),*
                             })
-                        }
+                        };
                     }
                     syn::Fields::Unnamed(fields) => {
+                        could_be_a_transmute = false;
                         let mut reader_code = quote! {};
                         for f in &fields.unnamed {
                             let is_variable_length =
@@ -110,11 +135,9 @@ pub fn create_fn_azalea_read(data: &Data) -> proc_macro2::TokenStream {
                                 });
                             }
                         }
-                        quote! { Ok(#reader_code) }
+                        reader = quote! { Ok(#reader_code) };
                     }
-                    syn::Fields::Unit => quote! {
-                        Ok(Self::#variant_name)
-                    },
+                    syn::Fields::Unit => reader = quote! { Ok(Self::#variant_name) },
                 };
                 if first {
                     first_reader = Some(reader.clone());
@@ -130,15 +153,29 @@ pub fn create_fn_azalea_read(data: &Data) -> proc_macro2::TokenStream {
 
             let first_reader = first_reader.expect("There should be at least one variant");
 
-            quote! {
-                fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut std::io::Cursor<&[u8]>) -> std::result::Result<Self, azalea_buf::BufReadError> {
-                    let id = azalea_buf::AzBufVar::azalea_read_var(ctx.inc_depth()?, buf)?;
-
+            let match_expr = if could_be_a_transmute && is_repr_u32 {
+                // match statements are often slow to compile and execute, so if
+                // the user gave us a #[repr(u32)] we'll just transmute :)
+                quote! {
+                    if id > #variant_discrim {
+                        return #first_reader;
+                    }
+                    Ok(unsafe { std::mem::transmute::<u32, Self>(id) })
+                }
+            } else {
+                quote! {
                     match id {
                         #match_contents
                         // you'd THINK this throws an error, but mojang decided to make it default for some reason
                         _ => {#first_reader}
                     }
+                }
+            };
+
+            quote! {
+                fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut std::io::Cursor<&[u8]>) -> std::result::Result<Self, azalea_buf::BufReadError> {
+                    let id = azalea_buf::AzBufVar::azalea_read_var(ctx.inc_depth()?, buf)?;
+                    #match_expr
                 }
             }
         }

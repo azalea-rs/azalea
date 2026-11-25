@@ -118,7 +118,11 @@ azalea-world = { path = "azalea-world", version = "0.16.0", default-features = f
 str_to_string = "warn"
 
 [workspace.lints.rust]
-unexpected_cfgs = { level = "warn", check-cfg = ['cfg(docsrs_dep)'] }
+unexpected_cfgs = { level = "warn", check-cfg = [
+    'cfg(docsrs_dep)',
+    'cfg(fuzzing)',
+] }
+
 
 [workspace.metadata.docs.rs]
 rustc-args = ["--cfg", "docsrs_dep"]

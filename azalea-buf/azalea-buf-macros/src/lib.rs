@@ -11,13 +11,15 @@ pub fn derive_azbuf(input: TokenStream) -> TokenStream {
         ident,
         generics,
         data,
+        attrs,
         ..
     } = parse_macro_input!(input);
 
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
     let writable = write::create_fn_azalea_write(&data);
-    let readable = read::create_fn_azalea_read(&data);
+    let readable = read::create_fn_azalea_read(&data, &attrs);
+
     quote! {
         #[automatically_derived]
         impl #impl_generics azalea_buf::AzBuf for #ident #ty_generics #where_clause {

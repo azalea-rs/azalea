@@ -70,12 +70,12 @@ pub enum BufReadErrorRepr {
         #[from]
         source: io::Error,
     },
-    #[error("Invalid UTF-8: {bytes:?} (lossy: {lossy:?})")]
-    InvalidUtf8 { bytes: Vec<u8>, lossy: String },
+    #[error("Invalid UTF-8: {bytes:?} (lossy: {:?})", String::from_utf8_lossy(bytes).to_string())]
+    InvalidUtf8 { bytes: Box<[u8]> },
     #[error("Unexpected enum variant {id}")]
     UnexpectedEnumVariant { id: i32 },
     #[error("Unexpected enum variant {id}")]
-    UnexpectedStringEnumVariant { id: String },
+    UnexpectedStringEnumVariant { id: Box<str> },
     #[error("Tried to read {attempted_read} bytes but there were only {actual_read}")]
     UnexpectedEof {
         attempted_read: usize,
@@ -84,7 +84,7 @@ pub enum BufReadErrorRepr {
     #[error("The recursion depth limit was exceeded")]
     DepthLimitExceeded,
     #[error("{0}")]
-    Custom(String),
+    Custom(Box<str>),
     #[cfg(feature = "serde_json")]
     #[error("{source}")]
     SerdeJson {
@@ -95,7 +95,7 @@ pub enum BufReadErrorRepr {
     #[error("{source}")]
     SimdJson {
         #[from]
-        source: simd_json::Error,
+        source: Box<simd_json::Error>,
     },
     #[error("{source}")]
     Nbt {
@@ -105,44 +105,54 @@ pub enum BufReadErrorRepr {
     #[error("{source}")]
     Codec {
         #[from]
-        source: azalea_codec::error::ReadError,
+        source: Box<azalea_codec::error::ReadError>,
     },
 }
 
 // the only reason this is separated into a different type is for the backtrace
 // impl
-#[derive(Debug, Error)]
-#[error("{source}")]
-pub struct BufReadError {
-    #[from]
-    pub source: BufReadErrorRepr,
-    #[backtrace]
-    backtrace: Box<Backtrace>,
+#[derive(Debug)]
+pub struct BufReadErrorInner {
+    pub repr: BufReadErrorRepr,
+    pub backtrace: Backtrace,
 }
+#[derive(Debug, Error)]
+#[error("{}", self.0.repr)]
+pub struct BufReadError(pub Box<BufReadErrorInner>);
+
+impl From<BufReadErrorRepr> for BufReadError {
+    fn from(repr: BufReadErrorRepr) -> Self {
+        Self(Box::new(BufReadErrorInner {
+            repr,
+            backtrace: Backtrace::capture(),
+        }))
+    }
+}
+
 impl BufReadError {
     // maybe we should add more of these in the future
-    pub fn custom(message: impl Into<String>) -> Self {
-        // ^ this is intentionally Into<String> rather than ToString to avoid
+    pub fn custom(message: impl Into<Box<str>>) -> Self {
+        // ^ this is intentionally Into<Box<str>> rather than ToString to avoid
         // being too permissive
         Self::from(BufReadErrorRepr::Custom(message.into()))
     }
 }
 macro_rules! buf_read_error_from_impl {
-    ($t: ty) => {
-        impl From<$t> for BufReadError {
-            fn from(e: $t) -> Self {
-                Self::from(BufReadErrorRepr::from(e))
+    ($ty: ty $(,$function:path)?) => {
+        impl From<$ty> for BufReadError {
+            fn from(e: $ty) -> Self {
+                Self::from(BufReadErrorRepr::from($($function)?(e)))
             }
         }
     };
 }
 buf_read_error_from_impl!(io::Error);
 buf_read_error_from_impl!(simdnbt::Error);
-buf_read_error_from_impl!(azalea_codec::error::ReadError);
+buf_read_error_from_impl!(azalea_codec::error::ReadError, Box::new);
 #[cfg(feature = "serde_json")]
 buf_read_error_from_impl!(serde_json::Error);
 #[cfg(feature = "simd-json")]
-buf_read_error_from_impl!(simd_json::Error);
+buf_read_error_from_impl!(simd_json::Error, Box::new);
 
 pub(crate) fn read_bytes<'a>(
     buf: &'a mut Cursor<&[u8]>,
@@ -181,8 +191,7 @@ pub(crate) fn read_utf8_with_len<'a>(
 
     let buffer = read_bytes(buf, length as usize)?;
     let string = std::str::from_utf8(buffer).map_err(|_| BufReadErrorRepr::InvalidUtf8 {
-        bytes: buffer.to_vec(),
-        lossy: String::from_utf8_lossy(buffer).to_string(),
+        bytes: buffer.into(),
     })?;
     if string.len() > length as usize {
         return Err(BufReadErrorRepr::StringLengthTooLong { length, max_length }.into());

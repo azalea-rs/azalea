@@ -82,6 +82,12 @@ path = "fuzz_targets/itemstack.rs"
 test = false
 doc = false
 bench = false
+[[bin]]
+name = "chunk"
+path = "fuzz_targets/chunk.rs"
+test = false
+doc = false
+bench = false
 
 [lints]
 workspace = true

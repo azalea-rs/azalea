@@ -32,7 +32,7 @@ impl AzBuf for JointType {
         match name.as_str() {
             "rollable" => Ok(JointType::Rollable),
             "aligned" => Ok(JointType::Aligned),
-            _ => Err(BufReadErrorRepr::UnexpectedStringEnumVariant { id: name }.into()),
+            _ => Err(BufReadErrorRepr::UnexpectedStringEnumVariant { id: name.into() }.into()),
         }
     }
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {

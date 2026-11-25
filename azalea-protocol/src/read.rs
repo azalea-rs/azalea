@@ -94,7 +94,7 @@ fn parse_frame(buffer: &mut Cursor<Vec<u8>>) -> Result<Box<[u8]>, FrameSplitterE
 
     let length = match u32::azalea_read_var(ctx, &mut buffer_copy) {
         Ok(length) => length as usize,
-        Err(err) => match err.source {
+        Err(err) => match err.0.repr {
             BufReadErrorRepr::Io { source } => return Err(FrameSplitterError::Io { source }),
             _ => return Err(err.into()),
         },
