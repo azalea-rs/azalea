@@ -10,7 +10,7 @@ pub fn create_fn_azalea_write(data: &Data) -> proc_macro2::TokenStream {
                     write_named_fields(named, Some(&Ident::new("self", Span::call_site())));
 
                 quote! {
-                    fn azalea_write(&self, buf: &mut impl std::io::Write) -> std::result::Result<(), std::io::Error> {
+                    fn azalea_write(&self, buf: &mut impl std::io::Write) -> std::io::Result<()> {
                         #write_fields
                         Ok(())
                     }
@@ -18,7 +18,7 @@ pub fn create_fn_azalea_write(data: &Data) -> proc_macro2::TokenStream {
             }
             syn::Fields::Unit => {
                 quote! {
-                    fn azalea_write(&self, buf: &mut impl std::io::Write) -> std::result::Result<(), std::io::Error> {
+                    fn azalea_write(&self, buf: &mut impl std::io::Write) -> std::io::Result<()> {
                         Ok(())
                     }
                 }
@@ -27,7 +27,7 @@ pub fn create_fn_azalea_write(data: &Data) -> proc_macro2::TokenStream {
                 let write_fields = write_unnamed_fields(&fields.unnamed);
 
                 quote! {
-                    fn azalea_write(&self, buf: &mut impl std::io::Write) -> std::result::Result<(), std::io::Error> {
+                    fn azalea_write(&self, buf: &mut impl std::io::Write) -> std::io::Result<()> {
                         #write_fields
                         Ok(())
                     }

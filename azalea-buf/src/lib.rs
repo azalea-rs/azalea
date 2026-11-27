@@ -22,11 +22,17 @@ pub struct Ctx {
     depth: u32,
 }
 impl Ctx {
+    /// Increment the depth counter, or error if it exceeds the limit.
+    ///
+    /// This exists to prevent exploits that make us crash by exhausting our
+    /// stack space. The `AzBuf` macro adds this whenever [`Ctx`] is used,
+    /// though if you know that recursion isn't possible with a type then it's
+    /// not strictly necessary.
     pub fn inc_depth(mut self) -> Result<Self, BufReadError> {
-        self.depth += 1;
         if self.depth > 255 {
             return Err(BufReadErrorRepr::DepthLimitExceeded.into());
         }
+        self.depth += 1;
         Ok(self)
     }
 }

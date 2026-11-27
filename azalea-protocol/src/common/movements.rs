@@ -145,7 +145,7 @@ impl AzBuf for MoveFlags {
             horizontal_collision,
         })
     }
-    fn azalea_write(&self, buf: &mut impl io::Write) -> Result<(), io::Error> {
+    fn azalea_write(&self, buf: &mut impl io::Write) -> io::Result<()> {
         let mut bitset = FixedBitSet::<8>::new();
         if self.on_ground {
             bitset.set(0);

@@ -37,7 +37,7 @@ pub struct WaypointIcon {
     pub color: Option<RgbColor>,
 }
 impl AzBuf for WaypointIcon {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         self.style.azalea_write(buf)?;
         let color = self.color.map(|c| CompactRgbColor {
             r: c.red(),

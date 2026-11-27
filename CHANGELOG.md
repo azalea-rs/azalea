@@ -34,18 +34,17 @@ is breaking anyways, semantic versioning is not followed.
 ### Fixed
 
 - Fix several DoS vectors, including memory leaks, related to parsing and handling packets. (with help from @Rizzener)
-- Optimize reading some byte arrays. (@Hexay)
 - Improved performance for `BlockTrait`. (@urisinger)
-- The `AirSupply` metadata component was defaulting to `0` instead of `300`. (@wbbradley)
-- Fix `FormattedText` failing to parse translation strings containing longs. (@JunkyDeveloper)
+- Optimize reading some byte arrays. (@Hexay)
 - `WalkDirection::Left` and `WalkDirection::Right` were swapped.
+- Fix repeated warnings when attacking an invalid entity.
 - Seagrass and kelp were not being treated as water source blocks. (@Saintliy)
 - Piston and chest blocks had incorrect properties. (@Saintliy)
-- Fix repeated warnings when attacking an invalid entity.
 - Fix compiling on new Rust nightly versions. (@EightFactorial)
-- Incorrect `damage_kind` component protocol implementation.
-- Incorrect protocol implementation for `set_objective`. (@patyhank)
+- The `AirSupply` metadata component was defaulting to `0` instead of `300`. (@wbbradley)
+- Incorrect protocol implementations for the `damage_kind` component, `set_objective`, and `click_action` (@patyhank, @etz).
 - Codecs, such as chat and registries, are now parsed more consistently.
+- Fix `FormattedText` failing to parse translation strings containing longs. (@JunkyDeveloper)
 - `find_blocks` would sometimes miss blocks.
 
 ## [0.16.0+mc26.1] - 2026-03-27
