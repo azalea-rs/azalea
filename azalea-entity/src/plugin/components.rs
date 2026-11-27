@@ -1,5 +1,8 @@
 use azalea_block::fluid_state::FluidKind;
-use azalea_core::position::{BlockPos, ChunkPos, Vec3};
+use azalea_core::{
+    entity_id::MinecraftEntityId,
+    position::{BlockPos, ChunkPos, Vec3},
+};
 use azalea_registry::builtin::EntityKind;
 use azalea_world::WorldName;
 use bevy_ecs::{bundle::Bundle, component::Component};
@@ -17,6 +20,7 @@ use crate::{
 #[derive(Bundle)]
 pub struct EntityBundle {
     pub kind: EntityKindComponent,
+    pub minecraft_id: MinecraftEntityId,
     pub uuid: EntityUuid,
     pub world_name: WorldName,
     pub position: Position,
@@ -36,11 +40,18 @@ pub struct EntityBundle {
 }
 
 impl EntityBundle {
-    pub fn new(uuid: Uuid, pos: Vec3, kind: EntityKind, world_name: WorldName) -> Self {
+    pub fn new(
+        uuid: Uuid,
+        minecraft_id: MinecraftEntityId,
+        pos: Vec3,
+        kind: EntityKind,
+        world_name: WorldName,
+    ) -> Self {
         let dimensions = EntityDimensions::from(kind);
 
         Self {
             kind: EntityKindComponent(kind),
+            minecraft_id,
             uuid: EntityUuid(uuid),
             world_name,
             position: Position(pos),

@@ -49,13 +49,11 @@ pub fn create_fn_azalea_read(data: &Data, attrs: &[Attribute]) -> proc_macro2::T
             for attr in attrs {
                 if attr.path().is_ident("repr")
                     && let Ok(list) = attr.meta.require_list()
+                    && let Ok(ty) = list.parse_args::<Type>()
+                    && ty.to_token_stream().to_string() == "u32"
                 {
-                    if let Ok(ty) = list.parse_args::<Type>() {
-                        if ty.to_token_stream().to_string() == "u32" {
-                            is_repr_u32 = true;
-                            break;
-                        }
-                    }
+                    is_repr_u32 = true;
+                    break;
                 }
             }
 
@@ -87,6 +85,8 @@ pub fn create_fn_azalea_read(data: &Data, attrs: &[Attribute]) -> proc_macro2::T
                         }
                     }
                 }
+
+                #[allow(clippy::needless_late_init)] // kept for readability
                 let reader;
                 match &variant.fields {
                     syn::Fields::Named(f) => {

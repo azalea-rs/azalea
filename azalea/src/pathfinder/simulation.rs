@@ -96,11 +96,11 @@ fn create_simulation_player_complete_bundle(
     let world_name = simulation_world_name();
 
     (
-        MinecraftEntityId(0),
         azalea_entity::LocalEntity,
         azalea_entity::metadata::PlayerMetadataBundle::default(),
         azalea_entity::EntityBundle::new(
             Uuid::nil(),
+            MinecraftEntityId(0),
             *player.position,
             EntityKind::Player,
             world_name,

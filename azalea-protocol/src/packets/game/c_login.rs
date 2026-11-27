@@ -10,7 +10,7 @@ use crate::packets::common::CommonPlayerSpawnInfo;
 /// world, and the registry.
 #[derive(AzBuf, ClientboundGamePacket, Clone, Debug, PartialEq)]
 pub struct ClientboundLogin {
-    pub player_id: MinecraftEntityId,
+    pub entity_id: MinecraftEntityId,
     pub hardcore: bool,
     pub levels: Vec<Identifier>,
     #[var]

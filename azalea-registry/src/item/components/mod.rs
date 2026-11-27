@@ -145,7 +145,7 @@ pub trait DataComponentTrait:
     fn checksum(&self, registries: &RegistryHolder) -> Checksum {
         self.clone().into().checksum(registries)
     }
-    fn try_from_data_component<'a>(c: &DataComponent) -> Option<&Self>;
+    fn try_from_data_component(c: &DataComponent) -> Option<&Self>;
 }
 
 impl AzBuf for DataComponent {

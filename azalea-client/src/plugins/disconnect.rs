@@ -1,7 +1,6 @@
 //! Disconnect a client from the server.
 
 use azalea_chat::FormattedText;
-use azalea_core::entity_id::MinecraftEntityId;
 use azalea_entity::{
     EntityBundle, HasClientLoaded, InLoadedChunk, LocalEntity, metadata::PlayerMetadataBundle,
 };
@@ -62,7 +61,6 @@ pub struct RemoveOnDisconnectBundle {
     pub joined_client: JoinedClientBundle,
 
     pub entity: EntityBundle,
-    pub minecraft_entity_id: MinecraftEntityId,
     pub world_holder: WorldHolder,
     pub player_metadata: PlayerMetadataBundle,
     pub in_loaded_chunk: InLoadedChunk,

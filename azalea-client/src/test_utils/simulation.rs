@@ -336,7 +336,7 @@ pub fn make_basic_login_packet(
     simulation: &Simulation,
 ) -> ClientboundLogin {
     ClientboundLogin {
-        player_id: MinecraftEntityId(0),
+        entity_id: MinecraftEntityId(0),
         hardcore: false,
         levels: vec![],
         max_players: 20,

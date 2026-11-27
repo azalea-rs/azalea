@@ -54,6 +54,7 @@ fn test_gravity() {
         .spawn((
             EntityBundle::new(
                 Uuid::nil(),
+                MinecraftEntityId(0),
                 Vec3 {
                     x: 0.,
                     y: 70.,
@@ -62,7 +63,6 @@ fn test_gravity() {
                 EntityKind::Zombie,
                 WorldName::new("minecraft:overworld"),
             ),
-            MinecraftEntityId(0),
             LocalEntity,
             HasClientLoaded,
         ))
@@ -112,6 +112,7 @@ fn test_collision() {
         .spawn((
             EntityBundle::new(
                 Uuid::nil(),
+                MinecraftEntityId(0),
                 Vec3 {
                     x: 0.5,
                     y: 70.,
@@ -120,7 +121,6 @@ fn test_collision() {
                 EntityKind::Player,
                 WorldName::new("minecraft:overworld"),
             ),
-            MinecraftEntityId(0),
             LocalEntity,
             HasClientLoaded,
         ))
@@ -170,6 +170,7 @@ fn test_slab_collision() {
         .spawn((
             EntityBundle::new(
                 Uuid::nil(),
+                MinecraftEntityId(0),
                 Vec3 {
                     x: 0.5,
                     y: 71.,
@@ -178,7 +179,6 @@ fn test_slab_collision() {
                 EntityKind::Player,
                 WorldName::new("minecraft:overworld"),
             ),
-            MinecraftEntityId(0),
             LocalEntity,
             HasClientLoaded,
         ))
@@ -221,6 +221,7 @@ fn test_top_slab_collision() {
         .spawn((
             EntityBundle::new(
                 Uuid::nil(),
+                MinecraftEntityId(0),
                 Vec3 {
                     x: 0.5,
                     y: 71.,
@@ -229,7 +230,6 @@ fn test_top_slab_collision() {
                 EntityKind::Player,
                 WorldName::new("minecraft:overworld"),
             ),
-            MinecraftEntityId(0),
             LocalEntity,
             HasClientLoaded,
         ))
@@ -276,6 +276,7 @@ fn test_weird_wall_collision() {
         .spawn((
             EntityBundle::new(
                 Uuid::nil(),
+                MinecraftEntityId(0),
                 Vec3 {
                     x: 0.5,
                     y: 73.,
@@ -284,7 +285,6 @@ fn test_weird_wall_collision() {
                 EntityKind::Player,
                 WorldName::new("minecraft:overworld"),
             ),
-            MinecraftEntityId(0),
             LocalEntity,
             HasClientLoaded,
         ))
@@ -336,6 +336,7 @@ fn test_negative_coordinates_weird_wall_collision() {
         .spawn((
             EntityBundle::new(
                 Uuid::nil(),
+                MinecraftEntityId(0),
                 Vec3 {
                     x: -7.5,
                     y: 73.,
@@ -344,7 +345,6 @@ fn test_negative_coordinates_weird_wall_collision() {
                 EntityKind::Player,
                 WorldName::new("minecraft:overworld"),
             ),
-            MinecraftEntityId(0),
             LocalEntity,
             HasClientLoaded,
         ))
@@ -400,6 +400,7 @@ fn spawn_and_unload_world() {
         .spawn((
             EntityBundle::new(
                 Uuid::nil(),
+                MinecraftEntityId(0),
                 Vec3 {
                     x: -7.5,
                     y: 73.,
@@ -408,7 +409,6 @@ fn spawn_and_unload_world() {
                 EntityKind::Player,
                 WorldName::new("minecraft:overworld"),
             ),
-            MinecraftEntityId(0),
             LocalEntity,
             HasClientLoaded,
         ))
@@ -516,6 +516,7 @@ fn test_afk_pool() {
         .spawn((
             EntityBundle::new(
                 Uuid::nil(),
+                MinecraftEntityId(0),
                 Vec3 {
                     x: 3.5,
                     y: 70.,
@@ -524,7 +525,6 @@ fn test_afk_pool() {
                 EntityKind::Player,
                 WorldName::new("minecraft:overworld"),
             ),
-            MinecraftEntityId(0),
             LocalEntity,
             HasClientLoaded,
         ))

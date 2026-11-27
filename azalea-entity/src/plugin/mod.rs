@@ -199,11 +199,14 @@ fn is_trapdoor_usable_as_ladder(
     true
 }
 
-/// A component that lists all the local player entities that have this entity
-/// loaded.
+/// The local clients that have this entity loaded.
 ///
-/// If this is empty, the entity will be removed from the ECS.
-#[derive(Clone, Component, Deref, DerefMut)]
+/// This is used for making sure entities aren't unloaded incorrectly when in
+/// shared worlds.
+///
+/// If this is empty, the entity will be removed from the ECS. If it's not
+/// present on an entity, then that entity won't be unloaded.
+#[derive(Clone, Component, Deref, DerefMut, Default)]
 pub struct LoadedBy(pub HashSet<Entity>);
 
 pub fn clamp_look_direction(mut query: Query<&mut LookDirection>) {

@@ -37,7 +37,13 @@ impl ClientboundAddEntity {
     /// [`Self::apply_metadata`].
     #[cfg(feature = "bevy_ecs")]
     pub fn as_entity_bundle(&self, world_name: WorldName) -> azalea_entity::EntityBundle {
-        azalea_entity::EntityBundle::new(self.uuid, self.position, self.entity_type, world_name)
+        azalea_entity::EntityBundle::new(
+            self.uuid,
+            self.id,
+            self.position,
+            self.entity_type,
+            world_name,
+        )
     }
 
     /// Apply the default metadata for the given entity.

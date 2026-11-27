@@ -104,11 +104,11 @@ impl Debug for ReadError {
                         .max_by_key(|i| i.1.kind.relevance())
                         .unwrap()
                         .clone();
-                    pretty.push(most_relevant_item.0.to_string());
+                    pretty.push(most_relevant_item.0.to_owned());
                     most_relevant_item.1.kind
                 }
                 ReadErrorKind::WhileReadingKey(k, e) => {
-                    pretty.push(k.to_string());
+                    pretty.push(k.to_owned());
                     *e
                 }
                 k => {

@@ -33,7 +33,7 @@ is breaking anyways, semantic versioning is not followed.
 
 ### Fixed
 
-- Compressed packets are no longer allowed to be longer than their declared length, fixing a DoS vector.
+- Fix several DoS vectors, including memory leaks, related to parsing and handling packets. (with help from @Rizzener)
 - Optimize reading some byte arrays. (@Hexay)
 - Improved performance for `BlockTrait`. (@urisinger)
 - The `AirSupply` metadata component was defaulting to `0` instead of `300`. (@wbbradley)
@@ -47,7 +47,6 @@ is breaking anyways, semantic versioning is not followed.
 - Incorrect protocol implementation for `set_objective`. (@patyhank)
 - Codecs, such as chat and registries, are now parsed more consistently.
 - `find_blocks` would sometimes miss blocks.
-- Fix several DoS vectors related to parsing packets.
 
 ## [0.16.0+mc26.1] - 2026-03-27
 

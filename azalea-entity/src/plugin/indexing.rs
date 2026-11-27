@@ -75,8 +75,12 @@ impl EntityIdIndex {
     }
 
     pub fn insert(&mut self, id: MinecraftEntityId, entity: Entity) {
-        self.entity_by_id.insert(id, entity);
-        self.id_by_entity.insert(entity, id);
+        if let Some(previous) = self.entity_by_id.insert(id, entity) {
+            self.id_by_entity.remove(&previous);
+        }
+        if let Some(previous) = self.id_by_entity.insert(entity, id) {
+            self.entity_by_id.remove(&previous);
+        }
         trace!("Inserted {id} -> {entity:?} into a client's EntityIdIndex");
     }
 
@@ -191,7 +195,7 @@ pub fn remove_despawned_entities_from_indexes(
             Entity,
             &EntityUuid,
             &MinecraftEntityId,
-            &Position,
+            &EntityChunkPos,
             &WorldName,
             &LoadedBy,
         ),
@@ -199,93 +203,121 @@ pub fn remove_despawned_entities_from_indexes(
     >,
     mut entity_id_index_query: Query<&mut EntityIdIndex>,
 ) {
-    for (entity, uuid, minecraft_id, position, world_name, loaded_by) in &query {
+    for (entity, uuid, minecraft_id, chunk_pos, world_name, loaded_by) in &query {
         let Some(world_lock) = worlds.get(world_name) else {
-            // the world isn't even loaded by us, so we can safely delete the
-            // entity
+            // the world isn't even loaded by any of our clients, so we can
+            // safely delete the entity
             debug!("Despawned entity {entity:?} because it's in a world that isn't loaded anymore");
-            if entity_uuid_index.entity_by_uuid.remove(uuid).is_none() {
-                warn!(
-                    "Tried to remove entity {entity:?} from the uuid index but it was not there."
-                );
-            }
-            // and now remove the entity from the ecs
-            commands.entity(entity).despawn();
 
+            despawn_entity(
+                entity,
+                **uuid,
+                *minecraft_id,
+                **chunk_pos,
+                None,
+                &mut commands,
+                &mut entity_uuid_index,
+                &mut entity_id_index_query,
+            );
             continue;
         };
-
-        let mut world = world_lock.write();
 
         // if the entity is being loaded by any of our clients, don't despawn it
         if !loaded_by.is_empty() {
             continue;
         }
 
-        // remove the entity from the chunk index
-        let chunk = ChunkPos::from(position);
-        match world.entities_by_chunk.get_mut(&chunk) {
-            Some(entities_in_chunk) => {
-                if entities_in_chunk.remove(&entity) {
-                    // remove the chunk if there's no entities in it anymore
-                    if entities_in_chunk.is_empty() {
-                        world.entities_by_chunk.remove(&chunk);
-                    }
-                } else {
-                    // search all the other chunks for it :(
-                    let mut found_in_other_chunks = HashSet::new();
-                    for (other_chunk, entities_in_other_chunk) in &mut world.entities_by_chunk {
-                        if entities_in_other_chunk.remove(&entity) {
-                            found_in_other_chunks.insert(other_chunk);
-                        }
-                    }
-                    if found_in_other_chunks.is_empty() {
-                        warn!(
-                            "Tried to remove entity {entity:?} from chunk {chunk:?} but the entity was not there or in any other chunks."
-                        );
-                    } else {
-                        warn!(
-                            "Tried to remove entity {entity:?} from chunk {chunk:?} but the entity was not there. Found in and removed from other chunk(s): {found_in_other_chunks:?}"
-                        );
-                    }
-                }
-            }
-            _ => {
-                let mut found_in_other_chunks = HashSet::new();
-                for (other_chunk, entities_in_other_chunk) in &mut world.entities_by_chunk {
-                    if entities_in_other_chunk.remove(&entity) {
-                        found_in_other_chunks.insert(other_chunk);
-                    }
-                }
-                if found_in_other_chunks.is_empty() {
-                    warn!(
-                        "Tried to remove entity {entity:?} from chunk {chunk:?} but the chunk was not found and the entity wasn't in any other chunks."
-                    );
-                } else {
-                    warn!(
-                        "Tried to remove entity {entity:?} from chunk {chunk:?} but the chunk was not found. Entity found in and removed from other chunk(s): {found_in_other_chunks:?}"
-                    );
-                }
-            }
-        }
-        // remove it from the uuid index
-        if entity_uuid_index.entity_by_uuid.remove(uuid).is_none() {
-            warn!("Tried to remove entity {entity:?} from the uuid index but it was not there.");
-        }
-        if world.entity_by_id.remove(minecraft_id).is_none() {
+        let mut world = world_lock.write();
+        despawn_entity(
+            entity,
+            **uuid,
+            *minecraft_id,
+            **chunk_pos,
+            Some(&mut world),
+            &mut commands,
+            &mut entity_uuid_index,
+            &mut entity_id_index_query,
+        );
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn despawn_entity(
+    entity: Entity,
+    uuid: Uuid,
+    minecraft_id: MinecraftEntityId,
+    chunk: ChunkPos,
+    world: Option<&mut World>,
+    commands: &mut Commands,
+    entity_uuid_index: &mut ResMut<EntityUuidIndex>,
+    entity_id_index_query: &mut Query<&mut EntityIdIndex>,
+) {
+    if let Some(world) = world {
+        remove_entity_from_chunk_index(world, chunk, entity);
+
+        if world.entity_by_id.remove(&minecraft_id).is_none() {
             debug!(
                 "Tried to remove entity {entity:?} from the per-world entity id index but it was not there. This may be expected if you're in a shared world."
             );
         }
+    }
 
-        // remove it from every client's EntityIdIndex
-        for mut entity_id_index in entity_id_index_query.iter_mut() {
-            entity_id_index.remove_by_ecs_entity(entity);
+    // remove it from the uuid index
+    if entity_uuid_index.entity_by_uuid.remove(&uuid).is_none() {
+        warn!("Tried to remove entity {entity:?} from the uuid index but it was not there.");
+    }
+
+    // remove it from every client's EntityIdIndex
+    for mut entity_id_index in entity_id_index_query.iter_mut() {
+        entity_id_index.remove_by_ecs_entity(entity);
+    }
+
+    // and now remove the entity from the ecs
+    commands.entity(entity).despawn();
+    debug!("Despawned entity {entity:?} because it was not loaded by anything.");
+}
+
+fn remove_entity_from_chunk_index(world: &mut World, chunk: ChunkPos, entity: Entity) {
+    if let Some(entities_in_chunk) = world.entities_by_chunk.get_mut(&chunk) {
+        if entities_in_chunk.remove(&entity) {
+            // remove the chunk if there's no entities in it anymore
+            if entities_in_chunk.is_empty() {
+                world.entities_by_chunk.remove(&chunk);
+            }
+        } else {
+            // search all the other chunks for it :(
+            let mut found_in_other_chunks = HashSet::new();
+            for (other_chunk, entities_in_other_chunk) in &mut world.entities_by_chunk {
+                if entities_in_other_chunk.remove(&entity) {
+                    found_in_other_chunks.insert(other_chunk);
+                }
+            }
+            if found_in_other_chunks.is_empty() {
+                warn!(
+                    "Tried to remove entity {entity:?} from chunk {chunk:?} but the entity was not there or in any other chunks."
+                );
+            } else {
+                warn!(
+                    "Tried to remove entity {entity:?} from chunk {chunk:?} but the entity was not there. Found in and removed from other chunk(s): {found_in_other_chunks:?}"
+                );
+            }
         }
-
-        // and now remove the entity from the ecs
-        commands.entity(entity).despawn();
-        debug!("Despawned entity {entity:?} because it was not loaded by anything.");
+    } else {
+        let mut found_in_other_chunks = HashSet::new();
+        for (other_chunk, entities_in_other_chunk) in &mut world.entities_by_chunk {
+            if entities_in_other_chunk.remove(&entity) {
+                found_in_other_chunks.insert(other_chunk);
+            }
+        }
+        if found_in_other_chunks.is_empty() {
+            warn!(
+                "Tried to remove entity {entity:?} from chunk {chunk:?} but the chunk was not found and the entity wasn't in any other chunks."
+            );
+        } else {
+            warn!(
+                "Tried to remove entity {entity:?} from chunk {chunk:?} but the chunk was not found. Entity found in and removed from other chunk(s): {found_in_other_chunks:?}"
+            );
+        }
     }
 }
 

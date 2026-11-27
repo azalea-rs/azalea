@@ -304,22 +304,21 @@ impl GamePacketHandler<'_> {
 
                 let entity_bundle = EntityBundle::new(
                     game_profile.uuid,
+                    p.entity_id,
                     Vec3::ZERO,
                     EntityKind::Player,
                     new_world_name,
                 );
-                let entity_id = p.player_id;
                 // insert our components into the ecs :)
                 commands.entity(self.player).insert((
-                    entity_id,
+                    entity_bundle,
                     p.common.game_type,
                     PreviousGameMode(p.common.previous_game_type.into()),
-                    entity_bundle,
                     TicksConnected(0),
                 ));
 
                 azalea_entity::indexing::add_entity_to_indexes(
-                    entity_id,
+                    p.entity_id,
                     self.player,
                     Some(game_profile.uuid),
                     &mut entity_id_index,
@@ -629,8 +628,7 @@ impl GamePacketHandler<'_> {
                 // entity doesn't exist in the global index!
 
                 let bundle = p.as_entity_bundle(world_name.to_owned());
-                let mut spawned =
-                    commands.spawn((entity_id, LoadedBy(HashSet::from([self.player])), bundle));
+                let mut spawned = commands.spawn((LoadedBy(HashSet::from([self.player])), bundle));
                 let ecs_entity: Entity = spawned.id();
                 debug!(
                     "spawned entity {ecs_entity:?} with id {entity_id:?} at {pos:?}",
@@ -1376,6 +1374,7 @@ impl GamePacketHandler<'_> {
             Query<
                 (
                     &mut WorldHolder,
+                    &MinecraftEntityId,
                     &GameProfileComponent,
                     &ClientInformation,
                     Option<&mut WorldName>,
@@ -1388,8 +1387,13 @@ impl GamePacketHandler<'_> {
         )>(
             self.ecs,
             |(mut commands, mut query, mut events, mut worlds, mut loaded_by_query)| {
-                let Ok((mut world_holder, game_profile, client_information, world_name)) =
-                    query.get_mut(self.player)
+                let Ok((
+                    mut world_holder,
+                    minecraft_entity_id,
+                    game_profile,
+                    client_information,
+                    world_name,
+                )) = query.get_mut(self.player)
                 else {
                     warn!("Got respawn packet but player doesn't have the required components");
                     return;
@@ -1446,6 +1450,7 @@ impl GamePacketHandler<'_> {
                 // this resets a bunch of our components like physics and stuff
                 let entity_bundle = EntityBundle::new(
                     game_profile.uuid,
+                    *minecraft_entity_id,
                     Vec3::ZERO,
                     EntityKind::Player,
                     new_world_name,
