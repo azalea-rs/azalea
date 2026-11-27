@@ -1,7 +1,11 @@
 use azalea_block::BlockState;
 use azalea_buf::AzBuf;
 use azalea_codec::Codec;
-use azalea_core::{color::RgbColor, entity_id::MinecraftEntityId, position::BlockPos};
+use azalea_core::{
+    color::RgbColor,
+    entity_id::MinecraftEntityId,
+    position::{BlockPos, Vec3},
+};
 use azalea_registry_builtin::builtin::BlockKind;
 
 use crate::{builtin::ParticleKind, item::ItemStack};
@@ -29,7 +33,7 @@ pub enum Particle {
     CopperFireFlame,
     Crit,
     DamageIndicator,
-    DragonBreath,
+    DragonBreath(PowerParticle),
     DrippingLava,
     FallingLava,
     LandingLava,
@@ -37,7 +41,7 @@ pub enum Particle {
     FallingWater,
     Dust(DustParticle),
     DustColorTransition(DustColorTransitionParticle),
-    Effect,
+    Effect(SpellParticle),
     ElderGuardian,
     EnchantedHit,
     Enchant,
@@ -60,20 +64,20 @@ pub enum Particle {
     RedPoplarLeaves,
     OrangePoplarLeaves,
     YellowPoplarLeaves,
-    TintedLeaves,
+    TintedLeaves(ColorParticle),
     SculkSoul,
     SculkCharge(SculkChargeParticle),
     SculkChargePop,
     SoulFireFlame,
     Soul,
-    Flash,
+    Flash(ColorParticle),
     HappyVillager,
     Composter,
     Heart,
-    InstantEffect,
+    InstantEffect(SpellParticle),
     Item(ItemParticle),
     Vibration(Box<VibrationParticle>),
-    Trail,
+    Trail(Box<TrailParticle>),
     PauseMobGrowth,
     ResetMobGrowth,
     ItemSlime,
@@ -135,14 +139,15 @@ pub enum Particle {
     TrialSpawnerDetection,
     TrialSpawnerDetectionOminous,
     VaultConnection,
-    DustPillar,
+    DustPillar(BlockParticle),
     OminousSpawning,
     RaidOmen,
     TrialOmen,
-    BlockCrumble,
+    BlockCrumble(BlockParticle),
     Firefly,
     SulfurCubeGoo,
 }
+const _: () = assert!(size_of::<Particle>() == 16);
 
 impl Default for Particle {
     fn default() -> Self {
@@ -225,4 +230,26 @@ pub struct GeyserParticle {
 pub struct GeyserBaseParticle {
     pub water_blocks: i32,
     pub burst_impulse_base: f32,
+}
+
+#[derive(AzBuf, Clone, Debug, Default, PartialEq, Codec)]
+pub struct TrailParticle {
+    pub target: Vec3,
+    pub color: RgbColor,
+    #[var]
+    pub duration: u32,
+}
+
+#[derive(AzBuf, Clone, Debug, Default, PartialEq, Codec)]
+pub struct PowerParticle {
+    #[codec(optional, default = 1.0)]
+    pub power: f32,
+}
+
+#[derive(AzBuf, Clone, Debug, Default, PartialEq, Codec)]
+pub struct SpellParticle {
+    #[codec(optional, default = RgbColor::WHITE)]
+    pub color: RgbColor,
+    #[codec(optional, default = 1.0)]
+    pub power: f32,
 }

@@ -13,6 +13,10 @@ mod rgb_color_codec {
 }
 
 impl RgbColor {
+    pub const BLACK: Self = Self { value: 0 };
+    // this is max because that's how SpellParticleOption encodes the default
+    pub const WHITE: Self = Self { value: u32::MAX };
+
     pub fn new(r: u8, g: u8, b: u8) -> Self {
         Self {
             value: ((r as u32) << 16) | ((g as u32) << 8) | (b as u32),
