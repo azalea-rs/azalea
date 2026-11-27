@@ -21,7 +21,7 @@ use crate::{
     builtin::ItemKind,
     item::{
         components::{
-            DataComponentUnion, MaxStackSize,
+            DataComponent, MaxStackSize,
             patch::{DataComponentPatch, EMPTY_DATA_COMPONENT_PATCH},
         },
         default_components::get_default_component,
@@ -160,19 +160,14 @@ impl ItemStack {
         self.as_present().and_then(|i| i.get_component::<T>())
     }
 
-    pub fn with_component<
-        T: components::EncodableDataComponent + components::DataComponentTrait,
-    >(
+    pub fn with_component<T: components::DataComponentTrait>(
         mut self,
         component: impl Into<Option<T>>,
     ) -> Self {
         if let ItemStack::Present(i) = &mut self {
             let component: Option<T> = component.into();
-            let component: Option<DataComponentUnion> = component.map(|c| c.into());
-            unsafe {
-                i.component_patch
-                    .unchecked_insert_component(T::KIND, component);
-            }
+            let component: Option<DataComponent> = component.map(|c| c.into());
+            i.component_patch.insert_component(T::KIND, component);
         }
         self
     }

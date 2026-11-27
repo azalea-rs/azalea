@@ -1,6 +1,5 @@
 use std::{
-    any::Any,
-    fmt::{self, Debug},
+    fmt::Debug,
     io::{self, Cursor, Write},
     sync::LazyLock,
 };
@@ -12,17 +11,15 @@ use indexmap::IndexMap;
 
 use crate::{
     builtin::DataComponentKind,
-    item::components::{self, DataComponentUnion, EncodableDataComponent},
+    item::components::{self, DataComponent},
 };
 
 /// An update to an item's data components.
 ///
 /// Note that in vanilla items come with their own set of default components,
 /// and Azalea does not implement that yet.
-#[derive(Default)]
-pub struct DataComponentPatch {
-    components: Box<IndexMap<DataComponentKind, Option<DataComponentUnion>>>,
-}
+#[derive(Default, Clone, Debug, PartialEq)]
+pub struct DataComponentPatch(Box<IndexMap<DataComponentKind, Option<DataComponent>>>);
 
 pub static EMPTY_DATA_COMPONENT_PATCH: LazyLock<DataComponentPatch> =
     LazyLock::new(DataComponentPatch::default);
@@ -47,23 +44,17 @@ impl DataComponentPatch {
     /// ```
     pub fn get<T: components::DataComponentTrait>(&self) -> Option<&T> {
         let component = self.get_kind(T::KIND)?;
-        let component_any = component as &dyn Any;
-        component_any.downcast_ref::<T>()
+        Some(T::try_from_data_component(component).expect("mismatching component kind"))
     }
 
-    pub fn get_kind(
-        &self,
-        kind: DataComponentKind,
-    ) -> Option<&dyn components::EncodableDataComponent> {
-        self.components.get(&kind).and_then(|c| {
-            c.as_ref().map(|c| {
-                // SAFETY: we just got the component from the map, so it must be
-                // the correct kind
-                unsafe { c.as_kind(kind) }
-            })
-        })
+    pub fn get_kind(&self, kind: DataComponentKind) -> Option<&DataComponent> {
+        if let Some(Some(r)) = self.0.get(&kind) {
+            assert_eq!(r.kind(), kind);
+            Some(r)
+        } else {
+            None
+        }
     }
-
     /// Returns whether the component in the generic argument is present for
     /// this item.
     ///
@@ -86,41 +77,19 @@ impl DataComponentPatch {
 
     pub fn iter<'a>(
         &'a self,
-    ) -> impl Iterator<Item = (DataComponentKind, Option<&'a dyn EncodableDataComponent>)> + 'a
-    {
-        self.components.iter().map(|(&kind, component)| {
-            component
-                .as_ref()
-                .map_or((kind, None), |c| (kind, unsafe { Some(c.as_kind(kind)) }))
-        })
+    ) -> impl Iterator<Item = (&'a DataComponentKind, &'a Option<DataComponent>)> + 'a {
+        self.0.iter()
     }
     /// Insert a new component into this patch, or mark a component as removed.
     ///
-    /// # Safety
-    /// The [`DataComponentUnion`] must be of the correct kind.
-    pub unsafe fn unchecked_insert_component(
-        &mut self,
-        kind: DataComponentKind,
-        value: Option<DataComponentUnion>,
-    ) {
-        let existing = self.components.insert(kind, value);
-        if let Some(Some(mut existing)) = existing {
-            // SAFETY: we just got it from self.components, so it must already
-            // be the correct type
-            unsafe { existing.drop_as(kind) };
+    /// # Panics
+    ///
+    /// The [`DataComponent`] must be of the correct kind.
+    pub fn insert_component(&mut self, kind: DataComponentKind, value: Option<DataComponent>) {
+        if let Some(value) = &value {
+            assert_eq!(kind, value.kind());
         }
-    }
-}
-
-impl Drop for DataComponentPatch {
-    fn drop(&mut self) {
-        // the component values are ManuallyDrop since they're in a union
-        for (kind, component) in self.components.iter_mut() {
-            if let Some(component) = component {
-                // SAFETY: we got the kind and component from the map
-                unsafe { component.drop_as(*kind) };
-            }
-        }
+        self.0.insert(kind, value);
     }
 }
 
@@ -136,16 +105,13 @@ impl AzBuf for DataComponentPatch {
         let mut components = DataComponentPatch::new();
         for _ in 0..components_with_data_count {
             let component_kind = DataComponentKind::azalea_read(ctx, buf)?;
-            let component_data = DataComponentUnion::azalea_read_as(component_kind, ctx, buf)?;
-            // SAFETY: it must be of the correct type because we just read using
-            // azalea_read_as
-            unsafe { components.unchecked_insert_component(component_kind, Some(component_data)) };
+            let component_data = DataComponent::azalea_read_as(component_kind, ctx, buf)?;
+            components.insert_component(component_kind, Some(component_data));
         }
 
         for _ in 0..components_without_data_count {
             let component_kind = DataComponentKind::azalea_read(ctx, buf)?;
-            // SAFETY: the value is None so the kind doesn't matter anyways
-            unsafe { components.unchecked_insert_component(component_kind, None) };
+            components.insert_component(component_kind, None);
         }
 
         Ok(components)
@@ -153,7 +119,7 @@ impl AzBuf for DataComponentPatch {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         let mut components_with_data_count: u32 = 0;
         let mut components_without_data_count: u32 = 0;
-        for component in self.components.values() {
+        for component in self.0.values() {
             if component.is_some() {
                 components_with_data_count += 1;
             } else {
@@ -165,72 +131,24 @@ impl AzBuf for DataComponentPatch {
         components_without_data_count.azalea_write_var(buf)?;
 
         let mut component_buf = Vec::new();
-        for (kind, component) in self.components.iter() {
+        for (&kind, component) in self.0.iter() {
             if let Some(component) = component {
                 kind.azalea_write(buf)?;
 
                 component_buf.clear();
-                // SAFETY: we got the component from the map and are passing in
-                // the same kind
-                unsafe { component.azalea_write_as(*kind, &mut component_buf) }?;
+                assert_eq!(component.kind(), kind);
+                component.azalea_write_value(&mut component_buf)?;
                 buf.write_all(&component_buf)?;
             }
         }
 
-        for (kind, component) in self.components.iter() {
+        for (kind, component) in self.0.iter() {
             if component.is_none() {
                 kind.azalea_write(buf)?;
             }
         }
 
         Ok(())
-    }
-}
-
-impl Clone for DataComponentPatch {
-    fn clone(&self) -> Self {
-        let mut components = IndexMap::with_capacity(self.components.len());
-        for (kind, component) in self.components.iter() {
-            components.insert(
-                *kind,
-                component.as_ref().map(|c| unsafe { c.clone_as(*kind) }),
-            );
-        }
-        DataComponentPatch {
-            components: Box::new(components),
-        }
-    }
-}
-impl Debug for DataComponentPatch {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_set().entries(self.components.keys()).finish()
-    }
-}
-impl PartialEq for DataComponentPatch {
-    fn eq(&self, other: &Self) -> bool {
-        if self.components.len() != other.components.len() {
-            return false;
-        }
-        for (kind, component) in self.components.iter() {
-            let Some(other_component) = other.components.get(kind) else {
-                return false;
-            };
-            // we can't use PartialEq, but we can use our own eq method
-            if let Some(component) = component {
-                let Some(other_component) = other_component else {
-                    return false;
-                };
-                // SAFETY: we already checked that the kinds are the same, and
-                // we got the components from the map, so they
-                // must be the correct kinds
-                if !unsafe { component.eq_as(other_component, *kind) } {
-                    return false;
-                }
-            } else if other_component.is_some() {
-                return false;
-            }
-        }
-        true
     }
 }
 
@@ -243,23 +161,22 @@ impl<O: azalea_codec::Ops> Codec<O> for DataComponentPatch {
             let kind = InvertableDataComponentKind::codec_read(&kind, ctx)?;
             match kind {
                 InvertableDataComponentKind::Present(kind) => {
-                    let value = DataComponentUnion::codec_read_as(&value, kind, ctx)?;
-                    unsafe { patch.unchecked_insert_component(kind, Some(value)) };
+                    let value = DataComponent::codec_read_as(kind, &value, ctx)?;
+                    patch.insert_component(kind, Some(value));
                 }
-                InvertableDataComponentKind::Removed(kind) => unsafe {
-                    patch.unchecked_insert_component(kind, None)
-                },
+                InvertableDataComponentKind::Removed(kind) => patch.insert_component(kind, None),
             }
         }
 
         Ok(patch)
     }
     fn codec_write(&self, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::WriteResult<O> {
-        let mut entries = Vec::<(O, O)>::with_capacity(self.components.len());
-        for (&kind, component) in self.components.iter() {
+        let mut entries = Vec::<(O, O)>::with_capacity(self.0.len());
+        for (&kind, component) in self.0.iter() {
             if let Some(component) = component {
+                assert_eq!(component.kind(), kind);
                 let k = InvertableDataComponentKind::Present(kind).codec_write(ctx)?;
-                let v = unsafe { component.codec_write_as::<O>(ctx, kind) }?;
+                let v = component.codec_write_value::<O>(ctx)?;
                 entries.push((k, v));
             } else {
                 let k = InvertableDataComponentKind::Removed(kind).codec_write(ctx)?;
@@ -270,11 +187,7 @@ impl<O: azalea_codec::Ops> Codec<O> for DataComponentPatch {
         O::create_map(ctx, &entries)
     }
 }
-impl<O: azalea_codec::Ops> azalea_codec::Defaultable<O> for DataComponentPatch {
-    fn is_default(&self) -> bool {
-        self.components.is_empty()
-    }
-}
+azalea_codec::impl_defaultable!(DataComponentPatch, self, self.0.is_empty());
 
 enum InvertableDataComponentKind {
     Present(DataComponentKind),

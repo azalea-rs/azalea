@@ -2,7 +2,9 @@ use azalea_buf::AzBuf;
 use azalea_inventory::operations::ClickType;
 use azalea_protocol_macros::ServerboundGamePacket;
 use azalea_registry::{
-    builtin::{DataComponentKind, ItemKind}, item::{ItemStack, checksum::Checksum}, registry_holder::RegistryHolder,
+    builtin::{DataComponentKind, ItemKind},
+    item::{ItemStack, checksum::Checksum},
+    registry_holder::RegistryHolder,
 };
 use indexmap::IndexMap;
 
@@ -57,9 +59,10 @@ impl HashedStack {
         let mut added_components = Vec::new();
         let mut removed_components = Vec::new();
 
-        for (kind, data) in item.component_patch.iter() {
+        for (&kind, data) in item.component_patch.iter() {
             if let Some(data) = data {
-                added_components.push((kind, data.crc_hash(registries)));
+                let checksum = data.checksum(registries);
+                added_components.push((kind, checksum));
             } else {
                 removed_components.push(kind);
             }

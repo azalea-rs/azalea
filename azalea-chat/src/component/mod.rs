@@ -73,10 +73,10 @@ impl From<FormattedTextCodec> for FormattedText {
                 let style = first.get_base().style.clone();
                 // put them all as siblings of an empty component, but copying
                 // the style of the first component
-                return TextComponent::empty_with_siblings(vec![first])
+                TextComponent::empty_with_siblings(vec![first])
                     .with_additional_siblings(iter)
                     .with_style(*style)
-                    .into();
+                    .into()
             }
             C::Text(c) => Self::Text(c),
             C::Translatable(c) => Self::Translatable(c),

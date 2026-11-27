@@ -1,7 +1,4 @@
-use std::{
-    any::Any,
-    fmt::{self, Debug},
-};
+use std::fmt::Debug;
 
 use azalea_chat::FormattedText;
 use azalea_codec::{Codec, MapLike};
@@ -11,9 +8,7 @@ use crate::{
     HolderSet,
     builtin::EnchantmentEffectComponentKind,
     data::Enchantment,
-    registry_holder::components::{
-        EffectComponentTrait, EffectComponentUnion, ResolvedEffectComponent,
-    },
+    registry_holder::components::{EffectComponentTrait, EffectComponents},
 };
 
 #[derive(Codec, Clone, Debug)]
@@ -26,32 +21,29 @@ pub struct EnchantmentData {
     pub effects: Effects,
 }
 /// Container for the effects in [`EnchantmentData`].
-#[derive(Default)]
-pub struct Effects(IndexMap<EnchantmentEffectComponentKind, Vec<EffectComponentUnion>>);
+#[derive(Default, Clone, Debug, PartialEq)]
+pub struct Effects(IndexMap<EnchantmentEffectComponentKind, EffectComponents>);
 
 impl Effects {
-    pub fn get<T: EffectComponentTrait>(&self) -> Option<Vec<&T>> {
+    pub fn get<T: EffectComponentTrait>(&self) -> Option<&[T]>
+    where
+        for<'a> &'a [T]: TryFrom<&'a EffectComponents>,
+    {
         let components = self.get_kind(T::KIND)?;
-        let components_any = components
-            .into_iter()
-            .map(|c| (c as &dyn Any).downcast_ref::<T>())
-            .collect::<Option<_>>()?;
-        Some(components_any)
+        Some(
+            components
+                .as_kind()
+                .expect("Effects should not have mismatching components"),
+        )
     }
 
-    pub fn get_kind(
-        &self,
-        kind: EnchantmentEffectComponentKind,
-    ) -> Option<Vec<&dyn ResolvedEffectComponent>> {
-        self.0.get(&kind).map(|c| {
-            c.iter()
-                .map(|c| {
-                    // SAFETY: we just got the component from the map, so it
-                    // must be the correct kind
-                    unsafe { c.as_kind(kind) }
-                })
-                .collect()
-        })
+    pub fn get_kind(&self, kind: EnchantmentEffectComponentKind) -> Option<&EffectComponents> {
+        if let Some(r) = self.0.get(&kind) {
+            assert_eq!(r.kind(), kind);
+            Some(r)
+        } else {
+            None
+        }
     }
 }
 
@@ -62,7 +54,7 @@ impl<O: azalea_codec::Ops> Codec<O> for Effects {
         map.for_each(|k, v| {
             items.push(
                 EnchantmentEffectComponentKind::codec_read(k, ctx)
-                    .and_then(|k| EffectComponentUnion::codec_read_as(k, v, ctx).map(|v| (k, v))),
+                    .and_then(|k| EffectComponents::codec_read_as(k, v, ctx).map(|v| (k, v))),
             );
         });
         Ok(Self(
@@ -74,13 +66,10 @@ impl<O: azalea_codec::Ops> Codec<O> for Effects {
     fn codec_write(&self, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::WriteResult<O> {
         let mut map = Vec::new();
         for (&k, v) in &self.0 {
-            let v = v
-                .iter()
-                .map(|v| unsafe { v.clone_as(k) })
-                .collect::<Vec<_>>();
+            assert_eq!(v.kind(), k);
             map.push((
                 k.codec_write(ctx)?,
-                EffectComponentUnion::codec_write_as(v, k, ctx)?,
+                EffectComponents::codec_write_values(v, ctx)?,
             ));
         }
         O::create_map(ctx, &map)
@@ -88,46 +77,3 @@ impl<O: azalea_codec::Ops> Codec<O> for Effects {
 }
 
 azalea_codec::impl_defaultable!(Effects);
-
-impl Clone for Effects {
-    fn clone(&self) -> Self {
-        let mut effects = IndexMap::with_capacity(self.0.len());
-        for (kind, effect) in &self.0 {
-            effects.insert(
-                *kind,
-                effect
-                    .iter()
-                    .map(|e| unsafe { e.clone_as(*kind) })
-                    .collect(),
-            );
-        }
-        Self(effects)
-    }
-}
-impl PartialEq for Effects {
-    fn eq(&self, other: &Self) -> bool {
-        if self.0.len() != other.0.len() {
-            return false;
-        }
-        for ((a_kind, a_effect), (b_kind, b_effect)) in self.0.iter().zip(other.0.iter()) {
-            if a_kind != b_kind {
-                return false;
-            }
-            if a_effect.len() != b_effect.len() {
-                return false;
-            }
-            for (a_e, b_e) in a_effect.iter().zip(b_effect.iter()) {
-                if !unsafe { a_e.as_kind(*a_kind) }.component_eq(unsafe { b_e.as_kind(*b_kind) }) {
-                    return false;
-                }
-            }
-        }
-
-        true
-    }
-}
-impl Debug for Effects {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_tuple("Effects").finish()
-    }
-}

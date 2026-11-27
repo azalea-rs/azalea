@@ -1,4 +1,4 @@
-use std::{any::Any, fmt::Debug, mem::ManuallyDrop};
+use std::{any::Any, fmt::Debug};
 
 use azalea_codec::Codec;
 use azalea_registry_builtin::builtin::LootConditionKind;
@@ -15,77 +15,65 @@ use crate::{
 #[macro_export]
 macro_rules! define_effect_components {
     ( $( $x:ident: $t:ty ),* $(,)? ) => {
-        #[allow(non_snake_case)]
-        pub union EffectComponentUnion {
-            $( $x: ManuallyDrop<$t>, )*
+        #[derive(Clone, Debug, PartialEq)]
+        pub enum EffectComponents {
+            $( $x(Vec<$t>), )*
         }
 
-        impl EffectComponentUnion {
-            /// # Safety
-            ///
-            /// `kind` must be the correct value for this union.
-            pub unsafe fn drop_as(&mut self, kind: EnchantmentEffectComponentKind) {
-                match kind {
-                    $( EnchantmentEffectComponentKind::$x => { unsafe { ManuallyDrop::drop(&mut self.$x) } }, )*
-                }
-            }
-
+        impl EffectComponents {
             pub fn codec_read_as<O: azalea_codec::Ops>(
                 kind: EnchantmentEffectComponentKind,
                 ops: &O,
                 ctx: azalea_codec::Ctx<O>,
-            ) -> azalea_codec::error::ReadResult<Vec<Self>> {
+            ) -> azalea_codec::error::ReadResult<Self> {
                 Ok(match kind {
                     $( EnchantmentEffectComponentKind::$x => {
-                        azalea_codec::types::CompactListCodec::<Vec<$t>>::codec_read(ops, ctx)?.0
-                            .into_iter()
-                            .map(ManuallyDrop::new)
-                            .map(|c| Self { $x: c })
-                            .collect()
+                        azalea_codec::types::CompactListCodec::<Vec<$t>>::codec_read(ops, ctx)
+                            .map(|i| Self::$x(i.0))?
                     }, )*
                 })
             }
-            pub fn codec_write_as<O: azalea_codec::Ops>(
-                items: Vec<Self>,
-                kind: EnchantmentEffectComponentKind,
+            pub fn codec_write_values<O: azalea_codec::Ops>(
+                &self,
                 ctx: azalea_codec::Ctx<O>,
             ) -> azalea_codec::error::WriteResult<O> {
-                Ok(match kind {
-                    $( EnchantmentEffectComponentKind::$x => {
-                        azalea_codec::types::CompactListCodec(
-                            items.into_iter().map(|i| unsafe { i.$x }).collect::<Vec<ManuallyDrop<_>>>()
-                        ).codec_write(ctx)?
-                    }, )*
+                // we do this instead of implementing Codec since the codec_read
+                // implementation on this type wouldn't make much sense. maybe
+                // in the future we could implement MapCodec without Codec or
+                // something, so it only works when flattened? idk
+                Ok(match self {
+                    $(
+                        Self::$x(v) => {
+                          azalea_codec::types::CompactListCodec(v.clone()).codec_write(ctx)?
+                        },
+                    )*
                 })
             }
-
-            /// # Safety
-            ///
-            /// `kind` must be the correct value for this union.
-            pub unsafe fn clone_as(
-                &self,
-                kind: EnchantmentEffectComponentKind,
-            ) -> Self {
-                match kind {
-                    $( EnchantmentEffectComponentKind::$x => {
-                        Self { $x: unsafe { self.$x.clone() } }
-                    }, )*
+            pub fn kind(&self) -> EnchantmentEffectComponentKind {
+                match self {
+                    $( Self::$x(_) => EnchantmentEffectComponentKind::$x, )*
                 }
             }
-
-            /// # Safety
-            ///
-            /// `kind` must be the correct value for this union.
-            pub unsafe fn as_kind(&self, kind: EnchantmentEffectComponentKind) -> &dyn ResolvedEffectComponent {
-                match kind {
-                    $( EnchantmentEffectComponentKind::$x => { unsafe { &**(&self.$x as &ManuallyDrop<dyn ResolvedEffectComponent>) } }, )*
-                }
+            pub fn as_kind<T: EffectComponentTrait>(&self) -> Option<&[T]>
+            where
+                for<'a> &'a [T]: TryFrom<&'a EffectComponents>,
+            {
+                <&[T]>::try_from(self).ok()
             }
         }
 
         $(
             impl EffectComponentTrait for $t {
                 const KIND: EnchantmentEffectComponentKind = EnchantmentEffectComponentKind::$x;
+            }
+            impl<'a> TryFrom<&'a EffectComponents> for &'a [$t] {
+                type Error = ();
+                fn try_from(v: &'a EffectComponents) -> Result<Self, Self::Error> {
+                    if let EffectComponents::$x(v) = v {
+                        return Ok(v);
+                    }
+                    Err(())
+                }
             }
         )*
     };
@@ -127,22 +115,11 @@ define_effect_components!(
 
 /// A trait that's implemented on all effect components so we can access them
 /// from [`Effects::get`](super::enchantment::Effects::get).
-pub trait EffectComponentTrait: Any {
+pub trait EffectComponentTrait: Any + Sized
+where
+    for<'a> &'a [Self]: TryFrom<&'a EffectComponents>,
+{
     const KIND: EnchantmentEffectComponentKind;
-}
-
-// this exists because EffectComponentTrait isn't dyn-compatible
-pub trait ResolvedEffectComponent: Any {
-    fn component_eq(&self, other: &dyn ResolvedEffectComponent) -> bool;
-}
-impl<T: EffectComponentTrait + PartialEq> ResolvedEffectComponent for T {
-    fn component_eq(&self, other: &dyn ResolvedEffectComponent) -> bool {
-        let other = other as &dyn Any;
-        let Some(other) = other.downcast_ref::<T>() else {
-            return false;
-        };
-        self.eq(other)
-    }
 }
 
 #[derive(Clone, Debug, PartialEq, Codec)]

@@ -2,7 +2,7 @@ use azalea_buf::AzBuf;
 use azalea_codec::Codec;
 use thiserror::Error;
 
-use crate::registry_holder::RegistryHolder;
+use crate::{item::components::DataComponent, registry_holder::RegistryHolder};
 
 #[derive(AzBuf, Clone, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Checksum(pub u32);
@@ -141,11 +141,10 @@ impl<O: azalea_codec::Ops> Codec<O> for ChecksumOps {
 #[error("Checksum serialization error")]
 pub struct ChecksumError;
 
-pub fn get_checksum<T: Codec<ChecksumOps>>(
-    value: &T,
-    registries: &RegistryHolder,
-) -> azalea_codec::error::WriteResult<Checksum> {
-    value
-        .codec_write(azalea_codec::Ctx(registries))
-        .map(|c| c.checksum)
+impl DataComponent {
+    pub fn checksum(&self, registries: &RegistryHolder) -> Checksum {
+        self.codec_write_value::<ChecksumOps>(azalea_codec::Ctx(registries))
+            .expect("writing a component shouldn't fail")
+            .checksum
+    }
 }

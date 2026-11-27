@@ -11,12 +11,11 @@ use azalea_registry::{
     builtin::{Attribute, BlockKind, ItemKind},
     item::{
         ItemStack,
-        checksum::get_checksum,
         components::{
             AdventureModePredicate, AttributeModifier, AttributeModifierDisplay,
             AttributeModifiers, AttributeModifiersEntry, BlockPredicate, CanPlaceOn,
-            ChargedProjectiles, CustomData, CustomName, EquipmentSlotGroup, Glider,
-            JukeboxPlayable, LodestoneTracker, Lore, PotDecorations, Rarity,
+            ChargedProjectiles, CustomData, CustomName, DataComponentTrait, EquipmentSlotGroup,
+            Glider, JukeboxPlayable, LodestoneTracker, Lore, PotDecorations, Rarity,
         },
     },
 };
@@ -31,7 +30,7 @@ fn test_custom_name_checksum() {
         name: FormattedText::from("meow"),
     };
 
-    assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 2222287064);
+    assert_eq!(c.checksum(&Default::default()).0, 2222287064);
 }
 #[test]
 fn test_custom_name_checksum_2() {
@@ -45,19 +44,19 @@ fn test_custom_name_checksum_2() {
             .into(),
     };
 
-    assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 187682122);
+    assert_eq!(c.checksum(&Default::default()).0, 187682122);
 }
 #[test]
 fn test_lore_checksum() {
     let c = Lore {
         lines: vec!["first".into(), "second".into()],
     };
-    assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 1545409323);
+    assert_eq!(c.checksum(&Default::default()).0, 1545409323);
 }
 #[test]
 fn test_rarity_checksum() {
     let c = Rarity::Rare;
-    assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 2874400570);
+    assert_eq!(c.checksum(&Default::default()).0, 2874400570);
 }
 // #[test]
 // fn test_enchantments_checksum() {
@@ -73,7 +72,7 @@ fn test_rarity_checksum() {
 //     let c = Enchantments {
 //         levels: HashMap::from_iter([(Enchantment::new_raw(0), 5),
 // (Enchantment::new_raw(1), 1)]),     };
-//     assert_eq!(get_checksum(&c, &registry_holder).unwrap().0, 3717391112);
+//     assert_eq!(c.checksum(&registry_holder), 3717391112);
 // }
 #[test]
 fn test_can_place_on_checksum() {
@@ -87,7 +86,7 @@ fn test_can_place_on_checksum() {
         },
     };
 
-    assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 227436005);
+    assert_eq!(c.checksum(&Default::default()).0, 227436005);
 }
 
 #[test]
@@ -108,7 +107,7 @@ fn test_custom_data_nbt() {
         ]),
     };
 
-    assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 1035780974);
+    assert_eq!(c.checksum(&Default::default()).0, 1035780974);
 }
 #[test]
 fn test_attribute_modifiers_checksum() {
@@ -125,7 +124,7 @@ fn test_attribute_modifiers_checksum() {
         }],
     };
 
-    assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 2501379836);
+    assert_eq!(c.checksum(&Default::default()).0, 2501379836);
 }
 
 #[test]
@@ -143,7 +142,7 @@ fn test_firework_explosion_checksum() {
         }],
     };
 
-    assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 2501379836);
+    assert_eq!(c.checksum(&Default::default()).0, 2501379836);
 }
 
 #[test]
@@ -152,7 +151,7 @@ fn test_charged_projectile_checksum() {
         items: vec![ItemStack::from(ItemKind::MusicDiscCat)],
     };
 
-    assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 3435761017);
+    assert_eq!(c.checksum(&Default::default()).0, 3435761017);
 }
 
 #[test]
@@ -167,7 +166,7 @@ fn test_charged_projectile_with_components_checksum() {
         ],
     };
 
-    assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 170375255);
+    assert_eq!(c.checksum(&Default::default()).0, 170375255);
 }
 
 #[test]
@@ -180,7 +179,7 @@ fn test_lodestone_tracker_checksum() {
         tracked: true,
     };
 
-    assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 4138292505);
+    assert_eq!(c.checksum(&Default::default()).0, 4138292505);
 }
 
 #[test]
@@ -193,12 +192,12 @@ fn test_pot_decorations_checksum() {
     };
 
     // TODO: check this in-game and update
-    assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 3819469984);
+    assert_eq!(c.checksum(&Default::default()).0, 3819469984);
 }
 
 #[test]
 fn test_glider_checksum() {
     let c = Glider;
 
-    assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 3312760008);
+    assert_eq!(c.checksum(&Default::default()).0, 3312760008);
 }

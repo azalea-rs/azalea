@@ -3,11 +3,9 @@ mod profile;
 
 use core::f64;
 use std::{
-    any::Any,
     collections::HashMap,
     fmt::{self, Debug, Display},
-    io::{self, Cursor},
-    mem::ManuallyDrop,
+    io::{self, Cursor, Write},
 };
 
 use azalea_buf::{AzBuf, BufReadError};
@@ -31,103 +29,62 @@ use crate::{
     data::{self, BannerPatternKind, DamageKind, Enchantment, TrimMaterial, TrimPattern},
     item::{
         ItemStack,
-        checksum::{Checksum, ChecksumOps, get_checksum},
+        checksum::{Checksum, ChecksumOps},
         consume_effect::ConsumeEffect,
     },
     registry_holder::RegistryHolder,
 };
 
-pub trait DataComponentTrait:
-    Send + Sync + Any + Clone + Into<DataComponentUnion> + Codec<ChecksumOps>
-{
-    const KIND: DataComponentKind;
-}
-
-pub trait EncodableDataComponent: Send + Sync + Any + Debug {
-    fn encode(&self, buf: &mut Vec<u8>) -> io::Result<()>;
-    fn crc_hash(&self, registries: &RegistryHolder) -> Checksum;
-    // using the Clone trait makes it not be object-safe, so we have our own
-    // clone function instead
-    fn clone(&self) -> Box<dyn EncodableDataComponent>;
-    // same thing here
-    fn eq(&self, other: &dyn EncodableDataComponent) -> bool;
-}
-
-impl<T> EncodableDataComponent for T
-where
-    T: DataComponentTrait + Clone + AzBuf + PartialEq + Debug,
-{
-    fn encode(&self, buf: &mut Vec<u8>) -> io::Result<()> {
-        self.azalea_write(buf)
-    }
-    fn crc_hash(&self, registries: &RegistryHolder) -> Checksum {
-        get_checksum(self, registries).expect("serializing data components should always succeed")
-    }
-    fn clone(&self) -> Box<dyn EncodableDataComponent> {
-        let cloned = self.clone();
-        Box::new(cloned)
-    }
-    fn eq(&self, other: &dyn EncodableDataComponent) -> bool {
-        let other_any: &dyn Any = other;
-        match other_any.downcast_ref::<T>() {
-            Some(other) => self == other,
-            _ => false,
-        }
-    }
-}
-
 #[macro_export]
 macro_rules! define_data_components {
     ( $( $x:ident ),* $(,)? ) => {
-        /// A union of all data components.
+        /// An enum of all data components.
         ///
-        /// You probably don't want to use this directly. Consider [`DataComponentPatch`] instead.
-        ///
-        /// This type does not know its own value, and as such every function for it requires the
-        /// `DataComponentKind` to be passed in. Passing the wrong `DataComponentKind` will result
-        /// in undefined behavior. Also, all of the values are `ManuallyDrop`.
+        /// You probably don't want to use this directly. Consider using
+        /// [`DataComponentPatch`] instead.
         ///
         /// [`DataComponentPatch`]: crate::item::components::patch::DataComponentPatch
-        #[allow(non_snake_case)]
-        pub union DataComponentUnion {
-            $( $x: ManuallyDrop<$x>, )*
+        #[derive(Clone, Debug, PartialEq)]
+        pub enum DataComponent {
+            // this is boxed to prevent the enum from getting too big
+            $( $x(Box<$x>), )*
         }
-        impl DataComponentUnion {
-            /// # Safety
-            ///
-            /// `kind` must be the correct value for this union.
-            pub unsafe fn codec_write_as<O: azalea_codec::Ops>(
-                &self,
-                ctx: azalea_codec::Ctx<O>,
-                kind: DataComponentKind,
-            ) -> azalea_codec::error::WriteResult<O> {
-                match kind {
-                    $( DataComponentKind::$x => { unsafe { self.$x.codec_write(ctx) } }, )*
-                }
-            }
+        impl DataComponent {
             pub fn codec_read_as<O: azalea_codec::Ops>(
-                ops: &O,
                 kind: DataComponentKind,
+                ops: &O,
                 ctx: azalea_codec::Ctx<O>,
             ) -> azalea_codec::error::ReadResult<Self> {
-                match kind {
-                    $( DataComponentKind::$x => { Ok(Self { $x: <_>::codec_read(ops, ctx)? }) }, )*
-                }
+                Ok(match kind {
+                    $(
+                        DataComponentKind::$x => {
+                            $x::codec_read(ops, ctx)
+                                .map(|i| Self::$x(Box::new(i)))?
+                        },
+                    )*
+                })
             }
-            /// # Safety
-            ///
-            /// `kind` must be the correct value for this union.
-            pub unsafe fn drop_as(&mut self, kind: DataComponentKind) {
-                match kind {
-                    $( DataComponentKind::$x => { unsafe { ManuallyDrop::drop(&mut self.$x) } }, )*
-                }
+            pub fn codec_write_value<O: azalea_codec::Ops>(
+                &self,
+                ctx: azalea_codec::Ctx<O>,
+            ) -> azalea_codec::error::WriteResult<O> {
+                // we do this instead of implementing Codec since the codec_read
+                // implementation on this type wouldn't make much sense. maybe
+                // in the future we could implement MapCodec without Codec or
+                // something, so it only works when flattened? idk
+                Ok(match self {
+                    $(
+                        Self::$x(v) => {
+                            v.codec_write(ctx)?
+                        },
+                    )*
+                })
             }
-            /// # Safety
-            ///
-            /// `kind` must be the correct value for this union.
-            pub unsafe fn as_kind(&self, kind: DataComponentKind) -> &dyn EncodableDataComponent {
-                match kind {
-                    $( DataComponentKind::$x => { unsafe { &**(&self.$x as &ManuallyDrop<dyn EncodableDataComponent>) } }, )*
+            pub fn kind(&self) -> DataComponentKind {
+                match self {
+                    $(
+                        Self::$x(_) => DataComponentKind::$x,
+                    )*
                 }
             }
             pub fn azalea_read_as(
@@ -138,68 +95,68 @@ macro_rules! define_data_components {
                 trace!("Reading data component {kind}");
 
                 Ok(match kind {
-                    $( DataComponentKind::$x => {
-                        let v = $x::azalea_read(ctx, buf)?;
-                        Self { $x: ManuallyDrop::new(v) }
-                    }, )*
+                    $(
+                        DataComponentKind::$x => {
+                            let v = $x::azalea_read(ctx, buf)?;
+                            Self::$x(Box::new(v))
+                        },
+                    )*
                 })
             }
-            /// # Safety
-            ///
-            /// `kind` must be the correct value for this union.
-            pub unsafe fn azalea_write_as(
+            pub fn azalea_write_value(
                 &self,
-                kind: DataComponentKind,
                 buf: &mut impl std::io::Write,
             ) -> io::Result<()> {
-                let mut value = Vec::new();
-                match kind {
-                    $( DataComponentKind::$x => unsafe { self.$x.encode(&mut value)? }, )*
+                match self {
+                    $( Self::$x(v) => v.azalea_write(buf)?, )*
                 };
-                buf.write_all(&value)?;
 
                 Ok(())
             }
-            /// # Safety
-            ///
-            /// `kind` must be the correct value for this union.
-            pub unsafe fn clone_as(
-                &self,
-                kind: DataComponentKind,
-            ) -> Self {
-                match kind {
-                    $( DataComponentKind::$x => {
-                        Self { $x: unsafe { self.$x.clone() } }
-                    }, )*
-                }
-            }
-            /// # Safety
-            ///
-            /// `kind` must be the correct value for this union.
-            pub unsafe fn eq_as(
-                &self,
-                other: &Self,
-                kind: DataComponentKind,
-            ) -> bool {
-                match kind {
-                    $( DataComponentKind::$x => unsafe { self.$x.eq(&other.$x) }, )*
-                }
-            }
         }
-        $(
-            impl From<$x> for DataComponentUnion {
-                fn from(value: $x) -> Self {
-                    DataComponentUnion { $x: ManuallyDrop::new(value) }
-                }
-            }
-        )*
 
         $(
+            impl From<$x> for DataComponent {
+                fn from(c: $x) -> Self {
+                    Self::$x(Box::new(c))
+                }
+            }
             impl DataComponentTrait for $x {
                 const KIND: DataComponentKind = DataComponentKind::$x;
+                // this isn't a TryFrom impl because if we wanted
+                // DataComponentTrait to depend on it then it'd require an
+                // annoying where clause.
+                fn try_from_data_component<'a>(c: &DataComponent) -> Option<&Self> {
+                    if let DataComponent::$x(v) = c {
+                        Some(&*v)
+                    } else {
+                        None
+                    }
+                }
             }
         )*
     };
+}
+
+pub trait DataComponentTrait:
+    Send + Sync + Clone + Into<DataComponent> + Codec<ChecksumOps> + Sized
+{
+    const KIND: DataComponentKind;
+    fn checksum(&self, registries: &RegistryHolder) -> Checksum {
+        self.clone().into().checksum(registries)
+    }
+    fn try_from_data_component<'a>(c: &DataComponent) -> Option<&Self>;
+}
+
+impl AzBuf for DataComponent {
+    fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let kind = DataComponentKind::azalea_read(ctx, buf)?;
+        Self::azalea_read_as(kind, ctx, buf)
+    }
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+        self.kind().azalea_write(buf)?;
+        self.azalea_write_value(buf)
+    }
 }
 
 // if this is causing a compile-time error, look at DataComponents.java in the
