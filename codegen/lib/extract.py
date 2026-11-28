@@ -49,7 +49,7 @@ def get_items_report(version_id: str):
         return {}
     items = {}
     for root, dirs, files in os.walk(items_dir, topdown=False):
-        for name in files:
+        for name in sorted(files):
             file = os.path.join(root, name)
             relative_path = file.replace(items_dir, "")[1:]
             if not file.endswith(".json"):
