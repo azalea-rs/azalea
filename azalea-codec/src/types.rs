@@ -44,7 +44,7 @@ impl<const S: &'static str, T: const ConstFromStr + Codec<O> + PartialEq, O: Ops
 {
     fn codec_read(ops: &O, ctx: Ctx<O>) -> ReadResult<Self> {
         let attempt = T::codec_read(ops, ctx)?;
-        let solution = const { T::const_from_str(S) };
+        let solution = const { T::const_from_str(S).expect("invalid variant") };
         if attempt == solution {
             Ok(Self::default())
         } else if let Ok(attempt_as_string) = String::codec_read(ops, ctx) {
@@ -58,15 +58,15 @@ impl<const S: &'static str, T: const ConstFromStr + Codec<O> + PartialEq, O: Ops
         }
     }
     fn codec_write(&self, ctx: Ctx<O>) -> WriteResult<O> {
-        let ident = const { T::const_from_str(S) };
+        let ident = const { T::const_from_str(S).expect("invalid variant") };
         ident.codec_write(ctx)
     }
 }
 /// Types that can be converted from a `&'static str` at compile-time.
 ///
 /// Used for compile-time validation of `#[codec(tag_as = ...)]` tags.
-pub const trait ConstFromStr {
-    fn const_from_str(s: &'static str) -> Self;
+pub const trait ConstFromStr: Sized {
+    fn const_from_str(s: &str) -> Option<Self>;
 }
 
 /// A codec that always matches everything and writes nothing.

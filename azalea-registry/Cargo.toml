@@ -21,6 +21,7 @@ azalea-auth = { workspace = true, features = ["azalea-codec"] }
 uuid.workspace = true
 thiserror.workspace = true
 crc32c.workspace = true
+simd-json.workspace = true
 
 [lints]
 workspace = true

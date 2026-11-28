@@ -55,7 +55,7 @@ def get_items_report(version_id: str):
             if not file.endswith(".json"):
                 continue
             with open(file, "r") as f:
-                items[relative_path[:-5]] = json.load(f)
+                items[relative_path[:-5]] = json.load(f)["components"]
 
     return items
 

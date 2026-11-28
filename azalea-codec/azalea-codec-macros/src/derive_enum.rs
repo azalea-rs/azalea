@@ -3,8 +3,8 @@ use std::assert_matches;
 use proc_macro::TokenStream;
 use quote::{ToTokens, quote};
 use syn::{
-    Attribute, Field, Ident, Variant, Visibility, punctuated::Punctuated, spanned::Spanned,
-    token::Comma,
+    Attribute, Field, GenericParam, Generics, Ident, Variant, Visibility, punctuated::Punctuated,
+    spanned::Spanned, token::Comma,
 };
 
 use crate::{attrs, utils};
@@ -13,6 +13,7 @@ pub fn derive_codec_for_enum(
     vis: &Visibility,
     attrs: &[Attribute],
     ident: &Ident,
+    generics: &Generics,
     variants: Punctuated<Variant, Comma>,
 ) -> TokenStream {
     let mut codec_read_impl = quote! {};
@@ -362,11 +363,25 @@ You must do one of the following:
         )
     };
 
+    let (_, ty_generics, _) = generics.split_for_impl();
+
+    let mut impl_generics_inner = quote! { O: ::azalea_codec::Ops };
+    for param in &generics.params {
+        impl_generics_inner.extend(quote! { , #param });
+        if let GenericParam::Type(ty) = param {
+            if ty.colon_token.is_some() {
+                impl_generics_inner.extend(quote! { + ::azalea_codec::Codec<O> });
+            } else {
+                impl_generics_inner.extend(quote! { : ::azalea_codec::Codec<O> });
+            }
+        }
+    }
+
     let mut out = quote! {
     #separate_variant_struct_decls
 
     #[automatically_derived]
-    impl<O: ::azalea_codec::Ops> ::azalea_codec::Codec<O> for #ident {
+    impl <#impl_generics_inner> ::azalea_codec::Codec<O> for #ident #ty_generics {
         type Incomplete = #incomplete_ty;
         fn codec_read(__codec_ops: &O, ctx: ::azalea_codec::Ctx<O>) -> ::azalea_codec::error::ReadResult<Self> {
             let mut __errors = Vec::<(&'static str, ::azalea_codec::error::ReadError)>::new();

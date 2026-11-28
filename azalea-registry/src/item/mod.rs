@@ -9,7 +9,6 @@ pub mod consume_effect;
 pub mod default_components;
 
 use std::{
-    borrow::Cow,
     fmt::Debug,
     io::{self, Cursor, Write},
 };
@@ -156,7 +155,7 @@ impl ItemStack {
     ///
     /// This is used for things like getting the damage of an item, or seeing
     /// how much food it replenishes.
-    pub fn get_component<'a, T: components::DataComponentTrait>(&'a self) -> Option<Cow<'a, T>> {
+    pub fn get_component<'a, T: components::DataComponentTrait>(&'a self) -> Option<&'a T> {
         self.as_present().and_then(|i| i.get_component::<T>())
     }
 
@@ -233,11 +232,11 @@ impl ItemStackData {
     ///
     /// This is used for things like getting the damage of an item, or seeing
     /// how much food it replenishes.
-    pub fn get_component<'a, T: components::DataComponentTrait>(&'a self) -> Option<Cow<'a, T>> {
+    pub fn get_component<'a, T: components::DataComponentTrait>(&'a self) -> Option<&'a T> {
         if let Some(c) = self.component_patch.get::<T>() {
-            Some(Cow::Borrowed(c))
+            Some(c)
         } else {
-            get_default_component::<T>(self.kind).map(|c| Cow::Owned(c))
+            get_default_component::<T>(self.kind)
         }
     }
 }

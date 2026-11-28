@@ -1,6 +1,7 @@
 //! An arbitrary identifier or resource location.
 
 use std::{
+    borrow::Cow,
     fmt::{self, Debug, Display},
     hash::{Hash, Hasher},
     io::{self, Cursor, Write},
@@ -105,6 +106,20 @@ impl Identifier {
         match self {
             Identifier::Owned { colon_index, inner } => (colon_index.is_some(), inner),
             Identifier::Static(identifier_ref) => (true, identifier_ref.0),
+        }
+    }
+    /// Returns a fully-qualified identifier string with both namespace and
+    /// path.
+    pub fn to_cow<'a>(&'a self) -> Cow<'a, str> {
+        match self {
+            Identifier::Owned { colon_index, inner } => {
+                if colon_index.is_some() {
+                    Cow::Borrowed(inner)
+                } else {
+                    Cow::Owned(self.to_string())
+                }
+            }
+            Identifier::Static(identifier_ref) => Cow::Borrowed(identifier_ref.0),
         }
     }
 }

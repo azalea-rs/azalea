@@ -75,9 +75,9 @@ pub trait Codec<O: Ops>: Sized {
 /// ```
 #[macro_export]
 macro_rules! impl_codec_from {
-    ($this:ty, $other:ty) => {
-        impl<O: $crate::Ops> $crate::Codec<O> for $this {
-            type Incomplete = __Incomplete<O>;
+    ($(<$($generic:ident$(: $constraint:ident $(+ $constraint2:ident)*  )?),*>)? $this:ident $(<$($this_generic:ident),+>)?, $other:ty, struct $incomplete:ident) => {
+        impl<O: $crate::Ops $($(, $generic: $crate::Codec<O> $(+ $constraint $(+$constraint2)*)*)*)?> $crate::Codec<O> for $this $(<$($this_generic),*>)? {
+            type Incomplete = $incomplete<O $($(, $this_generic)*)?>;
             fn codec_read(ops: &O, ctx: $crate::Ctx<O>) -> $crate::error::ReadResult<Self> {
                 <$other>::codec_read(ops, ctx).map(Into::into)
             }
@@ -87,9 +87,11 @@ macro_rules! impl_codec_from {
         }
         #[doc(hidden)]
         #[allow(nonstandard_style)]
-        pub struct __Incomplete<O: $crate::Ops>(pub <$other as $crate::Codec<O>>::Incomplete);
-        impl<O: $crate::Ops> $crate::Incomplete for __Incomplete<O> {
-            type Complete = $this;
+        pub struct $incomplete<O: $crate::Ops $($(, $generic: $crate::Codec<O> $(+ $constraint $(+$constraint2)*)*)*)?>(
+            pub <$other as $crate::Codec<O>>::Incomplete
+        );
+        impl<O: $crate::Ops $($(, $generic: $crate::Codec<O> $(+ $constraint $(+$constraint2)*)*)*)?> $crate::Incomplete for $incomplete<O $($(, $this_generic)*)?> {
+            type Complete = $this $(<$($this_generic),*>)?;
             fn new(name: &'static str) -> Self {
                 Self(<_>::new(name))
             }
@@ -97,13 +99,22 @@ macro_rules! impl_codec_from {
                 self.0.build().map(Into::into)
             }
         }
+
+        impl<O: $crate::Ops, $($($generic: Codec<O> $(+ $constraint $(+ $constraint2)*)?),*)?> $crate::NewOk<O> for $incomplete<O $($(, $this_generic)*)?>
+            where Self: $crate::Incomplete,
+            <$other as $crate::Codec<O>>::Incomplete: $crate::NewOk<O>,
+        {
+            fn new_ok() -> Self {
+                Self($crate::NewOk::new_ok())
+            }
+        }
     };
 }
 /// See [`impl_codec_from`].
 #[macro_export]
 macro_rules! impl_mapcodec_from {
-    ($this:ty, $other:ty) => {
-        impl<O: $crate::Ops> $crate::MapCodec<O> for $this {
+    ($(<$($generic:ident$(: $constraint:ident $(+ $constraint2:ident)*  )?),*>)? $this:ident $(<$($this_generic:ident),+>)?, $other:ty) => {
+        impl<O: $crate::Ops $($(, $generic: $crate::Codec<O> $(+ $constraint $(+$constraint2)*)*)*)?> $crate::MapCodec<O> for $this $(<$($this_generic),*>)? {
             fn codec_read_map_item(
                 incomplete: &mut <Self as $crate::Codec<O>>::Incomplete,
                 ctx: $crate::Ctx<O>,
@@ -135,7 +146,7 @@ macro_rules! impl_mapcodec {
             result: $crate::error::ReadResult<()>,
             map: $t,
         }
-        impl<O: Ops, $($($generic: Codec<O> $(+ $constraint $(+ $constraint2)*)?),*)?> $crate::MapCodec<O> for $t {
+        impl<O: Ops, $($($generic: Codec<O> + Clone $(+ $constraint $(+ $constraint2)*)?),*)?> $crate::MapCodec<O> for $t {
             fn codec_read_map_item(incomplete: &mut <Self as Codec<O>>::Incomplete, ctx: $crate::Ctx<O>, k: &O, v: &O) {
                 let k = match <$k>::codec_read(k, ctx) {
                     Ok(r) => r,
@@ -343,6 +354,9 @@ pub trait Ops: Sized + Clone + Codec<Self> + 'static {
         ctx.0.resolver_create_item(i)
     }
 }
+
+// TODO: i suppose we should get rid of Ctx here and put it in azalea-buf
+// instead
 
 /// A type that contains information which allows certain types, like
 /// server-side registries, to be resolved.

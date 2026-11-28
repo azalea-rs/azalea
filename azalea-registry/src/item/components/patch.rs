@@ -161,7 +161,8 @@ impl<O: azalea_codec::Ops> Codec<O> for DataComponentPatch {
             let kind = InvertableDataComponentKind::codec_read(&kind, ctx)?;
             match kind {
                 InvertableDataComponentKind::Present(kind) => {
-                    let value = DataComponent::codec_read_as(kind, &value, ctx)?;
+                    let value = DataComponent::codec_read_as(kind, &value, ctx)
+                        .map_err(|e| e.while_reading_key(kind.to_str()))?;
                     patch.insert_component(kind, Some(value));
                 }
                 InvertableDataComponentKind::Removed(kind) => patch.insert_component(kind, None),

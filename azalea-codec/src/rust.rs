@@ -1,9 +1,13 @@
-use std::{collections::HashMap, hash::Hash, mem::ManuallyDrop};
+use std::{
+    collections::{BTreeMap, HashMap},
+    hash::Hash,
+    mem::ManuallyDrop,
+};
 
 use crate::{
     Codec, Ctx, Defaultable, Incomplete, MapCodec, MapLike, NewOk, Ops,
     error::{ReadError, ReadResult, WriteResult},
-    impl_defaultable, impl_mapcodec,
+    impl_codec_from, impl_defaultable, impl_mapcodec, impl_mapcodec_from,
 };
 
 impl<O: Ops> Codec<O> for String {
@@ -142,28 +146,81 @@ impl<O: Ops, A: Codec<O>, B: Codec<O>> Codec<O> for (A, B) {
     }
 }
 
-impl<O: Ops, K: Codec<O> + Eq + Hash, V: Codec<O>> Codec<O> for HashMap<K, V> {
-    type Incomplete = IncompleteHashMap<K, V>;
+#[derive(Clone)]
+pub struct UnorderedMap<K, V>(Vec<(K, V)>);
+impl<K, V> UnorderedMap<K, V> {
+    pub fn insert(&mut self, k: K, v: V) {
+        self.0.push((k, v));
+    }
+    pub fn iter(&self) -> impl Iterator<Item = &(K, V)> {
+        self.0.iter()
+    }
+}
+impl<O: Ops, K: Codec<O>, V: Codec<O>> Codec<O> for UnorderedMap<K, V> {
+    type Incomplete = IncompleteUnorderedMap<K, V>;
     fn codec_read(ops: &O, ctx: Ctx<O>) -> ReadResult<Self> {
         let map = ops.get_map(ctx)?;
         let mut items = Vec::new();
-        map.for_each(|k, v| {
-            items.push(K::codec_read(k, ctx).and_then(|k| V::codec_read(v, ctx).map(|v| (k, v))));
+        map.for_each(|k_ops, v_ops| {
+            items.push(K::codec_read(k_ops, ctx).and_then(|k| {
+                V::codec_read(v_ops, ctx)
+                    .map_err(|e| {
+                        if let Ok(key_string) = String::codec_read(k_ops, ctx) {
+                            // try to attach more metadata if possible, to help
+                            // with debugging :3
+                            e.while_reading_key(key_string)
+                        } else {
+                            e
+                        }
+                    })
+                    .map(|v| (k, v))
+            }));
         });
 
-        Ok(Self::from_iter(
-            items.into_iter().collect::<ReadResult<Box<[_]>>>()?,
-        ))
+        Ok(Self(items.into_iter().collect::<ReadResult<_>>()?))
     }
     fn codec_write(&self, ctx: Ctx<O>) -> WriteResult<O> {
         let mut map = Vec::new();
-        for (k, v) in self {
+        for (k, v) in &self.0 {
             map.push((k.codec_write(ctx)?, v.codec_write(ctx)?));
         }
         O::create_map(ctx, &map)
     }
 }
-impl_mapcodec!(HashMap<K, V>, IncompleteHashMap<K: Eq + Hash, V>, K: V);
+impl<K, V> Default for UnorderedMap<K, V> {
+    fn default() -> Self {
+        Self(Default::default())
+    }
+}
+impl_mapcodec!(UnorderedMap<K, V>, IncompleteUnorderedMap<K, V>, K: V);
+
+impl<K, V> From<HashMap<K, V>> for UnorderedMap<K, V> {
+    fn from(m: HashMap<K, V>) -> Self {
+        UnorderedMap(m.into_iter().collect())
+    }
+}
+impl<K: Hash + Eq, V> From<UnorderedMap<K, V>> for HashMap<K, V> {
+    fn from(m: UnorderedMap<K, V>) -> Self {
+        m.0.into_iter().collect()
+    }
+}
+impl_codec_from!(<K: Eq + Hash + Clone, V: Clone> HashMap<K, V>, UnorderedMap<K, V>, struct IncompleteHashMap);
+impl_mapcodec_from!(<K: Eq + Hash + Clone, V: Clone> HashMap<K, V>, UnorderedMap<K, V>);
+
+//
+
+impl<K, V> From<BTreeMap<K, V>> for UnorderedMap<K, V> {
+    fn from(m: BTreeMap<K, V>) -> Self {
+        UnorderedMap(m.into_iter().collect())
+    }
+}
+impl<K: Ord, V> From<UnorderedMap<K, V>> for BTreeMap<K, V> {
+    fn from(m: UnorderedMap<K, V>) -> Self {
+        m.0.into_iter().collect()
+    }
+}
+impl_codec_from!(<K: Ord + Clone, V: Clone> BTreeMap<K, V>, UnorderedMap<K, V>, struct IncompleteBTreeMap);
+impl_mapcodec_from!(<K: Ord + Clone, V: Clone> BTreeMap<K, V>, UnorderedMap<K, V>);
 
 impl<O: Ops, T: Codec<O>> Codec<O> for Option<T> {
     fn codec_read(ops: &O, ctx: Ctx<O>) -> ReadResult<Self> {

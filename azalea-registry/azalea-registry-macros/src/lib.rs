@@ -94,18 +94,20 @@ pub fn registry(input: TokenStream) -> TokenStream {
 
     generated.extend(quote! {
         impl #name {
+            pub const MAX_ID: u32 = #max_id;
+
             #[doc = #doc_0]
             ///
             /// # Safety
             #[doc = #doc_1]
             #[inline]
             pub unsafe fn from_u32_unchecked(id: u32) -> Self {
-                std::mem::transmute::<u32, #name>(id)
+                unsafe { std::mem::transmute::<u32, #name>(id) }
             }
 
             #[inline]
             pub const fn is_valid_id(id: u32) -> bool {
-                id <= #max_id
+                id <= Self::MAX_ID
             }
         }
         impl azalea_registry_builtin::Registry for #name {
@@ -165,12 +167,12 @@ pub fn registry(input: TokenStream) -> TokenStream {
                 }
             }
         }
-        const impl ::azalea_codec::types::ConstFromStr for #name {
-            fn const_from_str(s: &'static str) -> Self {
-                match s {
+        const impl azalea_codec::types::ConstFromStr for #name {
+            fn const_from_str(s: &str) -> Option<Self> {
+                Some(match s {
                     #from_str_items
-                    _ => panic!("not a valid string for this registry")
-                }
+                    _ => return None
+                })
             }
         }
         impl std::fmt::Display for #name {
@@ -183,10 +185,7 @@ pub fn registry(input: TokenStream) -> TokenStream {
         impl<'a> TryFrom<&'a ::azalea_core::identifier::Identifier> for #name {
             type Error = ();
             fn try_from(ident: &'a ::azalea_core::identifier::Identifier) -> Result<Self, Self::Error> {
-                Ok(match ident.as_ref().1 {
-                    #from_str_items
-                    _ => return Err(()),
-                })
+                azalea_codec::types::ConstFromStr::const_from_str(ident.as_ref().1).ok_or(())
             }
         }
         impl<'a> From<#name> for ::azalea_core::identifier::Identifier {
@@ -207,8 +206,8 @@ pub fn registry(input: TokenStream) -> TokenStream {
         impl<O: azalea_codec::Ops> azalea_codec::Codec<O> for #name {
             fn codec_read(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
                 let s = ops.get_string(ctx)?;
-                std::str::FromStr::from_str(&s)
-                    .map_err(|_| azalea_codec::error::ReadError::custom(format!("invalid variant {s}")))
+                azalea_codec::types::ConstFromStr::const_from_str(&s)
+                    .ok_or_else(|| azalea_codec::error::ReadError::custom(format!("invalid variant '{s}'")))
             }
             fn codec_write(&self, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::WriteResult<O> {
                 self.to_string().codec_write(ctx)

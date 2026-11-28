@@ -127,10 +127,10 @@ use crate::attrs::{parse_field_attrs, parse_struct_attrs};
 ///     Second,
 /// }
 /// const impl ConstFromStr for Key {
-///     fn const_from_str(s: &'static str) -> Self {
-///         if s == "a" { Self::First }
-///         else if s == "b" { Self::Second }
-///         else { panic!() }
+///     fn const_from_str(s: &str) -> Option<Self> {
+///         if s == "a" { Some(Self::First) }
+///         else if s == "b" { Some(Self::Second) }
+///         else { None }
 ///     }
 /// }
 /// assert_eq!(
@@ -187,7 +187,7 @@ pub fn derive_codec(input: TokenStream) -> TokenStream {
             syn::Fields::Unit => derive_unit_struct_impl(&ident),
         },
         syn::Data::Enum(syn::DataEnum { variants, .. }) => {
-            derive_enum::derive_codec_for_enum(&vis, &attrs, &ident, variants)
+            derive_enum::derive_codec_for_enum(&vis, &attrs, &ident, &generics, variants)
         }
         _ => {
             panic!("#[derive(Codec)] can only be used on structs and enums")

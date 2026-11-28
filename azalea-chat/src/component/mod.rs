@@ -41,7 +41,7 @@ pub enum FormattedText {
     Nbt(NbtComponent),
     Object(ObjectComponent),
 }
-azalea_codec::impl_codec_from!(FormattedText, FormattedTextCodec);
+azalea_codec::impl_codec_from!(FormattedText, FormattedTextCodec, struct IncompleteFormattedText);
 
 #[derive(Codec)]
 enum FormattedTextCodec {

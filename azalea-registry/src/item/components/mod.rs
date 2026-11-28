@@ -139,7 +139,7 @@ macro_rules! define_data_components {
 }
 
 pub trait DataComponentTrait:
-    Send + Sync + Clone + Into<DataComponent> + Codec<ChecksumOps> + Sized
+    Send + Sync + Clone + Into<DataComponent> + Codec<ChecksumOps> + Sized + 'static
 {
     const KIND: DataComponentKind;
     fn checksum(&self, registries: &RegistryHolder) -> Checksum {
@@ -501,23 +501,6 @@ pub struct MobEffectDetails {
     #[codec(optional)]
     pub hidden_effect: Option<Box<MobEffectDetails>>,
 }
-impl MobEffectDetails {
-    pub const fn new() -> Self {
-        MobEffectDetails {
-            amplifier: 0,
-            duration: 0,
-            ambient: false,
-            show_particles: true,
-            show_icon: true,
-            hidden_effect: None,
-        }
-    }
-}
-impl Default for MobEffectDetails {
-    fn default() -> Self {
-        Self::new()
-    }
-}
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 pub struct MobEffectInstance {
@@ -541,37 +524,13 @@ pub struct Food {
     pub can_always_eat: bool,
 }
 
-impl Food {
-    pub const fn new() -> Self {
-        Food {
-            nutrition: 0,
-            saturation: 0.,
-            can_always_eat: false,
-        }
-    }
-}
-
-#[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
+#[derive(AzBuf, Default, Clone, Debug, PartialEq, Codec)]
 pub struct ToolRule {
     pub blocks: HolderSet<BlockKind>,
     #[codec(optional)]
     pub speed: Option<f32>,
     #[codec(optional)]
     pub correct_for_drops: Option<bool>,
-}
-impl ToolRule {
-    pub const fn new() -> Self {
-        ToolRule {
-            blocks: HolderSet::Direct { contents: vec![] },
-            speed: None,
-            correct_for_drops: None,
-        }
-    }
-}
-impl Default for ToolRule {
-    fn default() -> Self {
-        Self::new()
-    }
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
@@ -584,22 +543,6 @@ pub struct Tool {
     pub damage_per_block: i32,
     #[codec(optional)]
     pub can_destroy_blocks_in_creative: bool,
-}
-
-impl Tool {
-    pub const fn new() -> Self {
-        Tool {
-            rules: vec![],
-            default_mining_speed: 1.,
-            damage_per_block: 1,
-            can_destroy_blocks_in_creative: true,
-        }
-    }
-}
-impl Default for Tool {
-    fn default() -> Self {
-        Self::new()
-    }
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
@@ -657,22 +600,6 @@ pub struct PotionContents {
     pub custom_effects: Vec<MobEffectInstance>,
     #[codec(optional)]
     pub custom_name: Option<String>,
-}
-
-impl PotionContents {
-    pub const fn new() -> Self {
-        PotionContents {
-            potion: None,
-            custom_color: None,
-            custom_effects: vec![],
-            custom_name: None,
-        }
-    }
-}
-impl Default for PotionContents {
-    fn default() -> Self {
-        Self::new()
-    }
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
@@ -810,20 +737,6 @@ pub struct Fireworks {
     pub explosions: Vec<FireworkExplosion>,
 }
 
-impl Fireworks {
-    pub const fn new() -> Self {
-        Fireworks {
-            flight_duration: 0,
-            explosions: vec![],
-        }
-    }
-}
-impl Default for Fireworks {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 #[codec(transparent)]
 pub struct NoteBlockSound {
@@ -935,33 +848,16 @@ pub struct JukeboxSongData {
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 pub struct Consumable {
-    #[codec(optional)]
+    #[codec(optional, default = 1.6)]
     pub consume_seconds: f32,
-    #[codec(optional)]
+    #[codec(optional, default = ItemUseAnimation::Eat)]
     pub animation: ItemUseAnimation,
     #[codec(optional, default = crate::Holder::Reference(SoundEvent::EntityGenericEat))]
     pub sound: crate::Holder<SoundEvent, CustomSound>,
-    #[codec(optional)]
+    #[codec(optional, default = true)]
     pub has_consume_particles: bool,
     #[codec(optional)]
     pub on_consume_effects: Vec<ConsumeEffect>,
-}
-
-impl Consumable {
-    pub const fn new() -> Self {
-        Self {
-            consume_seconds: 1.6,
-            animation: ItemUseAnimation::Eat,
-            sound: crate::Holder::Reference(SoundEvent::EntityGenericEat),
-            has_consume_particles: true,
-            on_consume_effects: Vec::new(),
-        }
-    }
-}
-impl Default for Consumable {
-    fn default() -> Self {
-        Self::new()
-    }
 }
 
 #[derive(AzBuf, Clone, Copy, Debug, Default, PartialEq, Codec)]
@@ -992,20 +888,6 @@ pub struct UseCooldown {
     pub seconds: f32,
     #[codec(optional)]
     pub cooldown_group: Option<Identifier>,
-}
-
-impl UseCooldown {
-    pub const fn new() -> Self {
-        Self {
-            seconds: 0.,
-            cooldown_group: None,
-        }
-    }
-}
-impl Default for UseCooldown {
-    fn default() -> Self {
-        Self::new()
-    }
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
@@ -1053,29 +935,6 @@ pub struct Equippable {
     pub can_be_sheared: bool,
     #[codec(optional, default = SoundEvent::ItemShearsSnip)]
     pub shearing_sound: SoundEvent,
-}
-
-impl Equippable {
-    pub const fn new() -> Self {
-        Self {
-            slot: EquipmentSlot::Body,
-            equip_sound: SoundEvent::ItemArmorEquipGeneric,
-            asset_id: None,
-            camera_overlay: None,
-            allowed_entities: None,
-            dispensable: true,
-            swappable: true,
-            damage_on_hurt: true,
-            equip_on_interact: false,
-            can_be_sheared: false,
-            shearing_sound: SoundEvent::ItemShearsSnip,
-        }
-    }
-}
-impl Default for Equippable {
-    fn default() -> Self {
-        Self::new()
-    }
 }
 
 /// An enum that represents inventory slots that can hold items.
@@ -1501,7 +1360,9 @@ azalea_codec::impl_defaultable!(ItemDamageFunction);
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 #[codec(transparent)]
 pub struct ProvidesTrimMaterial {
-    pub value: Holder<crate::data::TrimMaterial, DirectTrimMaterial>,
+    // TODO: this should be a TrimMaterialKey and be resolved by azalea-buf
+    // instead of azalea-codec
+    pub value: Holder<crate::data::TrimMaterialKey, DirectTrimMaterial>,
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
@@ -1561,8 +1422,11 @@ pub struct ZombieNautilusVariant {
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 pub struct UseEffects {
+    #[codec(optional)]
     pub can_sprint: bool,
+    #[codec(optional)]
     pub interact_vibrations: bool,
+    #[codec(optional)]
     pub speed_multiplier: f32,
 }
 impl UseEffects {
@@ -1743,24 +1607,29 @@ pub struct SulfurCubeContent {
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Codec)]
+#[codec(transparent)]
 pub struct BlockTransformer {
     pub value: crate::data::BlockTransformer,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Codec)]
+#[codec(transparent)]
 pub struct ProvidesPotteryPattern {
     pub value: crate::data::DecoratedPotPattern,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Codec)]
+#[codec(transparent)]
 pub struct AttackAnimation {
     pub value: SwingAnimation,
 }
 #[derive(Clone, PartialEq, AzBuf, Debug, Codec)]
 pub struct SwingAnimation {
     #[codec(rename = "type")]
+    #[codec(optional)]
     pub kind: SwingAnimationKind,
     #[var]
+    #[codec(optional)]
     pub duration: i32,
 }
 impl SwingAnimation {
@@ -1776,15 +1645,18 @@ impl Default for SwingAnimation {
         Self::new()
     }
 }
-#[derive(AzBuf, Clone, Copy, Debug, PartialEq, Codec)]
+#[derive(AzBuf, Clone, Copy, Debug, PartialEq, Default, Codec)]
 #[codec(default_snake_case_key)]
 pub enum SwingAnimationKind {
+    #[default]
     None,
     Whack,
     Stab,
 }
+azalea_codec::impl_defaultable!(SwingAnimationKind);
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Codec)]
+#[codec(transparent)]
 pub struct InteractAnimation {
     pub value: SwingAnimation,
 }
@@ -1801,22 +1673,22 @@ pub struct Compostable {
 }
 #[derive(Clone, PartialEq, AzBuf, Debug, Codec)]
 pub enum ResolvableInt {
-    Reference { context_int_provider: Identifier },
-    Constant { value: i32 },
+    Reference(Identifier),
+    Constant(i32),
 }
 #[derive(Clone, PartialEq, AzBuf, Debug, Codec)]
 pub enum ResolvableFloat {
-    Reference { context_float_provider: Identifier },
-    Constant { value: f32 },
+    Reference(Identifier),
+    Constant(f32),
 }
 impl Default for ResolvableInt {
     fn default() -> Self {
-        Self::Constant { value: 0 }
+        Self::Constant(0)
     }
 }
 impl Default for ResolvableFloat {
     fn default() -> Self {
-        Self::Constant { value: 0. }
+        Self::Constant(0.)
     }
 }
 
@@ -1824,14 +1696,6 @@ impl Default for ResolvableFloat {
 pub struct CookingFuel {
     pub burn_time: ResolvableInt,
     pub speed_multiplier: ResolvableFloat,
-}
-impl CookingFuel {
-    pub const fn new() -> Self {
-        Self {
-            burn_time: ResolvableInt::Constant { value: 0 },
-            speed_multiplier: ResolvableFloat::Constant { value: 0. },
-        }
-    }
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Codec)]
@@ -1860,8 +1724,12 @@ pub struct SignTextBack {
 #[derive(Clone, PartialEq, AzBuf, Debug, Default, Codec)]
 pub struct SignText {
     pub messages: [FormattedText; 4],
-    pub filtered_messages_for_serialization: Option<[FormattedText; 4]>,
+    #[codec(lenient)]
+    pub filtered_messages: Option<[FormattedText; 4]>,
+    // TODO
+    // #[codec(optional_always_present)]
     pub color: DyeColor,
+    // #[codec(optional_always_present)]
     pub has_glowing_text: bool,
 }
 impl SignText {

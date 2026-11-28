@@ -197,6 +197,7 @@ where
 
 /// A reference to either a registry or a custom value (usually something with
 /// an `Identifier`).
+#[derive(Codec)]
 pub enum Holder<R: Registry, Direct: AzBuf> {
     Reference(R),
     Direct(Direct),
@@ -252,22 +253,5 @@ impl<R: Registry + PartialEq, Direct: AzBuf + PartialEq> PartialEq for Holder<R,
 impl<R: Registry + Default, Direct: AzBuf> Default for Holder<R, Direct> {
     fn default() -> Self {
         Self::Reference(R::default())
-    }
-}
-
-impl<O: azalea_codec::Ops, R: Registry + Codec<O>, Direct: Codec<O> + AzBuf> Codec<O>
-    for Holder<R, Direct>
-{
-    fn codec_read(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
-        if let Ok(reference) = R::codec_read(ops, ctx) {
-            return Ok(Self::Reference(reference));
-        };
-        Direct::codec_read(ops, ctx).map(Self::Direct)
-    }
-    fn codec_write(&self, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::WriteResult<O> {
-        match self {
-            Self::Reference(value) => value.codec_write(ctx),
-            Self::Direct(value) => value.codec_write(ctx),
-        }
     }
 }

@@ -1,5 +1,6 @@
 use std::{
     backtrace::{Backtrace, BacktraceStatus},
+    borrow::Cow,
     convert::Infallible,
     fmt::Debug,
     io,
@@ -18,7 +19,7 @@ pub enum ReadErrorKind {
     UnknownKey(Box<str>),
     MissingKey(&'static str),
     NoVariantsMatched(Box<[(&'static str, ReadError)]>),
-    WhileReadingKey(&'static str, Box<ReadErrorKind>),
+    WhileReadingKey(Cow<'static, str>, Box<ReadErrorKind>),
     NumberTooBig(Number),
     Custom(Box<str>),
 }
@@ -49,8 +50,8 @@ impl ReadError {
         ReadErrorKind::Custom(message.into()).into()
     }
 
-    pub fn while_reading_key(mut self, key: &'static str) -> Self {
-        self.kind = ReadErrorKind::WhileReadingKey(key, Box::new(self.kind));
+    pub fn while_reading_key(mut self, key: impl Into<Cow<'static, str>>) -> Self {
+        self.kind = ReadErrorKind::WhileReadingKey(key.into(), Box::new(self.kind));
         self
     }
 }
@@ -108,7 +109,7 @@ impl Debug for ReadError {
                     most_relevant_item.1.kind
                 }
                 ReadErrorKind::WhileReadingKey(k, e) => {
-                    pretty.push(k.to_owned());
+                    pretty.push(k.to_string());
                     *e
                 }
                 k => {
