@@ -25,7 +25,7 @@ use crate::attrs::{parse_field_attrs, parse_struct_attrs};
 ///     woof: i32,
 /// }
 /// assert_eq!(
-///     Thing::codec_read(&json!({"meow": "!!!", "woof": 100}), Default::default()).unwrap(),
+///     Thing::codec_read(&json!({"meow": "!!!", "woof": 100})).unwrap(),
 ///     Thing { meow: "!!!".into(), woof: 100 }
 /// );
 /// ```
@@ -84,7 +84,7 @@ use crate::attrs::{parse_field_attrs, parse_struct_attrs};
 ///     B { value: String },
 /// }
 /// assert_eq!(
-///     Thing::codec_read(&json!({"type": "first", "value": 1}), Default::default()).unwrap(),
+///     Thing::codec_read(&json!({"type": "first", "value": 1})).unwrap(),
 ///     Thing::A { value:1 }
 /// );
 /// ```
@@ -127,18 +127,18 @@ use crate::attrs::{parse_field_attrs, parse_struct_attrs};
 ///     Second,
 /// }
 /// const impl ConstFromStr for Key {
-///     fn const_from_str(s: &'static str) -> Self {
-///         if s == "a" { Self::First }
-///         else if s == "b" { Self::Second }
-///         else { panic!() }
+///     fn const_from_str(s: &str) -> Option<Self> {
+///         if s == "a" { Some(Self::First) }
+///         else if s == "b" { Some(Self::Second) }
+///         else { None }
 ///     }
 /// }
 /// assert_eq!(
-///     Thing::codec_read(&json!({"type": "first", "value": 1}), Default::default()).unwrap(),
+///     Thing::codec_read(&json!({"type": "first", "value": 1})).unwrap(),
 ///     Thing::A { value: 1 }
 /// );
 /// assert_eq!(
-///     Thing::codec_read(&json!({"type": "second", "value": ""}), Default::default()).unwrap(),
+///     Thing::codec_read(&json!({"type": "second", "value": ""})).unwrap(),
 ///     Thing::B { value: "".to_string() }
 /// );
 /// ```
@@ -187,7 +187,7 @@ pub fn derive_codec(input: TokenStream) -> TokenStream {
             syn::Fields::Unit => derive_unit_struct_impl(&ident),
         },
         syn::Data::Enum(syn::DataEnum { variants, .. }) => {
-            derive_enum::derive_codec_for_enum(&vis, &attrs, &ident, variants)
+            derive_enum::derive_codec_for_enum(&vis, &attrs, &ident, &generics, variants)
         }
         _ => {
             panic!("#[derive(Codec)] can only be used on structs and enums")
@@ -206,9 +206,9 @@ fn derive_transparent_impl(attrs: &[Attribute], ident: &Ident, field: &Field) ->
     };
 
     let base_read_expr = if let Some(with) = &field_attrs.with {
-        quote! { #with::codec_read(ops, ctx).map(|c| c.0) }
+        quote! { #with::codec_read(ops).map(|c| c.0) }
     } else {
-        quote! { <_>::codec_read(ops, ctx) }
+        quote! { <_>::codec_read(ops) }
     };
 
     let read_expr;
@@ -231,11 +231,11 @@ fn derive_transparent_impl(attrs: &[Attribute], ident: &Ident, field: &Field) ->
 
     quote! {
     impl<O: ::azalea_codec::Ops> ::azalea_codec::Codec<O> for #ident {
-        fn codec_read(ops: &O, ctx: ::azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
+        fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
             #read_expr
         }
-        fn codec_write(&self, ctx: ::azalea_codec::Ctx<O>) -> azalea_codec::error::WriteResult<O> {
-            ::azalea_codec::Codec::codec_write(&#write_expr, ctx)
+        fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
+            ::azalea_codec::Codec::codec_write(&#write_expr)
         }
     }
     }
@@ -245,12 +245,12 @@ fn derive_transparent_impl(attrs: &[Attribute], ident: &Ident, field: &Field) ->
 fn derive_unit_struct_impl(ident: &Ident) -> TokenStream {
     quote! {
         impl<O: ::azalea_codec::Ops> ::azalea_codec::Codec<O> for #ident {
-        fn codec_read(ops: &O, ctx: ::azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
-            <()>::codec_read(ops, ctx)?;
+        fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
+            <()>::codec_read(ops)?;
             Ok(Self)
         }
-        fn codec_write(&self, ctx: ::azalea_codec::Ctx<O>) -> azalea_codec::error::WriteResult<O> {
-            ::azalea_codec::Codec::codec_write(&(), ctx)
+        fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
+            ::azalea_codec::Codec::codec_write(&())
         }
     }
     }

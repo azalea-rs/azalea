@@ -307,24 +307,18 @@ macro_rules! vec3_impl {
         }
 
         impl<O: azalea_codec::Ops> Codec<O> for $name {
-            fn codec_read(
-                ops: &O,
-                ctx: azalea_codec::Ctx<O>,
-            ) -> azalea_codec::error::ReadResult<Self> {
-                let [x, y, z] = <[$type; 3]>::codec_read(ops, ctx)?;
+            fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
+                let [x, y, z] = <[$type; 3]>::codec_read(ops)?;
                 Ok(Self { x, y, z })
             }
-            fn codec_write(
-                &self,
-                ctx: azalea_codec::Ctx<O>,
-            ) -> azalea_codec::error::WriteResult<O> {
-                [self.x, self.y, self.z].codec_write(ctx)
+            fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
+                [self.x, self.y, self.z].codec_write()
             }
         }
 
         azalea_codec::impl_defaultable!($name);
         #[cfg(feature = "serde")]
-        azalea_codec::impl_serde!($name, ());
+        azalea_codec::impl_serde!($name);
     };
 }
 
@@ -578,8 +572,8 @@ impl AzBuf for ChunkPos {
         let long = u64::azalea_read(ctx, buf)?;
         Ok(ChunkPos::from(long))
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        u64::from(*self).azalea_write(buf)?;
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
+        u64::from(*self).azalea_write(ctx, buf)?;
         Ok(())
     }
 }
@@ -754,7 +748,7 @@ pub struct GlobalPos {
     pub pos: BlockPos,
 }
 #[cfg(feature = "serde")]
-azalea_codec::impl_serde!(GlobalPos, ());
+azalea_codec::impl_serde!(GlobalPos);
 
 impl From<&BlockPos> for ChunkPos {
     #[inline]
@@ -988,12 +982,12 @@ impl AzBuf for BlockPos {
         let z = (val << (64 - Z_OFFSET - PACKED_Z_LENGTH) >> (64 - PACKED_Z_LENGTH)) as i32;
         Ok(BlockPos { x, y, z })
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
         let mut val: u64 = 0;
         val |= ((self.x as u64) & PACKED_X_MASK) << X_OFFSET;
         val |= (self.y as u64) & PACKED_Y_MASK;
         val |= ((self.z as u64) & PACKED_Z_MASK) << Z_OFFSET;
-        val.azalea_write(buf)
+        val.azalea_write(ctx, buf)
     }
 }
 
@@ -1004,9 +998,9 @@ impl AzBuf for GlobalPos {
             pos: BlockPos::azalea_read(ctx, buf)?,
         })
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        Identifier::azalea_write(&self.dimension, buf)?;
-        BlockPos::azalea_write(&self.pos, buf)?;
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
+        Identifier::azalea_write(&self.dimension, ctx, buf)?;
+        BlockPos::azalea_write(&self.pos, ctx, buf)?;
 
         Ok(())
     }
@@ -1021,11 +1015,11 @@ impl AzBuf for ChunkSectionPos {
             z: (long << 22 >> 42) as i32,
         })
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
         let long = (((self.x & 0x3FFFFF) as i64) << 42)
             | (self.y & 0xFFFFF) as i64
             | (((self.z & 0x3FFFFF) as i64) << 20);
-        long.azalea_write(buf)?;
+        long.azalea_write(ctx, buf)?;
         Ok(())
     }
 }
@@ -1118,7 +1112,9 @@ mod tests {
     #[test]
     fn test_read_blockpos_from() {
         let mut buf = Vec::new();
-        13743895338965u64.azalea_write(&mut buf).unwrap();
+        13743895338965u64
+            .azalea_write(Default::default(), &mut buf)
+            .unwrap();
         let mut buf = Cursor::new(&buf[..]);
         let block_pos = BlockPos::azalea_read(Default::default(), &mut buf).unwrap();
         assert_eq!(block_pos, BlockPos::new(49, -43, -3));
@@ -1136,7 +1132,9 @@ mod tests {
     #[test]
     fn test_read_chunk_pos_from() {
         let mut buf = Vec::new();
-        ChunkPos::new(2, -1).azalea_write(&mut buf).unwrap();
+        ChunkPos::new(2, -1)
+            .azalea_write(Default::default(), &mut buf)
+            .unwrap();
         let mut buf = Cursor::new(&buf[..]);
         let chunk_pos = ChunkPos::from(u64::azalea_read(Default::default(), &mut buf).unwrap());
         assert_eq!(chunk_pos, ChunkPos::new(2, -1));

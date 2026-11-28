@@ -35,10 +35,10 @@ impl AzBuf for JointType {
             _ => Err(BufReadErrorRepr::UnexpectedStringEnumVariant { id: name.into() }.into()),
         }
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
         match self {
-            JointType::Rollable => "rollable".to_owned().azalea_write(buf)?,
-            JointType::Aligned => "aligned".to_owned().azalea_write(buf)?,
+            JointType::Rollable => "rollable".to_owned().azalea_write(ctx, buf)?,
+            JointType::Aligned => "aligned".to_owned().azalea_write(ctx, buf)?,
         };
         Ok(())
     }

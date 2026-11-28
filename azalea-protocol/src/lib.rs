@@ -50,9 +50,15 @@ mod tests {
             profile_id: Uuid::nil(),
         };
         let mut stream = Vec::new();
-        write_packet(&packet.into_variant(), &mut stream, None, &mut None)
-            .await
-            .unwrap();
+        write_packet(
+            Default::default(),
+            &packet.into_variant(),
+            &mut stream,
+            None,
+            &mut None,
+        )
+        .await
+        .unwrap();
 
         assert_eq!(
             stream,
@@ -64,6 +70,7 @@ mod tests {
         let mut stream = Cursor::new(stream);
 
         let _ = read_packet::<ServerboundLoginPacket, _>(
+            Default::default(),
             &mut stream,
             &mut Cursor::new(Vec::new()),
             None,
@@ -81,22 +88,34 @@ mod tests {
         }
         .into_variant();
         let mut stream = Vec::new();
-        write_packet(&packet, &mut stream, None, &mut None)
+        write_packet(Default::default(), &packet, &mut stream, None, &mut None)
             .await
             .unwrap();
-        write_packet(&packet, &mut stream, None, &mut None)
+        write_packet(Default::default(), &packet, &mut stream, None, &mut None)
             .await
             .unwrap();
         let mut stream = Cursor::new(stream);
 
         let mut buffer = Cursor::new(Vec::new());
 
-        let _ = read_packet::<ServerboundLoginPacket, _>(&mut stream, &mut buffer, None, &mut None)
-            .await
-            .unwrap();
-        let _ = read_packet::<ServerboundLoginPacket, _>(&mut stream, &mut buffer, None, &mut None)
-            .await
-            .unwrap();
+        let _ = read_packet::<ServerboundLoginPacket, _>(
+            Default::default(),
+            &mut stream,
+            &mut buffer,
+            None,
+            &mut None,
+        )
+        .await
+        .unwrap();
+        let _ = read_packet::<ServerboundLoginPacket, _>(
+            Default::default(),
+            &mut stream,
+            &mut buffer,
+            None,
+            &mut None,
+        )
+        .await
+        .unwrap();
     }
 
     #[tokio::test]
@@ -104,6 +123,7 @@ mod tests {
         let compression_threshold = 256;
 
         let buf = serialize_packet(
+            Default::default(),
             &ServerboundChat {
                 message: "a".repeat(256),
                 timestamp: 0,
@@ -115,7 +135,7 @@ mod tests {
         )
         .unwrap();
 
-        let buf = compression_encoder(&buf, compression_threshold).unwrap();
+        let buf = compression_encoder(Default::default(), &buf, compression_threshold).unwrap();
 
         println!("{buf:?}");
 

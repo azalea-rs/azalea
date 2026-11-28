@@ -3,90 +3,28 @@
 //!
 //! These registries are sent to us by the server on join.
 
-use azalea_buf::AzBuf;
+use azalea_buf::{AzBuf, AzBufVar};
 use azalea_core::identifier::Identifier;
-
-use crate::DataRegistry;
 
 macro_rules! data_registry {
     (
-        $(#[$struct_attrs:meta])*
-        $registry:ident => $registry_name:expr,
         $(#[$enum_attrs:meta])*
-        enum $enum_name:ident {
+        enum $enum_name:ident => $registry_name:literal {
             $(
                 $(#[$variant_attrs:meta])*
                 $variant:ident => $variant_name:expr
             ),* $(,)?
         }
     ) => {
-        $(#[$struct_attrs])*
-        #[derive(AzBuf, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-        pub struct $registry {
-            #[var]
-            id: u32,
-        }
-        impl crate::DataRegistry for $registry {
-            const NAME: &'static str = $registry_name;
-            type Key = $enum_name;
-
-            fn protocol_id(&self) -> u32 {
-                self.id
-            }
-            fn new_raw(id: u32) -> Self {
-                Self { id }
-            }
-        }
-        impl<O: azalea_codec::Ops> azalea_codec::ResolvableItem<O> for $registry {
-            fn name(&self) -> &'static str { $registry_name }
-            fn to_resolvable_id(&self) -> u32 { self.protocol_id() }
-        }
-        impl<O: azalea_codec::Ops> azalea_codec::IntoResolvableItem<O> for $registry {
-            type Resolvable = $registry;
-            fn codec_read_resolvable_item(
-                ops: &O,
-                ctx: azalea_codec::Ctx<O>,
-            ) -> azalea_codec::error::ReadResult<Self> {
-                let Some(registry_holder) =
-                    (ctx.0 as &dyn std::any::Any).downcast_ref::<crate::registry_holder::RegistryHolder>()
-                else {
-                    return Err(azalea_codec::error::ReadError::custom(
-                        "passed a Ctx that's not RegistryHolder",
-                    ));
-                };
-                let ident = <Identifier as azalea_codec::Codec<O>>::codec_read(ops, ctx)?;
-                let id = registry_holder
-                    .identifier_to_protocol_id(Self::NAME, ident.clone())
-                    .ok_or_else(|| {
-                        azalea_codec::error::ReadError::custom(format!(
-                            "got a resolvable {} with value {ident}, which isn't in our registry",
-                            Self::NAME
-                        ))
-                    })?;
-                Ok(Self::new_raw(id))
-            }
-            fn from_resolvable_id(id: u32) -> Self {
-                Self::new_raw(id)
-            }
-        }
-
-        impl<O: azalea_codec::Ops> azalea_codec::Codec<O> for $registry {
-            fn codec_read(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
-                ops.get_resolvable_item::<Self>(ctx)
-            }
-            fn codec_write(&self, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::WriteResult<O> {
-                O::create_resolvable_item(ctx, self)
-            }
-        }
-
         $(#[$enum_attrs])*
-        #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-        pub enum $enum_name<Other = Identifier> {
+        #[derive(Clone, Debug, Eq, Ord, PartialOrd, Hash, PartialEq)]
+        pub enum $enum_name {
             $(
                 $(#[$variant_attrs])*
                 $variant
             ),*,
-            Other(Other)
+            // boxed to reduce the size of the enum in the common case
+            Other(Box<Identifier>)
         }
         impl $enum_name {
             /// A static slice containing all known variants of this registry
@@ -97,78 +35,73 @@ macro_rules! data_registry {
                 ),*
             ];
         }
-        impl<'a> From<&'a Identifier> for $enum_name<&'a Identifier> {
-            fn from(ident: &'a Identifier) -> Self {
-                if ident.namespace() != "minecraft" { return Self::Other(ident) }
+
+        impl crate::Registry for $enum_name {
+            const NAME: &'static str = $registry_name;
+            fn from_id(ctx: azalea_buf::Ctx, id: u32) -> Result<Self, azalea_buf::BufReadError> {
+                crate::data_registry::protocol_id_to_registry(ctx, id)
+            }
+            fn to_id(&self, ctx: azalea_buf::Ctx) -> std::io::Result<u32> {
+                crate::data_registry::registry_to_protocol_id(self, ctx)
+            }
+        }
+        impl AzBuf for $enum_name {
+            fn azalea_read(
+                ctx: azalea_buf::Ctx,
+                buf: &mut std::io::Cursor<&[u8]>,
+            ) -> Result<Self, azalea_buf::BufReadError> {
+                let id = u32::azalea_read_var(ctx, buf)?;
+                crate::Registry::from_id(ctx, id)
+            }
+
+            fn azalea_write(
+                &self,
+                ctx: azalea_buf::Ctx,
+                buf: &mut impl std::io::prelude::Write,
+            ) -> std::io::Result<()> {
+                let id = crate::Registry::to_id(self, ctx)?;
+                id.azalea_write_var(ctx, buf)
+            }
+        }
+
+        impl From<Identifier> for $enum_name {
+            fn from(ident: Identifier) -> Self {
+                if ident.namespace() != "minecraft" {
+                    return Self::Other(Box::new(ident));
+                }
                 match ident.path() {
                     $(
                         $variant_name => Self::$variant
                     ),*,
-                    _ => Self::Other(ident)
+                    _ => Self::Other(Box::new(ident))
                 }
-            }
-        }
-        impl crate::DataRegistryKey for $enum_name {
-            type Borrow<'a> = $enum_name<&'a Identifier>;
-
-            fn from_ident(ident: Identifier) -> Self {
-                Self::from(ident)
-            }
-            fn into_ident(self) -> Identifier {
-                match self {
-                    $(
-                        Self::$variant => Identifier::new($variant_name)
-                    ),*,
-                    Self::Other(ident) => ident.clone()
-                }
-            }
-        }
-        impl<'a> crate::DataRegistryKeyRef<'a> for $enum_name<&'a Identifier> {
-            type Owned = $enum_name;
-
-            fn to_owned(self) -> Self::Owned {
-                match self {
-                    $( Self::$variant => $enum_name::$variant ),*,
-                    Self::Other(ident) => $enum_name::Other(ident.clone()),
-                }
-            }
-            fn from_ident(ident: &'a Identifier) -> Self {
-                Self::from(ident)
-            }
-            fn into_ident(self) -> Identifier {
-                crate::DataRegistryKey::into_ident(self.to_owned())
-            }
-        }
-        impl From<Identifier> for $enum_name {
-            fn from(ident: Identifier) -> Self {
-                crate::DataRegistryKeyRef::to_owned(<$enum_name<&Identifier>>::from(&ident))
             }
         }
         impl From<$enum_name> for Identifier {
             fn from(registry: $enum_name) -> Self {
-                crate::DataRegistryKey::into_ident(registry)
-            }
-        }
-        impl From<$enum_name<&'_ Identifier>> for Identifier {
-            fn from(registry: $enum_name<&'_ Identifier>) -> Self {
-                crate::DataRegistryKeyRef::into_ident(registry)
+                match registry {
+                    $(
+                        // TODO: would be nicer to use Identifier::const_new for this
+                        $enum_name::$variant => Identifier::new($variant_name)
+                    ),*,
+                    $enum_name::Other(ident) => *ident
+                }
             }
         }
 
         impl<O: azalea_codec::Ops> azalea_codec::Codec<O> for $enum_name {
-            fn codec_read(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
-                Identifier::codec_read(ops, ctx).map(Self::from)
+            fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
+                Identifier::codec_read(ops).map(Self::from)
             }
-            fn codec_write(&self, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::WriteResult<O> {
-                Identifier::from(self.clone()).codec_write(ctx)
+            fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
+                Identifier::from(self.clone()).codec_write()
             }
         }
     };
 }
 
 data_registry! {
-Enchantment => "enchantment",
-enum EnchantmentKey {
+enum Enchantment => "enchantment" {
     AquaAffinity => "aqua_affinity",
     BaneOfArthropods => "bane_of_arthropods",
     BindingCurse => "binding_curse",
@@ -215,26 +148,8 @@ enum EnchantmentKey {
 }
 }
 
-// these extra traits are required for Biome to be allowed to be palletable
-impl Default for Biome {
-    fn default() -> Self {
-        Self::new_raw(0)
-    }
-}
-impl From<u32> for Biome {
-    fn from(id: u32) -> Self {
-        Self::new_raw(id)
-    }
-}
-impl From<Biome> for u32 {
-    fn from(biome: Biome) -> Self {
-        biome.protocol_id()
-    }
-}
-
 data_registry! {
-DimensionKind => "dimension_type",
-enum DimensionKindKey {
+enum DimensionKind => "dimension_type" {
     Overworld => "overworld",
     OverworldCaves => "overworld_caves",
     TheEnd => "the_end",
@@ -243,8 +158,7 @@ enum DimensionKindKey {
 }
 
 data_registry! {
-ChatKind => "chat_type",
-enum ChatKindKey {
+enum ChatKind => "chat_type" {
     Chat => "chat",
     EmoteCommand => "emote_command",
     MsgCommandIncoming => "msg_command_incoming",
@@ -254,23 +168,23 @@ enum ChatKindKey {
     TeamMsgCommandOutgoing => "team_msg_command_outgoing",
 }
 }
-impl<O> ChatKindKey<O> {
+impl ChatKind {
     #[must_use]
-    pub fn chat_translation_key(self) -> &'static str {
+    pub fn chat_translation_key(&self) -> &'static str {
         match self {
             Self::Chat => "chat.type.text",
-            Self::SayCommand => "chat.type.announcement",
+            Self::EmoteCommand => "chat.type.emote",
             Self::MsgCommandIncoming => "commands.message.display.incoming",
             Self::MsgCommandOutgoing => "commands.message.display.outgoing",
+            Self::SayCommand => "chat.type.announcement",
             Self::TeamMsgCommandIncoming => "chat.type.team.text",
             Self::TeamMsgCommandOutgoing => "chat.type.team.sent",
-            Self::EmoteCommand => "chat.type.emote",
             Self::Other(_) => "",
         }
     }
 
     #[must_use]
-    pub fn narrator_translation_key(self) -> &'static str {
+    pub fn narrator_translation_key(&self) -> &'static str {
         match self {
             Self::EmoteCommand => "chat.type.emote",
             _ => "chat.type.text.narrate",
@@ -279,8 +193,7 @@ impl<O> ChatKindKey<O> {
 }
 
 data_registry! {
-TrimPattern => "trim_pattern",
-enum TrimPatternKey {
+enum TrimPattern => "trim_pattern" {
     Bolt => "bolt",
     Coast => "coast",
     Dune => "dune",
@@ -303,8 +216,7 @@ enum TrimPatternKey {
 }
 
 data_registry! {
-TrimMaterial => "trim_material",
-enum TrimMaterialKey {
+enum TrimMaterial => "trim_material" {
     Amethyst => "amethyst",
     Copper => "copper",
     Diamond => "diamond",
@@ -320,11 +232,12 @@ enum TrimMaterialKey {
 }
 
 data_registry! {
-WolfVariant => "wolf_variant",
-enum WolfVariantKey {
+#[derive(Default)]
+enum WolfVariant => "wolf_variant" {
     Ashen => "ashen",
     Black => "black",
     Chestnut => "chestnut",
+    #[default]
     Pale => "pale",
     Rusty => "rusty",
     Snowy => "snowy",
@@ -335,10 +248,11 @@ enum WolfVariantKey {
 }
 
 data_registry! {
-WolfSoundVariant => "wolf_sound_variant",
-enum WolfSoundVariantKey {
+#[derive(Default)]
+enum WolfSoundVariant => "wolf_sound_variant" {
     Angry => "angry",
     Big => "big",
+    #[default]
     Classic => "classic",
     Cute => "cute",
     Grumpy => "grumpy",
@@ -348,27 +262,30 @@ enum WolfSoundVariantKey {
 }
 
 data_registry! {
-PigVariant => "pig_variant",
-enum PigVariantKey {
+#[derive(Default)]
+enum PigVariant => "pig_variant" {
     Cold => "cold",
+    #[default]
     Temperate => "temperate",
     Warm => "warm",
 }
 }
 
 data_registry! {
-FrogVariant => "frog_variant",
-enum FrogVariantKey {
+#[derive(Default)]
+enum FrogVariant => "frog_variant" {
     Cold => "cold",
+    #[default]
     Temperate => "temperate",
     Warm => "warm",
 }
 }
 
 data_registry! {
-CatVariant => "cat_variant",
-enum CatVariantKey {
+#[derive(Default)]
+enum CatVariant => "cat_variant" {
     AllBlack => "all_black",
+    #[default]
     Black => "black",
     BritishShorthair => "british_shorthair",
     Calico => "calico",
@@ -383,34 +300,37 @@ enum CatVariantKey {
 }
 
 data_registry! {
-CowVariant => "cow_variant",
-enum CowVariantKey {
+#[derive(Default)]
+enum CowVariant => "cow_variant" {
     Cold => "cold",
+    #[default]
     Temperate => "temperate",
     Warm => "warm",
 }
 }
 
 data_registry! {
-ChickenVariant => "chicken_variant",
-enum ChickenVariantKey {
+#[derive(Default)]
+enum ChickenVariant => "chicken_variant" {
     Cold => "cold",
+    #[default]
     Temperate => "temperate",
     Warm => "warm",
 }
 }
 
 data_registry! {
-ZombieNautilusVariant => "zombie_nautilus_variant",
-enum ZombieNautilusVariantKey {
+#[derive(Default)]
+enum ZombieNautilusVariant => "zombie_nautilus_variant" {
+    #[default]
     Temperate => "temperate",
     Warm => "warm",
 }
 }
 
 data_registry! {
-PaintingVariant => "painting_variant",
-enum PaintingVariantKey {
+#[derive(Default)]
+enum PaintingVariant => "painting_variant" {
     Alban => "alban",
     Aztec => "aztec",
     Aztec2 => "aztec2",
@@ -435,6 +355,7 @@ enum PaintingVariantKey {
     Fire => "fire",
     Graham => "graham",
     Humble => "humble",
+    #[default]
     Kebab => "kebab",
     Lowmist => "lowmist",
     Match => "match",
@@ -466,8 +387,7 @@ enum PaintingVariantKey {
 }
 
 data_registry! {
-DamageKind => "damage_type",
-enum DamageKindKey {
+enum DamageKind => "damage_type" {
     Arrow => "arrow",
     BadRespawnPoint => "bad_respawn_point",
     Cactus => "cactus",
@@ -523,8 +443,7 @@ enum DamageKindKey {
 }
 
 data_registry! {
-EnchantmentProvider => "enchantment_provider",
-enum EnchantmentProviderKey {
+enum EnchantmentProvider => "enchantment_provider" {
     EndermanLootDrop => "enderman_loot_drop",
     MobSpawnEquipment => "mob_spawn_equipment",
     PillagerSpawnCrossbow => "pillager_spawn_crossbow",
@@ -532,8 +451,7 @@ enum EnchantmentProviderKey {
 }
 
 data_registry! {
-JukeboxSong => "jukebox_song",
-enum JukeboxSongKey {
+enum JukeboxSong => "jukebox_song" {
     _11 => "11",
     _13 => "13",
     _5 => "5",
@@ -560,8 +478,7 @@ enum JukeboxSongKey {
 }
 
 data_registry! {
-Instrument => "instrument",
-enum InstrumentKey {
+enum Instrument => "instrument" {
     AdmireGoatHorn => "admire_goat_horn",
     CallGoatHorn => "call_goat_horn",
     DreamGoatHorn => "dream_goat_horn",
@@ -574,22 +491,19 @@ enum InstrumentKey {
 }
 
 data_registry! {
-TestEnvironment => "test_environment",
-enum TestEnvironmentKey {
+enum TestEnvironment => "test_environment" {
     Default => "default",
 }
 }
 
 data_registry! {
-TestInstance => "test_instance",
-enum TestInstanceKey {
+enum TestInstance => "test_instance" {
     AlwaysPass => "always_pass",
 }
 }
 
 data_registry! {
-Dialog => "dialog",
-enum DialogKey {
+enum Dialog => "dialog" {
     CustomOptions => "custom_options",
     QuickActions => "quick_actions",
     ServerLinks => "server_links",
@@ -597,8 +511,7 @@ enum DialogKey {
 }
 
 data_registry! {
-Timeline => "timeline",
-enum TimelineKey {
+enum Timeline => "timeline" {
     Day => "day",
     EarlyGame => "early_game",
     Moon => "moon",
@@ -607,8 +520,7 @@ enum TimelineKey {
 }
 
 data_registry! {
-Recipe => "recipe",
-enum RecipeKey {
+enum Recipe => "recipe" {
     AcaciaBoat => "acacia_boat",
     AcaciaButton => "acacia_button",
     AcaciaChestBoat => "acacia_chest_boat",
@@ -2380,8 +2292,7 @@ data_registry! {
 ///
 /// You'll probably want to resolve this into its name before using it, by
 /// using `Client::with_resolved_registry` or a similar function.
-Biome => "worldgen/biome",
-enum BiomeKey {
+enum Biome => "worldgen/biome" {
     Badlands => "badlands",
     BambooJungle => "bamboo_jungle",
     BasaltDeltas => "basalt_deltas",
@@ -2453,9 +2364,8 @@ enum BiomeKey {
 }
 
 data_registry! {
-WorldClock => "world_clock",
 #[derive(Default)]
-enum WorldClockKey {
+enum WorldClock => "world_clock" {
     #[default]
     Overworld => "overworld",
     TheEnd => "the_end",
@@ -2463,41 +2373,44 @@ enum WorldClockKey {
 }
 
 data_registry! {
-PigSoundVariant => "pig_sound_variant",
-enum PigSoundVariantKey {
+#[derive(Default)]
+enum PigSoundVariant => "pig_sound_variant" {
     Big => "big",
+    #[default]
     Classic => "classic",
     Mini => "mini",
 }
 }
 
 data_registry! {
-CatSoundVariant => "cat_sound_variant",
-enum CatSoundVariantKey {
+#[derive(Default)]
+enum CatSoundVariant => "cat_sound_variant" {
+    #[default]
     Classic => "classic",
     Royal => "royal",
 }
 }
 
 data_registry! {
-CowSoundVariant => "cow_sound_variant",
-enum CowSoundVariantKey {
+#[derive(Default)]
+enum CowSoundVariant => "cow_sound_variant" {
+    #[default]
     Classic => "classic",
     Moody => "moody",
 }
 }
 
 data_registry! {
-ChickenSoundVariant => "chicken_sound_variant",
-enum ChickenSoundVariantKey {
+#[derive(Default)]
+enum ChickenSoundVariant => "chicken_sound_variant" {
+    #[default]
     Classic => "classic",
     Picky => "picky",
 }
 }
 
 data_registry! {
-BannerPatternKind => "banner_pattern",
-enum BannerPatternKindKey {
+enum BannerPatternKind => "banner_pattern" {
     Base => "base",
     Border => "border",
     Bricks => "bricks",
@@ -2545,8 +2458,7 @@ enum BannerPatternKindKey {
 }
 
 data_registry! {
-SulfurCubeArchetype => "sulfur_cube_archetype",
-enum SulfurCubeArchetypeKey {
+enum SulfurCubeArchetype => "sulfur_cube_archetype" {
     Bouncy => "bouncy",
     Explosive => "explosive",
     FastFlat => "fast_flat",
@@ -2563,8 +2475,7 @@ enum SulfurCubeArchetypeKey {
 }
 
 data_registry! {
-DecoratedPotPattern => "decorated_pot_pattern",
-enum DecoratedPotPatternKey {
+enum DecoratedPotPattern => "decorated_pot_pattern" {
     Angler => "angler",
     Archer => "archer",
     ArmsUp => "arms_up",
@@ -2592,8 +2503,7 @@ enum DecoratedPotPatternKey {
 }
 
 data_registry! {
-BlockTransformer => "block_transformer",
-enum BlockTransformerKey {
+enum BlockTransformer => "block_transformer" {
     Axe => "axe",
     Hoe => "hoe",
     Shovel => "shovel",

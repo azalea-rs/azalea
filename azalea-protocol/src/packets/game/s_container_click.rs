@@ -4,7 +4,6 @@ use azalea_protocol_macros::ServerboundGamePacket;
 use azalea_registry::{
     builtin::{DataComponentKind, ItemKind},
     item::{ItemStack, checksum::Checksum},
-    registry_holder::RegistryHolder,
 };
 use indexmap::IndexMap;
 
@@ -51,7 +50,7 @@ impl HashedStack {
     ///
     /// The [`RegistryHolder`] is required as some components will hash
     /// differently based on the server's registries.
-    pub fn from_item_stack(item: &ItemStack, registries: &RegistryHolder) -> Self {
+    pub fn from_item_stack(item: &ItemStack) -> Self {
         let ItemStack::Present(item) = item else {
             return HashedStack(None);
         };
@@ -61,7 +60,7 @@ impl HashedStack {
 
         for (&kind, data) in item.component_patch.iter() {
             if let Some(data) = data {
-                let checksum = data.checksum(registries);
+                let checksum = data.checksum();
                 added_components.push((kind, checksum));
             } else {
                 removed_components.push(kind);

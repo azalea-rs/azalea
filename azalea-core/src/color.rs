@@ -7,10 +7,7 @@ use crate::position::Vec3f32;
 pub struct RgbColor {
     value: u32,
 }
-mod rgb_color_codec {
-    use super::*;
-    azalea_codec::impl_codec_from!(RgbColor, SerializableRgbColor);
-}
+azalea_codec::impl_codec_from!(RgbColor, SerializableRgbColor, struct IncompleteRgbColor);
 
 impl RgbColor {
     pub const BLACK: Self = Self { value: 0 };
@@ -41,10 +38,7 @@ impl RgbColor {
 pub struct ArgbColor {
     value: u32,
 }
-mod argb_color_codec {
-    use super::*;
-    azalea_codec::impl_codec_from!(ArgbColor, SerializableRgbColor);
-}
+azalea_codec::impl_codec_from!(ArgbColor, SerializableRgbColor, struct IncompleteArgbColor);
 
 impl ArgbColor {
     pub fn new(a: u8, r: u8, g: u8, b: u8) -> Self {

@@ -1,6 +1,8 @@
 from lib.utils import get_dir_location, identifier_to_path, to_camel_case
 
-BUILTIN_REGISTRIES_DIR = get_dir_location("../azalea-registry/src/builtin.rs")
+BUILTIN_REGISTRIES_DIR = get_dir_location(
+    "../azalea-registry/azalea-registry-builtin/src/builtin.rs"
+)
 DATA_REGISTRIES_DIR = get_dir_location("../azalea-registry/src/data.rs")
 
 
@@ -10,19 +12,20 @@ def generate_builtin_registries(registries: dict):
 
     existing_registry_enum_names = set()
 
-    for registry_name, registry in registries.items():
+    for registry_name_ident, registry in registries.items():
         # registry!(BlockKind, {
         #     Air => "minecraft:air",
         #     Stone => "minecraft:stone"
         # });
 
-        registry_name = identifier_to_path(registry_name)
-        registry_enum_name = registry_name_to_enum_name(registry_name)
+        registry_enum_name = registry_name_to_enum_name(
+            identifier_to_path(registry_name_ident)
+        )
 
         existing_registry_enum_names.add(registry_enum_name)
 
         registry_code = []
-        registry_code.append(f"enum {registry_enum_name} {{")
+        registry_code.append(f'enum {registry_enum_name} => "{registry_name_ident}" {{')
         registry_entries = sorted(
             registry["entries"].items(), key=lambda x: x[1]["protocol_id"]
         )
@@ -79,20 +82,22 @@ def generate_data_registries(data_registries: dict):
     with open(DATA_REGISTRIES_DIR, "r") as f:
         code = f.read().split("\n")
 
-    existing_registry_struct_names = set()
+    existing_registry_enum_names = set()
     for registry_name, registry_entries in data_registries.items():
         registry_enum_name = registry_name_to_enum_name(registry_name.split("/")[-1])
-        existing_registry_struct_names.add(registry_enum_name)
+        existing_registry_enum_names.add(registry_enum_name)
 
     # delete the unused data registries
     i = 0
     while i < len(code):
         if code[i] == "data_registry! {":
-            i += 1
-            struct_name = code[i].split(" ")[0]
-            if struct_name not in existing_registry_struct_names:
-                print("removing data registry", struct_name)
-                i -= 1
+            start_idx = i
+            while not code[i].startswith("enum "):
+                i += 1
+            enum_name = code[i].split(" ")[1]
+            if enum_name not in existing_registry_enum_names:
+                print("removing data registry:", enum_name)
+                i = start_idx
                 while code[i] != "}":
                     code.pop(i)
                 code.pop(i)
@@ -103,8 +108,7 @@ def generate_data_registries(data_registries: dict):
 
     for registry_name, registry_entries in data_registries.items():
         # data_registry! {
-        #     Enchantment => "enchantment",
-        #     enum EnchantmentKey {
+        #     enum Enchantment => "enchantment" {
         #         AquaAffinity => "minecraft:aqua_affinity",
         #     }
         # }
@@ -112,8 +116,7 @@ def generate_data_registries(data_registries: dict):
         registry_enum_name = registry_name_to_enum_name(registry_name.split("/")[-1])
 
         registry_code = []
-        registry_code.append(f'{registry_enum_name} => "{registry_name}",')
-        registry_code.append(f"enum {registry_enum_name}Key {{")
+        registry_code.append(f'enum {registry_enum_name} => "{registry_name}" {{')
         registry_entries.sort()
         for variant_name in registry_entries:
             variant_struct_name = to_camel_case(identifier_to_path(variant_name))
@@ -124,17 +127,29 @@ def generate_data_registries(data_registries: dict):
         # with "enum <name>" and replace that until we find a line that's "}"
         found = False
         in_registry_macro = False
+
+        expected_variant_names = registry_entries
+        found_variant_names = []
+
         for i, line in enumerate(list(code)):
             if not in_registry_macro and line == "data_registry! {":
                 in_registry_macro = True
-            elif in_registry_macro and line == registry_code[1]:
+            elif in_registry_macro and line == registry_code[0]:
                 # found it, now delete until we get to "}"
-                while code[i] != "}":
-                    code.pop(i)
-                code[i] = "\n".join(registry_code[1:])
                 found = True
+                start_i = i
+                while code[i] != "}":
+                    i += 1
+                    if '"' in code[i]:
+                        found_variant_names.append(code[i].split('"')[1])
+                if expected_variant_names != found_variant_names:
+                    i = start_i
+                    while code[i] != "}":
+                        code.pop(i)
+                    code[i] = "\n".join(registry_code)
                 break
         if not found:
+            print("new data registry:", registry_name)
             code.append("data_registry! {")
             code.append("\n".join(registry_code))
             code.append("}")

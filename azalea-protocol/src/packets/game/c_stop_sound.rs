@@ -28,7 +28,7 @@ impl AzBuf for ClientboundStopSound {
 
         Ok(Self { source, name })
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
         let mut set = FixedBitSet::<2>::new();
         if self.source.is_some() {
             set.set(0);
@@ -36,12 +36,12 @@ impl AzBuf for ClientboundStopSound {
         if self.name.is_some() {
             set.set(1);
         }
-        set.azalea_write(buf)?;
+        set.azalea_write(ctx, buf)?;
         if let Some(source) = &self.source {
-            source.azalea_write(buf)?;
+            source.azalea_write(ctx, buf)?;
         }
         if let Some(name) = &self.name {
-            name.azalea_write(buf)?;
+            name.azalea_write(ctx, buf)?;
         }
         Ok(())
     }

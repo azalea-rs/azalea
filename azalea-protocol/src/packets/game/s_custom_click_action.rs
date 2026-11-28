@@ -12,8 +12,8 @@ pub struct ServerboundCustomClickAction {
 }
 
 impl AzBuf for ServerboundCustomClickAction {
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        self.id.azalea_write(buf)?;
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
+        self.id.azalea_write(ctx, buf)?;
 
         let mut payload_bytes = Vec::new();
         match &self.payload {
@@ -22,7 +22,7 @@ impl AzBuf for ServerboundCustomClickAction {
             }
             None => payload_bytes.push(0),
         }
-        payload_bytes.azalea_write(buf)?;
+        payload_bytes.azalea_write(ctx, buf)?;
 
         Ok(())
     }

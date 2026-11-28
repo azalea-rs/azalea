@@ -36,7 +36,10 @@ use tracing::{debug, error, info, trace};
 use super::packet::{
     config::ReceiveConfigPacketEvent, game::ReceiveGamePacketEvent, login::ReceiveLoginPacketEvent,
 };
-use crate::packet::{config, game, login};
+use crate::{
+    local_player::WorldHolder,
+    packet::{config, game, login},
+};
 
 pub struct ConnectionPlugin;
 impl Plugin for ConnectionPlugin {
@@ -47,7 +50,7 @@ impl Plugin for ConnectionPlugin {
 
 pub fn read_packets(ecs: &mut World) {
     let mut entity_and_conn_query = ecs.query::<(Entity, &mut RawConnection)>();
-    let mut conn_query = ecs.query::<&mut RawConnection>();
+    let mut conn_query = ecs.query::<(&mut RawConnection, Option<&WorldHolder>)>();
 
     let mut entities_handling_packets = Vec::new();
     let mut entities_with_injected_packets = Vec::new();
@@ -74,13 +77,26 @@ pub fn read_packets(ecs: &mut World) {
     // RawConnection::injected_clientbound_packets for more info
     for (entity, raw_packets) in entities_with_injected_packets {
         for raw_packet in raw_packets {
-            let conn = conn_query.get(ecs, entity).unwrap();
+            let (conn, world) = conn_query.get(ecs, entity).unwrap();
             let state = conn.state;
 
+            let shared_world = world.map(|w| w.shared.clone());
+
             trace!("Received injected packet with bytes: {raw_packet:?}");
-            if let Err(e) =
-                handle_raw_packet(ecs, &raw_packet, entity, state, &mut queued_packet_events)
-            {
+            if let Err(e) = handle_raw_packet(
+                ecs,
+                |cb| {
+                    if let Some(w) = &shared_world {
+                        cb(azalea_buf::Ctx::new(&w.read().registries));
+                    } else {
+                        cb(azalea_buf::Ctx::default());
+                    }
+                },
+                &raw_packet,
+                entity,
+                state,
+                &mut queued_packet_events,
+            ) {
                 error!("Error reading injected packet: {e}");
             }
         }
@@ -88,7 +104,10 @@ pub fn read_packets(ecs: &mut World) {
 
     for entity in entities_handling_packets {
         loop {
-            let mut conn = conn_query.get_mut(ecs, entity).unwrap();
+            let (mut conn, world) = conn_query.get_mut(ecs, entity).unwrap();
+
+            let shared_world = world.map(|w| w.shared.clone());
+
             let net_conn = conn.net_conn().unwrap();
             let read_res = net_conn.reader.try_read();
             let state = conn.state;
@@ -97,6 +116,14 @@ pub fn read_packets(ecs: &mut World) {
                     let raw_packet = Arc::<[u8]>::from(raw_packet);
                     if let Err(e) = handle_raw_packet(
                         ecs,
+                        |cb| {
+                            if let Some(shared_world) = &shared_world {
+                                let registries = &shared_world.read().registries;
+                                cb(azalea_buf::Ctx::new(registries));
+                            } else {
+                                cb(azalea_buf::Ctx::default());
+                            }
+                        },
                         &raw_packet,
                         entity,
                         state,
@@ -117,8 +144,9 @@ pub fn read_packets(ecs: &mut World) {
                         }
 
                         static PANIC_ON_PACKET_ERROR: LazyLock<bool> = LazyLock::new(|| {
-                            // this is also mentioned in azalea's docs, if you
-                            // rename it, then don't forget to update that
+                            // this is also mentioned in azalea's docs, if
+                            // you rename it, then don't forget to update
+                            // that
                             env::var("AZALEA_PANIC_ON_PACKET_ERROR")
                                 .map(|s| s == "1" || s == "true")
                                 .unwrap_or(false)
@@ -268,10 +296,11 @@ impl RawConnection {
     /// [`SendLoginPacketEvent`]: crate::packet::login::SendLoginPacketEvent
     pub fn write<P: ProtocolPacket + Debug>(
         &mut self,
+        ctx: azalea_buf::Ctx,
         packet: impl Packet<P>,
     ) -> Result<(), WritePacketError> {
         if let Some(network) = &mut self.network {
-            network.write(packet)?;
+            network.write(ctx, packet)?;
         } else {
             static WARNED: AtomicBool = AtomicBool::new(false);
             if !WARNED.swap(true, atomic::Ordering::Relaxed) {
@@ -290,6 +319,7 @@ impl RawConnection {
 
 pub fn handle_raw_packet(
     ecs: &mut World,
+    with_ctx: impl Fn(&mut dyn FnMut(azalea_buf::Ctx<'_>)),
     raw_packet: &[u8],
     entity: Entity,
     state: ConnectionProtocol,
@@ -301,7 +331,13 @@ pub fn handle_raw_packet(
             unreachable!()
         }
         ConnectionProtocol::Game => {
-            let packet = Arc::new(deserialize_packet::<ClientboundGamePacket>(stream)?);
+            // this error shouldn't actually get used if with_ctx is correct. i
+            // would've liked to make this implementation cleaner but i'm not
+            // sure how.
+            let mut c = Err(ReadPacketError::ConnectionClosed.into());
+            with_ctx(&mut |ctx| c = deserialize_packet::<ClientboundGamePacket>(ctx, stream));
+            let packet = Arc::new(c?);
+
             trace!("Packet: {packet:?}");
             game::process_packet(ecs, entity, packet.as_ref());
             queued_packet_events
@@ -312,7 +348,10 @@ pub fn handle_raw_packet(
             unreachable!()
         }
         ConnectionProtocol::Login => {
-            let packet = Arc::new(deserialize_packet::<ClientboundLoginPacket>(stream)?);
+            let mut c = Err(ReadPacketError::ConnectionClosed.into());
+            with_ctx(&mut |ctx| c = deserialize_packet::<ClientboundLoginPacket>(ctx, stream));
+            let packet = Arc::new(c?);
+
             trace!("Packet: {packet:?}");
             login::process_packet(ecs, entity, &packet);
             queued_packet_events
@@ -320,7 +359,10 @@ pub fn handle_raw_packet(
                 .push(ReceiveLoginPacketEvent { entity, packet });
         }
         ConnectionProtocol::Configuration => {
-            let packet = Arc::new(deserialize_packet::<ClientboundConfigPacket>(stream)?);
+            let mut c = Err(ReadPacketError::ConnectionClosed.into());
+            with_ctx(&mut |ctx| c = deserialize_packet::<ClientboundConfigPacket>(ctx, stream));
+            let packet = Arc::new(c?);
+
             trace!("Packet: {packet:?}");
             config::process_packet(ecs, entity, &packet);
             queued_packet_events
@@ -347,17 +389,23 @@ pub struct NetworkConnection {
 impl NetworkConnection {
     pub fn write<P: ProtocolPacket + Debug>(
         &mut self,
+        ctx: azalea_buf::Ctx,
         packet: impl Packet<P>,
     ) -> Result<(), WritePacketError> {
         let packet = packet.into_variant();
-        let raw_packet = serialize_packet(&packet)?;
-        self.write_raw(&raw_packet)?;
+        let raw_packet = serialize_packet(ctx, &packet)?;
+        self.write_raw(ctx, &raw_packet)?;
 
         Ok(())
     }
 
-    pub fn write_raw(&mut self, raw_packet: &[u8]) -> Result<(), WritePacketError> {
+    pub fn write_raw(
+        &mut self,
+        ctx: azalea_buf::Ctx,
+        raw_packet: &[u8],
+    ) -> Result<(), WritePacketError> {
         let network_packet = azalea_protocol::write::encode_to_network_packet(
+            ctx,
             raw_packet,
             self.reader.compression_threshold,
             &mut self.enc_cipher,

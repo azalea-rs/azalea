@@ -2,6 +2,7 @@
 #![feature(min_specialization)]
 // this is necessary for thiserror backtraces
 
+mod ctx;
 mod definitions;
 pub mod impls;
 #[doc(hidden)]
@@ -9,6 +10,7 @@ pub mod internal;
 mod serializable_uuid;
 
 pub use azalea_buf_macros::*;
+pub use ctx::{Ctx, ResolverTrait};
 pub use definitions::*;
 pub use impls::*;
 pub use serializable_uuid::*;
@@ -16,26 +18,6 @@ pub use serializable_uuid::*;
 // const DEFAULT_NBT_QUOTA: u32 = 2097152;
 const MAX_STRING_LENGTH: u32 = 32767;
 // const MAX_COMPONENT_STRING_LENGTH: u32 = 262144;
-
-#[derive(Default, Clone, Copy)]
-pub struct Ctx {
-    depth: u32,
-}
-impl Ctx {
-    /// Increment the depth counter, or error if it exceeds the limit.
-    ///
-    /// This exists to prevent exploits that make us crash by exhausting our
-    /// stack space. The `AzBuf` macro adds this whenever [`Ctx`] is used,
-    /// though if you know that recursion isn't possible with a type then it's
-    /// not strictly necessary.
-    pub fn inc_depth(mut self) -> Result<Self, BufReadError> {
-        if self.depth > 255 {
-            return Err(BufReadErrorRepr::DepthLimitExceeded.into());
-        }
-        self.depth += 1;
-        Ok(self)
-    }
-}
 
 #[cfg(test)]
 mod tests {
@@ -45,9 +27,11 @@ mod tests {
 
     #[test]
     fn test_boxed_bytes() {
+        let ctx = Default::default();
+
         let data: Box<[u8]> = (0..=255u8).cycle().take(3000).collect();
         let mut buf = Vec::new();
-        data.azalea_write(&mut buf).unwrap();
+        data.azalea_write(ctx, &mut buf).unwrap();
 
         let ctx = Ctx::default();
 
@@ -61,48 +45,50 @@ mod tests {
 
     #[test]
     fn test_write_varint() {
+        let ctx = Default::default();
+
         let mut buf = Vec::new();
-        0.azalea_write_var(&mut buf).unwrap();
+        0.azalea_write_var(ctx, &mut buf).unwrap();
         assert_eq!(buf, vec![0]);
 
         let mut buf = Vec::new();
-        1.azalea_write_var(&mut buf).unwrap();
+        1.azalea_write_var(ctx, &mut buf).unwrap();
         assert_eq!(buf, vec![1]);
 
         let mut buf = Vec::new();
-        2.azalea_write_var(&mut buf).unwrap();
+        2.azalea_write_var(ctx, &mut buf).unwrap();
         assert_eq!(buf, vec![2]);
 
         let mut buf = Vec::new();
-        127.azalea_write_var(&mut buf).unwrap();
+        127.azalea_write_var(ctx, &mut buf).unwrap();
         assert_eq!(buf, vec![127]);
 
         let mut buf = Vec::new();
-        128.azalea_write_var(&mut buf).unwrap();
+        128.azalea_write_var(ctx, &mut buf).unwrap();
         assert_eq!(buf, vec![128, 1]);
 
         let mut buf = Vec::new();
-        255.azalea_write_var(&mut buf).unwrap();
+        255.azalea_write_var(ctx, &mut buf).unwrap();
         assert_eq!(buf, vec![255, 1]);
 
         let mut buf = Vec::new();
-        25565.azalea_write_var(&mut buf).unwrap();
+        25565.azalea_write_var(ctx, &mut buf).unwrap();
         assert_eq!(buf, vec![221, 199, 1]);
 
         let mut buf = Vec::new();
-        2097151.azalea_write_var(&mut buf).unwrap();
+        2097151.azalea_write_var(ctx, &mut buf).unwrap();
         assert_eq!(buf, vec![255, 255, 127]);
 
         let mut buf = Vec::new();
-        2147483647.azalea_write_var(&mut buf).unwrap();
+        2147483647.azalea_write_var(ctx, &mut buf).unwrap();
         assert_eq!(buf, vec![255, 255, 255, 255, 7]);
 
         let mut buf = Vec::new();
-        (-1).azalea_write_var(&mut buf).unwrap();
+        (-1).azalea_write_var(ctx, &mut buf).unwrap();
         assert_eq!(buf, vec![255, 255, 255, 255, 15]);
 
         let mut buf = Vec::new();
-        (-2147483648).azalea_write_var(&mut buf).unwrap();
+        (-2147483648).azalea_write_var(ctx, &mut buf).unwrap();
         assert_eq!(buf, vec![128, 128, 128, 128, 8]);
     }
 
@@ -209,25 +195,31 @@ mod tests {
 
     #[test]
     fn test_write_varlong() {
+        let ctx = Default::default();
+
         let mut buf = Vec::new();
-        0u64.azalea_write_var(&mut buf).unwrap();
+        0u64.azalea_write_var(ctx, &mut buf).unwrap();
         assert_eq!(buf, vec![0]);
 
         let mut buf = Vec::new();
-        1u64.azalea_write_var(&mut buf).unwrap();
+        1u64.azalea_write_var(ctx, &mut buf).unwrap();
         assert_eq!(buf, vec![1]);
 
         let mut buf = Vec::new();
-        9223372036854775807u64.azalea_write_var(&mut buf).unwrap();
+        9223372036854775807u64
+            .azalea_write_var(ctx, &mut buf)
+            .unwrap();
         assert_eq!(buf, vec![255, 255, 255, 255, 255, 255, 255, 255, 127]);
     }
 
     #[test]
     fn test_list() {
+        let ctx = Default::default();
+
         let original_vec = vec!["a".to_owned(), "bc".to_owned(), "def".to_owned()];
 
         let mut buf = Vec::new();
-        original_vec.azalea_write(&mut buf).unwrap();
+        original_vec.azalea_write(ctx, &mut buf).unwrap();
 
         dbg!(&buf);
 
@@ -238,8 +230,10 @@ mod tests {
 
     #[test]
     fn test_int_id_list() {
+        let ctx = Default::default();
+
         let mut buf = Vec::new();
-        vec![1, 2, 3].azalea_write_var(&mut buf).unwrap();
+        vec![1, 2, 3].azalea_write_var(ctx, &mut buf).unwrap();
 
         let result =
             Vec::<i32>::azalea_read_var(Default::default(), &mut Cursor::new(&buf)).unwrap();
@@ -248,13 +242,15 @@ mod tests {
 
     #[test]
     fn test_map() {
+        let ctx = Default::default();
+
         let original_map = HashMap::from([
             ("a".to_owned(), 1),
             ("bc".to_owned(), 23),
             ("def".to_owned(), 456),
         ]);
         let mut buf = Vec::new();
-        original_map.azalea_write_var(&mut buf).unwrap();
+        original_map.azalea_write_var(ctx, &mut buf).unwrap();
 
         let result =
             HashMap::<String, i32>::azalea_read_var(Default::default(), &mut Cursor::new(&buf))
@@ -265,8 +261,10 @@ mod tests {
 
     #[test]
     fn test_long() {
+        let ctx = Default::default();
+
         let mut buf: Vec<u8> = Vec::new();
-        123456u64.azalea_write(&mut buf).unwrap();
+        123456u64.azalea_write(ctx, &mut buf).unwrap();
 
         assert_eq!(
             u64::azalea_read(Default::default(), &mut Cursor::new(&buf)).unwrap(),

@@ -47,13 +47,13 @@ impl AzBuf for ClientboundStatusResponse {
     fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let string = String::azalea_read(ctx, buf)?;
         let mut string = string.into_bytes();
-        let json = simd_json::from_slice::<serde_json::Value>(&mut string)?;
+        let json = simd_json::from_slice::<simd_json::OwnedValue>(&mut string)?;
 
-        Ok(Self::codec_read(&json, Default::default())?)
+        Ok(Self::codec_read(&json)?)
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        let json: simd_json::OwnedValue = Self::codec_write(self, Default::default()).unwrap();
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
+        let json: simd_json::OwnedValue = Self::codec_write(self).unwrap();
         let string = simd_json::to_string(&json)?;
-        string.azalea_write(buf)
+        string.azalea_write(ctx, buf)
     }
 }

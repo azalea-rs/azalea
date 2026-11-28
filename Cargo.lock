@@ -614,6 +614,7 @@ dependencies = [
  "azalea-registry-macros",
  "crc32c",
  "indexmap",
+ "simd-json",
  "simdnbt",
  "thiserror 2.0.21",
  "tracing",

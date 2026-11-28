@@ -13,7 +13,7 @@ fn test_receive_spawn_entity_and_start_config_packet() {
     let _lock = init();
 
     let mut simulation = Simulation::new(ConnectionProtocol::Game);
-    simulation.receive_packet(default_login_packet(&simulation));
+    simulation.receive_packet(default_login_packet());
     simulation.tick();
     assert!(simulation.has_component::<WorldName>());
     simulation.tick();

@@ -60,7 +60,7 @@ impl<T: AzBuf> AzBuf for BrigadierNumber<T> {
         };
         Ok(BrigadierNumber { min, max })
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
         let mut flags = FixedBitSet::<2>::new();
         if self.min.is_some() {
             flags.set(0);
@@ -68,12 +68,12 @@ impl<T: AzBuf> AzBuf for BrigadierNumber<T> {
         if self.max.is_some() {
             flags.set(1);
         }
-        flags.azalea_write(buf)?;
+        flags.azalea_write(ctx, buf)?;
         if let Some(min) = &self.min {
-            min.azalea_write(buf)?;
+            min.azalea_write(ctx, buf)?;
         }
         if let Some(max) = &self.max {
-            max.azalea_write(buf)?;
+            max.azalea_write(ctx, buf)?;
         }
         Ok(())
     }
@@ -166,7 +166,7 @@ impl AzBuf for EntityParser {
             players_only: flags.index(1),
         })
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
         let mut flags = FixedBitSet::<2>::new();
         if self.single {
             flags.set(0);
@@ -174,7 +174,7 @@ impl AzBuf for EntityParser {
         if self.players_only {
             flags.set(1);
         }
-        flags.azalea_write(buf)?;
+        flags.azalea_write(ctx, buf)?;
         Ok(())
     }
 }
@@ -243,7 +243,7 @@ impl AzBuf for BrigadierNodeStub {
             })
         }
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
         let mut flags = FixedBitSet::<5>::new();
         if self.is_executable {
             flags.set(2);
@@ -254,25 +254,25 @@ impl AzBuf for BrigadierNodeStub {
 
         match &self.node_type {
             NodeType::Root => {
-                flags.azalea_write(buf)?;
+                flags.azalea_write(ctx, buf)?;
 
-                self.children.azalea_write_var(buf)?;
+                self.children.azalea_write_var(ctx, buf)?;
 
                 if let Some(redirect) = self.redirect_node {
-                    redirect.azalea_write_var(buf)?;
+                    redirect.azalea_write_var(ctx, buf)?;
                 }
             }
             NodeType::Literal { name } => {
                 flags.set(0);
-                flags.azalea_write(buf)?;
+                flags.azalea_write(ctx, buf)?;
 
-                self.children.azalea_write_var(buf)?;
+                self.children.azalea_write_var(ctx, buf)?;
 
                 if let Some(redirect) = self.redirect_node {
-                    redirect.azalea_write_var(buf)?;
+                    redirect.azalea_write_var(ctx, buf)?;
                 }
 
-                name.azalea_write(buf)?;
+                name.azalea_write(ctx, buf)?;
             }
             NodeType::Argument {
                 name,
@@ -283,19 +283,19 @@ impl AzBuf for BrigadierNodeStub {
                 if suggestions_type.is_some() {
                     flags.set(4);
                 }
-                flags.azalea_write(buf)?;
+                flags.azalea_write(ctx, buf)?;
 
-                self.children.azalea_write_var(buf)?;
+                self.children.azalea_write_var(ctx, buf)?;
 
                 if let Some(redirect) = self.redirect_node {
-                    redirect.azalea_write_var(buf)?;
+                    redirect.azalea_write_var(ctx, buf)?;
                 }
 
-                name.azalea_write(buf)?;
-                parser.azalea_write(buf)?;
+                name.azalea_write(ctx, buf)?;
+                parser.azalea_write(ctx, buf)?;
 
                 if let Some(suggestion) = suggestions_type {
-                    suggestion.azalea_write(buf)?;
+                    suggestion.azalea_write(ctx, buf)?;
                 }
             }
         }
@@ -340,7 +340,7 @@ mod tests {
             is_restricted: false,
         };
         let mut buf = Vec::new();
-        data.azalea_write(&mut buf).unwrap();
+        data.azalea_write(Default::default(), &mut buf).unwrap();
         let mut data_cursor: Cursor<&[u8]> = Cursor::new(&buf);
         let read_data =
             BrigadierNodeStub::azalea_read(Default::default(), &mut data_cursor).unwrap();
@@ -359,7 +359,7 @@ mod tests {
             is_restricted: false,
         };
         let mut buf = Vec::new();
-        data.azalea_write(&mut buf).unwrap();
+        data.azalea_write(Default::default(), &mut buf).unwrap();
         let mut data_cursor: Cursor<&[u8]> = Cursor::new(&buf);
         let read_data =
             BrigadierNodeStub::azalea_read(Default::default(), &mut data_cursor).unwrap();
@@ -380,7 +380,7 @@ mod tests {
             is_restricted: false,
         };
         let mut buf = Vec::new();
-        data.azalea_write(&mut buf).unwrap();
+        data.azalea_write(Default::default(), &mut buf).unwrap();
         let mut data_cursor: Cursor<&[u8]> = Cursor::new(&buf);
         let read_data =
             BrigadierNodeStub::azalea_read(Default::default(), &mut data_cursor).unwrap();

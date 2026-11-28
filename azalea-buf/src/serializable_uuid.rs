@@ -43,12 +43,12 @@ impl AzBuf for Uuid {
             u32::azalea_read(ctx, buf)?,
         ]))
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write(&self, ctx: crate::Ctx, buf: &mut impl Write) -> io::Result<()> {
         let [a, b, c, d] = self.to_int_array();
-        a.azalea_write(buf)?;
-        b.azalea_write(buf)?;
-        c.azalea_write(buf)?;
-        d.azalea_write(buf)?;
+        a.azalea_write(ctx, buf)?;
+        b.azalea_write(ctx, buf)?;
+        c.azalea_write(ctx, buf)?;
+        d.azalea_write(ctx, buf)?;
         Ok(())
     }
 }
@@ -74,9 +74,11 @@ mod tests {
 
     #[test]
     fn read_write() {
+        let ctx = Default::default();
+
         let u = Uuid::parse_str("6536bfed-8695-48fd-83a1-ecd24cf2a0fd").unwrap();
         let mut buf = Vec::new();
-        u.azalea_write(&mut buf).unwrap();
+        u.azalea_write(ctx, &mut buf).unwrap();
         println!("{buf:?}");
         assert_eq!(buf.len(), 16);
         let u2 = Uuid::azalea_read(Default::default(), &mut Cursor::new(&buf)).unwrap();

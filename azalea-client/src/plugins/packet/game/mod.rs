@@ -262,9 +262,7 @@ impl GamePacketHandler<'_> {
                 {
                     let client_registries = &world_holder.shared.read().registries;
 
-                    let Some((_dimension_type, dimension_data)) =
-                        p.common.dimension_type(client_registries)
-                    else {
+                    let Some(dimension_data) = p.common.dimension_data(client_registries) else {
                         return;
                     };
 
@@ -1410,9 +1408,7 @@ impl GamePacketHandler<'_> {
                 let weak_world;
                 {
                     let client_registries = &world_holder.shared.read().registries;
-                    let Some((_dimension_type, dimension_data)) =
-                        p.common.dimension_type(client_registries)
-                    else {
+                    let Some(dimension_data) = p.common.dimension_data(client_registries) else {
                         return;
                     };
 

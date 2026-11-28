@@ -108,7 +108,7 @@ impl AzBuf for RelativeMovements {
             rotate_delta: set.index(8),
         })
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
         let mut set = FixedBitSet::<32>::new();
         let mut set_bit = |index: usize, value: bool| {
             if value {
@@ -126,7 +126,7 @@ impl AzBuf for RelativeMovements {
         set_bit(7, self.delta_z);
         set_bit(8, self.rotate_delta);
 
-        set.azalea_write(buf)
+        set.azalea_write(ctx, buf)
     }
 }
 
@@ -145,7 +145,7 @@ impl AzBuf for MoveFlags {
             horizontal_collision,
         })
     }
-    fn azalea_write(&self, buf: &mut impl io::Write) -> io::Result<()> {
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl io::Write) -> io::Result<()> {
         let mut bitset = FixedBitSet::<8>::new();
         if self.on_ground {
             bitset.set(0);
@@ -153,7 +153,7 @@ impl AzBuf for MoveFlags {
         if self.horizontal_collision {
             bitset.set(1);
         }
-        bitset.azalea_write(buf)?;
+        bitset.azalea_write(ctx, buf)?;
         Ok(())
     }
 }

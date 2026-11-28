@@ -604,7 +604,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
 
                 // SAFETY: the table was constructed from trusted values, and
                 // we just checked that the highest one must be valid
-                unsafe { BlockKind::from_u32(TABLE[self.id() as usize]).unwrap_unchecked() }
+                unsafe { BlockKind::from_u32_unchecked(TABLE[self.id() as usize]) }
             }
         }
     };

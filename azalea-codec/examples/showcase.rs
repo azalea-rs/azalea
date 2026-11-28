@@ -42,7 +42,7 @@ fn main() {
             "unknown field!!!": "asdf"
         }]
     });
-    let formatted_text = FormattedText::codec_read(&json, Default::default()).unwrap();
+    let formatted_text = FormattedText::codec_read(&json).unwrap();
     assert_eq!(
         formatted_text,
         FormattedText::Text {
@@ -66,7 +66,7 @@ fn main() {
 
     // Writing NBT
     use simdnbt::owned::*;
-    let nbt: NbtTag = formatted_text.codec_write(Default::default()).unwrap();
+    let nbt: NbtTag = formatted_text.codec_write().unwrap();
     assert_eq!(
         nbt,
         NbtTag::Compound(NbtCompound::from_values(vec![

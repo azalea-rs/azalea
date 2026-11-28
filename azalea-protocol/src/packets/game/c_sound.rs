@@ -52,7 +52,7 @@ mod tests {
         assert_eq!(buf.position(), contents.len() as u64);
 
         let mut buf = Vec::new();
-        packet.write(&mut buf).unwrap();
+        packet.write(Default::default(), &mut buf).unwrap();
         assert_eq!(buf, contents);
     }
 }

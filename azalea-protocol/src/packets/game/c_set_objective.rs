@@ -55,28 +55,28 @@ impl AzBuf for Method {
             }),
         }
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
         match self {
             Method::Add {
                 display_name,
                 render_type,
                 number_format,
             } => {
-                MethodKind::Add.azalea_write(buf)?;
-                display_name.azalea_write(buf)?;
-                render_type.azalea_write(buf)?;
-                number_format.azalea_write(buf)?;
+                MethodKind::Add.azalea_write(ctx, buf)?;
+                display_name.azalea_write(ctx, buf)?;
+                render_type.azalea_write(ctx, buf)?;
+                number_format.azalea_write(ctx, buf)?;
             }
-            Method::Remove => MethodKind::Remove.azalea_write(buf)?,
+            Method::Remove => MethodKind::Remove.azalea_write(ctx, buf)?,
             Method::Change {
                 display_name,
                 render_type,
                 number_format,
             } => {
-                MethodKind::Change.azalea_write(buf)?;
-                display_name.azalea_write(buf)?;
-                render_type.azalea_write(buf)?;
-                number_format.azalea_write(buf)?;
+                MethodKind::Change.azalea_write(ctx, buf)?;
+                display_name.azalea_write(ctx, buf)?;
+                render_type.azalea_write(ctx, buf)?;
+                number_format.azalea_write(ctx, buf)?;
             }
         }
         Ok(())

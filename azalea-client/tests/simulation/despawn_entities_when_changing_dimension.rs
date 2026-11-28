@@ -2,7 +2,7 @@ use azalea_client::test_utils::prelude::*;
 use azalea_core::{identifier::Identifier, position::ChunkPos};
 use azalea_entity::metadata::Cow;
 use azalea_protocol::packets::{ConnectionProtocol, config::ClientboundFinishConfiguration};
-use azalea_registry::{builtin::EntityKind, data::DimensionKindKey};
+use azalea_registry::{builtin::EntityKind, data::DimensionKind};
 use bevy_ecs::query::With;
 
 #[test]
@@ -20,9 +20,8 @@ fn test_despawn_entities_when_changing_dimension() {
     //
 
     simulation.receive_packet(make_basic_login_packet(
-        DimensionKindKey::Overworld,
+        DimensionKind::Overworld,
         Identifier::new("azalea:a"),
-        &simulation,
     ));
     simulation.tick();
 
@@ -41,9 +40,8 @@ fn test_despawn_entities_when_changing_dimension() {
     //
 
     simulation.receive_packet(make_basic_respawn_packet(
-        DimensionKindKey::TheNether,
+        DimensionKind::TheNether,
         Identifier::new("azalea:b"),
-        &simulation,
     ));
     simulation.tick();
 

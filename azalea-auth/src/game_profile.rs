@@ -46,11 +46,9 @@ impl From<SerializableGameProfile> for GameProfile {
     }
 }
 #[cfg(feature = "azalea-codec")]
-mod game_profile_codec {
-    use super::*;
-    azalea_codec::impl_codec_from!(GameProfile, SerializableGameProfile);
-    azalea_codec::impl_mapcodec_from!(GameProfile, SerializableGameProfile);
-}
+azalea_codec::impl_codec_from!(GameProfile, SerializableGameProfile, struct IncompleteGameProfile);
+#[cfg(feature = "azalea-codec")]
+azalea_codec::impl_mapcodec_from!(GameProfile, SerializableGameProfile);
 
 /// The properties of the player, including their in-game skin and cape.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -78,22 +76,20 @@ impl AzBuf for GameProfileProperties {
         }
         Ok(GameProfileProperties { map: properties })
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        (self.map.len() as u64).azalea_write_var(buf)?;
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
+        (self.map.len() as u64).azalea_write_var(ctx, buf)?;
         for (key, value) in &self.map {
-            key.azalea_write(buf)?;
-            value.azalea_write(buf)?;
+            key.azalea_write(ctx, buf)?;
+            value.azalea_write(ctx, buf)?;
         }
         Ok(())
     }
 }
 
 #[cfg(feature = "azalea-codec")]
-mod game_profile_properties_codec {
-    use super::*;
-    azalea_codec::impl_codec_from!(GameProfileProperties, SerializableProfileProperties);
-    azalea_codec::impl_defaultable!(GameProfileProperties);
-}
+azalea_codec::impl_codec_from!(GameProfileProperties, SerializableProfileProperties, struct IncompleteGameProfileProperties);
+#[cfg(feature = "azalea-codec")]
+azalea_codec::impl_defaultable!(GameProfileProperties);
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ProfilePropertyValue {
@@ -109,9 +105,9 @@ impl AzBuf for ProfilePropertyValue {
         let signature = Option::<String>::azalea_read_limited(ctx, buf, 1024)?;
         Ok(ProfilePropertyValue { value, signature })
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        self.value.azalea_write(buf)?;
-        self.signature.azalea_write(buf)?;
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
+        self.value.azalea_write(ctx, buf)?;
+        self.signature.azalea_write(ctx, buf)?;
         Ok(())
     }
 }

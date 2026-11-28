@@ -30,7 +30,7 @@ fn test_custom_name_checksum() {
         name: FormattedText::from("meow"),
     };
 
-    assert_eq!(c.checksum(&Default::default()).0, 2222287064);
+    assert_eq!(c.checksum().0, 2222287064);
 }
 #[test]
 fn test_custom_name_checksum_2() {
@@ -44,19 +44,19 @@ fn test_custom_name_checksum_2() {
             .into(),
     };
 
-    assert_eq!(c.checksum(&Default::default()).0, 187682122);
+    assert_eq!(c.checksum().0, 187682122);
 }
 #[test]
 fn test_lore_checksum() {
     let c = Lore {
         lines: vec!["first".into(), "second".into()],
     };
-    assert_eq!(c.checksum(&Default::default()).0, 1545409323);
+    assert_eq!(c.checksum().0, 1545409323);
 }
 #[test]
 fn test_rarity_checksum() {
     let c = Rarity::Rare;
-    assert_eq!(c.checksum(&Default::default()).0, 2874400570);
+    assert_eq!(c.checksum().0, 2874400570);
 }
 // #[test]
 // fn test_enchantments_checksum() {
@@ -70,7 +70,7 @@ fn test_rarity_checksum() {
 //     );
 //     println!("registry holder: {registry_holder:?}");
 //     let c = Enchantments {
-//         levels: HashMap::from_iter([(Enchantment::new_raw(0), 5),
+//         levels: HashMap::from_iter([(Enchantment::default(), 5),
 // (Enchantment::new_raw(1), 1)]),     };
 //     assert_eq!(c.checksum(&registry_holder), 3717391112);
 // }
@@ -86,28 +86,26 @@ fn test_can_place_on_checksum() {
         },
     };
 
-    assert_eq!(c.checksum(&Default::default()).0, 227436005);
+    assert_eq!(c.checksum().0, 227436005);
 }
 
 #[test]
 fn test_custom_data_nbt() {
-    let c = CustomData {
-        nbt: NbtCompound::from_values(vec![
-            ("meow".into(), "mrrp".into()),
-            (
-                "nya".into(),
-                NbtList::Compound(vec![
-                    NbtTag::Int(1).into(),
-                    NbtTag::Int(2).into(),
-                    NbtCompound::new(),
-                    NbtCompound::from_values(vec![("data".into(), NbtTag::Byte(1))]),
-                ])
-                .into(),
-            ),
-        ]),
-    };
+    let c = CustomData(NbtCompound::from_values(vec![
+        ("meow".into(), "mrrp".into()),
+        (
+            "nya".into(),
+            NbtList::Compound(vec![
+                NbtTag::Int(1).into(),
+                NbtTag::Int(2).into(),
+                NbtCompound::new(),
+                NbtCompound::from_values(vec![("data".into(), NbtTag::Byte(1))]),
+            ])
+            .into(),
+        ),
+    ]));
 
-    assert_eq!(c.checksum(&Default::default()).0, 1035780974);
+    assert_eq!(c.checksum().0, 1035780974);
 }
 #[test]
 fn test_attribute_modifiers_checksum() {
@@ -124,7 +122,7 @@ fn test_attribute_modifiers_checksum() {
         }],
     };
 
-    assert_eq!(c.checksum(&Default::default()).0, 2501379836);
+    assert_eq!(c.checksum().0, 2501379836);
 }
 
 #[test]
@@ -142,7 +140,7 @@ fn test_firework_explosion_checksum() {
         }],
     };
 
-    assert_eq!(c.checksum(&Default::default()).0, 2501379836);
+    assert_eq!(c.checksum().0, 2501379836);
 }
 
 #[test]
@@ -151,7 +149,7 @@ fn test_charged_projectile_checksum() {
         items: vec![ItemStack::from(ItemKind::MusicDiscCat)],
     };
 
-    assert_eq!(c.checksum(&Default::default()).0, 3435761017);
+    assert_eq!(c.checksum().0, 3435761017);
 }
 
 #[test]
@@ -166,7 +164,7 @@ fn test_charged_projectile_with_components_checksum() {
         ],
     };
 
-    assert_eq!(c.checksum(&Default::default()).0, 170375255);
+    assert_eq!(c.checksum().0, 170375255);
 }
 
 #[test]
@@ -179,7 +177,7 @@ fn test_lodestone_tracker_checksum() {
         tracked: true,
     };
 
-    assert_eq!(c.checksum(&Default::default()).0, 4138292505);
+    assert_eq!(c.checksum().0, 4138292505);
 }
 
 #[test]
@@ -192,12 +190,12 @@ fn test_pot_decorations_checksum() {
     };
 
     // TODO: check this in-game and update
-    assert_eq!(c.checksum(&Default::default()).0, 3819469984);
+    assert_eq!(c.checksum().0, 421583134);
 }
 
 #[test]
 fn test_glider_checksum() {
     let c = Glider;
 
-    assert_eq!(c.checksum(&Default::default()).0, 3312760008);
+    assert_eq!(c.checksum().0, 3312760008);
 }

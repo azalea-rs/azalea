@@ -19,7 +19,7 @@ impl AzBuf for UnsizedByteArray {
         buf.set_position((buf.position()) + data.len() as u64);
         Ok(UnsizedByteArray(data))
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write(&self, _ctx: crate::Ctx, buf: &mut impl Write) -> io::Result<()> {
         buf.write_all(self)
     }
 }
@@ -35,11 +35,11 @@ macro_rules! impl_for_map_type {
                 }
                 Ok(contents)
             }
-            fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-                u32::azalea_write_var(&(self.len() as u32), buf)?;
+            fn azalea_write(&self, ctx: $crate::Ctx, buf: &mut impl Write) -> io::Result<()> {
+                (self.len() as u32).azalea_write_var(ctx, buf)?;
                 for (key, value) in self {
-                    key.azalea_write(buf)?;
-                    value.azalea_write(buf)?;
+                    key.azalea_write(ctx, buf)?;
+                    value.azalea_write(ctx, buf)?;
                 }
 
                 Ok(())
@@ -57,11 +57,11 @@ macro_rules! impl_for_map_type {
                 }
                 Ok(contents)
             }
-            fn azalea_write_var(&self, buf: &mut impl Write) -> io::Result<()> {
-                u32::azalea_write_var(&(self.len() as u32), buf)?;
+            fn azalea_write_var(&self, ctx: crate::Ctx, buf: &mut impl Write) -> io::Result<()> {
+                u32::azalea_write_var(&(self.len() as u32), ctx, buf)?;
                 for (key, value) in self {
-                    key.azalea_write(buf)?;
-                    value.azalea_write_var(buf)?;
+                    key.azalea_write(ctx, buf)?;
+                    value.azalea_write_var(ctx, buf)?;
                 }
 
                 Ok(())
@@ -88,10 +88,14 @@ macro_rules! impl_for_list_type {
                 }
                 Ok(contents.into())
             }
-            default fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-                (self.len() as u32).azalea_write_var(buf)?;
+            default fn azalea_write(
+                &self,
+                ctx: $crate::Ctx,
+                buf: &mut impl Write,
+            ) -> io::Result<()> {
+                (self.len() as u32).azalea_write_var(ctx, buf)?;
                 for item in self.iter() {
-                    T::azalea_write(item, buf)?;
+                    T::azalea_write(item, ctx, buf)?;
                 }
                 Ok(())
             }
@@ -108,10 +112,10 @@ macro_rules! impl_for_list_type {
                 }
                 Ok(contents.into())
             }
-            fn azalea_write_var(&self, buf: &mut impl Write) -> io::Result<()> {
-                (self.len() as u32).azalea_write_var(buf)?;
+            fn azalea_write_var(&self, ctx: crate::Ctx, buf: &mut impl Write) -> io::Result<()> {
+                (self.len() as u32).azalea_write_var(ctx, buf)?;
                 for item in self.iter() {
-                    T::azalea_write_var(item, buf)?;
+                    T::azalea_write_var(item, ctx, buf)?;
                 }
                 Ok(())
             }
@@ -153,8 +157,8 @@ impl AzBuf for Vec<u8> {
         let length = i32::azalea_read_var(ctx, buf)? as usize;
         read_bytes(buf, length).map(|b| b.to_vec())
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        (self.len() as u32).azalea_write_var(buf)?;
+    fn azalea_write(&self, ctx: crate::Ctx, buf: &mut impl Write) -> io::Result<()> {
+        (self.len() as u32).azalea_write_var(ctx, buf)?;
         buf.write_all(self)
     }
 }
@@ -164,8 +168,8 @@ impl AzBuf for Box<[u8]> {
         let length = i32::azalea_read_var(ctx, buf)? as usize;
         read_bytes(buf, length).map(Box::from)
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        (self.len() as u32).azalea_write_var(buf)?;
+    fn azalea_write(&self, ctx: crate::Ctx, buf: &mut impl Write) -> io::Result<()> {
+        (self.len() as u32).azalea_write_var(ctx, buf)?;
         buf.write_all(self)
     }
 }
@@ -174,8 +178,8 @@ impl AzBuf for String {
     fn azalea_read(ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         read_utf8_with_len(ctx, buf, MAX_STRING_LENGTH).map(Into::into)
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        write_utf_with_len(buf, self, MAX_STRING_LENGTH)
+    fn azalea_write(&self, ctx: crate::Ctx, buf: &mut impl Write) -> io::Result<()> {
+        write_utf_with_len(ctx, buf, self, MAX_STRING_LENGTH)
     }
 }
 impl AzBufLimited for String {
@@ -192,8 +196,8 @@ impl AzBuf for Box<str> {
     fn azalea_read(ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         read_utf8_with_len(ctx, buf, MAX_STRING_LENGTH).map(Into::into)
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        write_utf_with_len(buf, self, MAX_STRING_LENGTH)
+    fn azalea_write(&self, ctx: crate::Ctx, buf: &mut impl Write) -> io::Result<()> {
+        write_utf_with_len(ctx, buf, self, MAX_STRING_LENGTH)
     }
 }
 
@@ -216,12 +220,12 @@ impl<T: AzBuf> AzBuf for Option<T> {
             None
         })
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write(&self, ctx: crate::Ctx, buf: &mut impl Write) -> io::Result<()> {
         if let Some(s) = self {
-            true.azalea_write(buf)?;
-            s.azalea_write(buf)?;
+            true.azalea_write(ctx, buf)?;
+            s.azalea_write(ctx, buf)?;
         } else {
-            false.azalea_write(buf)?;
+            false.azalea_write(ctx, buf)?;
         };
         Ok(())
     }
@@ -236,12 +240,12 @@ impl<T: AzBufVar> AzBufVar for Option<T> {
             None
         })
     }
-    fn azalea_write_var(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write_var(&self, ctx: crate::Ctx, buf: &mut impl Write) -> io::Result<()> {
         if let Some(s) = self {
-            true.azalea_write(buf)?;
-            s.azalea_write_var(buf)?;
+            true.azalea_write(ctx, buf)?;
+            s.azalea_write_var(ctx, buf)?;
         } else {
-            false.azalea_write(buf)?;
+            false.azalea_write(ctx, buf)?;
         };
         Ok(())
     }
@@ -271,9 +275,9 @@ impl<T: AzBuf, const N: usize> AzBuf for [T; N] {
             .try_into()
             .unwrap_or_else(|_| unreachable!("The vec is the same size as the array")))
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write(&self, ctx: crate::Ctx, buf: &mut impl Write) -> io::Result<()> {
         for i in self {
-            i.azalea_write(buf)?;
+            i.azalea_write(ctx, buf)?;
         }
         Ok(())
     }
@@ -283,7 +287,7 @@ impl AzBuf for simdnbt::owned::NbtTag {
     fn azalea_read(_ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(simdnbt::owned::read_tag(buf).map_err(simdnbt::Error::from)?)
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write(&self, _ctx: crate::Ctx, buf: &mut impl Write) -> io::Result<()> {
         let mut data = Vec::new();
         self.write(&mut data);
         buf.write_all(&data)
@@ -297,7 +301,7 @@ impl AzBuf for simdnbt::owned::NbtCompound {
             _ => Err(BufReadError::custom("Expected compound tag")),
         }
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write(&self, _ctx: crate::Ctx, buf: &mut impl Write) -> io::Result<()> {
         let mut data = Vec::new();
         simdnbt::owned::NbtTag::Compound(self.clone()).write(&mut data);
         buf.write_all(&data)
@@ -308,7 +312,7 @@ impl AzBuf for simdnbt::owned::Nbt {
     fn azalea_read(_ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(simdnbt::owned::read_unnamed(buf)?)
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write(&self, _ctx: crate::Ctx, buf: &mut impl Write) -> io::Result<()> {
         let mut data = Vec::new();
         self.write_unnamed(&mut data);
         buf.write_all(&data)
@@ -322,8 +326,8 @@ where
     fn azalea_read(ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         T::azalea_read(ctx, buf).map(Box::new)
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        T::azalea_write(&**self, buf)
+    fn azalea_write(&self, ctx: crate::Ctx, buf: &mut impl Write) -> io::Result<()> {
+        T::azalea_write(&**self, ctx, buf)
     }
 }
 
@@ -333,9 +337,9 @@ impl<A: AzBuf, B: AzBuf> AzBuf for (A, B) {
         let b = B::azalea_read(ctx, buf)?;
         Ok((a, b))
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        self.0.azalea_write(buf)?;
-        self.1.azalea_write(buf)
+    fn azalea_write(&self, ctx: crate::Ctx, buf: &mut impl Write) -> io::Result<()> {
+        self.0.azalea_write(ctx, buf)?;
+        self.1.azalea_write(ctx, buf)
     }
 }
 
@@ -343,7 +347,7 @@ impl<T: AzBuf> AzBuf for Arc<T> {
     fn azalea_read(ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(Arc::new(T::azalea_read(ctx, buf)?))
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        T::azalea_write(&**self, buf)
+    fn azalea_write(&self, ctx: crate::Ctx, buf: &mut impl Write) -> io::Result<()> {
+        T::azalea_write(&**self, ctx, buf)
     }
 }

@@ -25,7 +25,7 @@ fn benchmark(c: &mut Criterion) {
                 data: WaypointData::Vec3i(Vec3i { x: 1, y: 67, z: 0 }),
             },
         }
-        .azalea_write(&mut buf)
+        .azalea_write(Default::default(), &mut buf)
         .unwrap();
         b.iter(|| {
             black_box(

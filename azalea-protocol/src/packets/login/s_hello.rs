@@ -24,7 +24,7 @@ mod tests {
             profile_id: Uuid::nil(),
         };
         let mut buf: Vec<u8> = Vec::new();
-        packet.azalea_write(&mut buf).unwrap();
+        packet.azalea_write(Default::default(), &mut buf).unwrap();
         let packet2 =
             ServerboundHello::azalea_read(Default::default(), &mut Cursor::new(&buf)).unwrap();
         assert_eq!(packet, packet2);

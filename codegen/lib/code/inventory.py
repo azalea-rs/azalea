@@ -2,7 +2,7 @@ from typing import Any
 from lib.utils import identifier_to_path, to_camel_case, get_dir_location
 
 # The directory where declare_menus! {} is done
-inventory_menus_dir = get_dir_location("../azalea-inventory/src/lib.rs")
+inventory_menus_dir = get_dir_location("../azalea-inventory/src/menu.rs")
 
 
 def update_menus(initial_menu_entries: dict[str, Any]):

@@ -8,15 +8,16 @@ use syn::{
 };
 
 struct Registry {
-    name: Ident,
+    ident: Ident,
+    name: String,
     items: Vec<RegistryItem>,
     attrs: Vec<Attribute>,
 }
 
 struct RegistryItem {
     attrs: Vec<Attribute>,
-    name: Ident,
-    id: String,
+    ident: Ident,
+    name: String,
 }
 
 impl Parse for RegistryItem {
@@ -28,13 +29,17 @@ impl Parse for RegistryItem {
         let name = input.parse()?;
         input.parse::<Token![=>]>()?;
         let id = input.parse::<LitStr>()?.value();
-        Ok(RegistryItem { attrs, name, id })
+        Ok(RegistryItem {
+            attrs,
+            ident: name,
+            name: id,
+        })
     }
 }
 
 impl Parse for Registry {
     fn parse(input: ParseStream) -> Result<Self> {
-        // enum BlockKind {
+        // enum BlockKind => "block" {
         //     Air => "minecraft:air",
         //     Stone => "minecraft:stone"
         // }
@@ -43,13 +48,18 @@ impl Parse for Registry {
         let attrs = input.call(Attribute::parse_outer).unwrap_or_default();
 
         input.parse::<Token![enum]>()?;
-        let name = input.parse()?;
+        let ident = input.parse()?;
+
+        input.parse::<Token![=>]>()?;
+        let name = input.parse::<LitStr>()?.value();
+
         let content;
         braced!(content in input);
         let items: Punctuated<RegistryItem, _> =
             content.parse_terminated(RegistryItem::parse, Token![,])?;
 
         Ok(Registry {
+            ident,
             name,
             items: items.into_iter().collect(),
             attrs,
@@ -60,7 +70,7 @@ impl Parse for Registry {
 #[proc_macro]
 pub fn registry(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as Registry);
-    let name = input.name;
+    let name = input.ident;
     let mut generated = quote! {};
 
     // enum BlockKind {
@@ -70,7 +80,7 @@ pub fn registry(input: TokenStream) -> TokenStream {
     let mut enum_items = quote! {};
     for (i, item) in input.items.iter().enumerate() {
         let attrs = &item.attrs;
-        let name = &item.name;
+        let name = &item.ident;
         let protocol_id = i as u32;
         enum_items.extend(quote! {
             #(#attrs)*
@@ -92,31 +102,35 @@ pub fn registry(input: TokenStream) -> TokenStream {
     let doc_0 = format!("Transmutes a u32 to a {name}.");
     let doc_1 = format!("The `id` should be at most {max_id}.");
 
+    let registry_name = input.name;
+
     generated.extend(quote! {
         impl #name {
+            pub const MAX_ID: u32 = #max_id;
+
             #[doc = #doc_0]
             ///
             /// # Safety
             #[doc = #doc_1]
             #[inline]
             pub unsafe fn from_u32_unchecked(id: u32) -> Self {
-                std::mem::transmute::<u32, #name>(id)
+                unsafe { std::mem::transmute::<u32, #name>(id) }
             }
-
             #[inline]
             pub const fn is_valid_id(id: u32) -> bool {
-                id <= #max_id
+                id <= Self::MAX_ID
             }
         }
-        impl azalea_registry_builtin::Registry for #name {
-            fn from_u32(value: u32) -> Option<Self> {
-                if Self::is_valid_id(value) {
-                    Some(unsafe { Self::from_u32_unchecked(value) })
+        impl azalea_registry_builtin::BuiltinRegistry for #name {
+            const NAME: &'static str = #registry_name;
+            fn builtin_from_id(id: u32) -> Option<Self> {
+                if Self::is_valid_id(id) {
+                    Some(unsafe { Self::from_u32_unchecked(id) })
                 } else {
                     None
                 }
             }
-            fn to_u32(&self) -> u32 {
+            fn builtin_into_id(&self) -> u32 {
                 *self as u32
             }
         }
@@ -130,7 +144,7 @@ pub fn registry(input: TokenStream) -> TokenStream {
 
             #[doc = #doc_0]
             fn try_from(id: u32) -> Result<Self, Self::Error> {
-                if let Some(value) = azalea_registry_builtin::Registry::from_u32(id) {
+                if let Some(value) = azalea_registry_builtin::BuiltinRegistry::builtin_from_id(id) {
                     Ok(value)
                 } else {
                     Err(())
@@ -143,8 +157,8 @@ pub fn registry(input: TokenStream) -> TokenStream {
     let mut to_str_items = quote! {};
     let mut from_str_items = quote! {};
     for item in &input.items {
-        let name = &item.name;
-        let id = &item.id;
+        let name = &item.ident;
+        let id = &item.name;
         let namespaced_id = format!("minecraft:{id}");
 
         to_str_items.extend(quote! {
@@ -165,12 +179,12 @@ pub fn registry(input: TokenStream) -> TokenStream {
                 }
             }
         }
-        const impl ::azalea_codec::types::ConstFromStr for #name {
-            fn const_from_str(s: &'static str) -> Self {
-                match s {
+        const impl azalea_codec::types::ConstFromStr for #name {
+            fn const_from_str(s: &str) -> Option<Self> {
+                Some(match s {
                     #from_str_items
-                    _ => panic!("not a valid string for this registry")
-                }
+                    _ => return None
+                })
             }
         }
         impl std::fmt::Display for #name {
@@ -183,12 +197,16 @@ pub fn registry(input: TokenStream) -> TokenStream {
         impl<'a> TryFrom<&'a ::azalea_core::identifier::Identifier> for #name {
             type Error = ();
             fn try_from(ident: &'a ::azalea_core::identifier::Identifier) -> Result<Self, Self::Error> {
-                Ok(match ident.as_ref().1 {
-                    #from_str_items
-                    _ => return Err(()),
-                })
+                azalea_codec::types::ConstFromStr::const_from_str(ident.as_ref().1).ok_or(())
             }
         }
+        impl TryFrom<::azalea_core::identifier::Identifier> for #name {
+            type Error = ();
+            fn try_from(ident: ::azalea_core::identifier::Identifier) -> Result<Self, Self::Error> {
+                Self::try_from(&ident)
+            }
+        }
+
         impl<'a> From<#name> for ::azalea_core::identifier::Identifier {
             fn from(value: #name) -> Self {
                 Self::new(value.to_str())
@@ -205,13 +223,13 @@ pub fn registry(input: TokenStream) -> TokenStream {
         }
 
         impl<O: azalea_codec::Ops> azalea_codec::Codec<O> for #name {
-            fn codec_read(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
-                let s = ops.get_string(ctx)?;
-                std::str::FromStr::from_str(&s)
-                    .map_err(|_| azalea_codec::error::ReadError::custom(format!("invalid variant {s}")))
+            fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
+                let s = ops.get_string()?;
+                azalea_codec::types::ConstFromStr::const_from_str(&s)
+                    .ok_or_else(|| azalea_codec::error::ReadError::custom(format!("invalid variant '{s}'")))
             }
-            fn codec_write(&self, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::WriteResult<O> {
-                self.to_string().codec_write(ctx)
+            fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
+                self.to_string().codec_write()
             }
         }
     });

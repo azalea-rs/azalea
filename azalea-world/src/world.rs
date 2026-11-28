@@ -5,11 +5,11 @@ use std::{
 
 use azalea_block::{BlockState, fluid_state::FluidState};
 use azalea_core::position::{BlockPos, ChunkPos};
-use azalea_registry::{data::Biome, registry_holder::RegistryHolder};
+use azalea_registry::registry_holder::RegistryHolder;
 use bevy_ecs::entity::Entity;
 use nohash_hasher::IntMap;
 
-use crate::{ChunkStorage, PartialChunkStorage};
+use crate::{ChunkStorage, PartialChunkStorage, biome_id::BiomeId};
 
 /// A reference to a slice of the world, as seen by an individual client.
 ///
@@ -119,16 +119,16 @@ impl World {
         self.chunks.get_block_state(pos).map(FluidState::from)
     }
 
-    /// Get the biome at the given position.
+    /// Get the [`BiomeId`] at the given position.
     ///
-    /// You can then use `Client::with_resolved_registry` to get the name and
-    /// data from the biome.
+    /// You can then use [`BiomeId::into_biome`] or
+    /// `Client::with_resolved_registry` to get data from this biome.
     ///
     /// Note that biomes are internally stored as 4x4x4 blocks, so if you're
     /// writing code that searches for a specific biome it'll probably be more
     /// efficient to avoid scanning every single block.
-    pub fn get_biome(&self, pos: BlockPos) -> Option<Biome> {
-        self.chunks.get_biome(pos)
+    pub fn get_biome_id(&self, pos: BlockPos) -> Option<BiomeId> {
+        self.chunks.get_biome_id(pos)
     }
 
     pub fn set_block_state(&self, pos: BlockPos, state: BlockState) -> Option<BlockState> {

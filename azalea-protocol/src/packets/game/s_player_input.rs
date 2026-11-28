@@ -28,7 +28,7 @@ impl AzBuf for ServerboundPlayerInput {
             sprint: set.index(6),
         })
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
         let mut set = FixedBitSet::<7>::new();
         if self.forward {
             set.set(0);
@@ -51,6 +51,6 @@ impl AzBuf for ServerboundPlayerInput {
         if self.sprint {
             set.set(6);
         }
-        set.azalea_write(buf)
+        set.azalea_write(ctx, buf)
     }
 }

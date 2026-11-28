@@ -74,19 +74,23 @@ pub async fn ping_server_with_connection(
     mut conn: Connection<ClientboundHandshakePacket, ServerboundHandshakePacket>,
 ) -> Result<ClientboundStatusResponse, PingError> {
     // send the client intention packet and switch to the status state
-    conn.write(ServerboundIntention {
-        protocol_version: PROTOCOL_VERSION,
-        hostname: address.host.clone(),
-        port: address.port,
-        intention: ClientIntention::Status,
-    })
+    conn.write(
+        Default::default(),
+        ServerboundIntention {
+            protocol_version: PROTOCOL_VERSION,
+            hostname: address.host.clone(),
+            port: address.port,
+            intention: ClientIntention::Status,
+        },
+    )
     .await?;
     let mut conn = conn.status();
 
     // send the empty status request packet
-    conn.write(ServerboundStatusRequest {}).await?;
+    conn.write(Default::default(), ServerboundStatusRequest)
+        .await?;
 
-    let packet = conn.read().await?;
+    let packet = conn.read(Default::default()).await?;
 
     loop {
         match packet {

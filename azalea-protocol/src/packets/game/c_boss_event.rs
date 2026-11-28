@@ -43,30 +43,30 @@ impl AzBuf for Operation {
             }
         })
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
         match self {
             Operation::Add(add) => {
-                0u32.azalea_write_var(buf)?;
-                add.azalea_write(buf)?;
+                0u32.azalea_write_var(ctx, buf)?;
+                add.azalea_write(ctx, buf)?;
             }
             Operation::Remove => {
-                1u32.azalea_write_var(buf)?;
+                1u32.azalea_write_var(ctx, buf)?;
             }
             Operation::UpdateProgress(progress) => {
-                2u32.azalea_write_var(buf)?;
-                progress.azalea_write(buf)?;
+                2u32.azalea_write_var(ctx, buf)?;
+                progress.azalea_write(ctx, buf)?;
             }
             Operation::UpdateName(name) => {
-                3u32.azalea_write_var(buf)?;
-                name.azalea_write(buf)?;
+                3u32.azalea_write_var(ctx, buf)?;
+                name.azalea_write(ctx, buf)?;
             }
             Operation::UpdateStyle(style) => {
-                4u32.azalea_write_var(buf)?;
-                style.azalea_write(buf)?;
+                4u32.azalea_write_var(ctx, buf)?;
+                style.azalea_write(ctx, buf)?;
             }
             Operation::UpdateProperties(properties) => {
-                5u32.azalea_write_var(buf)?;
-                properties.azalea_write(buf)?;
+                5u32.azalea_write_var(ctx, buf)?;
+                properties.azalea_write(ctx, buf)?;
             }
         }
         Ok(())
@@ -123,7 +123,7 @@ impl AzBuf for Properties {
             create_world_fog: set.index(2),
         })
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
         let mut set = FixedBitSet::<3>::new();
         if self.darken_screen {
             set.set(0);
@@ -134,7 +134,7 @@ impl AzBuf for Properties {
         if self.create_world_fog {
             set.set(2);
         }
-        set.azalea_write(buf)?;
+        set.azalea_write(ctx, buf)?;
         Ok(())
     }
 }

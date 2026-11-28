@@ -75,7 +75,7 @@ async fn handle_connection(stream: TcpStream) -> eyre::Result<()> {
     // The first packet sent from a client is the intent packet.
     // This specifies whether the client is pinging
     // the server or is going to join the game.
-    let intent = match conn.read().await {
+    let intent = match conn.read(Default::default()).await {
         Ok(packet) => match packet {
             ServerboundHandshakePacket::Intention(packet) => {
                 info!(
@@ -102,21 +102,28 @@ async fn handle_connection(stream: TcpStream) -> eyre::Result<()> {
         ClientIntention::Status => {
             let mut conn = conn.status();
             loop {
-                match conn.read().await {
+                match conn.read(Default::default()).await {
                     Ok(p) => match p {
                         ServerboundStatusPacket::StatusRequest(_) => {
-                            conn.write(ClientboundStatusResponse {
-                                description: PROXY_DESC.into(),
-                                favicon: PROXY_FAVICON.clone(),
-                                players: PROXY_PLAYERS.clone(),
-                                version: PROXY_VERSION.clone(),
-                                enforces_secure_chat: PROXY_SECURE_CHAT,
-                                contact: None,
-                            })
+                            conn.write(
+                                Default::default(),
+                                ClientboundStatusResponse {
+                                    description: PROXY_DESC.into(),
+                                    favicon: PROXY_FAVICON.clone(),
+                                    players: PROXY_PLAYERS.clone(),
+                                    version: PROXY_VERSION.clone(),
+                                    enforces_secure_chat: PROXY_SECURE_CHAT,
+                                    contact: None,
+                                },
+                            )
                             .await?;
                         }
                         ServerboundStatusPacket::PingRequest(p) => {
-                            conn.write(ClientboundPongResponse { time: p.time }).await?;
+                            conn.write(
+                                Default::default(),
+                                ClientboundPongResponse { time: p.time },
+                            )
+                            .await?;
                             break;
                         }
                     },
@@ -139,7 +146,7 @@ async fn handle_connection(stream: TcpStream) -> eyre::Result<()> {
         ClientIntention::Login => {
             let mut conn = conn.login();
             loop {
-                match conn.read().await {
+                match conn.read(Default::default()).await {
                     Ok(p) => {
                         if let ServerboundLoginPacket::Hello(hello) = p {
                             info!(
@@ -191,10 +198,10 @@ async fn transfer(
     // received earlier to the proxy target
     let mut outbound_conn: Connection<ClientboundHandshakePacket, ServerboundHandshakePacket> =
         Connection::wrap(outbound);
-    outbound_conn.write(intent).await?;
+    outbound_conn.write(Default::default(), intent).await?;
 
     let mut outbound_conn = outbound_conn.login();
-    outbound_conn.write(hello).await?;
+    outbound_conn.write(Default::default(), hello).await?;
 
     let mut outbound = outbound_conn.unwrap()?;
 

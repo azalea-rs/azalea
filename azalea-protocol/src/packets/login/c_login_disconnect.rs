@@ -25,12 +25,12 @@ impl AzBuf for ClientboundLoginDisconnect {
             }
         };
 
-        let reason = FormattedText::codec_read(&json, Default::default())?;
+        let reason = FormattedText::codec_read(&json)?;
         Ok(ClientboundLoginDisconnect { reason })
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        let json: simd_json::OwnedValue = self.reason.codec_write(Default::default())?;
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
+        let json: simd_json::OwnedValue = self.reason.codec_write()?;
         let string = serde_json::to_string(&json)?;
-        string.azalea_write(buf)
+        string.azalea_write(ctx, buf)
     }
 }

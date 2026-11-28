@@ -36,8 +36,8 @@ fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> Toke
 
     let contents = quote! {
         impl #ident {
-            pub fn write(&self, buf: &mut impl std::io::Write) -> std::io::Result<()> {
-                azalea_buf::AzBuf::azalea_write(self, buf)
+            pub fn write(&self, ctx: ::azalea_buf::Ctx, buf: &mut impl std::io::Write) -> std::io::Result<()> {
+                azalea_buf::AzBuf::azalea_write(self, ctx, buf)
             }
 
             pub fn read(
@@ -244,7 +244,7 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
                 Self::#variant_name(..) => #packet_name_litstr,
             });
             directional_write_match_contents.extend(quote! {
-                Self::#variant_name(packet) => packet.write(buf),
+                Self::#variant_name(packet) => packet.write(ctx, buf),
             });
             directional_read_match_contents.extend(quote! {
             #id => {
@@ -307,7 +307,7 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
                     }
                 }
 
-                fn write(&self, buf: &mut impl std::io::Write) -> std::io::Result<()> {
+                fn write(&self, ctx: ::azalea_buf::Ctx, buf: &mut impl std::io::Write) -> std::io::Result<()> {
                     match self {
                         #directional_write_match_contents
                     }

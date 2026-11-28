@@ -1,7 +1,7 @@
 #![allow(clippy::redundant_field_names, reason = "Triggered by `Error` derive")]
 
 mod extra;
-mod primitives;
+pub mod primitives;
 
 use std::{
     backtrace::Backtrace,
@@ -19,7 +19,7 @@ where
     Self: Sized,
 {
     fn azalea_read(ctx: Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError>;
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()>;
+    fn azalea_write(&self, ctx: crate::Ctx, buf: &mut impl Write) -> io::Result<()>;
 }
 
 /// Used for types that have an alternative variable-length encoding.
@@ -30,7 +30,7 @@ where
     Self: Sized,
 {
     fn azalea_read_var(ctx: crate::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError>;
-    fn azalea_write_var(&self, buf: &mut impl Write) -> io::Result<()>;
+    fn azalea_write_var(&self, ctx: crate::Ctx, buf: &mut impl Write) -> io::Result<()>;
 }
 
 /// Used for types that have some configurable limit.
@@ -201,6 +201,7 @@ pub(crate) fn read_utf8_with_len<'a>(
 }
 
 pub(crate) fn write_utf_with_len(
+    ctx: crate::Ctx,
     buf: &mut impl Write,
     string: &str,
     max_len: u32,
@@ -209,6 +210,6 @@ pub(crate) fn write_utf_with_len(
     if actual_len > max_len as usize {
         panic!("String too big (was {actual_len} bytes encoded, max {max_len})");
     }
-    string.as_bytes().to_vec().azalea_write(buf)?;
+    string.as_bytes().to_vec().azalea_write(ctx, buf)?;
     Ok(())
 }

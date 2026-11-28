@@ -207,7 +207,6 @@ use azalea_core::{
     position::{BlockPos, Vec3f32},
 };
 use azalea_registry::{
-    DataRegistry,
     builtin::EntityKind,
     item::{
         ItemStack,
@@ -2026,7 +2025,7 @@ impl Default for PaintingMetadataBundle {
             _marker: Painting,
             parent: Default::default(),
             painting_direction: PaintingDirection(Default::default()),
-            painting_variant: PaintingVariant(azalea_registry::data::PaintingVariant::new_raw(0)),
+            painting_variant: PaintingVariant(azalea_registry::data::PaintingVariant::default()),
         }
     }
 }
@@ -5713,9 +5712,9 @@ impl Default for ChickenMetadataBundle {
         Self {
             _marker: Chicken,
             parent: Default::default(),
-            chicken_variant: ChickenVariant(azalea_registry::data::ChickenVariant::new_raw(0)),
+            chicken_variant: ChickenVariant(azalea_registry::data::ChickenVariant::default()),
             chicken_sound_variant: ChickenSoundVariant(
-                azalea_registry::data::ChickenSoundVariant::new_raw(0),
+                azalea_registry::data::ChickenSoundVariant::default(),
             ),
         }
     }
@@ -5796,8 +5795,8 @@ impl Default for CowMetadataBundle {
         Self {
             _marker: Cow,
             parent: Default::default(),
-            cow_variant: CowVariant(azalea_registry::data::CowVariant::new_raw(0)),
-            cow_sound_variant: CowSoundVariant(azalea_registry::data::CowSoundVariant::new_raw(0)),
+            cow_variant: CowVariant(azalea_registry::data::CowVariant::default()),
+            cow_sound_variant: CowSoundVariant(azalea_registry::data::CowSoundVariant::default()),
         }
     }
 }
@@ -6024,7 +6023,7 @@ impl Default for FrogMetadataBundle {
         Self {
             _marker: Frog,
             parent: Default::default(),
-            frog_variant: FrogVariant(azalea_registry::data::FrogVariant::new_raw(0)),
+            frog_variant: FrogVariant(azalea_registry::data::FrogVariant::default()),
             tongue_target: TongueTarget(OptionalUnsignedInt(None)),
         }
     }
@@ -6653,8 +6652,8 @@ impl Default for PigMetadataBundle {
             _marker: Pig,
             parent: Default::default(),
             pig_boost_time: PigBoostTime(0),
-            pig_variant: PigVariant(azalea_registry::data::PigVariant::new_raw(0)),
-            pig_sound_variant: PigSoundVariant(azalea_registry::data::PigSoundVariant::new_raw(0)),
+            pig_variant: PigVariant(azalea_registry::data::PigVariant::default()),
+            pig_sound_variant: PigSoundVariant(azalea_registry::data::PigSoundVariant::default()),
         }
     }
 }
@@ -8050,11 +8049,11 @@ impl Default for CatMetadataBundle {
         Self {
             _marker: Cat,
             parent: Default::default(),
-            cat_variant: CatVariant(azalea_registry::data::CatVariant::new_raw(0)),
+            cat_variant: CatVariant(azalea_registry::data::CatVariant::default()),
             is_lying: IsLying(false),
             relax_state_one: RelaxStateOne(false),
             cat_collar_color: CatCollarColor(Default::default()),
-            cat_sound_variant: CatSoundVariant(azalea_registry::data::CatSoundVariant::new_raw(0)),
+            cat_sound_variant: CatSoundVariant(azalea_registry::data::CatSoundVariant::default()),
         }
     }
 }
@@ -8243,10 +8242,8 @@ impl Default for WolfMetadataBundle {
             wolf_interested: WolfInterested(false),
             wolf_collar_color: WolfCollarColor(Default::default()),
             wolf_anger_end_time: WolfAngerEndTime(-1),
-            wolf_variant: WolfVariant(azalea_registry::data::WolfVariant::new_raw(0)),
-            wolf_sound_variant: WolfSoundVariant(azalea_registry::data::WolfSoundVariant::new_raw(
-                0,
-            )),
+            wolf_variant: WolfVariant(azalea_registry::data::WolfVariant::default()),
+            wolf_sound_variant: WolfSoundVariant(azalea_registry::data::WolfSoundVariant::default()),
         }
     }
 }
@@ -8445,7 +8442,7 @@ impl Default for ZombieNautilusMetadataBundle {
             _marker: ZombieNautilus,
             parent: Default::default(),
             zombie_nautilus_variant: ZombieNautilusVariant(
-                azalea_registry::data::ZombieNautilusVariant::new_raw(0),
+                azalea_registry::data::ZombieNautilusVariant::default(),
             ),
         }
     }

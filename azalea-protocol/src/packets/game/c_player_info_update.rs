@@ -116,49 +116,49 @@ impl AzBuf for ClientboundPlayerInfoUpdate {
 
         Ok(ClientboundPlayerInfoUpdate { actions, entries })
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        self.actions.azalea_write(buf)?;
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
+        self.actions.azalea_write(ctx, buf)?;
 
-        (self.entries.len() as u32).azalea_write_var(buf)?;
+        (self.entries.len() as u32).azalea_write_var(ctx, buf)?;
         for entry in &self.entries {
-            entry.profile.uuid.azalea_write(buf)?;
+            entry.profile.uuid.azalea_write(ctx, buf)?;
 
             if self.actions.add_player {
                 AddPlayerAction {
                     name: entry.profile.name.clone(),
                     properties: (*entry.profile.properties).clone(),
                 }
-                .azalea_write(buf)?;
+                .azalea_write(ctx, buf)?;
             }
             if self.actions.initialize_chat {
                 InitializeChatAction {
                     chat_session: entry.chat_session.clone(),
                 }
-                .azalea_write(buf)?;
+                .azalea_write(ctx, buf)?;
             }
             if self.actions.update_game_mode {
                 UpdateGameModeAction {
                     game_mode: entry.game_mode,
                 }
-                .azalea_write(buf)?;
+                .azalea_write(ctx, buf)?;
             }
             if self.actions.update_listed {
                 UpdateListedAction {
                     listed: entry.listed,
                 }
-                .azalea_write(buf)?;
+                .azalea_write(ctx, buf)?;
             }
             if self.actions.update_latency {
                 UpdateLatencyAction {
                     latency: entry.latency,
                 }
-                .azalea_write(buf)?;
+                .azalea_write(ctx, buf)?;
             }
             if self.actions.update_display_name {
                 UpdateDisplayNameAction {
                     display_name: entry.display_name.clone(),
                 }
-                .azalea_write(buf)?;
+                .azalea_write(ctx, buf)?;
             }
         }
 
@@ -192,7 +192,7 @@ impl AzBuf for ActionEnumSet {
             update_hat: set.index(7),
         })
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
         let mut set = FixedBitSet::<7>::new();
         if self.add_player {
             set.set(0);
@@ -218,7 +218,7 @@ impl AzBuf for ActionEnumSet {
         if self.update_hat {
             set.set(7);
         }
-        set.azalea_write(buf)?;
+        set.azalea_write(ctx, buf)?;
         Ok(())
     }
 }
@@ -240,7 +240,7 @@ mod tests {
             update_hat: false,
         };
         let mut buf = Vec::new();
-        data.azalea_write(&mut buf).unwrap();
+        data.azalea_write(Default::default(), &mut buf).unwrap();
         let mut data_cursor: Cursor<&[u8]> = Cursor::new(&buf);
         let read_data = ActionEnumSet::azalea_read(Default::default(), &mut data_cursor).unwrap();
         assert_eq!(read_data, data);

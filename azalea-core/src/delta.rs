@@ -106,21 +106,21 @@ impl AzBuf for LpVec3 {
             Ok(LpVec3::Normal { a, b, c })
         }
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
         match self {
             LpVec3::Zero => {
-                0u8.azalea_write(buf)?;
+                0u8.azalea_write(ctx, buf)?;
             }
             LpVec3::Normal { a, b, c } => {
-                a.azalea_write(buf)?;
-                b.azalea_write(buf)?;
-                c.azalea_write(buf)?;
+                a.azalea_write(ctx, buf)?;
+                b.azalea_write(ctx, buf)?;
+                c.azalea_write(ctx, buf)?;
             }
             LpVec3::Extended { a, b, c, d } => {
-                a.azalea_write(buf)?;
-                b.azalea_write(buf)?;
-                c.azalea_write(buf)?;
-                d.azalea_write_var(buf)?;
+                a.azalea_write(ctx, buf)?;
+                b.azalea_write(ctx, buf)?;
+                c.azalea_write(ctx, buf)?;
+                d.azalea_write_var(ctx, buf)?;
             }
         }
         Ok(())
@@ -255,14 +255,14 @@ mod tests {
         for v in TEST_VALUES {
             let v: LpVec3 = LpVec3::from(v);
             let mut first_buf = Vec::new();
-            v.azalea_write(&mut first_buf).unwrap();
+            v.azalea_write(Default::default(), &mut first_buf).unwrap();
             let decoded =
                 LpVec3::azalea_read(Default::default(), &mut Cursor::new(&first_buf)).unwrap();
             assert_eq!(v, decoded);
 
             let mut second_buf = Vec::new();
             LpVec3::from(Vec3::from(decoded))
-                .azalea_write(&mut second_buf)
+                .azalea_write(Default::default(), &mut second_buf)
                 .unwrap();
 
             assert_eq!(first_buf, second_buf);

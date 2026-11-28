@@ -26,7 +26,7 @@ const CHEST_SLOT: u16 = 6;
 fn airborne_simulation() -> Simulation {
     let mut simulation = Simulation::new(ConnectionProtocol::Game);
 
-    simulation.receive_packet(default_login_packet(&simulation));
+    simulation.receive_packet(default_login_packet());
     simulation.tick();
     simulation.receive_packet(ClientboundSetChunkCacheCenter { x: 0, z: 0 });
     simulation.receive_packet(make_basic_empty_chunk(ChunkPos::new(0, 0), (384 + 64) / 16));

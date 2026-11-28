@@ -7,7 +7,7 @@ use azalea_registry_macros::registry;
 
 registry! {
 /// The AI code that's currently being executed for the entity.
-enum Activity {
+enum Activity => "minecraft:activity" {
     Core => "core",
     Idle => "idle",
     Work => "work",
@@ -38,7 +38,7 @@ enum Activity {
 }
 
 registry! {
-enum Attribute {
+enum Attribute => "minecraft:attribute" {
     AirDragModifier => "air_drag_modifier",
     Armor => "armor",
     ArmorToughness => "armor_toughness",
@@ -87,7 +87,7 @@ registry! {
 ///
 /// A block entity is a block that contains data that can't be represented as
 /// just a block state, like how chests store items.
-enum BlockEntityKind {
+enum BlockEntityKind => "minecraft:block_entity_type" {
     Furnace => "furnace",
     Chest => "chest",
     TrappedChest => "trapped_chest",
@@ -141,7 +141,7 @@ enum BlockEntityKind {
 }
 
 registry! {
-enum BlockPredicateKind {
+enum BlockPredicateKind => "minecraft:block_predicate_type" {
     MatchingBlocks => "matching_blocks",
     MatchingBlockTag => "matching_block_tag",
     MatchingFluids => "matching_fluids",
@@ -162,7 +162,7 @@ enum BlockPredicateKind {
 }
 
 registry! {
-enum ChunkStatus {
+enum ChunkStatus => "minecraft:chunk_status" {
     Empty => "empty",
     StructureStarts => "structure_starts",
     StructureReferences => "structure_references",
@@ -177,7 +177,7 @@ enum ChunkStatus {
 }
 
 registry! {
-enum CommandArgumentKind {
+enum CommandArgumentKind => "minecraft:command_argument_type" {
     Bool => "bool",
     Float => "float",
     Double => "double",
@@ -244,7 +244,7 @@ enum CommandArgumentKind {
 }
 
 registry! {
-enum CustomStat {
+enum CustomStat => "minecraft:custom_stat" {
     LeaveGame => "leave_game",
     PlayTime => "play_time",
     TotalWorldTime => "total_world_time",
@@ -328,7 +328,7 @@ enum CustomStat {
 
 registry! {
 /// An enum that contains every type of entity.
-enum EntityKind {
+enum EntityKind => "minecraft:entity_type" {
     AcaciaBoat => "acacia_boat",
     AcaciaChestBoat => "acacia_chest_boat",
     Allay => "allay",
@@ -494,7 +494,7 @@ enum EntityKind {
 }
 
 registry! {
-enum FloatProviderKind {
+enum FloatProviderKind => "minecraft:float_provider_type" {
     Constant => "constant",
     Uniform => "uniform",
     ClampedNormal => "clamped_normal",
@@ -503,7 +503,7 @@ enum FloatProviderKind {
 }
 
 registry! {
-enum Fluid {
+enum Fluid => "minecraft:fluid" {
     Empty => "empty",
     FlowingWater => "flowing_water",
     Water => "water",
@@ -513,7 +513,7 @@ enum Fluid {
 }
 
 registry! {
-enum GameEvent {
+enum GameEvent => "minecraft:game_event" {
     BlockActivate => "block_activate",
     BlockAttach => "block_attach",
     BlockChange => "block_change",
@@ -579,7 +579,7 @@ enum GameEvent {
 }
 
 registry! {
-enum HeightProviderKind {
+enum HeightProviderKind => "minecraft:height_provider_type" {
     Constant => "constant",
     Uniform => "uniform",
     BiasedToBottom => "biased_to_bottom",
@@ -590,7 +590,7 @@ enum HeightProviderKind {
 }
 
 registry! {
-enum IntProviderKind {
+enum IntProviderKind => "minecraft:int_provider_type" {
     Constant => "constant",
     Uniform => "uniform",
     BiasedToBottom => "biased_to_bottom",
@@ -603,7 +603,7 @@ enum IntProviderKind {
 }
 
 registry! {
-enum LootConditionKind {
+enum LootConditionKind => "minecraft:loot_condition_type" {
     Inverted => "inverted",
     AnyOf => "any_of",
     AllOf => "all_of",
@@ -628,7 +628,7 @@ enum LootConditionKind {
 }
 
 registry! {
-enum LootFunctionKind {
+enum LootFunctionKind => "minecraft:loot_function_type" {
     SetCount => "set_count",
     SetItem => "set_item",
     EnchantWithLevels => "enchant_with_levels",
@@ -675,14 +675,14 @@ enum LootFunctionKind {
 }
 
 registry! {
-enum LootNbtProviderKind {
+enum LootNbtProviderKind => "minecraft:loot_nbt_provider_type" {
     Storage => "storage",
     Context => "context",
 }
 }
 
 registry! {
-enum LootPoolEntryKind {
+enum LootPoolEntryKind => "minecraft:loot_pool_entry_type" {
     Empty => "empty",
     Item => "item",
     LootTable => "loot_table",
@@ -696,14 +696,14 @@ enum LootPoolEntryKind {
 }
 
 registry! {
-enum LootScoreProviderKind {
+enum LootScoreProviderKind => "minecraft:loot_score_provider_type" {
     Fixed => "fixed",
     Context => "context",
 }
 }
 
 registry! {
-enum MemoryModuleKind {
+enum MemoryModuleKind => "minecraft:memory_module_type" {
     Dummy => "dummy",
     Home => "home",
     JobSite => "job_site",
@@ -823,7 +823,7 @@ enum MemoryModuleKind {
 }
 
 registry! {
-enum MobEffect {
+enum MobEffect => "minecraft:mob_effect" {
     Speed => "speed",
     Slowness => "slowness",
     Haste => "haste",
@@ -868,7 +868,7 @@ enum MobEffect {
 }
 
 registry! {
-enum ParticleKind {
+enum ParticleKind => "minecraft:particle_type" {
     AngryVillager => "angry_villager",
     Block => "block",
     BlockMarker => "block_marker",
@@ -1001,7 +1001,7 @@ enum ParticleKind {
 }
 
 registry! {
-enum PointOfInterestKind {
+enum PointOfInterestKind => "minecraft:point_of_interest_type" {
     Armorer => "armorer",
     Butcher => "butcher",
     Cartographer => "cartographer",
@@ -1027,7 +1027,7 @@ enum PointOfInterestKind {
 }
 
 registry! {
-enum PosRuleTest {
+enum PosRuleTest => "minecraft:pos_rule_test" {
     AlwaysTrue => "always_true",
     LinearPos => "linear_pos",
     AxisAlignedLinearPos => "axis_aligned_linear_pos",
@@ -1035,14 +1035,14 @@ enum PosRuleTest {
 }
 
 registry! {
-enum PositionSourceKind {
+enum PositionSourceKind => "minecraft:position_source_type" {
     Block => "block",
     Entity => "entity",
 }
 }
 
 registry! {
-enum Potion {
+enum Potion => "minecraft:potion" {
     Water => "water",
     Mundane => "mundane",
     Thick => "thick",
@@ -1093,7 +1093,7 @@ enum Potion {
 }
 
 registry! {
-enum RecipeSerializer {
+enum RecipeSerializer => "minecraft:recipe_serializer" {
     CraftingShaped => "crafting_shaped",
     CraftingShapeless => "crafting_shapeless",
     CraftingDye => "crafting_dye",
@@ -1120,7 +1120,7 @@ enum RecipeSerializer {
 }
 
 registry! {
-enum RecipeKind {
+enum RecipeKind => "minecraft:recipe_type" {
     Crafting => "crafting",
     Smelting => "smelting",
     Blasting => "blasting",
@@ -1133,7 +1133,7 @@ enum RecipeKind {
 }
 
 registry! {
-enum RuleTest {
+enum RuleTest => "minecraft:rule_test" {
     AllOf => "all_of",
     AlwaysTrue => "always_true",
     AnyOf => "any_of",
@@ -1148,7 +1148,7 @@ enum RuleTest {
 }
 
 registry! {
-enum SensorKind {
+enum SensorKind => "minecraft:sensor_type" {
     Dummy => "dummy",
     NearestItems => "nearest_items",
     NearestLivingEntities => "nearest_living_entities",
@@ -1181,7 +1181,7 @@ registry! {
 ///
 /// If you need to support custom sounds from resource packs, you should use
 /// `azalea_registry::Holder<SoundEvent, azalea_core::sound::CustomSound>` instead.
-enum SoundEvent {
+enum SoundEvent => "minecraft:sound_event" {
     EntityAllayAmbientWithItem => "entity.allay.ambient_with_item",
     EntityAllayAmbientWithoutItem => "entity.allay.ambient_without_item",
     EntityAllayDeath => "entity.allay.death",
@@ -3177,7 +3177,7 @@ enum SoundEvent {
 }
 
 registry! {
-enum StatKind {
+enum StatKind => "minecraft:stat_type" {
     Mined => "mined",
     Crafted => "crafted",
     Used => "used",
@@ -3191,7 +3191,7 @@ enum StatKind {
 }
 
 registry! {
-enum VillagerProfession {
+enum VillagerProfession => "minecraft:villager_profession" {
     None => "none",
     Armorer => "armorer",
     Butcher => "butcher",
@@ -3211,7 +3211,7 @@ enum VillagerProfession {
 }
 
 registry! {
-enum VillagerKind {
+enum VillagerKind => "minecraft:villager_type" {
     Desert => "desert",
     Jungle => "jungle",
     Plains => "plains",
@@ -3223,7 +3223,7 @@ enum VillagerKind {
 }
 
 registry! {
-enum WorldgenBiomeSource {
+enum WorldgenBiomeSource => "minecraft:worldgen/biome_source" {
     Fixed => "fixed",
     MultiNoise => "multi_noise",
     Checkerboard => "checkerboard",
@@ -3232,7 +3232,7 @@ enum WorldgenBiomeSource {
 }
 
 registry! {
-enum WorldgenBlockStateProviderKind {
+enum WorldgenBlockStateProviderKind => "minecraft:worldgen/block_state_provider_type" {
     CopyProperties => "copy_properties",
     DualNoise => "dual_noise",
     Noise => "noise",
@@ -3247,7 +3247,7 @@ enum WorldgenBlockStateProviderKind {
 }
 
 registry! {
-enum WorldgenChunkGenerator {
+enum WorldgenChunkGenerator => "minecraft:worldgen/chunk_generator" {
     Noise => "noise",
     Flat => "flat",
     Debug => "debug",
@@ -3255,7 +3255,7 @@ enum WorldgenChunkGenerator {
 }
 
 registry! {
-enum WorldgenDensityFunctionKind {
+enum WorldgenDensityFunctionKind => "minecraft:worldgen/density_function_type" {
     Constant => "constant",
     BlendAlpha => "blend_alpha",
     BlendOffset => "blend_offset",
@@ -3304,14 +3304,14 @@ enum WorldgenDensityFunctionKind {
 }
 
 registry! {
-enum WorldgenFeatureSizeKind {
+enum WorldgenFeatureSizeKind => "minecraft:worldgen/feature_size_type" {
     TwoLayersFeatureSize => "two_layers_feature_size",
     ThreeLayersFeatureSize => "three_layers_feature_size",
 }
 }
 
 registry! {
-enum WorldgenFoliagePlacerKind {
+enum WorldgenFoliagePlacerKind => "minecraft:worldgen/foliage_placer_type" {
     BlobFoliagePlacer => "blob_foliage_placer",
     SpruceFoliagePlacer => "spruce_foliage_placer",
     PineFoliagePlacer => "pine_foliage_placer",
@@ -3328,7 +3328,7 @@ enum WorldgenFoliagePlacerKind {
 }
 
 registry! {
-enum WorldgenPlacementModifierKind {
+enum WorldgenPlacementModifierKind => "minecraft:worldgen/placement_modifier_type" {
     BlockPredicateFilter => "block_predicate_filter",
     RarityFilter => "rarity_filter",
     RandomChance => "random_chance",
@@ -3351,13 +3351,13 @@ enum WorldgenPlacementModifierKind {
 }
 
 registry! {
-enum WorldgenRootPlacerKind {
+enum WorldgenRootPlacerKind => "minecraft:worldgen/root_placer_type" {
     MangroveRootPlacer => "mangrove_root_placer",
 }
 }
 
 registry! {
-enum WorldgenStructurePiece {
+enum WorldgenStructurePiece => "minecraft:worldgen/structure_piece" {
     Mscorridor => "mscorridor",
     Mscrossing => "mscrossing",
     Msroom => "msroom",
@@ -3418,7 +3418,7 @@ enum WorldgenStructurePiece {
 }
 
 registry! {
-enum WorldgenStructurePlacement {
+enum WorldgenStructurePlacement => "minecraft:worldgen/structure_placement" {
     ConcentricRings => "concentric_rings",
     DimensionOrigin => "dimension_origin",
     RandomSpread => "random_spread",
@@ -3426,7 +3426,7 @@ enum WorldgenStructurePlacement {
 }
 
 registry! {
-enum WorldgenStructurePoolElement {
+enum WorldgenStructurePoolElement => "minecraft:worldgen/structure_pool_element" {
     SinglePoolElement => "single_pool_element",
     ListPoolElement => "list_pool_element",
     FeaturePoolElement => "feature_pool_element",
@@ -3436,7 +3436,7 @@ enum WorldgenStructurePoolElement {
 }
 
 registry! {
-enum WorldgenStructureProcessor {
+enum WorldgenStructureProcessor => "minecraft:worldgen/structure_processor" {
     BlackstoneReplace => "blackstone_replace",
     BlockAge => "block_age",
     BlockIgnore => "block_ignore",
@@ -3452,7 +3452,7 @@ enum WorldgenStructureProcessor {
 }
 
 registry! {
-enum WorldgenStructureKind {
+enum WorldgenStructureKind => "minecraft:worldgen/structure_type" {
     BuriedTreasure => "buried_treasure",
     DesertPyramid => "desert_pyramid",
     EndCity => "end_city",
@@ -3473,7 +3473,7 @@ enum WorldgenStructureKind {
 }
 
 registry! {
-enum WorldgenTreeDecoratorKind {
+enum WorldgenTreeDecoratorKind => "minecraft:worldgen/tree_decorator_type" {
     TrunkVine => "trunk_vine",
     LeaveVine => "leave_vine",
     PaleMoss => "pale_moss",
@@ -3489,7 +3489,7 @@ enum WorldgenTreeDecoratorKind {
 }
 
 registry! {
-enum WorldgenTrunkPlacerKind {
+enum WorldgenTrunkPlacerKind => "minecraft:worldgen/trunk_placer_type" {
     StraightTrunkPlacer => "straight_trunk_placer",
     ForkingTrunkPlacer => "forking_trunk_placer",
     GiantTrunkPlacer => "giant_trunk_placer",
@@ -3504,7 +3504,7 @@ enum WorldgenTrunkPlacerKind {
 }
 
 registry! {
-enum RuleBlockEntityModifier {
+enum RuleBlockEntityModifier => "minecraft:rule_block_entity_modifier" {
     Clear => "clear",
     Passthrough => "passthrough",
     AppendStatic => "append_static",
@@ -3513,7 +3513,7 @@ enum RuleBlockEntityModifier {
 }
 
 registry! {
-enum CreativeModeTab {
+enum CreativeModeTab => "minecraft:creative_mode_tab" {
     BuildingBlocks => "building_blocks",
     ColoredBlocks => "colored_blocks",
     NaturalBlocks => "natural_blocks",
@@ -3532,7 +3532,7 @@ enum CreativeModeTab {
 }
 
 registry! {
-enum MenuKind {
+enum MenuKind => "minecraft:menu" {
     Generic9x1 => "generic_9x1",
     Generic9x2 => "generic_9x2",
     Generic9x3 => "generic_9x3",
@@ -3569,7 +3569,7 @@ registry! {
 ///
 /// [`azalea_block::BlockState`]: https://docs.rs/azalea-block/latest/azalea_block/struct.BlockState.html
 /// [`azalea_block::BlockTrait`]: https://docs.rs/azalea-block/latest/azalea_block/trait.BlockTrait.html
-enum BlockKind {
+enum BlockKind => "minecraft:block" {
     Air => "air",
     Stone => "stone",
     Granite => "granite",
@@ -4860,7 +4860,7 @@ enum BlockKind {
 }
 
 registry! {
-enum WorldgenPoolAliasBinding {
+enum WorldgenPoolAliasBinding => "minecraft:worldgen/pool_alias_binding" {
     Random => "random",
     RandomGroup => "random_group",
     Direct => "direct",
@@ -4868,7 +4868,7 @@ enum WorldgenPoolAliasBinding {
 }
 
 registry! {
-enum TriggerKind {
+enum TriggerKind => "minecraft:trigger_type" {
     Impossible => "impossible",
     PlayerKilledEntity => "player_killed_entity",
     EntityKilledPlayer => "entity_killed_player",
@@ -4931,7 +4931,7 @@ enum TriggerKind {
 }
 
 registry! {
-enum NumberFormatKind {
+enum NumberFormatKind => "minecraft:number_format_type" {
     Blank => "blank",
     Styled => "styled",
     Fixed => "fixed",
@@ -4939,7 +4939,7 @@ enum NumberFormatKind {
 }
 
 registry! {
-enum DataComponentKind {
+enum DataComponentKind => "minecraft:data_component_type" {
     CustomData => "custom_data",
     MaxStackSize => "max_stack_size",
     MaxDamage => "max_damage",
@@ -5066,7 +5066,7 @@ enum DataComponentKind {
 }
 
 registry! {
-enum EntitySubPredicateKind {
+enum EntitySubPredicateKind => "minecraft:entity_sub_predicate_type" {
     EntityType => "entity_type",
     Location => "location",
     SteppingOn => "stepping_on",
@@ -5096,7 +5096,7 @@ enum EntitySubPredicateKind {
 }
 
 registry! {
-enum MapDecorationKind {
+enum MapDecorationKind => "minecraft:map_decoration_type" {
     Player => "player",
     Frame => "frame",
     RedMarker => "red_marker",
@@ -5141,7 +5141,7 @@ enum MapDecorationKind {
 }
 
 registry! {
-enum EnchantmentEffectComponentKind {
+enum EnchantmentEffectComponentKind => "minecraft:enchantment_effect_component_type" {
     DamageProtection => "damage_protection",
     DamageImmunity => "damage_immunity",
     Damage => "damage",
@@ -5177,7 +5177,7 @@ enum EnchantmentEffectComponentKind {
 }
 
 registry! {
-enum EnchantmentEntityEffectKind {
+enum EnchantmentEntityEffectKind => "minecraft:enchantment_entity_effect_type" {
     AllOf => "all_of",
     ApplyMobEffect => "apply_mob_effect",
     ChangeItemDamage => "change_item_damage",
@@ -5197,7 +5197,7 @@ enum EnchantmentEntityEffectKind {
 }
 
 registry! {
-enum EnchantmentLevelBasedValueKind {
+enum EnchantmentLevelBasedValueKind => "minecraft:enchantment_level_based_value_type" {
     Clamped => "clamped",
     Fraction => "fraction",
     LevelsSquared => "levels_squared",
@@ -5208,7 +5208,7 @@ enum EnchantmentLevelBasedValueKind {
 }
 
 registry! {
-enum EnchantmentLocationBasedEffectKind {
+enum EnchantmentLocationBasedEffectKind => "minecraft:enchantment_location_based_effect_type" {
     AllOf => "all_of",
     ApplyMobEffect => "apply_mob_effect",
     Attribute => "attribute",
@@ -5229,7 +5229,7 @@ enum EnchantmentLocationBasedEffectKind {
 }
 
 registry! {
-enum EnchantmentProviderKind {
+enum EnchantmentProviderKind => "minecraft:enchantment_provider_type" {
     ByCost => "by_cost",
     ByCostWithDifficulty => "by_cost_with_difficulty",
     Single => "single",
@@ -5237,7 +5237,7 @@ enum EnchantmentProviderKind {
 }
 
 registry! {
-enum EnchantmentValueEffectKind {
+enum EnchantmentValueEffectKind => "minecraft:enchantment_value_effect_type" {
     Add => "add",
     AllOf => "all_of",
     Multiply => "multiply",
@@ -5248,7 +5248,7 @@ enum EnchantmentValueEffectKind {
 }
 
 registry! {
-enum ConsumeEffectKind {
+enum ConsumeEffectKind => "minecraft:consume_effect_type" {
     ApplyEffects => "apply_effects",
     RemoveEffects => "remove_effects",
     ClearAllEffects => "clear_all_effects",
@@ -5258,7 +5258,7 @@ enum ConsumeEffectKind {
 }
 
 registry! {
-enum RecipeBookCategory {
+enum RecipeBookCategory => "minecraft:recipe_book_category" {
     CraftingBuildingBlocks => "crafting_building_blocks",
     CraftingRedstone => "crafting_redstone",
     CraftingEquipment => "crafting_equipment",
@@ -5276,7 +5276,7 @@ enum RecipeBookCategory {
 }
 
 registry! {
-enum RecipeDisplay {
+enum RecipeDisplay => "minecraft:recipe_display" {
     CraftingShapeless => "crafting_shapeless",
     CraftingShaped => "crafting_shaped",
     Furnace => "furnace",
@@ -5286,7 +5286,7 @@ enum RecipeDisplay {
 }
 
 registry! {
-enum SlotDisplay {
+enum SlotDisplay => "minecraft:slot_display" {
     Empty => "empty",
     AnyFuel => "any_fuel",
     WithAnyPotion => "with_any_potion",
@@ -5302,7 +5302,7 @@ enum SlotDisplay {
 }
 
 registry! {
-enum TicketKind {
+enum TicketKind => "minecraft:ticket_type" {
     PlayerSpawn => "player_spawn",
     SpawnSearch => "spawn_search",
     Dragon => "dragon",
@@ -5316,7 +5316,7 @@ enum TicketKind {
 }
 
 registry! {
-enum TestEnvironmentDefinitionKind {
+enum TestEnvironmentDefinitionKind => "minecraft:test_environment_definition_type" {
     AllOf => "all_of",
     ClockTime => "clock_time",
     Difficulty => "difficulty",
@@ -5328,20 +5328,20 @@ enum TestEnvironmentDefinitionKind {
 }
 
 registry! {
-enum TestFunction {
+enum TestFunction => "minecraft:test_function" {
     AlwaysPass => "always_pass",
 }
 }
 
 registry! {
-enum TestInstanceKind {
+enum TestInstanceKind => "minecraft:test_instance_type" {
     BlockBased => "block_based",
     Function => "function",
 }
 }
 
 registry! {
-enum DataComponentPredicateKind {
+enum DataComponentPredicateKind => "minecraft:data_component_predicate_type" {
     Damage => "damage",
     Enchantments => "enchantments",
     StoredEnchantments => "stored_enchantments",
@@ -5361,7 +5361,7 @@ enum DataComponentPredicateKind {
 }
 
 registry! {
-enum SpawnConditionKind {
+enum SpawnConditionKind => "minecraft:spawn_condition_type" {
     Structure => "structure",
     MoonBrightness => "moon_brightness",
     Biome => "biome",
@@ -5369,14 +5369,14 @@ enum SpawnConditionKind {
 }
 
 registry! {
-enum DialogBodyKind {
+enum DialogBodyKind => "minecraft:dialog_body_type" {
     Item => "item",
     PlainMessage => "plain_message",
 }
 }
 
 registry! {
-enum DialogKind {
+enum DialogKind => "minecraft:dialog_type" {
     Notice => "notice",
     ServerLinks => "server_links",
     DialogList => "dialog_list",
@@ -5386,7 +5386,7 @@ enum DialogKind {
 }
 
 registry! {
-enum InputControlKind {
+enum InputControlKind => "minecraft:input_control_type" {
     Boolean => "boolean",
     NumberRange => "number_range",
     SingleOption => "single_option",
@@ -5395,7 +5395,7 @@ enum InputControlKind {
 }
 
 registry! {
-enum DialogActionKind {
+enum DialogActionKind => "minecraft:dialog_action_type" {
     OpenUrl => "open_url",
     RunCommand => "run_command",
     SuggestCommand => "suggest_command",
@@ -5409,7 +5409,7 @@ enum DialogActionKind {
 }
 
 registry! {
-enum DebugSubscription {
+enum DebugSubscription => "minecraft:debug_subscription" {
     DedicatedServerTickTime => "dedicated_server_tick_time",
     Bees => "bees",
     Brains => "brains",
@@ -5430,7 +5430,7 @@ enum DebugSubscription {
 }
 
 registry! {
-enum IncomingRpcMethods {
+enum IncomingRpcMethods => "minecraft:incoming_rpc_methods" {
     Allowlist => "allowlist",
     AllowlistSet => "allowlist/set",
     AllowlistAdd => "allowlist/add",
@@ -5504,7 +5504,7 @@ enum IncomingRpcMethods {
 }
 
 registry! {
-enum OutgoingRpcMethods {
+enum OutgoingRpcMethods => "minecraft:outgoing_rpc_methods" {
     NotificationServerStarted => "notification/server/started",
     NotificationServerStopping => "notification/server/stopping",
     NotificationServerSaving => "notification/server/saving",
@@ -5530,7 +5530,7 @@ enum OutgoingRpcMethods {
 }
 
 registry! {
-enum AttributeKind {
+enum AttributeKind => "minecraft:attribute_type" {
     Boolean => "boolean",
     TriState => "tri_state",
     Float => "float",
@@ -5550,7 +5550,7 @@ enum AttributeKind {
 }
 
 registry! {
-enum EnvironmentAttribute {
+enum EnvironmentAttribute => "minecraft:environment_attribute" {
     VisualFogColor => "visual/fog_color",
     VisualFogStartDistance => "visual/fog_start_distance",
     VisualFogEndDistance => "visual/fog_end_distance",
@@ -5606,7 +5606,7 @@ enum EnvironmentAttribute {
 }
 
 registry! {
-enum GameRule {
+enum GameRule => "minecraft:game_rule" {
     AdvanceTime => "advance_time",
     AdvanceWeather => "advance_weather",
     AllowEnteringNetherUsingPortals => "allow_entering_nether_using_portals",
@@ -5670,21 +5670,21 @@ enum GameRule {
 }
 
 registry! {
-enum PermissionCheckKind {
+enum PermissionCheckKind => "minecraft:permission_check_type" {
     AlwaysPass => "always_pass",
     Require => "require",
 }
 }
 
 registry! {
-enum PermissionKind {
+enum PermissionKind => "minecraft:permission_type" {
     Atom => "atom",
     CommandLevel => "command_level",
 }
 }
 
 registry! {
-enum SlotSourceKind {
+enum SlotSourceKind => "minecraft:slot_source_type" {
     Group => "group",
     Filtered => "filtered",
     LimitSlots => "limit_slots",
@@ -5705,7 +5705,7 @@ registry! {
 /// let is_log = azalea_registry::tags::items::LOGS.contains(&item);
 /// assert!(is_log);
 /// ```
-enum ItemKind {
+enum ItemKind => "minecraft:item" {
     Air => "air",
     Stone => "stone",
     Granite => "granite",
@@ -7368,14 +7368,14 @@ enum ItemKind {
 }
 
 registry! {
-enum WorldgenCarverKind {
+enum WorldgenCarverKind => "minecraft:worldgen/carver_type" {
     Cave => "cave",
     Canyon => "canyon",
 }
 }
 
 registry! {
-enum WorldgenFeatureKind {
+enum WorldgenFeatureKind => "minecraft:worldgen/feature_type" {
     Bamboo => "bamboo",
     BlockBlob => "block_blob",
     BlockColumn => "block_column",
@@ -7438,7 +7438,7 @@ enum WorldgenFeatureKind {
 }
 
 registry! {
-enum WorldgenMaterialConditionKind {
+enum WorldgenMaterialConditionKind => "minecraft:worldgen/material_condition_type" {
     Biome => "biome",
     NoiseThreshold => "noise_threshold",
     VerticalGradient => "vertical_gradient",
@@ -7454,7 +7454,7 @@ enum WorldgenMaterialConditionKind {
 }
 
 registry! {
-enum WorldgenMaterialRuleKind {
+enum WorldgenMaterialRuleKind => "minecraft:worldgen/material_rule_type" {
     Block => "block",
     Bandlands => "bandlands",
     Sequence => "sequence",
@@ -7464,7 +7464,7 @@ enum WorldgenMaterialRuleKind {
 }
 
 registry! {
-enum ContextFloatProviderKind {
+enum ContextFloatProviderKind => "minecraft:context_float_provider_type" {
     Abs => "abs",
     Avg => "avg",
     Ceil => "ceil",
@@ -7497,7 +7497,7 @@ enum ContextFloatProviderKind {
 }
 
 registry! {
-enum ContextIntProviderKind {
+enum ContextIntProviderKind => "minecraft:context_int_provider_type" {
     Abs => "abs",
     Avg => "avg",
     Binomial => "binomial",
@@ -7525,7 +7525,7 @@ enum ContextIntProviderKind {
 }
 
 registry! {
-enum ContextKeySet {
+enum ContextKeySet => "minecraft:context_key_set" {
     Empty => "empty",
     Generic => "generic",
     Chest => "chest",

@@ -15,7 +15,7 @@ pub mod float_provider;
 pub mod particle;
 pub mod value;
 
-use std::{collections::HashMap, sync::LazyLock};
+use std::{any::Any, collections::HashMap, sync::LazyLock};
 
 use azalea_codec::Codec;
 use azalea_core::identifier::Identifier;
@@ -62,13 +62,11 @@ mod registry_holder_macro {
                     id: Identifier,
                     entries: Vec<(Identifier, Option<NbtCompound>)>,
                 ) {
-                    let registry_holder = self.clone();
-
                     if id.namespace() == "minecraft" {
                         match id.path() {
                             $(
                                 stringify!($registry) => {
-                                    return self.$registry.append_nbt(id, entries, &registry_holder);
+                                    return self.$registry.append_nbt(id, entries);
                                 }
                             )*
                             _ => {}
@@ -78,7 +76,7 @@ mod registry_holder_macro {
                     self.extra
                         .entry(id.clone())
                         .or_default()
-                        .append_nbt(id, entries, &registry_holder);
+                        .append_nbt(id, entries);
                 }
 
                 pub fn extend(&mut self, other: RegistryHolder) {
@@ -154,6 +152,7 @@ impl Default for &'static RegistryHolder {
         &DEFAULT
     }
 }
+impl azalea_buf::ResolverTrait for RegistryHolder {}
 
 /// A collection of values for a certain type of registry data.
 #[derive(Clone, Debug, Codec)]
@@ -170,19 +169,11 @@ impl<T: Codec<NbtTag>> Default for RegistryType<T> {
 }
 
 impl<T: Codec<NbtTag>> RegistryType<T> {
-    fn append_nbt(
-        &mut self,
-        id: Identifier,
-        entries: Vec<(Identifier, Option<NbtCompound>)>,
-        registry_holder: &RegistryHolder,
-    ) {
+    fn append_nbt(&mut self, id: Identifier, entries: Vec<(Identifier, Option<NbtCompound>)>) {
         let map = &mut self.map;
         for (key, value) in entries {
             if let Some(value) = value {
-                let parsed = T::codec_read(
-                    &NbtTag::from(value.clone()),
-                    azalea_codec::Ctx(registry_holder),
-                );
+                let parsed = T::codec_read(&NbtTag::from(value.clone()));
                 match parsed {
                     Ok(value) => {
                         map.insert(key, value);
@@ -203,7 +194,7 @@ pub trait RegistryDeserializesTo {
         registries: &'a RegistryHolder,
         registry_name: &'static str,
         protocol_id: u32,
-    ) -> Option<(&'a Identifier, &'a Self)>;
+    ) -> Option<&'a Self>;
 }
 
 impl RegistryDeserializesTo for NbtCompound {
@@ -211,12 +202,13 @@ impl RegistryDeserializesTo for NbtCompound {
         registries: &'a RegistryHolder,
         registry_name: &'static str,
         protocol_id: u32,
-    ) -> Option<(&'a Identifier, &'a Self)> {
+    ) -> Option<&'a Self> {
         registries
             .extra
             .get(&Identifier::new(registry_name))?
             .map
             .get_index(protocol_id as usize)
+            .map(|i| i.1)
     }
 }
 impl RegistryDeserializesTo for dimension_type::DimensionKindElement {
@@ -224,7 +216,7 @@ impl RegistryDeserializesTo for dimension_type::DimensionKindElement {
         registries: &'a RegistryHolder,
         registry_name: &'static str,
         protocol_id: u32,
-    ) -> Option<(&'a Identifier, &'a Self)> {
+    ) -> Option<&'a Self> {
         if registry_name != "dimension_type" {
             error!(
                 "called RegistryDeserializesTo::get_for_registry with the wrong registry: {registry_name}"
@@ -234,6 +226,7 @@ impl RegistryDeserializesTo for dimension_type::DimensionKindElement {
             .dimension_type
             .map
             .get_index(protocol_id as usize)
+            .map(|i| i.1)
     }
 }
 impl RegistryDeserializesTo for enchantment::EnchantmentData {
@@ -241,31 +234,30 @@ impl RegistryDeserializesTo for enchantment::EnchantmentData {
         registries: &'a RegistryHolder,
         registry_name: &'static str,
         protocol_id: u32,
-    ) -> Option<(&'a Identifier, &'a Self)> {
+    ) -> Option<&'a Self> {
         if registry_name != "enchantment" {
             error!(
                 "called RegistryDeserializesTo::get_for_registry with the wrong registry: {registry_name}"
             );
         }
-        registries.enchantment.map.get_index(protocol_id as usize)
+        registries
+            .enchantment
+            .map
+            .get_index(protocol_id as usize)
+            .map(|i| i.1)
     }
 }
 
-impl<O: azalea_codec::Ops> azalea_codec::ResolverTrait<O> for RegistryHolder {
-    fn resolver_create_item(
-        &self,
-        item: &dyn azalea_codec::ResolvableItem<O>,
-    ) -> azalea_codec::error::WriteResult<O> {
-        let id = item.to_resolvable_id();
-        let Some(value) = self
-            .protocol_id_to_identifier(Identifier::from(item.name()), id)
-            .map(|v| v.to_string())
-        else {
-            return Err(azalea_codec::error::WriteError::custom(format!(
-                "tried to encode invalid item id {id} for {}",
-                item.name()
-            )));
-        };
-        value.codec_write(azalea_codec::Ctx(self))
+impl<'a> From<azalea_buf::Ctx<'a>> for &'a RegistryHolder {
+    fn from(ctx: azalea_buf::Ctx<'a>) -> Self {
+        (ctx.resolver as &dyn Any)
+            .downcast_ref::<RegistryHolder>()
+            .expect("ctx was expected to have a RegistryHolder")
+    }
+}
+
+impl<'a> From<&'a RegistryHolder> for azalea_buf::Ctx<'a> {
+    fn from(registries: &'a RegistryHolder) -> Self {
+        azalea_buf::Ctx::new(registries)
     }
 }

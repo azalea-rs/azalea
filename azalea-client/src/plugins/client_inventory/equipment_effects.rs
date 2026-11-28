@@ -5,7 +5,8 @@ use std::collections::HashMap;
 use azalea_core::identifier::Identifier;
 use azalea_entity::{Attributes, inventory::Inventory};
 use azalea_registry::{
-    data_registry::ResolvableDataRegistry,
+    builtin::Attribute,
+    data_registry::DeserializableDataRegistry,
     item::{
         ItemStack,
         components::{self, AttributeModifier, EquipmentSlot},
@@ -148,25 +149,27 @@ fn collect_attribute_modifiers_from_item(
     slot: EquipmentSlot,
     item: &ItemStack,
     world_holder: &WorldHolder,
-) -> Vec<(azalea_registry::builtin::Attribute, AttributeModifier)> {
+) -> Vec<(Attribute, AttributeModifier)> {
     let mut modifiers = Vec::new();
 
     // handle the attribute_modifiers component first
     let attribute_modifiers = item
         .get_component::<components::AttributeModifiers>()
+        .map(|a| a.modifiers.clone())
         .unwrap_or_default();
-    for modifier in &attribute_modifiers.modifiers {
+    for modifier in &attribute_modifiers {
         modifiers.push((modifier.kind, modifier.modifier.clone()));
     }
 
     // now handle enchants
     let enchants = item
         .get_component::<components::Enchantments>()
+        .map(|e| e.levels.clone())
         .unwrap_or_default();
-    if !enchants.levels.is_empty() {
+    if !enchants.is_empty() {
         let registry_holder = &world_holder.shared.read().registries;
-        for (enchant, &level) in &enchants.levels {
-            let Some((_enchant_id, enchant_definition)) = enchant.resolve(registry_holder) else {
+        for (enchant, &level) in &enchants {
+            let Some(enchant_definition) = enchant.resolve(registry_holder) else {
                 warn!(
                     "Got equipment with an enchantment that wasn't in the registry, so it couldn't be resolved to an ID"
                 );

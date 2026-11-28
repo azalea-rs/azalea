@@ -23,9 +23,9 @@ impl<T: AzBuf> AzBuf for Filterable<T> {
         let filtered = AzBuf::azalea_read(ctx, buf)?;
         Ok(Self { raw, filtered })
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        self.raw.azalea_write(buf)?;
-        self.filtered.azalea_write(buf)?;
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
+        self.raw.azalea_write(ctx, buf)?;
+        self.filtered.azalea_write(ctx, buf)?;
         Ok(())
     }
 }
@@ -49,9 +49,9 @@ impl<T: AzBufVar> AzBufVar for Filterable<T> {
         let filtered = AzBufVar::azalea_read_var(ctx, buf)?;
         Ok(Self { raw, filtered })
     }
-    fn azalea_write_var(&self, buf: &mut impl Write) -> io::Result<()> {
-        self.raw.azalea_write_var(buf)?;
-        self.filtered.azalea_write_var(buf)?;
+    fn azalea_write_var(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
+        self.raw.azalea_write_var(ctx, buf)?;
+        self.filtered.azalea_write_var(ctx, buf)?;
         Ok(())
     }
 }

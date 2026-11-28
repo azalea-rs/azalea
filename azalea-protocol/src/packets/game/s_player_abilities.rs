@@ -18,11 +18,11 @@ impl AzBuf for ServerboundPlayerAbilities {
             is_flying: set.index(1),
         })
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
         let mut set = FixedBitSet::<2>::new();
         if self.is_flying {
             set.set(1);
         }
-        set.azalea_write(buf)
+        set.azalea_write(ctx, buf)
     }
 }

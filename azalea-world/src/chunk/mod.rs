@@ -14,10 +14,9 @@ use azalea_core::{
     heightmap_kind::HeightmapKind,
     position::{ChunkBiomePos, ChunkBlockPos, ChunkSectionBiomePos, ChunkSectionBlockPos},
 };
-use azalea_registry::data::Biome;
 use tracing::warn;
 
-use crate::{heightmap::Heightmap, palette::PalettedContainer};
+use crate::{biome_id::BiomeId, heightmap::Heightmap, palette::PalettedContainer};
 
 const SECTION_HEIGHT: u32 = 16;
 
@@ -51,7 +50,7 @@ pub struct Section {
     /// Unlike [`Self::block_count`], this is currently not updated by Azalea.
     pub fluid_count: u16,
     pub states: PalettedContainer<BlockState>,
-    pub biomes: PalettedContainer<Biome>,
+    pub biomes: PalettedContainer<BiomeId>,
 }
 
 /// Get the actual stored view distance for the selected view distance.
@@ -143,8 +142,9 @@ impl Chunk {
         }
     }
 
-    /// Get the biome at the given position, or `None` if it's out of bounds.
-    pub fn get_biome(&self, pos: ChunkBiomePos, min_y: i32) -> Option<Biome> {
+    /// Get the [`BiomeId`] at the given position, or `None` if it's out of
+    /// bounds.
+    pub fn get_biome_id(&self, pos: ChunkBiomePos, min_y: i32) -> Option<BiomeId> {
         if pos.y < min_y {
             // y position is out of bounds
             return None;
@@ -155,7 +155,7 @@ impl Chunk {
             return None;
         };
         let chunk_section_pos = ChunkSectionBiomePos::from(pos);
-        Some(section.get_biome(chunk_section_pos))
+        Some(section.get_biome_id(chunk_section_pos))
     }
 }
 
@@ -205,7 +205,7 @@ impl AzBuf for Section {
             }
         }
 
-        let biomes = PalettedContainer::<Biome>::read(ctx, buf)?;
+        let biomes = PalettedContainer::<BiomeId>::read(ctx, buf)?;
         Ok(Section {
             block_count,
             fluid_count,
@@ -213,11 +213,11 @@ impl AzBuf for Section {
             biomes,
         })
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        self.block_count.azalea_write(buf)?;
-        self.fluid_count.azalea_write(buf)?;
-        self.states.write(buf)?;
-        self.biomes.write(buf)?;
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
+        self.block_count.azalea_write(ctx, buf)?;
+        self.fluid_count.azalea_write(ctx, buf)?;
+        self.states.write(ctx, buf)?;
+        self.biomes.write(ctx, buf)?;
         Ok(())
     }
 }
@@ -242,13 +242,13 @@ impl Section {
         previous_state
     }
 
-    pub fn get_biome(&self, pos: ChunkSectionBiomePos) -> Biome {
+    pub fn get_biome_id(&self, pos: ChunkSectionBiomePos) -> BiomeId {
         self.biomes.get(pos)
     }
-    pub fn set_biome(&mut self, pos: ChunkSectionBiomePos, biome: Biome) {
+    pub fn set_biome_id(&mut self, pos: ChunkSectionBiomePos, biome: BiomeId) {
         self.biomes.set(pos, biome);
     }
-    pub fn get_and_set_biome(&mut self, pos: ChunkSectionBiomePos, biome: Biome) -> Biome {
+    pub fn get_and_set_biome_id(&mut self, pos: ChunkSectionBiomePos, biome: BiomeId) -> BiomeId {
         self.biomes.get_and_set(pos, biome)
     }
 }
@@ -305,7 +305,7 @@ mod tests {
         };
 
         let mut buf = Vec::new();
-        section.azalea_write(&mut buf).unwrap();
+        section.azalea_write(Default::default(), &mut buf).unwrap();
 
         let mut cur = Cursor::new(buf.as_slice());
         let deserialized_section = Section::azalea_read(Default::default(), &mut cur).unwrap();

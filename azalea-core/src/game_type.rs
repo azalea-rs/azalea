@@ -126,8 +126,8 @@ impl AzBuf for GameMode {
             GameMode::Survival
         }))
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        u8::azalea_write(&self.to_id(), buf)
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
+        u8::azalea_write(&self.to_id(), ctx, buf)
     }
 }
 
@@ -154,7 +154,7 @@ impl AzBuf for OptionalGameType {
         GameMode::from_optional_id(id)
             .ok_or(BufReadErrorRepr::UnexpectedEnumVariant { id: id as i32 }.into())
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        GameMode::to_optional_id(*self).azalea_write(buf)
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
+        GameMode::to_optional_id(*self).azalea_write(ctx, buf)
     }
 }

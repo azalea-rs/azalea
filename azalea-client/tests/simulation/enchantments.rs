@@ -7,7 +7,6 @@ use azalea_protocol::packets::{
     game::ClientboundContainerSetSlot,
 };
 use azalea_registry::{
-    Registry,
     builtin::ItemKind,
     data::Enchantment,
     item::{ItemStack, components::Enchantments},
@@ -72,7 +71,7 @@ fn test_enchantments() {
     s.tick();
     s.receive_packet(ClientboundFinishConfiguration);
     s.tick();
-    s.receive_packet(default_login_packet(&s));
+    s.receive_packet(default_login_packet());
     s.tick();
 
     fn efficiency(simulation: &mut Simulation) -> f64 {
@@ -97,7 +96,7 @@ fn test_enchantments() {
         state_id: 2,
         slot: *azalea_inventory::Player::HOTBAR_SLOTS.start() as u16,
         item_stack: ItemStack::from(ItemKind::DiamondPickaxe).with_component(Enchantments {
-            levels: [(Enchantment::from_u32(0).unwrap(), 1)].into(),
+            levels: [(Enchantment::Efficiency, 1)].into(),
         }),
     });
     s.tick();

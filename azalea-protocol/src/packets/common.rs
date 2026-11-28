@@ -6,7 +6,7 @@ use azalea_core::{
 };
 use azalea_registry::{
     data::DimensionKind,
-    data_registry::ResolvableDataRegistry,
+    data_registry::DeserializableDataRegistry,
     registry_holder::{RegistryHolder, dimension_type::DimensionKindElement},
 };
 use tracing::error;
@@ -27,16 +27,16 @@ pub struct CommonPlayerSpawnInfo {
     pub sea_level: i32,
 }
 impl CommonPlayerSpawnInfo {
-    pub fn dimension_type<'a>(
+    pub fn dimension_data<'a>(
         &self,
         registry_holder: &'a RegistryHolder,
-    ) -> Option<(&'a Identifier, &'a DimensionKindElement)> {
+    ) -> Option<&'a DimensionKindElement> {
         let dimension_res = self.dimension_type.resolve(registry_holder);
-        let Some((dimension_type, dimension_data)) = dimension_res else {
+        let Some(dimension_data) = dimension_res else {
             error!("Couldn't resolve dimension_type {:?}", self.dimension_type);
             return None;
         };
 
-        Some((dimension_type, dimension_data))
+        Some(dimension_data)
     }
 }

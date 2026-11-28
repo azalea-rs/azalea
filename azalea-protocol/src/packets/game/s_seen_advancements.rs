@@ -28,10 +28,10 @@ impl AzBuf for ServerboundSeenAdvancements {
         };
         Ok(Self { action, tab })
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        self.action.azalea_write(buf)?;
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
+        self.action.azalea_write(ctx, buf)?;
         if let Some(tab) = &self.tab {
-            tab.azalea_write(buf)?;
+            tab.azalea_write(ctx, buf)?;
         }
         Ok(())
     }

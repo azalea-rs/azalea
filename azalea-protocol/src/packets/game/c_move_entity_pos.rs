@@ -24,13 +24,13 @@ impl AzBuf for ClientboundMoveEntityPos {
             properties: p.properties,
         })
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
         let p = ClientboundMoveEntityPosRot {
             entity_id: self.entity_id,
             delta: self.delta.clone(),
             look_direction: Default::default(),
             properties: self.properties,
         };
-        c_move_entity_pos_rot::write_move_entity_packet(buf, &p, false)
+        c_move_entity_pos_rot::write_move_entity_packet(ctx, buf, &p, false)
     }
 }

@@ -65,8 +65,8 @@ impl AzBuf for Difficulty {
     fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(Difficulty::by_id(u8::azalea_read(ctx, buf)?))
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        u8::azalea_write(&self.id(), buf)
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
+        u8::azalea_write(&self.id(), ctx, buf)
     }
 }
 

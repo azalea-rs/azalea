@@ -9,7 +9,6 @@ pub mod consume_effect;
 pub mod default_components;
 
 use std::{
-    borrow::Cow,
     fmt::Debug,
     io::{self, Cursor, Write},
 };
@@ -156,7 +155,7 @@ impl ItemStack {
     ///
     /// This is used for things like getting the damage of an item, or seeing
     /// how much food it replenishes.
-    pub fn get_component<'a, T: components::DataComponentTrait>(&'a self) -> Option<Cow<'a, T>> {
+    pub fn get_component<T: components::DataComponentTrait>(&self) -> Option<&T> {
         self.as_present().and_then(|i| i.get_component::<T>())
     }
 
@@ -233,11 +232,11 @@ impl ItemStackData {
     ///
     /// This is used for things like getting the damage of an item, or seeing
     /// how much food it replenishes.
-    pub fn get_component<'a, T: components::DataComponentTrait>(&'a self) -> Option<Cow<'a, T>> {
+    pub fn get_component<T: components::DataComponentTrait>(&self) -> Option<&T> {
         if let Some(c) = self.component_patch.get::<T>() {
-            Some(Cow::Borrowed(c))
+            Some(c)
         } else {
-            get_default_component::<T>(self.kind).map(|c| Cow::Owned(c))
+            get_default_component::<T>(self.kind)
         }
     }
 }
@@ -257,13 +256,13 @@ impl AzBuf for ItemStack {
             }))
         }
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
         match self {
-            ItemStack::Empty => 0_i32.azalea_write_var(buf)?,
+            ItemStack::Empty => 0_i32.azalea_write_var(ctx, buf)?,
             ItemStack::Present(i) => {
-                i.count.azalea_write_var(buf)?;
-                i.kind.azalea_write(buf)?;
-                i.component_patch.azalea_write(buf)?;
+                i.count.azalea_write_var(ctx, buf)?;
+                i.kind.azalea_write(ctx, buf)?;
+                i.component_patch.azalea_write(ctx, buf)?;
             }
         };
         Ok(())
@@ -306,4 +305,50 @@ pub struct ItemStackTemplate {
     #[var]
     pub count: i32,
     pub component_patch: DataComponentPatch,
+}
+impl From<ItemKind> for ItemStackTemplate {
+    fn from(kind: ItemKind) -> Self {
+        Self {
+            kind,
+            count: 1,
+            component_patch: Default::default(),
+        }
+    }
+}
+#[derive(Codec)]
+enum ItemStackTemplateCodec {
+    Item(ItemKind),
+    Map {
+        id: ItemKind,
+        #[codec(optional, default = 1)]
+        count: i32,
+        #[codec(optional)]
+        components: DataComponentPatch,
+    },
+}
+azalea_codec::impl_codec_from!(ItemStackTemplate, ItemStackTemplateCodec, struct IncompleteItemStackTemplate);
+impl From<ItemStackTemplate> for ItemStackTemplateCodec {
+    fn from(i: ItemStackTemplate) -> Self {
+        Self::Map {
+            id: i.kind,
+            count: i.count,
+            components: i.component_patch,
+        }
+    }
+}
+impl From<ItemStackTemplateCodec> for ItemStackTemplate {
+    fn from(i: ItemStackTemplateCodec) -> Self {
+        match i {
+            ItemStackTemplateCodec::Item(kind) => kind.into(),
+            ItemStackTemplateCodec::Map {
+                id,
+                count,
+                components,
+            } => Self {
+                kind: id,
+                count,
+                component_patch: components,
+            },
+        }
+    }
 }

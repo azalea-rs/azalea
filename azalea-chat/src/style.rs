@@ -16,12 +16,12 @@ pub struct TextColor {
     pub name: Option<String>,
 }
 impl<O: azalea_codec::Ops> Codec<O> for TextColor {
-    fn codec_read(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
-        TextColor::parse(&ops.get_string(ctx)?)
+    fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
+        TextColor::parse(&ops.get_string()?)
             .ok_or_else(|| azalea_codec::error::ReadError::custom("not a color"))
     }
-    fn codec_write(&self, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::WriteResult<O> {
-        self.serialize().codec_write(ctx)
+    fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
+        self.serialize().codec_write()
     }
 }
 
