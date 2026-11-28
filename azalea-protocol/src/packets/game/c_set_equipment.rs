@@ -38,15 +38,15 @@ impl AzBuf for EquipmentSlots {
 
         Ok(EquipmentSlots { slots })
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
         for i in 0..self.slots.len() {
             let (equipment_slot, item) = &self.slots[i];
             let mut equipment_byte = *equipment_slot as u8;
             if i != self.slots.len() - 1 {
                 equipment_byte |= 128;
             }
-            equipment_byte.azalea_write(buf)?;
-            item.azalea_write(buf)?;
+            equipment_byte.azalea_write(ctx, buf)?;
+            item.azalea_write(ctx, buf)?;
         }
 
         Ok(())

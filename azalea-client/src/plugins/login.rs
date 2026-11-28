@@ -73,7 +73,7 @@ pub fn poll_auth_task(
                     // guess another option would be to make a Trigger+observer
                     // for set_encryption_key; the current implementation is
                     // simpler though.
-                    if let Err(e) = raw_conn.write(packet) {
+                    if let Err(e) = raw_conn.write(Default::default(), packet) {
                         error!("Error sending key packet: {e:?}");
                     }
                     if let Some(net_conn) = raw_conn.net_conn() {

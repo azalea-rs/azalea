@@ -57,7 +57,7 @@ where
         buf: &mut Cursor<&[u8]>,
     ) -> Result<Self, Box<ReadPacketError>>;
 
-    fn write(&self, buf: &mut impl Write) -> io::Result<()>;
+    fn write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()>;
 }
 
 pub trait Packet<Protocol> {
@@ -99,7 +99,7 @@ impl AzBuf for ClientIntention {
         id.try_into()
             .map_err(|_| BufReadErrorRepr::UnexpectedEnumVariant { id }.into())
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        (*self as i32).azalea_write_var(buf)
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
+        (*self as i32).azalea_write_var(ctx, buf)
     }
 }

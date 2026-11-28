@@ -37,14 +37,14 @@ pub struct WaypointIcon {
     pub color: Option<RgbColor>,
 }
 impl AzBuf for WaypointIcon {
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        self.style.azalea_write(buf)?;
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
+        self.style.azalea_write(ctx, buf)?;
         let color = self.color.map(|c| CompactRgbColor {
             r: c.red(),
             g: c.green(),
             b: c.blue(),
         });
-        color.azalea_write(buf)?;
+        color.azalea_write(ctx, buf)?;
         Ok(())
     }
     fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {

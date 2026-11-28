@@ -1,5 +1,5 @@
 use crate::{
-    Codec, Ctx, Ops,
+    Codec, Ops,
     error::{ReadError, WriteError},
     impl_defaultable,
 };
@@ -23,11 +23,11 @@ impl Number {
 }
 
 impl<O: Ops> Codec<O> for Number {
-    fn codec_read(ops: &O, ctx: Ctx<O>) -> crate::error::ReadResult<Self> {
-        ops.get_number(ctx)
+    fn codec_read(ops: &O) -> crate::error::ReadResult<Self> {
+        ops.get_number()
     }
-    fn codec_write(&self, ctx: Ctx<O>) -> crate::error::WriteResult<O> {
-        O::create_number(ctx, *self)
+    fn codec_write(&self) -> crate::error::WriteResult<O> {
+        O::create_number(*self)
     }
 }
 

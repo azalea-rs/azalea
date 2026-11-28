@@ -9,6 +9,7 @@ pub mod data;
 pub mod data_registry;
 pub mod item;
 pub mod registry_holder;
+pub mod tags;
 
 use std::{
     fmt::{self, Debug},
@@ -21,6 +22,28 @@ use azalea_codec::Codec;
 use azalea_core::identifier::Identifier;
 pub use azalea_registry_macros as macros;
 
+pub trait Registry:
+    AzBuf + PartialEq + PartialOrd + Ord + Clone + Hash + Into<Identifier> + TryFrom<Identifier> + Clone
+where
+    Self: Sized,
+{
+    const NAME: &'static str;
+
+    fn from_id(ctx: azalea_buf::Ctx, id: u32) -> Result<Self, BufReadError>;
+    fn to_id(&self, ctx: azalea_buf::Ctx) -> io::Result<u32>;
+}
+
+impl<T: BuiltinRegistry> Registry for T {
+    const NAME: &'static str = T::NAME;
+    fn from_id(_ctx: azalea_buf::Ctx, id: u32) -> Result<Self, BufReadError> {
+        T::builtin_from_id(id)
+            .ok_or_else(|| BufReadErrorRepr::UnexpectedEnumVariant { id: id as i32 }.into())
+    }
+    fn to_id(&self, _ctx: azalea_buf::Ctx) -> io::Result<u32> {
+        Ok(self.builtin_into_id())
+    }
+}
+
 /// A registry that might not be present.
 ///
 /// This is transmitted as a single varint in the protocol.
@@ -31,16 +54,13 @@ impl<T: Registry> AzBuf for OptionalRegistry<T> {
     fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(OptionalRegistry(match u32::azalea_read_var(ctx, buf)? {
             0 => None,
-            value => Some(
-                T::from_u32(value - 1)
-                    .ok_or(BufReadErrorRepr::UnexpectedEnumVariant { id: value as i32 })?,
-            ),
+            value => Some(T::from_id(ctx, value - 1)?),
         }))
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
         match &self.0 {
-            None => 0u32.azalea_write_var(buf),
-            Some(value) => (value.to_u32() + 1).azalea_write_var(buf),
+            None => 0u32.azalea_write_var(ctx, buf),
+            Some(value) => (value.to_id(ctx)? + 1).azalea_write_var(ctx, buf),
         }
     }
 }
@@ -60,16 +80,16 @@ impl<D: Registry, C: AzBuf> AzBuf for CustomRegistry<D, C> {
         }
         Ok(CustomRegistry::Custom(C::azalea_read(ctx, buf)?))
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
         match self {
             CustomRegistry::Direct(direct_registry) => {
                 // write the id + 1
-                (direct_registry.to_u32() + 1).azalea_write_var(buf)
+                (direct_registry.to_id(ctx)? + 1).azalea_write_var(ctx, buf)
             }
             CustomRegistry::Custom(custom_registry) => {
                 // write 0, then the custom registry
-                0u32.azalea_write_var(buf)?;
-                custom_registry.azalea_write(buf)
+                0u32.azalea_write_var(ctx, buf)?;
+                custom_registry.azalea_write(ctx, buf)
             }
         }
     }
@@ -102,17 +122,17 @@ impl<D: AzBuf> AzBuf for HolderSet<D> {
             Ok(Self::Direct { contents })
         }
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
         match self {
             Self::Direct { contents } => {
-                (contents.len() as i32 + 1).azalea_write_var(buf)?;
+                (contents.len() as i32 + 1).azalea_write_var(ctx, buf)?;
                 for item in contents {
-                    item.azalea_write(buf)?;
+                    item.azalea_write(ctx, buf)?;
                 }
             }
             Self::Named { key, contents: _ } => {
-                0i32.azalea_write_var(buf)?;
-                key.azalea_write(buf)?;
+                0i32.azalea_write_var(ctx, buf)?;
+                key.azalea_write(ctx, buf)?;
             }
         }
         Ok(())
@@ -136,32 +156,32 @@ impl<D> From<Vec<D>> for HolderSet<D> {
     }
 }
 impl<D: Codec<O>, O: azalea_codec::Ops> Codec<O> for HolderSet<D> {
-    fn codec_read(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
-        if let Ok(key) = Identifier::codec_read(ops, ctx) {
+    fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
+        if let Ok(key) = Identifier::codec_read(ops) {
             return Ok(Self::Named {
                 key,
                 contents: vec![],
             });
         }
-        if let Ok(d) = D::codec_read(ops, ctx) {
+        if let Ok(d) = D::codec_read(ops) {
             return Ok(Self::Direct { contents: vec![d] });
         }
-        if let Ok(contents) = Vec::<D>::codec_read(ops, ctx) {
+        if let Ok(contents) = Vec::<D>::codec_read(ops) {
             return Ok(Self::Direct { contents });
         }
 
         Err(azalea_codec::error::ReadError::custom("invalid holderset"))
     }
-    fn codec_write(&self, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::WriteResult<O> {
+    fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
         match self {
             Self::Direct { contents } => {
                 if contents.len() == 1 {
-                    contents[0].codec_write(ctx)
+                    contents[0].codec_write()
                 } else {
-                    contents.codec_write(ctx)
+                    contents.codec_write()
                 }
             }
-            Self::Named { key, contents: _ } => key.codec_write(ctx),
+            Self::Named { key, contents: _ } => key.codec_write(),
         }
     }
 }
@@ -209,18 +229,16 @@ impl<R: Registry, Direct: AzBuf> AzBuf for Holder<R, Direct> {
             Ok(Self::Direct(Direct::azalea_read(ctx, buf)?))
         } else {
             let id = id - 1;
-            let Some(value) = R::from_u32(id) else {
-                return Err(BufReadErrorRepr::UnexpectedEnumVariant { id: id as i32 }.into());
-            };
+            let value = Registry::from_id(ctx, id)?;
             Ok(Self::Reference(value))
         }
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
         match self {
-            Self::Reference(value) => (value.to_u32() + 1).azalea_write_var(buf),
+            Self::Reference(value) => (value.to_id(ctx)? + 1).azalea_write_var(ctx, buf),
             Self::Direct(value) => {
-                0u32.azalea_write_var(buf)?;
-                value.azalea_write(buf)
+                0u32.azalea_write_var(ctx, buf)?;
+                value.azalea_write(ctx, buf)
             }
         }
     }
@@ -236,7 +254,7 @@ impl<R: Registry + Debug, Direct: AzBuf + Debug> Debug for Holder<R, Direct> {
 impl<R: Registry + Clone, Direct: AzBuf + Clone> Clone for Holder<R, Direct> {
     fn clone(&self) -> Self {
         match self {
-            Self::Reference(value) => Self::Reference(*value),
+            Self::Reference(value) => Self::Reference(value.clone()),
             Self::Direct(value) => Self::Direct(value.clone()),
         }
     }

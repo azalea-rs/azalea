@@ -170,12 +170,15 @@ async fn create_conn_and_send_intention_packet(
         Connection::new(&opts.address.socket).await?
     };
 
-    conn.write(ServerboundIntention {
-        protocol_version: PROTOCOL_VERSION,
-        hostname: opts.address.server.host.clone(),
-        port: opts.address.server.port,
-        intention: ClientIntention::Login,
-    })
+    conn.write(
+        Default::default(),
+        ServerboundIntention {
+            protocol_version: PROTOCOL_VERSION,
+            hostname: opts.address.server.host.clone(),
+            port: opts.address.server.port,
+            intention: ClientIntention::Login,
+        },
+    )
     .await?;
 
     let conn = conn.login();

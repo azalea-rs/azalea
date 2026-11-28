@@ -49,12 +49,12 @@ impl AzBuf for EntityMetadataItems {
         }
         Ok(EntityMetadataItems(metadata))
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
         for item in &self.0 {
-            item.index.azalea_write(buf)?;
-            item.value.azalea_write(buf)?;
+            item.index.azalea_write(ctx, buf)?;
+            item.value.azalea_write(ctx, buf)?;
         }
-        0xffu8.azalea_write(buf)?;
+        0xffu8.azalea_write(ctx, buf)?;
         Ok(())
     }
 }
@@ -143,10 +143,10 @@ impl AzBuf for OptionalUnsignedInt {
             Some(val - 1)
         }))
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
         match self.0 {
-            Some(val) => (val + 1).azalea_write_var(buf),
-            None => 0u32.azalea_write_var(buf),
+            Some(val) => (val + 1).azalea_write_var(ctx, buf),
+            None => 0u32.azalea_write_var(ctx, buf),
         }
     }
 }

@@ -1,10 +1,9 @@
 use std::{
     collections::{HashSet, hash_set},
     ops::{Add, RangeInclusive},
-    sync::LazyLock,
 };
 
-use azalea_registry_builtin::{builtin::BlockKind, tags::RegistryTag};
+use azalea_registry_builtin::builtin::BlockKind;
 
 use crate::{BlockState, block_state::BlockStateIntegerRepr};
 
@@ -76,17 +75,5 @@ impl From<&[BlockKind]> for BlockStates {
 impl<const N: usize> From<[BlockKind; N]> for BlockStates {
     fn from(arr: [BlockKind; N]) -> Self {
         Self::from(&arr[..])
-    }
-}
-impl From<&RegistryTag<BlockKind>> for BlockStates {
-    fn from(tag: &RegistryTag<BlockKind>) -> Self {
-        Self::from(&**tag)
-    }
-}
-// allows users to do like `BlockStates::from(&tags::blocks::LOGS)` instead of
-// `BlockStates::from(&&tags::blocks::LOGS)`
-impl From<&LazyLock<RegistryTag<BlockKind>>> for BlockStates {
-    fn from(tag: &LazyLock<RegistryTag<BlockKind>>) -> Self {
-        Self::from(&**tag)
     }
 }

@@ -21,7 +21,7 @@ fn uncached_read_default_components() -> AllDefaultComponents {
     let mut data = data.to_owned().into_bytes();
     let json = simd_json::from_slice::<simd_json::OwnedValue>(&mut data).unwrap();
     //
-    AllDefaultComponents::codec_read(&json, Default::default()).unwrap()
+    AllDefaultComponents::codec_read(&json).unwrap()
 }
 pub static ALL_DEFAULT_COMPONENTS: LazyLock<AllDefaultComponents> =
     LazyLock::new(uncached_read_default_components);
@@ -45,9 +45,9 @@ pub fn get_default_component<T: DefaultableComponent>(item: ItemKind) -> Option<
 
 #[cfg(test)]
 mod tests {
-    use azalea_registry_builtin::{Registry, builtin::ItemKind};
+    use azalea_registry_builtin::builtin::ItemKind;
 
-    use crate::item::default_components::ALL_DEFAULT_COMPONENTS;
+    use crate::{Registry, item::default_components::ALL_DEFAULT_COMPONENTS};
 
     #[test]
     fn default_components() {
@@ -55,7 +55,7 @@ mod tests {
 
         // and now make sure all items are represented
         for id in 0..=ItemKind::MAX_ID {
-            let item = ItemKind::from_u32(id).unwrap();
+            let item = ItemKind::from_id(Default::default(), id).unwrap();
             let item_defaults = defaults.data.get(&item);
             assert!(item_defaults.is_some());
         }

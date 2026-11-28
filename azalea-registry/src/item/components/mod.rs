@@ -28,11 +28,10 @@ use crate::{
     },
     data::{self, BannerPatternKind, DamageKind, Enchantment, TrimMaterial, TrimPattern},
     item::{
-        ItemStack,
+        ItemStack, ItemStackTemplate,
         checksum::{Checksum, ChecksumOps},
         consume_effect::ConsumeEffect,
     },
-    registry_holder::RegistryHolder,
 };
 
 #[macro_export]
@@ -53,12 +52,11 @@ macro_rules! define_data_components {
             pub fn codec_read_as<O: azalea_codec::Ops>(
                 kind: DataComponentKind,
                 ops: &O,
-                ctx: azalea_codec::Ctx<O>,
             ) -> azalea_codec::error::ReadResult<Self> {
                 Ok(match kind {
                     $(
                         DataComponentKind::$x => {
-                            $x::codec_read(ops, ctx)
+                            $x::codec_read(ops)
                                 .map(|i| Self::$x(Box::new(i)))?
                         },
                     )*
@@ -66,7 +64,6 @@ macro_rules! define_data_components {
             }
             pub fn codec_write_value<O: azalea_codec::Ops>(
                 &self,
-                ctx: azalea_codec::Ctx<O>,
             ) -> azalea_codec::error::WriteResult<O> {
                 // we do this instead of implementing Codec since the codec_read
                 // implementation on this type wouldn't make much sense. maybe
@@ -75,7 +72,7 @@ macro_rules! define_data_components {
                 Ok(match self {
                     $(
                         Self::$x(v) => {
-                            v.codec_write(ctx)?
+                            v.codec_write()?
                         },
                     )*
                 })
@@ -105,10 +102,11 @@ macro_rules! define_data_components {
             }
             pub fn azalea_write_value(
                 &self,
+                ctx: azalea_buf::Ctx,
                 buf: &mut impl std::io::Write,
             ) -> io::Result<()> {
                 match self {
-                    $( Self::$x(v) => v.azalea_write(buf)?, )*
+                    $( Self::$x(v) => v.azalea_write(ctx, buf)?, )*
                 };
 
                 Ok(())
@@ -142,8 +140,8 @@ pub trait DataComponentTrait:
     Send + Sync + Clone + Into<DataComponent> + Codec<ChecksumOps> + Sized + 'static
 {
     const KIND: DataComponentKind;
-    fn checksum(&self, registries: &RegistryHolder) -> Checksum {
-        self.clone().into().checksum(registries)
+    fn checksum(&self) -> Checksum {
+        self.clone().into().checksum()
     }
     fn try_from_data_component(c: &DataComponent) -> Option<&Self>;
 }
@@ -153,9 +151,9 @@ impl AzBuf for DataComponent {
         let kind = DataComponentKind::azalea_read(ctx, buf)?;
         Self::azalea_read_as(kind, ctx, buf)
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        self.kind().azalea_write(buf)?;
-        self.azalea_write_value(buf)
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
+        self.kind().azalea_write(ctx, buf)?;
+        self.azalea_write_value(ctx, buf)
     }
 }
 
@@ -289,10 +287,7 @@ define_data_components!(
 );
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
-#[codec(transparent)]
-pub struct CustomData {
-    pub nbt: NbtCompound,
-}
+pub struct CustomData(pub NbtCompound);
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 #[codec(transparent)]
@@ -444,6 +439,7 @@ pub struct AttributeModifiers {
 
 #[derive(AzBuf, Clone, Debug, Default, PartialEq, Codec)]
 #[codec(default_snake_case_key)]
+#[codec(tag = "type")]
 pub enum AttributeModifierDisplay {
     #[default]
     Default,
@@ -619,6 +615,7 @@ pub struct SuspiciousStewEffects {
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 pub struct WritableBookContent {
+    #[codec(optional)]
     pub pages: Vec<Filterable<String>>,
 }
 
@@ -734,6 +731,9 @@ pub struct Fireworks {
     #[codec(optional)]
     pub flight_duration: i32,
     #[limit(256)]
+    // TODO
+    // #[codec(limit = 256)]
+    #[codec(optional)]
     pub explosions: Vec<FireworkExplosion>,
 }
 
@@ -787,15 +787,21 @@ pub struct BaseColor {
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 pub struct PotDecorations {
-    pub back: Option<ItemStack>,
-    pub left: Option<ItemStack>,
-    pub right: Option<ItemStack>,
-    pub front: Option<ItemStack>,
+    #[codec(optional)]
+    pub back: Option<ItemStackTemplate>,
+    #[codec(optional)]
+    pub left: Option<ItemStackTemplate>,
+    #[codec(optional)]
+    pub right: Option<ItemStackTemplate>,
+    #[codec(optional)]
+    pub front: Option<ItemStackTemplate>,
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 #[codec(transparent)]
 pub struct Container {
+    #[limit(256)]
+    // #[codec(limit(256))]
     pub items: Vec<ItemStack>,
 }
 
@@ -880,7 +886,7 @@ azalea_codec::impl_defaultable!(ItemUseAnimation);
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 #[codec(transparent)]
 pub struct UseRemainder {
-    pub convert_into: ItemStack,
+    pub convert_into: ItemStackTemplate,
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
@@ -1022,20 +1028,6 @@ pub struct Weapon {
     pub disable_blocking_for_seconds: f32,
 }
 
-impl Weapon {
-    pub const fn new() -> Self {
-        Self {
-            item_damage_per_attack: 1,
-            disable_blocking_for_seconds: 0.,
-        }
-    }
-}
-impl Default for Weapon {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 #[codec(transparent)]
 pub struct PotionDurationScale {
@@ -1068,7 +1060,7 @@ pub struct FoxVariant {
 
 registry! {
 #[derive(Default)]
-enum FoxVariantKind {
+enum FoxVariantKind => "fox/variant" {
     #[default]
     Red => "red",
     Snow => "snow",
@@ -1089,7 +1081,7 @@ pub struct ParrotVariant {
     pub variant: ParrotVariantKind,
 }
 registry! {
-enum ParrotVariantKind {
+enum ParrotVariantKind => "parrot/variant" {
     RedBlue => "red_blue",
     Blue => "blue",
     Green => "green",
@@ -1134,7 +1126,7 @@ pub struct MooshroomVariant {
 }
 registry! {
 #[derive(Default)]
-enum MooshroomVariantKind {
+enum MooshroomVariantKind => "mooshroom/variant" {
     #[default]
     Red => "red",
     Brown => "brown",
@@ -1148,7 +1140,7 @@ pub struct RabbitVariant {
 }
 registry! {
 #[derive(Default)]
-enum RabbitVariantKind {
+enum RabbitVariantKind => "rabbit/variant" {
     #[default]
     Brown => "brown",
     White => "white",
@@ -1179,7 +1171,7 @@ pub struct HorseVariant {
 }
 registry! {
 #[derive(Default)]
-enum HorseVariantKind {
+enum HorseVariantKind => "horse/variant" {
     #[default]
     White => "white",
     Creamy => "creamy",
@@ -1217,7 +1209,7 @@ pub struct LlamaVariant {
 }
 registry! {
 #[derive(Default)]
-enum LlamaVariantKind {
+enum LlamaVariantKind => "llama/variant" {
     #[default]
     Creamy => "creamy",
     White => "white",
@@ -1233,7 +1225,7 @@ pub struct AxolotlVariant {
 }
 registry! {
 #[derive(Default)]
-enum AxolotlVariantKind {
+enum AxolotlVariantKind => "axolotl/variant" {
     #[default]
     Lucy => "lucy",
     Wild => "wild",
@@ -1275,20 +1267,6 @@ pub struct TooltipDisplay {
     pub hidden_components: Vec<DataComponentKind>,
 }
 
-impl TooltipDisplay {
-    pub const fn new() -> Self {
-        Self {
-            hide_tooltip: false,
-            hidden_components: Vec::new(),
-        }
-    }
-}
-impl Default for TooltipDisplay {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 pub struct BlocksAttacks {
     #[codec(optional)]
@@ -1305,30 +1283,6 @@ pub struct BlocksAttacks {
     pub block_sound: Option<crate::Holder<SoundEvent, CustomSound>>,
     #[codec(optional)]
     pub disabled_sound: Option<crate::Holder<SoundEvent, CustomSound>>,
-}
-
-impl BlocksAttacks {
-    pub fn new() -> Self {
-        Self {
-            block_delay_seconds: 0.,
-            disable_cooldown_scale: 1.,
-            damage_reductions: vec![DamageReduction {
-                horizontal_blocking_angle: 90.,
-                kind: None,
-                base: 0.,
-                factor: 1.,
-            }],
-            item_damage: ItemDamageFunction::default(),
-            bypassed_by: None,
-            block_sound: None,
-            disabled_sound: None,
-        }
-    }
-}
-impl Default for BlocksAttacks {
-    fn default() -> Self {
-        Self::new()
-    }
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
@@ -1360,9 +1314,7 @@ azalea_codec::impl_defaultable!(ItemDamageFunction);
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 #[codec(transparent)]
 pub struct ProvidesTrimMaterial {
-    // TODO: this should be a TrimMaterialKey and be resolved by azalea-buf
-    // instead of azalea-codec
-    pub value: Holder<crate::data::TrimMaterialKey, DirectTrimMaterial>,
+    pub value: Holder<TrimMaterial, DirectTrimMaterial>,
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
@@ -1429,20 +1381,6 @@ pub struct UseEffects {
     #[codec(optional)]
     pub speed_multiplier: f32,
 }
-impl UseEffects {
-    pub const fn new() -> Self {
-        Self {
-            can_sprint: false,
-            interact_vibrations: true,
-            speed_multiplier: 0.2,
-        }
-    }
-}
-impl Default for UseEffects {
-    fn default() -> Self {
-        Self::new()
-    }
-}
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 #[codec(transparent)]
@@ -1458,82 +1396,48 @@ pub struct DamageType {
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 pub struct PiercingWeapon {
+    #[codec(optional, default = true)]
     pub deals_knockback: bool,
+    #[codec(optional)]
     pub dismounts: bool,
+    #[codec(optional)]
     pub sound: Option<Holder<SoundEvent, azalea_core::sound::CustomSound>>,
+    #[codec(optional)]
     pub hit_sound: Option<Holder<SoundEvent, azalea_core::sound::CustomSound>>,
-}
-impl PiercingWeapon {
-    pub const fn new() -> Self {
-        Self {
-            deals_knockback: true,
-            dismounts: false,
-            sound: None,
-            hit_sound: None,
-        }
-    }
-}
-impl Default for PiercingWeapon {
-    fn default() -> Self {
-        Self::new()
-    }
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 pub struct KineticWeapon {
     #[var]
+    #[codec(optional, default = 10)]
     pub contact_cooldown_ticks: i32,
     #[var]
+    #[codec(optional)]
     pub delay_ticks: i32,
+    #[codec(optional)]
     pub dismount_conditions: Option<KineticWeaponCondition>,
+    #[codec(optional)]
     pub knockback_conditions: Option<KineticWeaponCondition>,
+    #[codec(optional)]
     pub damage_conditions: Option<KineticWeaponCondition>,
+    #[codec(optional)]
     pub forward_movement: f32,
+    #[codec(optional, default = 1.0)]
     pub damage_multiplier: f32,
+    #[codec(optional)]
     pub sound: Option<Holder<SoundEvent, azalea_core::sound::CustomSound>>,
+    #[codec(optional)]
     pub hit_sound: Option<Holder<SoundEvent, azalea_core::sound::CustomSound>>,
-}
-impl KineticWeapon {
-    pub const fn new() -> Self {
-        Self {
-            contact_cooldown_ticks: 10,
-            delay_ticks: 0,
-            dismount_conditions: None,
-            knockback_conditions: None,
-            damage_conditions: None,
-            forward_movement: 0.,
-            damage_multiplier: 1.,
-            sound: None,
-            hit_sound: None,
-        }
-    }
-}
-impl Default for KineticWeapon {
-    fn default() -> Self {
-        Self::new()
-    }
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
 pub struct KineticWeaponCondition {
     #[var]
     pub max_duration_ticks: i32,
+    #[codec(optional)]
     pub min_speed: f32,
+    #[codec(optional)]
     pub min_relative_speed: f32,
-}
-impl KineticWeaponCondition {
-    pub const fn new() -> Self {
-        Self {
-            max_duration_ticks: 0,
-            min_speed: 0.,
-            min_relative_speed: 0.,
-        }
-    }
-}
-impl Default for KineticWeaponCondition {
-    fn default() -> Self {
-        Self::new()
-    }
 }
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
@@ -1544,23 +1448,6 @@ pub struct AttackRange {
     pub max_creative_reach: f32,
     pub hitbox_margin: f32,
     pub mob_factor: f32,
-}
-impl AttackRange {
-    pub const fn new() -> Self {
-        Self {
-            min_reach: 0.,
-            max_reach: 3.,
-            min_creative_reach: 0.,
-            max_creative_reach: 5.,
-            hitbox_margin: 0.3,
-            mob_factor: 1.,
-        }
-    }
-}
-impl Default for AttackRange {
-    fn default() -> Self {
-        Self::new()
-    }
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Codec)]
@@ -1632,19 +1519,7 @@ pub struct SwingAnimation {
     #[codec(optional)]
     pub duration: i32,
 }
-impl SwingAnimation {
-    pub const fn new() -> Self {
-        Self {
-            kind: SwingAnimationKind::Whack,
-            duration: 6,
-        }
-    }
-}
-impl Default for SwingAnimation {
-    fn default() -> Self {
-        Self::new()
-    }
-}
+
 #[derive(AzBuf, Clone, Copy, Debug, PartialEq, Default, Codec)]
 #[codec(default_snake_case_key)]
 pub enum SwingAnimationKind {
@@ -1728,20 +1603,15 @@ pub struct SignText {
     pub filtered_messages: Option<[FormattedText; 4]>,
     // TODO
     // #[codec(optional_always_present)]
-    pub color: DyeColor,
+    #[codec(optional)]
+    pub color: Option<DyeColor>,
     // #[codec(optional_always_present)]
+    #[codec(optional)]
     pub has_glowing_text: bool,
-}
-impl SignText {
-    pub fn new() -> Self {
-        Self::default()
-    }
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Codec)]
 pub struct Waxed;
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Codec)]
-pub struct CushionColor {
-    pub value: DyeColor,
-}
+pub struct CushionColor(pub DyeColor);

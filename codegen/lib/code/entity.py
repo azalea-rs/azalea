@@ -125,7 +125,6 @@ use azalea_core::{
     position::{BlockPos, Vec3f32},
 };
 use azalea_registry::{
-    DataRegistry,
     builtin::EntityKind,
     item::{
         ItemStack,
@@ -551,15 +550,8 @@ fn e(v: EntityDataValue, id: u8, struct_name: &str) -> UpdateMetadataError {
                         # some types don't have Default implemented
                         if type_name == "CompoundTag":
                             default = "simdnbt::owned::NbtCompound::default()"
-                        # elif type_name == 'CatVariant':
-                        #     # TODO: the default should be Tabby but we don't have a way to get that from here
-                        #     default = 'azalea_registry::data::CatVariant::new_raw(0)'
-                        # elif type_name == 'PaintingVariant':
-                        #     default = 'azalea_registry::data::PaintingVariant::Kebab'
-                        # elif type_name == 'FrogVariant':
-                        #     default = 'azalea_registry::data::FrogVariant::Temperate'
                         elif type_name.endswith("Variant"):
-                            default = f"azalea_registry::data::{type_name}::new_raw(0)"
+                            default = f"azalea_registry::data::{type_name}::default()"
                         elif type_name == "VillagerData":
                             default = "VillagerData { kind: azalea_registry::builtin::VillagerKind::Plains, profession: azalea_registry::builtin::VillagerProfession::None, level: 0 }"
                         else:
@@ -600,13 +592,7 @@ fn e(v: EntityDataValue, id: u8, struct_name: &str) -> UpdateMetadataError {
                                 if default != "Empty"
                                 else "ItemStack::Empty"
                             )
-                        elif type_name == "BlockState":
-                            default = (
-                                f"{default}"
-                                if default != "Empty"
-                                else "azalea_block::BlockState::AIR"
-                            )
-                        elif type_name == "OptionalBlockState":
+                        elif type_name in {"BlockState", "OptionalBlockState"}:
                             default = (
                                 f"{default}"
                                 if default != "Empty"

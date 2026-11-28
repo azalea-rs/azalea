@@ -15,6 +15,7 @@ use tracing::trace;
 use crate::{packets::ProtocolPacket, read::MAXIMUM_UNCOMPRESSED_LENGTH};
 
 pub async fn write_packet<P, W>(
+    ctx: azalea_buf::Ctx<'_>,
     packet: &P,
     stream: &mut W,
     compression_threshold: Option<u32>,
@@ -25,16 +26,17 @@ where
     W: AsyncWrite + Unpin + Send,
 {
     trace!("Sending packet: {packet:?}");
-    let raw_packet = serialize_packet(packet).unwrap();
-    write_raw_packet(&raw_packet, stream, compression_threshold, cipher).await
+    let raw_packet = serialize_packet(ctx, packet).unwrap();
+    write_raw_packet(ctx, &raw_packet, stream, compression_threshold, cipher).await
 }
 
 pub fn serialize_packet<P: ProtocolPacket + Debug>(
+    ctx: azalea_buf::Ctx,
     packet: &P,
 ) -> Result<Box<[u8]>, PacketEncodeError> {
     let mut buf = Vec::new();
-    packet.id().azalea_write_var(&mut buf)?;
-    packet.write(&mut buf)?;
+    packet.id().azalea_write_var(ctx, &mut buf)?;
+    packet.write(ctx, &mut buf)?;
     if buf.len() > MAXIMUM_UNCOMPRESSED_LENGTH as usize {
         return Err(PacketEncodeError::TooBig {
             actual: buf.len(),
@@ -46,6 +48,7 @@ pub fn serialize_packet<P: ProtocolPacket + Debug>(
 }
 
 pub async fn write_raw_packet<W>(
+    ctx: azalea_buf::Ctx<'_>,
     raw_packet: &[u8],
     stream: &mut W,
     compression_threshold: Option<u32>,
@@ -54,11 +57,12 @@ pub async fn write_raw_packet<W>(
 where
     W: AsyncWrite + Unpin + Send,
 {
-    let network_packet = encode_to_network_packet(raw_packet, compression_threshold, cipher);
+    let network_packet = encode_to_network_packet(ctx, raw_packet, compression_threshold, cipher);
     stream.write_all(&network_packet).await
 }
 
 pub async fn write_raw_packets<W>(
+    ctx: azalea_buf::Ctx<'_>,
     raw_packets: impl Iterator<Item = &[u8]>,
     stream: &mut W,
     compression_threshold: Option<u32>,
@@ -70,6 +74,7 @@ where
     let mut buffer = Vec::new();
     for raw_packet in raw_packets {
         buffer.extend(encode_to_network_packet(
+            ctx,
             raw_packet,
             compression_threshold,
             cipher,
@@ -79,6 +84,7 @@ where
 }
 
 pub fn encode_to_network_packet(
+    ctx: azalea_buf::Ctx<'_>,
     raw_packet: &[u8],
     compression_threshold: Option<u32>,
     cipher: &mut Option<Aes128CfbEnc>,
@@ -86,7 +92,7 @@ pub fn encode_to_network_packet(
     trace!("Writing raw packet: {raw_packet:?}");
     let mut raw_packet = raw_packet.to_vec();
     if let Some(threshold) = compression_threshold {
-        raw_packet = compression_encoder(&raw_packet, threshold).unwrap();
+        raw_packet = compression_encoder(ctx, &raw_packet, threshold).unwrap();
     }
     raw_packet = frame_prepender(raw_packet).unwrap();
     // if we were given a cipher, encrypt the packet
@@ -97,6 +103,7 @@ pub fn encode_to_network_packet(
 }
 
 pub fn compression_encoder(
+    ctx: azalea_buf::Ctx<'_>,
     data: &[u8],
     compression_threshold: u32,
 ) -> Result<Vec<u8>, PacketCompressError> {
@@ -104,7 +111,7 @@ pub fn compression_encoder(
     // if it's less than the compression threshold, don't compress
     if n < compression_threshold as usize {
         let mut buf = Vec::new();
-        0_u32.azalea_write_var(&mut buf)?;
+        0_u32.azalea_write_var(ctx, &mut buf)?;
         io::Write::write_all(&mut buf, data)?;
         Ok(buf)
     } else {
@@ -117,7 +124,7 @@ pub fn compression_encoder(
 
         // prepend the length
         let mut len_prepended_compressed_data = Vec::new();
-        (data.len() as u32).azalea_write_var(&mut len_prepended_compressed_data)?;
+        (data.len() as u32).azalea_write_var(ctx, &mut len_prepended_compressed_data)?;
         len_prepended_compressed_data.append(&mut compressed_data);
 
         Ok(len_prepended_compressed_data)
@@ -127,7 +134,7 @@ pub fn compression_encoder(
 /// Prepend the length of the packet to it.
 fn frame_prepender(mut data: Vec<u8>) -> Result<Vec<u8>, io::Error> {
     let mut buf = Vec::new();
-    (data.len() as u32).azalea_write_var(&mut buf)?;
+    azalea_buf::primitives::write_varint(data.len() as u32 as i32, &mut buf)?;
     buf.append(&mut data);
     Ok(buf)
 }

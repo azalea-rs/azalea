@@ -106,7 +106,7 @@ async fn handle_connection(stream: TcpStream) -> eyre::Result<()> {
     // The first packet sent from a client is the intent packet.
     // This specifies whether the client is pinging
     // the server or is going to join the game.
-    let intent = match conn.read().await {
+    let intent = match conn.read(Default::default()).await {
         Ok(packet) => match packet {
             ServerboundHandshakePacket::Intention(packet) => {
                 info!(
@@ -132,21 +132,28 @@ async fn handle_connection(stream: TcpStream) -> eyre::Result<()> {
         ClientIntention::Status => {
             let mut conn = conn.status();
             loop {
-                match conn.read().await {
+                match conn.read(Default::default()).await {
                     Ok(p) => match p {
                         ServerboundStatusPacket::StatusRequest(_) => {
-                            conn.write(ClientboundStatusResponse {
-                                description: PROXY_DESC.into(),
-                                favicon: PROXY_FAVICON.clone(),
-                                players: PROXY_PLAYERS.clone(),
-                                version: PROXY_VERSION.clone(),
-                                enforces_secure_chat: PROXY_SECURE_CHAT,
-                                contact: None,
-                            })
+                            conn.write(
+                                Default::default(),
+                                ClientboundStatusResponse {
+                                    description: PROXY_DESC.into(),
+                                    favicon: PROXY_FAVICON.clone(),
+                                    players: PROXY_PLAYERS.clone(),
+                                    version: PROXY_VERSION.clone(),
+                                    enforces_secure_chat: PROXY_SECURE_CHAT,
+                                    contact: None,
+                                },
+                            )
                             .await?;
                         }
                         ServerboundStatusPacket::PingRequest(p) => {
-                            conn.write(ClientboundPongResponse { time: p.time }).await?;
+                            conn.write(
+                                Default::default(),
+                                ClientboundPongResponse { time: p.time },
+                            )
+                            .await?;
                             break;
                         }
                     },
@@ -168,7 +175,7 @@ async fn handle_connection(stream: TcpStream) -> eyre::Result<()> {
         ClientIntention::Login => {
             let mut conn = conn.login();
             loop {
-                match conn.read().await {
+                match conn.read(Default::default()).await {
                     Ok(p) => {
                         if let ServerboundLoginPacket::Hello(hello) = p {
                             info!(
@@ -224,25 +231,31 @@ async fn proxy_conn(
     println!("got account: {:?}", account);
 
     server_conn
-        .write(ServerboundIntention {
-            protocol_version: PROTOCOL_VERSION,
-            hostname: parsed_target_addr.host,
-            port: parsed_target_addr.port,
-            intention: ClientIntention::Login,
-        })
+        .write(
+            Default::default(),
+            ServerboundIntention {
+                protocol_version: PROTOCOL_VERSION,
+                hostname: parsed_target_addr.host,
+                port: parsed_target_addr.port,
+                intention: ClientIntention::Login,
+            },
+        )
         .await?;
     let mut server_conn = server_conn.login();
 
     // login
     server_conn
-        .write(ServerboundHello {
-            name: account.username().to_owned(),
-            profile_id: account.uuid(),
-        })
+        .write(
+            Default::default(),
+            ServerboundHello {
+                name: account.username().to_owned(),
+                profile_id: account.uuid(),
+            },
+        )
         .await?;
 
     let (server_conn, login_finished) = loop {
-        let packet = server_conn.read().await?;
+        let packet = server_conn.read(Default::default()).await?;
 
         println!("got packet: {:?}", packet);
 
@@ -282,10 +295,13 @@ async fn proxy_conn(
                 }
 
                 server_conn
-                    .write(ServerboundKey {
-                        key_bytes: e.encrypted_public_key,
-                        encrypted_challenge: e.encrypted_challenge,
-                    })
+                    .write(
+                        Default::default(),
+                        ServerboundKey {
+                            key_bytes: e.encrypted_public_key,
+                            encrypted_challenge: e.encrypted_challenge,
+                        },
+                    )
                     .await?;
 
                 server_conn.set_encryption_key(e.secret_key);
@@ -299,7 +315,8 @@ async fn proxy_conn(
                     "Got profile {:?}. handshake is finished and we're now switching to the configuration state",
                     p.game_profile
                 );
-                // server_conn.write(ServerboundLoginAcknowledged {}).await?;
+                // server_conn.write(Default::default(),
+                // ServerboundLoginAcknowledged {}).await?;
                 break (server_conn.config(), p);
             }
             ClientboundLoginPacket::LoginDisconnect(p) => {
@@ -315,11 +332,14 @@ async fn proxy_conn(
                 debug!("Got cookie request {:?}", p);
 
                 server_conn
-                    .write(packets::login::ServerboundCookieResponse {
-                        key: p.key,
-                        // cookies aren't implemented
-                        payload: None,
-                    })
+                    .write(
+                        Default::default(),
+                        packets::login::ServerboundCookieResponse {
+                            key: p.key,
+                            // cookies aren't implemented
+                            payload: None,
+                        },
+                    )
                     .await?;
             }
         }
@@ -327,7 +347,9 @@ async fn proxy_conn(
 
     // give the client the login_finished
     println!("got the login_finished: {:?}", login_finished);
-    client_conn.write(login_finished).await?;
+    client_conn
+        .write(Default::default(), login_finished)
+        .await?;
     let client_conn = client_conn.config();
 
     info!("started direct bridging");
@@ -363,6 +385,7 @@ async fn proxy_conn(
 
             // decode as a game packet
             let decoded_packet = azalea_protocol::read::deserialize_packet::<ServerboundGamePacket>(
+                Default::default(),
                 &mut Cursor::new(&packet),
             );
 
@@ -378,7 +401,7 @@ async fn proxy_conn(
                     .await;
             }
 
-            match target_raw_writer.write(&packet).await {
+            match target_raw_writer.write(Default::default(), &packet).await {
                 Ok(_) => {}
                 Err(e) => {
                     error!("Error writing packet to target: {e}");
@@ -401,6 +424,7 @@ async fn proxy_conn(
 
             // decode as a game packet
             let decoded_packet = azalea_protocol::read::deserialize_packet::<ClientboundGamePacket>(
+                Default::default(),
                 &mut Cursor::new(&packet),
             );
 
@@ -433,7 +457,7 @@ async fn proxy_conn(
 
             clientbound_tx.send(packet.clone()).unwrap();
 
-            match listen_raw_writer.write(&packet).await {
+            match listen_raw_writer.write(Default::default(), &packet).await {
                 Ok(_) => {}
                 Err(e) => {
                     error!("Error writing packet to listen: {e}");

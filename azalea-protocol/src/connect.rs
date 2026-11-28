@@ -78,42 +78,51 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///         handshake::ServerboundIntention,
 ///         login::{ClientboundLoginPacket, ServerboundHello, ServerboundKey},
 ///     },
-///     resolver,
+///     resolve,
 /// };
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
-///     let resolved_address = resolver::resolve_address(&"localhost".try_into().unwrap()).await?;
+///     let resolved_address = resolve::resolve_address(&"localhost".try_into().unwrap()).await?;
 ///     let mut conn = Connection::new(&resolved_address).await?;
 ///
 ///     // handshake
-///     conn.write(ServerboundIntention {
-///         protocol_version: PROTOCOL_VERSION,
-///         hostname: resolved_address.ip().to_string(),
-///         port: resolved_address.port(),
-///         intention: ClientIntention::Login,
-///     })
+///     conn.write(
+///         Default::default(),
+///         ServerboundIntention {
+///             protocol_version: PROTOCOL_VERSION,
+///             hostname: resolved_address.ip().to_string(),
+///             port: resolved_address.port(),
+///             intention: ClientIntention::Login,
+///         },
+///     )
 ///     .await?;
 ///
 ///     let mut conn = conn.login();
 ///
 ///     // login
-///     conn.write(ServerboundHello {
-///         name: "bot".to_owned(),
-///         profile_id: uuid::Uuid::nil(),
-///     })
+///     conn.write(
+///         Default::default(),
+///         ServerboundHello {
+///             name: "bot".to_owned(),
+///             profile_id: uuid::Uuid::nil(),
+///         },
+///     )
 ///     .await?;
 ///
 ///     let (conn, game_profile) = loop {
-///         let packet = conn.read().await?;
+///         let packet = conn.read(Default::default()).await?;
 ///         match packet {
 ///             ClientboundLoginPacket::Hello(p) => {
 ///                 let e = azalea_crypto::encrypt(&p.public_key, &p.challenge).unwrap();
 ///
-///                 conn.write(ServerboundKey {
-///                     key_bytes: e.encrypted_public_key,
-///                     encrypted_challenge: e.encrypted_challenge,
-///                 })
+///                 conn.write(
+///                     Default::default(),
+///                     ServerboundKey {
+///                         key_bytes: e.encrypted_public_key,
+///                         encrypted_challenge: e.encrypted_challenge,
+///                     },
+///                 )
 ///                 .await?;
 ///                 conn.set_encryption_key(e.secret_key);
 ///             }
@@ -129,10 +138,13 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///             }
 ///             ClientboundLoginPacket::CustomQuery(p) => {}
 ///             ClientboundLoginPacket::CookieRequest(p) => {
-///                 conn.write(packets::login::ServerboundCookieResponse {
-///                     key: p.key,
-///                     payload: None,
-///                 })
+///                 conn.write(
+///                     Default::default(),
+///                     packets::login::ServerboundCookieResponse {
+///                         key: p.key,
+///                         payload: None,
+///                     },
+///                 )
 ///                 .await?;
 ///             }
 ///         }
@@ -168,8 +180,9 @@ impl RawReadConnection {
 }
 
 impl RawWriteConnection {
-    pub async fn write(&mut self, packet: &[u8]) -> io::Result<()> {
+    pub async fn write(&mut self, ctx: azalea_buf::Ctx<'_>, packet: &[u8]) -> io::Result<()> {
         if let Err(e) = write_raw_packet(
+            ctx,
             packet,
             &mut self.write_stream,
             self.compression_threshold,
@@ -189,8 +202,13 @@ impl RawWriteConnection {
         Ok(())
     }
 
-    pub async fn write_batch(&mut self, packets: impl Iterator<Item = &[u8]>) -> io::Result<()> {
+    pub async fn write_batch(
+        &mut self,
+        ctx: azalea_buf::Ctx<'_>,
+        packets: impl Iterator<Item = &[u8]>,
+    ) -> io::Result<()> {
         if let Err(e) = write_raw_packets(
+            ctx,
             packets,
             &mut self.write_stream,
             self.compression_threshold,
@@ -221,18 +239,24 @@ where
     R: ProtocolPacket + Debug,
 {
     /// Read a packet from the stream.
-    pub async fn read(&mut self) -> Result<R, Box<ReadPacketError>> {
+    pub async fn read(&mut self, ctx: azalea_buf::Ctx<'_>) -> Result<R, Box<ReadPacketError>> {
         let raw_packet = self.raw.read().await?;
-        deserialize_packet(&mut Cursor::new(&raw_packet))
+        deserialize_packet(ctx, &mut Cursor::new(&raw_packet))
     }
 
     /// Try to read a packet from the stream, or return Ok(None) if there's no
     /// packet.
-    pub fn try_read(&mut self) -> Result<Option<R>, Box<ReadPacketError>> {
+    pub fn try_read(
+        &mut self,
+        ctx: azalea_buf::Ctx<'_>,
+    ) -> Result<Option<R>, Box<ReadPacketError>> {
         let Some(raw_packet) = self.raw.try_read()? else {
             return Ok(None);
         };
-        Ok(Some(deserialize_packet(&mut Cursor::new(&raw_packet))?))
+        Ok(Some(deserialize_packet(
+            ctx,
+            &mut Cursor::new(&raw_packet),
+        )?))
     }
 }
 impl<W> WriteConnection<W>
@@ -240,18 +264,20 @@ where
     W: ProtocolPacket + Debug,
 {
     /// Write a packet to the server.
-    pub async fn write(&mut self, packet: W) -> io::Result<()> {
-        self.raw.write(&serialize_packet(&packet).unwrap()).await
+    pub async fn write(&mut self, ctx: azalea_buf::Ctx<'_>, packet: W) -> io::Result<()> {
+        self.raw
+            .write(ctx, &serialize_packet(ctx, &packet).unwrap())
+            .await
     }
 
     /// Write a batch of packets to the server
-    pub async fn write_batch(&mut self, packets: &[W]) -> io::Result<()> {
+    pub async fn write_batch(&mut self, ctx: azalea_buf::Ctx<'_>, packets: &[W]) -> io::Result<()> {
         let serialized_packets: Vec<Box<[u8]>> = packets
             .iter()
-            .map(|packet| serialize_packet(packet).unwrap())
+            .map(|packet| serialize_packet(ctx, packet).unwrap())
             .collect();
         self.raw
-            .write_batch(serialized_packets.iter().map(|data| data.as_ref()))
+            .write_batch(ctx, serialized_packets.iter().map(|data| data.as_ref()))
             .await
     }
 
@@ -267,25 +293,32 @@ where
     W: ProtocolPacket + Debug,
 {
     /// Read a packet from the other side of the connection.
-    pub async fn read(&mut self) -> Result<R, Box<ReadPacketError>> {
-        self.reader.read().await
+    pub async fn read(&mut self, ctx: azalea_buf::Ctx<'_>) -> Result<R, Box<ReadPacketError>> {
+        self.reader.read(ctx).await
     }
 
     /// Try to read a packet from the other side of the connection, or return
     /// Ok(None) if there's no packet to read.
-    pub fn try_read(&mut self) -> Result<Option<R>, Box<ReadPacketError>> {
-        self.reader.try_read()
+    pub fn try_read(
+        &mut self,
+        ctx: azalea_buf::Ctx<'_>,
+    ) -> Result<Option<R>, Box<ReadPacketError>> {
+        self.reader.try_read(ctx)
     }
 
     /// Write a packet to the other side of the connection.
-    pub async fn write(&mut self, packet: impl crate::packets::Packet<W>) -> io::Result<()> {
+    pub async fn write(
+        &mut self,
+        ctx: azalea_buf::Ctx<'_>,
+        packet: impl crate::packets::Packet<W>,
+    ) -> io::Result<()> {
         let packet = packet.into_variant();
-        self.writer.write(packet).await
+        self.writer.write(ctx, packet).await
     }
 
     /// Write a batch of packets to the other side of the connection.
-    pub async fn write_batch(&mut self, packets: &[W]) -> io::Result<()> {
-        self.writer.write_batch(packets).await
+    pub async fn write_batch(&mut self, ctx: azalea_buf::Ctx<'_>, packets: &[W]) -> io::Result<()> {
+        self.writer.write_batch(ctx, packets).await
     }
 
     /// Split the reader and writer into two objects.
@@ -466,7 +499,7 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     ///     packets::login::{ClientboundLoginPacket, ServerboundKey},
     /// };
     /// use uuid::Uuid;
-    /// # use azalea_protocol::ServerAddress;
+    /// # use azalea_protocol::address::ServerAddr;
     ///
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let AuthResult {
@@ -476,24 +509,27 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     ///     .await
     ///     .expect("Couldn't authenticate");
     /// #
-    /// # let address = ServerAddress::try_from("example@example.com").unwrap();
-    /// # let resolved_address = azalea_protocol::resolver::resolve_address(&address).await?;
+    /// # let address = ServerAddr::try_from("example@example.com").unwrap();
+    /// # let resolved_address = azalea_protocol::resolve::resolve_address(&address).await?;
     ///
     /// let mut conn = Connection::new(&resolved_address).await?;
     ///
     /// // transition to the login state, in a real program we would have done a handshake first
     /// let mut conn = conn.login();
     ///
-    /// match conn.read().await? {
+    /// match conn.read(Default::default()).await? {
     ///     ClientboundLoginPacket::Hello(p) => {
     ///         // tell Mojang we're joining the server & enable encryption
     ///         let e = azalea_crypto::encrypt(&p.public_key, &p.challenge).unwrap();
     ///         conn.authenticate(&access_token, &profile.id, e.secret_key, &p, None)
     ///             .await?;
-    ///         conn.write(ServerboundKey {
-    ///             key_bytes: e.encrypted_public_key,
-    ///             encrypted_challenge: e.encrypted_challenge,
-    ///         })
+    ///         conn.write(
+    ///             Default::default(),
+    ///             ServerboundKey {
+    ///                 key_bytes: e.encrypted_public_key,
+    ///                 encrypted_challenge: e.encrypted_challenge,
+    ///             },
+    ///         )
     ///         .await?;
     ///         conn.set_encryption_key(e.secret_key);
     ///     }

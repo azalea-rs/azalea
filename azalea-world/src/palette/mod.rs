@@ -36,21 +36,21 @@ impl<S: PalletedContainerKind> Palette<S> {
 }
 
 impl<S: PalletedContainerKind> Palette<S> {
-    pub fn write(&self, buf: &mut impl Write) -> io::Result<()> {
+    pub fn write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
         match self {
             Palette::SingleValue(value) => {
-                (*value).into().azalea_write_var(buf)?;
+                (*value).into().azalea_write_var(ctx, buf)?;
             }
             Palette::Linear(values) => {
-                (values.len() as u32).azalea_write_var(buf)?;
+                (values.len() as u32).azalea_write_var(ctx, buf)?;
                 for value in values {
-                    (*value).into().azalea_write_var(buf)?;
+                    (*value).into().azalea_write_var(ctx, buf)?;
                 }
             }
             Palette::Hashmap(values) => {
-                (values.len() as u32).azalea_write_var(buf)?;
+                (values.len() as u32).azalea_write_var(ctx, buf)?;
                 for value in values {
-                    (*value).into().azalea_write_var(buf)?;
+                    (*value).into().azalea_write_var(ctx, buf)?;
                 }
             }
             Palette::Global => {}

@@ -103,10 +103,10 @@ impl AzBuf for Suggestions {
 
         Ok(Suggestions { range, suggestions })
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        (self.range.start() as u32).azalea_write_var(buf)?;
-        (self.range.length() as u32).azalea_write_var(buf)?;
-        // self.suggestions.azalea_write(buf)?;
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
+        (self.range.start() as u32).azalea_write_var(ctx, buf)?;
+        (self.range.length() as u32).azalea_write_var(ctx, buf)?;
+        // self.suggestions.azalea_write(ctx, buf)?;
 
         self.suggestions
             .iter()
@@ -117,7 +117,7 @@ impl AzBuf for Suggestions {
                 )
             })
             .collect::<Box<_>>()
-            .azalea_write(buf)?;
+            .azalea_write(ctx, buf)?;
 
         Ok(())
     }

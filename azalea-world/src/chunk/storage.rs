@@ -8,11 +8,10 @@ use std::{
 
 use azalea_block::{BlockState, fluid_state::FluidState};
 use azalea_core::position::{BlockPos, ChunkBiomePos, ChunkBlockPos, ChunkPos};
-use azalea_registry::data::Biome;
 use nohash_hasher::IntMap;
 use parking_lot::RwLock;
 
-use crate::Chunk;
+use crate::{Chunk, biome_id::BiomeId};
 
 /// An abstract chunk storage backed by a [`ChunkStorageTrait`] implementation.
 ///
@@ -64,10 +63,10 @@ pub trait ChunkStorageTrait: Send + Sync + Any {
         let block_state = self.get_block_state(pos)?;
         Some(FluidState::from(block_state))
     }
-    fn get_biome(&self, pos: BlockPos) -> Option<Biome> {
+    fn get_biome_id(&self, pos: BlockPos) -> Option<BiomeId> {
         let chunk = self.get(&ChunkPos::from(pos))?;
         let chunk = chunk.read();
-        chunk.get_biome(ChunkBiomePos::from(pos), self.min_y())
+        chunk.get_biome_id(ChunkBiomePos::from(pos), self.min_y())
     }
 }
 impl ChunkStorage {

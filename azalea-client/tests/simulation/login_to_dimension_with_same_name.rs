@@ -6,9 +6,7 @@ use azalea_entity::LocalEntity;
 use azalea_protocol::packets::{
     ConnectionProtocol, config::ClientboundFinishConfiguration, game::ClientboundStartConfiguration,
 };
-use azalea_registry::{
-    data::DimensionKindKey, registry_holder::dimension_type::DimensionKindElement,
-};
+use azalea_registry::{data::DimensionKind, registry_holder::dimension_type::DimensionKindElement};
 use azalea_world::WorldName;
 
 #[test]
@@ -33,9 +31,8 @@ fn test_login_to_dimension_with_same_name() {
     //
 
     simulation.receive_packet(make_basic_login_packet(
-        DimensionKindKey::Overworld,
+        DimensionKind::Overworld,
         Identifier::new("azalea:overworld"),
-        &simulation,
     ));
     simulation.tick();
 
@@ -70,9 +67,8 @@ fn test_login_to_dimension_with_same_name() {
     );
     simulation.receive_packet(ClientboundFinishConfiguration);
     simulation.receive_packet(make_basic_login_packet(
-        DimensionKindKey::Overworld,
+        DimensionKind::Overworld,
         Identifier::new("azalea:overworld"),
-        &simulation,
     ));
     simulation.tick();
 

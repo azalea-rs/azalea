@@ -14,7 +14,7 @@ fn test_move_despawned_entity() {
     let _lock = init_with_level(Level::ERROR); // a warning is expected here
 
     let mut simulation = Simulation::new(ConnectionProtocol::Game);
-    simulation.receive_packet(default_login_packet(&simulation));
+    simulation.receive_packet(default_login_packet());
 
     simulation.receive_packet(make_basic_empty_chunk(ChunkPos::new(0, 0), (384 + 64) / 16));
     simulation.tick();
@@ -28,7 +28,7 @@ fn test_move_despawned_entity() {
     assert_eq!(cow_iter.count(), 1, "cow should be spawned");
 
     // despawn the cow by receiving a login packet
-    simulation.receive_packet(default_login_packet(&simulation));
+    simulation.receive_packet(default_login_packet());
     simulation.tick();
 
     // make sure it's despawned

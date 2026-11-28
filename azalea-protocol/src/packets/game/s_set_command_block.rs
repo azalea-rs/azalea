@@ -38,10 +38,10 @@ impl AzBuf for ServerboundSetCommandBlock {
             automatic: set.index(2),
         })
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        self.pos.azalea_write(buf)?;
-        self.command.azalea_write(buf)?;
-        self.mode.azalea_write(buf)?;
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
+        self.pos.azalea_write(ctx, buf)?;
+        self.command.azalea_write(ctx, buf)?;
+        self.mode.azalea_write(ctx, buf)?;
 
         let mut set = FixedBitSet::<3>::new();
         if self.track_output {
@@ -53,6 +53,6 @@ impl AzBuf for ServerboundSetCommandBlock {
         if self.automatic {
             set.set(2);
         }
-        set.azalea_write(buf)
+        set.azalea_write(ctx, buf)
     }
 }

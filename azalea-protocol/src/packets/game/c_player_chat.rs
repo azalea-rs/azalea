@@ -12,9 +12,8 @@ use azalea_core::{bitset::JavaBitSet, identifier::Identifier};
 use azalea_crypto::signing::MessageSignature;
 use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_registry::{
-    DataRegistryKey, Holder,
-    data::{ChatKind, ChatKindKey},
-    data_registry::DataRegistryWithKey,
+    Holder,
+    data::ChatKind,
     registry_holder::{RegistryHolder, RegistryType},
 };
 use simdnbt::owned::NbtCompound;
@@ -105,9 +104,9 @@ pub static GUESSED_DEFAULT_REGISTRIES_FOR_CHAT: LazyLock<RegistryHolder> =
         extra: [(
             Identifier::new("chat_type"),
             RegistryType {
-                map: ChatKindKey::ALL
+                map: ChatKind::ALL
                     .iter()
-                    .map(|k| (k.clone().into_ident(), NbtCompound::new()))
+                    .map(|k| (Identifier::from(k.clone()), NbtCompound::new()))
                     .collect(),
             },
         )]
@@ -129,22 +128,8 @@ impl ClientboundPlayerChat {
     }
 
     /// Get the full message, including the sender part.
-    ///
-    /// Note that the returned message may be incorrect on servers that
-    /// customize the chat type registry. Consider using
-    /// [`Self::message_using_registries`] if you'd like to avoid that
-    /// problem.
     #[must_use]
     pub fn message(&self) -> FormattedText {
-        self.message_using_registries(&GUESSED_DEFAULT_REGISTRIES_FOR_CHAT)
-    }
-
-    /// Get the full message, including the sender part, while ensuring that the
-    /// message chat type is correct based on the server's registries.
-    ///
-    /// Also see [`Self::message`].
-    #[must_use]
-    pub fn message_using_registries(&self, registries: &RegistryHolder) -> FormattedText {
         let sender = self.chat_type.name.clone();
         let content = self.content();
         let target = self.chat_type.target_name.clone();
@@ -158,7 +143,7 @@ impl ClientboundPlayerChat {
         }
 
         // TODO: implement chat type registry and apply the styles from it here
-        let translation_key = self.chat_type.translation_key(registries);
+        let translation_key = self.chat_type.translation_key();
         let component = TranslatableComponent::new(translation_key.to_owned(), args);
 
         FormattedText::Translatable(component)
@@ -166,12 +151,9 @@ impl ClientboundPlayerChat {
 }
 
 impl ChatTypeBound {
-    pub fn translation_key(&self, registries: &RegistryHolder) -> &str {
+    pub fn translation_key(&self) -> &str {
         match &self.chat_type {
-            Holder::Reference(r) => r
-                .key(registries)
-                .map(|r| r.chat_translation_key())
-                .unwrap_or("chat.type.text"),
+            Holder::Reference(r) => r.chat_translation_key(),
             Holder::Direct(d) => d.chat.translation_key.as_str(),
         }
     }
@@ -188,14 +170,14 @@ impl AzBuf for PackedMessageSignature {
             Ok(PackedMessageSignature::Id(id - 1))
         }
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
         match self {
             PackedMessageSignature::Signature(full_signature) => {
-                0u32.azalea_write_var(buf)?;
-                full_signature.azalea_write(buf)?;
+                0u32.azalea_write_var(ctx, buf)?;
+                full_signature.azalea_write(ctx, buf)?;
             }
             PackedMessageSignature::Id(id) => {
-                (id + 1).azalea_write_var(buf)?;
+                (id + 1).azalea_write_var(ctx, buf)?;
             }
         }
         Ok(())

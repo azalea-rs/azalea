@@ -11,7 +11,7 @@ use azalea_registry_builtin::builtin::EnchantmentEntityEffectKind;
 use crate::{
     Holder, HolderSet,
     builtin::{BlockKind, EntityKind, GameEvent, MobEffect, SoundEvent},
-    data::{DamageKind, DamageKindKey},
+    data::DamageKind,
     registry_holder::{
         block_predicate::BlockPredicate, block_state_provider::BlockStateProvider,
         float_provider::FloatProvider, particle::Particle, value::LevelBasedValue,
@@ -64,7 +64,7 @@ pub struct DamageEntity {
     pub min_damage: LevelBasedValue,
     pub max_damage: LevelBasedValue,
     #[codec(rename = "damage_type")]
-    pub damage_kind: DamageKindKey,
+    pub damage_kind: DamageKind,
 }
 
 #[derive(Clone, Debug, PartialEq, Codec)]

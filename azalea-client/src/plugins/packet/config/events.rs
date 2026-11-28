@@ -7,7 +7,7 @@ use azalea_protocol::packets::{
 use bevy_ecs::prelude::*;
 use tracing::{debug, error};
 
-use crate::{InConfigState, connection::RawConnection};
+use crate::{InConfigState, connection::RawConnection, local_player::WorldHolder};
 
 #[derive(Clone, Debug, Message)]
 pub struct ReceiveConfigPacketEvent {
@@ -34,9 +34,15 @@ impl SendConfigPacketEvent {
 
 pub fn handle_outgoing_packets_observer(
     send_config_packet: On<SendConfigPacketEvent>,
-    mut query: Query<(&mut RawConnection, Option<&InConfigState>)>,
+    mut query: Query<(
+        &mut RawConnection,
+        Option<&WorldHolder>,
+        Option<&InConfigState>,
+    )>,
 ) {
-    if let Ok((mut raw_conn, in_configuration_state)) = query.get_mut(send_config_packet.sent_by) {
+    if let Ok((mut raw_conn, world, in_configuration_state)) =
+        query.get_mut(send_config_packet.sent_by)
+    {
         if in_configuration_state.is_none() {
             error!(
                 "Tried to send a configuration packet {:?} while not in configuration state",
@@ -45,9 +51,16 @@ pub fn handle_outgoing_packets_observer(
             return;
         }
         debug!("Sending config packet: {:?}", send_config_packet.packet);
-        if let Err(e) = raw_conn.write(send_config_packet.packet.clone()) {
-            error!("Failed to send packet: {e}");
-        }
+        let mut write_fn = |ctx: azalea_buf::Ctx| {
+            if let Err(e) = raw_conn.write(ctx, send_config_packet.packet.clone()) {
+                error!("Failed to send packet: {e}");
+            }
+        };
+        if let Some(world) = world {
+            write_fn(azalea_buf::Ctx::new(&world.shared.read().registries));
+        } else {
+            write_fn(azalea_buf::Ctx::default());
+        };
     }
 }
 

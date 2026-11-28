@@ -10,7 +10,7 @@ pub fn create_fn_azalea_write(data: &Data) -> proc_macro2::TokenStream {
                     write_named_fields(named, Some(&Ident::new("self", Span::call_site())));
 
                 quote! {
-                    fn azalea_write(&self, buf: &mut impl std::io::Write) -> std::io::Result<()> {
+                    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl std::io::Write) -> std::io::Result<()> {
                         #write_fields
                         Ok(())
                     }
@@ -18,7 +18,7 @@ pub fn create_fn_azalea_write(data: &Data) -> proc_macro2::TokenStream {
             }
             syn::Fields::Unit => {
                 quote! {
-                    fn azalea_write(&self, buf: &mut impl std::io::Write) -> std::io::Result<()> {
+                    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl std::io::Write) -> std::io::Result<()> {
                         Ok(())
                     }
                 }
@@ -27,7 +27,7 @@ pub fn create_fn_azalea_write(data: &Data) -> proc_macro2::TokenStream {
                 let write_fields = write_unnamed_fields(&fields.unnamed);
 
                 quote! {
-                    fn azalea_write(&self, buf: &mut impl std::io::Write) -> std::io::Result<()> {
+                    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl std::io::Write) -> std::io::Result<()> {
                         #write_fields
                         Ok(())
                     }
@@ -72,7 +72,7 @@ pub fn create_fn_azalea_write(data: &Data) -> proc_macro2::TokenStream {
 
                 // the variant number that we're going to write
                 let write_the_variant = quote! {
-                    azalea_buf::AzBufVar::azalea_write_var(&#variant_discrim, buf)?;
+                    azalea_buf::AzBufVar::azalea_write_var(&#variant_discrim, ctx, buf)?;
                 };
                 match &variant.fields {
                     syn::Fields::Named(f) => {
@@ -114,11 +114,11 @@ pub fn create_fn_azalea_write(data: &Data) -> proc_macro2::TokenStream {
                             params_code.extend(quote! { #param_ident, });
                             if f.attrs.iter().any(|attr| attr.path().is_ident("var")) {
                                 writers_code.extend(quote! {
-                                    azalea_buf::AzBufVar::azalea_write_var(#param_ident, buf)?;
+                                    azalea_buf::AzBufVar::azalea_write_var(#param_ident, ctx, buf)?;
                                 });
                             } else {
                                 writers_code.extend(quote! {
-                                    azalea_buf::AzBuf::azalea_write(#param_ident, buf)?;
+                                    azalea_buf::AzBuf::azalea_write(#param_ident, ctx, buf)?;
                                 });
                             }
                         }
@@ -130,7 +130,7 @@ pub fn create_fn_azalea_write(data: &Data) -> proc_macro2::TokenStream {
                         });
                         match_arms_without_id.extend(quote! {
                             Self::#variant_name(data) => {
-                                azalea_buf::AzBuf::azalea_write(data, buf)?;
+                                azalea_buf::AzBuf::azalea_write(data, ctx, buf)?;
                             }
                         });
                     }
@@ -138,7 +138,7 @@ pub fn create_fn_azalea_write(data: &Data) -> proc_macro2::TokenStream {
             }
             if is_data_enum {
                 quote! {
-                    fn azalea_write(&self, buf: &mut impl std::io::Write) -> std::result::Result<(), std::io::Error> {
+                    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl std::io::Write) -> std::result::Result<(), std::io::Error> {
                         match self {
                             #match_arms
                         }
@@ -148,8 +148,8 @@ pub fn create_fn_azalea_write(data: &Data) -> proc_macro2::TokenStream {
             } else {
                 // optimization: if it doesn't have data we can just do `as u32`
                 quote! {
-                    fn azalea_write(&self, buf: &mut impl std::io::Write) -> std::result::Result<(), std::io::Error> {
-                        azalea_buf::AzBufVar::azalea_write_var(&(*self as u32), buf)
+                    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl std::io::Write) -> std::result::Result<(), std::io::Error> {
+                        azalea_buf::AzBufVar::azalea_write_var(&(*self as u32), ctx, buf)
                     }
                 }
             }
@@ -195,11 +195,11 @@ fn make_write_call(
         syn::Type::Path(_) | syn::Type::Array(_) => {
             if f.attrs.iter().any(|attr| attr.path().is_ident("var")) {
                 quote! {
-                    azalea_buf::AzBufVar::azalea_write_var(#ident_dot_field, buf)?;
+                    azalea_buf::AzBufVar::azalea_write_var(#ident_dot_field, ctx, buf)?;
                 }
             } else {
                 quote! {
-                    azalea_buf::AzBuf::azalea_write(#ident_dot_field, buf)?;
+                    azalea_buf::AzBuf::azalea_write(#ident_dot_field, ctx, buf)?;
                 }
             }
         }

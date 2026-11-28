@@ -79,7 +79,7 @@ impl AzBuf for Flags {
             show_bounding_box: set.index(2),
         })
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
         let mut set = FixedBitSet::<3>::new();
         if self.ignore_entities {
             set.set(0);
@@ -90,7 +90,7 @@ impl AzBuf for Flags {
         if self.show_bounding_box {
             set.set(2);
         }
-        set.azalea_write(buf)?;
+        set.azalea_write(ctx, buf)?;
         Ok(())
     }
 }

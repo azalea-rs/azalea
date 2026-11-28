@@ -8,7 +8,7 @@ use crate::{
 };
 
 #[derive(AzBuf, Clone, Debug, PartialEq, Codec)]
-#[codec(tag = "type")]
+#[codec(tag = "type", tag_as = ConsumeEffectKind)]
 #[codec(default_snake_case_key)]
 pub enum ConsumeEffect {
     ApplyEffects {

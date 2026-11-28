@@ -32,11 +32,11 @@ impl AzBuf for TagMap {
         }
         Ok(TagMap(data))
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        (self.len() as u32).azalea_write_var(buf)?;
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
+        (self.len() as u32).azalea_write_var(ctx, buf)?;
         for (k, v) in &self.0 {
-            k.azalea_write(buf)?;
-            v.azalea_write(buf)?;
+            k.azalea_write(ctx, buf)?;
+            v.azalea_write(ctx, buf)?;
         }
         Ok(())
     }
@@ -47,9 +47,9 @@ impl AzBuf for Tags {
         let elements = Vec::<i32>::azalea_read_var(ctx, buf)?;
         Ok(Tags { name, elements })
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        self.name.azalea_write(buf)?;
-        self.elements.azalea_write_var(buf)?;
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
+        self.name.azalea_write(ctx, buf)?;
+        self.elements.azalea_write_var(ctx, buf)?;
         Ok(())
     }
 }

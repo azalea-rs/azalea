@@ -1,52 +1,60 @@
-use azalea_core::identifier::Identifier;
+use std::io;
+
+use azalea_buf::BufReadError;
 use simdnbt::owned::NbtCompound;
 
 use crate::{
-    DataRegistry, DataRegistryKey, DataRegistryKeyRef,
+    Registry,
     data::{self},
     registry_holder::{RegistryDeserializesTo, RegistryHolder},
 };
 
-pub trait DataRegistryWithKey: DataRegistry {
-    fn key<'s, 'a: 's>(
-        &'s self,
-        registries: &'a RegistryHolder,
-    ) -> Option<<Self::Key as DataRegistryKey>::Borrow<'s>> {
-        registries
-            .protocol_id_to_identifier(Identifier::from(Self::NAME), self.protocol_id())
-            .map(DataRegistryKeyRef::from_ident)
-    }
-
-    fn key_owned<'s, 'a: 's>(&'s self, registries: &'a RegistryHolder) -> Option<Self::Key> {
-        registries
-            .protocol_id_to_identifier(Identifier::from(Self::NAME), self.protocol_id())
-            .cloned()
-            .map(DataRegistryKey::from_ident)
-    }
+pub(crate) fn protocol_id_to_registry<R: Registry>(
+    ctx: azalea_buf::Ctx,
+    id: u32,
+) -> Result<R, BufReadError> {
+    let registry_holder = <&RegistryHolder>::from(ctx);
+    let ident = registry_holder
+        .protocol_id_to_identifier(R::NAME.into(), id)
+        .ok_or_else(|| {
+            BufReadError::custom(format!(
+                "got a resolvable {} with id {id}, which isn't in our registry",
+                R::NAME
+            ))
+        })?;
+    let ident = ident.clone();
+    R::try_from(ident).map_err(|_| panic!("identifier returned by `protocol_id_to_identifier` should always be valid for this registry"))
 }
-impl<R: DataRegistry> DataRegistryWithKey for R {}
+pub(crate) fn registry_to_protocol_id<R: Registry>(
+    registry: &R,
+    ctx: azalea_buf::Ctx,
+) -> io::Result<u32> {
+    let registry_holder = <&RegistryHolder>::from(ctx);
+    let ident = registry.clone().into();
+    let id = registry_holder
+        .identifier_to_protocol_id(R::NAME, ident.clone())
+        .ok_or_else(|| {
+            io::Error::other(format!(
+                "got a resolvable {} with value {ident}, which isn't in our registry",
+                R::NAME
+            ))
+        })?;
+    Ok(id)
+}
 
-pub trait ResolvableDataRegistry: DataRegistry {
+pub trait DeserializableDataRegistry: Registry {
     type DeserializesTo: RegistryDeserializesTo;
 
-    #[doc(hidden)]
-    #[deprecated = "use `DataRegistryWithKey::key` instead."]
-    fn resolve_name<'a>(&self, registries: &'a RegistryHolder) -> Option<&'a Identifier> {
-        registries.protocol_id_to_identifier(Identifier::from(Self::NAME), self.protocol_id())
-    }
-
-    fn resolve<'a>(
-        &self,
-        registries: &'a RegistryHolder,
-    ) -> Option<(&'a Identifier, &'a Self::DeserializesTo)> {
-        Self::DeserializesTo::get_for_registry(registries, Self::NAME, self.protocol_id())
+    fn resolve<'a>(&self, registries: &'a RegistryHolder) -> Option<&'a Self::DeserializesTo> {
+        let protocol_id = registry_to_protocol_id(self, azalea_buf::Ctx::new(registries)).ok()?;
+        Self::DeserializesTo::get_for_registry(registries, Self::NAME, protocol_id)
     }
 }
 
 macro_rules! define_deserializes_to {
     ($($t:ty => $deserializes_to:ty),* $(,)?) => {
         $(
-            impl ResolvableDataRegistry for $t {
+            impl DeserializableDataRegistry for $t {
                 type DeserializesTo = $deserializes_to;
             }
         )*
@@ -55,7 +63,7 @@ macro_rules! define_deserializes_to {
 macro_rules! define_default_deserializes_to {
     ($($t:ty),* $(,)?) => {
         $(
-            impl ResolvableDataRegistry for $t {
+            impl DeserializableDataRegistry for $t {
                 type DeserializesTo = NbtCompound;
             }
         )*

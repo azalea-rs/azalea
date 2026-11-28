@@ -22,12 +22,12 @@ impl AzBuf for OptionalNbtCompound {
         }
     }
 
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
         if let Some(compound) = &self.0 {
-            10u8.azalea_write(buf)?;
-            compound.azalea_write(buf)?;
+            10u8.azalea_write(ctx, buf)?;
+            compound.azalea_write(ctx, buf)?;
         } else {
-            0u8.azalea_write(buf)?;
+            0u8.azalea_write(ctx, buf)?;
         }
         Ok(())
     }

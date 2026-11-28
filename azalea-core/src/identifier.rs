@@ -2,6 +2,7 @@
 
 use std::{
     borrow::Cow,
+    cmp,
     fmt::{self, Debug, Display},
     hash::{Hash, Hasher},
     io::{self, Cursor, Write},
@@ -212,19 +213,29 @@ impl AzBuf for Identifier {
         let location_string = String::azalea_read(ctx, buf)?;
         Ok(Identifier::new(&location_string))
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        self.to_string().azalea_write(buf)
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
+        self.to_string().azalea_write(ctx, buf)
     }
 }
 
 impl<O: azalea_codec::Ops> Codec<O> for Identifier {
-    fn codec_read(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
-        ops.get_string(ctx)?
+    fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
+        ops.get_string()?
             .parse()
             .map_err(|_| ReadError::custom("invalid identifier"))
     }
-    fn codec_write(&self, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::WriteResult<O> {
-        self.to_string().codec_write(ctx)
+    fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
+        self.to_string().codec_write()
+    }
+}
+impl PartialOrd for Identifier {
+    fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+impl Ord for Identifier {
+    fn cmp(&self, other: &Self) -> cmp::Ordering {
+        self.to_cow().cmp(&other.to_cow())
     }
 }
 
@@ -259,9 +270,11 @@ mod tests {
 
     #[test]
     fn azbuf_identifier() {
+        let ctx = Default::default();
+
         let mut buf = Vec::new();
         Identifier::new("minecraft:dirt")
-            .azalea_write(&mut buf)
+            .azalea_write(ctx, &mut buf)
             .unwrap();
 
         let mut buf = Cursor::new(&buf[..]);

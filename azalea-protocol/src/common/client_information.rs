@@ -110,7 +110,7 @@ impl AzBuf for ModelCustomization {
             hat: set.index(6),
         })
     }
-    fn azalea_write(&self, buf: &mut impl io::Write) -> io::Result<()> {
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl io::Write) -> io::Result<()> {
         let mut set = FixedBitSet::<7>::new();
         if self.cape {
             set.set(0);
@@ -133,7 +133,7 @@ impl AzBuf for ModelCustomization {
         if self.hat {
             set.set(6);
         }
-        set.azalea_write(buf)
+        set.azalea_write(ctx, buf)
     }
 }
 
@@ -150,7 +150,7 @@ mod tests {
         {
             let data = ClientInformation::default();
             let mut buf = Vec::new();
-            data.azalea_write(&mut buf).unwrap();
+            data.azalea_write(Default::default(), &mut buf).unwrap();
             let mut data_cursor: Cursor<&[u8]> = Cursor::new(&buf);
 
             let read_data =
@@ -178,7 +178,7 @@ mod tests {
             particle_status: ParticleStatus::Decreased,
         };
         let mut buf = Vec::new();
-        data.azalea_write(&mut buf).unwrap();
+        data.azalea_write(Default::default(), &mut buf).unwrap();
         let mut data_cursor: Cursor<&[u8]> = Cursor::new(&buf);
 
         let read_data =

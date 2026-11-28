@@ -44,8 +44,8 @@ impl AzBuf for MinecraftEntityId {
     fn azalea_read(ctx: azalea_buf::Ctx, buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         i32::azalea_read(ctx, buf).map(MinecraftEntityId)
     }
-    fn azalea_write(&self, buf: &mut impl io::Write) -> io::Result<()> {
-        i32::azalea_write(&self.0, buf)
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl io::Write) -> io::Result<()> {
+        i32::azalea_write(&self.0, ctx, buf)
     }
 }
 impl AzBufVar for MinecraftEntityId {
@@ -55,8 +55,8 @@ impl AzBufVar for MinecraftEntityId {
     ) -> Result<Self, BufReadError> {
         i32::azalea_read_var(ctx, buf).map(MinecraftEntityId)
     }
-    fn azalea_write_var(&self, buf: &mut impl io::Write) -> io::Result<()> {
-        i32::azalea_write_var(&self.0, buf)
+    fn azalea_write_var(&self, ctx: azalea_buf::Ctx, buf: &mut impl io::Write) -> io::Result<()> {
+        i32::azalea_write_var(&self.0, ctx, buf)
     }
 }
 impl Display for MinecraftEntityId {
@@ -92,10 +92,10 @@ impl AzBuf for OptionalEntityId {
         };
         Ok(OptionalEntityId(id))
     }
-    fn azalea_write(&self, buf: &mut impl io::Write) -> io::Result<()> {
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl io::Write) -> io::Result<()> {
         match self.0 {
-            Some(id) => id.0.wrapping_add(1).azalea_write_var(buf),
-            None => 0u32.azalea_write_var(buf),
+            Some(id) => id.0.wrapping_add(1).azalea_write_var(ctx, buf),
+            None => 0u32.azalea_write_var(ctx, buf),
         }
     }
 }

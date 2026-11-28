@@ -1,5 +1,6 @@
 #![doc = include_str!("../README.md")]
 
+pub mod biome_id;
 mod bit_storage;
 pub mod chunk;
 mod container;
@@ -13,10 +14,3 @@ pub use bit_storage::BitStorage;
 pub use chunk::{Chunk, Section, partial::PartialChunkStorage, storage::ChunkStorage};
 pub use container::{WorldName, Worlds};
 pub use world::*;
-
-#[deprecated = "renamed to `WorldName`."]
-pub type InstanceName = WorldName;
-#[deprecated = "renamed to `WorldContainer`."]
-pub type InstanceContainer = Worlds;
-#[deprecated = "renamed to `PartialWorld`."]
-pub type PartialInstance = PartialWorld;

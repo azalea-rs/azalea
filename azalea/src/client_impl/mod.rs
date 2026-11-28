@@ -13,7 +13,7 @@ use azalea_client::{
     start_ecs_runner,
     tick_counter::TicksConnected,
 };
-use azalea_core::{entity_id::MinecraftEntityId, identifier::Identifier};
+use azalea_core::entity_id::MinecraftEntityId;
 use azalea_entity::indexing::{EntityIdIndex, EntityUuidIndex};
 use azalea_protocol::{
     address::{ResolvableAddr, ResolvedAddr},
@@ -21,11 +21,7 @@ use azalea_protocol::{
     packets::{Packet, game::ServerboundGamePacket},
     resolve::ResolveError,
 };
-use azalea_registry::{
-    DataRegistryKeyRef,
-    data_registry::{DataRegistryWithKey, ResolvableDataRegistry},
-    registry_holder::RegistryHolder,
-};
+use azalea_registry::{data_registry::DeserializableDataRegistry, registry_holder::RegistryHolder};
 use azalea_world::{PartialWorld, World, WorldName};
 use bevy_app::{App, AppExit};
 use bevy_ecs::{entity::Entity, resource::Resource, world::Mut};
@@ -510,54 +506,17 @@ impl Client {
         Ok(f(registries))
     }
 
-    /// Resolve the given registry to its name.
+    /// Resolve the given registry to its data and call the given function with
+    /// it.
     ///
-    /// This is necessary for data-driven registries like [`Enchantment`].
-    ///
-    /// [`Enchantment`]: azalea_registry::data::Enchantment
-    #[deprecated = "use `bot.resolve_registry_key(registry).map(|r| r.into_ident())` instead."]
-    pub fn resolve_registry_name(
-        &self,
-        registry: &impl ResolvableDataRegistry,
-    ) -> AzaleaResult<Option<Identifier>> {
-        self.with_registry_holder(|registries| registry.key(registries).map(|r| r.into_ident()))
-    }
-
-    /// Resolve the given registry entry to its key (aka name).
-    ///
-    /// This is necessary for data-driven registries like [`Enchantment`] and
-    /// [`Biome`](azalea_registry::data::Biome).
-    ///
-    /// To get the key as an [`Identifier`], you can map the return value like
-    /// `.map(|r| r.into_ident())`.
-    ///
-    /// [`Enchantment`]: azalea_registry::data::Enchantment
-    pub fn resolve_registry_key<R: ResolvableDataRegistry>(
-        &self,
-        registry: &R,
-    ) -> AzaleaResult<Option<R::Key>> {
-        self.with_registry_holder(|registries| registry.key_owned(registries))
-    }
-
-    /// Resolve the given registry to its name and data and call the given
-    /// function with it.
-    ///
-    /// This is necessary for data-driven registries like [`Enchantment`].
-    ///
-    /// If you just want the value name, use [`Self::resolve_registry_name`]
-    /// instead.
-    ///
-    /// [`Enchantment`]: azalea_registry::data::Enchantment
-    pub fn with_resolved_registry<R: ResolvableDataRegistry, Ret>(
+    /// To get the registry's [`Identifier`] name, you may simply use its
+    /// `Identifier::from` implementation.
+    pub fn with_resolved_registry<R: DeserializableDataRegistry, Ret>(
         &self,
         registry: R,
-        f: impl FnOnce(&Identifier, &R::DeserializesTo) -> Ret,
+        f: impl FnOnce(&R::DeserializesTo) -> Ret,
     ) -> AzaleaResult<Option<Ret>> {
-        self.with_registry_holder(|registries| {
-            registry
-                .resolve(registries)
-                .map(|(name, data)| f(name, data))
-        })
+        self.with_registry_holder(|registries| registry.resolve(registries).map(f))
     }
 
     /// Returns the number of ticks since the `login` packet was received, or 0

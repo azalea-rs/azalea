@@ -31,10 +31,10 @@ impl AzBuf for BlockStateWithPosition {
         };
         Ok(BlockStateWithPosition { pos, state })
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
         let data = ((self.state.id() as u64) << 12)
             | ((u64::from(self.pos.x) << 8) | (u64::from(self.pos.z) << 4) | u64::from(self.pos.y));
-        u64::azalea_write_var(&data, buf)?;
+        u64::azalea_write_var(&data, ctx, buf)?;
         Ok(())
     }
 }

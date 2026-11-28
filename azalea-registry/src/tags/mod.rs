@@ -1,6 +1,8 @@
 use std::{collections::HashSet, ops::Deref};
 
-use crate::Registry;
+use azalea_block::BlockStates;
+
+use crate::{Registry, builtin::BlockKind};
 
 pub mod blocks;
 pub mod entities;
@@ -88,5 +90,11 @@ impl<R: Registry> FromIterator<R> for RegistryTag<R> {
         let mut entries = iter.into_iter().collect::<Vec<_>>();
         entries.sort();
         Self::new(entries)
+    }
+}
+
+impl From<&RegistryTag<BlockKind>> for BlockStates {
+    fn from(tag: &RegistryTag<BlockKind>) -> Self {
+        Self::from(tag.entries.as_slice())
     }
 }

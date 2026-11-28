@@ -71,7 +71,11 @@ pub fn handle_outgoing_packets_observer(
             return;
         }
         debug!("Sending login packet: {:?}", event.packet);
-        if let Err(e) = raw_conn.write(event.packet.clone()) {
+
+        // we won't have registries at this point
+        let ctx = azalea_buf::Ctx::default();
+
+        if let Err(e) = raw_conn.write(ctx, event.packet.clone()) {
             error!("Failed to send packet: {e}");
         }
     }

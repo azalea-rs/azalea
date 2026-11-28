@@ -6,11 +6,10 @@ use std::{
 use azalea_block::BlockState;
 use azalea_buf::{AzBuf, BufReadError};
 use azalea_core::position::{ChunkSectionBiomePos, ChunkSectionBlockPos};
-use azalea_registry::data::Biome;
 use tracing::{debug, warn};
 
 use super::{Palette, PaletteKind};
-use crate::BitStorage;
+use crate::{BitStorage, biome_id::BiomeId};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct PalettedContainer<S: PalletedContainerKind> {
@@ -54,13 +53,12 @@ impl PalletedContainerKind for BlockState {
         }
     }
 }
-impl PalletedContainerKind for Biome {
-    type SectionPos = ChunkSectionBiomePos;
 
+impl PalletedContainerKind for BiomeId {
+    type SectionPos = ChunkSectionBiomePos;
     fn size_bits() -> usize {
         2
     }
-
     fn bits_per_entry_to_palette_kind(bits_per_entry: u8) -> PaletteKind {
         match bits_per_entry {
             0 => PaletteKind::SingleValue,
@@ -296,11 +294,11 @@ impl<S: PalletedContainerKind> PalettedContainer<S> {
 }
 
 impl<S: PalletedContainerKind> PalettedContainer<S> {
-    pub fn write(&self, buf: &mut impl Write) -> io::Result<()> {
-        self.bits_per_entry.azalea_write(buf)?;
-        self.palette.write(buf)?;
+    pub fn write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
+        self.bits_per_entry.azalea_write(ctx, buf)?;
+        self.palette.write(ctx, buf)?;
         for word in &self.storage.data {
-            word.azalea_write(buf)?;
+            word.azalea_write(ctx, buf)?;
         }
 
         Ok(())

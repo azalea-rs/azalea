@@ -152,10 +152,9 @@ fn frame_splitter(buffer: &mut Cursor<Vec<u8>>) -> Result<Option<Box<[u8]>>, Fra
 }
 
 pub fn deserialize_packet<P: ProtocolPacket + Debug>(
+    ctx: azalea_buf::Ctx<'_>,
     stream: &mut Cursor<&[u8]>,
 ) -> Result<P, Box<ReadPacketError>> {
-    let ctx = azalea_buf::Ctx::default();
-
     let packet_id = u32::azalea_read_var(ctx, stream)
         .map_err(|e| ReadPacketError::ReadPacketId { source: e })?;
     P::read(packet_id, ctx, stream)
@@ -241,6 +240,7 @@ pub fn compression_decoder(
 ///
 /// For the non-waiting version, see [`try_read_packet`].
 pub async fn read_packet<P: ProtocolPacket + Debug, R>(
+    ctx: azalea_buf::Ctx<'_>,
     stream: &mut R,
     buffer: &mut Cursor<Vec<u8>>,
     compression_threshold: Option<u32>,
@@ -250,13 +250,14 @@ where
     R: AsyncRead + Unpin + Send + Sync,
 {
     let raw_packet = read_raw_packet(stream, buffer, compression_threshold, cipher).await?;
-    let packet = deserialize_packet(&mut Cursor::new(&raw_packet))?;
+    let packet = deserialize_packet(ctx, &mut Cursor::new(&raw_packet))?;
     Ok(packet)
 }
 
 /// Try to read a single packet from a stream. Returns None if we haven't
 /// received a full packet yet.
 pub fn try_read_packet<P: ProtocolPacket + Debug, R>(
+    ctx: azalea_buf::Ctx<'_>,
     stream: &mut R,
     buffer: &mut Cursor<Vec<u8>>,
     compression_threshold: Option<u32>,
@@ -269,7 +270,7 @@ where
     else {
         return Ok(None);
     };
-    let packet = deserialize_packet(&mut Cursor::new(&raw_packet))?;
+    let packet = deserialize_packet(ctx, &mut Cursor::new(&raw_packet))?;
     Ok(Some(packet))
 }
 
@@ -418,41 +419,48 @@ mod tests {
     #[test]
     fn fuzzed_1() {
         // oom: checks for unbounded TagMap
-        let _ = deserialize_packet::<ClientboundGamePacket>(&mut Cursor::new(
-            [132, 1, 255, 255, 255, 255, 255].as_slice(),
-        ));
+        let _ = deserialize_packet::<ClientboundGamePacket>(
+            Default::default(),
+            &mut Cursor::new([132, 1, 255, 255, 255, 255, 255].as_slice()),
+        );
     }
     #[test]
     fn fuzzed_2() {
         // oom: also checks for unbounded TagMap
-        let _ = deserialize_packet::<ClientboundGamePacket>(&mut Cursor::new(
-            [132, 1, 75, 0, 255, 255, 255, 255, 24, 0].as_slice(),
-        ));
+        let _ = deserialize_packet::<ClientboundGamePacket>(
+            Default::default(),
+            &mut Cursor::new([132, 1, 75, 0, 255, 255, 255, 255, 24, 0].as_slice()),
+        );
     }
     #[test]
     fn fuzzed_3() {
         // panic: integer overflow in HolderSet::azalea_read
-        let _ = deserialize_packet::<ClientboundGamePacket>(&mut Cursor::new(
-            [
-                94, 44, 157, 38, 61, 37, 37, 37, 37, 37, 37, 65, 128, 128, 1, 1, 255, 252, 128,
-                128, 128, 128, 128, 128, 128, 40, 0,
-            ]
-            .as_slice(),
-        ));
+        let _ = deserialize_packet::<ClientboundGamePacket>(
+            Default::default(),
+            &mut Cursor::new(
+                [
+                    94, 44, 157, 38, 61, 37, 37, 37, 37, 37, 37, 65, 128, 128, 1, 1, 255, 252, 128,
+                    128, 128, 128, 128, 128, 128, 40, 0,
+                ]
+                .as_slice(),
+            ),
+        );
     }
     #[test]
     fn fuzzed_4() {
         // memory leak in DataComponentPatch
-        let _ = deserialize_packet::<ClientboundGamePacket>(&mut Cursor::new(
-            [94, 94, 70, 52, 0, 6, 0].as_slice(),
-        ));
+        let _ = deserialize_packet::<ClientboundGamePacket>(
+            Default::default(),
+            &mut Cursor::new([94, 94, 70, 52, 0, 6, 0].as_slice()),
+        );
     }
     #[test]
     fn fuzzed_5() {
         // also a memory leak in DataComponentPatch
-        let _ = deserialize_packet::<ClientboundGamePacket>(&mut Cursor::new(
-            [94, 94, 70, 52, 0, 6, 0, 6, 0].as_slice(),
-        ));
+        let _ = deserialize_packet::<ClientboundGamePacket>(
+            Default::default(),
+            &mut Cursor::new([94, 94, 70, 52, 0, 6, 0, 6, 0].as_slice()),
+        );
     }
     #[test]
     fn fuzzed_6() {

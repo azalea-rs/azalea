@@ -31,16 +31,16 @@ impl AzBuf for NumberFormat {
             }),
         }
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
         match self {
-            NumberFormat::Blank => NumberFormatKind::Blank.azalea_write(buf)?,
+            NumberFormat::Blank => NumberFormatKind::Blank.azalea_write(ctx, buf)?,
             NumberFormat::Styled { style } => {
-                NumberFormatKind::Styled.azalea_write(buf)?;
-                style.azalea_write(buf)?;
+                NumberFormatKind::Styled.azalea_write(ctx, buf)?;
+                style.azalea_write(ctx, buf)?;
             }
             NumberFormat::Fixed { value } => {
-                NumberFormatKind::Fixed.azalea_write(buf)?;
-                value.azalea_write(buf)?;
+                NumberFormatKind::Fixed.azalea_write(ctx, buf)?;
+                value.azalea_write(ctx, buf)?;
             }
         }
         Ok(())

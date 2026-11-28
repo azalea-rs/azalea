@@ -11,7 +11,9 @@ use parking_lot::RwLock;
 use tracing::{error, trace};
 use uuid::Uuid;
 
-use crate::{client::InGameState, connection::RawConnection, player::PlayerInfo};
+use crate::{
+    client::InGameState, connection::RawConnection, local_player::WorldHolder, player::PlayerInfo,
+};
 
 /// An event that's sent when we receive a packet.
 /// ```
@@ -54,11 +56,15 @@ impl SendGamePacketEvent {
 
 pub fn handle_outgoing_packets_observer(
     trigger: On<SendGamePacketEvent>,
-    mut query: Query<(&mut RawConnection, Option<&InGameState>)>,
+    mut query: Query<(
+        &mut RawConnection,
+        Option<&WorldHolder>,
+        Option<&InGameState>,
+    )>,
 ) {
     let event = trigger.event();
 
-    if let Ok((mut raw_connection, in_game_state)) = query.get_mut(event.sent_by) {
+    if let Ok((mut raw_connection, world, in_game_state)) = query.get_mut(event.sent_by) {
         if in_game_state.is_none() {
             error!(
                 "Tried to send a game packet {:?} while not in game state",
@@ -68,9 +74,17 @@ pub fn handle_outgoing_packets_observer(
         }
 
         trace!("Sending game packet: {:?}", event.packet);
-        if let Err(e) = raw_connection.write(event.packet.clone()) {
-            error!("Failed to send packet: {e}");
-        }
+
+        let mut write_fn = |ctx: azalea_buf::Ctx| {
+            if let Err(e) = raw_connection.write(ctx, event.packet.clone()) {
+                error!("Failed to send packet: {e}");
+            }
+        };
+        if let Some(world) = world {
+            write_fn(azalea_buf::Ctx::new(&world.shared.read().registries))
+        } else {
+            write_fn(azalea_buf::Ctx::default())
+        };
     } else {
         trace!("Not sending game packet: {:?}", event.packet);
     }

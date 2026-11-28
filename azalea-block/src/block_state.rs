@@ -151,8 +151,8 @@ impl AzBuf for BlockState {
             .into()
         })
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        u32::azalea_write_var(&(self.id as u32), buf)
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
+        u32::azalea_write_var(&(self.id as u32), ctx, buf)
     }
 }
 

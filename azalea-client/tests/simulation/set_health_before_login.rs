@@ -27,7 +27,7 @@ fn test_set_health_before_login() {
     simulation.tick();
     assert_eq!(*simulation.component::<Health>(), 15.);
 
-    simulation.receive_packet(default_login_packet(&simulation));
+    simulation.receive_packet(default_login_packet());
     simulation.tick();
 
     // health should stay the same

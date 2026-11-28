@@ -71,7 +71,7 @@ pub struct DimensionKindElement {
     #[codec(optional)]
     pub timelines: Option<HolderSet<crate::data::Timeline>>,
     #[codec(optional)]
-    pub default_clock: Option<crate::data::WorldClockKey>,
+    pub default_clock: Option<crate::data::WorldClock>,
 
     #[codec(flatten)]
     pub _extra: HashMap<String, NbtTag>,

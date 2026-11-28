@@ -41,10 +41,10 @@ impl AzBuf for OptionalMapPatch {
             Some(MapPatch::azalea_read(ctx, buf)?)
         }))
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
         match &self.0 {
-            None => 0u8.azalea_write(buf),
-            Some(m) => m.azalea_write(buf),
+            None => 0u8.azalea_write(ctx, buf),
+            Some(m) => m.azalea_write(ctx, buf),
         }
     }
 }

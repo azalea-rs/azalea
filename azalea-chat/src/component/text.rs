@@ -25,14 +25,14 @@ struct TextComponentCodec {
     base: BaseComponent,
 }
 impl<O: azalea_codec::Ops> Codec<O> for TextComponent {
-    fn codec_read(ops: &O, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::ReadResult<Self> {
-        let r = if let Ok(text) = String::codec_read(ops, ctx) {
+    fn codec_read(ops: &O) -> azalea_codec::error::ReadResult<Self> {
+        let r = if let Ok(text) = String::codec_read(ops) {
             TextComponentCodec {
                 text,
                 base: Default::default(),
             }
         } else {
-            TextComponentCodec::codec_read(ops, ctx)?
+            TextComponentCodec::codec_read(ops)?
         };
 
         // make sure it goes through the constructor so legacy formatting is
@@ -53,16 +53,16 @@ impl<O: azalea_codec::Ops> Codec<O> for TextComponent {
         Ok(TextComponent::empty_with_siblings(siblings).with_style(*r.base.style))
     }
 
-    fn codec_write(&self, ctx: azalea_codec::Ctx<O>) -> azalea_codec::error::WriteResult<O> {
+    fn codec_write(&self) -> azalea_codec::error::WriteResult<O> {
         if self.base.is_default() {
-            return self.text.codec_write(ctx);
+            return self.text.codec_write();
         }
 
         TextComponentCodec {
             text: self.text.clone(),
             base: self.base.clone(),
         }
-        .codec_write(ctx)
+        .codec_write()
     }
 }
 
@@ -208,8 +208,6 @@ impl From<TextComponent> for FormattedText {
 
 #[cfg(test)]
 mod tests {
-    use azalea_codec::Ctx;
-
     use super::*;
     use crate::style::Ansi;
 
@@ -303,7 +301,7 @@ mod tests {
     fn test_serialize_to_json() {
         let component = TextComponent::new("Hello §aworld".to_owned()).into_formatted_text();
 
-        let value: serde_json::Value = component.codec_write(Ctx::new()).unwrap();
+        let value: serde_json::Value = component.codec_write().unwrap();
 
         assert_eq!(
             serde_json::to_string(&value).unwrap(),

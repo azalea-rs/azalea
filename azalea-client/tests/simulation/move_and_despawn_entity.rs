@@ -17,7 +17,7 @@ fn test_move_and_despawn_entity() {
     let _lock = init();
 
     let mut simulation = Simulation::new(ConnectionProtocol::Game);
-    simulation.receive_packet(default_login_packet(&simulation));
+    simulation.receive_packet(default_login_packet());
 
     simulation.receive_packet(make_basic_empty_chunk(ChunkPos::new(0, 0), (384 + 64) / 16));
     simulation.tick();

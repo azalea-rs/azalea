@@ -6,7 +6,7 @@ use azalea_core::identifier::Identifier;
 use azalea_entity::{Attributes, inventory::Inventory};
 use azalea_registry::{
     builtin::Attribute,
-    data_registry::ResolvableDataRegistry,
+    data_registry::DeserializableDataRegistry,
     item::{
         ItemStack,
         components::{self, AttributeModifier, EquipmentSlot},
@@ -169,7 +169,7 @@ fn collect_attribute_modifiers_from_item(
     if !enchants.is_empty() {
         let registry_holder = &world_holder.shared.read().registries;
         for (enchant, &level) in &enchants {
-            let Some((_enchant_id, enchant_definition)) = enchant.resolve(registry_holder) else {
+            let Some(enchant_definition) = enchant.resolve(registry_holder) else {
                 warn!(
                     "Got equipment with an enchantment that wasn't in the registry, so it couldn't be resolved to an ID"
                 );

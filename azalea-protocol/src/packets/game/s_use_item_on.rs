@@ -54,17 +54,17 @@ impl AzBuf for BlockHit {
             world_border,
         })
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        self.block_pos.azalea_write(buf)?;
-        self.direction.azalea_write(buf)?;
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
+        self.block_pos.azalea_write(ctx, buf)?;
+        self.direction.azalea_write(ctx, buf)?;
         let cursor = Vec3 {
             x: self.location.x - f64::from(self.block_pos.x),
             y: self.location.y - f64::from(self.block_pos.y),
             z: self.location.z - f64::from(self.block_pos.z),
         };
-        Vec3f32::from(cursor).azalea_write(buf)?;
-        self.inside.azalea_write(buf)?;
-        self.world_border.azalea_write(buf)?;
+        Vec3f32::from(cursor).azalea_write(ctx, buf)?;
+        self.inside.azalea_write(ctx, buf)?;
+        self.world_border.azalea_write(ctx, buf)?;
         Ok(())
     }
 }

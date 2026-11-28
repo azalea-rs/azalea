@@ -68,11 +68,11 @@ impl AzBuf for DisplayInfo {
             background,
         })
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        self.title.azalea_write(buf)?;
-        self.description.azalea_write(buf)?;
-        self.icon.azalea_write(buf)?;
-        self.frame.azalea_write(buf)?;
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
+        self.title.azalea_write(ctx, buf)?;
+        self.description.azalea_write(ctx, buf)?;
+        self.icon.azalea_write(ctx, buf)?;
+        self.frame.azalea_write(ctx, buf)?;
 
         let mut data: u32 = 0;
         if self.background.is_some() {
@@ -84,10 +84,10 @@ impl AzBuf for DisplayInfo {
         if self.hidden {
             data |= 0b100;
         }
-        data.azalea_write(buf)?;
+        data.azalea_write(ctx, buf)?;
 
         if let Some(background) = &self.background {
-            background.azalea_write(buf)?;
+            background.azalea_write(ctx, buf)?;
         }
         Ok(())
     }
@@ -175,7 +175,7 @@ mod tests {
         };
 
         let mut data = Vec::new();
-        packet.azalea_write(&mut data).unwrap();
+        packet.azalea_write(Default::default(), &mut data).unwrap();
         let mut buf: Cursor<&[u8]> = Cursor::new(&data);
 
         let read_packet =

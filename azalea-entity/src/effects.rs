@@ -48,7 +48,7 @@ impl AzBuf for MobEffectFlags {
             blend,
         })
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
         let mut bitset = FixedBitSet::<8>::new();
         if self.ambient {
             bitset.set(0);
@@ -62,7 +62,7 @@ impl AzBuf for MobEffectFlags {
         if self.blend {
             bitset.set(3);
         }
-        bitset.azalea_write(buf)
+        bitset.azalea_write(ctx, buf)
     }
 }
 

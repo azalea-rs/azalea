@@ -22,8 +22,8 @@ impl AzBuf for ClientboundMoveEntityPosRot {
     ) -> Result<Self, azalea_buf::BufReadError> {
         read_move_entity_packet(ctx, buf, true)
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        write_move_entity_packet(buf, self, true)
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
+        write_move_entity_packet(ctx, buf, self, true)
     }
 }
 
@@ -51,16 +51,17 @@ pub fn read_move_entity_packet(
     })
 }
 pub fn write_move_entity_packet(
+    ctx: azalea_buf::Ctx,
     buf: &mut impl Write,
     p: &ClientboundMoveEntityPosRot,
     include_look_direction: bool,
 ) -> io::Result<()> {
-    p.entity_id.azalea_write_var(buf)?;
-    p.properties.azalea_write(buf)?;
-    p.delta.write_and_get_steps(buf)?;
+    p.entity_id.azalea_write_var(ctx, buf)?;
+    p.properties.azalea_write(ctx, buf)?;
+    p.delta.write_and_get_steps(ctx, buf)?;
 
     if include_look_direction {
-        p.look_direction.azalea_write(buf)?;
+        p.look_direction.azalea_write(ctx, buf)?;
     };
 
     Ok(())
@@ -93,15 +94,19 @@ impl VecDelta {
         }
         Ok(Self::Stepped(steps))
     }
-    pub fn write_and_get_steps(&self, buf: &mut impl Write) -> io::Result<i32> {
+    pub fn write_and_get_steps(
+        &self,
+        ctx: azalea_buf::Ctx,
+        buf: &mut impl Write,
+    ) -> io::Result<i32> {
         match self {
             VecDelta::Linear(v) => {
-                v.azalea_write(buf)?;
+                v.azalea_write(ctx, buf)?;
                 Ok(0)
             }
             VecDelta::Stepped(steps) => {
                 for s in steps {
-                    s.azalea_write(buf)?;
+                    s.azalea_write(ctx, buf)?;
                 }
                 Ok(steps.len() as i32)
             }

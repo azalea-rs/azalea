@@ -353,14 +353,12 @@ impl AzBuf for FormattedText {
             return Ok(FormattedText::default());
         };
 
-        FormattedText::codec_read(&nbt.as_tag().to_owned(), azalea_codec::Ctx(&()))
+        FormattedText::codec_read(&nbt.as_tag().to_owned())
             .map_err(|e| BufReadError::custom(e.to_string()))
     }
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        let nbt: NbtTag = self
-            .codec_write(azalea_codec::Ctx(&()))
-            .map_err(io::Error::other)?;
-        nbt.azalea_write(buf)?;
+    fn azalea_write(&self, ctx: azalea_buf::Ctx, buf: &mut impl Write) -> io::Result<()> {
+        let nbt: NbtTag = self.codec_write().map_err(io::Error::other)?;
+        nbt.azalea_write(ctx, buf)?;
         Ok(())
     }
 }
@@ -401,7 +399,7 @@ impl Default for FormattedText {
     }
 }
 
-azalea_codec::impl_serde!(FormattedText, ());
+azalea_codec::impl_serde!(FormattedText);
 azalea_codec::impl_defaultable!(FormattedText);
 
 #[cfg(test)]

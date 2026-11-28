@@ -25,7 +25,7 @@ fn test_teleport_movement() {
     let mut simulation = Simulation::new(ConnectionProtocol::Game);
     let sent_packets = SentPackets::new(&mut simulation);
 
-    simulation.receive_packet(default_login_packet(&simulation));
+    simulation.receive_packet(default_login_packet());
     simulation.tick();
 
     sent_packets.expect_tick_end();
