@@ -22,8 +22,7 @@ use azalea_codec::Codec;
 use azalea_core::identifier::Identifier;
 pub use azalea_registry_macros as macros;
 
-pub trait Registry:
-    AzBuf + PartialEq + PartialOrd + Ord + Clone + Hash + Into<Identifier> + TryFrom<Identifier> + Clone
+pub trait Registry: AzBuf + Ord + Clone + Hash + Into<Identifier> + TryFrom<Identifier>
 where
     Self: Sized,
 {

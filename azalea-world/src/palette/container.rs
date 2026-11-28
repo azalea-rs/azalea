@@ -24,9 +24,7 @@ pub struct PalettedContainer<S: PalletedContainerKind> {
     pub storage: BitStorage,
 }
 
-pub trait PalletedContainerKind:
-    Copy + Clone + Debug + Default + PartialEq + TryFrom<u32> + Into<u32>
-{
+pub trait PalletedContainerKind: Copy + Clone + Debug + Default + TryFrom<u32> + Into<u32> {
     type SectionPos: SectionPos;
 
     fn size_bits() -> usize;
